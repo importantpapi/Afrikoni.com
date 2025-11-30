@@ -1,0 +1,40 @@
+export const createPageUrl = (pageName) => {
+  const routes = {
+    'Home': '/',
+    'Products': '/products',
+    'ProductDetail': '/product',
+    'Categories': '/categories',
+    'Suppliers': '/suppliers',
+    'SupplierProfile': '/supplier',
+    'CreateRFQ': '/rfq/create',
+    'RFQDetail': '/rfq/detail',
+    'RFQManagement': '/rfq-management',
+    'Orders': '/orders',
+    'OrderDetail': '/order',
+    'Messages': '/messages',
+    'SellerDashboard': '/dashboard',
+    'BuyerDashboard': '/dashboard',
+    'AdminDashboard': '/dashboard/admin',
+    'LogisticsDashboard': '/dashboard',
+    'HybridDashboard': '/dashboard',
+    'AddProduct': '/products/add',
+    'Analytics': '/analytics',
+    'TradeFinancing': '/financing',
+    'AIMatchmaking': '/ai-matchmaking',
+    'PaymentGateway': '/payment',
+    'MultiCurrency': '/currency',
+    'Login': '/login',
+    'Signup': '/signup',
+    'SellerGrowth': '/seller-growth',
+    'SellerOnboarding': '/seller-onboarding',
+    'BuyerCentral': '/buyer-central',
+    'Profile': '/dashboard',
+    'Settings': '/dashboard',
+    'Verification': '/verification',
+    'Help': '/help',
+    'Contact': '/contact',
+    'Investors': '/investors'
+  };
+  return routes[pageName] || '/';
+};
+

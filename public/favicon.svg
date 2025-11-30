@@ -1,0 +1,58 @@
+<svg width="32" height="32" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer Chevron (Roof/Arrow) -->
+  <path
+    d="M50 10 L20 40 L80 40 Z"
+    fill="none"
+    stroke="#D4A857"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Inner Chevron -->
+  <path
+    d="M50 20 L30 40 L70 40 Z"
+    fill="none"
+    stroke="#D4A857"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Circular/Oval Structure -->
+  <ellipse
+    cx="50"
+    cy="70"
+    rx="30"
+    ry="25"
+    fill="none"
+    stroke="#D4A857"
+    stroke-width="3"
+  />
+  <!-- Intertwined W's Pattern (simplified knot pattern) -->
+  <path
+    d="M35 60 Q40 70, 50 65 Q60 70, 65 60 Q60 75, 50 70 Q40 75, 35 60"
+    fill="none"
+    stroke="#D4A857"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+  <path
+    d="M35 80 Q40 70, 50 75 Q60 70, 65 80 Q60 65, 50 70 Q40 65, 35 80"
+    fill="none"
+    stroke="#D4A857"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+  <!-- Geometric Pattern Band (triangles and lines) -->
+  <g fill="#D4A857">
+    <path d="M40 90 L42 95 L38 95 Z" />
+    <path d="M45 90 L47 95 L43 95 Z" />
+    <path d="M50 90 L52 95 L48 95 Z" />
+    <path d="M55 90 L57 95 L53 95 Z" />
+    <path d="M60 90 L62 95 L58 95 Z" />
+  </g>
+  <line x1="42" y1="90" x2="42" y2="95" stroke="#D4A857" stroke-width="1.5" />
+  <line x1="47" y1="90" x2="47" y2="95" stroke="#D4A857" stroke-width="1.5" />
+  <line x1="52" y1="90" x2="52" y2="95" stroke="#D4A857" stroke-width="1.5" />
+  <line x1="57" y1="90" x2="57" y2="95" stroke="#D4A857" stroke-width="1.5" />
+</svg>
+

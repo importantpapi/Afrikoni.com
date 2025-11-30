@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AFRIKONI BRAND CSS VARIABLES */
+:root {
+  /* Brown Palette */
+  --brown: #4B2C17;
+  --brown-deep: #3A2313;
+  --brown-dark: #2A180E;
+  
+  /* Gold System */
+  --gold: #C69A47;
+  --gold-dark: #A17833;
+  --gold-light: #E4C27F;
+  
+  /* Neutrals */
+  --cream: #F3E5C7;
+  --offwhite: #FFF9F3;
+  --white: #FFFFFF;
+  
+  /* Brand Colors */
+  --brand-dark: #2A180E;
+  --brand-brown: #4B2C17;
+  --brand-cream: #FFF9F3;
+  --brand-gold: #C69A47;
+  --brand-gold-dark: #A17833;
+  --brand-gold-light: #E4C27F;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 3s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
