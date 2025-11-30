@@ -33,7 +33,6 @@ export async function createNotification({
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error creating notification:', error);
     throw error;
   }
 }
@@ -51,7 +50,6 @@ export async function markNotificationAsRead(notificationId) {
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error('Error marking notification as read:', error);
     throw error;
   }
 }
@@ -78,7 +76,6 @@ export async function markAllNotificationsAsRead(userId = null, companyId = null
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error('Error marking all notifications as read:', error);
     throw error;
   }
 }
@@ -107,7 +104,6 @@ export async function getNotifications(userId = null, companyId = null, limit = 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error getting notifications:', error);
     throw error;
   }
 }
@@ -135,7 +131,6 @@ export async function getUnreadCount(userId = null, companyId = null) {
     if (error) throw error;
     return count || 0;
   } catch (error) {
-    console.error('Error getting unread count:', error);
     throw error;
   }
 }

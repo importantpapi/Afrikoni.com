@@ -137,7 +137,7 @@ export default function Layout({ children }) {
                   { to: '/suppliers', label: 'Find Suppliers' },
                   { to: '/signup', label: 'Join as Buyer' },
                   { to: '/rfq/create', label: 'Request Quotes' },
-                  { to: '/dashboard/buyer', label: 'Buyer Central' }
+                  { to: '/dashboard', label: 'Buyer Central' }
                 ].map((item, idx) => (
                   <motion.li
                     key={idx}

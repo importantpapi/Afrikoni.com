@@ -144,7 +144,6 @@ export default function DashboardPayments() {
 
       setTransactions(filtered);
     } catch (error) {
-      console.error('Error loading payments:', error);
       toast.error('Failed to load payments');
     } finally {
       setIsLoading(false);
@@ -228,7 +227,7 @@ export default function DashboardPayments() {
         {summary ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Wallet Balance</p>
@@ -241,7 +240,7 @@ export default function DashboardPayments() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Total Received</p>
@@ -249,12 +248,12 @@ export default function DashboardPayments() {
                       ${summary.totalReceived.toLocaleString()}
                     </p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-600" />
+                  <DollarSign className="w-8 h-8 text-afrikoni-gold" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Total Paid</p>
@@ -262,12 +261,12 @@ export default function DashboardPayments() {
                       ${summary.totalPaid.toLocaleString()}
                     </p>
                   </div>
-                  <CreditCard className="w-8 h-8 text-blue-600" />
+                  <CreditCard className="w-8 h-8 text-afrikoni-gold" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Escrow Held</p>
@@ -275,7 +274,7 @@ export default function DashboardPayments() {
                       ${summary.escrowHeld.toLocaleString()}
                     </p>
                   </div>
-                  <Lock className="w-8 h-8 text-purple-600" />
+                  <Lock className="w-8 h-8 text-afrikoni-gold" />
                 </div>
               </CardContent>
             </Card>
@@ -284,7 +283,7 @@ export default function DashboardPayments() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
               <Card key={i}>
-                <CardContent className="p-4">
+                <CardContent className="p-5 md:p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-afrikoni-deep">Loading...</p>

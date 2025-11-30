@@ -51,6 +51,7 @@ export default function CompanyInfo() {
   const [newTeamMember, setNewTeamMember] = useState({ email: '', role: 'member' });
   const [isAddingTeamMember, setIsAddingTeamMember] = useState(false);
   const [currentRole, setCurrentRole] = useState('buyer');
+  const [errors, setErrors] = useState({});
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -65,10 +66,9 @@ export default function CompanyInfo() {
     try {
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', `company-logos/${Date.now()}-${file.name}`);
       setLogoUrl(file_url);
-      toast.success('Logo uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading logo:', error);
-      toast.error('Failed to upload logo');
+        toast.success('Logo uploaded successfully');
+      } catch (error) {
+        toast.error('Failed to upload logo');
     } finally {
       setUploadingLogo(false);
     }
@@ -87,10 +87,9 @@ export default function CompanyInfo() {
     try {
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', `company-covers/${Date.now()}-${file.name}`);
       setCoverUrl(file_url);
-      toast.success('Cover image uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading cover:', error);
-      toast.error('Failed to upload cover image');
+        toast.success('Cover image uploaded successfully');
+      } catch (error) {
+        toast.error('Failed to upload cover image');
     } finally {
       setUploadingCover(false);
     }
@@ -181,7 +180,6 @@ export default function CompanyInfo() {
         }));
       }
     } catch (error) {
-      console.error('Error loading company data:', error);
       toast.error('Failed to load company information');
     } finally {
       setIsLoading(false);
@@ -191,12 +189,15 @@ export default function CompanyInfo() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Make fields optional - don't block if missing
-    // Only show warning, but allow save
-    if (!formData.company_name) {
-      toast.warning('Company name is recommended but not required');
+    // Validate form
+    const validationErrors = validateCompanyForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error('Please fix the errors before saving');
+      return;
     }
-
+    
+    setErrors({});
     setIsSaving(true);
     try {
       if (!user) {
@@ -282,7 +283,6 @@ export default function CompanyInfo() {
         }, { onConflict: 'id' });
 
       if (profileErr) {
-        console.error('Profile update error:', profileErr);
         throw new Error(`Failed to save profile: ${profileErr.message}`);
       }
 
@@ -294,7 +294,6 @@ export default function CompanyInfo() {
         navigate(returnUrl);
       }, 800);
     } catch (error) {
-      console.error('Error saving company data:', error);
       toast.error(error?.message || 'Failed to save company information. Please try again.');
     } finally {
       setIsSaving(false);
@@ -324,7 +323,6 @@ export default function CompanyInfo() {
       setNewTeamMember({ email: '', role: 'member' });
       loadData();
     } catch (error) {
-      console.error('Error adding team member:', error);
       toast.error('Failed to add team member');
     } finally {
       setIsAddingTeamMember(false);
@@ -345,7 +343,6 @@ export default function CompanyInfo() {
       toast.success('Team member removed');
       loadData();
     } catch (error) {
-      console.error('Error removing team member:', error);
       toast.error('Failed to remove team member');
     }
   };
@@ -388,10 +385,10 @@ export default function CompanyInfo() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg"
+          className="flex items-center gap-2 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg"
         >
-          <CheckCircle className="w-5 h-5 text-green-600" />
-          <span className="text-sm text-green-800">Required fields completed. You can now add photos.</span>
+          <CheckCircle className="w-5 h-5 text-afrikoni-gold" />
+          <span className="text-sm text-afrikoni-chestnut">Required fields completed. You can now add photos.</span>
         </motion.div>
       )}
 
@@ -399,10 +396,10 @@ export default function CompanyInfo() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+          className="flex items-center gap-2 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg"
         >
-          <AlertCircle className="w-5 h-5 text-blue-600" />
-          <span className="text-sm text-blue-800">Tip: Adding company information helps buyers find and trust you. All fields are optional except those marked with *.</span>
+          <AlertCircle className="w-5 h-5 text-afrikoni-gold" />
+          <span className="text-sm text-afrikoni-chestnut">Tip: Adding company information helps buyers find and trust you. All fields are optional except those marked with *.</span>
         </motion.div>
       )}
 
@@ -416,6 +413,8 @@ export default function CompanyInfo() {
                     src={coverUrl} 
                     alt="Cover" 
                     className="w-full h-32 object-cover rounded-t-lg"
+                    loading="lazy"
+                    decoding="async"
                   />
                 ) : (
                   <div className="w-full h-32 bg-afrikoni-cream rounded-t-lg" />
@@ -425,10 +424,12 @@ export default function CompanyInfo() {
                     <img 
                       src={logoUrl} 
                       alt="Logo" 
-                      className="w-20 h-20 rounded-lg object-cover border-4 border-white shadow-lg"
+                      className="w-20 h-20 rounded-lg object-cover border-4 border-white shadow-afrikoni"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center border-4 border-white shadow-lg">
+                    <div className="w-20 h-20 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center border-4 border-white shadow-afrikoni">
                       <Building2 className="w-10 h-10 text-afrikoni-gold" />
                     </div>
                   )}
@@ -458,7 +459,7 @@ export default function CompanyInfo() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Card className="border-afrikoni-gold/20 shadow-lg">
+              <Card className="border-afrikoni-gold/20 shadow-afrikoni">
                 <CardHeader>
                   <CardTitle>Company Details</CardTitle>
                   <CardDescription>
@@ -473,7 +474,7 @@ export default function CompanyInfo() {
                         <Label>Company Logo</Label>
                         <div className="mt-2 flex items-center gap-4">
                           {logoUrl ? (
-                            <img src={logoUrl} alt="Logo" className="w-20 h-20 rounded-lg object-cover border border-afrikoni-gold/20" />
+                            <img src={logoUrl} alt="Logo" className="w-20 h-20 rounded-lg object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
                           ) : (
                             <div className="w-20 h-20 rounded-lg bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/20">
                               <ImageIcon className="w-8 h-8 text-afrikoni-deep/50" />
@@ -513,7 +514,7 @@ export default function CompanyInfo() {
                         <Label>Cover Image</Label>
                         <div className="mt-2 flex items-center gap-4">
                           {coverUrl ? (
-                            <img src={coverUrl} alt="Cover" className="w-32 h-20 rounded-lg object-cover border border-afrikoni-gold/20" />
+                            <img src={coverUrl} alt="Cover" className="w-32 h-20 rounded-lg object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
                           ) : (
                             <div className="w-32 h-20 rounded-lg bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/20">
                               <ImageIcon className="w-8 h-8 text-afrikoni-deep/50" />
@@ -563,8 +564,11 @@ export default function CompanyInfo() {
                           onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
                           placeholder="e.g. Acme Trading Ltd"
                           required
-                          className="mt-1"
+                          className={`mt-1 ${errors.company_name ? 'border-red-500' : ''}`}
                         />
+                        {errors.company_name && (
+                          <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
+                        )}
                       </div>
 
                       {/* Business Type */}
@@ -598,7 +602,7 @@ export default function CompanyInfo() {
                           value={formData.country} 
                           onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
                         >
-                          <SelectTrigger className="mt-1">
+                          <SelectTrigger className={`mt-1 ${errors.country ? 'border-red-500' : ''}`}>
                             <SelectValue placeholder="Select country" />
                           </SelectTrigger>
                           <SelectContent>
@@ -607,6 +611,9 @@ export default function CompanyInfo() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {errors.country && (
+                          <p className="text-red-500 text-sm mt-1">{errors.country}</p>
+                        )}
                       </div>
 
                       {/* City */}
@@ -632,8 +639,11 @@ export default function CompanyInfo() {
                           onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                           placeholder="+234 800 000 0000"
                           required
-                          className="mt-1"
+                          className={`mt-1 ${errors.phone ? 'border-red-500' : ''}`}
                         />
+                        {errors.phone && (
+                          <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                        )}
                       </div>
 
                       {/* Business Email */}
@@ -645,8 +655,11 @@ export default function CompanyInfo() {
                           value={formData.business_email}
                           onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
                           placeholder="contact@company.com"
-                          className="mt-1"
+                          className={`mt-1 ${errors.business_email ? 'border-red-500' : ''}`}
                         />
+                        {errors.business_email && (
+                          <p className="text-red-500 text-sm mt-1">{errors.business_email}</p>
+                        )}
                       </div>
 
                       {/* Website */}
@@ -657,8 +670,11 @@ export default function CompanyInfo() {
                           value={formData.website}
                           onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
                           placeholder="https://yourcompany.com"
-                          className="mt-1"
+                          className={`mt-1 ${errors.website ? 'border-red-500' : ''}`}
                         />
+                        {errors.website && (
+                          <p className="text-red-500 text-sm mt-1">{errors.website}</p>
+                        )}
                       </div>
 
                       {/* Year Established */}

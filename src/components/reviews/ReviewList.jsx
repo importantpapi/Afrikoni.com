@@ -3,7 +3,7 @@ import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle } from 'lucide-react';
 
-export default function ReviewList({ reviews, companies, isSeller, onUpdate }) {
+const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller, onUpdate }) {
   if (reviews.length === 0) {
     return <p className="text-afrikoni-deep/70">No reviews yet</p>;
   }
@@ -47,5 +47,6 @@ export default function ReviewList({ reviews, companies, isSeller, onUpdate }) {
       })}
     </div>
   );
-}
+});
 
+export default ReviewList;

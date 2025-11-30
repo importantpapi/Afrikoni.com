@@ -71,7 +71,6 @@ export default function CreateRFQ() {
 
       setCategories(categoriesData || []);
     } catch (error) {
-      console.error('Error loading data:', error);
       toast.error('Failed to load form data');
     }
   };
@@ -84,7 +83,6 @@ export default function CreateRFQ() {
       setFormData(prev => ({ ...prev, attachments: [...prev.attachments, file_url] }));
       toast.success('File uploaded successfully');
     } catch (error) {
-      console.error('Error uploading file:', error);
       toast.error('Failed to upload file');
     }
   };
@@ -150,13 +148,12 @@ export default function CreateRFQ() {
         const { notifyRFQCreated } = await import('@/services/notificationService');
         await notifyRFQCreated(newRFQ.id, companyId);
       } catch (err) {
-        console.log('RFQ notification to sellers failed (non-blocking):', err);
+        // Notification failed, but RFQ was created
       }
 
       toast.success('RFQ created successfully!');
       navigate(`/dashboard/rfqs/${newRFQ.id}`);
     } catch (error) {
-      console.error('Error creating RFQ:', error);
       toast.error('Failed to create RFQ');
     } finally {
       setIsLoading(false);

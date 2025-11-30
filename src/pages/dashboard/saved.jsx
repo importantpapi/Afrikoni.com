@@ -66,7 +66,6 @@ export default function DashboardSaved() {
         }));
       setSavedSuppliers(suppliers);
     } catch (error) {
-      console.error('Error loading saved items:', error);
       toast.error('Failed to load saved items');
     } finally {
       setIsLoading(false);
@@ -89,7 +88,6 @@ export default function DashboardSaved() {
       toast.success('Item removed from saved');
       loadSavedItems();
     } catch (error) {
-      console.error('Error unsaving item:', error);
       toast.error('Failed to remove item');
     }
   };
@@ -138,8 +136,8 @@ export default function DashboardSaved() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {savedProducts.map((product) => (
-                  <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-4">
+                  <Card key={product.id} className="hover:shadow-afrikoni-lg transition-shadow">
+                    <CardContent className="p-5 md:p-6">
                       <div className="aspect-video bg-afrikoni-cream rounded-lg mb-4 flex items-center justify-center">
                         <Package className="w-12 h-12 text-afrikoni-deep/70" />
                       </div>
@@ -157,7 +155,7 @@ export default function DashboardSaved() {
                           size="sm"
                           onClick={() => handleUnsave(product.id, 'product')}
                         >
-                          <Heart className="w-4 h-4 text-red-600 fill-red-600" />
+                          <Heart className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
                         </Button>
                       </div>
                       <Link to={`/product?id=${product.id}`}>
@@ -186,8 +184,8 @@ export default function DashboardSaved() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {savedSuppliers.map((supplier) => (
-                  <Card key={supplier.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-4">
+                  <Card key={supplier.id} className="hover:shadow-afrikoni-lg transition-shadow">
+                    <CardContent className="p-5 md:p-6">
                       <div className="flex items-center gap-4 mb-4">
                         <div className="w-16 h-16 bg-afrikoni-cream rounded-lg flex items-center justify-center">
                           <Users className="w-8 h-8 text-afrikoni-deep/70" />
@@ -201,7 +199,7 @@ export default function DashboardSaved() {
                           size="sm"
                           onClick={() => handleUnsave(supplier.id, 'supplier')}
                         >
-                          <Bookmark className="w-4 h-4 text-blue-600 fill-blue-600" />
+                          <Bookmark className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
                         </Button>
                       </div>
                       <Link to={`/supplier?id=${supplier.id}`}>

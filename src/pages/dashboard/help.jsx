@@ -189,7 +189,7 @@ export default function DashboardHelp() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.1 }}
             >
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="hover:shadow-afrikoni-lg transition-shadow">
                 <CardContent className="p-6 text-center">
                   <div className="flex justify-center mb-4">
                     <div className="p-3 bg-afrikoni-gold/10 rounded-full">

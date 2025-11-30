@@ -116,7 +116,7 @@ export default function Logistics() {
                     Request Shipping Quote
                   </Button>
                 </Link>
-                <Link to="/dashboard/logistics">
+                <Link to="/dashboard">
                   <Button size="lg" variant="outline" className="border-white text-afrikoni-creamhover:bg-afrikoni-offwhite/10">
                     Become a Partner
                   </Button>

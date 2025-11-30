@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
+import { PRODUCT_STATUS, getStatusLabel } from '@/constants/status';
+import { buildProductQuery } from '@/utils/queryBuilders';
+import { paginateQuery, createPaginationState } from '@/utils/pagination';
+import { CardSkeleton } from '@/components/ui/skeletons';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +39,7 @@ export default function DashboardProducts() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
+  const [pagination, setPagination] = useState(createPaginationState());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,24 +48,14 @@ export default function DashboardProducts() {
 
   const loadUserAndProducts = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
-      if (!userData) {
+      setIsLoading(true);
+      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole();
+      if (!user) {
         navigate('/login');
         return;
       }
-
-      const role = userData.role || userData.user_role || 'seller';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
-
-      // Allow all users to view/manage products - no role restriction
-
-      // Get or create company for this user
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const userCompanyId = await getOrCreateCompany(supabase, userData);
+      setCurrentRole(getUserRole(profile || user));
       setCompanyId(userCompanyId);
-
-      // Company is optional - continue even without it
-      // Products can be created without company
 
       // Load categories
       const { data: categoriesData } = await supabase
@@ -67,31 +64,22 @@ export default function DashboardProducts() {
         .order('name');
       setCategories(categoriesData || []);
 
-      // Load products with images
-        // Load products - try by company first, then by user email
-        let productsQuery = supabase
-          .from('products')
-          .select(`
-          *,
-          categories(*),
-          product_images(*)
-        `);
-        
-        if (userCompanyId) {
-          productsQuery = productsQuery.or(`supplier_id.eq.${userCompanyId},company_id.eq.${userCompanyId}`);
-        } else {
-          // If no company, try to find products by user email in companies table
-          // For now, show empty - user can create products without company
-          productsQuery = productsQuery.limit(0);
-        }
-        
-        const { data: myProducts, error: productsError } = await productsQuery
-          .order('created_at', { ascending: false });
-
-      if (productsError) throw productsError;
+      // Build product query
+      let productsQuery = buildProductQuery({
+        companyId: userCompanyId,
+        status: statusFilter === 'all' ? null : statusFilter,
+        categoryId: categoryFilter || null,
+        country: countryFilter || null
+      });
+      
+      // Use pagination
+      const result = await paginateQuery(productsQuery, {
+        page: pagination.page,
+        pageSize: pagination.pageSize
+      });
 
       // Transform products to include primary image
-      const productsWithImages = (myProducts || []).map(product => {
+      const productsWithImages = (result.data || []).map(product => {
         const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
         return {
           ...product,
@@ -100,8 +88,12 @@ export default function DashboardProducts() {
       });
 
       setProducts(productsWithImages);
+      setPagination(prev => ({
+        ...prev,
+        ...result,
+        isLoading: false
+      }));
     } catch (error) {
-      console.error('Error loading products:', error);
       toast.error('Failed to load products');
     } finally {
       setIsLoading(false);
@@ -122,7 +114,6 @@ export default function DashboardProducts() {
       toast.success('Product deleted successfully');
       loadUserAndProducts();
     } catch (error) {
-      console.error('Error deleting product:', error);
       toast.error('Failed to delete product');
     }
   };
@@ -139,7 +130,6 @@ export default function DashboardProducts() {
       toast.success(`Product ${newStatus === 'active' ? 'activated' : 'paused'}`);
       loadUserAndProducts();
     } catch (error) {
-      console.error('Error updating product status:', error);
       toast.error('Failed to update product status');
     }
   };
@@ -166,15 +156,14 @@ export default function DashboardProducts() {
   if (isLoading) {
     return (
       <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
+        <CardSkeleton count={6} />
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout currentRole={currentRole}>
+      <ErrorBoundary fallbackMessage="Failed to load products. Please try again.">
       <div className="space-y-3">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -307,7 +296,7 @@ export default function DashboardProducts() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
+                  <Card className="hover:shadow-afrikoni-lg transition-shadow h-full flex flex-col">
                     <CardContent className="p-4 flex flex-col flex-1">
                       <div className="aspect-video bg-afrikoni-cream rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
                         {product.primaryImage ? (
@@ -375,7 +364,7 @@ export default function DashboardProducts() {
                             View
                           </Button>
                         </Link>
-                        <Link to={`/dashboard/products/new?id=${product.id}`} className="flex-1">
+                        <Link to={`/dashboard/products/${product.id}/edit`} className="flex-1">
                           <Button variant="outline" size="sm" className="w-full">
                             <Edit className="w-4 h-4 mr-1" />
                             Edit
@@ -410,6 +399,7 @@ export default function DashboardProducts() {
           </div>
         )}
       </div>
+        </ErrorBoundary>
     </DashboardLayout>
   );
 }

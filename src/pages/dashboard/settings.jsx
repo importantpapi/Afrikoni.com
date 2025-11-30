@@ -148,7 +148,6 @@ export default function DashboardSettings() {
       setAvatarUrl(file_url);
       toast.success('Avatar uploaded successfully');
     } catch (error) {
-      console.error('Error uploading avatar:', error);
       toast.error('Failed to upload avatar');
     } finally {
       setUploadingAvatar(false);
@@ -177,7 +176,6 @@ export default function DashboardSettings() {
       toast.success('Password updated successfully');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
-      console.error('Error changing password:', error);
       toast.error('Failed to change password');
     } finally {
       setIsSaving(false);
@@ -192,7 +190,6 @@ export default function DashboardSettings() {
       toast.success('Logged out from all devices');
       navigate('/login');
     } catch (error) {
-      console.error('Error logging out:', error);
       toast.error('Failed to logout from all devices');
     }
   };
@@ -217,7 +214,6 @@ export default function DashboardSettings() {
       setApiKey(newApiKey);
       toast.success('API key regenerated successfully');
     } catch (error) {
-      console.error('Error generating API key:', error);
       toast.error('Failed to generate API key');
     } finally {
       setIsSaving(false);
@@ -283,7 +279,6 @@ export default function DashboardSettings() {
       toast.success('Settings saved successfully');
       loadUserData();
     } catch (error) {
-      console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
     } finally {
       setIsSaving(false);
@@ -325,7 +320,7 @@ export default function DashboardSettings() {
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
                 <CardTitle className="flex items-center gap-3 text-xl">
                   <div className="p-2 bg-afrikoni-offwhite rounded-lg">
@@ -340,7 +335,7 @@ export default function DashboardSettings() {
                   <Label>Profile Picture</Label>
                   <div className="mt-2 flex items-center gap-4">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-afrikoni-gold/20" />
+                      <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-20 h-20 rounded-full bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/20">
                         <User className="w-10 h-10 text-afrikoni-deep/50" />
@@ -449,11 +444,11 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Card className="shadow-sm border-afrikoni-gold/20">
-              <CardHeader className="border-b border-zinc-100 pb-4">
+            <Card className="shadow-afrikoni border-afrikoni-gold/20">
+              <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
                 <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Building2 className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
+                    <Building2 className="w-5 h-5 text-afrikoni-gold" />
                   </div>
                   Company Information
                 </CardTitle>
@@ -569,17 +564,17 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
                 <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <Bell className="w-5 h-5 text-green-600" />
+                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
+                    <Bell className="w-5 h-5 text-afrikoni-gold" />
                   </div>
                   Notification Preferences
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-white">
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut">Email Notifications</h4>
                     <p className="text-sm text-afrikoni-deep/70">Receive notifications via email</p>
@@ -589,7 +584,7 @@ export default function DashboardSettings() {
                     onCheckedChange={(checked) => setPreferences({ ...preferences, email_notifications: checked })}
                   />
                 </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-white">
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut">In-App Notifications</h4>
                     <p className="text-sm text-afrikoni-deep/70">Show notifications in the dashboard</p>
@@ -599,7 +594,7 @@ export default function DashboardSettings() {
                     onCheckedChange={(checked) => setPreferences({ ...preferences, in_app_notifications: checked })}
                   />
                 </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-white">
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut">Order Updates</h4>
                     <p className="text-sm text-afrikoni-deep/70">Notify me when order status changes</p>
@@ -609,7 +604,7 @@ export default function DashboardSettings() {
                     onCheckedChange={(checked) => setPreferences({ ...preferences, order_updates: checked })}
                   />
                 </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-white">
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut">New Messages</h4>
                     <p className="text-sm text-afrikoni-deep/70">Notify me when I receive messages</p>
@@ -619,7 +614,7 @@ export default function DashboardSettings() {
                     onCheckedChange={(checked) => setPreferences({ ...preferences, new_messages: checked })}
                   />
                 </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-white">
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut">RFQ Responses</h4>
                     <p className="text-sm text-afrikoni-deep/70">Notify me when I receive RFQ quotes</p>
@@ -638,11 +633,11 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
                 <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-red-50 rounded-lg">
-                    <Shield className="w-5 h-5 text-red-600" />
+                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
+                    <Shield className="w-5 h-5 text-afrikoni-gold" />
                   </div>
                   Security Settings
                 </CardTitle>
@@ -652,7 +647,7 @@ export default function DashboardSettings() {
                 <div className="space-y-4">
                   <h4 className="font-semibold text-afrikoni-chestnut">Change Password</h4>
                   <div className="space-y-3">
-                    <div>
+                <div>
                       <Label htmlFor="currentPassword">Current Password</Label>
                       <Input
                         id="currentPassword"
@@ -661,8 +656,8 @@ export default function DashboardSettings() {
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                         placeholder="Enter current password"
                       />
-                    </div>
-                    <div>
+                </div>
+                <div>
                       <Label htmlFor="newPassword">New Password</Label>
                       <Input
                         id="newPassword"
@@ -671,16 +666,16 @@ export default function DashboardSettings() {
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                         placeholder="Enter new password (min 6 characters)"
                       />
-                    </div>
+                </div>
                     <div>
                       <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                      <Input
+                    <Input
                         id="confirmPassword"
-                        type="password"
+                      type="password"
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                         placeholder="Confirm new password"
-                      />
+                    />
                     </div>
                     <Button onClick={handleChangePassword} disabled={isSaving || !passwordData.newPassword} variant="outline">
                       <Lock className="w-4 h-4 mr-2" />
@@ -729,9 +724,9 @@ export default function DashboardSettings() {
                         Regenerate
                       </Button>
                     </div>
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-xs text-yellow-900 font-semibold mb-1">⚠️ Keep this key secret</p>
-                      <p className="text-xs text-yellow-800">
+                    <div className="p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
+                      <p className="text-xs text-afrikoni-chestnut font-semibold mb-1">⚠️ Keep this key secret</p>
+                      <p className="text-xs text-afrikoni-deep/70">
                         This API key provides full access to your marketplace data. Never share it publicly or commit it to version control.
                       </p>
                     </div>

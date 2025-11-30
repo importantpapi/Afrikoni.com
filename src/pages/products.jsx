@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
+import { paginateQuery, createPaginationState } from '@/utils/pagination';
+import { hasFastResponse, isReadyToShip } from '@/utils/marketplaceHelpers';
+import { addToViewHistory } from '@/utils/viewHistory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Package, TrendingUp } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import FilterChip from '@/components/ui/FilterChip';
+import SaveButton from '@/components/ui/SaveButton';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -23,6 +28,12 @@ export default function Products() {
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
+  const [pagination, setPagination] = useState(createPaginationState());
+  const [chipFilters, setChipFilters] = useState({
+    verified: false,
+    fastResponse: false,
+    readyToShip: false
+  });
   const { trackPageView } = useAnalytics();
   
   // Debounce search query to avoid excessive API calls
@@ -35,21 +46,34 @@ export default function Products() {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedCategory, selectedCountry, priceRange, sortBy, debouncedSearchQuery]);
+  }, [selectedCategory, selectedCountry, priceRange, sortBy, debouncedSearchQuery, chipFilters]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [productsRes, categoriesRes] = await Promise.all([
-        supabase.from('products').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(50),
+      const [productsResult, categoriesRes] = await Promise.all([
+        paginateQuery(
+          supabase
+            .from('products')
+            .select('*, companies(*), categories(*)')
+            .eq('status', 'active'),
+          { page: pagination.page, pageSize: 20, orderBy: 'created_at', ascending: false }
+        ),
         supabase.from('categories').select('*')
       ]);
+      
+      const productsRes = { data: productsResult.data, error: productsResult.error };
 
       if (productsRes.error) throw productsRes.error;
       if (categoriesRes.error) throw categoriesRes.error;
 
       setProducts(productsRes.data || []);
       setCategories(categoriesRes.data || []);
+      setPagination(prev => ({
+        ...prev,
+        ...productsResult,
+        isLoading: false
+      }));
       setError(null);
     } catch (err) {
       setError('Failed to load products. Please try again later.');
@@ -62,14 +86,31 @@ export default function Products() {
   const applyFilters = async () => {
     setIsLoading(true);
     try {
-      let query = supabase.from('products').select('*').eq('status', 'active');
+      let query = supabase
+        .from('products')
+        .select('*, companies(*), categories(*)')
+        .eq('status', 'active');
 
       // Apply sorting
       const sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
       const ascending = !sortBy.startsWith('-');
       query = query.order(sortField, { ascending });
 
-      const { data, error } = await query.limit(50);
+      const result = await paginateQuery(query, {
+        page: pagination.page,
+        pageSize: 20,
+        orderBy: sortField,
+        ascending
+      });
+      
+      const { data, error } = { data: result.data, error: result.error };
+      
+      setPagination(prev => ({
+        ...prev,
+        ...result,
+        isLoading: false
+      }));
+      
       if (error) throw error;
 
       let filtered = data || [];
@@ -84,6 +125,13 @@ export default function Products() {
 
       if (selectedCategory !== 'all') {
         filtered = filtered.filter(p => p.category_id === selectedCategory);
+      }
+
+      if (selectedCountry !== 'all') {
+        filtered = filtered.filter(p => 
+          p.country_of_origin === selectedCountry || 
+          p.companies?.country === selectedCountry
+        );
       }
 
       if (priceRange !== 'all') {
@@ -111,8 +159,13 @@ export default function Products() {
 
   // Memoize filtered products to avoid unnecessary re-renders
   const filteredProducts = useMemo(() => {
-    return products;
-  }, [products]);
+    return products.filter(product => {
+      if (chipFilters.verified && !product.companies?.verified) return false;
+      if (chipFilters.fastResponse && !hasFastResponse(product.companies)) return false;
+      if (chipFilters.readyToShip && !isReadyToShip(product)) return false;
+      return true;
+    });
+  }, [products, chipFilters]);
 
   return (
     <>
@@ -139,6 +192,24 @@ export default function Products() {
             </div>
             <Button size="lg" className="bg-afrikoni-gold hover:bg-amber-700">Search</Button>
           </div>
+          {/* Chip Filters */}
+          <div className="flex items-center gap-2 mt-4">
+            <FilterChip
+              label="Verified"
+              active={chipFilters.verified}
+              onRemove={() => setChipFilters({ ...chipFilters, verified: !chipFilters.verified })}
+            />
+            <FilterChip
+              label="Fast Response"
+              active={chipFilters.fastResponse}
+              onRemove={() => setChipFilters({ ...chipFilters, fastResponse: !chipFilters.fastResponse })}
+            />
+            <FilterChip
+              label="Ready to Ship"
+              active={chipFilters.readyToShip}
+              onRemove={() => setChipFilters({ ...chipFilters, readyToShip: !chipFilters.readyToShip })}
+            />
+          </div>
         </div>
       </div>
 
@@ -162,6 +233,20 @@ export default function Products() {
                       <SelectItem value="all">All Categories</SelectItem>
                       {categories.map(cat => (
                         <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-afrikoni-deep mb-2 block">Country</label>
+                  <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Countries" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Countries</SelectItem>
+                      {AFRICAN_COUNTRIES.map(country => (
+                        <SelectItem key={country} value={country}>{country}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -237,36 +322,61 @@ export default function Products() {
             ) : (
               <div className="grid md:grid-cols-3 gap-6">
                 {products.map(product => (
-                  <Link
-                    key={product.id}
-                    to={createPageUrl('ProductDetail') + '?id=' + product.id}
-                    className="group"
-                  >
-                    <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all duration-300 hover:shadow-lg overflow-hidden">
-                      <div className="h-48 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden relative">
-                        {product.images?.[0] ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.title || 'Product image'}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-12 h-12 text-afrikoni-deep/70" />
+                  <div key={product.id} className="group">
+                    <Link
+                      to={createPageUrl('ProductDetail') + '?id=' + product.id}
+                      onClick={() => addToViewHistory(product.id, 'product', {
+                        title: product.title,
+                        category_id: product.category_id,
+                        country: product.country_of_origin
+                      })}
+                    >
+                      <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all duration-300 hover:shadow-lg overflow-hidden">
+                        <div className="h-48 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden relative">
+                          {product.images?.[0] ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.title || 'Product image'}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-12 h-12 text-afrikoni-deep/70" />
+                            </div>
+                          )}
+                          {product.views > 50 && (
+                            <Badge className="absolute top-3 left-3 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                              <TrendingUp className="w-3 h-3 mr-1" /> Trending
+                            </Badge>
+                          )}
+                          <div className="absolute top-3 right-3 z-10" onClick={(e) => e.preventDefault()}>
+                            <SaveButton itemId={product.id} itemType="product" />
                           </div>
-                        )}
-                        {product.views > 50 && (
-                          <Badge className="absolute top-3 right-3 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
-                            <TrendingUp className="w-3 h-3 mr-1" /> Trending
-                          </Badge>
-                        )}
-                      </div>
+                        </div>
                       <CardContent className="p-4">
                         <h3 className="font-bold text-afrikoni-chestnut group-hover:text-afrikoni-gold transition mb-2 line-clamp-2 h-12">
                           {product.title}
                         </h3>
+                        {/* Trust Signals */}
+                        {product.companies && (
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            {product.companies.verified && (
+                              <Badge variant="verified" className="text-xs">Verified</Badge>
+                            )}
+                            {product.companies.trust_score > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                Trust: {product.companies.trust_score}%
+                              </Badge>
+                            )}
+                            {product.companies.response_rate > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {product.companies.response_rate}% Response
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                         <div className="flex items-baseline gap-2 mb-3">
                           <span className="text-2xl font-bold text-amber-600">${product.price}</span>
                           <span className="text-sm text-afrikoni-deep/70">/ {product.unit}</span>
@@ -279,7 +389,8 @@ export default function Products() {
                         </div>
                       </CardContent>
                     </Card>
-                  </Link>
+                    </Link>
+                  </div>
                 ))}
               </div>
             )}

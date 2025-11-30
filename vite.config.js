@@ -18,11 +18,7 @@ export default defineConfig({
           'vendor-utils': ['date-fns', 'sonner'],
           'dashboard': [
             './src/pages/dashboard/index.jsx',
-            './src/pages/dashboard/UnifiedDashboard.jsx',
-            './src/pages/dashboard/BuyerDashboardShell.jsx',
-            './src/pages/dashboard/SellerDashboardShell.jsx',
-            './src/pages/dashboard/HybridDashboardShell.jsx',
-            './src/pages/dashboard/LogisticsDashboardShell.jsx'
+            './src/pages/dashboard/DashboardHome.jsx'
           ],
         },
       },

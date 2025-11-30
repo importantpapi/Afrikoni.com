@@ -99,7 +99,6 @@ export default function RFQDetail() {
       setQuotes(quotesData || []);
 
     } catch (error) {
-      console.error('Error loading RFQ:', error);
       toast.error('Failed to load RFQ details');
       navigate('/dashboard/rfqs');
     } finally {
@@ -169,7 +168,6 @@ export default function RFQDetail() {
       });
       loadRFQData();
     } catch (error) {
-      console.error('Error submitting quote:', error);
       toast.error('Failed to submit quote');
     } finally {
       setIsSubmitting(false);
@@ -226,14 +224,13 @@ export default function RFQDetail() {
             related_id: id
           });
         } catch (err) {
-          console.error('Error creating notification:', err);
+          // Notification creation failed, but quote was submitted
         }
       }
 
       toast.success('RFQ awarded successfully!');
       loadRFQData();
     } catch (error) {
-      console.error('Error awarding RFQ:', error);
       toast.error('Failed to award RFQ');
     } finally {
       setIsSubmitting(false);
@@ -255,7 +252,6 @@ export default function RFQDetail() {
       toast.success('RFQ closed successfully');
       loadRFQData();
     } catch (error) {
-      console.error('Error closing RFQ:', error);
       toast.error('Failed to close RFQ');
     } finally {
       setIsSubmitting(false);
@@ -302,7 +298,6 @@ export default function RFQDetail() {
 
       navigate(`/messages?conversation=${conversationId}`);
     } catch (error) {
-      console.error('Error opening conversation:', error);
       toast.error('Failed to open conversation');
     }
   };
@@ -499,7 +494,7 @@ export default function RFQDetail() {
                                 {quote.companies?.company_name || 'Supplier'}
                               </h4>
                               {quote.status === 'accepted' && (
-                                <Badge className="bg-green-600">Accepted</Badge>
+                                <Badge variant="success">Accepted</Badge>
                               )}
                             </div>
                             <p className="text-sm text-afrikoni-deep/70">
@@ -540,7 +535,7 @@ export default function RFQDetail() {
                             <Button
                               onClick={() => handleAwardRFQ(quote.id)}
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700"
+                              variant="primary"
                             >
                               Award RFQ
                             </Button>
@@ -577,7 +572,7 @@ export default function RFQDetail() {
                   <h4 className="font-semibold text-afrikoni-chestnut">{buyerCompany.company_name}</h4>
                   <p className="text-sm text-afrikoni-deep/70 mt-1">{buyerCompany.country}</p>
                   {buyerCompany.verified && (
-                    <Badge className="mt-2 bg-green-600">Verified</Badge>
+                    <Badge variant="verified" className="mt-2">Verified</Badge>
                   )}
                 </CardContent>
               </Card>

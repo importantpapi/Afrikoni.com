@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { paginateQuery, createPaginationState } from '@/utils/pagination';
+import { buildProductQuery } from '@/utils/queryBuilders';
+import { hasFastResponse, isReadyToShip } from '@/utils/marketplaceHelpers';
+import { addToViewHistory } from '@/utils/viewHistory';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Search, Filter, SlidersHorizontal, MapPin, Shield, Star, MessageSquare, FileText,
   X, CheckCircle, Building2, Package
@@ -9,7 +14,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Drawer } from '@/components/ui/drawer';
+import FilterChip from '@/components/ui/FilterChip';
+import SaveButton from '@/components/ui/SaveButton';
+import { PaginationFooter } from '@/components/ui/reusable/PaginationFooter';
 import { supabase } from '@/api/supabaseClient';
 import OptimizedImage from '@/components/OptimizedImage';
 import SEO from '@/components/SEO';
@@ -21,6 +30,7 @@ export default function Marketplace() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({
     category: '',
     country: '',
@@ -28,77 +38,165 @@ export default function Marketplace() {
     priceRange: '',
     moq: '',
     certifications: [],
-    deliveryTime: ''
+    deliveryTime: '',
+    verified: false,
+    fastResponse: false,
+    readyToShip: false
   });
+  const [sortBy, setSortBy] = useState('-created_at');
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [moqMin, setMoqMin] = useState('');
 
   const categories = ['All Categories', 'Agriculture', 'Textiles', 'Industrial', 'Beauty & Health'];
   const countries = ['All Countries', 'Nigeria', 'Ghana', 'Egypt', 'Kenya', 'South Africa'];
   const verificationOptions = ['All', 'Verified', 'Premium Partner'];
+  const [pagination, setPagination] = useState(createPaginationState());
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   useEffect(() => {
     trackPageView('Marketplace');
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    applyFilters();
+  }, [selectedFilters, searchQuery, sortBy, priceMin, priceMax, moqMin, debouncedSearchQuery]);
+
   const loadProducts = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          companies(*),
-          categories(*),
-          product_images(*)
-        `)
-        .eq('status', 'active')
-        .order('featured DESC, created_at DESC')
-        .limit(100);
+      // Use buildProductQuery for server-side filtering
+      let query = buildProductQuery({
+        status: 'active',
+        categoryId: selectedFilters.category || null,
+        country: selectedFilters.country || null
+      });
+      
+      // Add companies to select
+      query = query.select(`
+        *,
+        companies(*),
+        categories(*),
+        product_images(*)
+      `);
+      
+      // Apply sorting
+      const sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
+      const ascending = !sortBy.startsWith('-');
+      query = query.order(sortField, { ascending });
+      
+      const result = await paginateQuery(
+        query,
+        { 
+          page: pagination.page, 
+          pageSize: 20,
+          orderBy: sortField,
+          ascending
+        }
+      );
+      
+      const { data, error } = result;
+      
+      setPagination(prev => ({
+        ...prev,
+        ...result,
+        isLoading: false
+      }));
       
       if (error) throw error;
       
       // Transform products to include primary image
-      const productsWithImages = (data || []).map(product => {
-        const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
+      const productsWithImages = Array.isArray(data) ? data.map(product => {
+        const primaryImage = Array.isArray(product.product_images) ? product.product_images.find(img => img.is_primary) || product.product_images[0] : null;
         return {
           ...product,
-          primaryImage: primaryImage?.url || product.images?.[0] || null
+          primaryImage: primaryImage?.url || (Array.isArray(product.images) ? product.images[0] : null) || null
         };
-      });
+      }) : [];
       
-      setProducts(productsWithImages);
+      // Apply client-side filters (search, price range, MOQ, certifications, lead time, chip filters)
+      const filtered = applyClientSideFilters(productsWithImages);
+      setProducts(filtered);
     } catch (error) {
-      console.error('Error loading products:', error);
       setProducts([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredProducts = products.filter(product => {
-    if (selectedFilters.category && product.category_id !== selectedFilters.category) return false;
-    if (selectedFilters.country && (product.companies?.country !== selectedFilters.country && product.country_of_origin !== selectedFilters.country)) return false;
-    if (selectedFilters.verification === 'Verified' && !product.companies?.verified) return false;
-    if (selectedFilters.verification === 'Premium Partner' && product.companies?.trust_score < 80) return false;
-    
-    // Price range filter
-    if (selectedFilters.priceRange) {
-      const [min, max] = selectedFilters.priceRange.split('-').map(Number);
-      const productPrice = product.price_min || product.price || 0;
-      if (productPrice < min || (max && productPrice > max)) return false;
-    }
-    
-    return true;
-  });
+  const applyClientSideFilters = (productsList) => {
+    if (!Array.isArray(productsList)) return [];
+    return productsList.filter(product => {
+      // Search query
+      if (debouncedSearchQuery) {
+        const query = debouncedSearchQuery.toLowerCase();
+        if (!product.title?.toLowerCase().includes(query) &&
+            !product.description?.toLowerCase().includes(query) &&
+            !product.companies?.company_name?.toLowerCase().includes(query)) {
+          return false;
+        }
+      }
+      
+      // Price range
+      if (priceMin || priceMax) {
+        const productPrice = product.price_min || product.price || 0;
+        if (priceMin && productPrice < parseFloat(priceMin)) return false;
+        if (priceMax && productPrice > parseFloat(priceMax)) return false;
+      }
+      
+      // MOQ
+      if (moqMin) {
+        const productMOQ = product.min_order_quantity || 0;
+        if (productMOQ < parseFloat(moqMin)) return false;
+      }
+      
+      // Certifications
+      if (selectedFilters.certifications.length > 0) {
+        const productCerts = product.certifications || [];
+        if (!selectedFilters.certifications.some(cert => productCerts.includes(cert))) return false;
+      }
+      
+      // Lead time
+      if (selectedFilters.deliveryTime) {
+        const leadTime = product.lead_time_min_days || 0;
+        if (selectedFilters.deliveryTime === 'ready' && leadTime > 0) return false;
+        if (selectedFilters.deliveryTime === '7days' && leadTime > 7) return false;
+        if (selectedFilters.deliveryTime === '30days' && leadTime > 30) return false;
+      }
+      
+      // Chip filters
+      if (selectedFilters.verified && !product.companies?.verified) return false;
+      if (selectedFilters.fastResponse && !hasFastResponse(product.companies)) return false;
+      if (selectedFilters.readyToShip && !isReadyToShip(product)) return false;
+      
+      return true;
+    });
+  };
 
-  const ProductCard = ({ product }) => (
+  const applyFilters = () => {
+    loadProducts();
+  };
+
+  const filteredProducts = products;
+
+  const ProductCard = React.memo(({ product }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.3 }}
     >
-      <Link to={`/product/${product.slug || product.id}`}>
+      <Link 
+        to={`/product?id=${product.id}`}
+        onClick={(e) => {
+          addToViewHistory(product.id, 'product', {
+            title: product.title || product.name,
+            category_id: product.category_id,
+            country: product.country_of_origin
+          });
+        }}
+      >
         <motion.div
           whileHover={{ y: -4, scale: 1.01 }}
           transition={{ duration: 0.2 }}
@@ -120,6 +218,9 @@ export default function Marketplace() {
                   <Badge variant="verified" className="text-xs">✓ Verified</Badge>
                 </div>
               )}
+              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.preventDefault()}>
+                <SaveButton itemId={product.id} itemType="product" />
+              </div>
             </div>
             <CardContent className="p-4">
               <h3 className="font-bold text-afrikoni-chestnut mb-2 line-clamp-2 text-sm md:text-base">
@@ -181,8 +282,7 @@ export default function Marketplace() {
         </motion.div>
       </Link>
     </motion.div>
-  );
-
+  ));
 
   return (
     <>
@@ -202,6 +302,26 @@ export default function Marketplace() {
               <Input
                 placeholder="Search products, suppliers, or services..."
                 className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            {/* Chip Filters */}
+            <div className="hidden md:flex items-center gap-2">
+              <FilterChip
+                label="Verified"
+                active={selectedFilters.verified}
+                onRemove={() => setSelectedFilters({ ...selectedFilters, verified: !selectedFilters.verified })}
+              />
+              <FilterChip
+                label="Fast Response"
+                active={selectedFilters.fastResponse}
+                onRemove={() => setSelectedFilters({ ...selectedFilters, fastResponse: !selectedFilters.fastResponse })}
+              />
+              <FilterChip
+                label="Ready to Ship"
+                active={selectedFilters.readyToShip}
+                onRemove={() => setSelectedFilters({ ...selectedFilters, readyToShip: !selectedFilters.readyToShip })}
               />
             </div>
             <Button
@@ -245,7 +365,7 @@ export default function Marketplace() {
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">Country</h3>
                   <div className="space-y-2">
-                    {countries.map((country) => (
+                    {Array.isArray(countries) && countries.map((country) => (
                       <button
                         key={country}
                         onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
@@ -264,7 +384,7 @@ export default function Marketplace() {
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">Verification</h3>
                   <div className="space-y-2">
-                    {verificationOptions.map((opt) => (
+                    {Array.isArray(verificationOptions) && verificationOptions.map((opt) => (
                       <button
                         key={opt}
                         onClick={() => setSelectedFilters({ ...selectedFilters, verification: opt })}
@@ -284,15 +404,33 @@ export default function Marketplace() {
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">Price Range</h3>
                   <div className="space-y-2">
-                    <Input placeholder="Min $" type="number" className="text-sm" />
-                    <Input placeholder="Max $" type="number" className="text-sm" />
+                    <Input 
+                      placeholder="Min $" 
+                      type="number" 
+                      className="text-sm"
+                      value={priceMin}
+                      onChange={(e) => setPriceMin(e.target.value)}
+                    />
+                    <Input 
+                      placeholder="Max $" 
+                      type="number" 
+                      className="text-sm"
+                      value={priceMax}
+                      onChange={(e) => setPriceMax(e.target.value)}
+                    />
                   </div>
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">Minimum Order (MOQ)</h3>
                   <div className="space-y-2">
-                    <Input placeholder="Min quantity" type="number" className="text-sm" />
+                    <Input 
+                      placeholder="Min quantity" 
+                      type="number" 
+                      className="text-sm"
+                      value={moqMin}
+                      onChange={(e) => setMoqMin(e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -300,11 +438,31 @@ export default function Marketplace() {
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">Certifications</h3>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm text-afrikoni-deep">
-                      <input type="checkbox" className="rounded" />
+                      <input 
+                        type="checkbox" 
+                        className="rounded"
+                        checked={selectedFilters.certifications.includes('ISO')}
+                        onChange={(e) => {
+                          const certs = e.target.checked
+                            ? [...selectedFilters.certifications, 'ISO']
+                            : selectedFilters.certifications.filter(c => c !== 'ISO');
+                          setSelectedFilters({ ...selectedFilters, certifications: certs });
+                        }}
+                      />
                       <span>ISO Certified</span>
                     </label>
                     <label className="flex items-center gap-2 text-sm text-afrikoni-deep">
-                      <input type="checkbox" className="rounded" />
+                      <input 
+                        type="checkbox" 
+                        className="rounded"
+                        checked={selectedFilters.certifications.includes('Trade Shield')}
+                        onChange={(e) => {
+                          const certs = e.target.checked
+                            ? [...selectedFilters.certifications, 'Trade Shield']
+                            : selectedFilters.certifications.filter(c => c !== 'Trade Shield');
+                          setSelectedFilters({ ...selectedFilters, certifications: certs });
+                        }}
+                      />
                       <span>Trade Shield Eligible</span>
                     </label>
                   </div>
@@ -313,22 +471,78 @@ export default function Marketplace() {
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">Lead Time</h3>
                   <div className="space-y-2">
-                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-afrikoni-deep hover:bg-afrikoni-offwhite">
+                    <button 
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        selectedFilters.deliveryTime === 'ready'
+                          ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
+                          : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                      }`}
+                      onClick={() => setSelectedFilters({ 
+                        ...selectedFilters, 
+                        deliveryTime: selectedFilters.deliveryTime === 'ready' ? '' : 'ready' 
+                      })}
+                    >
                       Ready to Ship
                     </button>
-                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-afrikoni-deep hover:bg-afrikoni-offwhite">
+                    <button 
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        selectedFilters.deliveryTime === '7days'
+                          ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
+                          : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                      }`}
+                      onClick={() => setSelectedFilters({ 
+                        ...selectedFilters, 
+                        deliveryTime: selectedFilters.deliveryTime === '7days' ? '' : '7days' 
+                      })}
+                    >
                       Within 7 days
                     </button>
-                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-afrikoni-deep hover:bg-afrikoni-offwhite">
+                    <button 
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        selectedFilters.deliveryTime === '30days'
+                          ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
+                          : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                      }`}
+                      onClick={() => setSelectedFilters({ 
+                        ...selectedFilters, 
+                        deliveryTime: selectedFilters.deliveryTime === '30days' ? '' : '30days' 
+                      })}
+                    >
                       Within 30 days
                     </button>
                   </div>
                 </div>
 
-                <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream size="sm">
+                <Button 
+                  className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream" 
+                  size="sm"
+                  onClick={applyFilters}
+                >
                   Apply Filters
                 </Button>
-                <Button variant="ghost" className="w-full" size="sm">
+                <Button 
+                  variant="ghost" 
+                  className="w-full" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedFilters({
+                      category: '',
+                      country: '',
+                      verification: '',
+                      priceRange: '',
+                      moq: '',
+                      certifications: [],
+                      deliveryTime: '',
+                      verified: false,
+                      fastResponse: false,
+                      readyToShip: false
+                    });
+                    setPriceMin('');
+                    setPriceMax('');
+                    setMoqMin('');
+                    setSearchQuery('');
+                  }}
+                >
                   Clear All
                 </Button>
               </CardContent>
@@ -346,6 +560,18 @@ export default function Marketplace() {
                   {filteredProducts.length} products found
                 </p>
               </div>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="-created_at">Newest First</SelectItem>
+                  <SelectItem value="created_at">Oldest First</SelectItem>
+                  <SelectItem value="price_min">Price: Low to High</SelectItem>
+                  <SelectItem value="-price_min">Price: High to Low</SelectItem>
+                  <SelectItem value="-views">Most Popular</SelectItem>
+                </SelectContent>
+              </Select>
               <div className="hidden md:flex items-center gap-2">
                 <Button variant="ghost" size="sm">Grid</Button>
                 <Button variant="ghost" size="sm">List</Button>
@@ -374,26 +600,20 @@ export default function Marketplace() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {filteredProducts.map((product) => (
+                {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             )}
 
             {/* Pagination */}
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <Button variant="ghost" size="sm">Previous</Button>
-              {[1, 2, 3, 4, 5].map((page) => (
-                <Button
-                  key={page}
-                  variant={page === 1 ? 'primary' : 'ghost'}
-                  size="sm"
-                >
-                  {page}
-                </Button>
-              ))}
-              <Button variant="ghost" size="sm">Next</Button>
-            </div>
+            <PaginationFooter
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              totalCount={pagination.totalCount}
+              pageSize={pagination.pageSize}
+              onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
+            />
           </main>
         </div>
       </div>

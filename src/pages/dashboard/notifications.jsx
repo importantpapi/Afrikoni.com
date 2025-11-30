@@ -73,7 +73,6 @@ export default function NotificationsCenter() {
       if (error) throw error;
       setNotifications(data || []);
     } catch (error) {
-      console.error('Error loading notifications:', error);
       toast.error('Failed to load notifications');
     } finally {
       setIsLoading(false);
@@ -90,7 +89,7 @@ export default function NotificationsCenter() {
       if (error) throw error;
       loadNotifications();
     } catch (error) {
-      console.error('Error marking as read:', error);
+      // Error silently handled
     }
   };
 
@@ -108,7 +107,6 @@ export default function NotificationsCenter() {
       toast.success('All notifications marked as read');
       loadNotifications();
     } catch (error) {
-      console.error('Error marking all as read:', error);
       toast.error('Failed to mark all as read');
     }
   };
@@ -148,7 +146,6 @@ export default function NotificationsCenter() {
       setSelectedNotifications([]);
       loadNotifications();
     } catch (error) {
-      console.error('Error marking as read:', error);
       toast.error('Failed to mark as read');
     }
   };
@@ -199,17 +196,17 @@ export default function NotificationsCenter() {
                 Mark Selected ({selectedNotifications.length})
               </Button>
             )}
-            {unreadCount > 0 && (
-              <Button onClick={markAllAsRead} variant="outline" size="sm">
-                Mark all as read
-              </Button>
-            )}
+          {unreadCount > 0 && (
+            <Button onClick={markAllAsRead} variant="outline" size="sm">
+              Mark all as read
+            </Button>
+          )}
           </div>
         </div>
 
         {/* Filters */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-5 md:p-6">
             <Select value={filter} onValueChange={setFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filter notifications" />
@@ -234,7 +231,7 @@ export default function NotificationsCenter() {
             description="You'll see notifications here when you receive messages, order updates, and more"
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {filteredNotifications.map((notification) => {
               const Icon = getNotificationIcon(notification.type);
               return (
@@ -243,10 +240,10 @@ export default function NotificationsCenter() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <Card className={`hover:shadow-md transition-all cursor-pointer ${
+                  <Card className={`hover:shadow-afrikoni-lg transition-all cursor-pointer ${
                     !notification.read ? 'bg-afrikoni-gold/5 border-afrikoni-gold/30' : ''
                   }`}>
-                    <CardContent className="p-4">
+                    <CardContent className="p-5 md:p-6">
                       <div className="flex items-start gap-4">
                         <input
                           type="checkbox"
@@ -264,11 +261,11 @@ export default function NotificationsCenter() {
                         <div
                           onClick={() => handleNotificationClick(notification)}
                           className="flex items-start gap-4 flex-1"
-                        >
+                      >
                         <div className={`p-2 rounded-lg ${
-                          notification.type === 'message' ? 'bg-blue-100 text-blue-600' :
-                          notification.type === 'order' ? 'bg-green-100 text-green-600' :
-                          notification.type === 'rfq' ? 'bg-purple-100 text-purple-600' :
+                          notification.type === 'message' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
+                          notification.type === 'order' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
+                          notification.type === 'rfq' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
                           notification.type === 'payment' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
                           'bg-afrikoni-cream text-afrikoni-deep'
                         }`}>
@@ -287,7 +284,7 @@ export default function NotificationsCenter() {
                           </p>
                         </div>
                         {notification.read && (
-                          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                          <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
                         )}
                         </div>
                       </div>

@@ -77,10 +77,10 @@ export default function DashboardAnalytics() {
         buyerData = {
           chartData: chartDataArray,
           analytics: {
-            totalOrders: orders.length,
-            totalRFQs: rfqs.length,
+          totalOrders: orders.length,
+          totalRFQs: rfqs.length,
             totalQuotes: quotes.length,
-            totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0)
+          totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0)
           }
         };
       }
@@ -161,9 +161,9 @@ export default function DashboardAnalytics() {
         sellerData = {
           chartData: combinedChartData,
           analytics: {
-            totalSales: orders.length,
-            totalProducts: products.length,
-            totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
+          totalSales: orders.length,
+          totalProducts: products.length,
+          totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
             totalViews: products.reduce((sum, p) => sum + (p.views || 0), 0),
             totalInquiries: inquiries.length,
             topCategories: Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
@@ -194,10 +194,10 @@ export default function DashboardAnalytics() {
             .eq('logistics_partner_id', companyId)
             .gte('created_at', startDate),
           supabase
-            .from('orders')
-            .select('*')
-            .in('status', ['processing', 'shipped', 'delivered'])
-            .gte('created_at', startDate)
+          .from('orders')
+          .select('*')
+          .in('status', ['processing', 'shipped', 'delivered'])
+          .gte('created_at', startDate)
             .limit(100)
         ]);
 
@@ -261,7 +261,7 @@ export default function DashboardAnalytics() {
         >
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Analytics & Insights</h1>
-            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Track your performance and insights</p>
+          <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Track your performance and insights</p>
           </div>
           {currentRole === 'hybrid' && (
             <div className="flex items-center gap-1 bg-afrikoni-cream rounded-lg p-1">
@@ -511,21 +511,21 @@ export default function DashboardAnalytics() {
                       </ResponsiveContainer>
                     </div>
                     {analytics.topCategories && analytics.topCategories.length > 0 && (
-                      <div className="h-64">
+                    <div className="h-64">
                         <h3 className="text-sm font-semibold mb-4">Top Categories</h3>
-                        <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={analytics.topCategories.map(([name, count]) => ({ name, count }))}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                             <XAxis dataKey="name" stroke="#6b7280" />
-                            <YAxis stroke="#6b7280" />
-                            <Tooltip 
-                              contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                            />
-                            <Legend />
+                          <YAxis stroke="#6b7280" />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                          />
+                          <Legend />
                             <Bar dataKey="count" fill="#d97706" name="Products" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                     )}
                     {analytics.buyerCountries && analytics.buyerCountries.length > 0 && (
                       <div className="h-64">

@@ -56,7 +56,6 @@ export async function getOrCreateCompany(supabase, userData) {
 
   if (error || !newCompany) {
     // If creation fails, return null but don't block
-    console.log('Company creation failed (non-blocking):', error);
     return null;
   }
 

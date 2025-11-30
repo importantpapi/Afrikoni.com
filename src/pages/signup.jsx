@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { User, Mail, Lock, Shield, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
 
 
@@ -61,7 +61,8 @@ export default function Signup() {
           .upsert({
             id: data.user.id,
             full_name: formData.fullName,
-            role: 'buyer' // Default role
+            role: 'buyer', // Default role
+            onboarding_completed: false // Must complete onboarding
           }, { onConflict: 'id' });
 
         if (profileError) {
@@ -69,8 +70,8 @@ export default function Signup() {
           // Don't fail signup if profile creation fails - user can still proceed
         }
 
-        toast.success('Account created successfully! Redirecting to dashboard...');
-        navigate('/dashboard');
+        toast.success('Account created successfully!');
+        navigate('/onboarding');
       } else {
         toast.success('Please check your email to confirm your account');
         navigate('/login');

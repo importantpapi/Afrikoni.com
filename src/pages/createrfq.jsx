@@ -11,13 +11,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
 
 export default function CreateRFQ() {
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -73,24 +74,15 @@ export default function CreateRFQ() {
   };
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.description || !formData.quantity) {
-      toast.error('Please fill in all required fields');
+    // Use centralized validation
+    const validationErrors = validateRFQForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error('Please fix the errors before submitting');
       return;
     }
     
-    // Security: Validate and sanitize inputs
-    const quantity = validateNumeric(formData.quantity, { min: 1 });
-    const targetPrice = formData.target_price ? validateNumeric(formData.target_price, { min: 0 }) : null;
-    
-    if (quantity === null || quantity < 1) {
-      toast.error('Please enter a valid quantity (must be at least 1)');
-      return;
-    }
-    
-    if (formData.target_price && (targetPrice === null || targetPrice < 0)) {
-      toast.error('Please enter a valid target price (must be 0 or greater)');
-      return;
-    }
+    setErrors({});
     
     setIsLoading(true);
     try {
@@ -145,8 +137,7 @@ export default function CreateRFQ() {
         const { notifyRFQCreated } = await import('@/services/notificationService');
         await notifyRFQCreated(newRFQ.id, companyId);
       } catch (err) {
-        // Silently fail - notifications are non-blocking
-        console.log('RFQ notification to sellers failed (non-blocking):', err);
+        // Notification failed, but RFQ was created
       }
 
       toast.success('RFQ created successfully!');
@@ -187,7 +178,11 @@ export default function CreateRFQ() {
                 onChange={(e) => handleChange('description', e.target.value)}
                 placeholder="Provide detailed specifications, quality standards, preferred materials, etc."
                 rows={6}
+                className={errors.description ? 'border-red-500' : ''}
               />
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+              )}
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -211,7 +206,11 @@ export default function CreateRFQ() {
                   value={formData.quantity}
                   onChange={(e) => handleChange('quantity', e.target.value)}
                   placeholder="1000"
+                  className={errors.quantity ? 'border-red-500' : ''}
                 />
+                {errors.quantity && (
+                  <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="unit">Unit</Label>
@@ -238,7 +237,11 @@ export default function CreateRFQ() {
                   value={formData.target_price}
                   onChange={(e) => handleChange('target_price', e.target.value)}
                   placeholder="Optional"
+                  className={errors.target_price ? 'border-red-500' : ''}
                 />
+                {errors.target_price && (
+                  <p className="text-red-500 text-sm mt-1">{errors.target_price}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="delivery_location">Delivery Location *</Label>

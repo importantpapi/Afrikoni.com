@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -179,7 +179,7 @@ export default function Suppliers() {
                     {/* Image */}
                     <div className="h-48 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden">
                       {supplier.logo_url ? (
-                        <img src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover" />
+                        <img src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Building2 className="w-20 h-20 text-afrikoni-deep/70" />

@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
+import { ORDER_STATUS, getStatusLabel, getNextStatuses, canTransitionTo } from '@/constants/status';
+import { buildOrderTimeline } from '@/utils/timeline';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +17,8 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
+import { TimelineItem } from '@/components/ui/reusable/TimelineItem';
+import { StatusBadge } from '@/components/ui/reusable/StatusBadge';
 
 export default function OrderDetail() {
   const { id } = useParams();
@@ -34,14 +40,12 @@ export default function OrderDetail() {
   const loadOrderData = async () => {
     try {
       setIsLoading(true);
-      const userData = await supabaseHelpers.auth.me();
-      if (!userData) {
+      const { user, profile, role } = await getCurrentUserAndRole();
+      if (!user) {
         navigate('/login');
         return;
       }
-
-      const role = userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+      setCurrentRole(getUserRole(profile || user));
 
       // Load order with related data
       const { data: orderData, error: orderError } = await supabase
@@ -83,111 +87,16 @@ export default function OrderDetail() {
 
       setShipment(shipmentData);
 
-      // Build timeline
-      buildTimeline(orderData, shipmentData);
+      // Build timeline using helper
+      const timelineData = buildOrderTimeline(orderData, shipmentData);
+      setTimeline(timelineData);
 
     } catch (error) {
-      console.error('Error loading order:', error);
       toast.error('Failed to load order details');
       navigate('/dashboard/orders');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const buildTimeline = (orderData, shipmentData) => {
-    const timelineItems = [];
-
-    // Order created
-    timelineItems.push({
-      id: 'created',
-      title: 'Order Created',
-      description: 'Order was placed',
-      timestamp: orderData.created_at,
-      icon: ShoppingCart,
-      status: 'completed'
-    });
-
-    // Payment status
-    if (orderData.payment_status === 'paid') {
-      timelineItems.push({
-        id: 'paid',
-        title: 'Payment Received',
-        description: `Payment of ${orderData.currency} ${parseFloat(orderData.total_amount).toLocaleString()} received`,
-        timestamp: orderData.updated_at,
-        icon: DollarSign,
-        status: 'completed'
-      });
-    } else {
-      timelineItems.push({
-        id: 'payment_pending',
-        title: 'Payment Pending',
-        description: 'Awaiting payment',
-        timestamp: orderData.created_at,
-        icon: Clock,
-        status: 'pending'
-      });
-    }
-
-    // Order status updates
-    if (orderData.status === 'processing') {
-      timelineItems.push({
-        id: 'processing',
-        title: 'Order Processing',
-        description: 'Seller is preparing your order',
-        timestamp: orderData.updated_at,
-        icon: Package,
-        status: 'completed'
-      });
-    }
-
-    if (orderData.status === 'shipped') {
-      timelineItems.push({
-        id: 'shipped',
-        title: 'Order Shipped',
-        description: shipmentData?.tracking_number ? `Tracking: ${shipmentData.tracking_number}` : 'Order has been shipped',
-        timestamp: shipmentData?.updated_at || orderData.updated_at,
-        icon: Truck,
-        status: 'completed'
-      });
-    }
-
-    if (orderData.status === 'delivered') {
-      timelineItems.push({
-        id: 'delivered',
-        title: 'Order Delivered',
-        description: 'Order has been delivered',
-        timestamp: orderData.delivery_date || orderData.updated_at,
-        icon: CheckCircle,
-        status: 'completed'
-      });
-    }
-
-    if (orderData.status === 'completed') {
-      timelineItems.push({
-        id: 'completed',
-        title: 'Order Completed',
-        description: 'Order has been completed',
-        timestamp: orderData.updated_at,
-        icon: CheckCircle,
-        status: 'completed'
-      });
-    }
-
-    if (orderData.status === 'cancelled') {
-      timelineItems.push({
-        id: 'cancelled',
-        title: 'Order Cancelled',
-        description: 'Order was cancelled',
-        timestamp: orderData.updated_at,
-        icon: X,
-        status: 'cancelled'
-      });
-    }
-
-    // Sort by timestamp
-    timelineItems.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    setTimeline(timelineItems);
   };
 
   const handleStatusUpdate = async (newStatus) => {
@@ -212,22 +121,21 @@ export default function OrderDetail() {
           const { notifyOrderStatusChange } = await import('@/services/notificationService');
           await notifyOrderStatusChange(id, newStatus, order.buyer_company_id, order.seller_company_id);
         } catch (err) {
-          console.error('Error creating notification:', err);
           // Fallback to direct insert
           const userData = await supabaseHelpers.auth.me();
           if (userData?.email) {
-            await supabase.from('notifications').insert({
-              company_id: otherCompanyId,
+        await supabase.from('notifications').insert({
+          company_id: otherCompanyId,
               user_email: userData.email,
               user_id: userData.id,
-              title: 'Order Status Updated',
-              message: `Order ${id.slice(0, 8)} status changed to ${newStatus}`,
-              type: 'order',
-              link: `/dashboard/orders/${id}`,
-              related_id: id
+          title: 'Order Status Updated',
+          message: `Order ${id.slice(0, 8)} status changed to ${newStatus}`,
+          type: 'order',
+          link: `/dashboard/orders/${id}`,
+          related_id: id
             }).catch(() => {
               // Silently fail
-            });
+        });
           }
         }
       }
@@ -235,7 +143,6 @@ export default function OrderDetail() {
       toast.success('Order status updated');
       loadOrderData();
     } catch (error) {
-      console.error('Error updating order:', error);
       toast.error('Failed to update order status');
     } finally {
       setIsUpdating(false);
@@ -260,7 +167,6 @@ export default function OrderDetail() {
       toast.success('Payment status updated');
       loadOrderData();
     } catch (error) {
-      console.error('Error updating payment:', error);
       toast.error('Failed to update payment status');
     } finally {
       setIsUpdating(false);
@@ -299,17 +205,13 @@ export default function OrderDetail() {
             <Link to="/dashboard/orders" className="text-afrikoni-gold hover:text-afrikoni-goldDark text-sm mb-2 inline-block">
               ← Back to Orders
             </Link>
-            <h1 className="text-2xl font-bold text-afrikoni-chestnut">
+            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">
               Order #{id.slice(0, 8).toUpperCase()}
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={order.status === 'completed' ? 'default' : 'outline'} className="text-sm px-3 py-1">
-              {order.status}
-            </Badge>
-            <Badge variant={order.payment_status === 'paid' ? 'default' : 'outline'} className="text-sm px-3 py-1">
-              {order.payment_status}
-            </Badge>
+            <StatusBadge status={order.status} type="order" size="md" />
+            <StatusBadge status={order.payment_status} type="payment" size="md" />
           </div>
         </div>
 
@@ -323,35 +225,21 @@ export default function OrderDetail() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {timeline.map((item, idx) => {
-                    const Icon = item.icon;
-                    const isLast = idx === timeline.length - 1;
-                    return (
-                      <div key={item.id} className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className={`p-2 rounded-full ${
-                            item.status === 'completed' ? 'bg-green-100 text-green-600' :
-                            item.status === 'pending' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
-                            'bg-red-100 text-red-600'
-                          }`}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          {!isLast && (
-                            <div className={`w-0.5 h-full ${
-                              item.status === 'completed' ? 'bg-green-200' : 'bg-afrikoni-cream'
-                            }`} style={{ minHeight: '40px' }} />
-                          )}
-                        </div>
-                        <div className="flex-1 pb-4">
-                          <h4 className="font-medium text-afrikoni-chestnut">{item.title}</h4>
-                          <p className="text-sm text-afrikoni-deep/70">{item.description}</p>
-                          <p className="text-xs text-afrikoni-deep/50 mt-1">
-                            {format(new Date(item.timestamp), 'MMM d, yyyy h:mm a')}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {Array.isArray(timeline) && timeline.length > 0 ? (
+                    timeline.map((item, idx) => (
+                      <TimelineItem
+                        key={item.id || idx}
+                        title={item.title}
+                        description={item.description}
+                        timestamp={item.timestamp}
+                        icon={item.icon}
+                        status={item.status || 'pending'}
+                        isLast={idx === timeline.length - 1}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-sm text-afrikoni-deep/70">No timeline events available</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -497,35 +385,27 @@ export default function OrderDetail() {
                 
                 {canUpdateStatus && (
                   <>
-                    {order.status === 'pending' && (
-                      <Button 
-                        onClick={() => handleStatusUpdate('processing')}
-                        disabled={isUpdating}
-                        className="w-full" 
+                    {getNextStatuses(order.status, 'order').map(nextStatus => (
+                      <Button
+                        key={nextStatus}
+                        onClick={() => handleStatusUpdate(nextStatus)}
+                        disabled={isUpdating || !canTransitionTo(order.status, nextStatus, 'order')}
+                        className="w-full"
                         size="sm"
                       >
-                        Start Processing
+                        {getStatusLabel(nextStatus, 'order')}
                       </Button>
-                    )}
-                    {order.status === 'processing' && (
-                      <Button 
-                        onClick={() => handleStatusUpdate('shipped')}
-                        disabled={isUpdating}
-                        className="w-full" 
-                        size="sm"
-                      >
-                        Mark as Shipped
-                      </Button>
-                    )}
+                    ))}
                   </>
                 )}
 
                 {canConfirmReceipt && (
                   <Button 
-                    onClick={() => handleStatusUpdate('completed')}
+                    onClick={() => handleStatusUpdate(ORDER_STATUS.COMPLETED)}
                     disabled={isUpdating}
-                    className="w-full bg-green-600 hover:bg-green-700" 
+                    variant="primary"
                     size="sm"
+                    className="w-full"
                   >
                     Confirm Receipt
                   </Button>

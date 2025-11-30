@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, FileText, Users, Shield, TrendingUp, Globe, Award, Zap, BarChart, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 
 export default function BuyerCentral() {
   const [stats, setStats] = useState({

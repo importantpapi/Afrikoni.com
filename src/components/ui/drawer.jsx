@@ -46,6 +46,15 @@ export function Drawer({ open, onOpenChange, children, position = 'bottom', titl
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
             onClick={() => onOpenChange(false)}
+            role="button"
+            tabIndex={0}
+            aria-label="Close drawer"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onOpenChange(false);
+              }
+            }}
           />
           <motion.div
             initial={anim.initial}
@@ -66,9 +75,10 @@ export function Drawer({ open, onOpenChange, children, position = 'bottom', titl
                 <h2 className="text-lg font-bold text-afrikoni-chestnut">{title}</h2>
                 <button
                   onClick={() => onOpenChange(false)}
-                  className="rounded-lg p-1 hover:bg-afrikoni-cream transition-colors"
+                  className="rounded-lg p-1 hover:bg-afrikoni-cream transition-colors focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2"
+                  aria-label="Close drawer"
                 >
-                  <X className="h-5 w-5 text-afrikoni-deep" />
+                  <X className="h-5 w-5 text-afrikoni-deep" aria-hidden="true" />
                 </button>
               </div>
             )}

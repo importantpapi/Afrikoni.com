@@ -47,7 +47,19 @@ export const SelectContent = ({ children, className }) => {
   
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+      <div 
+        className="fixed inset-0 z-40" 
+        onClick={() => setOpen(false)}
+        role="button"
+        tabIndex={0}
+        aria-label="Close dropdown"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpen(false);
+          }
+        }}
+      />
       <div className={cn(
         'absolute z-50 min-w-[8rem] overflow-hidden rounded-md border border-afrikoni-gold/20 bg-afrikoni-offwhite text-afrikoni-chestnut shadow-afrikoni',
         className

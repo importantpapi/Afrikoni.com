@@ -29,18 +29,71 @@ export default function MessagesPremium() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const createConversationWithRecipient = async (recipientCompanyId) => {
+    if (!companyId || !recipientCompanyId) return;
+    
+    try {
+      // Get recipient company
+      const { data: recipientCompany } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', recipientCompanyId)
+        .single();
+
+      if (!recipientCompany) {
+        toast.error('Recipient not found');
+        return;
+      }
+
+      // Create conversation
+      const { data: newConv, error: convError } = await supabase
+        .from('conversations')
+        .insert({
+          buyer_company_id: companyId,
+          seller_company_id: recipientCompanyId,
+          subject: 'New Conversation',
+          last_message: '',
+          last_message_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+
+      if (convError) throw convError;
+
+      setSelectedConversation(newConv.id);
+      // Reload conversations
+      loadUserAndConversations();
+    } catch (error) {
+      toast.error('Failed to create conversation');
+    }
+  };
+
   useEffect(() => {
     loadUserAndConversations();
   }, []);
 
   useEffect(() => {
     const conversationParam = searchParams.get('conversation');
-    if (conversationParam && conversations.length > 0) {
+    const recipientParam = searchParams.get('recipient');
+    
+    if (conversationParam && Array.isArray(conversations) && conversations.length > 0) {
       setSelectedConversation(conversationParam);
-    } else if (conversations.length > 0 && !selectedConversation) {
+    } else if (recipientParam && companyId) {
+      // Find or create conversation with recipient
+      const existingConv = Array.isArray(conversations) ? conversations.find(c => 
+        c.otherCompany?.id === recipientParam
+      ) : null;
+      if (existingConv) {
+        setSelectedConversation(existingConv.id);
+      } else {
+        // Create new conversation
+        createConversationWithRecipient(recipientParam);
+      }
+    } else if (Array.isArray(conversations) && conversations.length > 0 && !selectedConversation) {
       setSelectedConversation(conversations[0].id);
     }
-  }, [conversations, searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversations, searchParams, companyId]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -100,7 +153,6 @@ export default function MessagesPremium() {
 
       setConversations(formattedConversations);
     } catch (error) {
-      console.error('Error loading conversations:', error);
       toast.error('Failed to load conversations');
     } finally {
       setIsLoading(false);
@@ -136,7 +188,6 @@ export default function MessagesPremium() {
         loadUserAndConversations();
       }
     } catch (error) {
-      console.error('Error loading messages:', error);
       toast.error('Failed to load messages');
     }
   };
@@ -152,7 +203,6 @@ export default function MessagesPremium() {
       setAttachment(file_url);
       toast.success('File attached');
     } catch (error) {
-      console.error('Error uploading file:', error);
       toast.error('Failed to upload file');
     }
   };
@@ -212,7 +262,6 @@ export default function MessagesPremium() {
       // Auto-focus input
       setTimeout(() => inputRef.current?.focus(), 100);
     } catch (error) {
-      console.error('Error sending message:', error);
       toast.error('Failed to send message');
     }
   };

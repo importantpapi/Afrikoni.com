@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
+import { SHIPMENT_STATUS, getStatusLabel, getNextStatuses } from '@/constants/status';
+import { buildShipmentTimeline } from '@/utils/timeline';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +15,8 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EmptyState from '@/components/ui/EmptyState';
+import { TimelineItem } from '@/components/ui/reusable/TimelineItem';
+import { StatusBadge } from '@/components/ui/reusable/StatusBadge';
 
 export default function ShipmentDetail() {
   const { id } = useParams();
@@ -29,14 +35,12 @@ export default function ShipmentDetail() {
   const loadShipmentData = async () => {
     try {
       setIsLoading(true);
-      const userData = await supabaseHelpers.auth.me();
-      if (!userData) {
+      const { user, profile, role } = await getCurrentUserAndRole();
+      if (!user) {
         navigate('/login');
         return;
       }
-
-      const role = userData.role || userData.user_role || 'logistics';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+      setCurrentRole(getUserRole(profile || user));
 
       // Load shipment with order and related data
       const { data: shipmentData, error: shipmentError } = await supabase
@@ -64,7 +68,6 @@ export default function ShipmentDetail() {
       setOrder(shipmentData.orders);
       setNewStatus(shipmentData.status);
     } catch (error) {
-      console.error('Error loading shipment:', error);
       toast.error('Failed to load shipment details');
       navigate('/dashboard/shipments');
     } finally {
@@ -88,7 +91,7 @@ export default function ShipmentDetail() {
       if (error) throw error;
 
       // If delivered, set actual_delivery
-      if (newStatus === 'delivered' && !shipment.actual_delivery) {
+      if (newStatus === SHIPMENT_STATUS.DELIVERED && !shipment.actual_delivery) {
         await supabase
           .from('shipments')
           .update({ actual_delivery: new Date().toISOString() })
@@ -98,43 +101,10 @@ export default function ShipmentDetail() {
       toast.success('Shipment status updated');
       loadShipmentData();
     } catch (error) {
-      console.error('Error updating shipment:', error);
       toast.error('Failed to update shipment status');
     } finally {
       setIsUpdating(false);
     }
-  };
-
-  const buildTimeline = () => {
-    if (!shipment) return [];
-
-    const timeline = [];
-    const statusOrder = ['pending_pickup', 'picked_up', 'in_transit', 'customs', 'out_for_delivery', 'delivered'];
-    const currentStatusIndex = statusOrder.indexOf(shipment.status);
-
-    statusOrder.forEach((status, index) => {
-      const isCompleted = index <= currentStatusIndex;
-      const isCurrent = index === currentStatusIndex;
-
-      const statusLabels = {
-        pending_pickup: 'Pickup Scheduled',
-        picked_up: 'Picked Up',
-        in_transit: 'In Transit',
-        customs: 'In Customs',
-        out_for_delivery: 'Out for Delivery',
-        delivered: 'Delivered'
-      };
-
-      timeline.push({
-        status,
-        label: statusLabels[status] || status,
-        completed: isCompleted,
-        current: isCurrent,
-        date: shipment.updated_at && isCompleted ? shipment.updated_at : null
-      });
-    });
-
-    return timeline;
   };
 
   if (isLoading) {
@@ -159,7 +129,7 @@ export default function ShipmentDetail() {
     );
   }
 
-  const timeline = buildTimeline();
+  const timeline = buildShipmentTimeline(shipment);
   const isLogistics = currentRole === 'logistics';
 
   return (
@@ -185,53 +155,32 @@ export default function ShipmentDetail() {
           {/* Main Content */}
           <div className="md:col-span-2 space-y-4">
             {/* Timeline */}
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader>
                 <CardTitle>Shipment Timeline</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {timeline.map((item, index) => (
-                    <div key={item.status} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          item.completed 
-                            ? 'bg-afrikoni-gold text-white' 
-                            : 'bg-afrikoni-cream border-2 border-afrikoni-gold/30'
-                        }`}>
-                          {item.completed ? (
-                            <CheckCircle className="w-6 h-6" />
-                          ) : (
-                            <Clock className="w-6 h-6 text-afrikoni-deep/50" />
-                          )}
-                        </div>
-                        {index < timeline.length - 1 && (
-                          <div className={`w-0.5 h-12 ${
-                            item.completed ? 'bg-afrikoni-gold' : 'bg-afrikoni-gold/20'
-                          }`} />
-                        )}
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <h4 className={`font-semibold ${
-                          item.current ? 'text-afrikoni-gold' : item.completed ? 'text-afrikoni-chestnut' : 'text-afrikoni-deep/70'
-                        }`}>
-                          {item.label}
-                        </h4>
-                        {item.date && (
-                          <p className="text-xs text-afrikoni-deep/70 mt-1">
-                            {format(new Date(item.date), 'MMM d, yyyy h:mm a')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                  {Array.isArray(timeline) && timeline.length > 0 ? (
+                    timeline.map((item, index) => (
+                      <TimelineItem
+                        key={item.status || index}
+                        title={item.label}
+                        timestamp={item.date}
+                        status={item.completed ? 'completed' : item.current ? 'current' : 'pending'}
+                        isLast={index === timeline.length - 1}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-sm text-afrikoni-deep/70">No timeline events available</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Order Info */}
             {order && (
-              <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+              <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
                 <CardHeader>
                   <CardTitle>Order Information</CardTitle>
                 </CardHeader>
@@ -265,7 +214,7 @@ export default function ShipmentDetail() {
 
             {/* Update Status (for logistics) */}
             {isLogistics && (
-              <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+              <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
                 <CardHeader>
                   <CardTitle>Update Status</CardTitle>
                 </CardHeader>
@@ -277,13 +226,16 @@ export default function ShipmentDetail() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending_pickup">Pending Pickup</SelectItem>
-                        <SelectItem value="picked_up">Picked Up</SelectItem>
-                        <SelectItem value="in_transit">In Transit</SelectItem>
-                        <SelectItem value="customs">In Customs</SelectItem>
-                        <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        {getNextStatuses(shipment?.status || '', 'shipment').map(status => (
+                          <SelectItem key={status} value={status}>
+                            {getStatusLabel(status, 'shipment')}
+                          </SelectItem>
+                        ))}
+                        {shipment?.status === SHIPMENT_STATUS.DELIVERED && (
+                          <SelectItem value={SHIPMENT_STATUS.CANCELLED}>
+                            {getStatusLabel(SHIPMENT_STATUS.CANCELLED, 'shipment')}
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -302,7 +254,7 @@ export default function ShipmentDetail() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Shipment Info */}
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader>
                 <CardTitle>Shipment Information</CardTitle>
               </CardHeader>
@@ -337,7 +289,7 @@ export default function ShipmentDetail() {
             </Card>
 
             {/* Route */}
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader>
                 <CardTitle>Route</CardTitle>
               </CardHeader>
@@ -364,7 +316,7 @@ export default function ShipmentDetail() {
             {order && (
               <>
                 {order.buyer_company && (
-                  <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+                  <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
                     <CardHeader>
                       <CardTitle>Buyer</CardTitle>
                     </CardHeader>
@@ -378,7 +330,7 @@ export default function ShipmentDetail() {
                   </Card>
                 )}
                 {order.seller_company && (
-                  <Card className="border-afrikoni-gold/20 shadow-lg bg-afrikoni-offwhite">
+                  <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
                     <CardHeader>
                       <CardTitle>Seller</CardTitle>
                     </CardHeader>

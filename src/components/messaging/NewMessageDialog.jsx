@@ -24,7 +24,38 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
         return;
       }
 
-      const conversationId = `${user.company_id}-${recipientCompany.id}`;
+      if (!recipientCompany || !recipientCompany.id) {
+        toast.error('Invalid recipient');
+        return;
+      }
+
+      // Get or create conversation
+      let conversationId;
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(buyer_company_id.eq.${user.company_id},seller_company_id.eq.${recipientCompany.id}),and(buyer_company_id.eq.${recipientCompany.id},seller_company_id.eq.${user.company_id})`)
+        .maybeSingle();
+
+      if (existingConv) {
+        conversationId = existingConv.id;
+      } else {
+        // Create new conversation
+        const { data: newConv, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            buyer_company_id: user.company_id,
+            seller_company_id: recipientCompany.id,
+            subject: subject || `Inquiry about ${relatedType || 'product'}`,
+            last_message: content.trim().substring(0, 100),
+            last_message_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
+
+        if (convError) throw convError;
+        conversationId = newConv.id;
+      }
 
       const { error } = await supabase.from('messages').insert({
         conversation_id: conversationId,
@@ -39,6 +70,15 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
       });
 
       if (error) throw error;
+
+      // Update conversation last message
+      await supabase
+        .from('conversations')
+        .update({
+          last_message: content.trim().substring(0, 100),
+          last_message_at: new Date().toISOString()
+        })
+        .eq('id', conversationId);
 
       // Create notification
       await supabase.from('notifications').insert({

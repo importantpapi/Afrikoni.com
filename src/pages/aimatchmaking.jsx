@@ -6,9 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Sparkles, Building2, MapPin, Star, Shield } from 'lucide-react';
 import { toast } from 'sonner';
-import { AIMatchingService } from '../components/services/AIMatchingService';
+import { AIMatchingService } from '@/components/services/AIMatchingService';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 
 export default function AIMatchmaking() {
   const [requirements, setRequirements] = useState('');
@@ -94,7 +94,7 @@ export default function AIMatchmaking() {
                     <div className="flex items-start gap-4 mb-4">
                       <div className="w-16 h-16 bg-gradient-to-br from-zinc-100 to-zinc-200 rounded-xl flex items-center justify-center flex-shrink-0">
                         {match.supplier?.logo_url ? (
-                          <img src={match.supplier.logo_url} alt={match.supplier.company_name} className="w-full h-full object-cover rounded-xl" />
+                          <img src={match.supplier.logo_url} alt={match.supplier.company_name} className="w-full h-full object-cover rounded-xl" loading="lazy" decoding="async" />
                         ) : (
                           <Building2 className="w-8 h-8 text-afrikoni-deep/70" />
                         )}

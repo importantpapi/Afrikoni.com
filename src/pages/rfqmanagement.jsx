@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, DollarSign, Calendar, CheckCircle, Clock, Edit, Share, Eye } from 'lucide-react';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 
 export default function RFQManagement() {
@@ -65,16 +65,27 @@ export default function RFQManagement() {
 
       if (error) throw error;
 
-      // Get quotes count for each RFQ
-      const rfqsWithQuotes = await Promise.all(
-        (data || []).map(async (rfq) => {
-          const { count } = await supabase
-            .from('quotes')
-            .select('*', { count: 'exact', head: true })
-            .eq('rfq_id', rfq.id);
-          return { ...rfq, quotesCount: count || 0 };
-        })
-      );
+      // Fix N+1 query: Use aggregation to get quotes count
+      const rfqIds = (data || []).map(rfq => rfq.id);
+      let quotesCountMap = {};
+      
+      if (rfqIds.length > 0) {
+        const { data: quotesData } = await supabase
+          .from('quotes')
+          .select('rfq_id')
+          .in('rfq_id', rfqIds);
+        
+        // Count quotes per RFQ
+        quotesCountMap = (quotesData || []).reduce((acc, quote) => {
+          acc[quote.rfq_id] = (acc[quote.rfq_id] || 0) + 1;
+          return acc;
+        }, {});
+      }
+      
+      const rfqsWithQuotes = (data || []).map(rfq => ({
+        ...rfq,
+        quotesCount: quotesCountMap[rfq.id] || 0
+      }));
 
       setRfqs(rfqsWithQuotes);
     } catch (error) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,12 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, X, Sparkles, Lightbulb, Image, FileText, DollarSign, Shield, TrendingUp } from 'lucide-react';
-import { AIDescriptionService } from '../components/services/AIDescriptionService';
+import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { toast } from 'sonner';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
 
 export default function AddProduct() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -160,12 +162,14 @@ export default function AddProduct() {
       }
       
       // Security: Sanitize text inputs
-      const { error } = await supabase.from('products').insert({
+      const { data: newProduct, error } = await supabase.from('products').insert({
         title: sanitizeString(formData.title),
         description: sanitizeString(formData.description),
         category_id: formData.category_id, // UUID validated by RLS
         images: formData.images || [],
         price: price,
+        price_min: price,
+        min_order_quantity: moq,
         moq: moq,
         unit: sanitizeString(formData.unit || 'pieces'),
         delivery_time: sanitizeString(formData.delivery_time || ''),
@@ -175,11 +179,33 @@ export default function AddProduct() {
         company_id: companyId, // Always from authenticated user, never from input
         views: 0,
         inquiries: 0
-      });
+      }).select('id').single();
+      
       if (error) throw error;
+      
+      // Save images to product_images table
+      if (newProduct?.id && formData.images && formData.images.length > 0) {
+        const imageRecords = formData.images.map((imgUrl, index) => ({
+          product_id: newProduct.id,
+          url: typeof imgUrl === 'string' ? imgUrl : imgUrl.url || imgUrl,
+          alt_text: formData.title || 'Product image',
+          is_primary: index === 0,
+          sort_order: index
+        }));
+
+        const { error: imagesError } = await supabase
+          .from('product_images')
+          .insert(imageRecords);
+
+        if (imagesError) {
+          // Error logged (removed for production)
+          // Don't fail the whole operation, just log it
+        }
+      }
+      
       toast.success('Product created successfully!');
       setTimeout(() => {
-        navigate(createPageUrl('SellerDashboard'));
+        navigate('/dashboard/products');
       }, 1000);
     } catch (error) {
       // Error logged (removed for production)
@@ -373,7 +399,7 @@ export default function AddProduct() {
                   <div className="grid grid-cols-5 gap-4 mt-4">
                     {formData.images.map((img, idx) => (
                       <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-afrikoni-gold/20">
-                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                         <button
                           onClick={() => removeImage(idx)}
                           className="absolute top-2 right-2 p-1 bg-red-500 text-afrikoni-creamrounded-full hover:bg-red-600"

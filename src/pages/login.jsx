@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Lock, Loader2, Shield, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
 
 export default function Login() {
@@ -34,8 +35,14 @@ export default function Login() {
 
       toast.success('Logged in successfully!');
       
-      // Simple redirect - let dashboard handle routing
+      // Check onboarding status and redirect accordingly
+      const { onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      if (!onboardingCompleted) {
+        navigate('/onboarding');
+      } else {
       navigate('/dashboard');
+      }
     } catch (error) {
       // Error logged (removed for production)
       toast.error(error.message || 'Failed to login');

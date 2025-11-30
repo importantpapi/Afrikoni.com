@@ -3,7 +3,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Bell, MessageCircle, User } from 'lucide-react';
-import NotificationBell from '../notificationbell';
+import NotificationBell from '@/components/notificationbell';
 
 export default function DashboardHeader({ user, company, activeRole, onRoleSwitch }) {
   const roleOptions = [

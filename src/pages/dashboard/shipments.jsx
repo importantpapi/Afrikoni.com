@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
+import { buildShipmentQuery } from '@/utils/queryBuilders';
+import { paginateQuery, createPaginationState } from '@/utils/pagination';
+import { TableSkeleton } from '@/components/ui/skeletons';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +24,8 @@ export default function DashboardShipments() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [pagination, setPagination] = useState(createPaginationState());
+  const [currentRole, setCurrentRole] = useState('logistics');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,34 +34,28 @@ export default function DashboardShipments() {
 
   const loadShipments = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
-      if (!userData) {
+      setIsLoading(true);
+      const { user, profile, role, companyId } = await getCurrentUserAndRole();
+      if (!user) {
         navigate('/login');
         return;
       }
+      setCurrentRole(getUserRole(profile || user));
 
-      // Get or create company
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
-
-      // Load actual shipments from shipments table
-      let shipmentsQuery = supabase
-        .from('shipments')
-        .select('*, orders(*, products(*))')
-        .order('created_at', { ascending: false });
-
-      if (companyId) {
-        shipmentsQuery = shipmentsQuery.eq('logistics_partner_id', companyId);
-      }
-
-      const { data: shipmentsData, error: shipmentsError } = await shipmentsQuery;
-
-      if (shipmentsError && shipmentsError.code !== 'PGRST116') {
-        throw shipmentsError;
-      }
+      // Use query builder
+      const query = buildShipmentQuery({
+        logisticsCompanyId: role === 'logistics' ? companyId : null,
+        status: statusFilter === 'all' ? null : statusFilter
+      });
+      
+      // Use pagination
+      const result = await paginateQuery(query.select('*, orders(*, products(*))'), {
+        page: pagination.page,
+        pageSize: pagination.pageSize
+      });
 
       // Transform shipments data
-      const transformedShipments = (shipmentsData || []).map(shipment => ({
+      const transformedShipments = (result.data || []).map(shipment => ({
         id: shipment.id,
         order_id: shipment.order_id,
         tracking_number: shipment.tracking_number,
@@ -70,6 +71,11 @@ export default function DashboardShipments() {
       }));
 
       setShipments(transformedShipments);
+      setPagination(prev => ({
+        ...prev,
+        ...result,
+        isLoading: false
+      }));
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to load shipments');

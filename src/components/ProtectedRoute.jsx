@@ -1,28 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { requireAuth, requireOnboarding } from '@/utils/authHelpers';
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, requireOnboarding: needsOnboarding = false }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [needsOnboarding]);
 
   const checkAuth = async () => {
     try {
-      // Check session first
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
+      if (needsOnboarding) {
+        // Require both auth and onboarding
+        const result = await requireOnboarding(supabase, supabaseHelpers);
+        if (!result) {
+          // Redirected to login or onboarding
+          return;
+        }
+        if (result.needsOnboarding) {
+          navigate('/onboarding');
+          return;
+        }
+        setIsAuthorized(true);
+      } else {
+        // Only require auth
+        const result = await requireAuth(supabase);
+        if (!result) {
         navigate('/login');
         return;
       }
-
-      // User is authorized - no onboarding checks
       setIsAuthorized(true);
+      }
     } catch (error) {
       // Error logged (removed for production)
       navigate('/login');

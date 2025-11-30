@@ -14,6 +14,15 @@ export const Dialog = ({ open, onOpenChange, children }) => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => onOpenChange(false)}
+            role="button"
+            tabIndex={0}
+            aria-label="Close dialog"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onOpenChange(false);
+              }
+            }}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}

@@ -30,7 +30,7 @@ export const createPageUrl = (pageName) => {
     'BuyerCentral': '/buyer-central',
     'Profile': '/dashboard',
     'Settings': '/dashboard',
-    'Verification': '/verification',
+    'Verification': '/dashboard/verification',
     'Help': '/help',
     'Contact': '/contact',
     'Investors': '/investors'

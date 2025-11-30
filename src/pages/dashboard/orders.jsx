@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole, isHybrid, canViewBuyerFeatures, canViewSellerFeatures, isLogistics } from '@/utils/roleHelpers';
+import { ORDER_STATUS, getStatusLabel } from '@/constants/status';
+import { buildOrderQuery } from '@/utils/queryBuilders';
+import { paginateQuery, createPaginationState } from '@/utils/pagination';
+import { TableSkeleton } from '@/components/ui/skeletons';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,131 +25,61 @@ export default function DashboardOrders() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
+  const [pagination, setPagination] = useState(createPaginationState());
   const navigate = useNavigate();
 
   useEffect(() => {
     loadUserAndOrders();
-  }, [viewMode]);
+  }, [viewMode, statusFilter]);
 
   const loadUserAndOrders = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
-      if (!userData) {
+      setIsLoading(true);
+      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole();
+      if (!user) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+      const userData = profile || user;
+      const normalizedRole = getUserRole(userData);
+      setCurrentRole(normalizedRole);
 
-      // Load orders based on role
-      // Note: Using user ID for now - will need to link to companies table later
-
-      // First, get or create company for this user
-      let companyId = null;
-      if (userData.company_id) {
-        companyId = userData.company_id;
-      } else if (userData.company_name) {
-        // Try to find existing company or create one
-        const { data: existingCompany } = await supabase
-          .from('companies')
-          .select('id')
-          .eq('owner_email', userData.email || userData.business_email)
-          .single();
-        
-        if (existingCompany) {
-          companyId = existingCompany.id;
-        } else {
-          // Create company for user
-          const { data: newCompany } = await supabase
-            .from('companies')
-            .insert({
-              company_name: userData.company_name,
-              owner_email: userData.email || userData.business_email,
-              role: role === 'hybrid' ? 'hybrid' : role,
-              country: userData.country,
-              city: userData.city,
-              phone: userData.phone,
-              email: userData.business_email || userData.email
-            })
-            .select('id')
-            .single();
-          
-          if (newCompany) {
-            companyId = newCompany.id;
-            // Update profile with company_id
-            await supabase
-              .from('profiles')
-              .update({ company_id: companyId })
-              .eq('id', userData.id);
-          }
-        }
-      }
-
-      let allOrders = [];
+      // Build query based on role
+      let query = buildOrderQuery({
+        buyerCompanyId: canViewBuyerFeatures(normalizedRole, viewMode) ? userCompanyId : null,
+        sellerCompanyId: canViewSellerFeatures(normalizedRole, viewMode) ? userCompanyId : null,
+        status: statusFilter === 'all' ? null : statusFilter
+      });
       
-      if (role === 'buyer' || (role === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'))) {
-        // For buyers, show orders where they are the buyer
-        if (companyId) {
-          const { data: buyerOrders } = await supabase
-            .from('orders')
-            .select('*, products(*)')
-            .eq('buyer_company_id', companyId)
-            .order('created_at', { ascending: false });
-          allOrders = [...allOrders, ...(buyerOrders || [])];
-        }
-      }
-      
-      // For hybrid users, also load seller orders
-      if ((role === 'seller' || (role === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'))) && companyId) {
-        // For sellers, show orders where they are the seller
-        const { data: sellerOrders } = await supabase
-          .from('orders')
-          .select('*, products(*)')
-          .eq('seller_company_id', companyId)
-          .order('created_at', { ascending: false });
-        
-        allOrders = [...allOrders, ...(sellerOrders || [])];
-      }
+      // Use pagination
+      const result = await paginateQuery(query, {
+        page: pagination.page,
+        pageSize: pagination.pageSize
+      });
       
       // Remove duplicates for hybrid users viewing 'all'
-      if (role === 'hybrid' && viewMode === 'all') {
-        const uniqueOrders = allOrders.filter((order, index, self) =>
+      if (isHybrid(normalizedRole) && viewMode === 'all') {
+        const uniqueOrders = result.data.filter((order, index, self) =>
           index === self.findIndex((o) => o.id === order.id)
         );
         setOrders(uniqueOrders);
       } else {
-        setOrders(allOrders);
+        setOrders(result.data);
       }
       
-      if (role === 'logistics') {
-        // For logistics, show all orders
-        const { data: allOrders } = await supabase
-          .from('orders')
-          .select('*, products(*)')
-          .order('created_at', { ascending: false })
-          .limit(100);
-        setOrders(allOrders || []);
-      }
+      setPagination(prev => ({
+        ...prev,
+        ...result,
+        isLoading: false
+      }));
     } catch (error) {
-      // Error logged (removed for production)
       toast.error('Failed to load orders');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      processing: 'bg-blue-100 text-blue-700',
-      shipped: 'bg-purple-100 text-purple-700',
-      delivered: 'bg-green-100 text-green-700',
-      completed: 'bg-green-100 text-green-700',
-      cancelled: 'bg-red-100 text-red-700'
-    };
-    return colors[status] || 'bg-afrikoni-cream text-afrikoni-deep';
-  };
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = !searchQuery || 
@@ -162,7 +98,7 @@ export default function DashboardOrders() {
     { 
       header: 'Status', 
       accessor: 'status',
-      render: (value) => <StatusChip status={value} />
+      render: (value) => <StatusChip status={value} type="order" />
     },
     { 
       header: 'Actions',
@@ -178,9 +114,7 @@ export default function DashboardOrders() {
   if (isLoading) {
     return (
       <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
+        <TableSkeleton rows={10} columns={6} />
       </DashboardLayout>
     );
   }
@@ -195,15 +129,15 @@ export default function DashboardOrders() {
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">
+          <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">
               {currentRole === 'buyer' ? 'My Orders' : currentRole === 'seller' ? 'Sales' : 'Orders & Sales'}
-            </h1>
-            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">
-              {currentRole === 'buyer' && 'Track your purchase orders'}
-              {currentRole === 'seller' && 'Manage your sales and fulfillments'}
-              {currentRole === 'hybrid' && 'View all your orders as buyer and seller'}
-              {currentRole === 'logistics' && 'Track shipments and deliveries'}
-            </p>
+          </h1>
+          <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">
+            {currentRole === 'buyer' && 'Track your purchase orders'}
+            {currentRole === 'seller' && 'Manage your sales and fulfillments'}
+            {currentRole === 'hybrid' && 'View all your orders as buyer and seller'}
+            {currentRole === 'logistics' && 'Track shipments and deliveries'}
+          </p>
           </div>
           {currentRole === 'hybrid' && (
             <div className="flex items-center gap-1 bg-afrikoni-cream rounded-lg p-1">
@@ -213,7 +147,7 @@ export default function DashboardOrders() {
                   onClick={() => setViewMode(mode)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize ${
                     viewMode === mode
-                      ? 'bg-afrikoni-offwhite text-afrikoni-gold shadow-sm'
+                      ? 'bg-afrikoni-offwhite text-afrikoni-gold shadow-afrikoni'
                       : 'text-afrikoni-deep hover:text-afrikoni-chestnut'
                   }`}
                 >
@@ -226,7 +160,7 @@ export default function DashboardOrders() {
 
         {/* Filters */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-5 md:p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
@@ -245,40 +179,40 @@ export default function DashboardOrders() {
                   All
                 </Button>
                 <Button
-                  variant={statusFilter === 'pending' ? 'primary' : 'outline'}
-                  onClick={() => setStatusFilter('pending')}
+                  variant={statusFilter === ORDER_STATUS.PENDING ? 'primary' : 'outline'}
+                  onClick={() => setStatusFilter(ORDER_STATUS.PENDING)}
                 >
-                  Pending
+                  {getStatusLabel(ORDER_STATUS.PENDING, 'order')}
                 </Button>
                 <Button
-                  variant={statusFilter === 'processing' ? 'primary' : 'outline'}
-                  onClick={() => setStatusFilter('processing')}
+                  variant={statusFilter === ORDER_STATUS.PROCESSING ? 'primary' : 'outline'}
+                  onClick={() => setStatusFilter(ORDER_STATUS.PROCESSING)}
                 >
-                  Processing
+                  {getStatusLabel(ORDER_STATUS.PROCESSING, 'order')}
                 </Button>
                 <Button
-                  variant={statusFilter === 'shipped' ? 'primary' : 'outline'}
-                  onClick={() => setStatusFilter('shipped')}
+                  variant={statusFilter === ORDER_STATUS.SHIPPED ? 'primary' : 'outline'}
+                  onClick={() => setStatusFilter(ORDER_STATUS.SHIPPED)}
                 >
-                  Shipped
+                  {getStatusLabel(ORDER_STATUS.SHIPPED, 'order')}
                 </Button>
                 <Button
-                  variant={statusFilter === 'delivered' ? 'primary' : 'outline'}
-                  onClick={() => setStatusFilter('delivered')}
+                  variant={statusFilter === ORDER_STATUS.DELIVERED ? 'primary' : 'outline'}
+                  onClick={() => setStatusFilter(ORDER_STATUS.DELIVERED)}
                 >
-                  Delivered
+                  {getStatusLabel(ORDER_STATUS.DELIVERED, 'order')}
                 </Button>
                 <Button
-                  variant={statusFilter === 'completed' ? 'primary' : 'outline'}
-                  onClick={() => setStatusFilter('completed')}
+                  variant={statusFilter === ORDER_STATUS.COMPLETED ? 'primary' : 'outline'}
+                  onClick={() => setStatusFilter(ORDER_STATUS.COMPLETED)}
                 >
-                  Completed
+                  {getStatusLabel(ORDER_STATUS.COMPLETED, 'order')}
                 </Button>
                 <Button
-                  variant={statusFilter === 'cancelled' ? 'primary' : 'outline'}
-                  onClick={() => setStatusFilter('cancelled')}
+                  variant={statusFilter === ORDER_STATUS.CANCELLED ? 'primary' : 'outline'}
+                  onClick={() => setStatusFilter(ORDER_STATUS.CANCELLED)}
                 >
-                  Cancelled
+                  {getStatusLabel(ORDER_STATUS.CANCELLED, 'order')}
                 </Button>
               </div>
             </div>
@@ -288,7 +222,7 @@ export default function DashboardOrders() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-5 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-afrikoni-deep">Total Orders</p>
@@ -299,12 +233,12 @@ export default function DashboardOrders() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-5 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-afrikoni-deep">Pending</p>
                   <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    {orders.filter(o => o.status === 'pending').length}
+                    {orders.filter(o => o.status === ORDER_STATUS.PENDING).length}
                   </p>
                 </div>
                 <Package className="w-8 h-8 text-yellow-600" />
@@ -312,12 +246,12 @@ export default function DashboardOrders() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-5 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-afrikoni-deep">In Transit</p>
                   <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    {orders.filter(o => o.status === 'shipped').length}
+                    {orders.filter(o => o.status === ORDER_STATUS.SHIPPED).length}
                   </p>
                 </div>
                 <Package className="w-8 h-8 text-blue-600" />
@@ -325,7 +259,7 @@ export default function DashboardOrders() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-5 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-afrikoni-deep">Total Value</p>

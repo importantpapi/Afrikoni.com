@@ -8,7 +8,7 @@ export const AIMatchingService = {
       
       // Placeholder: Simple keyword matching for now
       const requirementsLower = requirements.toLowerCase();
-      const matches = suppliers
+      const matches = (Array.isArray(suppliers) ? suppliers : [])
         .filter(supplier => {
           const supplierText = `${supplier.company_name} ${supplier.description} ${supplier.country}`.toLowerCase();
           return requirementsLower.split(' ').some(word => 

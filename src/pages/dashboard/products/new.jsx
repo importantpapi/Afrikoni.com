@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { validateProductForm } from '@/utils/validation';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,8 +32,11 @@ const MOQ_UNITS = ['pieces', 'kg', 'tons', 'containers', 'pallets', 'boxes', 'ba
 const SUPPLY_UNITS = ['tons/month', 'containers/month', 'kg/month', 'pieces/month', 'units/month'];
 
 export default function ProductForm() {
+  const { id: routeProductId } = useParams();
   const [searchParams] = useSearchParams();
-  const productId = searchParams.get('id');
+  const queryProductId = searchParams.get('id');
+  // Prefer route param over query param for better URL structure
+  const productId = routeProductId || queryProductId;
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,6 +45,7 @@ export default function ProductForm() {
   const [companyId, setCompanyId] = useState(null);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
@@ -144,7 +149,6 @@ export default function ProductForm() {
           }
         } catch (err) {
           // Continue anyway - company is optional
-          console.log('Auto-create company failed, continuing:', err);
         }
       }
 
@@ -160,7 +164,6 @@ export default function ProductForm() {
         await loadProductData(productId, userCompanyId);
       }
     } catch (error) {
-      console.error('Error loading data:', error);
       toast.error('Failed to load form data');
     } finally {
       setIsLoading(false);
@@ -238,7 +241,6 @@ export default function ProductForm() {
         featured: product.featured || false
       });
     } catch (error) {
-      console.error('Error loading product:', error);
       toast.error('Failed to load product data');
       navigate('/dashboard/products');
     }
@@ -321,33 +323,27 @@ export default function ProductForm() {
   };
 
   const validateStep = (step) => {
-    switch (step) {
-      case 1:
-        // Only validate title - category is optional
-        if (!formData.title.trim()) {
-          toast.warning('Product title is recommended');
-          // Don't block, just warn
-        }
-        return true; // Always allow progression
-      case 2:
-        // Validate price range if both provided
-        if (formData.price_max && formData.price_min && parseFloat(formData.price_max) < parseFloat(formData.price_min)) {
-          toast.warning('Maximum price should be greater than minimum price');
-          return false; // Only block if invalid range
-        }
-        return true; // Allow even without prices
-      case 3:
-        // Step 3 is optional, but validate if provided
-        if (formData.lead_time_min_days && formData.lead_time_max_days) {
-          if (parseInt(formData.lead_time_max_days) < parseInt(formData.lead_time_min_days)) {
-            toast.warning('Maximum lead time should be greater than minimum');
-            return false;
-          }
-        }
-        return true;
-      default:
-        return true;
+    // Use centralized validation
+    const validationErrors = validateProductForm(formData);
+    setErrors(validationErrors);
+    
+    // Filter errors for current step
+    const stepErrors = Object.keys(validationErrors).filter(key => {
+      // Map field names to steps
+      const step1Fields = ['title'];
+      const step2Fields = ['price_min', 'price_max', 'min_order_quantity'];
+      const step3Fields = ['lead_time_min_days', 'lead_time_max_days'];
+      
+      const fieldStep = step1Fields.includes(key) ? 1 : step2Fields.includes(key) ? 2 : step3Fields.includes(key) ? 3 : 0;
+      return fieldStep === step;
+    });
+    
+    if (stepErrors.length > 0) {
+      toast.error('Please fix the errors before continuing');
+      return false;
     }
+    
+    return true;
   };
 
   const handleSave = async (publish = false) => {
@@ -445,7 +441,6 @@ export default function ProductForm() {
       toast.success(publish ? 'Product published successfully!' : 'Product saved as draft');
       navigate('/dashboard/products');
     } catch (error) {
-      console.error('Error saving product:', error);
       toast.error(error.message || 'Failed to save product');
     } finally {
       setIsSaving(false);
@@ -502,7 +497,7 @@ export default function ProductForm() {
 
         {/* Step Indicator */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-5 md:p-6">
             <div className="flex items-center justify-between overflow-x-auto">
               {steps.map((step, idx) => (
                 <div key={step.number} className="flex items-center flex-1 min-w-0">
@@ -513,7 +508,7 @@ export default function ProductForm() {
                         ${currentStep === step.number
                           ? 'bg-afrikoni-gold text-afrikoni-chestnut'
                           : currentStep > step.number
-                          ? 'bg-green-600 text-white'
+                          ? 'bg-afrikoni-gold text-afrikoni-chestnut'
                           : 'bg-afrikoni-cream text-afrikoni-deep'
                         }
                       `}
@@ -528,7 +523,7 @@ export default function ProductForm() {
                     <div
                       className={`
                         h-1 w-full mx-2
-                        ${currentStep > step.number ? 'bg-green-600' : 'bg-afrikoni-cream'}
+                        ${currentStep > step.number ? 'bg-afrikoni-gold' : 'bg-afrikoni-cream'}
                       `}
                     />
                   )}
@@ -540,7 +535,7 @@ export default function ProductForm() {
 
         {/* Form Content */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-5 md:p-6">
             <AnimatePresence mode="wait">
               {/* Step 1: Basic Info */}
               {currentStep === 1 && (
@@ -558,8 +553,11 @@ export default function ProductForm() {
                       value={formData.title}
                       onChange={(e) => handleChange('title', e.target.value)}
                       placeholder="e.g., Premium Cocoa Beans from Ghana"
-                      className="mt-1"
+                      className={`mt-1 ${errors.title ? 'border-red-500' : ''}`}
                     />
+                    {errors.title && (
+                      <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                    )}
                   </div>
 
                   <div>
@@ -649,9 +647,12 @@ export default function ProductForm() {
                         value={formData.min_order_quantity}
                         onChange={(e) => handleChange('min_order_quantity', e.target.value)}
                         placeholder="e.g., 100"
-                        className="mt-1"
+                        className={`mt-1 ${errors.min_order_quantity ? 'border-red-500' : ''}`}
                         min="1"
                       />
+                      {errors.min_order_quantity && (
+                        <p className="text-red-500 text-sm mt-1">{errors.min_order_quantity}</p>
+                      )}
                     </div>
 
                     <div>
@@ -683,10 +684,13 @@ export default function ProductForm() {
                         value={formData.price_min}
                         onChange={(e) => handleChange('price_min', e.target.value)}
                         placeholder="0.00"
-                        className="mt-1"
+                        className={`mt-1 ${errors.price_min ? 'border-red-500' : ''}`}
                         min="0"
                         step="0.01"
                       />
+                      {errors.price_min && (
+                        <p className="text-red-500 text-sm mt-1">{errors.price_min}</p>
+                      )}
                     </div>
 
                     <div>
@@ -697,10 +701,13 @@ export default function ProductForm() {
                         value={formData.price_max}
                         onChange={(e) => handleChange('price_max', e.target.value)}
                         placeholder="0.00"
-                        className="mt-1"
+                        className={`mt-1 ${errors.price_max ? 'border-red-500' : ''}`}
                         min="0"
                         step="0.01"
                       />
+                      {errors.price_max && (
+                        <p className="text-red-500 text-sm mt-1">{errors.price_max}</p>
+                      )}
                     </div>
 
                     <div>
@@ -766,9 +773,12 @@ export default function ProductForm() {
                         value={formData.lead_time_max_days}
                         onChange={(e) => handleChange('lead_time_max_days', e.target.value)}
                         placeholder="e.g., 14"
-                        className="mt-1"
+                        className={`mt-1 ${errors.lead_time_max_days ? 'border-red-500' : ''}`}
                         min="1"
                       />
+                      {errors.lead_time_max_days && (
+                        <p className="text-red-500 text-sm mt-1">{errors.lead_time_max_days}</p>
+                      )}
                     </div>
                   </div>
 

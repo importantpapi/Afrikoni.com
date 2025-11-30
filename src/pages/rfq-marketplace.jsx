@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { paginateQuery, createPaginationState } from '@/utils/pagination';
+import { getTimeRemaining } from '@/utils/marketplaceHelpers';
+import SaveButton from '@/components/ui/SaveButton';
 import { FileText, Search, Filter, MapPin, Calendar, Package, DollarSign, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,30 +23,108 @@ export default function RFQMarketplace() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('-created_at');
   const [categories, setCategories] = useState([]);
+  const [pagination, setPagination] = useState(createPaginationState());
 
   useEffect(() => {
     trackPageView('RFQ Marketplace');
     loadData();
   }, []);
 
+  useEffect(() => {
+    loadData();
+  }, [sortBy]);
+
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [rfqsRes, catsRes] = await Promise.all([
-        supabase
-          .from('rfqs')
-          .select('*, categories(*), companies(*)')
-          .eq('status', 'open')
-          .order('created_at', { ascending: false })
-          .limit(50),
+      // Apply sorting
+      const sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
+      const ascending = !sortBy.startsWith('-');
+      
+      const [rfqsResult, catsRes] = await Promise.all([
+        paginateQuery(
+          supabase
+            .from('rfqs')
+            .select('*, categories(*), companies(*)')
+            .eq('status', 'open')
+            .order(sortField, { ascending }),
+          { 
+            page: pagination.page, 
+            pageSize: 20,
+            orderBy: sortField,
+            ascending
+          }
+        ),
         supabase.from('categories').select('*')
       ]);
+      
+      const rfqsRes = { data: rfqsResult.data, error: rfqsResult.error };
+      
+      setPagination(prev => ({
+        ...prev,
+        ...rfqsResult,
+        isLoading: false
+      }));
 
       if (rfqsRes.error) throw rfqsRes.error;
       if (catsRes.error) throw catsRes.error;
 
-      setRfqs(rfqsRes.data || []);
+      // Enrich RFQs with quote counts, average quote price, and time remaining
+      const rfqIds = (rfqsRes.data || []).map(rfq => rfq.id);
+      let quotesCountMap = {};
+      let avgPriceMap = {};
+      
+      if (rfqIds.length > 0) {
+        const { data: quotesData } = await supabase
+          .from('quotes')
+          .select('rfq_id')
+          .in('rfq_id', rfqIds);
+        
+        quotesCountMap = (quotesData || []).reduce((acc, quote) => {
+          acc[quote.rfq_id] = (acc[quote.rfq_id] || 0) + 1;
+          return acc;
+        }, {});
+        
+        // Get average quote price
+        const { data: quotesWithPrice } = await supabase
+          .from('quotes')
+          .select('rfq_id, price')
+          .in('rfq_id', rfqIds)
+          .not('price', 'is', null);
+        
+        const priceSumMap = {};
+        const priceCountMap = {};
+        
+        quotesWithPrice?.forEach(quote => {
+          if (!priceSumMap[quote.rfq_id]) {
+            priceSumMap[quote.rfq_id] = 0;
+            priceCountMap[quote.rfq_id] = 0;
+          }
+          priceSumMap[quote.rfq_id] += parseFloat(quote.price || 0);
+          priceCountMap[quote.rfq_id] += 1;
+        });
+        
+        Object.keys(priceSumMap).forEach(rfqId => {
+          if (priceCountMap[rfqId] > 0) {
+            avgPriceMap[rfqId] = priceSumMap[rfqId] / priceCountMap[rfqId];
+          }
+        });
+      }
+      
+      const enrichedRfqs = (rfqsRes.data || []).map(rfq => {
+        const quoteCount = quotesCountMap[rfq.id] || 0;
+        return {
+          ...rfq,
+          quote_count: quoteCount,
+          avg_quote_price: avgPriceMap[rfq.id] || null,
+          competition_level: quoteCount < 3 ? 'Low' : quoteCount < 10 ? 'Medium' : 'High',
+          timeRemaining: getTimeRemaining(rfq.delivery_deadline || rfq.expires_at)
+        };
+      });
+      
+      setRfqs(enrichedRfqs);
       setCategories(catsRes.data || []);
     } catch (error) {
       // Error logged (removed for production)
@@ -138,6 +219,18 @@ export default function RFQMarketplace() {
                   <SelectItem value="awarded">Awarded</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="-created_at">Newest First</SelectItem>
+                  <SelectItem value="created_at">Oldest First</SelectItem>
+                  <SelectItem value="delivery_deadline">Closing Soon</SelectItem>
+                  <SelectItem value="-target_price">Budget: High to Low</SelectItem>
+                  <SelectItem value="target_price">Budget: Low to High</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -176,10 +269,23 @@ export default function RFQMarketplace() {
                     <CardHeader>
                       <div className="flex items-start justify-between mb-2">
                         <CardTitle className="text-xl">{rfq.title}</CardTitle>
-                        <Badge className={getStatusBadge(rfq.status)}>
-                          {rfq.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getStatusBadge(rfq.status)}>
+                            {rfq.status}
+                          </Badge>
+                          <SaveButton itemId={rfq.id} itemType="rfq" />
+                        </div>
                       </div>
+                      {/* Buyer Info */}
+                      {rfq.companies && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapPin className="w-4 h-4 text-afrikoni-deep/70" />
+                          <span className="text-sm text-afrikoni-deep">{rfq.companies.country}</span>
+                          {rfq.companies.verified && (
+                            <Badge variant="verified" className="text-xs">Verified Buyer</Badge>
+                          )}
+                        </div>
+                      )}
                       <div className="flex items-center gap-4 text-sm text-afrikoni-deep">
                         <div className="flex items-center gap-1">
                           <Package className="w-4 h-4" />
@@ -210,14 +316,33 @@ export default function RFQMarketplace() {
                         <div>
                           <p className="text-xs text-afrikoni-deep/70 mb-1">Deadline</p>
                           <p className="font-semibold text-afrikoni-chestnut">
-                            {rfq.delivery_deadline ? new Date(rfq.delivery_deadline).toLocaleDateString() : 'Flexible'}
+                            {rfq.timeRemaining ? (
+                              <span className={rfq.timeRemaining.urgent ? 'text-red-600' : ''}>
+                                {rfq.timeRemaining.text}
+                              </span>
+                            ) : (
+                              rfq.delivery_deadline ? new Date(rfq.delivery_deadline).toLocaleDateString() : 'Flexible'
+                            )}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-afrikoni-deep/70 mb-1">Responses</p>
                           <p className="font-semibold text-afrikoni-chestnut">
                             {rfq.quote_count || 0} quotes
+                            {rfq.avg_quote_price && (
+                              <span className="text-xs text-afrikoni-deep/70 block mt-1">
+                                Avg: ${rfq.avg_quote_price.toFixed(2)}
+                              </span>
+                            )}
                           </p>
+                          {rfq.competition_level && (
+                            <Badge 
+                              variant={rfq.competition_level === 'Low' ? 'default' : rfq.competition_level === 'Medium' ? 'secondary' : 'destructive'} 
+                              className="text-xs mt-1"
+                            >
+                              {rfq.competition_level} Competition
+                            </Badge>
+                          )}
                         </div>
                       </div>
 

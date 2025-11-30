@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { getStatusLabel, getStatusVariant } from '@/constants/status';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 
 export function DataTable({ columns, data, onRowClick, className }) {
   return (
-    <div className={cn('rounded-xl border border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-md overflow-hidden', className)}>
+    <div className={cn('rounded-xl border border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-afrikoni overflow-hidden', className)}>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20">
@@ -20,7 +21,7 @@ export function DataTable({ columns, data, onRowClick, className }) {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200">
+          <tbody className="divide-y divide-afrikoni-gold/20">
             {data.map((row, rowIdx) => (
               <motion.tr
                 key={rowIdx}
@@ -47,23 +48,14 @@ export function DataTable({ columns, data, onRowClick, className }) {
   );
 }
 
-export function StatusChip({ status, variant }) {
-  const statusMap = {
-    pending: { label: 'Pending', variant: 'warning' },
-    processing: { label: 'Processing', variant: 'info' },
-    shipped: { label: 'Shipped', variant: 'info' },
-    delivered: { label: 'Delivered', variant: 'success' },
-    cancelled: { label: 'Cancelled', variant: 'danger' },
-    completed: { label: 'Completed', variant: 'success' },
-    active: { label: 'Active', variant: 'success' },
-    inactive: { label: 'Inactive', variant: 'neutral' }
-  };
-
-  const statusInfo = statusMap[status] || { label: status, variant: variant || 'neutral' };
+export function StatusChip({ status, variant, type = 'order' }) {
+  // Use centralized status helpers
+  const label = getStatusLabel(status, type);
+  const statusVariant = variant || getStatusVariant(status, type);
 
   return (
-    <Badge variant={statusInfo.variant} className="text-xs">
-      {statusInfo.label}
+    <Badge variant={statusVariant} className="text-xs">
+      {label}
     </Badge>
   );
 }

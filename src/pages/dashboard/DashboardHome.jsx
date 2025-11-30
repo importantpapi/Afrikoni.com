@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole, shouldLoadBuyerData, shouldLoadSellerData, isHybrid } from '@/utils/roleHelpers';
+import { getRFQsInUserCategories, getRFQsExpiringSoon, getNewSuppliersInCountry, getTopCategoriesThisWeek } from '@/utils/marketplaceIntelligence';
+import { getTimeRemaining } from '@/utils/marketplaceHelpers';
 import {
   ShoppingCart, FileText, Package, Users, TrendingUp, Search,
   Plus, Eye, MessageSquare, DollarSign, Wallet, Truck, AlertCircle,
@@ -14,142 +18,227 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
 import { format } from 'date-fns';
 
 export default function DashboardHome({ currentRole = 'buyer' }) {
-  const [stats, setStats] = useState([]);
+  const [allStats, setAllStats] = useState([]); // Store all stats
   const [activities, setActivities] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
-  const [recentRFQs, setRecentRFQs] = useState([]);
+  const [allRecentRFQs, setAllRecentRFQs] = useState([]); // Store all RFQs
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [viewMode, setViewMode] = useState('everything'); // For hybrid users
   const navigate = useNavigate();
+  const [rfqsInCategories, setRfqsInCategories] = useState([]);
+  const [rfqsExpiringSoon, setRfqsExpiringSoon] = useState([]);
+  const [newSuppliers, setNewSuppliers] = useState([]);
+  const [topCategories, setTopCategories] = useState([]);
+  const [error, setError] = useState(null);
+  const loadingRef = useRef(false); // Prevent concurrent loads
+
+  // Filter stats based on viewMode (no reload needed)
+  const stats = React.useMemo(() => {
+    if (!Array.isArray(allStats)) return [];
+    if (viewMode === 'everything') return allStats;
+    if (viewMode === 'buyer') {
+      return allStats.filter(s => s && ['Open Orders', 'Active RFQs', 'Unread Messages', 'Saved Products'].includes(s.label));
+    }
+    if (viewMode === 'seller') {
+      return allStats.filter(s => s && ['Active Listings', 'New Inquiries', 'Orders to Fulfill', 'Payout Balance'].includes(s.label));
+    }
+    return allStats;
+  }, [allStats, viewMode]);
 
   useEffect(() => {
-    loadDashboardData();
-  }, [currentRole, viewMode]);
+    if (!loadingRef.current) {
+      loadDashboardData();
+      loadIntelligenceData();
+    }
+  }, [currentRole, loadDashboardData, loadIntelligenceData]); // Include both callbacks to prevent stale closures
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
+    if (loadingRef.current) return; // Prevent concurrent loads
+    loadingRef.current = true;
+    
     try {
       setIsLoading(true);
-      const userData = await supabaseHelpers.auth.me();
+      setError(null);
+      
+      // Use centralized helper
+      const { user: userData, profile, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
       if (!userData) {
         navigate('/login');
         return;
       }
-      setUser(userData);
 
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const userCompanyId = await getOrCreateCompany(supabase, userData);
+      setUser(userData || profile);
       setCompanyId(userCompanyId);
 
-      // Load stats based on role
-      await loadStats(userData, userCompanyId);
-      
-      // Load activities
-      await loadActivities(userData, userCompanyId);
-      
-      // Load tasks
-      await loadTasks(userData, userCompanyId);
-      
-      // Load recent orders
-      await loadRecentOrders(userData, userCompanyId);
-      
-      // Load recent RFQs
-      await loadRecentRFQs(userData, userCompanyId);
-      
-      // Load unread messages
-      await loadUnreadMessages(userData, userCompanyId);
+      // Load all data in parallel with individual error handling
+      const results = await Promise.allSettled([
+        loadStats(profile || userData, userCompanyId),
+        loadActivities(userData, userCompanyId),
+        loadTasks(userData, userCompanyId),
+        loadRecentOrders(userData, userCompanyId),
+        loadRecentRFQs(userData, userCompanyId),
+        loadUnreadMessages(userData, userCompanyId)
+      ]);
+
+      // Check for critical errors
+      const criticalErrors = Array.isArray(results) ? results.filter(r => r && r.status === 'rejected' && 
+        (r.reason?.message?.includes('auth') || r.reason?.message?.includes('session') || r.reason?.message?.includes('unauthorized'))
+      ) : [];
+
+      if (criticalErrors.length > 0) {
+        throw new Error('Authentication error. Please log in again.');
+      }
     } catch (error) {
-      console.error('Error loading dashboard:', error);
-      toast.error('Failed to load dashboard data');
+      // Only show error if it's a critical error, not just data loading issues
+      if (error?.message?.includes('auth') || error?.message?.includes('session') || error?.message?.includes('unauthorized')) {
+        toast.error('Authentication error. Please log in again.');
+        navigate('/login');
+      } else {
+        setError(error?.message || 'Failed to load dashboard data');
+      }
+      // Non-critical errors are silently handled - partial data may still load
     } finally {
       setIsLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, [currentRole, navigate]);
 
-  const loadStats = async (userData, companyId) => {
-    const role = userData.role || userData.user_role || 'buyer';
-    const statsData = [];
-    const isHybrid = role === 'hybrid';
-    const showBuyerStats = isHybrid ? (viewMode === 'everything' || viewMode === 'buyer') : (role === 'buyer');
-    const showSellerStats = isHybrid ? (viewMode === 'everything' || viewMode === 'seller') : (role === 'seller');
+  const loadIntelligenceData = useCallback(async () => {
+    try {
+      const { user: userData, profile, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      if (!userData || !userCompanyId) return;
+      
+      const role = getUserRole(profile || userData);
+      
+      // Load data based on role
+      if (role === 'seller' || role === 'hybrid') {
+        const [rfqsInCats, expiringRfqs] = await Promise.all([
+          getRFQsInUserCategories(userCompanyId, 5),
+          getRFQsExpiringSoon(userCompanyId, 7, 5)
+        ]);
+        setRfqsInCategories(rfqsInCats);
+        setRfqsExpiringSoon(expiringRfqs);
+      }
+      
+      if (role === 'buyer' || role === 'hybrid') {
+        // Get user's country
+        const { data: company } = await supabase
+          .from('companies')
+          .select('country')
+          .eq('id', userCompanyId)
+          .single();
+        
+        if (company?.country) {
+          const suppliers = await getNewSuppliersInCountry(company.country, 30, 5);
+          setNewSuppliers(suppliers);
+        }
+      }
+      
+      // Load top categories (for all roles)
+      const topCats = await getTopCategoriesThisWeek(5);
+      setTopCategories(topCats);
+    } catch (error) {
+      // Silently fail - intelligence is optional
+    }
+  }, []);
 
-    if (showBuyerStats) {
-      const [ordersRes, rfqsRes, messagesRes, savedProductsRes] = await Promise.all([
-        companyId ? supabase.from('orders').select('*', { count: 'exact' }).eq('buyer_company_id', companyId) : Promise.resolve({ data: [], count: 0 }),
-        companyId ? supabase.from('rfqs').select('*', { count: 'exact' }).eq('buyer_company_id', companyId).in('status', ['open', 'pending']) : Promise.resolve({ data: [], count: 0 }),
-        companyId ? supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', companyId).eq('read', false) : Promise.resolve({ data: [], count: 0 }),
-        userData.id ? supabase.from('saved_items').select('*', { count: 'exact' }).eq('user_id', userData.id).eq('item_type', 'product') : Promise.resolve({ count: 0 })
+  const loadStats = async (profileData, companyId) => {
+    try {
+      const role = getUserRole(profileData);
+      const statsData = [];
+      const userIsHybrid = isHybrid(role);
+      
+      // Use helper functions for data loading decisions
+      const showBuyerStats = shouldLoadBuyerData(role, viewMode);
+      const showSellerStats = shouldLoadSellerData(role, viewMode);
+
+      if (showBuyerStats) {
+        const [ordersRes, rfqsRes, messagesRes, savedProductsRes] = await Promise.all([
+          companyId ? supabase.from('orders').select('*', { count: 'exact' }).eq('buyer_company_id', companyId).catch(() => ({ data: [], count: 0 })) : Promise.resolve({ data: [], count: 0 }),
+          companyId ? supabase.from('rfqs').select('*', { count: 'exact' }).eq('buyer_company_id', companyId).in('status', ['open', 'pending']).catch(() => ({ data: [], count: 0 })) : Promise.resolve({ data: [], count: 0 }),
+          companyId ? supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', companyId).eq('read', false).catch(() => ({ data: [], count: 0 })) : Promise.resolve({ data: [], count: 0 }),
+          profileData?.id ? supabase.from('saved_items').select('*', { count: 'exact' }).eq('user_id', profileData.id).eq('item_type', 'product').catch(() => ({ count: 0 })) : Promise.resolve({ count: 0 })
       ]);
 
       const ordersInProgress = companyId ? await supabase
         .from('orders')
         .select('*', { count: 'exact' })
         .eq('buyer_company_id', companyId)
-        .in('status', ['pending', 'processing', 'shipped']) : { count: 0 };
+          .in('status', ['pending', 'processing', 'shipped'])
+          .catch(() => ({ count: 0 })) : { count: 0 };
 
       statsData.push(
-        { icon: ShoppingCart, label: 'Open Orders', value: (ordersInProgress.count || 0).toString(), color: 'orange' },
+          { icon: ShoppingCart, label: 'Open Orders', value: (ordersInProgress.count || 0).toString(), color: 'orange' },
         { icon: FileText, label: 'Active RFQs', value: (rfqsRes.count || 0).toString(), color: 'blue' },
-        { icon: MessageSquare, label: 'Unread Messages', value: (messagesRes.count || 0).toString(), color: 'blue' },
-        { icon: Package, label: 'Saved Products', value: (savedProductsRes.count || 0).toString(), color: 'purple' }
-      );
-    }
+          { icon: MessageSquare, label: 'Unread Messages', value: (messagesRes.count || 0).toString(), color: 'blue' },
+          { icon: Package, label: 'Saved Products', value: (savedProductsRes.count || 0).toString(), color: 'purple' }
+        );
+      }
 
-    if (showSellerStats) {
-      const [ordersRes, productsRes, messagesRes, revenueRes, walletRes, inquiriesRes] = await Promise.all([
-        companyId ? supabase.from('orders').select('*', { count: 'exact' }).eq('seller_company_id', companyId).in('status', ['pending', 'processing']) : Promise.resolve({ count: 0 }),
-        companyId ? supabase.from('products').select('*', { count: 'exact' }).eq('supplier_id', companyId).eq('status', 'active') : Promise.resolve({ count: 0 }),
-        companyId ? supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', companyId).eq('read', false) : Promise.resolve({ count: 0 }),
-        companyId ? supabase.from('orders').select('total_amount').eq('seller_company_id', companyId).eq('payment_status', 'paid') : Promise.resolve({ data: [] }),
-        companyId ? supabase.from('wallet_transactions').select('amount').eq('company_id', companyId).eq('type', 'payout').eq('status', 'completed') : Promise.resolve({ data: [] }),
-        companyId ? supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', companyId).eq('read', false).not('related_type', 'is', null) : Promise.resolve({ count: 0 })
+      if (showSellerStats) {
+        const [ordersRes, productsRes, messagesRes, revenueRes, walletRes, inquiriesRes] = await Promise.all([
+          companyId ? supabase.from('orders').select('*', { count: 'exact' }).eq('seller_company_id', companyId).in('status', ['pending', 'processing']).catch(() => ({ count: 0 })) : Promise.resolve({ count: 0 }),
+          companyId ? supabase.from('products').select('*', { count: 'exact' }).eq('company_id', companyId).eq('status', 'active').catch(() => ({ count: 0 })) : Promise.resolve({ count: 0 }),
+          companyId ? supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', companyId).eq('read', false).catch(() => ({ count: 0 })) : Promise.resolve({ count: 0 }),
+          companyId ? supabase.from('orders').select('total_amount').eq('seller_company_id', companyId).eq('payment_status', 'paid').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+          companyId ? supabase.from('wallet_transactions').select('amount').eq('company_id', companyId).eq('type', 'payout').eq('status', 'completed').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+          companyId ? supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', companyId).eq('read', false).not('related_type', 'is', null).catch(() => ({ count: 0 })) : Promise.resolve({ count: 0 })
       ]);
 
       const revenue = (revenueRes.data || []).reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
-      const payoutBalance = (walletRes.data || []).reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0);
+        const payoutBalance = (walletRes.data || []).reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0);
 
       statsData.push(
-        { icon: Package, label: 'Active Listings', value: (productsRes.count || 0).toString(), color: 'purple' },
-        { icon: MessageSquare, label: 'New Inquiries', value: (inquiriesRes.count || 0).toString(), color: 'blue' },
+          { icon: Package, label: 'Active Listings', value: (productsRes.count || 0).toString(), color: 'purple' },
+          { icon: MessageSquare, label: 'New Inquiries', value: (inquiriesRes.count || 0).toString(), color: 'blue' },
         { icon: ShoppingCart, label: 'Orders to Fulfill', value: (ordersRes.count || 0).toString(), color: 'orange' },
-        { icon: Wallet, label: 'Payout Balance', value: `$${payoutBalance.toLocaleString()}`, color: 'green' }
+          { icon: Wallet, label: 'Payout Balance', value: `$${payoutBalance.toLocaleString()}`, color: 'green' }
       );
     }
 
     if (role === 'logistics') {
-      const [shipmentsRes, quoteRequestsRes] = await Promise.all([
-        companyId ? supabase.from('shipments').select('*', { count: 'exact' }).eq('logistics_partner_id', companyId).in('status', ['picked_up', 'in_transit', 'out_for_delivery']) : Promise.resolve({ count: 0 }),
-        supabase.from('rfqs').select('*', { count: 'exact' }).eq('status', 'open')
+        const [shipmentsRes, quoteRequestsRes] = await Promise.all([
+          companyId ? supabase.from('shipments').select('*', { count: 'exact' }).eq('logistics_partner_id', companyId).in('status', ['picked_up', 'in_transit', 'out_for_delivery']).catch(() => ({ count: 0 })) : Promise.resolve({ count: 0 }),
+          supabase.from('rfqs').select('*', { count: 'exact' }).eq('status', 'open').catch(() => ({ count: 0 }))
       ]);
 
       statsData.push(
-        { icon: Truck, label: 'Shipments in Transit', value: (shipmentsRes.count || 0).toString(), color: 'orange' },
-        { icon: FileText, label: 'Open Quote Requests', value: (quoteRequestsRes.count || 0).toString(), color: 'blue' }
+          { icon: Truck, label: 'Shipments in Transit', value: (shipmentsRes.count || 0).toString(), color: 'orange' },
+          { icon: FileText, label: 'Open Quote Requests', value: (quoteRequestsRes.count || 0).toString(), color: 'blue' }
       );
     }
 
-    setStats(statsData);
+      setAllStats(statsData); // Store all stats
+    } catch (error) {
+      // Set empty stats instead of crashing
+      setAllStats([]);
+    }
   };
 
   const loadActivities = async (userData, companyId) => {
     const activitiesData = [];
 
+    try {
     // Load recent notifications
     if (companyId) {
-      const { data: notifications } = await supabase
+        const { data: notifications, error: notifError } = await supabase
         .from('notifications')
         .select('*')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      (notifications || []).forEach(notif => {
+        if (!notifError && Array.isArray(notifications)) {
+          notifications.forEach(notif => {
         activitiesData.push({
           id: notif.id,
           type: notif.type,
@@ -159,46 +248,53 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           link: notif.link
         });
       });
+        }
     }
 
     // Load recent order updates
     if (companyId) {
-      const { data: recentOrders } = await supabase
+        const { data: recentOrders, error: ordersError } = await supabase
         .from('orders')
         .select('*, products(*)')
         .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
         .order('updated_at', { ascending: false })
         .limit(5);
 
-      (recentOrders || []).forEach(order => {
+        if (!ordersError && Array.isArray(recentOrders)) {
+          recentOrders.forEach(order => {
         activitiesData.push({
           id: `order-${order.id}`,
           type: 'order',
-          title: `Order ${order.id.slice(0, 8)} status updated`,
+              title: `Order ${order.id?.slice(0, 8) || 'N/A'} status updated`,
           message: `Status changed to ${order.status}`,
           timestamp: order.updated_at,
           link: `/dashboard/orders/${order.id}`
         });
       });
+        }
     }
 
     // Sort by timestamp and limit
     activitiesData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     setActivities(activitiesData.slice(0, 10));
+    } catch (error) {
+      setActivities([]);
+    }
   };
 
   const loadTasks = async (userData, companyId) => {
     const tasksData = [];
 
+    try {
     // Check if company info is incomplete
     if (companyId) {
-      const { data: company } = await supabase
+        const { data: company, error: companyError } = await supabase
         .from('companies')
         .select('*')
         .eq('id', companyId)
         .single();
 
-      if (!company?.company_name || !company?.country || !company?.phone) {
+        if (!companyError && (!company?.company_name || !company?.country || !company?.phone)) {
         tasksData.push({
           id: 'company-info',
           title: 'Complete Company Information',
@@ -212,11 +308,12 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
     // Check if seller/hybrid has no products
     const role = userData.role || userData.user_role || 'buyer';
     if ((role === 'seller' || role === 'hybrid') && companyId) {
-      const { data: products } = await supabase
+        const { data: products, error: productsError } = await supabase
         .from('products')
         .select('*', { count: 'exact' })
         .eq('supplier_id', companyId);
 
+        if (!productsError) {
       if ((products?.length || 0) === 0) {
         tasksData.push({
           id: 'add-products',
@@ -233,18 +330,19 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           link: '/dashboard/products/new',
           priority: 'medium'
         });
+          }
       }
     }
 
     // Check for unread messages
     if (companyId) {
-      const { data: messages } = await supabase
+        const { data: messages, error: messagesError } = await supabase
         .from('messages')
         .select('*', { count: 'exact' })
         .eq('receiver_company_id', companyId)
         .eq('read', false);
 
-      if ((messages?.length || 0) > 0) {
+        if (!messagesError && (messages?.length || 0) > 0) {
         tasksData.push({
           id: 'respond-messages',
           title: `Respond to ${messages?.length || 0} Messages`,
@@ -257,13 +355,13 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
 
     // Check for pending RFQ responses (for sellers)
     if ((role === 'seller' || role === 'hybrid') && companyId) {
-      const { data: rfqs } = await supabase
+        const { data: rfqs, error: rfqsError } = await supabase
         .from('rfqs')
         .select('*')
         .eq('status', 'open')
         .limit(5);
 
-      if ((rfqs?.length || 0) > 0) {
+        if (!rfqsError && (rfqs?.length || 0) > 0) {
         tasksData.push({
           id: 'respond-rfqs',
           title: `Respond to ${rfqs.length} Open RFQs`,
@@ -275,88 +373,147 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
     }
 
     setTasks(tasksData);
+    } catch (error) {
+      setTasks([]);
+    }
   };
 
   const loadRecentOrders = async (userData, companyId) => {
-    if (!companyId) return;
+    if (!companyId) {
+      setRecentOrders([]);
+      return;
+    }
 
+    try {
     const role = userData.role || userData.user_role || 'buyer';
-    const isHybrid = role === 'hybrid';
-    const showBuyerOrders = isHybrid ? (viewMode === 'everything' || viewMode === 'buyer') : (role === 'buyer');
-    const showSellerOrders = isHybrid ? (viewMode === 'everything' || viewMode === 'seller') : (role === 'seller');
+      const isHybrid = role === 'hybrid';
+      const showBuyerOrders = isHybrid ? (viewMode === 'everything' || viewMode === 'buyer') : (role === 'buyer');
+      const showSellerOrders = isHybrid ? (viewMode === 'everything' || viewMode === 'seller') : (role === 'seller');
 
-    let orders = [];
+      let orders = [];
 
-    if (showBuyerOrders) {
-      const { data: buyerOrders } = await supabase
-        .from('orders')
-        .select('*, products(*)')
-        .eq('buyer_company_id', companyId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      orders = [...orders, ...(buyerOrders || [])];
+      if (showBuyerOrders) {
+        const { data: buyerOrders, error: buyerError } = await supabase
+          .from('orders')
+          .select('*, products(*)')
+          .eq('buyer_company_id', companyId)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (!buyerError && buyerOrders) {
+          orders = [...orders, ...buyerOrders];
+        }
+      }
+
+      if (showSellerOrders) {
+        const { data: sellerOrders, error: sellerError } = await supabase
+          .from('orders')
+          .select('*, products(*)')
+          .eq('seller_company_id', companyId)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (!sellerError && sellerOrders) {
+          orders = [...orders, ...sellerOrders];
+        }
+      }
+
+      // Sort by created_at and limit to 5
+      orders.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      setRecentOrders(orders.slice(0, 5));
+    } catch (error) {
+      setRecentOrders([]);
     }
-
-    if (showSellerOrders) {
-      const { data: sellerOrders } = await supabase
-        .from('orders')
-        .select('*, products(*)')
-        .eq('seller_company_id', companyId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      orders = [...orders, ...(sellerOrders || [])];
-    }
-
-    // Sort by created_at and limit to 5
-    orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    setRecentOrders(orders.slice(0, 5));
   };
 
   const loadRecentRFQs = async (userData, companyId) => {
-    if (!companyId) return;
+    if (!companyId) {
+      setAllRecentRFQs([]);
+      return;
+    }
 
+    try {
     const role = userData.role || userData.user_role || 'buyer';
-    const isHybrid = role === 'hybrid';
-    const showBuyerRFQs = isHybrid ? (viewMode === 'everything' || viewMode === 'buyer') : (role === 'buyer');
-    const showSellerRFQs = isHybrid ? (viewMode === 'everything' || viewMode === 'seller') : (role === 'seller');
+      const isHybrid = role === 'hybrid';
 
-    let rfqs = [];
+      let rfqs = [];
 
-    if (showBuyerRFQs) {
-      const { data: sentRFQs } = await supabase
-        .from('rfqs')
-        .select('*, categories(*)')
-        .eq('buyer_company_id', companyId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      rfqs = [...rfqs, ...(sentRFQs || [])];
+      // Always load buyer RFQs if user is buyer or hybrid
+      if (role === 'buyer' || isHybrid) {
+        const { data: sentRFQs, error: sentError } = await supabase
+          .from('rfqs')
+          .select('*, categories(*)')
+          .eq('buyer_company_id', companyId)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (!sentError && sentRFQs) {
+          rfqs = [...rfqs, ...sentRFQs];
+        }
+      }
+
+      // Always load seller RFQs if user is seller or hybrid
+      if (role === 'seller' || isHybrid) {
+        const { data: receivedRFQs, error: receivedError } = await supabase
+          .from('rfqs')
+          .select('*, categories(*)')
+          .eq('status', 'open')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (!receivedError && receivedRFQs) {
+          rfqs = [...rfqs, ...receivedRFQs];
+        }
+      }
+
+      // Sort by created_at and store all
+      rfqs.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      setAllRecentRFQs(rfqs);
+    } catch (error) {
+      setAllRecentRFQs([]);
     }
-
-    if (showSellerRFQs) {
-      const { data: receivedRFQs } = await supabase
-        .from('rfqs')
-        .select('*, categories(*)')
-        .eq('status', 'open')
-        .order('created_at', { ascending: false })
-        .limit(5);
-      rfqs = [...rfqs, ...(receivedRFQs || [])];
-    }
-
-    // Sort by created_at and limit to 5
-    rfqs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    setRecentRFQs(rfqs.slice(0, 5));
   };
 
-  const loadUnreadMessages = async (userData, companyId) => {
-    if (!companyId) return;
+  // Filter RFQs based on viewMode (no reload needed)
+  const recentRFQs = React.useMemo(() => {
+    const role = user?.role || user?.user_role || 'buyer';
+    const isHybrid = role === 'hybrid';
+    
+    if (!Array.isArray(allRecentRFQs)) return [];
+    
+    if (!isHybrid || viewMode === 'everything') {
+      return allRecentRFQs.slice(0, 5);
+    }
+    
+    if (viewMode === 'buyer') {
+      return allRecentRFQs.filter(rfq => rfq && rfq.buyer_company_id === companyId).slice(0, 5);
+    }
+    
+    if (viewMode === 'seller') {
+      return allRecentRFQs.filter(rfq => rfq && rfq.buyer_company_id !== companyId).slice(0, 5);
+    }
+    
+    return allRecentRFQs.slice(0, 5);
+  }, [allRecentRFQs, viewMode, user, companyId]);
 
-    const { count } = await supabase
+  const loadUnreadMessages = async (userData, companyId) => {
+    if (!companyId) {
+      setUnreadMessages(0);
+      return;
+    }
+
+    try {
+      const { count, error } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
       .eq('receiver_company_id', companyId)
       .eq('read', false);
 
+      if (error) throw error;
     setUnreadMessages(count || 0);
+    } catch (error) {
+      setUnreadMessages(0);
+    }
   };
 
   const quickActions = {
@@ -400,6 +557,18 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
     );
   }
 
+  if (error) {
+    return (
+      <ErrorState
+        message={error}
+        onRetry={() => {
+          setError(null);
+          loadDashboardData();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-3">
       {/* Welcome Header */}
@@ -411,7 +580,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
       >
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut capitalize">
-            Welcome back{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}!
+            Welcome back{user?.full_name || user?.name ? `, ${(user.full_name || user.name || '').split(' ')[0]}` : ''}!
           </h1>
           <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">
             {currentRole === 'buyer' && 'Source products and connect with verified suppliers'}
@@ -439,15 +608,15 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
               ))}
             </div>
           )}
-          <Badge variant="outline" className="capitalize text-sm px-4 py-2">
-            {currentRole}
-          </Badge>
+        <Badge variant="outline" className="capitalize text-sm px-4 py-2">
+          {currentRole}
+        </Badge>
         </div>
       </motion.div>
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {stats.map((stat, idx) => (
+        {Array.isArray(stats) && stats.map((stat, idx) => (
           <motion.div
             key={idx}
             initial={{ opacity: 0, y: 20 }}
@@ -468,14 +637,14 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        {actions.map((action, idx) => {
+        {Array.isArray(actions) && actions.map((action, idx) => {
           const Icon = action.icon;
           const colorMap = {
-            blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
+            blue: { bg: 'bg-afrikoni-gold/20', text: 'text-afrikoni-gold' },
             orange: { bg: 'bg-afrikoni-gold/20', text: 'text-afrikoni-gold' },
-            green: { bg: 'bg-green-100', text: 'text-green-600' },
-            purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
-            red: { bg: 'bg-red-100', text: 'text-red-600' }
+            green: { bg: 'bg-afrikoni-gold/20', text: 'text-afrikoni-gold' },
+            purple: { bg: 'bg-afrikoni-gold/20', text: 'text-afrikoni-gold' },
+            red: { bg: 'bg-afrikoni-gold/20', text: 'text-afrikoni-gold' }
           };
           const colors = colorMap[action.color] || colorMap.orange;
           return (
@@ -485,12 +654,12 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.15, delay: idx * 0.05 }}
               >
-                <Card className="hover:shadow-lg transition-all cursor-pointer group relative">
+                <Card className="hover:shadow-afrikoni-lg transition-all cursor-pointer group relative">
                   <CardContent className="p-4 flex flex-col items-center text-center gap-2">
                     <div className={`p-3 rounded-lg ${colors.bg} group-hover:scale-110 transition-transform relative`}>
                       <Icon className={`w-6 h-6 ${colors.text}`} />
                       {action.badge > 0 && (
-                        <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 text-white">
+                        <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-afrikoni-chestnut text-afrikoni-cream">
                           {action.badge}
                         </Badge>
                       )}
@@ -522,7 +691,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
               </div>
             ) : (
               <div className="space-y-3">
-                {tasks.map((task) => (
+                {Array.isArray(tasks) && tasks.map((task) => (
                   <Link key={task.id} to={task.link}>
                     <motion.div
                       initial={{ opacity: 0, x: -10 }}
@@ -560,7 +729,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {activities.map((activity) => (
+                {Array.isArray(activities) && activities.map((activity) => (
                   <Link key={activity.id} to={activity.link || '#'}>
                     <motion.div
                       initial={{ opacity: 0, x: -10 }}
@@ -608,7 +777,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
               <EmptyState type="orders" title="No orders yet" description="Your recent orders will appear here" />
             ) : (
               <div className="space-y-3">
-                {recentOrders.map((order) => (
+                {Array.isArray(recentOrders) && recentOrders.map((order) => (
                   <Link key={order.id} to={`/dashboard/orders/${order.id}`}>
                     <div className="p-3 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-offwhite transition-colors">
                       <div className="flex items-center justify-between mb-2">
@@ -647,7 +816,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
               <EmptyState type="rfqs" title="No RFQs yet" description="Your recent RFQs will appear here" />
             ) : (
               <div className="space-y-3">
-                {recentRFQs.map((rfq) => (
+                {Array.isArray(recentRFQs) && recentRFQs.map((rfq) => (
                   <Link key={rfq.id} to={`/dashboard/rfqs/${rfq.id}`}>
                     <div className="p-3 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-offwhite transition-colors">
                       <div className="flex items-center justify-between mb-2">
@@ -666,6 +835,146 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Intelligence Widgets */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* RFQs in Your Categories (Seller/Hybrid) */}
+        {(currentRole === 'seller' || currentRole === 'hybrid') && rfqsInCategories.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Active RFQs in Your Categories
+                </div>
+                <Link to="/dashboard/rfqs">
+                  <Button variant="ghost" size="sm">View All</Button>
+                </Link>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.isArray(rfqsInCategories) && rfqsInCategories.map((rfq) => (
+                  <Link key={rfq.id} to={`/dashboard/rfqs/${rfq.id}`}>
+                    <div className="p-3 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-offwhite transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm text-afrikoni-chestnut truncate">{rfq.title}</span>
+                        <Badge variant="outline" className="text-xs">{rfq.categories?.name}</Badge>
+                      </div>
+                      <div className="text-xs text-afrikoni-deep/70">
+                        Budget: {rfq.target_price ? `$${rfq.target_price.toLocaleString()}` : 'Negotiable'}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* RFQs Expiring Soon (Seller/Hybrid) */}
+        {(currentRole === 'seller' || currentRole === 'hybrid') && rfqsExpiringSoon.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-red-600" />
+                  RFQs Expiring Soon
+                </div>
+                <Link to="/dashboard/rfqs">
+                  <Button variant="ghost" size="sm">View All</Button>
+                </Link>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.isArray(rfqsExpiringSoon) && rfqsExpiringSoon.map((rfq) => {
+                  const deadline = rfq.delivery_deadline || rfq.expires_at;
+                  const timeRemaining = deadline ? getTimeRemaining(deadline) : null;
+                  return (
+                    <Link key={rfq.id} to={`/dashboard/rfqs/${rfq.id}`}>
+                      <div className="p-3 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm text-afrikoni-chestnut truncate">{rfq.title}</span>
+                          {timeRemaining && (
+                            <Badge variant="destructive" className="text-xs">
+                              {timeRemaining.text}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-xs text-afrikoni-deep/70">
+                          {rfq.categories?.name}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* New Suppliers in Your Country (Buyer/Hybrid) */}
+        {(currentRole === 'buyer' || currentRole === 'hybrid') && newSuppliers.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  New Suppliers in Your Country
+                </div>
+                <Link to="/suppliers">
+                  <Button variant="ghost" size="sm">View All</Button>
+                </Link>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.isArray(newSuppliers) && newSuppliers.map((supplier) => (
+                  <Link key={supplier.id} to={`/supplier?id=${supplier.id}`}>
+                    <div className="p-3 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-offwhite transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm text-afrikoni-chestnut">{supplier.company_name}</span>
+                        {supplier.verified && (
+                          <Badge variant="verified" className="text-xs">Verified</Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-afrikoni-deep/70">
+                        {supplier.country}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Top Categories This Week */}
+        {topCategories.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Top Categories This Week
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {Array.isArray(topCategories) && topCategories.map((item, idx) => (
+                  <div key={item.category_id} className="flex items-center justify-between p-2 border border-afrikoni-gold/20 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-afrikoni-gold w-6 text-center">{idx + 1}</span>
+                      <span className="text-sm text-afrikoni-deep">{item.category?.name || 'Uncategorized'}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">{item.count} RFQs</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

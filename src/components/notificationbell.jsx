@@ -127,7 +127,19 @@ export default function NotificationBell() {
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+            role="button"
+            tabIndex={0}
+            aria-label="Close notifications"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsOpen(false);
+              }
+            }}
+          />
           <Card className="absolute right-0 top-12 w-80 z-50 max-h-96 overflow-y-auto">
             <CardContent className="p-0">
               <div className="p-4 border-b">

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '@/utils';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { addToViewHistory, getViewHistory } from '@/utils/viewHistory';
+import { getSimilarProducts, getRecommendedProducts } from '@/utils/recommendations';
+import SaveButton from '@/components/ui/SaveButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, MapPin, Star, Shield, Building2, MessageCircle, FileText, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import NewMessageDialog from '../components/messaging/NewMessageDialog';
-import ReviewList from '../components/reviews/ReviewList';
+import NewMessageDialog from '@/components/messaging/NewMessageDialog';
+import ReviewList from '@/components/reviews/ReviewList';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -24,6 +27,8 @@ export default function ProductDetail() {
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [companies, setCompanies] = useState([]);
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
   const navigate = useNavigate();
 
   const { trackPageView } = useAnalytics();
@@ -84,8 +89,11 @@ export default function ProductDetail() {
       }
 
       // Get primary image or first image
-      const primaryImage = foundProduct.product_images?.find(img => img.is_primary) || foundProduct.product_images?.[0];
-      const allImages = foundProduct.product_images?.map(img => img.url) || foundProduct.images || [];
+      const productImages = Array.isArray(foundProduct.product_images) ? foundProduct.product_images : [];
+      const primaryImage = productImages.find(img => img.is_primary) || productImages[0];
+      const allImages = productImages.length > 0 
+        ? productImages.map(img => img.url).filter(Boolean)
+        : (Array.isArray(foundProduct.images) ? foundProduct.images : []).filter(Boolean);
 
       setProduct({
         ...foundProduct,
@@ -98,6 +106,27 @@ export default function ProductDetail() {
         .from('products')
         .update({ views: (foundProduct.views || 0) + 1 })
         .eq('id', foundProduct.id);
+
+      // Track view history
+      addToViewHistory(foundProduct.id, 'product', {
+        title: foundProduct.title,
+        category_id: foundProduct.category_id,
+        country: foundProduct.country_of_origin,
+        price: foundProduct.price_min || foundProduct.price
+      });
+
+      // Load similar and recommended products
+      const allProductsRes = await supabase
+        .from('products')
+        .select('*')
+        .eq('status', 'active')
+        .limit(100);
+      
+      if (allProductsRes.data) {
+        setSimilarProducts(getSimilarProducts(foundProduct, allProductsRes.data));
+        const viewHistory = getViewHistory('product');
+        setRecommendedProducts(getRecommendedProducts(viewHistory, allProductsRes.data));
+      }
 
       // Load supplier company
       const supplierId = foundProduct.supplier_id || foundProduct.company_id;
@@ -115,7 +144,6 @@ export default function ProductDetail() {
         }
       }
     } catch (error) {
-      console.error('Error loading product:', error);
       toast.error('Failed to load product');
     } finally {
       setIsLoading(false);
@@ -204,7 +232,7 @@ export default function ProductDetail() {
                               selectedImage === idx ? 'border-afrikoni-gold' : 'border-afrikoni-gold/20'
                             }`}
                           >
-                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                           </button>
                         ))}
                       </div>
@@ -320,7 +348,10 @@ export default function ProductDetail() {
             <Card className="border-afrikoni-gold/20 sticky top-24">
               <CardContent className="p-6 space-y-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-4">{product.title}</h1>
+                  <div className="flex items-center justify-between mb-4">
+                    <h1 className="text-2xl font-bold text-afrikoni-chestnut">{product.title}</h1>
+                    <SaveButton itemId={product.id} itemType="product" />
+                  </div>
                   
                   {product.categories && (
                     <Badge variant="outline" className="mb-4">
@@ -481,6 +512,48 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Similar Products */}
+      {similarProducts.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">Similar Products</h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            {similarProducts.map(product => (
+              <Link key={product.id} to={`/product?id=${product.id}`}>
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product.title}</h3>
+                    <p className="text-lg font-bold text-afrikoni-gold">
+                      {product.price_min || product.price ? `$${product.price_min || product.price}` : 'Price on request'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recommended for You */}
+      {recommendedProducts.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">Recommended for You</h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            {recommendedProducts.map(product => (
+              <Link key={product.id} to={`/product?id=${product.id}`}>
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product.title}</h3>
+                    <p className="text-lg font-bold text-afrikoni-gold">
+                      {product.price_min || product.price ? `$${product.price_min || product.price}` : 'Price on request'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {supplier && (
         <NewMessageDialog

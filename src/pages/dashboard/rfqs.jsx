@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole, canViewBuyerFeatures, canViewSellerFeatures, isHybrid, isLogistics } from '@/utils/roleHelpers';
+import { RFQ_STATUS, getStatusLabel } from '@/constants/status';
+import { buildRFQQuery } from '@/utils/queryBuilders';
+import { paginateQuery, createPaginationState } from '@/utils/pagination';
+import { CardSkeleton } from '@/components/ui/skeletons';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +40,7 @@ export default function DashboardRFQs() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
+  const [pagination, setPagination] = useState(createPaginationState());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,85 +49,59 @@ export default function DashboardRFQs() {
 
   const loadUserAndRFQs = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
-      if (!userData) {
+      setIsLoading(true);
+      const { user, profile, role, companyId } = await getCurrentUserAndRole();
+      if (!user) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'buyer';
-      const normalizedRole = role === 'logistics_partner' ? 'logistics' : role;
+      const userData = profile || user;
+      const normalizedRole = getUserRole(userData);
       setCurrentRole(normalizedRole);
 
-      // Get or create company for this user
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
-
-      let allRFQsData = [];
-
-      // Load RFQs based on role and active tab
-      if (normalizedRole === 'buyer' && companyId) {
-        // Load RFQs sent by buyer
-        const { data: sentRFQs } = await supabase
-          .from('rfqs')
-          .select('*, categories(*)')
-          .eq('buyer_company_id', companyId)
-          .order('created_at', { ascending: false });
-        allRFQsData = sentRFQs || [];
-      } else if (normalizedRole === 'seller') {
-        // Load RFQs received by seller (all open RFQs)
-        const { data: receivedRFQs } = await supabase
-          .from('rfqs')
-          .select('*, categories(*)')
-          .eq('status', 'open')
-          .order('created_at', { ascending: false })
-          .limit(100);
-        allRFQsData = receivedRFQs || [];
-      } else if (normalizedRole === 'hybrid' && companyId) {
-        // For hybrid, load both sent and received based on active tab
-        if (activeTab === 'sent') {
-          const { data: sentRFQs } = await supabase
-            .from('rfqs')
-            .select('*, categories(*)')
-            .eq('buyer_company_id', companyId)
-            .order('created_at', { ascending: false });
-          allRFQsData = sentRFQs || [];
-        } else if (activeTab === 'received') {
-          const { data: receivedRFQs } = await supabase
-            .from('rfqs')
-            .select('*, categories(*)')
-            .eq('status', 'open')
-            .order('created_at', { ascending: false })
-            .limit(100);
-          allRFQsData = receivedRFQs || [];
-        } else {
-          // Load both for 'all' view
-          const [sentRes, receivedRes] = await Promise.all([
-            supabase
-              .from('rfqs')
-              .select('*, categories(*)')
-              .eq('buyer_company_id', companyId)
-              .order('created_at', { ascending: false }),
-            supabase
-              .from('rfqs')
-              .select('*, categories(*)')
-              .eq('status', 'open')
-              .order('created_at', { ascending: false })
-              .limit(100)
-          ]);
-          allRFQsData = [...(sentRes.data || []), ...(receivedRes.data || [])];
-        }
-      } else if (normalizedRole === 'logistics') {
-        // Load all RFQs for logistics
-        const { data: allRFQs } = await supabase
-          .from('rfqs')
-          .select('*, categories(*)')
-          .order('created_at', { ascending: false })
-          .limit(100);
-        allRFQsData = allRFQs || [];
+      // Build query based on role and tab
+      const query = buildRFQQuery({
+        buyerCompanyId: (activeTab === 'sent' || activeTab === 'all') && canViewBuyerFeatures(normalizedRole) ? companyId : null,
+        status: activeTab === 'received' || activeTab === 'quotes' ? RFQ_STATUS.OPEN : null,
+        categoryId: categoryFilter || null,
+        country: countryFilter || null
+      });
+      
+      // Use pagination
+      const result = await paginateQuery(query, {
+        page: pagination.page,
+        pageSize: pagination.pageSize
+      });
+      
+      // Fix N+1 query: Load quotes count with aggregation
+      const rfqIds = result.data.map(rfq => rfq.id);
+      let quotesCountMap = {};
+      
+      if (rfqIds.length > 0) {
+        const { data: quotesData } = await supabase
+          .from('quotes')
+          .select('rfq_id')
+          .in('rfq_id', rfqIds);
+        
+        // Count quotes per RFQ
+        quotesCountMap = (quotesData || []).reduce((acc, quote) => {
+          acc[quote.rfq_id] = (acc[quote.rfq_id] || 0) + 1;
+          return acc;
+        }, {});
       }
-
-      setRfqs(allRFQsData);
+      
+      const rfqsWithQuotes = result.data.map(rfq => ({
+        ...rfq,
+        quotesCount: quotesCountMap[rfq.id] || 0
+      }));
+      
+      setRfqs(rfqsWithQuotes);
+      setPagination(prev => ({
+        ...prev,
+        ...result,
+        isLoading: false
+      }));
 
       // Load categories
       const { data: categoriesData } = await supabase
@@ -159,9 +140,7 @@ export default function DashboardRFQs() {
   if (isLoading) {
     return (
       <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
+        <CardSkeleton count={6} />
       </DashboardLayout>
     );
   }
@@ -257,10 +236,10 @@ export default function DashboardRFQs() {
             {(currentRole === 'buyer' || currentRole === 'hybrid') && (
               <TabsTrigger value="sent">Sent RFQs</TabsTrigger>
             )}
-            {(currentRole === 'seller' || currentRole === 'hybrid') && (
+            {canViewSellerFeatures(currentRole) && (
               <TabsTrigger value="received">Received RFQs</TabsTrigger>
             )}
-            {(currentRole === 'seller' || currentRole === 'hybrid') && (
+            {canViewSellerFeatures(currentRole) && (
               <TabsTrigger value="quotes">My Quotes</TabsTrigger>
             )}
             {currentRole === 'logistics' && (
@@ -279,7 +258,7 @@ export default function DashboardRFQs() {
                   </Card>
                 ) : (
                   filteredRFQs.map((rfq) => (
-                    <Card key={rfq.id} className="hover:shadow-lg transition-shadow">
+                    <Card key={rfq.id} className="hover:shadow-afrikoni-lg transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -336,7 +315,7 @@ export default function DashboardRFQs() {
                   </Card>
                 ) : (
                   quotes.map((quote) => (
-                    <Card key={quote.id} className="hover:shadow-lg transition-shadow">
+                    <Card key={quote.id} className="hover:shadow-afrikoni-lg transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">

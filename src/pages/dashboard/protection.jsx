@@ -55,11 +55,11 @@ export default function DashboardProtection() {
             .in('type', ['escrow_hold', 'escrow_release'])
         ]);
 
-        const orders = ordersRes.data || [];
-        const walletTransactions = walletRes.data || [];
+        const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+        const walletTransactions = Array.isArray(walletRes.data) ? walletRes.data : [];
 
         // Find protected orders
-        const protectedOrdersList = orders.filter(o => {
+        const protectedOrdersList = (orders || []).filter(o => {
           // Check if order has escrow protection
           const hasEscrowHold = walletTransactions.some(tx => 
             tx.order_id === o.id && tx.type === 'escrow_hold' && tx.status === 'completed'
@@ -154,10 +154,10 @@ export default function DashboardProtection() {
 
         {/* Protection Features */}
         <div className="grid md:grid-cols-3 gap-4">
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="p-6">
+          <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10">
+            <CardContent className="p-5 md:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <Shield className="w-8 h-8 text-green-600" />
+                <Shield className="w-8 h-8 text-afrikoni-gold" />
                 <h3 className="text-lg font-semibold text-afrikoni-chestnut">Escrow Protection</h3>
               </div>
               <p className="text-sm text-afrikoni-deep">
@@ -166,10 +166,10 @@ export default function DashboardProtection() {
             </CardContent>
           </Card>
 
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
+          <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10">
+            <CardContent className="p-5 md:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-8 h-8 text-blue-600" />
+                <CheckCircle className="w-8 h-8 text-afrikoni-gold" />
                 <h3 className="text-lg font-semibold text-afrikoni-chestnut">Quality Guarantee</h3>
               </div>
               <p className="text-sm text-afrikoni-deep">
@@ -178,10 +178,10 @@ export default function DashboardProtection() {
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200 bg-purple-50">
-            <CardContent className="p-6">
+          <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10">
+            <CardContent className="p-5 md:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <Lock className="w-8 h-8 text-purple-600" />
+                <Lock className="w-8 h-8 text-afrikoni-gold" />
                 <h3 className="text-lg font-semibold text-afrikoni-chestnut">Dispute Resolution</h3>
               </div>
               <p className="text-sm text-afrikoni-deep">
@@ -195,7 +195,7 @@ export default function DashboardProtection() {
         {protectionData ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Orders Under Protection</p>
@@ -206,7 +206,7 @@ export default function DashboardProtection() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Total Value in Protection</p>
@@ -219,7 +219,7 @@ export default function DashboardProtection() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Released This Month</p>
@@ -230,7 +230,7 @@ export default function DashboardProtection() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-afrikoni-deep">Active Disputes</p>
@@ -245,7 +245,7 @@ export default function DashboardProtection() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
               <Card key={i}>
-                <CardContent className="p-4">
+                <CardContent className="p-5 md:p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-afrikoni-deep">Loading...</p>
@@ -371,8 +371,8 @@ export default function DashboardProtection() {
                 </div>
               </div>
             </div>
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-900">
+            <div className="mt-6 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
+              <p className="text-sm text-afrikoni-chestnut">
                 <strong>Note:</strong> All orders processed through Afrikoni are automatically protected by our escrow system. 
                 You can track the protection status of each order and raise disputes if needed. 
                 Our team is here to ensure fair and secure transactions.
