@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Truck, FileText, MessageSquare,
   BarChart3, Wallet, Shield, Settings, HelpCircle, Bell, Search, ChevronDown,
   User, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
-  AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign
+  AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +76,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
+      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
       { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' }
     ],
@@ -87,6 +88,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
+      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
       { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Shield, label: t('verification.title'), path: '/verification-center' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
@@ -99,6 +101,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
+      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
       { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
@@ -110,6 +113,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
+      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
       { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Settings, label: t('dashboard.settings'), path: '/dashboard/settings' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }

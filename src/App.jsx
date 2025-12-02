@@ -25,6 +25,7 @@ const DashboardSales = lazy(() => import('./pages/dashboard/sales'));
 const DashboardShipments = lazy(() => import('./pages/dashboard/shipments'));
 const ShipmentDetailPage = lazy(() => import('./pages/dashboard/shipments/[id]'));
 const DashboardAnalytics = lazy(() => import('./pages/dashboard/analytics'));
+const SupplierAnalytics = lazy(() => import('./pages/dashboard/supplier-analytics'));
 const DashboardPayments = lazy(() => import('./pages/dashboard/payments'));
 const DashboardProtection = lazy(() => import('./pages/dashboard/protection'));
 const DashboardSaved = lazy(() => import('./pages/dashboard/saved'));
