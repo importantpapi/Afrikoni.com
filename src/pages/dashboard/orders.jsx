@@ -14,10 +14,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { DataTable, StatusChip } from '@/components/ui/data-table';
-import { ShoppingCart, Search, Filter, Package, DollarSign, Calendar, TrendingUp, Truck, CheckCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  ShoppingCart, Search, Filter, Package, DollarSign, Calendar, TrendingUp, Truck, CheckCircle,
+  Download, FileText, Copy, MoreVertical, Trash2, Edit, Save, RotateCcw, CheckSquare, Square
+} from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { format } from 'date-fns';
 
 export default function DashboardOrders() {
   const { t } = useLanguage();
@@ -28,11 +36,22 @@ export default function DashboardOrders() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const [pagination, setPagination] = useState(createPaginationState());
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templates, setTemplates] = useState([]);
+  const [dateRangeFilter, setDateRangeFilter] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
     loadUserAndOrders();
-  }, [viewMode, statusFilter]);
+    loadTemplates();
+  }, [viewMode, statusFilter, dateRangeFilter]);
+
+  useEffect(() => {
+    setShowBulkActions(selectedOrders.length > 0);
+  }, [selectedOrders]);
 
   const loadUserAndOrders = async () => {
     try {
@@ -88,15 +107,189 @@ export default function DashboardOrders() {
     }
   };
 
+  const loadTemplates = async () => {
+    try {
+      const stored = localStorage.getItem('afrikoni_order_templates');
+      if (stored) {
+        setTemplates(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+    }
+  };
+
+  const saveAsTemplate = async (order) => {
+    if (!templateName.trim()) {
+      toast.error('Please enter a template name');
+      return;
+    }
+
+    try {
+      const template = {
+        id: Date.now().toString(),
+        name: templateName,
+        order: {
+          product_id: order.product_id,
+          quantity: order.quantity,
+          total_amount: order.total_amount,
+          currency: order.currency,
+          shipping_address: order.shipping_address,
+          notes: order.notes,
+        },
+        created_at: new Date().toISOString(),
+      };
+
+      const updated = [...templates, template];
+      localStorage.setItem('afrikoni_order_templates', JSON.stringify(updated));
+      setTemplates(updated);
+      setTemplateName('');
+      setShowTemplateDialog(false);
+      toast.success('Order template saved!');
+    } catch (error) {
+      toast.error('Failed to save template');
+    }
+  };
+
+  const reorderFromTemplate = (template) => {
+    navigate(`/dashboard/rfqs/new?template=${template.id}`);
+    toast.info('Redirecting to create RFQ from template...');
+  };
+
+  const reorderFromOrder = (order) => {
+    navigate(`/dashboard/rfqs/new?product=${order.product_id}&quantity=${order.quantity}`);
+    toast.info('Creating new RFQ from this order...');
+  };
+
+  const handleBulkStatusUpdate = async (newStatus) => {
+    if (selectedOrders.length === 0) return;
+
+    try {
+      const updates = selectedOrders.map(orderId => 
+        supabase
+          .from('orders')
+          .update({ status: newStatus })
+          .eq('id', orderId)
+      );
+
+      await Promise.all(updates);
+      toast.success(`${selectedOrders.length} order(s) updated to ${getStatusLabel(newStatus, 'order')}`);
+      setSelectedOrders([]);
+      loadUserAndOrders();
+    } catch (error) {
+      toast.error('Failed to update orders');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedOrders.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedOrders.length} order(s)?`)) return;
+
+    try {
+      const deletes = selectedOrders.map(orderId =>
+        supabase
+          .from('orders')
+          .update({ status: ORDER_STATUS.CANCELLED })
+          .eq('id', orderId)
+      );
+
+      await Promise.all(deletes);
+      toast.success(`${selectedOrders.length} order(s) cancelled`);
+      setSelectedOrders([]);
+      loadUserAndOrders();
+    } catch (error) {
+      toast.error('Failed to cancel orders');
+    }
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Order ID', 'Product', 'Quantity', 'Amount', 'Status', 'Date'];
+    const rows = filteredOrders.map(order => [
+      order.id?.substring(0, 8) || '',
+      order.products?.title || '',
+      order.quantity || 0,
+      order.total_amount || 0,
+      order.status || '',
+      order.created_at ? format(new Date(order.created_at), 'yyyy-MM-dd') : '',
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Orders exported to CSV');
+  };
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = !searchQuery || 
       order.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.products?.title?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    // Date range filter
+    let matchesDate = true;
+    if (dateRangeFilter !== 'all' && order.created_at) {
+      const orderDate = new Date(order.created_at);
+      const now = new Date();
+      const daysAgo = parseInt(dateRangeFilter);
+      const cutoffDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      matchesDate = orderDate >= cutoffDate;
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
+  const toggleOrderSelection = (orderId) => {
+    setSelectedOrders(prev => 
+      prev.includes(orderId)
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.length === filteredOrders.length) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(filteredOrders.map(o => o.id));
+    }
+  };
+
   const orderColumns = [
+    { 
+      header: (
+        <button
+          onClick={toggleSelectAll}
+          className="p-1 hover:bg-afrikoni-gold/10 rounded"
+        >
+          {selectedOrders.length === filteredOrders.length && filteredOrders.length > 0 ? (
+            <CheckSquare className="w-4 h-4 text-afrikoni-gold" />
+          ) : (
+            <Square className="w-4 h-4 text-afrikoni-deep/50" />
+          )}
+        </button>
+      ), 
+      accessor: 'id', 
+      render: (value, order) => (
+        <button
+          onClick={() => toggleOrderSelection(value)}
+          className="p-1 hover:bg-afrikoni-gold/10 rounded"
+        >
+          {selectedOrders.includes(value) ? (
+            <CheckSquare className="w-4 h-4 text-afrikoni-gold" />
+          ) : (
+            <Square className="w-4 h-4 text-afrikoni-deep/50" />
+          )}
+        </button>
+      )
+    },
     { header: 'Order ID', accessor: 'id', render: (value) => value?.substring(0, 8) || 'N/A' },
     { header: 'Product', accessor: 'products.title', render: (value) => value || 'N/A' },
     { header: currentRole === 'buyer' ? 'Supplier' : currentRole === 'seller' ? 'Buyer' : 'Party', accessor: 'company_name', render: (value) => value || 'N/A' },
@@ -110,10 +303,23 @@ export default function DashboardOrders() {
     { 
       header: 'Actions',
       accessor: 'id',
-      render: (value) => (
-        <Link to={`/dashboard/orders/${value}`}>
-          <Button variant="outline" size="sm" className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-text-dark">View</Button>
-        </Link>
+      render: (value, order) => (
+        <div className="flex items-center gap-2">
+          <Link to={`/dashboard/orders/${value}`}>
+            <Button variant="outline" size="sm" className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-text-dark">View</Button>
+          </Link>
+          {currentRole === 'buyer' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => reorderFromOrder(order)}
+              className="p-1.5"
+              title="Reorder"
+            >
+              <RotateCcw className="w-4 h-4 text-afrikoni-gold" />
+            </Button>
+          )}
+        </div>
       )
     }
   ];
@@ -250,15 +456,37 @@ export default function DashboardOrders() {
         {/* Premium Filters */}
         <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
           <CardContent className="p-5 md:p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
-                <Input
-                  placeholder={t('common.searchOrders') || 'Search orders...'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
-                />
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
+                  <Input
+                    placeholder={t('common.searchOrders') || 'Search orders...'}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
+                  />
+                </div>
+                <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+                  <SelectTrigger className="w-full md:w-48 border-afrikoni-gold/30">
+                    <SelectValue placeholder="Date Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="7">Last 7 days</SelectItem>
+                    <SelectItem value="30">Last 30 days</SelectItem>
+                    <SelectItem value="90">Last 90 days</SelectItem>
+                    <SelectItem value="365">Last year</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={exportToCSV}
+                  className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
               </div>
               <div className="flex gap-2 flex-wrap">
                 {['all', ORDER_STATUS.PENDING, ORDER_STATUS.PROCESSING, ORDER_STATUS.SHIPPED, ORDER_STATUS.DELIVERED, ORDER_STATUS.COMPLETED, ORDER_STATUS.CANCELLED].map((status) => (
@@ -279,6 +507,86 @@ export default function DashboardOrders() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Bulk Actions Bar */}
+        {showBulkActions && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <Card className="border-afrikoni-gold bg-afrikoni-gold/10">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-afrikoni-gold text-afrikoni-charcoal">
+                      {selectedOrders.length} selected
+                    </Badge>
+                    <span className="text-sm text-afrikoni-text-dark">
+                      Bulk actions:
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select onValueChange={handleBulkStatusUpdate}>
+                      <SelectTrigger className="w-48 border-afrikoni-gold/30">
+                        <SelectValue placeholder="Update Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={ORDER_STATUS.PROCESSING}>Mark as Processing</SelectItem>
+                        <SelectItem value={ORDER_STATUS.SHIPPED}>Mark as Shipped</SelectItem>
+                        <SelectItem value={ORDER_STATUS.DELIVERED}>Mark as Delivered</SelectItem>
+                        <SelectItem value={ORDER_STATUS.COMPLETED}>Mark as Completed</SelectItem>
+                        <SelectItem value={ORDER_STATUS.CANCELLED}>Cancel Orders</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      onClick={handleBulkDelete}
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setSelectedOrders([])}
+                      size="sm"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Order Templates */}
+        {templates.length > 0 && currentRole === 'buyer' && (
+          <Card className="border-afrikoni-gold/20 bg-afrikoni-gold/5">
+            <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+              <CardTitle className="text-lg font-bold text-afrikoni-text-dark flex items-center gap-2">
+                <FileText className="w-5 h-5 text-afrikoni-gold" />
+                Saved Order Templates
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-2">
+                {templates.map(template => (
+                  <Button
+                    key={template.id}
+                    variant="outline"
+                    onClick={() => reorderFromTemplate(template)}
+                    className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    {template.name}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* v2.5: Premium Orders Table with Gold Underline */}
         <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">

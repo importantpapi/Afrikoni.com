@@ -10,9 +10,13 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   ShoppingCart, Package, Truck, CheckCircle, Clock, X, 
-  DollarSign, Calendar, MapPin, MessageSquare, FileText, User, Star
+  DollarSign, Calendar, MapPin, MessageSquare, FileText, User, Star,
+  Save, RotateCcw
 } from 'lucide-react';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import { toast } from 'sonner';
@@ -37,6 +41,8 @@ export default function OrderDetail() {
   const [hasReviewed, setHasReviewed] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [existingReview, setExistingReview] = useState(null);
+  const [templateName, setTemplateName] = useState('');
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
 
   useEffect(() => {
     loadOrderData();
@@ -589,6 +595,81 @@ export default function OrderDetail() {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                {currentRole === 'buyer' && (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigate(`/dashboard/rfqs/new?product=${order.product_id}&quantity=${order.quantity}`);
+                        toast.info('Creating new RFQ from this order...');
+                      }}
+                      className="w-full"
+                      size="sm"
+                    >
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Reorder
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => setShowTemplateDialog(true)}
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save as Template
+                    </Button>
+                    <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Save Order as Template</DialogTitle>
+                          <DialogClose onClose={() => setShowTemplateDialog(false)} />
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="template-name">Template Name</Label>
+                            <Input
+                              id="template-name"
+                              placeholder="e.g., Monthly Coffee Order"
+                              value={templateName}
+                              onChange={(e) => setTemplateName(e.target.value)}
+                            />
+                          </div>
+                          <Button
+                            onClick={() => {
+                              if (!templateName.trim()) {
+                                toast.error('Please enter a template name');
+                                return;
+                              }
+                              const template = {
+                                id: Date.now().toString(),
+                                name: templateName,
+                                order: {
+                                  product_id: order.product_id,
+                                  quantity: order.quantity,
+                                  total_amount: order.total_amount,
+                                  currency: order.currency,
+                                  shipping_address: order.shipping_address,
+                                  notes: order.notes,
+                                },
+                                created_at: new Date().toISOString(),
+                              };
+                              const stored = localStorage.getItem('afrikoni_order_templates');
+                              const templates = stored ? JSON.parse(stored) : [];
+                              templates.push(template);
+                              localStorage.setItem('afrikoni_order_templates', JSON.stringify(templates));
+                              toast.success('Order template saved!');
+                              setTemplateName('');
+                              setShowTemplateDialog(false);
+                            }}
+                            className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                          >
+                            Save Template
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                )}
                 <Link to={`/messages?order=${id}`}>
                   <Button variant="outline" className="w-full" size="sm">
                     <MessageSquare className="w-4 h-4 mr-2" />
