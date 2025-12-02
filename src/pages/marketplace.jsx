@@ -27,6 +27,9 @@ import OptimizedImage from '@/components/OptimizedImage';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import SearchHistory from '@/components/search/SearchHistory';
+import SearchSuggestions from '@/components/search/SearchSuggestions';
+import { addSearchToHistory } from '@/components/search/SearchHistory';
 
 export default function Marketplace() {
   const { trackPageView } = useAnalytics();
@@ -87,6 +90,8 @@ export default function Marketplace() {
   const [aiBestMatchLoading, setAiBestMatchLoading] = useState(false);
   const [savedSearches, setSavedSearches] = useState([]);
   const [showSaveSearch, setShowSaveSearch] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => {
     trackPageView('Marketplace');
@@ -155,6 +160,10 @@ export default function Marketplace() {
 
   useEffect(() => {
     applyFilters();
+    // Add to search history when search is performed
+    if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
+      addSearchToHistory(debouncedSearchQuery);
+    }
   }, [selectedFilters, searchQuery, sortBy, priceMin, priceMax, moqMin, debouncedSearchQuery]);
 
   const loadProducts = async () => {
@@ -426,13 +435,52 @@ if (!Array.isArray(productsList)) return [];
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
-              <Search className="w-4 h-4 text-afrikoni-deep/70 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-afrikoni-deep/70 absolute left-3 top-1/2 -translate-y-1/2 z-10" />
               <Input
                 placeholder="Search products, suppliers, or services..."
                 className="pl-10"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  setSearchFocused(true);
+                  setShowSuggestions(true);
+                }}
+                onBlur={() => {
+                  // Delay to allow click on suggestions
+                  setTimeout(() => {
+                    setSearchFocused(false);
+                    setShowSuggestions(false);
+                  }, 200);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    addSearchToHistory(searchQuery);
+                    setShowSuggestions(false);
+                  }
+                }}
               />
+              {showSuggestions && searchFocused && (
+                <SearchSuggestions
+                  query={searchQuery}
+                  onSelectSuggestion={(query, type, id) => {
+                    setSearchQuery(query);
+                    addSearchToHistory(query);
+                    setShowSuggestions(false);
+                    setSearchFocused(false);
+                    // If type is category or company, apply filter
+                    if (type === 'category') {
+                      setSelectedFilters({ ...selectedFilters, category: query });
+                    } else if (type === 'company') {
+                      // Could navigate to company profile or filter by company
+                    }
+                  }}
+                  showHistory={!searchQuery}
+                  showTrending={!searchQuery}
+                />
+              )}
             </div>
             {/* Quick Filter Chips */}
             <div className="hidden md:flex items-center gap-2 flex-wrap">
@@ -692,6 +740,15 @@ if (!Array.isArray(productsList)) return [];
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Search History */}
+            <SearchHistory
+              onSelectSearch={(query) => {
+                setSearchQuery(query);
+                addSearchToHistory(query);
+              }}
+              onClearHistory={() => {}}
+            />
 
             {/* Saved Searches */}
             {savedSearches.length > 0 && (
