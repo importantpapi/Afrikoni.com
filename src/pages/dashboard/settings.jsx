@@ -52,7 +52,9 @@ export default function DashboardSettings() {
     in_app_notifications: true,
     order_updates: true,
     new_messages: true,
-    rfq_responses: true
+    rfq_responses: true,
+    reviews: true,
+    payments: true
   });
   const [avatarUrl, setAvatarUrl] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -123,7 +125,9 @@ export default function DashboardSettings() {
           in_app_notifications: prefs.in_app !== false,
           order_updates: prefs.order_updates !== false,
           new_messages: prefs.new_messages !== false,
-          rfq_responses: prefs.rfq_responses !== false
+          rfq_responses: prefs.rfq_responses !== false,
+          reviews: prefs.reviews !== false,
+          payments: prefs.payments !== false
         });
       }
     } catch (error) {
@@ -262,7 +266,9 @@ export default function DashboardSettings() {
               in_app: preferences.in_app_notifications,
               order_updates: preferences.order_updates,
               new_messages: preferences.new_messages,
-              rfq_responses: preferences.rfq_responses
+              rfq_responses: preferences.rfq_responses,
+              reviews: preferences.reviews,
+              payments: preferences.payments
             }
           })
           .eq('id', user.id);
@@ -631,9 +637,35 @@ export default function DashboardSettings() {
                     onCheckedChange={(checked) => setPreferences({ ...preferences, rfq_responses: checked })}
                   />
                 </div>
-                <Button onClick={() => handleSave('notifications')} disabled={isSaving} className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
+                  <div>
+                    <h4 className="font-semibold text-afrikoni-text-dark">Reviews</h4>
+                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when I receive new reviews</p>
+                  </div>
+                  <Switch
+                    checked={preferences.reviews}
+                    onCheckedChange={(checked) => setPreferences({ ...preferences, reviews: checked })}
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
+                  <div>
+                    <h4 className="font-semibold text-afrikoni-text-dark">Payment Events</h4>
+                    <p className="text-sm text-afrikoni-text-dark/70">Notify me about payment receipts and escrow releases</p>
+                  </div>
+                  <Switch
+                    checked={preferences.payments}
+                    onCheckedChange={(checked) => setPreferences({ ...preferences, payments: checked })}
+                  />
+                </div>
+                <div className="pt-4 border-t border-afrikoni-gold/20">
+                  <p className="text-xs text-afrikoni-text-dark/60 mb-4">
+                    💡 <strong>Tip:</strong> Email notifications are sent for important events like order updates, payments, and messages. 
+                    You can control which types of notifications you receive via email above.
+                  </p>
+                </div>
+                <Button onClick={() => handleSave('notifications')} disabled={isSaving} className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full">
                   <Save className="w-4 h-4 mr-2" />
-                  Save Preferences
+                  {isSaving ? 'Saving...' : 'Save Notification Preferences'}
                 </Button>
               </CardContent>
             </Card>
