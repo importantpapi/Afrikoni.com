@@ -43,13 +43,14 @@ export default function NotificationsCenter() {
   const loadNotifications = async () => {
     try {
       setIsLoading(true);
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'buyer';
+      const role = userRole || userData.role || userData.user_role || 'buyer';
       setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
 
       const { getOrCreateCompany } = await import('@/utils/companyHelper');

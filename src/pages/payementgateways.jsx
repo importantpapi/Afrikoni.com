@@ -24,7 +24,8 @@ export default function PaymentGateway() {
 
   const loadUser = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
     } catch (error) {
       setUser(null);

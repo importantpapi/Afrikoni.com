@@ -20,7 +20,8 @@ export default function Orders() {
 
   const loadData = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
 
       // Get or create company
@@ -35,9 +36,10 @@ export default function Orders() {
       if (ordersRes.error) throw ordersRes.error;
       if (companiesRes.error) throw companiesRes.error;
 
-      const myOrders = companyId ? ordersRes.data?.filter(
-        o => o.buyer_company_id === companyId || o.seller_company_id === companyId
-      ) || [] : [];
+      const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+      const myOrders = companyId ? orders.filter(
+        o => o?.buyer_company_id === companyId || o?.seller_company_id === companyId
+      ) : [];
 
       setOrders(myOrders);
       setCompanies(companiesRes.data || []);
@@ -87,7 +89,7 @@ export default function Orders() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {orders.map(order => {
+            {Array.isArray(orders) && orders.map(order => {
               const otherCompany = companies.find(
                 c => c.id === (user.company_id === order.buyer_company_id ? order.seller_company_id : order.buyer_company_id)
               );

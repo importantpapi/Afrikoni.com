@@ -40,7 +40,7 @@ export default function OrderDetail() {
   const loadOrderData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role } = await getCurrentUserAndRole();
+      const { user, profile, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         navigate('/login');
         return;
@@ -122,7 +122,8 @@ export default function OrderDetail() {
           await notifyOrderStatusChange(id, newStatus, order.buyer_company_id, order.seller_company_id);
         } catch (err) {
           // Fallback to direct insert
-          const userData = await supabaseHelpers.auth.me();
+          const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+          const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
           if (userData?.email) {
         await supabase.from('notifications').insert({
           company_id: otherCompanyId,

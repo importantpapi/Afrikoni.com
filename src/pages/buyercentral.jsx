@@ -56,7 +56,7 @@ export default function BuyerCentral() {
       title: 'Request for Quotation',
       description: 'Get competitive quotes from multiple suppliers',
       color: 'bg-green-600',
-      link: '/rfq/create'
+      link: '/dashboard/rfqs/new'
     },
     {
       icon: Users,

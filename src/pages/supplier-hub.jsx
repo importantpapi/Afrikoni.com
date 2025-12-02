@@ -99,7 +99,7 @@ export default function SupplierHub() {
                     Start Selling
                   </Button>
                 </Link>
-                <Link to="/dashboard/verification">
+                <Link to="/verification-center">
                   <Button size="lg" variant="outline" className="border-white text-afrikoni-creamhover:bg-afrikoni-offwhite/10">
                     Get Verified
                   </Button>
@@ -225,7 +225,7 @@ export default function SupplierHub() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/dashboard/verification">
+                <Link to="/verification-center">
                   <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
                     Start Verification
                   </Button>

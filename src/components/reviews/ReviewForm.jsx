@@ -24,8 +24,9 @@ export default function ReviewForm({ order, product, company, onSuccess }) {
 
     setIsLoading(true);
     try {
-      const user = await supabaseHelpers.auth.me();
-      if (!user || !user.company_id) {
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      if (!user || !companyId) {
         toast.error('Please login first');
         return;
       }
@@ -34,7 +35,7 @@ export default function ReviewForm({ order, product, company, onSuccess }) {
         order_id: order?.id,
         product_id: product?.id,
         reviewed_company_id: company?.id,
-        reviewer_company_id: user.company_id,
+        reviewer_company_id: companyId,
         rating,
         comment: comment.trim() || null,
         quality_rating: qualityRating || null,

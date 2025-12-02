@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -10,31 +10,50 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
 import NotificationBell from '@/components/notificationbell';
 import { createPageUrl } from '@/utils';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
+  const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('EN');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
 
+  // Map language codes
+  const languageMap = {
+    'en': 'EN',
+    'fr': 'FR',
+    'ar': 'AR',
+    'pt': 'PT'
+  };
+
+  const selectedLanguageCode = languageMap[language] || 'EN';
+
+  // Safely get translation labels; fall back to clean English if key is missing
+  const getLabel = (key, fallback) => {
+    const value = t(key);
+    if (!value || value === key) return fallback;
+    return value;
+  };
+
   const navLinks = [
-    { label: 'Marketplace', path: '/marketplace', icon: ShoppingBag },
-    { label: 'Buyer Hub', path: '/buyer-hub', icon: ShoppingBag },
-    { label: 'Supplier Hub', path: '/supplier-hub', icon: Store },
-    { label: 'Logistics & Shipping', path: '/logistics', icon: Truck },
-    { label: 'Order Protection', path: '/order-protection', icon: Shield },
-    { label: 'RFQ', path: '/rfq', icon: FileText },
-    { label: 'Help Center', path: '/help', icon: HelpCircle },
+    { label: getLabel('nav.marketplace', 'Marketplace'), path: '/marketplace', icon: ShoppingBag, key: 'marketplace' },
+    { label: getLabel('nav.suppliers', 'Suppliers'), path: '/suppliers', icon: Store, key: 'suppliers' },
+    { label: getLabel('nav.buyers', 'Buyers'), path: '/buyer-hub', icon: ShoppingBag, key: 'buyers' },
+    { label: getLabel('nav.howItWorks', 'How It Works'), path: '/buyer-hub', icon: FileText, key: 'howItWorks' },
+    { label: getLabel('nav.resources', 'Resources'), path: '/resources', icon: FileText, key: 'resources' },
+    { label: getLabel('nav.protection', 'Order Protection'), path: '/order-protection', icon: Shield, key: 'protection' },
+    { label: getLabel('nav.logistics', 'Logistics & Shipping'), path: '/logistics', icon: Truck, key: 'logistics' },
+    { label: getLabel('nav.help', 'Help Center'), path: '/help', icon: HelpCircle, key: 'help' },
   ];
 
   const languages = [
-    { code: 'EN', name: 'English', flag: '🇬🇧' },
-    { code: 'FR', name: 'Français', flag: '🇫🇷' },
-    { code: 'AR', name: 'العربية', flag: '🇸🇦' },
-    { code: 'PT', name: 'Português', flag: '🇵🇹' },
+    { code: 'en', display: 'EN', name: 'English', flag: '🇬🇧' },
+    { code: 'fr', display: 'FR', name: 'Français', flag: '🇫🇷' },
+    { code: 'ar', display: 'AR', name: 'العربية', flag: '🇸🇦' },
+    { code: 'pt', display: 'PT', name: 'Português', flag: '🇵🇹' },
   ];
 
   const currencies = [
@@ -59,7 +78,7 @@ export default function Navbar({ user, onLogout }) {
           
           {/* LEFT SECTION: Logo + All Categories */}
           <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
-            <Logo type="full" size="md" link={true} showTagline={false} />
+            <Logo type="full" size="md" link={true} showTagline={false} direction="horizontal" />
             
             {/* All Categories Button - Desktop Only */}
             <Link
@@ -67,7 +86,7 @@ export default function Navbar({ user, onLogout }) {
               className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
             >
               <Grid3x3 className="w-4 h-4" />
-              <span>All Categories</span>
+              <span>{t('nav.allCategories')}</span>
             </Link>
           </div>
 
@@ -110,7 +129,7 @@ export default function Navbar({ user, onLogout }) {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
               >
                 <Globe className="w-4 h-4" />
-                <span className="hidden xl:inline">{selectedLanguage}</span>
+                <span className="hidden xl:inline">{selectedLanguageCode}</span>
                 <ChevronDown className="w-3 h-3" />
               </button>
 
@@ -131,12 +150,12 @@ export default function Navbar({ user, onLogout }) {
                         <button
                           key={lang.code}
                           onClick={() => {
-                            setSelectedLanguage(lang.code);
+                            setLanguage(lang.code);
                             setLanguageOpen(false);
                           }}
                           className={`
                             w-full text-left px-4 py-2 text-sm hover:bg-afrikoni-gold/10 transition-colors flex items-center gap-2
-                            ${selectedLanguage === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold' : 'text-afrikoni-deep'}
+                            ${language === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold' : 'text-afrikoni-deep'}
                           `}
                         >
                           <span>{lang.flag}</span>
@@ -257,7 +276,7 @@ export default function Navbar({ user, onLogout }) {
                               onClick={() => setUserMenuOpen(false)}
                             >
                               <LayoutDashboard className="w-4 h-4" />
-                              Dashboard
+                              {t('dashboard.title')}
                             </Link>
                             <Link
                               to={createPageUrl('Profile')}
@@ -265,7 +284,7 @@ export default function Navbar({ user, onLogout }) {
                               onClick={() => setUserMenuOpen(false)}
                             >
                               <User className="w-4 h-4" />
-                              Profile
+                              {t('common.view')} Profile
                             </Link>
                             <Link
                               to="/messages"
@@ -273,7 +292,7 @@ export default function Navbar({ user, onLogout }) {
                               onClick={() => setUserMenuOpen(false)}
                             >
                               <MessageSquare className="w-4 h-4" />
-                              Messages
+                              {t('messages.title')}
                             </Link>
                             <Link
                               to="/orders"
@@ -281,7 +300,7 @@ export default function Navbar({ user, onLogout }) {
                               onClick={() => setUserMenuOpen(false)}
                             >
                               <Package className="w-4 h-4" />
-                              Orders
+                              {t('dashboard.orders')}
                             </Link>
                             <Link
                               to={createPageUrl('RFQManagement')}
@@ -289,7 +308,7 @@ export default function Navbar({ user, onLogout }) {
                               onClick={() => setUserMenuOpen(false)}
                             >
                               <FileText className="w-4 h-4" />
-                              RFQs
+                              {t('nav.rfq')}
                             </Link>
                             <Link
                               to={createPageUrl('Settings')}
@@ -297,7 +316,7 @@ export default function Navbar({ user, onLogout }) {
                               onClick={() => setUserMenuOpen(false)}
                             >
                               <Settings className="w-4 h-4" />
-                              Settings
+                              {t('dashboard.settings')}
                             </Link>
                             <div className="border-t border-afrikoni-gold/20 my-1"></div>
                             <button
@@ -308,7 +327,7 @@ export default function Navbar({ user, onLogout }) {
                               className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-red-50 text-sm text-red-600 transition-colors"
                             >
                               <LogOut className="w-4 h-4" />
-                              Logout
+                              {t('auth.logout')}
                             </button>
                           </div>
                         </motion.div>
@@ -319,34 +338,45 @@ export default function Navbar({ user, onLogout }) {
               </>
             ) : (
               <>
-                {/* Login Button */}
+                {/* Browse Products - secondary CTA on marketing navbar */}
+                <Link to="/marketplace" className="hidden lg:inline-block">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-4 border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 rounded-full font-semibold"
+                  >
+                    Browse Products
+                  </Button>
+                </Link>
+
+                {/* Become a Supplier - primary CTA on marketing navbar */}
+                <Link to="/suppliers" className="hidden lg:inline-block">
+                  <Button
+                    size="sm"
+                    className="h-9 px-4 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight rounded-full font-semibold shadow-afrikoni"
+                  >
+                    Become a Supplier
+                  </Button>
+                </Link>
+
+                {/* Sign In */}
                 <Link to="/login">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="hidden lg:flex items-center h-9 px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                    className="hidden lg:flex items-center h-9 px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full"
                   >
-                    Login
+                    {t('auth.login')}
                   </Button>
                 </Link>
 
-                {/* Start Selling Button */}
-                <Link to="/signup">
+                {/* Mobile CTA */}
+                <Link to="/suppliers" className="lg:hidden">
                   <Button
                     size="sm"
-                    className="hidden lg:flex items-center h-9 px-4 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight"
+                    className="h-9 px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full"
                   >
-                    Start Selling
-                  </Button>
-                </Link>
-
-                {/* Sign Up Button - Mobile/Tablet */}
-                <Link to="/signup">
-                  <Button
-                    size="sm"
-                    className="lg:hidden h-9 px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs"
-                  >
-                    Sign Up
+                    Become a Supplier
                   </Button>
                 </Link>
               </>
@@ -385,7 +415,7 @@ export default function Navbar({ user, onLogout }) {
                   className="flex items-center gap-2 px-3 py-2 rounded-md text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
                 >
                   <Grid3x3 className="w-4 h-4" />
-                  <span>All Categories</span>
+                  <span>{t('nav.allCategories')}</span>
                 </Link>
 
                 {/* Navigation Links - Mobile */}
@@ -416,10 +446,10 @@ export default function Navbar({ user, onLogout }) {
                 <div className="pt-2 border-t border-afrikoni-gold/20 mt-2">
                   <div className="flex items-center gap-2 px-3 py-2">
                     <Globe className="w-4 h-4 text-afrikoni-cream" />
-                    <span className="text-sm text-afrikoni-cream">Language: {selectedLanguage}</span>
+                    <span className="text-sm text-afrikoni-cream">{t('common.language') || 'Language'}: {selectedLanguageCode}</span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-2">
-                    <span className="text-sm text-afrikoni-cream">Currency: {selectedCurrency}</span>
+                    <span className="text-sm text-afrikoni-cream">{t('common.currency') || 'Currency'}: {selectedCurrency}</span>
                   </div>
                 </div>
 
@@ -431,7 +461,7 @@ export default function Navbar({ user, onLogout }) {
                       onClick={() => setMobileMenuOpen(false)}
                       className="block w-full text-center px-4 py-2 rounded-md text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
                     >
-                      Login
+                      {t('auth.login')}
                     </Link>
                   </div>
                 )}
@@ -443,4 +473,5 @@ export default function Navbar({ user, onLogout }) {
     </nav>
   );
 }
+
 

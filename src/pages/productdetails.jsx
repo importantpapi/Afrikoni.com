@@ -4,6 +4,10 @@ import { createPageUrl } from '@/utils';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { addToViewHistory, getViewHistory } from '@/utils/viewHistory';
 import { getSimilarProducts, getRecommendedProducts } from '@/utils/recommendations';
+import AISummaryBox from '@/components/ai/AISummaryBox';
+import AICopilotButton from '@/components/ai/AICopilotButton';
+import { rewriteDescription } from '@/ai/aiRewrite';
+import { generateRFQFromProduct } from '@/ai/aiFunctions';
 import SaveButton from '@/components/ui/SaveButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +33,11 @@ export default function ProductDetail() {
   const [companies, setCompanies] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
+  const [aiSummary, setAiSummary] = useState('');
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [aiDescription, setAiDescription] = useState('');
+  const [aiDescriptionLoading, setAiDescriptionLoading] = useState(false);
+  const [aiRFQLoading, setAiRFQLoading] = useState(false);
   const navigate = useNavigate();
 
   const { trackPageView } = useAnalytics();
@@ -41,7 +50,8 @@ export default function ProductDetail() {
 
   const loadUser = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
     } catch (error) {
       setUser(null);
@@ -166,6 +176,66 @@ export default function ProductDetail() {
     navigate(createPageUrl('CreateRFQ') + '?product=' + product.id);
   };
 
+  const handleGenerateAISummary = async () => {
+    if (!product?.description) return;
+    setAiSummaryLoading(true);
+    try {
+      const { compressLongDescription } = await import('@/ai/aiFunctions');
+      const result = await compressLongDescription(product.description);
+      if (result?.success && result.text) {
+        setAiSummary(result.text);
+        toast.success('AI summary ready');
+      }
+    } catch {
+      // Silent failure; aiClient already handles toasts for outages
+    } finally {
+      setAiSummaryLoading(false);
+    }
+  };
+
+  const handleRewriteDescription = async () => {
+    if (!product?.description) return;
+    setAiDescriptionLoading(true);
+    try {
+      const result = await rewriteDescription(product.description);
+      if (result?.success && result.text) {
+        setAiDescription(result.text);
+        toast.success('AI rewritten description ready');
+      }
+    } catch {
+      // Silent failure
+    } finally {
+      setAiDescriptionLoading(false);
+    }
+  };
+
+  const handleGenerateRFQWithAI = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (!product) return;
+    setAiRFQLoading(true);
+    try {
+      const result = await generateRFQFromProduct(product);
+      if (result?.success && result.data) {
+        const params = new URLSearchParams();
+        params.set('product', product.id);
+        try {
+          params.set('draft', encodeURIComponent(JSON.stringify(result.data)));
+        } catch {
+          // ignore encoding issues, still pass product id
+        }
+        toast.success('AI RFQ draft ready');
+        navigate(`/dashboard/rfqs/new?${params.toString()}`);
+      }
+    } catch {
+      // Silent failure beyond aiClient handling
+    } finally {
+      setAiRFQLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -258,14 +328,39 @@ export default function ProductDetail() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <TabsContent value="description">
-                    <div className="prose prose-zinc max-w-none">
-                      <p className="text-afrikoni-deep leading-relaxed whitespace-pre-wrap">{product.description}</p>
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap gap-2 justify-between items-center">
+                        <AICopilotButton
+                          label="Generate AI summary"
+                          loading={aiSummaryLoading}
+                          onClick={handleGenerateAISummary}
+                          size="xs"
+                        />
+                        <AICopilotButton
+                          label="Rewrite description"
+                          loading={aiDescriptionLoading}
+                          onClick={handleRewriteDescription}
+                          size="xs"
+                          variant="ghost"
+                          className="text-afrikoni-deep"
+                        />
+                      </div>
+                      {aiSummary && (
+                        <AISummaryBox title="AI Summary">
+                          {aiSummary}
+                        </AISummaryBox>
+                      )}
+                      <div className="prose prose-zinc max-w-none">
+                        <p className="text-afrikoni-deep leading-relaxed whitespace-pre-wrap">
+                          {aiDescription || product.description}
+                        </p>
+                      </div>
                     </div>
                   </TabsContent>
                   <TabsContent value="specifications">
                     {product.specifications ? (
                       <div className="space-y-3">
-                        {Object.entries(product.specifications).map(([key, value]) => (
+                        {Object.entries(product?.specifications || {}).map(([key, value]) => (
                           <div key={key} className="flex justify-between py-2 border-b border-zinc-100">
                             <span className="font-medium text-afrikoni-deep">{key}</span>
                             <span className="text-afrikoni-chestnut">{String(value)}</span>
@@ -309,11 +404,11 @@ export default function ProductDetail() {
                         </div>
                       )}
                       
-                      {product.shipping_terms && product.shipping_terms.length > 0 && (
+                      {Array.isArray(product?.shipping_terms) && product.shipping_terms.length > 0 && (
                         <div>
                           <h4 className="font-semibold text-afrikoni-chestnut mb-2">Shipping Terms</h4>
                           <div className="flex flex-wrap gap-2">
-                            {product.shipping_terms.map((term, idx) => (
+                            {Array.isArray(product?.shipping_terms) && product.shipping_terms.map((term, idx) => (
                               <Badge key={idx} variant="outline" className="text-afrikoni-deep">
                                 {term}
                               </Badge>
@@ -322,11 +417,11 @@ export default function ProductDetail() {
                         </div>
                       )}
                       
-                      {product.certifications && product.certifications.length > 0 && (
+                      {Array.isArray(product?.certifications) && product.certifications.length > 0 && (
                         <div>
                           <h4 className="font-semibold text-afrikoni-chestnut mb-2">Certifications & Standards</h4>
                           <div className="flex flex-wrap gap-2">
-                            {product.certifications.map((cert, idx) => (
+                            {Array.isArray(product?.certifications) && product.certifications.map((cert, idx) => (
                               <Badge key={idx} variant="secondary" className="bg-green-50 text-green-700 border-green-200">
                                 <CheckCircle className="w-3 h-3 mr-1" /> {cert}
                               </Badge>
@@ -387,19 +482,22 @@ export default function ProductDetail() {
                         <div className="text-lg font-semibold text-afrikoni-deep">Price on request</div>
                       )}
                       
-                      {reviews.length > 0 && (
+                      {Array.isArray(reviews) && reviews.length > 0 && (
                         <div className="flex items-center gap-2 mt-2">
                           <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`w-4 h-4 ${
-                                  star <= Math.round(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length)
-                                    ? 'fill-afrikoni-gold text-afrikoni-gold'
-                                    : 'text-afrikoni-deep/50'
-                                }`}
-                              />
-                            ))}
+                            {[1, 2, 3, 4, 5].map((star) => {
+                              const avgRating = reviews.reduce((sum, r) => sum + (parseInt(r?.rating) || 0), 0) / reviews.length;
+                              return (
+                                <Star
+                                  key={star}
+                                  className={`w-4 h-4 ${
+                                    star <= Math.round(avgRating)
+                                      ? 'fill-afrikoni-gold text-afrikoni-gold'
+                                      : 'text-afrikoni-deep/50'
+                                  }`}
+                                />
+                              );
+                            })}
                           </div>
                           <span className="text-sm text-afrikoni-deep">({reviews.length} reviews)</span>
                         </div>
@@ -469,6 +567,13 @@ export default function ProductDetail() {
                   <Button onClick={handleCreateRFQ} variant="outline" className="w-full" size="lg">
                     <FileText className="w-4 h-4 mr-2" /> Request Quote
                   </Button>
+                  <AICopilotButton
+                    label="Generate RFQ with AI"
+                    onClick={handleGenerateRFQWithAI}
+                    loading={aiRFQLoading}
+                    className="w-full"
+                    size="sm"
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -492,14 +597,14 @@ export default function ProductDetail() {
                       <Shield className="w-3 h-3 mr-1" /> Verified Supplier
                     </Badge>
                   )}
-                  {supplier.trust_score > 0 && (
+                  {supplier?.trust_score && parseFloat(supplier.trust_score) > 0 && (
                     <div>
                       <div className="text-sm text-afrikoni-deep mb-1">Trust Score</div>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 bg-afrikoni-cream rounded-full overflow-hidden">
-                          <div className="h-full bg-afrikoni-gold rounded-full" style={{ width: `${supplier.trust_score}%` }} />
+                          <div className="h-full bg-afrikoni-gold rounded-full" style={{ width: `${Math.min(100, Math.max(0, parseFloat(supplier.trust_score)))}%` }} />
                         </div>
-                        <span className="text-sm font-semibold text-afrikoni-chestnut">{supplier.trust_score}</span>
+                        <span className="text-sm font-semibold text-afrikoni-chestnut">{parseFloat(supplier.trust_score)}</span>
                       </div>
                     </div>
                   )}
@@ -518,17 +623,19 @@ export default function ProductDetail() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">Similar Products</h2>
           <div className="grid md:grid-cols-4 gap-6">
-            {similarProducts.map(product => (
-              <Link key={product.id} to={`/product?id=${product.id}`}>
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product.title}</h3>
-                    <p className="text-lg font-bold text-afrikoni-gold">
-                      {product.price_min || product.price ? `$${product.price_min || product.price}` : 'Price on request'}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
+            {Array.isArray(similarProducts) && similarProducts.map(product => (
+              product && (
+                <Link key={product.id} to={`/product?id=${product.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product?.title || 'Product'}</h3>
+                      <p className="text-lg font-bold text-afrikoni-gold">
+                        {product?.price_min || product?.price ? `$${product.price_min || product.price}` : 'Price on request'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
             ))}
           </div>
         </div>
@@ -539,17 +646,19 @@ export default function ProductDetail() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">Recommended for You</h2>
           <div className="grid md:grid-cols-4 gap-6">
-            {recommendedProducts.map(product => (
-              <Link key={product.id} to={`/product?id=${product.id}`}>
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product.title}</h3>
-                    <p className="text-lg font-bold text-afrikoni-gold">
-                      {product.price_min || product.price ? `$${product.price_min || product.price}` : 'Price on request'}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
+            {Array.isArray(recommendedProducts) && recommendedProducts.map(product => (
+              product && (
+                <Link key={product.id} to={`/product?id=${product.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product?.title || 'Product'}</h3>
+                      <p className="text-lg font-bold text-afrikoni-gold">
+                        {product?.price_min || product?.price ? `$${product.price_min || product.price}` : 'Price on request'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
             ))}
           </div>
         </div>

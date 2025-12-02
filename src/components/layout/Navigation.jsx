@@ -7,29 +7,39 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Navigation({ user, onLogout }) {
   const location = useLocation();
+  const { language, setLanguage, t } = useLanguage();
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('EN');
+  
+  // Map language codes
+  const languageMap = {
+    'en': 'EN',
+    'fr': 'FR',
+    'ar': 'AR',
+    'pt': 'PT'
+  };
+  const selectedLanguage = languageMap[language] || 'EN';
 
   const navLinks = [
-    { label: 'All Categories', icon: Grid3x3, path: '/categories', hasDropdown: false },
-    { label: 'Marketplace', icon: ShoppingBag, path: '/marketplace', hasDropdown: false },
-    { label: 'Buyer Hub', icon: ShoppingBag, path: '/buyer-hub', hasDropdown: false },
-    { label: 'Supplier Hub', icon: Store, path: '/supplier-hub', hasDropdown: false },
-    { label: 'Logistics & Shipping', icon: Truck, path: '/logistics', hasDropdown: false },
-    { label: 'Order Protection', icon: Shield, path: '/order-protection', hasDropdown: false },
-    { label: 'RFQ', icon: FileText, path: '/rfq', hasDropdown: false },
-    { label: 'Help Center', icon: HelpCircle, path: '/help', hasDropdown: false },
+    { label: t('nav.allCategories'), icon: Grid3x3, path: '/categories', hasDropdown: false },
+    { label: t('nav.marketplace'), icon: ShoppingBag, path: '/marketplace', hasDropdown: false },
+    { label: t('nav.buyerHub'), icon: ShoppingBag, path: '/buyer-hub', hasDropdown: false },
+    { label: t('nav.supplierHub'), icon: Store, path: '/supplier-hub', hasDropdown: false },
+    { label: t('nav.logistics'), icon: Truck, path: '/logistics', hasDropdown: false },
+    { label: t('nav.protection'), icon: Shield, path: '/order-protection', hasDropdown: false },
+    { label: t('nav.rfq'), icon: FileText, path: '/rfq', hasDropdown: false },
+    { label: t('nav.help'), icon: HelpCircle, path: '/help', hasDropdown: false },
   ];
 
   const languages = [
-    { code: 'EN', name: 'English', flag: '🇬🇧' },
-    { code: 'FR', name: 'Français', flag: '🇫🇷' },
-    { code: 'AR', name: 'العربية', flag: '🇸🇦' },
-    { code: 'PT', name: 'Português', flag: '🇵🇹' },
+    { code: 'en', display: 'EN', name: 'English', flag: '🇬🇧' },
+    { code: 'fr', display: 'FR', name: 'Français', flag: '🇫🇷' },
+    { code: 'ar', display: 'AR', name: 'العربية', flag: '🇸🇦' },
+    { code: 'pt', display: 'PT', name: 'Português', flag: '🇵🇹' },
   ];
 
   const isActive = (path) => {
@@ -92,12 +102,12 @@ export default function Navigation({ user, onLogout }) {
                   <button
                     key={lang.code}
                     onClick={() => {
-                      setSelectedLanguage(lang.code);
+                      setLanguage(lang.code);
                       setLanguageOpen(false);
                     }}
                     className={`
                       w-full text-left px-4 py-2 text-sm hover:bg-afrikoni-gold/10 transition-colors
-                      ${selectedLanguage === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold' : 'text-afrikoni-deep'}
+                      ${language === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold' : 'text-afrikoni-deep'}
                     `}
                   >
                     <span className="mr-2">{lang.flag}</span>

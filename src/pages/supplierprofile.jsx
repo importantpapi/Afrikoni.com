@@ -31,7 +31,8 @@ export default function SupplierProfile() {
 
   const loadUser = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
     } catch (error) {
       setUser(null);
@@ -242,7 +243,7 @@ export default function SupplierProfile() {
                       <div>
                         <h3 className="font-semibold text-afrikoni-chestnut mb-3">Certifications</h3>
                         <div className="flex flex-wrap gap-2">
-                          {supplier.certifications.map((cert, idx) => (
+                          {Array.isArray(supplier?.certifications) && supplier.certifications.map((cert, idx) => (
                             <Badge key={idx} className="bg-green-50 text-green-700 border-green-200">
                               <Award className="w-3 h-3 mr-1" /> {cert}
                             </Badge>

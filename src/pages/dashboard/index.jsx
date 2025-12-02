@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getDashboardPathForRole } from '@/utils/roleHelpers';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DashboardHome from './DashboardHome';
@@ -10,6 +11,7 @@ export default function Dashboard() {
   const [currentRole, setCurrentRole] = useState('buyer');
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let isMounted = true;
@@ -26,7 +28,15 @@ export default function Dashboard() {
             return;
           }
           
-        setCurrentRole(role || 'buyer');
+        const normalizedRole = role || 'buyer';
+        setCurrentRole(normalizedRole);
+
+        // If user hit the base /dashboard route, redirect them to a role-specific dashboard
+        if (location.pathname === '/dashboard') {
+          const dashboardPath = getDashboardPathForRole(normalizedRole);
+          navigate(dashboardPath, { replace: true });
+          return;
+        }
       } catch (error) {
           // Error logged (removed for production)
         if (isMounted) {
@@ -42,7 +52,7 @@ export default function Dashboard() {
     init();
 
     return () => { isMounted = false; };
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   const renderDashboardContent = () => {
     // Use the new enterprise dashboard home

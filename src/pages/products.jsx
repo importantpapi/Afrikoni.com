@@ -137,8 +137,9 @@ export default function Products() {
       if (priceRange !== 'all') {
         const [min, max] = priceRange.split('-').map(Number);
         filtered = filtered.filter(p => {
-          if (max) return p.price >= min && p.price <= max;
-          return p.price >= min;
+          const productPrice = parseFloat(p?.price || p?.price_min || 0);
+          if (max && !isNaN(max)) return productPrice >= min && productPrice <= max;
+          return productPrice >= min;
         });
       }
 

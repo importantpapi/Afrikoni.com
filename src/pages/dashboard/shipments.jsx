@@ -35,7 +35,7 @@ export default function DashboardShipments() {
   const loadShipments = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId } = await getCurrentUserAndRole();
+      const { user, profile, role, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         navigate('/login');
         return;
@@ -55,20 +55,23 @@ export default function DashboardShipments() {
       });
 
       // Transform shipments data
-      const transformedShipments = (result.data || []).map(shipment => ({
-        id: shipment.id,
-        order_id: shipment.order_id,
-        tracking_number: shipment.tracking_number,
-        origin: shipment.origin_address || 'N/A',
-        destination: shipment.destination_address || 'N/A',
-        product: shipment.orders?.products?.title || 'N/A',
-        quantity: shipment.orders?.quantity || 0,
-        status: shipment.status,
-        carrier: shipment.carrier || 'N/A',
-        estimated_delivery: shipment.estimated_delivery || shipment.orders?.delivery_date,
-        created_at: shipment.updated_at || shipment.created_at,
-        total_amount: shipment.orders?.total_amount || 0
-      }));
+      const transformedShipments = Array.isArray(result.data) ? result.data.map(shipment => {
+        if (!shipment) return null;
+        return {
+          id: shipment.id,
+          order_id: shipment.order_id,
+          tracking_number: shipment.tracking_number,
+          origin: shipment.origin_address || 'N/A',
+          destination: shipment.destination_address || 'N/A',
+          product: shipment.orders?.products?.title || 'N/A',
+          quantity: shipment.orders?.quantity || 0,
+          status: shipment.status,
+          carrier: shipment.carrier || 'N/A',
+          estimated_delivery: shipment.estimated_delivery || shipment.orders?.delivery_date,
+          created_at: shipment.updated_at || shipment.created_at,
+          total_amount: shipment.orders?.total_amount || 0
+        };
+      }).filter(Boolean) : [];
 
       setShipments(transformedShipments);
       setPagination(prev => ({
@@ -77,8 +80,14 @@ export default function DashboardShipments() {
         isLoading: false
       }));
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to load shipments');
+      // Fail gracefully - treat as no data instead of error
+      setShipments([]);
+      setPagination(prev => ({
+        ...prev,
+        totalCount: 0,
+        totalPages: 1,
+        isLoading: false
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -146,92 +155,117 @@ export default function DashboardShipments() {
 
   return (
     <DashboardLayout currentRole="logistics">
-      <div className="space-y-3">
+      <div className="space-y-6">
+        {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
-          className="flex items-center justify-between"
+          transition={{ duration: 0.3 }}
+          className="flex items-center justify-between mb-8"
         >
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Shipments</h1>
-            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Track and manage all shipments</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Shipments</h1>
+            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Track and manage all shipments</p>
           </div>
-          <Link to="/dashboard/shipments/new">
-            <Button variant="primary">
+          <Link to="/dashboard/orders">
+            <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-6">
               <Plus className="w-4 h-4 mr-2" />
               Create Shipping Offer
             </Button>
           </Link>
         </motion.div>
 
-        {/* Stats */}
+        {/* v2.5: Premium Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-afrikoni-deep">Active Shipments</p>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    {shipments.filter(s => s.status === 'shipped' || s.status === 'processing').length}
-                  </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
+          >
+            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                    <Truck className="w-6 h-6 text-afrikoni-gold" />
+                  </div>
                 </div>
-                <Truck className="w-8 h-8 text-afrikoni-gold" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-afrikoni-deep">Delivered</p>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    {shipments.filter(s => s.status === 'delivered').length}
-                  </p>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  {shipments.filter(s => s.status === 'shipped' || s.status === 'processing').length}
                 </div>
-                <Truck className="w-8 h-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-afrikoni-deep">In Transit</p>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    {shipments.filter(s => s.status === 'shipped').length}
-                  </p>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Active Shipments</div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
+                    <Truck className="w-6 h-6 text-afrikoni-green" />
+                  </div>
                 </div>
-                <Truck className="w-8 h-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-afrikoni-deep">Total Value</p>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    ${shipments.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0).toLocaleString()}
-                  </p>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  {shipments.filter(s => s.status === 'delivered').length}
                 </div>
-                <DollarSign className="w-8 h-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Delivered</div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+          >
+            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
+                    <Truck className="w-6 h-6 text-afrikoni-purple" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  {shipments.filter(s => s.status === 'shipped').length}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">In Transit</div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-afrikoni-green" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-gold mb-2">
+                  ${shipments.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Value</div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
+        {/* v2.5: Premium Filters */}
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <CardContent className="p-5 md:p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
                 <Input
                   placeholder="Search shipments..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -253,10 +287,10 @@ export default function DashboardShipments() {
           </CardContent>
         </Card>
 
-        {/* Shipments Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Shipments</CardTitle>
+        {/* v2.5: Premium Shipments Table */}
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">All Shipments</CardTitle>
           </CardHeader>
           <CardContent>
             {filteredShipments.length === 0 ? (

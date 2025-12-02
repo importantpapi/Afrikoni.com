@@ -177,7 +177,9 @@ export default function Onboarding() {
       }
 
       toast.success('Onboarding completed! Welcome to Afrikoni.');
-      navigate('/dashboard');
+      const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
+      const dashboardPath = getDashboardPathForRole(selectedRole || 'buyer');
+      navigate(dashboardPath);
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to complete onboarding. Please try again.');

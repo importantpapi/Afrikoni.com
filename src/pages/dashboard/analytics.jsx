@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -27,25 +29,21 @@ export default function DashboardAnalytics() {
 
   const loadUserAndAnalytics = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { user: userData, profile, role, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
-
-      // Get or create company
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const normalizedRole = getUserRole(profile || userData);
+      setCurrentRole(normalizedRole);
 
       const days = parseInt(period);
       const startDate = startOfDay(subDays(new Date(), days)).toISOString();
 
       // Load analytics data based on role
-      const showBuyerAnalytics = (role === 'buyer') || (role === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'));
-      const showSellerAnalytics = (role === 'seller') || (role === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'));
+      const showBuyerAnalytics = (normalizedRole === 'buyer') || (normalizedRole === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'));
+      const showSellerAnalytics = (normalizedRole === 'seller') || (normalizedRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'));
 
       let buyerData = null;
       let sellerData = null;
@@ -57,15 +55,17 @@ export default function DashboardAnalytics() {
           supabase.from('quotes').select('*, rfqs!inner(buyer_company_id)').eq('rfqs.buyer_company_id', companyId).gte('quotes.created_at', startDate)
         ]);
 
-        const orders = ordersRes.data || [];
-        const rfqs = rfqsRes.data || [];
-        const quotes = quotesRes?.data || [];
+        const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+        const rfqs = Array.isArray(rfqsRes.data) ? rfqsRes.data : [];
+        const quotes = Array.isArray(quotesRes?.data) ? quotesRes.data : [];
 
         // Build chart data for orders over time
         const ordersByDate = {};
         orders.forEach(order => {
-          const date = format(new Date(order.created_at), 'MMM d');
-          ordersByDate[date] = (ordersByDate[date] || 0) + 1;
+          if (order && order.created_at) {
+            const date = format(new Date(order.created_at), 'MMM d');
+            ordersByDate[date] = (ordersByDate[date] || 0) + 1;
+          }
         });
 
         const chartDataArray = Object.entries(ordersByDate).map(([date, count]) => ({
@@ -80,7 +80,7 @@ export default function DashboardAnalytics() {
           totalOrders: orders.length,
           totalRFQs: rfqs.length,
             totalQuotes: quotes.length,
-          totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0)
+          totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o?.total_amount) || 0), 0)
           }
         };
       }
@@ -88,7 +88,7 @@ export default function DashboardAnalytics() {
       if (showSellerAnalytics && companyId) {
         const [ordersRes, productsRes] = await Promise.all([
           supabase.from('orders').select('*').eq('seller_company_id', companyId).gte('created_at', startDate),
-          supabase.from('products').select('*').eq('supplier_id', companyId).or('company_id.eq.' + companyId)
+          supabase.from('products').select('*').eq('company_id', companyId)
         ]);
 
         const orders = ordersRes.data || [];
@@ -110,8 +110,10 @@ export default function DashboardAnalytics() {
         // Also add order count
         const ordersByDate = {};
         orders.forEach(order => {
-          const date = format(new Date(order.created_at), 'MMM d');
-          ordersByDate[date] = (ordersByDate[date] || 0) + 1;
+          if (order && order.created_at) {
+            const date = format(new Date(order.created_at), 'MMM d');
+            ordersByDate[date] = (ordersByDate[date] || 0) + 1;
+          }
         });
 
         const combinedChartData = Object.keys({ ...revenueByDate, ...ordersByDate }).map(date => ({
@@ -128,18 +130,17 @@ export default function DashboardAnalytics() {
           .not('related_type', 'is', null)
           .gte('created_at', startDate);
 
-        const inquiries = inquiriesRes?.data || [];
+        const inquiries = Array.isArray(inquiriesRes?.data) ? inquiriesRes.data : [];
 
         // Load top categories
         const { data: categoryData } = await supabase
           .from('products')
           .select('category_id, categories(name)')
-          .eq('supplier_id', companyId)
-          .or(`company_id.eq.${companyId}`);
+          .eq('company_id', companyId);
 
         const categoryCounts = {};
-        (categoryData || []).forEach(p => {
-          if (p.categories?.name) {
+        (Array.isArray(categoryData) ? categoryData : []).forEach(p => {
+          if (p && p.categories?.name) {
             categoryCounts[p.categories.name] = (categoryCounts[p.categories.name] || 0) + 1;
           }
         });
@@ -233,8 +234,9 @@ export default function DashboardAnalytics() {
         });
       }
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to load analytics');
+      // Fail gracefully - treat as no data instead of error
+      setAnalytics(null);
+      setChartData([]);
     } finally {
       setIsLoading(false);
     }
@@ -252,32 +254,44 @@ export default function DashboardAnalytics() {
 
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-3">
+      <div className="space-y-6">
+        {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
-          className="flex items-center justify-between"
+          transition={{ duration: 0.3 }}
+          className="flex items-center justify-between mb-8"
         >
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Analytics & Insights</h1>
-          <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Track your performance and insights</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Analytics & Insights</h1>
+            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Track your performance and insights</p>
           </div>
+          {/* v2.5: Premium Segmented Role Switcher */}
           {currentRole === 'hybrid' && (
-            <div className="flex items-center gap-1 bg-afrikoni-cream rounded-lg p-1">
+            <div className="flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-afrikoni-gold/20 shadow-premium relative">
               {['all', 'buyer', 'seller'].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize ${
+                  className={`relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px] ${
                     viewMode === mode
-                      ? 'bg-afrikoni-offwhite text-afrikoni-gold shadow-sm'
-                      : 'text-afrikoni-deep hover:text-afrikoni-chestnut'
+                      ? 'text-afrikoni-charcoal'
+                      : 'text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
                   }`}
                 >
                   {mode === 'all' ? 'All' : mode === 'buyer' ? 'Buyer' : 'Seller'}
                 </button>
               ))}
+              <motion.div
+                layoutId="activeAnalyticsView"
+                className="absolute top-1 bottom-1 rounded-full bg-afrikoni-gold shadow-afrikoni z-0"
+                initial={false}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                animate={{
+                  x: viewMode === 'all' ? 0 : viewMode === 'buyer' ? 'calc(33.333% + 0.125rem)' : 'calc(66.666% + 0.25rem)',
+                  width: 'calc(33.333% - 0.25rem)',
+                }}
+              />
             </div>
           )}
         </motion.div>
@@ -295,15 +309,16 @@ export default function DashboardAnalytics() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {currentRole === 'buyer' && analytics && (
             <>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-afrikoni-deep">Total Orders</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.totalOrders}</p>
+              {/* v2.5: Premium Analytics KPI Cards */}
+              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                      <ShoppingCart className="w-6 h-6 text-afrikoni-gold" />
                     </div>
-                    <ShoppingCart className="w-8 h-8 text-afrikoni-gold" />
                   </div>
+                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{analytics.totalOrders}</div>
+                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Orders</div>
                 </CardContent>
               </Card>
               <Card>
@@ -457,12 +472,13 @@ export default function DashboardAnalytics() {
         </div>
         )}
 
-        {/* Period Selector */}
-        <Card>
-          <CardHeader>
+        {/* v2.5: Premium Chart Section */}
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
+              {/* v2.5: Premium Section Title with Gold Underline */}
+              <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-afrikoni-gold" />
                 Performance Overview
               </CardTitle>
               <Select value={period} onValueChange={setPeriod}>

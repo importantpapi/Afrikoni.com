@@ -139,3 +139,26 @@ export function getValidViewModes(role) {
   return [role]; // For non-hybrid, only their role is valid
 }
 
+/**
+ * Get dashboard path for a given role
+ *
+ * @param {string} role - Normalized role
+ * @returns {string} - Dashboard route path
+ */
+export function getDashboardPathForRole(role) {
+  switch (role) {
+    case 'buyer':
+      return '/dashboard/buyer';
+    case 'seller':
+      return '/dashboard/seller';
+    case 'hybrid':
+      return '/dashboard/hybrid';
+    case 'admin':
+      return '/dashboard/admin';
+    case 'logistics':
+      return '/dashboard/shipments';
+    default:
+      return '/dashboard';
+  }
+}
+

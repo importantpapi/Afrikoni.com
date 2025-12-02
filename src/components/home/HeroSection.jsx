@@ -6,22 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/components/ui/Logo';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function HeroSection({ categories = [] }) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
   const navigate = useNavigate();
 
   const trendingSearches = [
-    'Cocoa beans',
-    'African print fabrics',
-    'Shea butter',
-    'Mobile phones',
-    'Agricultural machinery',
-    'Solar panels',
-    'Cashew nuts',
-    'Leather goods'
+    t('hero.trending.cocoa'),
+    t('hero.trending.fabrics'),
+    t('hero.trending.shea'),
+    t('hero.trending.phones'),
+    t('hero.trending.machinery'),
+    t('hero.trending.solar'),
+    t('hero.trending.cashew'),
+    t('hero.trending.leather')
   ];
 
   const handleSearch = () => {
@@ -47,15 +49,15 @@ export default function HeroSection({ categories = [] }) {
       />
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 max-w-4xl mx-auto">
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-cream mb-4 leading-tight"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-cream mb-4 leading-tight"
           >
-            Africa's leading B2B marketplace for trade across 54 countries.
+            {t('hero.title') || 'The AI-powered B2B marketplace connecting Africa and the world'}
           </motion.h1>
 
           {/* Sub-headline */}
@@ -63,10 +65,51 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-xl md:text-2xl text-afrikoni-cream mb-8 max-w-3xl mx-auto"
+            className="text-base md:text-lg lg:text-xl text-afrikoni-cream/90 mb-6 max-w-3xl mx-auto"
           >
-            What are you looking for?
+            {t('hero.subtitle') || 'Verified African suppliers. Secure escrow payments. Cross-border logistics across 54 countries.'}
           </motion.p>
+
+          {/* Primary CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="flex flex-wrap justify-center gap-3 mb-5"
+          >
+            <Button
+              onClick={() => navigate('/suppliers')}
+              className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 md:px-8 py-2.5 rounded-full text-sm md:text-base font-semibold shadow-afrikoni"
+            >
+              Become a Supplier
+            </Button>
+            <Button
+              onClick={() => navigate('/marketplace')}
+              variant="outline"
+              className="border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 px-6 md:px-8 py-2.5 rounded-full text-sm md:text-base font-semibold"
+            >
+              Browse Products
+            </Button>
+          </motion.div>
+
+          {/* Afrikoni Shield trust strip */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.22 }}
+            className="inline-flex flex-wrap items-center justify-center gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-4 py-2 text-[11px] md:text-xs text-afrikoni-cream mb-8"
+          >
+            <span className="font-semibold uppercase tracking-wide text-afrikoni-gold">
+              Afrikoni&nbsp;Shield™
+            </span>
+            <span className="opacity-80">Verified suppliers</span>
+            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="opacity-80">KYC / AML &amp; anti-corruption</span>
+            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="opacity-80">Escrow-protected payments</span>
+            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="opacity-80">Cross-border logistics support</span>
+          </motion.div>
 
           {/* Universal Search Bar */}
           <motion.div
@@ -84,10 +127,10 @@ export default function HeroSection({ categories = [] }) {
               {/* Category Dropdown */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-full sm:w-56 border-0 focus:ring-0 bg-transparent text-afrikoni-earth">
-                  <SelectValue placeholder="All Categories" />
+                  <SelectValue placeholder={t('categories.all')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="all">{t('categories.all')}</SelectItem>
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
@@ -96,7 +139,7 @@ export default function HeroSection({ categories = [] }) {
 
               {/* Keyword Search */}
               <Input
-                placeholder="Search for products, suppliers, or services..."
+                placeholder={t('hero.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -115,7 +158,7 @@ export default function HeroSection({ categories = [] }) {
                   className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 sm:px-8"
                 >
                   <Search className="w-5 h-5 sm:mr-2" />
-                  <span className="hidden sm:inline">Search</span>
+                  <span className="hidden sm:inline">{t('hero.searchButton')}</span>
                 </Button>
               </motion.div>
             </div>
@@ -130,7 +173,7 @@ export default function HeroSection({ categories = [] }) {
           >
             <span className="text-afrikoni-cream text-sm mr-2 flex items-center gap-1">
               <TrendingUp className="w-4 h-4" />
-              Trending searches:
+              {t('hero.trendingSearches')}:
             </span>
             {trendingSearches.map((term, idx) => (
               <motion.button

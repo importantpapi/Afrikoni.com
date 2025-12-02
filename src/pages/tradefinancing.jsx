@@ -30,7 +30,8 @@ export default function TradeFinancing() {
 
   const loadData = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
 
       const { data, error } = await supabase
@@ -174,7 +175,7 @@ export default function TradeFinancing() {
               </CardContent>
             </Card>
           ) : (
-            applications.map(application => (
+            Array.isArray(applications) && applications.map(application => (
               <Card key={application.id} className="border-afrikoni-gold/20">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">

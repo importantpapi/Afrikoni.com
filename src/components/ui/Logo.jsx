@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
  * @param {string} size - 'sm' | 'md' | 'lg' | 'xl' - Size variant
  * @param {boolean} link - Whether to wrap in Link to homepage
  * @param {boolean} showTagline - Whether to show "TRADE. TRUST. THRIVE." tagline
+ * @param {string} direction - 'vertical' | 'horizontal' - Layout direction (default: 'vertical')
  * @param {string} className - Additional CSS classes
  */
 export function Logo({ 
@@ -17,6 +18,7 @@ export function Logo({
   size = 'md', 
   link = true,
   showTagline = false,
+  direction = 'vertical',
   className = '' 
 }) {
   const sizeClasses = {
@@ -122,7 +124,12 @@ export function Logo({
   );
 
   const logoContent = (
-    <div className={cn('flex flex-col items-center', sizes.gap, className)}>
+    <div className={cn(
+      'flex',
+      direction === 'horizontal' ? 'flex-row items-center' : 'flex-col items-center',
+      sizes.gap,
+      className
+    )}>
       {/* Logo Icon */}
       {(type === 'full' || type === 'icon') && (
         <div className={cn(
@@ -131,7 +138,8 @@ export function Logo({
           'rounded-full',
           'shadow-lg shadow-afrikoni-gold-900/30',
           'border-2 border-afrikoni-goldLight/40',
-          'p-2'
+          'p-2',
+          'flex-shrink-0'
         )}>
           <div className="text-afrikoni-gold/20">
             <LogoIcon />
@@ -141,13 +149,17 @@ export function Logo({
       
       {/* Logo Text - Only show if type is 'full' or 'text' */}
       {(type === 'full' || type === 'text') && (
-        <div className="flex flex-col items-center">
+        <div className={cn(
+          'flex',
+          direction === 'horizontal' ? 'flex-col items-start' : 'flex-col items-center'
+        )}>
           <span className={cn(
             sizes.text,
             'font-bold bg-gradient-to-r from-afrikoni-gold via-afrikoni-goldDark to-afrikoni-gold',
             'bg-clip-text text-transparent',
             'tracking-tight',
-            'font-serif'
+            'font-serif',
+            'whitespace-nowrap'
           )}>
             AFRIKONI
           </span>
@@ -157,7 +169,7 @@ export function Logo({
               'text-afrikoni-goldDark',
               'font-medium',
               'tracking-wide',
-              'mt-0.5'
+              direction === 'horizontal' ? 'mt-0' : 'mt-0.5'
             )}>
               TRADE. TRUST. THRIVE.
             </span>

@@ -6,6 +6,10 @@ import { buildProductQuery } from '@/utils/queryBuilders';
 import { hasFastResponse, isReadyToShip } from '@/utils/marketplaceHelpers';
 import { addToViewHistory } from '@/utils/viewHistory';
 import { useDebounce } from '@/hooks/useDebounce';
+import AICopilotButton from '@/components/ai/AICopilotButton';
+import AISuggestionCard from '@/components/ai/AISuggestionCard';
+import { suggestProductsForBuyer } from '@/ai/aiFunctions';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import {
   Search, Filter, SlidersHorizontal, MapPin, Shield, Star, MessageSquare, FileText,
   X, CheckCircle, Building2, Package
@@ -19,7 +23,6 @@ import { Drawer } from '@/components/ui/drawer';
 import FilterChip from '@/components/ui/FilterChip';
 import SaveButton from '@/components/ui/SaveButton';
 import { PaginationFooter } from '@/components/ui/reusable/PaginationFooter';
-import { supabase } from '@/api/supabaseClient';
 import OptimizedImage from '@/components/OptimizedImage';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
@@ -48,11 +51,40 @@ export default function Marketplace() {
   const [priceMax, setPriceMax] = useState('');
   const [moqMin, setMoqMin] = useState('');
 
-  const categories = ['All Categories', 'Agriculture', 'Textiles', 'Industrial', 'Beauty & Health'];
-  const countries = ['All Countries', 'Nigeria', 'Ghana', 'Egypt', 'Kenya', 'South Africa'];
+  const [categories, setCategories] = useState([]);
+  const [countries, setCountries] = useState([]);
+  
+  // Load categories and countries from database
+  useEffect(() => {
+    const loadCategoriesAndCountries = async () => {
+      try {
+        const [categoriesRes, countriesRes] = await Promise.all([
+          supabase.from('categories').select('id, name').order('name'),
+          supabase.from('companies').select('country').not('country', 'is', null)
+        ]);
+        
+        if (categoriesRes.data) {
+          setCategories(['All Categories', ...categoriesRes.data.map(c => c.name)]);
+        }
+        
+        if (countriesRes.data) {
+          const uniqueCountries = [...new Set(countriesRes.data.map(c => c.country).filter(Boolean))].sort();
+          setCountries(['All Countries', ...uniqueCountries]);
+        }
+      } catch (error) {
+        // Fallback to default categories
+        setCategories(['All Categories', 'Agriculture', 'Textiles', 'Industrial', 'Beauty & Health']);
+        setCountries(['All Countries', 'Nigeria', 'Ghana', 'Egypt', 'Kenya', 'South Africa']);
+      }
+    };
+    
+    loadCategoriesAndCountries();
+  }, []);
   const verificationOptions = ['All', 'Verified', 'Premium Partner'];
   const [pagination, setPagination] = useState(createPaginationState());
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [aiBestMatch, setAiBestMatch] = useState(null);
+  const [aiBestMatchLoading, setAiBestMatchLoading] = useState(false);
 
   useEffect(() => {
     trackPageView('Marketplace');
@@ -131,43 +163,43 @@ export default function Marketplace() {
       // Search query
       if (debouncedSearchQuery) {
         const query = debouncedSearchQuery.toLowerCase();
-        if (!product.title?.toLowerCase().includes(query) &&
-            !product.description?.toLowerCase().includes(query) &&
-            !product.companies?.company_name?.toLowerCase().includes(query)) {
+        if (!product?.title?.toLowerCase().includes(query) &&
+            !product?.description?.toLowerCase().includes(query) &&
+            !product?.companies?.company_name?.toLowerCase().includes(query)) {
           return false;
         }
       }
       
       // Price range
       if (priceMin || priceMax) {
-        const productPrice = product.price_min || product.price || 0;
+        const productPrice = parseFloat(product?.price_min || product?.price || 0);
         if (priceMin && productPrice < parseFloat(priceMin)) return false;
         if (priceMax && productPrice > parseFloat(priceMax)) return false;
       }
       
       // MOQ
       if (moqMin) {
-        const productMOQ = product.min_order_quantity || 0;
-        if (productMOQ < parseFloat(moqMin)) return false;
+        const productMOQ = parseInt(product?.min_order_quantity || 0);
+        if (productMOQ < parseInt(moqMin)) return false;
       }
       
       // Certifications
       if (selectedFilters.certifications.length > 0) {
-        const productCerts = product.certifications || [];
+        const productCerts = Array.isArray(product?.certifications) ? product.certifications : [];
         if (!selectedFilters.certifications.some(cert => productCerts.includes(cert))) return false;
       }
       
       // Lead time
       if (selectedFilters.deliveryTime) {
-        const leadTime = product.lead_time_min_days || 0;
+        const leadTime = parseInt(product?.lead_time_min_days || 0);
         if (selectedFilters.deliveryTime === 'ready' && leadTime > 0) return false;
         if (selectedFilters.deliveryTime === '7days' && leadTime > 7) return false;
         if (selectedFilters.deliveryTime === '30days' && leadTime > 30) return false;
       }
       
       // Chip filters
-      if (selectedFilters.verified && !product.companies?.verified) return false;
-      if (selectedFilters.fastResponse && !hasFastResponse(product.companies)) return false;
+      if (selectedFilters.verified && !product?.companies?.verified) return false;
+      if (selectedFilters.fastResponse && !hasFastResponse(product?.companies)) return false;
       if (selectedFilters.readyToShip && !isReadyToShip(product)) return false;
       
       return true;
@@ -234,15 +266,15 @@ export default function Marketplace() {
               <div className="flex items-center gap-2 mb-2">
                 {product.price_min && product.price_max ? (
                   <div className="text-lg font-bold text-afrikoni-gold">
-                    {product.currency || 'USD'} {product.price_min} – {product.price_max}
+                    {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()} – {parseFloat(product.price_max).toLocaleString()}
                   </div>
                 ) : product.price_min ? (
                   <div className="text-lg font-bold text-afrikoni-gold">
-                    {product.currency || 'USD'} {product.price_min}+
+                    {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()}+
                   </div>
                 ) : product.price ? (
                   <div className="text-lg font-bold text-afrikoni-gold">
-                    {product.currency || 'USD'} {product.price}
+                    {product.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
                   </div>
                 ) : (
                   <div className="text-sm text-afrikoni-deep/70">Price on request</div>
@@ -259,19 +291,19 @@ export default function Marketplace() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-afrikoni-deep/70" />
-                  <span className="text-xs text-afrikoni-deep">{product.companies?.company_name || 'Supplier'}</span>
-                  <span className="text-xs text-afrikoni-deep/70">• {product.country_of_origin || product.companies?.country || 'N/A'}</span>
+                  <span className="text-xs text-afrikoni-deep">{product?.companies?.company_name || 'Supplier'}</span>
+                  <span className="text-xs text-afrikoni-deep/70">• {product?.country_of_origin || product?.companies?.country || 'N/A'}</span>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="secondary" size="sm" className="flex-1 text-xs" asChild>
-                  <Link to={`/messages?recipient=${product.companies?.id || product.supplier_id || product.company_id}`}>
+                  <Link to={`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}`}>
                     <MessageSquare className="w-3 h-3 mr-1" />
                     Contact
                   </Link>
                 </Button>
                 <Button variant="primary" size="sm" className="flex-1 text-xs" asChild>
-                  <Link to={`/rfq/create?product=${product.id}`}>
+                  <Link to={`/dashboard/rfqs/new?product=${product.id}`}>
                     <FileText className="w-3 h-3 mr-1" />
                     Quote
                   </Link>
@@ -560,23 +592,84 @@ export default function Marketplace() {
                   {filteredProducts.length} products found
                 </p>
               </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="-created_at">Newest First</SelectItem>
-                  <SelectItem value="created_at">Oldest First</SelectItem>
-                  <SelectItem value="price_min">Price: Low to High</SelectItem>
-                  <SelectItem value="-price_min">Price: High to Low</SelectItem>
-                  <SelectItem value="-views">Most Popular</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" size="sm">Grid</Button>
-                <Button variant="ghost" size="sm">List</Button>
+              <div className="flex items-center gap-3">
+                <AICopilotButton
+                  label="Best match for you"
+                  size="xs"
+                  loading={aiBestMatchLoading}
+                  onClick={async () => {
+                    setAiBestMatch(null);
+                    if (!Array.isArray(filteredProducts) || filteredProducts.length === 0) return;
+                    setAiBestMatchLoading(true);
+                    try {
+                      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+                      const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+                      if (!profile) {
+                        setAiBestMatch(null);
+                        return;
+                      }
+                      const { success, productIds } = await suggestProductsForBuyer(
+                        {
+                          id: profile.id,
+                          company_name: profile.company_name,
+                          country: profile.country,
+                          categories: profile.categories
+                        },
+                        filteredProducts
+                      );
+                      if (success && Array.isArray(productIds) && productIds.length > 0) {
+                        const bestId = productIds.find(id =>
+                          filteredProducts.some(p => p.id === id)
+                        );
+                        const match = filteredProducts.find(p => p.id === bestId) || null;
+                        setAiBestMatch(match);
+                      }
+                    } catch {
+                      setAiBestMatch(null);
+                    } finally {
+                      setAiBestMatchLoading(false);
+                    }
+                  }}
+                />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40 md:w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="-created_at">Newest First</SelectItem>
+                    <SelectItem value="created_at">Oldest First</SelectItem>
+                    <SelectItem value="price_min">Price: Low to High</SelectItem>
+                    <SelectItem value="-price_min">Price: High to Low</SelectItem>
+                    <SelectItem value="-views">Most Popular</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="hidden md:flex items-center gap-2">
+                  <Button variant="ghost" size="sm">Grid</Button>
+                  <Button variant="ghost" size="sm">List</Button>
+                </div>
               </div>
             </div>
+
+            {aiBestMatch && (
+              <div className="mb-4">
+                <AISuggestionCard
+                  title={aiBestMatch.title || aiBestMatch.name}
+                  description={aiBestMatch.short_description || aiBestMatch.description}
+                  badges={[
+                    aiBestMatch?.companies?.country
+                      ? { label: aiBestMatch.companies.country }
+                      : null
+                  ].filter(Boolean)}
+                  onClick={() => {
+                    addToViewHistory(aiBestMatch.id, 'product', {
+                      title: aiBestMatch.title || aiBestMatch.name,
+                      category_id: aiBestMatch.category_id,
+                      country: aiBestMatch.country_of_origin
+                    });
+                  }}
+                />
+              </div>
+            )}
 
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">

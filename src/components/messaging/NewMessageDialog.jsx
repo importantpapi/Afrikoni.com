@@ -18,8 +18,9 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
 
     setIsLoading(true);
     try {
-      const user = await supabaseHelpers.auth.me();
-      if (!user || !user.company_id) {
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      if (!user || !companyId) {
         toast.error('Please complete onboarding first');
         return;
       }
@@ -34,7 +35,7 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
       const { data: existingConv } = await supabase
         .from('conversations')
         .select('id')
-        .or(`and(buyer_company_id.eq.${user.company_id},seller_company_id.eq.${recipientCompany.id}),and(buyer_company_id.eq.${recipientCompany.id},seller_company_id.eq.${user.company_id})`)
+        .or(`and(buyer_company_id.eq.${companyId},seller_company_id.eq.${recipientCompany.id}),and(buyer_company_id.eq.${recipientCompany.id},seller_company_id.eq.${companyId})`)
         .maybeSingle();
 
       if (existingConv) {
@@ -44,7 +45,7 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
         const { data: newConv, error: convError } = await supabase
           .from('conversations')
           .insert({
-            buyer_company_id: user.company_id,
+            buyer_company_id: companyId,
             seller_company_id: recipientCompany.id,
             subject: subject || `Inquiry about ${relatedType || 'product'}`,
             last_message: content.trim().substring(0, 100),

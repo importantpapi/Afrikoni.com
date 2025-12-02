@@ -9,6 +9,7 @@ import { buildProductQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { CardSkeleton } from '@/components/ui/skeletons';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +50,7 @@ export default function DashboardProducts() {
   const loadUserAndProducts = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole();
+      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         navigate('/login');
         return;
@@ -79,13 +80,16 @@ export default function DashboardProducts() {
       });
 
       // Transform products to include primary image
-      const productsWithImages = (result.data || []).map(product => {
-        const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
+      const productsWithImages = Array.isArray(result.data) ? result.data.map(product => {
+        if (!product) return null;
+        const productImages = Array.isArray(product.product_images) ? product.product_images : [];
+        const primaryImage = productImages.find(img => img && img.is_primary) || productImages[0];
+        const imagesArray = Array.isArray(product.images) ? product.images : [];
         return {
           ...product,
-          primaryImage: primaryImage?.url || product.images?.[0] || null
+          primaryImage: primaryImage?.url || imagesArray[0] || null
         };
-      });
+      }).filter(Boolean) : [];
 
       setProducts(productsWithImages);
       setPagination(prev => ({
@@ -94,7 +98,15 @@ export default function DashboardProducts() {
         isLoading: false
       }));
     } catch (error) {
-      toast.error('Failed to load products');
+      // Fail gracefully - treat as no data instead of error
+      setProducts([]);
+      setCategories([]);
+      setPagination(prev => ({
+        ...prev,
+        totalCount: 0,
+        totalPages: 1,
+        isLoading: false
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -164,19 +176,20 @@ export default function DashboardProducts() {
   return (
     <DashboardLayout currentRole={currentRole}>
       <ErrorBoundary fallbackMessage="Failed to load products. Please try again.">
-      <div className="space-y-3">
+      <div className="space-y-6">
+        {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
-          className="flex items-center justify-between"
+          transition={{ duration: 0.3 }}
+          className="flex items-center justify-between mb-8"
         >
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Products & Listings</h1>
-            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Manage your product listings</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Products & Listings</h1>
+            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Manage your product listings</p>
           </div>
           <Link to="/dashboard/products/new">
-            <Button variant="primary">
+            <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-6">
               <Plus className="w-4 h-4 mr-2" />
               Add Product
             </Button>
@@ -186,17 +199,17 @@ export default function DashboardProducts() {
         {/* Stats Bar */}
         <ProductStatsBar stats={stats} />
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
+        {/* v2.5: Premium Filters */}
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <CardContent className="p-5 md:p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
                 />
               </div>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -296,9 +309,10 @@ export default function DashboardProducts() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="hover:shadow-afrikoni-lg transition-shadow h-full flex flex-col">
+                  {/* v2.5: Premium Product Cards */}
+                  <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all h-full flex flex-col bg-white rounded-afrikoni-lg">
                     <CardContent className="p-4 flex flex-col flex-1">
-                      <div className="aspect-video bg-afrikoni-cream rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+                      <div className="aspect-video bg-afrikoni-sand rounded-afrikoni mb-4 flex items-center justify-center overflow-hidden relative">
                         {product.primaryImage ? (
                           <img 
                             src={product.primaryImage} 
@@ -327,24 +341,24 @@ export default function DashboardProducts() {
                         </div>
                       </div>
                       
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product.title}</h3>
+                      <h3 className="font-semibold text-afrikoni-text-dark mb-2 line-clamp-2">{product.title}</h3>
                       
                       {product.categories && (
-                        <p className="text-xs text-afrikoni-deep/70 mb-2">{product.categories.name}</p>
+                        <p className="text-xs text-afrikoni-text-dark/70 mb-2">{product.categories.name}</p>
                       )}
                       
                       <div className="space-y-1 mb-3 text-sm">
                         <div className="flex items-center justify-between">
-                          <span className="text-afrikoni-deep/70">Price:</span>
+                          <span className="text-afrikoni-text-dark/70">Price:</span>
                           <span className="font-semibold text-afrikoni-gold">{priceDisplay}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-afrikoni-deep/70">MOQ:</span>
-                          <span className="text-afrikoni-chestnut">{moqDisplay}</span>
+                          <span className="text-afrikoni-text-dark/70">MOQ:</span>
+                          <span className="text-afrikoni-text-dark">{moqDisplay}</span>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2 text-xs text-afrikoni-deep/70 mb-4">
+                      <div className="flex items-center gap-2 text-xs text-afrikoni-text-dark/70 mb-4">
                         <Eye className="w-3 h-3" />
                         <span>{product.views || 0} views</span>
                         <span>•</span>

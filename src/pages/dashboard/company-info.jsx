@@ -459,13 +459,14 @@ export default function CompanyInfo() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Card className="border-afrikoni-gold/20 shadow-afrikoni">
-                <CardHeader>
-                  <CardTitle>Company Details</CardTitle>
-                  <CardDescription>
-                    Provide your company information. This will be visible to potential buyers and partners.
-                  </CardDescription>
-                </CardHeader>
+        {/* v2.5: Premium Company Info Cards */}
+        <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
+          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">Company Details</CardTitle>
+            <CardDescription className="mt-3 text-afrikoni-text-dark/70">
+              Provide your company information. This will be visible to potential buyers and partners.
+            </CardDescription>
+          </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Logo and Cover Upload */}

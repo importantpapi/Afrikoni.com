@@ -50,17 +50,20 @@ export async function getRFQsExpiringSoon(companyId, days = 7, limit = 5) {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
     const futureDateISO = futureDate.toISOString();
-    
-    // Get RFQs where deadline is between now and futureDate (check both delivery_deadline and expires_at)
+
+    // Get RFQs where either:
+    // - delivery_deadline is between now and futureDate, OR
+    // - expires_at is between now and futureDate
     const { data: rfqs } = await supabase
       .from('rfqs')
       .select('*, categories(*), companies(*)')
       .eq('status', 'open')
-      .gte('delivery_deadline', now)
-      .lte('delivery_deadline', futureDateISO)
+      .or(
+        `and(delivery_deadline.gte.${now},delivery_deadline.lte.${futureDateISO}),and(expires_at.gte.${now},expires_at.lte.${futureDateISO})`
+      )
       .order('delivery_deadline', { ascending: true })
       .limit(limit);
-    
+
     return Array.isArray(rfqs) ? rfqs : [];
   } catch (error) {
     return [];

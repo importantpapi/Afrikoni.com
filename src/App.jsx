@@ -3,7 +3,9 @@ import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Layout from './layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/ScrollToTop';
 import { PageLoader } from './components/ui/skeletons';
+import { LanguageProvider } from './i18n/LanguageContext';
 
 // Lightweight routes - keep as regular imports for faster initial load
 import Home from './pages/index';
@@ -30,7 +32,14 @@ const DashboardSettings = lazy(() => import('./pages/dashboard/settings'));
 const CompanyInfo = lazy(() => import('./pages/dashboard/company-info'));
 const NotificationsCenter = lazy(() => import('./pages/dashboard/notifications'));
 const DashboardHelp = lazy(() => import('./pages/dashboard/help'));
+const RiskManagement = lazy(() => import('./pages/dashboard/risk'));
+const ComplianceCenter = lazy(() => import('./pages/dashboard/compliance'));
+const KYCTracker = lazy(() => import('./pages/dashboard/kyc'));
+const AntiCorruption = lazy(() => import('./pages/dashboard/anticorruption'));
+const CrisisManagement = lazy(() => import('./pages/dashboard/crisis'));
+const AuditLogs = lazy(() => import('./pages/dashboard/audit'));
 const AdminDashboard = lazy(() => import('./pages/admindashboard'));
+const AdminUsers = lazy(() => import('./pages/dashboard/admin/users'));
 
 // Lazy-loaded heavy routes - Marketplace
 const Products = lazy(() => import('./pages/products'));
@@ -58,16 +67,22 @@ const Help = lazy(() => import('./pages/help'));
 const Contact = lazy(() => import('./pages/contact'));
 const RFQManagement = lazy(() => import('./pages/rfqmanagement'));
 const Investors = lazy(() => import('./pages/investors'));
+const ResourcesIndex = lazy(() => import('./pages/resources/index'));
+const HowToSourceVerifiedAfricanSuppliers = lazy(() => import('./pages/resources/how-to-source-verified-african-suppliers'));
+const KycKybAndAmlForAfricanB2BTrade = lazy(() => import('./pages/resources/kyc-kyb-and-aml-for-african-b2b-trade'));
+const EscrowVsAdvancePaymentsInAfricanTrade = lazy(() => import('./pages/resources/escrow-vs-advance-payments-in-african-trade'));
 const SellerGrowth = lazy(() => import('./pages/sellergrowth'));
 const SellerOnboarding = lazy(() => import('./pages/selleronboarding'));
 const OrderProtection = lazy(() => import('./pages/order-protection'));
 const BuyerHub = lazy(() => import('./pages/buyer-hub'));
 const SupplierHub = lazy(() => import('./pages/supplier-hub'));
 const Logistics = lazy(() => import('./pages/logistics'));
+const Countries = lazy(() => import('./pages/countries'));
 
 function App() {
   return (
-    <>
+    <LanguageProvider>
+      <ScrollToTop />
       <Toaster position="top-right" />
       <Layout>
         <Suspense fallback={<PageLoader />}>
@@ -76,7 +91,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
+            {/* Trust & Verification Center */}
             <Route path="/dashboard/verification" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
+            <Route path="/verification-center" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
             <Route path="/products" element={<Products />} />
             <Route path="/marketplace" element={<Products />} />
             <Route path="/product" element={<ProductDetail />} />
@@ -89,12 +106,17 @@ function App() {
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/supplier" element={<SupplierProfile />} />
             <Route path="/categories" element={<Categories />} />
+            <Route path="/countries" element={<Countries />} />
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
             <Route path="/order" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><MessagesPremium /></ProtectedRoute>} />
             {/* Unified Dashboard - handles all roles */}
             <Route path="/dashboard" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/buyer" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/seller" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/hybrid" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
@@ -115,6 +137,13 @@ function App() {
             <Route path="/dashboard/company-info" element={<ProtectedRoute><CompanyInfo /></ProtectedRoute>} />
             <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
             <Route path="/dashboard/help" element={<ProtectedRoute><DashboardHelp /></ProtectedRoute>} />
+            {/* Risk & Compliance Routes */}
+            <Route path="/dashboard/risk" element={<ProtectedRoute><RiskManagement /></ProtectedRoute>} />
+            <Route path="/dashboard/compliance" element={<ProtectedRoute><ComplianceCenter /></ProtectedRoute>} />
+            <Route path="/dashboard/kyc" element={<ProtectedRoute><KYCTracker /></ProtectedRoute>} />
+            <Route path="/dashboard/anticorruption" element={<ProtectedRoute><AntiCorruption /></ProtectedRoute>} />
+            <Route path="/dashboard/crisis" element={<ProtectedRoute><CrisisManagement /></ProtectedRoute>} />
+            <Route path="/dashboard/audit" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/financing" element={<TradeFinancing />} />
             <Route path="/ai-matchmaking" element={<AIMatchmaking />} />
@@ -128,12 +157,17 @@ function App() {
             <Route path="/help" element={<Help />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/investors" element={<Investors />} />
+            {/* Insights / Resources */}
+            <Route path="/resources" element={<ResourcesIndex />} />
+            <Route path="/resources/how-to-source-verified-african-suppliers" element={<HowToSourceVerifiedAfricanSuppliers />} />
+            <Route path="/resources/kyc-kyb-and-aml-for-african-b2b-trade" element={<KycKybAndAmlForAfricanB2BTrade />} />
+            <Route path="/resources/escrow-vs-advance-payments-in-african-trade" element={<EscrowVsAdvancePaymentsInAfricanTrade />} />
             <Route path="/seller-growth" element={<SellerGrowth />} />
             <Route path="/seller-onboarding" element={<SellerOnboarding />} />
           </Routes>
         </Suspense>
       </Layout>
-    </>
+    </LanguageProvider>
   );
 }
 

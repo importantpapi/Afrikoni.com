@@ -54,7 +54,8 @@ export default function NotificationBell() {
 
   const loadUser = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
     } catch (error) {
       // Error logged (removed for production)

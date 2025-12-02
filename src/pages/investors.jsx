@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail, Phone, MapPin, Zap, DollarSign } from 'lucide-react';
 import { createPageUrl } from '../utils';
+import SEO from '@/components/SEO';
+import { Input } from '@/components/ui/input';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 export default function Investors() {
+  const { trackPageView } = useAnalytics();
+
+  useEffect(() => {
+    trackPageView('Investors');
+  }, []);
+
+  const [email, setEmail] = React.useState('');
+
   const milestones = [
     {
       year: '2024',
@@ -33,7 +44,21 @@ export default function Investors() {
     }
   ];
 
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    // Stub: in future, send to investor updates list
+    console.log('Investor updates subscription:', email);
+    setEmail('');
+  };
+
   return (
+    <>
+      <SEO
+        title="Investors - Afrikoni Growth, Metrics & Vision"
+        description="Learn about Afrikoni's traction, growth metrics and vision for building the AI-powered B2B trade infrastructure for Africa."
+        url="/investors"
+      />
     <div className="min-h-screen bg-stone-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
@@ -65,7 +90,7 @@ export default function Investors() {
         </Card>
 
         {/* Call to Action */}
-        <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-lg p-12 text-center text-afrikoni-creammb-8">
+        <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-lg p-12 text-center text-afrikoni-cream mb-8">
           <h2 className="text-3xl font-bold mb-4">Ready to Join Our Journey?</h2>
           <p className="text-lg mb-8 max-w-2xl mx-auto">
             Partner with us to unlock Africa's trade potential and generate exceptional returns.
@@ -116,8 +141,35 @@ export default function Investors() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Investor Updates Subscribe */}
+        <Card className="border-afrikoni-gold/30 mt-8">
+          <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div>
+              <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                Receive Afrikoni investor updates
+              </h3>
+              <p className="text-sm text-afrikoni-deep/80 max-w-xl">
+                Join our investor mailing list to get periodic updates on traction, product roadmap and fundraising.
+              </p>
+            </div>
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Work email"
+                className="sm:w-64"
+              />
+              <Button type="submit" className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight">
+                Subscribe
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
+    </>
   );
 }
 

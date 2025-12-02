@@ -214,15 +214,49 @@ export async function notifyOrderStatusChange(orderId, newStatus, buyerCompanyId
 
 /**
  * Helper to create notification when message is received
+ * This ensures every message triggers a notification, even if sent while user is offline
  */
 export async function notifyNewMessage(messageId, conversationId, receiverCompanyId, senderCompanyId) {
-  await createNotification({
-    company_id: receiverCompanyId,
-    title: 'New Message',
-    message: 'You have received a new message',
-    type: 'message',
-    link: `/messages?conversation=${conversationId}`,
-    related_id: messageId
-  });
+  try {
+    // Get sender company info for better notification message
+    let senderName = 'Someone';
+    if (senderCompanyId) {
+      const { data: senderCompany } = await supabase
+        .from('companies')
+        .select('company_name')
+        .eq('id', senderCompanyId)
+        .single();
+      
+      if (senderCompany?.company_name) {
+        senderName = senderCompany.company_name;
+      }
+    }
+
+    // Check if notification already exists (prevent duplicates)
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('company_id', receiverCompanyId)
+      .eq('type', 'message')
+      .eq('related_id', messageId)
+      .eq('read', false)
+      .limit(1)
+      .maybeSingle();
+
+    // Only create if it doesn't exist
+    if (!existing) {
+      await createNotification({
+        company_id: receiverCompanyId,
+        title: 'New Message',
+        message: `You have a new message from ${senderName}`,
+        type: 'message',
+        link: `/messages?conversation=${conversationId}`,
+        related_id: messageId
+      });
+    }
+  } catch (error) {
+    // Silently fail - notification creation is not critical
+    console.error('Failed to create message notification:', error);
+  }
 }
 

@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  CheckCircle, XCircle, Mail, Phone, Building2, CreditCard, Shield, Lock, FileText, Clock
+  CheckCircle, XCircle, Mail, Phone, Building2, CreditCard, Shield, Lock, FileText, Clock, Upload, X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getOrCreateCompany } from '@/utils/companyHelper';
+import { toast } from 'sonner';
 
 const verificationSteps = [
   {
@@ -14,7 +19,7 @@ const verificationSteps = [
     label: 'Email Verification',
     icon: Mail,
     description: 'Verify your email address',
-    completed: true,
+    docType: null,
     required: true
   },
   {
@@ -22,15 +27,15 @@ const verificationSteps = [
     label: 'Phone Verification',
     icon: Phone,
     description: 'Verify your phone number',
-    completed: true,
+    docType: null,
     required: true
   },
   {
-    id: 'business',
+    id: 'business_registration',
     label: 'Business Registration',
     icon: Building2,
     description: 'Upload business registration documents',
-    completed: true,
+    docType: 'business_registration',
     required: true
   },
   {
@@ -38,7 +43,7 @@ const verificationSteps = [
     label: 'ID / KYC Verification',
     icon: CreditCard,
     description: 'Upload government-issued ID',
-    completed: false,
+    docType: 'kyc',
     required: true
   },
   {
@@ -46,7 +51,7 @@ const verificationSteps = [
     label: 'Bank Account Verification',
     icon: CreditCard,
     description: 'Verify your bank account details',
-    completed: false,
+    docType: 'bank_statement',
     required: true
   },
   {
@@ -54,17 +59,175 @@ const verificationSteps = [
     label: 'Trade Assurance',
     icon: Shield,
     description: 'Enable trade protection features',
-    completed: false,
+    docType: null,
     required: false
   }
 ];
 
 export default function VerificationCenter() {
-  const completedCount = verificationSteps.filter(s => s.completed).length;
-  const requiredCompleted = verificationSteps.filter(s => s.required && s.completed).length;
+  const [user, setUser] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
+  const [verification, setVerification] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [uploading, setUploading] = useState({});
+  const [uploadedFiles, setUploadedFiles] = useState({});
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const { user: userData, profile, companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      if (!userData) {
+        navigate('/login');
+        return;
+      }
+
+      setUser(profile || userData);
+      
+      // Get or create company
+      const finalCompanyId = cid || await getOrCreateCompany(supabase, profile || userData);
+      setCompanyId(finalCompanyId);
+
+      if (finalCompanyId) {
+        // Load verification status
+        const { data: verificationData, error } = await supabase
+          .from('verifications')
+          .select('*')
+          .eq('company_id', finalCompanyId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') {
+          // PGRST116 = no rows returned, which is fine
+          throw error;
+        }
+
+        if (verificationData) {
+          setVerification(verificationData);
+          // Parse documents if they exist
+          if (verificationData.documents && typeof verificationData.documents === 'object') {
+            setUploadedFiles(verificationData.documents);
+          }
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to load verification status');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (stepId, file) => {
+    if (!file || !companyId) return;
+
+    const step = verificationSteps.find(s => s.id === stepId);
+    if (!step || !step.docType) return;
+
+    setUploading(prev => ({ ...prev, [stepId]: true }));
+
+    try {
+      // Upload to Supabase Storage
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'verifications');
+      
+      // Update uploaded files state
+      const newFiles = {
+        ...uploadedFiles,
+        [step.docType]: file_url
+      };
+      setUploadedFiles(newFiles);
+
+      // Create or update verification record
+      const verificationData = {
+        company_id: companyId,
+        documents: newFiles,
+        status: 'pending' // Admin will review
+      };
+
+      if (verification) {
+        // Update existing
+        const { error } = await supabase
+          .from('verifications')
+          .update(verificationData)
+          .eq('id', verification.id);
+
+        if (error) throw error;
+      } else {
+        // Create new
+        const { data: newVerification, error } = await supabase
+          .from('verifications')
+          .insert(verificationData)
+          .select()
+          .single();
+
+        if (error) throw error;
+        setVerification(newVerification);
+      }
+
+      toast.success('Document uploaded successfully. Pending admin review.');
+    } catch (error) {
+      toast.error('Failed to upload document');
+    } finally {
+      setUploading(prev => ({ ...prev, [stepId]: false }));
+    }
+  };
+
+  const getStepStatus = (step) => {
+    if (!step.docType) {
+      // Email/phone verification - check user profile
+      if (step.id === 'email') {
+        return user?.email_verified || false;
+      }
+      if (step.id === 'phone') {
+        return user?.phone_verified || false;
+      }
+      if (step.id === 'trade') {
+        return verification?.trade_assurance_enabled || false;
+      }
+      return false;
+    }
+
+    // Document-based verification
+    const hasDocument = uploadedFiles[step.docType];
+    if (!hasDocument) return false;
+
+    // Check verification status
+    if (verification?.status === 'verified') {
+      return true;
+    }
+    if (verification?.status === 'rejected') {
+      return 'rejected';
+    }
+    return 'pending';
+  };
+
+  const completedCount = verificationSteps.filter(s => {
+    const status = getStepStatus(s);
+    return status === true;
+  }).length;
+
+  const requiredCompleted = verificationSteps.filter(s => {
+    if (!s.required) return false;
+    const status = getStepStatus(s);
+    return status === true;
+  }).length;
+
   const requiredTotal = verificationSteps.filter(s => s.required).length;
   const profileCompleteness = Math.round((completedCount / verificationSteps.length) * 100);
   const verificationProgress = Math.round((requiredCompleted / requiredTotal) * 100);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-afrikoni-offwhite py-8 md:py-12">
@@ -112,7 +275,7 @@ export default function VerificationCenter() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Lock className="w-5 h-5 text-green-600" />
+                <Lock className="w-5 h-5 text-afrikoni-gold" />
                 Verification Status
               </CardTitle>
             </CardHeader>
@@ -124,10 +287,14 @@ export default function VerificationCenter() {
                 </div>
                 <Progress value={verificationProgress} className="h-3" />
               </div>
-              {verificationProgress === 100 ? (
+              {verification?.status === 'verified' ? (
                 <Badge variant="success" className="text-xs">✓ Fully Verified</Badge>
+              ) : verification?.status === 'rejected' ? (
+                <Badge variant="destructive" className="text-xs">Rejected - Please resubmit</Badge>
+              ) : verification?.status === 'pending' ? (
+                <Badge variant="warning" className="text-xs">Pending Review</Badge>
               ) : (
-                <Badge variant="warning" className="text-xs">Verification In Progress</Badge>
+                <Badge variant="outline" className="text-xs">Not Started</Badge>
               )}
             </CardContent>
           </Card>
@@ -147,6 +314,12 @@ export default function VerificationCenter() {
               <div className="space-y-4">
                 {verificationSteps.map((step, idx) => {
                   const Icon = step.icon;
+                  const status = getStepStatus(step);
+                  const isCompleted = status === true;
+                  const isPending = status === 'pending';
+                  const isRejected = status === 'rejected';
+                  const hasFile = uploadedFiles[step.docType];
+
                   return (
                     <motion.div
                       key={step.id}
@@ -156,20 +329,22 @@ export default function VerificationCenter() {
                     >
                       <div className={`
                         flex items-center gap-4 p-4 rounded-lg border-2 transition-all
-                        ${step.completed 
-                          ? 'border-green-200 bg-green-50' 
-                          : 'border-afrikoni-gold/20 bg-afrikoni-offwhite hover:border-afrikoni-gold200 hover:bg-afrikoni-offwhite'
+                        ${isCompleted 
+                          ? 'border-afrikoni-gold/50 bg-afrikoni-gold/5' 
+                          : isRejected
+                          ? 'border-red-200 bg-red-50'
+                          : 'border-afrikoni-gold/20 bg-afrikoni-offwhite hover:border-afrikoni-gold/40'
                         }
                       `}>
                         <div className={`
                           w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0
-                          ${step.completed 
-                            ? 'bg-green-100' 
+                          ${isCompleted 
+                            ? 'bg-afrikoni-gold/20' 
                             : 'bg-afrikoni-cream'
                           }
                         `}>
-                          {step.completed ? (
-                            <CheckCircle className="w-6 h-6 text-green-600" />
+                          {isCompleted ? (
+                            <CheckCircle className="w-6 h-6 text-afrikoni-gold" />
                           ) : (
                             <Icon className={`w-6 h-6 ${step.required ? 'text-afrikoni-gold' : 'text-afrikoni-deep/70'}`} />
                           )}
@@ -180,21 +355,61 @@ export default function VerificationCenter() {
                             {step.required && (
                               <Badge variant="outline" className="text-xs">Required</Badge>
                             )}
-                            {step.completed && (
+                            {isCompleted && (
                               <Badge variant="success" className="text-xs">✓ Verified</Badge>
+                            )}
+                            {isPending && (
+                              <Badge variant="warning" className="text-xs">Pending</Badge>
+                            )}
+                            {isRejected && (
+                              <Badge variant="destructive" className="text-xs">Rejected</Badge>
                             )}
                           </div>
                           <p className="text-sm text-afrikoni-deep">{step.description}</p>
+                          {hasFile && step.docType && (
+                            <p className="text-xs text-afrikoni-deep/70 mt-1">
+                              Document uploaded: {hasFile.split('/').pop()}
+                            </p>
+                          )}
                         </div>
                         <div>
-                          {step.completed ? (
-                            <div className="flex items-center gap-1 text-green-600 text-sm font-semibold">
+                          {isCompleted ? (
+                            <div className="flex items-center gap-1 text-afrikoni-gold text-sm font-semibold">
                               <CheckCircle className="w-4 h-4" />
                               <span>Done</span>
                             </div>
+                          ) : step.docType ? (
+                            <div className="flex flex-col gap-2">
+                              <label className="cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept=".pdf,.jpg,.jpeg,.png"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleFileUpload(step.id, file);
+                                  }}
+                                  disabled={uploading[step.id]}
+                                />
+                                <Button 
+                                  variant="primary" 
+                                  size="sm"
+                                  disabled={uploading[step.id]}
+                                  as="span"
+                                >
+                                  {uploading[step.id] ? (
+                                    <>Uploading...</>
+                                  ) : hasFile ? (
+                                    <>Replace</>
+                                  ) : (
+                                    <><Upload className="w-4 h-4 mr-1" />Upload</>
+                                  )}
+                                </Button>
+                              </label>
+                            </div>
                           ) : (
                             <Button variant="primary" size="sm">
-                              {step.id === 'email' || step.id === 'phone' ? 'Verify' : 'Upload'}
+                              {step.id === 'email' || step.id === 'phone' ? 'Verify' : 'Enable'}
                             </Button>
                           )}
                         </div>
@@ -214,7 +429,7 @@ export default function VerificationCenter() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-8"
         >
-          <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-afrikoni-gold200">
+          <Card className="bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-gold/5 border-afrikoni-gold/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-afrikoni-gold" />
@@ -232,7 +447,7 @@ export default function VerificationCenter() {
                   'Increased order limits'
                 ].map((benefit, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
                     <span className="text-sm text-afrikoni-deep">{benefit}</span>
                   </div>
                 ))}
@@ -244,4 +459,3 @@ export default function VerificationCenter() {
     </div>
   );
 }
-

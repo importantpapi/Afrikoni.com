@@ -4,13 +4,16 @@ import { motion } from 'framer-motion';
 import { Shield, Users, Truck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function TrustCards() {
+  const { t } = useLanguage();
+  
   const trustCards = [
     {
       icon: Users,
-      title: 'Verified African Suppliers',
-      description: 'Connect with pre-verified suppliers from across 54 African countries',
+      title: t('trust.verified.title'),
+      description: t('trust.verified.description'),
       link: '/suppliers',
       color: 'from-afrikoni-gold to-afrikoni-goldDark',
       iconBg: 'bg-afrikoni-gold/20',
@@ -18,8 +21,8 @@ export default function TrustCards() {
     },
     {
       icon: Shield,
-      title: 'Afrikoni Trade Shield',
-      description: 'Secure escrow protection and quality guarantees on every order',
+      title: t('trust.shield.title'),
+      description: t('trust.shield.description'),
       link: '/order-protection',
       color: 'from-afrikoni-gold to-afrikoni-goldDark',
       iconBg: 'bg-afrikoni-gold/20',
@@ -27,8 +30,8 @@ export default function TrustCards() {
     },
     {
       icon: Truck,
-      title: 'One-Stop Sourcing + Logistics',
-      description: 'Complete sourcing solution with integrated shipping and logistics support',
+      title: t('trust.logistics.title'),
+      description: t('trust.logistics.description'),
       link: '/logistics',
       color: 'from-afrikoni-gold to-afrikoni-goldDark',
       iconBg: 'bg-afrikoni-gold/20',
@@ -47,10 +50,10 @@ export default function TrustCards() {
           className="text-center mb-10"
         >
           <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
-            Trade with Confidence
+            {t('trust.title')}
           </h2>
           <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
-            Everything you need for safe and successful B2B trading across Africa
+            {t('trust.subtitle')}
           </p>
         </motion.div>
 
@@ -79,7 +82,7 @@ export default function TrustCards() {
                     </p>
                     <Link to={card.link}>
                       <Button variant="secondary" className="w-full">
-                        Learn More
+                        {t('common.learnMore') || 'Learn More'}
                       </Button>
                     </Link>
                   </CardContent>

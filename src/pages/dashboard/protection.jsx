@@ -26,13 +26,14 @@ export default function DashboardProtection() {
 
   const loadUserAndProtection = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData, profile, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'buyer';
+      const role = userRole || userData.role || userData.user_role || 'buyer';
       setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
 
       // Get or create company
@@ -142,104 +143,153 @@ export default function DashboardProtection() {
 
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-3">
+      <div className="space-y-6">
+        {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.3 }}
+          className="mb-8"
         >
-          <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Trade Shield / Protection</h1>
-          <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Your orders are protected by Afrikoni's secure escrow system</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Trade Shield / Protection</h1>
+          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Your orders are protected by Afrikoni's secure escrow system</p>
         </motion.div>
 
-        {/* Protection Features */}
+        {/* v2.5: Premium Protection Features */}
         <div className="grid md:grid-cols-3 gap-4">
-          <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10">
-            <CardContent className="p-5 md:p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Shield className="w-8 h-8 text-afrikoni-gold" />
-                <h3 className="text-lg font-semibold text-afrikoni-chestnut">Escrow Protection</h3>
-              </div>
-              <p className="text-sm text-afrikoni-deep">
-                Your payment is held securely until order is delivered and confirmed
-              </p>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
+          >
+            <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
+              <CardContent className="p-5 md:p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-afrikoni-gold" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-afrikoni-text-dark">Escrow Protection</h3>
+                </div>
+                <p className="text-sm text-afrikoni-text-dark/80">
+                  Your payment is held securely until order is delivered and confirmed
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10">
-            <CardContent className="p-5 md:p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-8 h-8 text-afrikoni-gold" />
-                <h3 className="text-lg font-semibold text-afrikoni-chestnut">Quality Guarantee</h3>
-              </div>
-              <p className="text-sm text-afrikoni-deep">
-                Money-back guarantee if product doesn't match description
-              </p>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
+              <CardContent className="p-5 md:p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-afrikoni-green" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-afrikoni-text-dark">Quality Guarantee</h3>
+                </div>
+                <p className="text-sm text-afrikoni-text-dark/80">
+                  Money-back guarantee if product doesn't match description
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10">
-            <CardContent className="p-5 md:p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Lock className="w-8 h-8 text-afrikoni-gold" />
-                <h3 className="text-lg font-semibold text-afrikoni-chestnut">Dispute Resolution</h3>
-              </div>
-              <p className="text-sm text-afrikoni-deep">
-                Fair and fast dispute resolution process
-              </p>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+          >
+            <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
+              <CardContent className="p-5 md:p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
+                    <Lock className="w-6 h-6 text-afrikoni-purple" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-afrikoni-text-dark">Dispute Resolution</h3>
+                </div>
+                <p className="text-sm text-afrikoni-text-dark/80">
+                  Fair and fast dispute resolution process
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Summary Stats */}
         {protectionData ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-afrikoni-deep">Orders Under Protection</p>
-                    <p className="text-2xl font-bold text-afrikoni-chestnut">{protectionData.ordersUnderProtection}</p>
+            {/* v2.5: Premium Protection KPI Cards */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-afrikoni-gold" />
+                    </div>
                   </div>
-                  <Shield className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-afrikoni-deep">Total Value in Protection</p>
-                    <p className="text-2xl font-bold text-afrikoni-chestnut">
-                      ${protectionData.totalValueInProtection.toLocaleString()}
-                    </p>
+                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{protectionData.ordersUnderProtection}</div>
+                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Orders Under Protection</div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.25 }}
+            >
+              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
+                      <DollarSign className="w-6 h-6 text-afrikoni-green" />
+                    </div>
                   </div>
-                  <DollarSign className="w-8 h-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-afrikoni-deep">Released This Month</p>
-                    <p className="text-2xl font-bold text-afrikoni-chestnut">{protectionData.releasedThisMonth}</p>
+                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-gold mb-2">${protectionData.totalValueInProtection.toLocaleString()}</div>
+                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Value in Protection</div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-afrikoni-green" />
+                    </div>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-afrikoni-deep">Active Disputes</p>
-                    <p className="text-2xl font-bold text-afrikoni-chestnut">{protectionData.disputes}</p>
+                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{protectionData.releasedThisMonth}</div>
+                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Released This Month</div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.35 }}
+            >
+              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 bg-afrikoni-red/20 rounded-full flex items-center justify-center">
+                      <AlertTriangle className="w-6 h-6 text-afrikoni-red" />
+                    </div>
                   </div>
-                  <AlertTriangle className="w-8 h-8 text-yellow-600" />
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{protectionData.disputes}</div>
+                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Active Disputes</div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -259,10 +309,10 @@ export default function DashboardProtection() {
           </div>
         )}
 
-        {/* Protected Orders List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Protected Orders</CardTitle>
+        {/* v2.5: Premium Protected Orders Table */}
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">Protected Orders</CardTitle>
           </CardHeader>
           <CardContent>
             {protectedOrders.length === 0 ? (
@@ -333,46 +383,46 @@ export default function DashboardProtection() {
           </CardContent>
         </Card>
 
-        {/* Explanation Box */}
-        <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        {/* v2.5: Premium Explanation Box */}
+        <Card className="border-afrikoni-gold/20 bg-afrikoni-ivory shadow-premium rounded-afrikoni-lg">
+          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
               <Shield className="w-5 h-5 text-afrikoni-gold" />
               How Afrikoni Protection Works
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="space-y-4">
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
                   1
                 </div>
                 <div>
-                  <h4 className="font-semibold text-afrikoni-chestnut mb-1">Payment Held in Escrow</h4>
-                  <p className="text-sm text-afrikoni-deep">Your payment is securely held in escrow until order completion. Funds are protected and cannot be released without your confirmation.</p>
+                  <h4 className="font-semibold text-afrikoni-text-dark mb-1">Payment Held in Escrow</h4>
+                  <p className="text-sm text-afrikoni-text-dark/80">Your payment is securely held in escrow until order completion. Funds are protected and cannot be released without your confirmation.</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
                   2
                 </div>
                 <div>
-                  <h4 className="font-semibold text-afrikoni-chestnut mb-1">Order Verification</h4>
-                  <p className="text-sm text-afrikoni-deep">Verify order quality and completeness before release. If there are any issues, you can raise a dispute for fair resolution.</p>
+                  <h4 className="font-semibold text-afrikoni-text-dark mb-1">Order Verification</h4>
+                  <p className="text-sm text-afrikoni-text-dark/80">Verify order quality and completeness before release. If there are any issues, you can raise a dispute for fair resolution.</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
                   3
                 </div>
                 <div>
-                  <h4 className="font-semibold text-afrikoni-chestnut mb-1">Secure Release</h4>
-                  <p className="text-sm text-afrikoni-deep">Payment is released only after you confirm receipt and satisfaction. Your funds are always protected throughout the transaction.</p>
+                  <h4 className="font-semibold text-afrikoni-text-dark mb-1">Secure Release</h4>
+                  <p className="text-sm text-afrikoni-text-dark/80">Payment is released only after you confirm receipt and satisfaction. Your funds are always protected throughout the transaction.</p>
                 </div>
               </div>
             </div>
-            <div className="mt-6 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
-              <p className="text-sm text-afrikoni-chestnut">
+            <div className="mt-6 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-afrikoni">
+              <p className="text-sm text-afrikoni-text-dark">
                 <strong>Note:</strong> All orders processed through Afrikoni are automatically protected by our escrow system. 
                 You can track the protection status of each order and raise disputes if needed. 
                 Our team is here to ensure fair and secure transactions.

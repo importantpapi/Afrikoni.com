@@ -34,7 +34,8 @@ export default function Layout({ children }) {
 
   const loadUser = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
     } catch (error) {
       setUser(null);
@@ -112,14 +113,14 @@ export default function Layout({ children }) {
               {/* Additional CTAs */}
               <div className="flex flex-col gap-2">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link to={createPageUrl('SellerOnboarding')}>
+                  <Link to="/signup">
                     <Button className="w-full bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-sm py-2">
                       Become a Supplier
                     </Button>
                   </Link>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link to={createPageUrl('BuyerCentral')}>
+                  <Link to="/signup">
                     <Button variant="secondary" className="w-full text-sm py-2">
                       Join as Buyer
                     </Button>
@@ -136,7 +137,7 @@ export default function Layout({ children }) {
                   { to: '/products', label: 'Browse Products' },
                   { to: '/suppliers', label: 'Find Suppliers' },
                   { to: '/signup', label: 'Join as Buyer' },
-                  { to: '/rfq/create', label: 'Request Quotes' },
+                  { to: '/dashboard/rfqs/new', label: 'Request Quotes' },
                   { to: '/dashboard', label: 'Buyer Central' }
                 ].map((item, idx) => (
                   <motion.li
@@ -158,9 +159,9 @@ export default function Layout({ children }) {
                 {[
                   { to: '/supplier-hub', label: 'Supplier Hub' },
                   { to: '/signup', label: 'Start Selling' },
-                  { to: '/products/add', label: 'List Products' },
-                  { to: '/dashboard/products', label: 'Seller Dashboard' },
-                  { to: '/dashboard/verification', label: 'Get Verified' }
+                  { to: '/dashboard/products/new', label: 'List Products' },
+                  { to: '/dashboard', label: 'Seller Dashboard' },
+                  { to: '/verification-center', label: 'Get Verified' }
                 ].map((item, idx) => (
                   <motion.li
                     key={idx}

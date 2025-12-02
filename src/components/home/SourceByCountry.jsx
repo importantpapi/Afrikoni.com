@@ -73,7 +73,7 @@ export default function SourceByCountry() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-8"
         >
-          <Link to="/marketplace">
+          <Link to="/countries">
             <Button>
               View All Countries
             </Button>

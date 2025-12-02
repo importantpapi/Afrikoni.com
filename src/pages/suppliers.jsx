@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Building2, MapPin, Star, Shield, Package, Users, MessageCircle, Globe, Bookmark } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const AFRICAN_COUNTRIES = [
   'Nigeria', 'South Africa', 'Kenya', 'Egypt', 'Ghana', 'Morocco', 'Ethiopia',
@@ -22,6 +23,7 @@ export default function Suppliers() {
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [selectedBusinessType, setSelectedBusinessType] = useState('all');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
 
   useEffect(() => {
     loadSuppliers();
@@ -62,25 +64,25 @@ export default function Suppliers() {
       const { data, error } = await query.limit(100);
       if (error) throw error;
 
-      let filtered = data || [];
+      let filtered = Array.isArray(data) ? data : [];
 
       if (searchQuery) {
         filtered = filtered.filter(s =>
-          s.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          s.description?.toLowerCase().includes(searchQuery.toLowerCase())
+          s?.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s?.description?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
 
       if (selectedCountry !== 'all') {
-        filtered = filtered.filter(s => s.country === selectedCountry);
+        filtered = filtered.filter(s => s?.country === selectedCountry);
       }
 
       if (selectedBusinessType !== 'all') {
-        filtered = filtered.filter(s => s.business_type === selectedBusinessType);
+        filtered = filtered.filter(s => s?.business_type === selectedBusinessType);
       }
 
       if (verifiedOnly) {
-        filtered = filtered.filter(s => s.verified);
+        filtered = filtered.filter(s => s?.verified);
       }
 
       setSuppliers(filtered);
@@ -91,7 +93,21 @@ export default function Suppliers() {
     }
   };
 
+  const handleJoinWaitlist = (e) => {
+    e.preventDefault();
+    if (!waitlistEmail.trim()) return;
+    // Stub: in future, send to API / CRM
+    console.log('Supplier waitlist:', waitlistEmail);
+    setWaitlistEmail('');
+  };
+
   return (
+    <>
+      <SEO
+        title="Verified African Suppliers - Become a Supplier on Afrikoni"
+        description="Browse verified African suppliers and learn how to become a supplier on Afrikoni. KYC/KYB verification, escrow payments, and Afrikoni Shield™ protection."
+        url="/suppliers"
+      />
     <div className="min-h-screen bg-stone-50">
       <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20">
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -269,7 +285,55 @@ export default function Suppliers() {
           </div>
         )}
       </div>
-    </div>
+
+      {/* Bottom CTA + waitlist */}
+      <div className="border-t border-afrikoni-gold/20 bg-afrikoni-offwhite mt-4">
+        <div className="max-w-7xl mx-auto px-4 py-10 md:py-12 grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-3">
+              Ready to become a verified African supplier?
+            </h2>
+            <p className="text-sm md:text-base text-afrikoni-deep mb-5 max-w-xl">
+              Join Afrikoni to access serious buyers across Africa and the world. Afrikoni Shield™ handles
+              verification, escrow, and trust so you can focus on fulfilling orders.
+            </p>
+            <Link to="/signup">
+              <Button className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 md:px-8">
+                Start as a Supplier
+              </Button>
+            </Link>
+          </div>
+          <div>
+            <Card className="border-afrikoni-gold/30 bg-white shadow-sm">
+              <CardContent className="p-5">
+                <h3 className="text-lg font-semibold text-afrikoni-chestnut mb-2">
+                  Join the early access waitlist
+                </h3>
+                <p className="text-xs md:text-sm text-afrikoni-deep/80 mb-4">
+                  Leave your work email and we&apos;ll contact you with onboarding details, fees and pilot opportunities.
+                </p>
+                <form onSubmit={handleJoinWaitlist} className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    type="email"
+                    value={waitlistEmail}
+                    onChange={(e) => setWaitlistEmail(e.target.value)}
+                    placeholder="Work email"
+                    className="flex-1"
+                  />
+                  <Button type="submit" className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight">
+                    Join waitlist
+                  </Button>
+                </form>
+                <p className="mt-2 text-[11px] text-afrikoni-deep/60">
+                  We respect your privacy. No spam, just Afrikoni supplier updates.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+      </div>
+      </>
   );
 }
 

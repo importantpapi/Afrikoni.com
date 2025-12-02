@@ -31,8 +31,8 @@ export default function AIMatchmaking() {
       if (suppliersRes.error) throw suppliersRes.error;
       if (productsRes.error) throw productsRes.error;
 
-      const suppliers = suppliersRes.data || [];
-      const products = productsRes.data || [];
+      const suppliers = Array.isArray(suppliersRes.data) ? suppliersRes.data : [];
+      const products = Array.isArray(productsRes.data) ? productsRes.data : [];
 
       const result = await AIMatchingService.findMatchingSuppliers({
         requirements,
@@ -88,7 +88,7 @@ export default function AIMatchmaking() {
           <div>
             <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-4">Matched Suppliers</h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {matches.map((match, idx) => (
+              {Array.isArray(matches) && matches.map((match, idx) => (
                 <Card key={idx} className="border-afrikoni-gold/20">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4 mb-4">

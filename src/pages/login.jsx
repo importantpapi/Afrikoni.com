@@ -36,12 +36,14 @@ export default function Login() {
       toast.success('Logged in successfully!');
       
       // Check onboarding status and redirect accordingly
-      const { onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      const { onboardingCompleted, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!onboardingCompleted) {
         navigate('/onboarding');
       } else {
-      navigate('/dashboard');
+        const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
+        const dashboardPath = getDashboardPathForRole(role);
+        navigate(dashboardPath);
       }
     } catch (error) {
       // Error logged (removed for production)

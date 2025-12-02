@@ -41,13 +41,15 @@ export default function AddProduct() {
 
   const loadData = async () => {
     try {
-      const [userData, catsRes] = await Promise.all([
-        supabaseHelpers.auth.me(),
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const [userResult, catsRes] = await Promise.all([
+        getCurrentUserAndRole(supabase, supabaseHelpers),
         supabase.from('categories').select('*')
       ]);
 
       if (catsRes.error) throw catsRes.error;
 
+      const { user: userData } = userResult;
       setUser(userData);
       setCategories(catsRes.data || []);
 

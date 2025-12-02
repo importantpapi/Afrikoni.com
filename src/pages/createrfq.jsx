@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
+import { validateRFQForm } from '@/utils/validation';
 
 export default function CreateRFQ() {
   const [user, setUser] = useState(null);
@@ -38,10 +39,12 @@ export default function CreateRFQ() {
 
   const loadData = async () => {
     try {
-      const [userData, catsRes] = await Promise.all([
-        supabaseHelpers.auth.me(),
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const [userResult, catsRes] = await Promise.all([
+        getCurrentUserAndRole(supabase, supabaseHelpers),
         supabase.from('categories').select('*')
       ]);
+      const { user: userData } = userResult;
 
       if (catsRes.error) throw catsRes.error;
 
@@ -92,6 +95,9 @@ export default function CreateRFQ() {
       
       // Company is optional - create RFQ even without it
       // Security: Sanitize all text inputs, validate UUIDs
+      const quantity = parseFloat(formData.quantity) || 0;
+      const targetPrice = parseFloat(formData.target_price) || null;
+      
       const rfqData = {
         title: sanitizeString(formData.title),
         description: sanitizeString(formData.description),
@@ -153,7 +159,7 @@ export default function CreateRFQ() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 py-8">
+    <div className="min-h-screen bg-afrikoni-offwhite py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-2">Create Request for Quote</h1>

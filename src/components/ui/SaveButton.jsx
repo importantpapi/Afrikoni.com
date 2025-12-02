@@ -15,7 +15,8 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
 
   const checkSavedStatus = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         setIsSaved(false);
         return;

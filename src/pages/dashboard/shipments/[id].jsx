@@ -35,7 +35,7 @@ export default function ShipmentDetail() {
   const loadShipmentData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role } = await getCurrentUserAndRole();
+      const { user, profile, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         navigate('/login');
         return;

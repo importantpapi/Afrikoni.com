@@ -22,7 +22,8 @@ export default function Analytics() {
 
   const loadAnalytics = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
 
       const [ordersRes, productsRes, companiesRes, categoriesRes] = await Promise.all([
@@ -37,15 +38,20 @@ export default function Analytics() {
       if (companiesRes.error) throw companiesRes.error;
       if (categoriesRes.error) throw categoriesRes.error;
 
-      const totalRevenue = ordersRes.data
-        ?.filter(o => o.payment_status === 'paid')
-        .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0) || 0;
+      const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+      const products = Array.isArray(productsRes.data) ? productsRes.data : [];
+      const companies = Array.isArray(companiesRes.data) ? companiesRes.data : [];
+
+      const totalRevenue =
+        orders
+          .filter((o) => o?.payment_status === 'paid')
+          .reduce((sum, o) => sum + parseFloat(o?.total_amount || 0), 0) || 0;
 
       setStats({
         totalRevenue,
-        totalOrders: ordersRes.data?.length || 0,
-        totalProducts: productsRes.data?.length || 0,
-        totalCompanies: companiesRes.data?.length || 0
+        totalOrders: orders.length,
+        totalProducts: products.length,
+        totalCompanies: companies.length
       });
     } catch (error) {
       // Error logged (removed for production)
@@ -79,7 +85,7 @@ export default function Analytics() {
         </div>
 
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          {statCards.map((stat, idx) => {
+          {Array.isArray(statCards) && statCards.map((stat, idx) => {
             const Icon = stat.icon;
             return (
               <Card key={idx} className="border-afrikoni-gold/20">

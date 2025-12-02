@@ -71,7 +71,8 @@ export default function DashboardSettings() {
 
   const loadUserData = async () => {
     try {
-      const user = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         navigate('/login');
         return;
@@ -199,7 +200,8 @@ export default function DashboardSettings() {
 
     setIsSaving(true);
     try {
-      const user = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) return;
 
       const newApiKey = `afk_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
@@ -223,7 +225,8 @@ export default function DashboardSettings() {
   const handleSave = async (tab = 'profile') => {
     setIsSaving(true);
     try {
-      const user = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         toast.error('User not found');
         return;
@@ -301,29 +304,33 @@ export default function DashboardSettings() {
 
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-3">
+      <div className="space-y-6">
+        {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.3 }}
+          className="mb-8"
         >
-          <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Settings</h1>
-          <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Manage your account and preferences</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Settings</h1>
+          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Manage your account and preferences</p>
         </motion.div>
 
-        <Tabs defaultValue="profile" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="company">Company</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
+        {/* v2.5: Premium Tabs */}
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium grid grid-cols-2 md:grid-cols-4">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Profile</TabsTrigger>
+            <TabsTrigger value="company" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Company</TabsTrigger>
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Notifications</TabsTrigger>
+            <TabsTrigger value="security" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Security</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
-              <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-afrikoni-offwhite rounded-lg">
+            {/* v2.5: Premium Settings Cards */}
+            <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
+              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
+                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
                     <User className="w-5 h-5 text-afrikoni-gold" />
                   </div>
                   Personal Information
@@ -338,7 +345,7 @@ export default function DashboardSettings() {
                       <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-20 h-20 rounded-full bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/20">
-                        <User className="w-10 h-10 text-afrikoni-deep/50" />
+                        <User className="w-10 h-10 text-afrikoni-text-dark/50" />
                       </div>
                     )}
                     <div>
@@ -390,7 +397,7 @@ export default function DashboardSettings() {
                     disabled
                     className="bg-afrikoni-cream"
                   />
-                  <p className="text-xs text-afrikoni-deep/70 mt-1">Email cannot be changed</p>
+                  <p className="text-xs text-afrikoni-text-dark/70 mt-1">Email cannot be changed</p>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -444,9 +451,9 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Card className="shadow-afrikoni border-afrikoni-gold/20">
-              <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
-                <CardTitle className="flex items-center gap-3 text-xl">
+            <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
+              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
                   <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
                     <Building2 className="w-5 h-5 text-afrikoni-gold" />
                   </div>
@@ -564,9 +571,9 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
-              <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
-                <CardTitle className="flex items-center gap-3 text-xl">
+            <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
+              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
                   <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
                     <Bell className="w-5 h-5 text-afrikoni-gold" />
                   </div>
@@ -574,10 +581,10 @@ export default function DashboardSettings() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
+                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-afrikoni bg-afrikoni-ivory">
                   <div>
-                    <h4 className="font-semibold text-afrikoni-chestnut">Email Notifications</h4>
-                    <p className="text-sm text-afrikoni-deep/70">Receive notifications via email</p>
+                    <h4 className="font-semibold text-afrikoni-text-dark">Email Notifications</h4>
+                    <p className="text-sm text-afrikoni-text-dark/70">Receive notifications via email</p>
                   </div>
                   <Switch
                     checked={preferences.email_notifications}
@@ -586,8 +593,8 @@ export default function DashboardSettings() {
                 </div>
                 <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
-                    <h4 className="font-semibold text-afrikoni-chestnut">In-App Notifications</h4>
-                    <p className="text-sm text-afrikoni-deep/70">Show notifications in the dashboard</p>
+                    <h4 className="font-semibold text-afrikoni-text-dark">In-App Notifications</h4>
+                    <p className="text-sm text-afrikoni-text-dark/70">Show notifications in the dashboard</p>
                   </div>
                   <Switch
                     checked={preferences.in_app_notifications}
@@ -596,8 +603,8 @@ export default function DashboardSettings() {
                 </div>
                 <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
-                    <h4 className="font-semibold text-afrikoni-chestnut">Order Updates</h4>
-                    <p className="text-sm text-afrikoni-deep/70">Notify me when order status changes</p>
+                    <h4 className="font-semibold text-afrikoni-text-dark">Order Updates</h4>
+                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when order status changes</p>
                   </div>
                   <Switch
                     checked={preferences.order_updates}
@@ -606,8 +613,8 @@ export default function DashboardSettings() {
                 </div>
                 <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
-                    <h4 className="font-semibold text-afrikoni-chestnut">New Messages</h4>
-                    <p className="text-sm text-afrikoni-deep/70">Notify me when I receive messages</p>
+                    <h4 className="font-semibold text-afrikoni-text-dark">New Messages</h4>
+                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when I receive messages</p>
                   </div>
                   <Switch
                     checked={preferences.new_messages}
@@ -616,8 +623,8 @@ export default function DashboardSettings() {
                 </div>
                 <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                   <div>
-                    <h4 className="font-semibold text-afrikoni-chestnut">RFQ Responses</h4>
-                    <p className="text-sm text-afrikoni-deep/70">Notify me when I receive RFQ quotes</p>
+                    <h4 className="font-semibold text-afrikoni-text-dark">RFQ Responses</h4>
+                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when I receive RFQ quotes</p>
                   </div>
                   <Switch
                     checked={preferences.rfq_responses}
@@ -645,7 +652,7 @@ export default function DashboardSettings() {
               <CardContent className="pt-6 space-y-6">
                 {/* Change Password */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-afrikoni-chestnut">Change Password</h4>
+                  <h4 className="font-semibold text-afrikoni-text-dark">Change Password</h4>
                   <div className="space-y-3">
                 <div>
                       <Label htmlFor="currentPassword">Current Password</Label>
@@ -685,27 +692,27 @@ export default function DashboardSettings() {
                 </div>
 
                 <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <h4 className="font-semibold text-afrikoni-chestnut mb-4">Two-Factor Authentication</h4>
+                  <h4 className="font-semibold text-afrikoni-text-dark mb-4">Two-Factor Authentication</h4>
                   <div className="p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-cream">
-                    <p className="text-sm text-afrikoni-deep/70">
+                    <p className="text-sm text-afrikoni-text-dark/70">
                       Two-factor authentication will be available in a future update. This feature will add an extra layer of security to your account.
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <h4 className="font-semibold text-afrikoni-chestnut mb-4">Session Management</h4>
+                  <h4 className="font-semibold text-afrikoni-text-dark mb-4">Session Management</h4>
                   <Button onClick={handleLogoutAllDevices} variant="outline" className="w-full">
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout from All Devices
                   </Button>
-                  <p className="text-xs text-afrikoni-deep/70 mt-2">
+                  <p className="text-xs text-afrikoni-text-dark/70 mt-2">
                     This will sign you out from all devices and browsers
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <h4 className="font-semibold text-afrikoni-chestnut mb-4 flex items-center gap-2">
+                  <h4 className="font-semibold text-afrikoni-text-dark mb-4 flex items-center gap-2">
                     <Key className="w-5 h-5" />
                     API Key (for future integrations)
                   </h4>
@@ -725,8 +732,8 @@ export default function DashboardSettings() {
                       </Button>
                     </div>
                     <div className="p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
-                      <p className="text-xs text-afrikoni-chestnut font-semibold mb-1">⚠️ Keep this key secret</p>
-                      <p className="text-xs text-afrikoni-deep/70">
+                      <p className="text-xs text-afrikoni-text-dark font-semibold mb-1">⚠️ Keep this key secret</p>
+                      <p className="text-xs text-afrikoni-text-dark/70">
                         This API key provides full access to your marketplace data. Never share it publicly or commit it to version control.
                       </p>
                     </div>

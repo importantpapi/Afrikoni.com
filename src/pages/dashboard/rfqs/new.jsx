@@ -54,13 +54,14 @@ export default function CreateRFQ() {
 
   const loadData = async () => {
     try {
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'buyer';
+      const role = userRole || userData.role || userData.user_role || 'buyer';
       setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
       setUser(userData);
 

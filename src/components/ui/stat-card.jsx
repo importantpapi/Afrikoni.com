@@ -48,7 +48,8 @@ export function StatCard({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          const numericValue = parseFloat(value.toString().replace(/[^0-9.]/g, '')) || 0;
+          const rawString = (value ?? '0').toString();
+          const numericValue = parseFloat(rawString.replace(/[^0-9.]/g, '')) || 0;
           const duration = 2000;
           const startTime = Date.now();
 
@@ -58,11 +59,11 @@ export function StatCard({
             const easeOutQuart = 1 - Math.pow(1 - progress, 4);
             const current = numericValue * easeOutQuart;
 
-            if (value.includes('+')) {
+            if (rawString.includes('+')) {
               setDisplayValue(Math.floor(current).toLocaleString() + '+');
-            } else if (value.includes('$')) {
+            } else if (rawString.includes('$')) {
               setDisplayValue('$' + Math.floor(current).toLocaleString());
-            } else if (value.includes('%')) {
+            } else if (rawString.includes('%')) {
               setDisplayValue(Math.floor(current) + '%');
             } else {
               setDisplayValue(Math.floor(current).toLocaleString());

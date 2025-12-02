@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, Mail, Phone, ChevronDown, ChevronUp, Search, FileText } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SEO from '@/components/SEO';
 
 export default function Help() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,6 +49,12 @@ export default function Help() {
   ];
 
   return (
+    <>
+      <SEO
+        title="Help Center - Afrikoni Support"
+        description="Find answers to common questions or contact Afrikoni support. Learn how buying, selling, escrow and Afrikoni Shield™ protection work."
+        url="/help"
+      />
     <div className="min-h-screen bg-stone-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-12">
@@ -171,6 +178,7 @@ export default function Help() {
         </Tabs>
       </div>
     </div>
+    </>
   );
 }
 

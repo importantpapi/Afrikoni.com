@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
 import { validateProductForm } from '@/utils/validation';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -104,22 +106,26 @@ export default function ProductForm() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const userData = await supabaseHelpers.auth.me();
+      const { user: userData, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'seller';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+      const normalizedRole = getUserRole(profile || userData);
+      setCurrentRole(normalizedRole);
 
       // Allow all users to create products - no role restriction
       // Role is just for display purposes
 
-      // Get or create company (non-blocking - will create if needed)
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const userCompanyId = await getOrCreateCompany(supabase, userData);
-      setCompanyId(userCompanyId);
+      // Use companyId from getCurrentUserAndRole, or create if needed
+      if (!userCompanyId) {
+        const { getOrCreateCompany } = await import('@/utils/companyHelper');
+        const createdCompanyId = await getOrCreateCompany(supabase, userData);
+        setCompanyId(createdCompanyId);
+      } else {
+        setCompanyId(userCompanyId);
+      }
       
       // If no company exists, create a minimal one automatically
       if (!userCompanyId && userData.email) {
@@ -179,7 +185,7 @@ export default function ProductForm() {
           product_images(*)
         `)
         .eq('id', id)
-        .or(`supplier_id.eq.${userCompanyId},company_id.eq.${userCompanyId}`)
+        .eq('company_id', userCompanyId)
         .single();
 
       if (error) throw error;
@@ -365,8 +371,7 @@ export default function ProductForm() {
 
       // Prepare product data
       const productData = {
-        supplier_id: companyId,
-        company_id: companyId, // Keep for backward compatibility
+        company_id: companyId,
         title: sanitizeString(formData.title),
         short_description: sanitizeString(formData.short_description),
         description: sanitizeString(formData.description),

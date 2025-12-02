@@ -105,10 +105,102 @@ export default function MessagesPremium() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Real-time subscription for new messages - creates notifications automatically
+  useEffect(() => {
+    if (!companyId) return;
+
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_company_id=eq.${companyId}`
+        },
+        async (payload) => {
+          const newMessage = payload.new;
+          
+          // If this message is for the currently selected conversation, add it to the UI
+          if (newMessage.conversation_id === selectedConversation) {
+            setMessages(prev => [...prev, newMessage]);
+          }
+
+          // Always create notification for new messages (even if user is viewing the conversation)
+          // This ensures notifications are created even if the message was sent while user was offline
+          try {
+            await notifyNewMessage(
+              newMessage.id,
+              newMessage.conversation_id,
+              newMessage.receiver_company_id,
+              newMessage.sender_company_id
+            );
+          } catch (error) {
+            // Silently fail - notification might already exist or there's a duplicate
+          }
+
+          // Refresh conversations to update unread counts
+          loadUserAndConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [companyId, selectedConversation]);
+
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!companyId) return;
+
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_company_id=eq.${companyId}`
+        },
+        async (payload) => {
+          const newMessage = payload.new;
+          
+          // If this message is for the currently selected conversation, add it
+          if (newMessage.conversation_id === selectedConversation) {
+            setMessages(prev => [...prev, newMessage]);
+          }
+
+          // Always create notification for new messages
+          try {
+            await notifyNewMessage(
+              newMessage.id,
+              newMessage.conversation_id,
+              newMessage.receiver_company_id,
+              newMessage.sender_company_id
+            );
+          } catch (error) {
+            // Silently fail - notification might already exist
+          }
+
+          // Refresh conversations to update unread counts
+          loadUserAndConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [companyId, selectedConversation]);
+
   const loadUserAndConversations = async () => {
     try {
       setIsLoading(true);
-      const userData = await supabaseHelpers.auth.me();
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;
@@ -309,13 +401,13 @@ export default function MessagesPremium() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-6 h-[calc(100vh-180px)] md:h-[calc(100vh-200px)]">
           {/* Conversations List */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className="lg:col-span-1"
+            className={`${selectedConversation ? 'hidden lg:block' : 'lg:col-span-1'} lg:col-span-1`}
           >
             <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md">
               {/* Search */}
@@ -340,7 +432,7 @@ export default function MessagesPremium() {
                     <p className="text-xs mt-2">Start a conversation from a product, RFQ, or order</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-zinc-100">
+                  <div className="divide-y divide-afrikoni-gold/10">
                     <AnimatePresence>
                       {filteredConversations.map((conv, idx) => {
                         const isSelected = selectedConversation === conv.id;
@@ -376,8 +468,8 @@ export default function MessagesPremium() {
                                   )}
                                 </div>
                                 {conv.verified && (
-                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-600 rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
-                                    <Verified className="w-2.5 h-2.5 text-afrikoni-cream" />
+                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
+                                    <Verified className="w-2.5 h-2.5 text-afrikoni-chestnut" />
                                   </div>
                                 )}
                               </div>
@@ -434,15 +526,21 @@ export default function MessagesPremium() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className="lg:col-span-2"
+            className={`${selectedConversation ? 'lg:col-span-2' : 'hidden lg:block lg:col-span-2'} lg:col-span-2`}
           >
             <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md">
               {selectedConversation && selectedConv ? (
                 <>
                   {/* Chat Header */}
-                  <div className="p-4 border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                  <div className="p-3 md:p-4 border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                        <button
+                          onClick={() => setSelectedConversation(null)}
+                          className="lg:hidden mr-2 p-1 hover:bg-afrikoni-gold/10 rounded"
+                        >
+                          ←
+                        </button>
                         <div className="relative">
                           <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
                             {selectedConv.otherCompany?.logo_url ? (
@@ -456,46 +554,46 @@ export default function MessagesPremium() {
                             )}
                           </div>
                           {selectedConv.verified && (
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-600 rounded-full flex items-center justify-center border-2 border-white">
-                              <Verified className="w-2.5 h-2.5 text-afrikoni-cream" />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
+                              <Verified className="w-2.5 h-2.5 text-afrikoni-chestnut" />
                             </div>
                           )}
                         </div>
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-afrikoni-chestnut">
+                            <h3 className="font-semibold text-afrikoni-chestnut truncate text-sm md:text-base">
                               {selectedConv.otherCompany?.company_name || 'Unknown Company'}
                             </h3>
                             {selectedConv.verified && (
-                              <Badge variant="verified" className="text-xs">Verified</Badge>
+                              <Badge variant="verified" className="text-xs flex-shrink-0">Verified</Badge>
                             )}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-afrikoni-deep">
-                            <span className="capitalize">{selectedConv.role || ''}</span>
+                            <span className="capitalize truncate">{selectedConv.role || ''}</span>
                             {selectedConv.country && (
                               <>
-                                <span>•</span>
-                                <div className="flex items-center gap-1">
+                                <span className="hidden sm:inline">•</span>
+                                <div className="flex items-center gap-1 flex-shrink-0">
                                   <MapPin className="w-3 h-3" />
-                                  <span>{selectedConv.country}</span>
+                                  <span className="hidden sm:inline">{selectedConv.country}</span>
                                 </div>
                               </>
                             )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
                         <Tooltip content="Voice Call">
-                          <Button variant="ghost" size="sm" className="p-2">
+                          <Button variant="ghost" size="sm" className="p-1.5 md:p-2 hidden sm:flex">
                             <Phone className="w-4 h-4" />
                           </Button>
                         </Tooltip>
                         <Tooltip content="Video Call">
-                          <Button variant="ghost" size="sm" className="p-2">
+                          <Button variant="ghost" size="sm" className="p-1.5 md:p-2 hidden sm:flex">
                             <Video className="w-4 h-4" />
                           </Button>
                         </Tooltip>
-                        <Button variant="ghost" size="sm" className="p-2">
+                        <Button variant="ghost" size="sm" className="p-1.5 md:p-2">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </div>
@@ -503,19 +601,19 @@ export default function MessagesPremium() {
                   </div>
 
                   {/* Protection Banner */}
-                  <div className="px-4 py-2 bg-blue-50 border-b border-blue-100">
-                    <div className="flex items-center gap-2 text-xs text-blue-900">
-                      <Shield className="w-4 h-4 text-blue-600" />
+                  <div className="px-4 py-2 bg-afrikoni-gold/10 border-b border-afrikoni-gold/20">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-afrikoni-chestnut">
+                      <Shield className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
                       <span className="font-semibold">Protected by Afrikoni Trade Protection</span>
-                      <span className="text-blue-700">•</span>
-                      <span className="text-blue-700">Do not send money outside the platform</span>
+                      <span className="hidden sm:inline text-afrikoni-deep/70">•</span>
+                      <span className="text-afrikoni-deep/70">Do not send money outside the platform</span>
                     </div>
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-afrikoni-offwhite">
+                  <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-afrikoni-offwhite">
                     <AnimatePresence>
-                      {messages.map((msg, idx) => {
+                      {Array.isArray(messages) && messages.map((msg, idx) => {
                         const isMine = msg.sender_company_id === companyId;
                         const showAvatar = idx === 0 || messages[idx - 1].sender_company_id !== msg.sender_company_id;
                         
@@ -533,7 +631,7 @@ export default function MessagesPremium() {
                               </div>
                             )}
                             {!isMine && !showAvatar && <div className="w-8" />}
-                            <div className={`flex flex-col max-w-[70%] ${isMine ? 'items-end' : 'items-start'}`}>
+                            <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] ${isMine ? 'items-end' : 'items-start'}`}>
                               {showAvatar && !isMine && (
                                 <span className="text-xs text-afrikoni-deep/70 mb-1 px-2">
                                   {selectedConv.otherCompany?.company_name || 'Supplier'}
@@ -574,7 +672,7 @@ export default function MessagesPremium() {
                   </div>
 
                   {/* Message Input */}
-                  <div className="p-4 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                  <div className="p-3 md:p-4 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
                     <div className="flex items-end gap-2">
                       <input
                         type="file"
@@ -584,7 +682,7 @@ export default function MessagesPremium() {
                       />
                       <Tooltip content="Attach File">
                         <label htmlFor="file-upload">
-                          <Button variant="ghost" size="sm" className="p-2 flex-shrink-0 cursor-pointer" asChild>
+                          <Button variant="ghost" size="sm" className="p-1.5 md:p-2 flex-shrink-0 cursor-pointer" asChild>
                             <span>
                               <Paperclip className="w-4 h-4" />
                             </span>
@@ -592,8 +690,8 @@ export default function MessagesPremium() {
                         </label>
                       </Tooltip>
                       {attachment && (
-                        <div className="text-xs text-afrikoni-deep/70 flex items-center gap-2">
-                          <span>File attached</span>
+                        <div className="text-xs text-afrikoni-deep/70 flex items-center gap-2 flex-shrink-0">
+                          <span className="hidden sm:inline">File attached</span>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -604,28 +702,28 @@ export default function MessagesPremium() {
                           </Button>
                         </div>
                       )}
-                      <div className="flex-1 relative">
+                      <div className="flex-1 relative min-w-0">
                         <Input
                           ref={inputRef}
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
                           onKeyPress={handleKeyPress}
                           placeholder="Type a message..."
-                          className="pr-12"
+                          className="pr-10 md:pr-12 text-sm"
                         />
                       </div>
                       <Button
                         variant="primary"
                         size="sm"
                         onClick={handleSendMessage}
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() && !attachment}
                         className="flex-shrink-0"
                       >
-                        <Send className="w-4 h-4 mr-2" />
-                        Send
+                        <Send className="w-4 h-4 md:mr-2" />
+                        <span className="hidden md:inline">Send</span>
                       </Button>
                     </div>
-                    <p className="text-xs text-afrikoni-deep/70 mt-2 text-center">
+                    <p className="text-xs text-afrikoni-deep/70 mt-2 text-center hidden sm:block">
                       Press Enter to send • Shift+Enter for new line
                     </p>
                   </div>

@@ -14,6 +14,9 @@ import { supabase } from '@/api/supabaseClient';
 import SEO from '@/components/SEO';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import EmptyState from '@/components/ui/EmptyState';
+import AISummaryBox from '@/components/ai/AISummaryBox';
+import AICopilotButton from '@/components/ai/AICopilotButton';
+import { summarizeRFQ } from '@/ai/aiFunctions';
 
 export default function RFQMarketplace() {
   const { trackPageView } = useAnalytics();
@@ -26,6 +29,8 @@ export default function RFQMarketplace() {
   const [sortBy, setSortBy] = useState('-created_at');
   const [categories, setCategories] = useState([]);
   const [pagination, setPagination] = useState(createPaginationState());
+  const [aiSummaries, setAiSummaries] = useState({});
+  const [aiLoadingId, setAiLoadingId] = useState(null);
 
   useEffect(() => {
     trackPageView('RFQ Marketplace');
@@ -82,10 +87,12 @@ export default function RFQMarketplace() {
           .select('rfq_id')
           .in('rfq_id', rfqIds);
         
-        quotesCountMap = (quotesData || []).reduce((acc, quote) => {
-          acc[quote.rfq_id] = (acc[quote.rfq_id] || 0) + 1;
+        quotesCountMap = Array.isArray(quotesData) ? quotesData.reduce((acc, quote) => {
+          if (quote && quote.rfq_id) {
+            acc[quote.rfq_id] = (acc[quote.rfq_id] || 0) + 1;
+          }
           return acc;
-        }, {});
+        }, {}) : {};
         
         // Get average quote price
         const { data: quotesWithPrice } = await supabase
@@ -97,14 +104,19 @@ export default function RFQMarketplace() {
         const priceSumMap = {};
         const priceCountMap = {};
         
-        quotesWithPrice?.forEach(quote => {
-          if (!priceSumMap[quote.rfq_id]) {
-            priceSumMap[quote.rfq_id] = 0;
-            priceCountMap[quote.rfq_id] = 0;
-          }
-          priceSumMap[quote.rfq_id] += parseFloat(quote.price || 0);
-          priceCountMap[quote.rfq_id] += 1;
-        });
+        if (Array.isArray(quotesWithPrice)) {
+          quotesWithPrice.forEach(quote => {
+            const rfqId = quote?.rfq_id;
+            if (rfqId) {
+              if (!priceSumMap[rfqId]) {
+                priceSumMap[rfqId] = 0;
+                priceCountMap[rfqId] = 0;
+              }
+              priceSumMap[rfqId] += parseFloat(quote?.price || 0);
+              priceCountMap[rfqId] += 1;
+            }
+          });
+        }
         
         Object.keys(priceSumMap).forEach(rfqId => {
           if (priceCountMap[rfqId] > 0) {
@@ -113,7 +125,8 @@ export default function RFQMarketplace() {
         });
       }
       
-      const enrichedRfqs = (rfqsRes.data || []).map(rfq => {
+      const enrichedRfqs = Array.isArray(rfqsRes.data) ? rfqsRes.data.map(rfq => {
+        if (!rfq) return null;
         const quoteCount = quotesCountMap[rfq.id] || 0;
         return {
           ...rfq,
@@ -122,7 +135,7 @@ export default function RFQMarketplace() {
           competition_level: quoteCount < 3 ? 'Low' : quoteCount < 10 ? 'Medium' : 'High',
           timeRemaining: getTimeRemaining(rfq.delivery_deadline || rfq.expires_at)
         };
-      });
+      }).filter(Boolean) : [];
       
       setRfqs(enrichedRfqs);
       setCategories(catsRes.data || []);
@@ -134,19 +147,20 @@ export default function RFQMarketplace() {
     }
   };
 
-  const filteredRFQs = rfqs.filter(rfq => {
-    if (searchQuery && !rfq.title?.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !rfq.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
+  const filteredRFQs = Array.isArray(rfqs) ? rfqs.filter(rfq => {
+    if (!rfq) return false;
+    if (searchQuery && !rfq?.title?.toLowerCase().includes(searchQuery.toLowerCase()) && 
+        !rfq?.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    if (categoryFilter !== 'all' && rfq.category_id !== categoryFilter) {
+    if (categoryFilter !== 'all' && rfq?.category_id !== categoryFilter) {
       return false;
     }
-    if (statusFilter !== 'all' && rfq.status !== statusFilter) {
+    if (statusFilter !== 'all' && rfq?.status !== statusFilter) {
       return false;
     }
     return true;
-  });
+  }) : [];
 
   const getStatusBadge = (status) => {
     const variants = {
@@ -178,7 +192,7 @@ export default function RFQMarketplace() {
                   Browse active requests for quotations from buyers across Africa
                 </p>
               </div>
-              <Link to="/rfq/create">
+              <Link to="/dashboard/rfqs/new">
                 <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
                   <FileText className="w-4 h-4 mr-2" />
                   Post an RFQ
@@ -203,8 +217,8 @@ export default function RFQMarketplace() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  {Array.isArray(categories) && categories.map(cat => (
+                    <SelectItem key={cat?.id || cat} value={cat?.id || cat}>{cat?.name || cat}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -254,7 +268,7 @@ export default function RFQMarketplace() {
               title="No RFQs found"
               description="Try adjusting your search or filters"
               cta="Post an RFQ"
-              ctaLink="/rfq/create"
+              ctaLink="/dashboard/rfqs/new"
             />
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
@@ -277,11 +291,11 @@ export default function RFQMarketplace() {
                         </div>
                       </div>
                       {/* Buyer Info */}
-                      {rfq.companies && (
+                      {rfq?.companies && (
                         <div className="flex items-center gap-2 mb-2">
                           <MapPin className="w-4 h-4 text-afrikoni-deep/70" />
-                          <span className="text-sm text-afrikoni-deep">{rfq.companies.country}</span>
-                          {rfq.companies.verified && (
+                          <span className="text-sm text-afrikoni-deep">{rfq.companies?.country || 'N/A'}</span>
+                          {rfq.companies?.verified && (
                             <Badge variant="verified" className="text-xs">Verified Buyer</Badge>
                           )}
                         </div>
@@ -299,43 +313,85 @@ export default function RFQMarketplace() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-afrikoni-deep line-clamp-3">{rfq.description}</p>
+
+                      <div className="flex items-center justify-between">
+                        <AICopilotButton
+                          label="Why this RFQ matters"
+                          size="xs"
+                          loading={aiLoadingId === rfq.id}
+                          onClick={async () => {
+                            if (!rfq?.id || aiSummaries[rfq.id]?.explanation) return;
+                            setAiLoadingId(rfq.id);
+                            try {
+                              const result = await summarizeRFQ(rfq);
+                              if (result?.success && result.data) {
+                                setAiSummaries(prev => ({
+                                  ...prev,
+                                  [rfq.id]: result.data
+                                }));
+                              }
+                            } catch {
+                              // silent; aiClient handles global failure
+                            } finally {
+                              setAiLoadingId(null);
+                            }
+                          }}
+                        />
+                        {aiSummaries[rfq.id]?.suggested_price_min != null && (
+                          <span className="text-[11px] text-afrikoni-deep/80">
+                            Suggested range:{' '}
+                            <span className="font-semibold">
+                              $
+                              {aiSummaries[rfq.id].suggested_price_min.toLocaleString()} – $
+                              {aiSummaries[rfq.id].suggested_price_max?.toLocaleString?.() ||
+                                aiSummaries[rfq.id].suggested_price_min.toLocaleString()}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+
+                      {aiSummaries[rfq.id]?.explanation && (
+                        <AISummaryBox title="AI insight">
+                          {aiSummaries[rfq.id].explanation}
+                        </AISummaryBox>
+                      )}
                       
                       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-afrikoni-gold/20">
                         <div>
                           <p className="text-xs text-afrikoni-deep/70 mb-1">Quantity</p>
                           <p className="font-semibold text-afrikoni-chestnut">
-                            {rfq.quantity} {rfq.unit || 'pieces'}
+                            {rfq?.quantity ?? 0} {rfq?.unit || 'pieces'}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-afrikoni-deep/70 mb-1">Target Price</p>
                           <p className="font-semibold text-afrikoni-chestnut">
-                            {rfq.target_price ? `$${rfq.target_price}` : 'Negotiable'}
+                            {rfq?.target_price ? `$${parseFloat(rfq.target_price).toLocaleString()}` : 'Negotiable'}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-afrikoni-deep/70 mb-1">Deadline</p>
                           <p className="font-semibold text-afrikoni-chestnut">
-                            {rfq.timeRemaining ? (
+                            {rfq?.timeRemaining ? (
                               <span className={rfq.timeRemaining.urgent ? 'text-red-600' : ''}>
                                 {rfq.timeRemaining.text}
                               </span>
                             ) : (
-                              rfq.delivery_deadline ? new Date(rfq.delivery_deadline).toLocaleDateString() : 'Flexible'
+                              rfq?.delivery_deadline || rfq?.expires_at ? new Date(rfq.delivery_deadline || rfq.expires_at).toLocaleDateString() : 'Flexible'
                             )}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-afrikoni-deep/70 mb-1">Responses</p>
                           <p className="font-semibold text-afrikoni-chestnut">
-                            {rfq.quote_count || 0} quotes
-                            {rfq.avg_quote_price && (
+                            {rfq?.quote_count ?? 0} quotes
+                            {rfq?.avg_quote_price && typeof rfq.avg_quote_price === 'number' && (
                               <span className="text-xs text-afrikoni-deep/70 block mt-1">
                                 Avg: ${rfq.avg_quote_price.toFixed(2)}
                               </span>
                             )}
                           </p>
-                          {rfq.competition_level && (
+                          {rfq?.competition_level && (
                             <Badge 
                               variant={rfq.competition_level === 'Low' ? 'default' : rfq.competition_level === 'Medium' ? 'secondary' : 'destructive'} 
                               className="text-xs mt-1"

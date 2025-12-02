@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,17 +46,14 @@ export default function RFQDetail() {
   const loadRFQData = async () => {
     try {
       setIsLoading(true);
-      const userData = await supabaseHelpers.auth.me();
+      const { user: userData, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;
       }
 
-      const role = userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
-
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const userCompanyId = await getOrCreateCompany(supabase, userData);
+      const normalizedRole = getUserRole(profile || userData);
+      setCurrentRole(normalizedRole);
       setCompanyId(userCompanyId);
 
       // Load RFQ with related data
@@ -96,7 +95,7 @@ export default function RFQDetail() {
         .eq('rfq_id', id)
         .order('created_at', { ascending: false });
 
-      setQuotes(quotesData || []);
+      setQuotes(Array.isArray(quotesData) ? quotesData : []);
 
     } catch (error) {
       toast.error('Failed to load RFQ details');
@@ -485,7 +484,7 @@ export default function RFQDetail() {
                   <EmptyState type="quotes" title="No quotes yet" description="Be the first to submit a quote" />
                 ) : (
                   <div className="space-y-4">
-                    {quotes.map((quote) => (
+                    {Array.isArray(quotes) && quotes.map((quote) => (
                       <div key={quote.id} className="p-4 border border-afrikoni-gold/20 rounded-lg">
                         <div className="flex items-start justify-between mb-3">
                           <div>
