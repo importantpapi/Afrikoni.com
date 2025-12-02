@@ -21,6 +21,7 @@ import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { isValidUUID } from '@/utils/security';
+import ShippingCalculator from '@/components/shipping/ShippingCalculator';
 
 export default function ProductDetail() {
   const [product, setProduct] = useState(null);
@@ -577,6 +578,13 @@ export default function ProductDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Shipping Calculator */}
+            <ShippingCalculator
+              compact={true}
+              defaultOrigin={product.country_of_origin || supplier?.country || ''}
+              defaultWeight={product.supply_ability_qty ? `${product.supply_ability_qty}` : ''}
+            />
 
             {supplier && (
               <Card className="border-afrikoni-gold/20">

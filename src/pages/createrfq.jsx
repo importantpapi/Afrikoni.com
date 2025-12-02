@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
 import { validateRFQForm } from '@/utils/validation';
+import ShippingCalculator from '@/components/shipping/ShippingCalculator';
 
 export default function CreateRFQ() {
   const [user, setUser] = useState(null);
@@ -276,6 +277,20 @@ export default function CreateRFQ() {
                     />
                   </PopoverContent>
                 </Popover>
+              </div>
+              
+              {/* Shipping Calculator */}
+              <div className="pt-4 border-t border-afrikoni-gold/20">
+                <ShippingCalculator
+                  compact={true}
+                  defaultWeight={formData.quantity || ''}
+                  onCalculate={(result) => {
+                    // Store shipping estimate in form data if needed
+                    if (result?.results?.[0]) {
+                      toast.success(`Estimated shipping: $${result.results[0].cost} via ${result.results[0].name}`);
+                    }
+                  }}
+                />
               </div>
             </div>
             <div>
