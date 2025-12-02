@@ -116,6 +116,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     ],
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/admin' },
+      { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true }
     ]
   };

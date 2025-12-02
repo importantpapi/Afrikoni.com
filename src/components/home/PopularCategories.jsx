@@ -365,7 +365,7 @@ export default function PopularCategories({ categories = [] }) {
               {popularCategories.map((category, idx) => {
                 const Icon = category.icon;
                 return (
-                  <div key={idx} className="min-w-full px-2">
+                  <div key={idx} className="w-full px-2">
                     <Link to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}>
                       <motion.div
                         whileHover={{ scale: 1.01 }}

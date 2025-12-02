@@ -40,6 +40,7 @@ const CrisisManagement = lazy(() => import('./pages/dashboard/crisis'));
 const AuditLogs = lazy(() => import('./pages/dashboard/audit'));
 const AdminDashboard = lazy(() => import('./pages/admindashboard'));
 const AdminUsers = lazy(() => import('./pages/dashboard/admin/users'));
+const AdminReview = lazy(() => import('./pages/dashboard/admin/review'));
 
 // Lazy-loaded heavy routes - Marketplace
 const Products = lazy(() => import('./pages/products'));
@@ -78,6 +79,20 @@ const BuyerHub = lazy(() => import('./pages/buyer-hub'));
 const SupplierHub = lazy(() => import('./pages/supplier-hub'));
 const Logistics = lazy(() => import('./pages/logistics'));
 const Countries = lazy(() => import('./pages/countries'));
+const Trending = lazy(() => import('./pages/trending'));
+const TradeShield = lazy(() => import('./pages/protection'));
+const InspectionServices = lazy(() => import('./pages/inspection'));
+const Pricing = lazy(() => import('./pages/pricing'));
+const AntiFraud = lazy(() => import('./pages/anti-fraud'));
+const Disputes = lazy(() => import('./pages/disputes'));
+const BecomeSupplier = lazy(() => import('./pages/become-supplier'));
+const Terms = lazy(() => import('./pages/terms'));
+const Privacy = lazy(() => import('./pages/privacy'));
+const Cookies = lazy(() => import('./pages/cookies'));
+const SellerAgreement = lazy(() => import('./pages/seller-agreement'));
+const BuyerProtectionPolicy = lazy(() => import('./pages/buyer-protection'));
+const AntiCorruptionPolicy = lazy(() => import('./pages/anti-corruption-policy'));
+const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 
 function App() {
   return (
@@ -105,6 +120,7 @@ function App() {
             <Route path="/rfq-management" element={<ProtectedRoute><RFQManagement /></ProtectedRoute>} />
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/supplier" element={<SupplierProfile />} />
+            <Route path="/become-supplier" element={<BecomeSupplier />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/countries" element={<Countries />} />
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
@@ -117,6 +133,7 @@ function App() {
             <Route path="/dashboard/hybrid" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/review" element={<ProtectedRoute><AdminReview /></ProtectedRoute>} />
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
@@ -154,6 +171,12 @@ function App() {
             <Route path="/supplier-hub" element={<SupplierHub />} />
             <Route path="/order-protection" element={<OrderProtection />} />
             <Route path="/logistics" element={<Logistics />} />
+            <Route path="/trending" element={<Trending />} />
+            <Route path="/protection" element={<TradeShield />} />
+            <Route path="/inspection" element={<InspectionServices />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/anti-fraud" element={<AntiFraud />} />
+            <Route path="/disputes" element={<Disputes />} />
             <Route path="/help" element={<Help />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/investors" element={<Investors />} />
@@ -164,6 +187,14 @@ function App() {
             <Route path="/resources/escrow-vs-advance-payments-in-african-trade" element={<EscrowVsAdvancePaymentsInAfricanTrade />} />
             <Route path="/seller-growth" element={<SellerGrowth />} />
             <Route path="/seller-onboarding" element={<SellerOnboarding />} />
+            {/* Legal & Policies */}
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/cookies" element={<Cookies />} />
+            <Route path="/seller-agreement" element={<SellerAgreement />} />
+            <Route path="/buyer-protection" element={<BuyerProtectionPolicy />} />
+            <Route path="/anti-corruption-policy" element={<AntiCorruptionPolicy />} />
+            <Route path="/escrow-policy" element={<EscrowPolicy />} />
           </Routes>
         </Suspense>
       </Layout>

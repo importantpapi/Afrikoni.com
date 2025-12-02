@@ -28,6 +28,7 @@ export default function OrderDetail() {
   const [buyerCompany, setBuyerCompany] = useState(null);
   const [sellerCompany, setSellerCompany] = useState(null);
   const [shipment, setShipment] = useState(null);
+  const [walletEvents, setWalletEvents] = useState([]);
   const [timeline, setTimeline] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -86,6 +87,14 @@ export default function OrderDetail() {
         .maybeSingle();
 
       setShipment(shipmentData);
+
+      // Load wallet / escrow events
+      const { data: walletData } = await supabase
+        .from('wallet_transactions')
+        .select('*')
+        .eq('order_id', id)
+        .order('created_at', { ascending: true });
+      setWalletEvents(walletData || []);
 
       // Build timeline using helper
       const timelineData = buildOrderTimeline(orderData, shipmentData);
@@ -165,10 +174,102 @@ export default function OrderDetail() {
 
       if (error) throw error;
 
+      // Record escrow release when payment marked as paid
+      if (newPaymentStatus === 'paid') {
+        try {
+          await supabase.from('wallet_transactions').insert({
+            order_id: id,
+            company_id: order.seller_company_id,
+            rfq_id: order.rfq_id,
+            type: 'escrow_release',
+            amount: order.total_amount,
+            currency: order.currency || 'USD',
+            status: 'completed',
+            description: `Escrow released for order ${id}`
+          });
+        } catch {
+          // ignore non‑critical failures
+        }
+      }
+
       toast.success('Payment status updated');
       loadOrderData();
     } catch (error) {
       toast.error('Failed to update payment status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const shipmentStatuses = [
+    'pending',
+    'picked_up',
+    'in_transit',
+    'out_for_delivery',
+    'delivered',
+    'cancelled'
+  ];
+
+  const canManageShipment =
+    (currentRole === 'seller' || currentRole === 'hybrid' || currentRole === 'logistics') &&
+    !!order;
+
+  const handleCreateShipment = async () => {
+    if (!order || !canManageShipment) return;
+    setIsUpdating(true);
+    try {
+      const origin =
+        sellerCompany?.address ||
+        [sellerCompany?.city, sellerCompany?.country].filter(Boolean).join(', ');
+      const destination =
+        buyerCompany?.address ||
+        [buyerCompany?.city, buyerCompany?.country].filter(Boolean).join(', ');
+
+      const { data, error } = await supabase
+        .from('shipments')
+        .insert({
+          order_id: order.id,
+          logistics_partner_id: order.seller_company_id,
+          tracking_number: `AFK-${order.id.slice(0, 8).toUpperCase()}`,
+          status: 'in_transit',
+          origin_address: origin || null,
+          destination_address: destination || null,
+          carrier: 'Afrikoni Logistics',
+          currency: order.currency || 'USD'
+        })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      setShipment(data);
+      toast.success('Shipment created');
+      loadOrderData();
+    } catch {
+      toast.error('Failed to create shipment');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleShipmentStatusUpdate = async (newStatus) => {
+    if (!shipment || !canManageShipment) return;
+    setIsUpdating(true);
+    try {
+      const { data, error } = await supabase
+        .from('shipments')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', shipment.id)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      setShipment(data);
+      toast.success('Shipment status updated');
+    } catch {
+      toast.error('Failed to update shipment status');
     } finally {
       setIsUpdating(false);
     }
@@ -274,39 +375,131 @@ export default function OrderDetail() {
             )}
 
             {/* Shipment Info */}
-            {shipment && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Shipment Information</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader className="flex items-center justify-between">
+                <CardTitle>Shipment Information</CardTitle>
+                {canManageShipment && !shipment && (
+                  <Button
+                    size="sm"
+                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                    onClick={handleCreateShipment}
+                    disabled={isUpdating}
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    Create Shipment
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {shipment ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-afrikoni-deep">Tracking Number</span>
-                      <span className="font-mono font-medium">{shipment.tracking_number || 'N/A'}</span>
+                      <span className="font-mono font-medium">
+                        {shipment.tracking_number || 'N/A'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-afrikoni-deep">Status</span>
-                      <Badge variant="outline">{shipment.status}</Badge>
+                      <Badge variant="outline" className="capitalize">
+                        {shipment.status}
+                      </Badge>
                     </div>
                     {shipment.origin_address && (
                       <div>
                         <span className="text-sm text-afrikoni-deep">Origin</span>
-                        <p className="text-sm text-afrikoni-deep/70">{shipment.origin_address}</p>
+                        <p className="text-sm text-afrikoni-deep/70">
+                          {shipment.origin_address}
+                        </p>
                       </div>
                     )}
                     {shipment.destination_address && (
                       <div>
                         <span className="text-sm text-afrikoni-deep">Destination</span>
-                        <p className="text-sm text-afrikoni-deep/70">{shipment.destination_address}</p>
+                        <p className="text-sm text-afrikoni-deep/70">
+                          {shipment.destination_address}
+                        </p>
                       </div>
                     )}
                     {shipment.estimated_delivery && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-afrikoni-deep">Estimated Delivery</span>
-                        <span className="text-sm">{format(new Date(shipment.estimated_delivery), 'MMM d, yyyy')}</span>
+                        <span className="text-sm">
+                          {format(
+                            new Date(shipment.estimated_delivery),
+                            'MMM d, yyyy'
+                          )}
+                        </span>
                       </div>
                     )}
+
+                    {canManageShipment && (
+                      <div className="pt-2">
+                        <span className="text-xs text-afrikoni-deep/70 block mb-1">
+                          Update shipment status
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {shipmentStatuses.map((status) => (
+                            <Button
+                              key={status}
+                              size="xs"
+                              variant={
+                                shipment.status === status ? 'default' : 'outline'
+                              }
+                              className={`text-[11px] capitalize ${
+                                shipment.status === status
+                                  ? 'bg-afrikoni-gold text-afrikoni-charcoal'
+                                  : 'border-afrikoni-gold/40 text-afrikoni-deep'
+                              }`}
+                              onClick={() => handleShipmentStatusUpdate(status)}
+                              disabled={isUpdating || shipment.status === status}
+                            >
+                              {status.replace(/_/g, ' ')}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-afrikoni-deep/70">
+                    No shipment has been created yet for this order.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Escrow / Wallet Timeline */}
+            {Array.isArray(walletEvents) && walletEvents.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payment &amp; Escrow Events</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    {walletEvents.map((evt) => (
+                      <div
+                        key={evt.id}
+                        className="flex items-center justify-between border-b border-afrikoni-gold/10 py-1 last:border-b-0"
+                      >
+                        <div>
+                          <div className="font-medium text-afrikoni-deep">
+                            {evt.type.replace('_', ' ')}
+                          </div>
+                          <div className="text-[11px] text-afrikoni-deep/70">
+                            {evt.description || 'Wallet transaction'}
+                          </div>
+                        </div>
+                        <div className="text-right text-xs">
+                          <div className="font-semibold">
+                            {evt.currency || 'USD'} {parseFloat(evt.amount || 0).toLocaleString()}
+                          </div>
+                          <div className="text-[11px] text-afrikoni-deep/70">
+                            {evt.created_at ? format(new Date(evt.created_at), 'MMM d, HH:mm') : ''}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global overflow protection to avoid horizontal scroll / white space */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Safety: prevent any child from exceeding viewport width */
+* {
+  max-width: 100%;
+}
+
+/* Navbar horizontal scroll without visible scrollbar (if ever needed) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* AFRIKONI BRAND CSS VARIABLES */
 :root {
   /* Brown Palette */

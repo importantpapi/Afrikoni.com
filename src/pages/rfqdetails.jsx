@@ -156,43 +156,78 @@ export default function RFQDetail() {
     
     try {
       await Promise.all([
-        supabase.from('rfqs').update({ status: 'awarded', awarded_to: supplierCompanyId }).eq('id', rfq.id),
-        supabase.from('quotes').update({ status: 'accepted' }).eq('id', quoteId)
+        supabase
+          .from('rfqs')
+          .update({ status: 'awarded', awarded_to: supplierCompanyId })
+          .eq('id', rfq.id),
+        supabase
+          .from('quotes')
+          .update({ status: 'accepted' })
+          .eq('id', quoteId)
       ]);
 
       const quote = quotes.find(q => q.id === quoteId);
-      const { data: newOrder, error: orderError } = await supabase.from('orders').insert({
-        buyer_company_id: rfq.buyer_company_id,
-        seller_company_id: supplierCompanyId,
-        rfq_id: rfq.id,
-        quote_id: quoteId,
-        quantity: rfq.quantity,
-        unit_price: quote.price_per_unit,
-        total_amount: quote.total_price,
-        currency: quote.currency,
-        status: 'pending',
-        payment_status: 'pending'
-      }).select().single();
+      const { data: newOrder, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          buyer_company_id: rfq.buyer_company_id,
+          seller_company_id: supplierCompanyId,
+          rfq_id: rfq.id,
+          quote_id: quoteId,
+          product_id: rfq.product_id || null,
+          quantity: rfq.quantity,
+          unit_price: quote.price_per_unit,
+          total_amount: quote.total_price,
+          currency: quote.currency,
+          status: 'pending',
+          payment_status: 'pending'
+        })
+        .select()
+        .single();
 
       if (orderError) throw orderError;
 
-      // Send email notification
-      await supabaseHelpers.email.send({
-        to: user.email,
-        subject: 'Quote Awarded - AFRIKONI',
-        body: `Your quote for RFQ "${rfq.title}" has been awarded.`
-      });
+      // Record escrow hold in wallet_transactions (mocked escrow)
+      try {
+        await supabase.from('wallet_transactions').insert({
+          order_id: newOrder.id,
+          rfq_id: rfq.id,
+          company_id: rfq.buyer_company_id,
+          type: 'escrow_hold',
+          amount: quote.total_price,
+          currency: quote.currency || 'USD',
+          status: 'pending',
+          description: `Escrow hold for order ${newOrder.id}`
+        });
+      } catch {
+        // non‑blocking
+      }
+
+      // Send email notification (buyer + seller)
+      try {
+        await supabaseHelpers.email.send({
+          to: user.email,
+          subject: 'Quote Awarded - AFRIKONI',
+          body: `Your RFQ "${rfq.title}" has been awarded. Order ${newOrder.id} was created.`
+        });
+      } catch {
+        // ignore email failures here
+      }
 
       // Create notification
-      await supabase.from('notifications').insert({
-        user_email: user.email,
-        company_id: supplierCompanyId,
-        title: 'Quote Awarded',
-        message: `Your quote for "${rfq.title}" has been accepted`,
-        type: 'quote',
-        link: createPageUrl('OrderDetail') + '?id=' + newOrder.id,
-        related_id: newOrder.id
-      });
+      try {
+        await supabase.from('notifications').insert({
+          user_email: user.email,
+          company_id: supplierCompanyId,
+          title: 'Quote Awarded',
+          message: `Your quote for "${rfq.title}" has been accepted`,
+          type: 'quote',
+          link: `/dashboard/orders/${newOrder.id}`,
+          related_id: newOrder.id
+        });
+      } catch {
+        // non‑blocking
+      }
 
       toast.success('Quote awarded! Order created.');
       setTimeout(() => {

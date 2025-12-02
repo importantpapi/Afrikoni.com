@@ -34,7 +34,7 @@ export default function HeroSection({ categories = [] }) {
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-20 md:py-28 overflow-hidden">
+    <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-14 md:py-20">
       {/* Faint Afrikoni Logo Watermark */}
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.06]">
         <Logo type="icon" size="xl" link={false} className="scale-150 text-afrikoni-gold" />
@@ -48,8 +48,8 @@ export default function HeroSection({ categories = [] }) {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-12 max-w-4xl mx-auto">
+      <div className="w-full max-w-[1440px] mx-auto px-4 flex flex-col items-center justify-center relative z-10">
+        <div className="text-center mb-8 max-w-4xl mx-auto">
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -75,10 +75,10 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="flex flex-wrap justify-center gap-3 mb-5"
+            className="flex flex-wrap justify-center gap-3 mb-4"
           >
             <Button
-              onClick={() => navigate('/suppliers')}
+              onClick={() => navigate('/become-supplier')}
               className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 md:px-8 py-2.5 rounded-full text-sm md:text-base font-semibold shadow-afrikoni"
             >
               Become a Supplier
@@ -97,7 +97,7 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.22 }}
-            className="inline-flex flex-wrap items-center justify-center gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-4 py-2 text-[11px] md:text-xs text-afrikoni-cream mb-8"
+            className="inline-flex flex-wrap items-center justify-center gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-4 py-2 text-[11px] md:text-xs text-afrikoni-cream mb-5"
           >
             <span className="font-semibold uppercase tracking-wide text-afrikoni-gold">
               Afrikoni&nbsp;Shield™
@@ -116,7 +116,7 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="max-w-4xl mx-auto mb-8"
+            className="max-w-4xl mx-auto mb-6"
           >
             <div
               className={`
@@ -169,7 +169,7 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-2 mb-8"
+            className="flex flex-wrap justify-center gap-2"
           >
             <span className="text-afrikoni-cream text-sm mr-2 flex items-center gap-1">
               <TrendingUp className="w-4 h-4" />

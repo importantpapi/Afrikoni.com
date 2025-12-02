@@ -267,18 +267,25 @@ export default function Layout({ children }) {
               </div>
               <div className="flex items-center gap-4 text-sm flex-wrap">
                 <motion.a 
-                  href="#" 
+                  href="/privacy" 
                   whileHover={{ x: 2 }}
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors"
                 >
                   Privacy Policy
                 </motion.a>
                 <motion.a 
-                  href="#" 
+                  href="/terms" 
                   whileHover={{ x: 2 }}
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors"
                 >
                   Terms & Conditions
+                </motion.a>
+                <motion.a 
+                  href="/cookies" 
+                  whileHover={{ x: 2 }}
+                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors"
+                >
+                  Cookies
                 </motion.a>
                 <span className="text-afrikoni-cream/70">© 2025 Afrikoni. All rights reserved.</span>
               </div>

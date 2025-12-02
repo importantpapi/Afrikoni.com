@@ -62,6 +62,7 @@ export default function Home() {
         <SourceByCountry />
         <RFQCard />
         <AboutAfrikoni />
+        <HowItWorks />
         <NewsletterSection />
       </div>
     </>
