@@ -88,16 +88,13 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
         title: 'New Message',
         message: `You received a new message from ${user.email}`,
         type: 'message',
-        link: `/messages`,
+        link: `/messages?conversation=${conversationId}`,
         read: false
       });
 
       toast.success('Message sent!');
       setContent('');
       onOpenChange(false);
-      if (window.location.pathname === '/messages') {
-        window.location.reload();
-      }
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to send message');

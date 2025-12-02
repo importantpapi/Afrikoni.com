@@ -798,7 +798,10 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {recentMessages.map((message) => (
-                    <Link key={message.id} to="/messages">
+                    <Link
+                      key={message.id}
+                      to={message.conversation_id ? `/messages?conversation=${message.conversation_id}` : '/messages'}
+                    >
                       <motion.div
                         whileHover={{ x: 4 }}
                         className="p-3 border border-afrikoni-gold/20 rounded-afrikoni hover:bg-afrikoni-sand/20 hover:border-afrikoni-gold/40 transition-all cursor-pointer"
