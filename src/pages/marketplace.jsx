@@ -12,7 +12,7 @@ import { suggestProductsForBuyer } from '@/ai/aiFunctions';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import {
   Search, Filter, SlidersHorizontal, MapPin, Shield, Star, MessageSquare, FileText,
-  X, CheckCircle, Building2, Package
+  X, CheckCircle, Building2, Package, TrendingUp, Clock, Award, Bookmark, BookmarkCheck
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,11 +85,73 @@ export default function Marketplace() {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [aiBestMatch, setAiBestMatch] = useState(null);
   const [aiBestMatchLoading, setAiBestMatchLoading] = useState(false);
+  const [savedSearches, setSavedSearches] = useState([]);
+  const [showSaveSearch, setShowSaveSearch] = useState(false);
 
   useEffect(() => {
     trackPageView('Marketplace');
     loadProducts();
+    loadSavedSearches();
   }, []);
+
+  const loadSavedSearches = () => {
+    try {
+      const saved = localStorage.getItem('afrikoni_saved_searches');
+      if (saved) {
+        setSavedSearches(JSON.parse(saved));
+      }
+    } catch (error) {
+      // Silently fail
+    }
+  };
+
+  const saveCurrentSearch = () => {
+    const searchName = prompt('Name this search:');
+    if (!searchName) return;
+
+    const search = {
+      id: Date.now().toString(),
+      name: searchName,
+      query: searchQuery,
+      filters: selectedFilters,
+      priceMin,
+      priceMax,
+      moqMin,
+      sortBy,
+      createdAt: new Date().toISOString()
+    };
+
+    const updated = [...savedSearches, search];
+    setSavedSearches(updated);
+    localStorage.setItem('afrikoni_saved_searches', JSON.stringify(updated));
+    setShowSaveSearch(false);
+  };
+
+  const loadSavedSearch = (savedSearch) => {
+    setSearchQuery(savedSearch.query || '');
+    setSelectedFilters(savedSearch.filters || {
+      category: '',
+      country: '',
+      verification: '',
+      priceRange: '',
+      moq: '',
+      certifications: [],
+      deliveryTime: '',
+      verified: false,
+      fastResponse: false,
+      readyToShip: false
+    });
+    setPriceMin(savedSearch.priceMin || '');
+    setPriceMax(savedSearch.priceMax || '');
+    setMoqMin(savedSearch.moqMin || '');
+    setSortBy(savedSearch.sortBy || '-created_at');
+  };
+
+  const deleteSavedSearch = (id) => {
+    const updated = savedSearches.filter(s => s.id !== id);
+    setSavedSearches(updated);
+    localStorage.setItem('afrikoni_saved_searches', JSON.stringify(updated));
+  };
 
   useEffect(() => {
     applyFilters();
@@ -114,8 +176,21 @@ export default function Marketplace() {
       `);
       
       // Apply sorting
-      const sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
-      const ascending = !sortBy.startsWith('-');
+      let sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
+      let ascending = !sortBy.startsWith('-');
+      
+      // Handle relevance sorting (default to created_at desc if no search query)
+      if (sortBy === 'relevance') {
+        if (debouncedSearchQuery) {
+          // For relevance, we'll sort by views and created_at (client-side will handle better relevance)
+          sortField = 'views';
+          ascending = false;
+        } else {
+          sortField = 'created_at';
+          ascending = false;
+        }
+      }
+      
       query = query.order(sortField, { ascending });
       
       const result = await paginateQuery(
@@ -158,14 +233,25 @@ export default function Marketplace() {
   };
 
   const applyClientSideFilters = (productsList) => {
-    if (!Array.isArray(productsList)) return [];
+if (!Array.isArray(productsList)) return [];
     return productsList.filter(product => {
-      // Search query
+      // Enhanced search query - search across multiple fields
       if (debouncedSearchQuery) {
         const query = debouncedSearchQuery.toLowerCase();
-        if (!product?.title?.toLowerCase().includes(query) &&
-            !product?.description?.toLowerCase().includes(query) &&
-            !product?.companies?.company_name?.toLowerCase().includes(query)) {
+        const searchableFields = [
+          product?.title,
+          product?.name,
+          product?.description,
+          product?.short_description,
+          product?.companies?.company_name,
+          product?.country_of_origin,
+          product?.companies?.country,
+          product?.categories?.name,
+          product?.tags?.join(' '),
+          product?.keywords?.join(' ')
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        if (!searchableFields.includes(query)) {
           return false;
         }
       }
@@ -338,10 +424,10 @@ export default function Marketplace() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            {/* Chip Filters */}
-            <div className="hidden md:flex items-center gap-2">
+            {/* Quick Filter Chips */}
+            <div className="hidden md:flex items-center gap-2 flex-wrap">
               <FilterChip
-                label="Verified"
+                label="Verified Only"
                 active={selectedFilters.verified}
                 onRemove={() => setSelectedFilters({ ...selectedFilters, verified: !selectedFilters.verified })}
               />
@@ -355,6 +441,23 @@ export default function Marketplace() {
                 active={selectedFilters.readyToShip}
                 onRemove={() => setSelectedFilters({ ...selectedFilters, readyToShip: !selectedFilters.readyToShip })}
               />
+              {priceMin || priceMax ? null : (
+                <FilterChip
+                  label="Under $100"
+                  active={false}
+                  onRemove={() => {
+                    setPriceMin('');
+                    setPriceMax('100');
+                  }}
+                />
+              )}
+              {moqMin ? null : (
+                <FilterChip
+                  label="Low MOQ"
+                  active={false}
+                  onRemove={() => setMoqMin('1')}
+                />
+              )}
             </div>
             <Button
               variant="secondary"
@@ -579,6 +682,60 @@ export default function Marketplace() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Saved Searches */}
+            {savedSearches.length > 0 && (
+              <Card className="mt-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-afrikoni-chestnut flex items-center gap-2">
+                      <Bookmark className="w-4 h-4" />
+                      Saved Searches
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    {savedSearches.map((saved) => (
+                      <div
+                        key={saved.id}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-afrikoni-offwhite group"
+                      >
+                        <button
+                          onClick={() => loadSavedSearch(saved)}
+                          className="flex-1 text-left text-sm text-afrikoni-deep hover:text-afrikoni-gold"
+                        >
+                          {saved.name}
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => deleteSavedSearch(saved.id)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Save Current Search Button */}
+            {(searchQuery || selectedFilters.category || selectedFilters.country || priceMin || priceMax || moqMin) && (
+              <Card className="mt-4">
+                <CardContent className="p-4">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    size="sm"
+                    onClick={saveCurrentSearch}
+                  >
+                    <BookmarkCheck className="w-4 h-4 mr-2" />
+                    Save This Search
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </aside>
 
           {/* Products Grid */}
@@ -588,9 +745,77 @@ export default function Marketplace() {
                 <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
                   Marketplace
                 </h1>
-                <p className="text-sm text-afrikoni-deep">
-                  {filteredProducts.length} products found
-                </p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <p className="text-sm text-afrikoni-deep">
+                    {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+                  </p>
+                  {/* Active Filters Display */}
+                  {(selectedFilters.category || selectedFilters.country || selectedFilters.verification || 
+                    priceMin || priceMax || moqMin || selectedFilters.certifications.length > 0 ||
+                    selectedFilters.deliveryTime || selectedFilters.verified || selectedFilters.fastResponse ||
+                    selectedFilters.readyToShip || debouncedSearchQuery) && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-afrikoni-deep/70">Active filters:</span>
+                      {debouncedSearchQuery && (
+                        <Badge variant="outline" className="text-xs">
+                          Search: "{debouncedSearchQuery}"
+                          <X 
+                            className="w-3 h-3 ml-1 cursor-pointer" 
+                            onClick={() => setSearchQuery('')}
+                          />
+                        </Badge>
+                      )}
+                      {selectedFilters.category && selectedFilters.category !== 'All Categories' && (
+                        <Badge variant="outline" className="text-xs">
+                          {selectedFilters.category}
+                          <X 
+                            className="w-3 h-3 ml-1 cursor-pointer" 
+                            onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })}
+                          />
+                        </Badge>
+                      )}
+                      {selectedFilters.country && selectedFilters.country !== 'All Countries' && (
+                        <Badge variant="outline" className="text-xs">
+                          {selectedFilters.country}
+                          <X 
+                            className="w-3 h-3 ml-1 cursor-pointer" 
+                            onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
+                          />
+                        </Badge>
+                      )}
+                      {selectedFilters.verified && (
+                        <Badge variant="outline" className="text-xs">
+                          Verified
+                          <X 
+                            className="w-3 h-3 ml-1 cursor-pointer" 
+                            onClick={() => setSelectedFilters({ ...selectedFilters, verified: false })}
+                          />
+                        </Badge>
+                      )}
+                      {(priceMin || priceMax) && (
+                        <Badge variant="outline" className="text-xs">
+                          ${priceMin || '0'} - ${priceMax || '∞'}
+                          <X 
+                            className="w-3 h-3 ml-1 cursor-pointer" 
+                            onClick={() => {
+                              setPriceMin('');
+                              setPriceMax('');
+                            }}
+                          />
+                        </Badge>
+                      )}
+                      {moqMin && (
+                        <Badge variant="outline" className="text-xs">
+                          MOQ: {moqMin}+
+                          <X 
+                            className="w-3 h-3 ml-1 cursor-pointer" 
+                            onClick={() => setMoqMin('')}
+                          />
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <AICopilotButton
@@ -632,15 +857,17 @@ export default function Marketplace() {
                   }}
                 />
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40 md:w-48">
-                    <SelectValue />
+                  <SelectTrigger className="w-40 md:w-48 border-afrikoni-gold/30">
+                    <SelectValue placeholder="Sort by..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="relevance">Relevance</SelectItem>
                     <SelectItem value="-created_at">Newest First</SelectItem>
                     <SelectItem value="created_at">Oldest First</SelectItem>
                     <SelectItem value="price_min">Price: Low to High</SelectItem>
                     <SelectItem value="-price_min">Price: High to Low</SelectItem>
                     <SelectItem value="-views">Most Popular</SelectItem>
+                    <SelectItem value="-rating">Highest Rated</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="hidden md:flex items-center gap-2">
