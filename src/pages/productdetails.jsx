@@ -22,11 +22,15 @@ import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { isValidUUID } from '@/utils/security';
 import ShippingCalculator from '@/components/shipping/ShippingCalculator';
+import ProductImageGallery from '@/components/products/ProductImageGallery';
+import ProductVariants from '@/components/products/ProductVariants';
+import BulkPricingTiers from '@/components/products/BulkPricingTiers';
+import ShareProduct from '@/components/products/ShareProduct';
+import { Share2, GitCompare } from 'lucide-react';
 
 export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [supplier, setSupplier] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
@@ -39,6 +43,8 @@ export default function ProductDetail() {
   const [aiDescription, setAiDescription] = useState('');
   const [aiDescriptionLoading, setAiDescriptionLoading] = useState(false);
   const [aiRFQLoading, setAiRFQLoading] = useState(false);
+  const [variants, setVariants] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const navigate = useNavigate();
 
   const { trackPageView } = useAnalytics();
@@ -80,7 +86,8 @@ export default function ProductDetail() {
           *,
           categories(*),
           product_images(*),
-          companies(*)
+          companies(*),
+          product_variants(*)
         `)
         .eq('status', 'active');
 
@@ -111,6 +118,22 @@ export default function ProductDetail() {
         primaryImage: primaryImage?.url,
         allImages: allImages.length > 0 ? allImages : (foundProduct.images || [])
       });
+
+      // Load product variants
+      if (foundProduct.product_variants && Array.isArray(foundProduct.product_variants)) {
+        setVariants(foundProduct.product_variants);
+      } else {
+        // Try to load variants separately
+        const { data: variantsData } = await supabase
+          .from('product_variants')
+          .select('*')
+          .eq('product_id', foundProduct.id)
+          .order('created_at', { ascending: true });
+        
+        if (variantsData) {
+          setVariants(variantsData);
+        }
+      }
 
       // Update views
       await supabase
@@ -282,40 +305,28 @@ export default function ProductDetail() {
           <div className="md:col-span-2 space-y-6">
             <Card className="border-afrikoni-gold/20">
               <CardContent className="p-6">
-                {product.allImages && product.allImages.length > 0 ? (
-                  <>
-                    <div className="aspect-square bg-afrikoni-cream rounded-xl overflow-hidden mb-4">
-                      <img 
-                        src={product.allImages[selectedImage]} 
-                        alt={product.title || 'Product image'} 
-                        className="w-full h-full object-cover" 
-                        loading="lazy" 
-                        decoding="async" 
-                      />
-                    </div>
-                    {product.allImages.length > 1 && (
-                      <div className="grid grid-cols-4 gap-3">
-                        {product.allImages.map((img, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setSelectedImage(idx)}
-                            className={`aspect-square rounded-lg overflow-hidden border-2 transition ${
-                              selectedImage === idx ? 'border-afrikoni-gold' : 'border-afrikoni-gold/20'
-                            }`}
-                          >
-                            <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="aspect-square bg-afrikoni-cream rounded-xl flex items-center justify-center">
-                    <Package className="w-24 h-24 text-afrikoni-deep/70" />
-                  </div>
-                )}
+                <ProductImageGallery 
+                  images={product.allImages || []} 
+                  productTitle={product.title}
+                />
               </CardContent>
             </Card>
+
+            {/* Product Variants */}
+            {variants.length > 0 && (
+              <Card className="border-afrikoni-gold/20">
+                <CardContent className="p-6">
+                  <ProductVariants
+                    variants={variants}
+                    onVariantSelect={setSelectedVariant}
+                    selectedVariantId={selectedVariant?.id}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Bulk Pricing Tiers */}
+            <BulkPricingTiers product={selectedVariant || product} />
 
             <Card className="border-afrikoni-gold/20">
               <Tabs defaultValue="description">
@@ -446,7 +457,26 @@ export default function ProductDetail() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h1 className="text-2xl font-bold text-afrikoni-chestnut">{product.title}</h1>
-                    <SaveButton itemId={product.id} itemType="product" />
+                    <div className="flex items-center gap-2">
+                      <SaveButton itemId={product.id} itemType="product" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const compareList = JSON.parse(localStorage.getItem('compareProducts') || '[]');
+                          if (!compareList.find(p => p.id === product.id)) {
+                            compareList.push({ id: product.id, title: product.title });
+                            localStorage.setItem('compareProducts', JSON.stringify(compareList));
+                            toast.success('Product added to comparison');
+                          } else {
+                            toast.info('Product already in comparison');
+                          }
+                        }}
+                        className="p-2"
+                      >
+                        <GitCompare className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                   
                   {product.categories && (
@@ -457,8 +487,15 @@ export default function ProductDetail() {
                   
                   <div className="space-y-4">
                     <div>
-                      {/* Price Range Display */}
-                      {product.price_min && product.price_max ? (
+                      {/* Price Range Display - Use selected variant price if available */}
+                      {selectedVariant?.price ? (
+                        <>
+                          <div className="text-3xl font-bold text-afrikoni-gold mb-1">
+                            {product.currency || 'USD'} {selectedVariant.price}
+                          </div>
+                          <div className="text-sm text-afrikoni-deep">per {product.unit || 'unit'}</div>
+                        </>
+                      ) : product.price_min && product.price_max ? (
                         <>
                           <div className="text-3xl font-bold text-afrikoni-gold mb-1">
                             {product.currency || 'USD'} {product.price_min} – {product.price_max}
@@ -578,6 +615,12 @@ export default function ProductDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Share Product */}
+            <ShareProduct 
+              product={product} 
+              productUrl={`${window.location.origin}/product?id=${product.id}`}
+            />
 
             {/* Shipping Calculator */}
             <ShippingCalculator
