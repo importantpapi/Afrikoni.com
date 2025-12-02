@@ -99,6 +99,7 @@ const SellerAgreement = lazy(() => import('./pages/seller-agreement'));
 const BuyerProtectionPolicy = lazy(() => import('./pages/buyer-protection'));
 const AntiCorruptionPolicy = lazy(() => import('./pages/anti-corruption-policy'));
 const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
+const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 
 function App() {
   return (
@@ -112,6 +113,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
+            <Route path="/supplier-onboarding" element={<ProtectedRoute><SupplierOnboarding /></ProtectedRoute>} />
             {/* Trust & Verification Center */}
             <Route path="/dashboard/verification" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
             <Route path="/verification-center" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
