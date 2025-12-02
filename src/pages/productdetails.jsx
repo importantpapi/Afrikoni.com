@@ -467,6 +467,8 @@ export default function ProductDetail() {
                           if (!compareList.find(p => p.id === product.id)) {
                             compareList.push({ id: product.id, title: product.title });
                             localStorage.setItem('compareProducts', JSON.stringify(compareList));
+                            // Dispatch custom event to update navbar count
+                            window.dispatchEvent(new Event('compareUpdated'));
                             toast.success('Product added to comparison');
                           } else {
                             toast.info('Product already in comparison');

@@ -11,7 +11,8 @@ import {
   MessageSquare,
   Package,
   FileText,
-  Settings
+  Settings,
+  GitCompare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
@@ -27,6 +28,34 @@ export default function Navbar({ user, onLogout }) {
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [compareCount, setCompareCount] = useState(0);
+
+  // Load compare count from localStorage
+  useEffect(() => {
+    const updateCompareCount = () => {
+      try {
+        const compareList = JSON.parse(localStorage.getItem('compareProducts') || '[]');
+        setCompareCount(compareList.length);
+      } catch {
+        setCompareCount(0);
+      }
+    };
+
+    updateCompareCount();
+    // Listen for storage changes (when products are added/removed from comparison)
+    window.addEventListener('storage', updateCompareCount);
+    // Also listen for custom events
+    window.addEventListener('compareUpdated', updateCompareCount);
+    
+    // Poll for changes (since localStorage events don't fire in same tab)
+    const interval = setInterval(updateCompareCount, 1000);
+
+    return () => {
+      window.removeEventListener('storage', updateCompareCount);
+      window.removeEventListener('compareUpdated', updateCompareCount);
+      clearInterval(interval);
+    };
+  }, []);
 
   const languageMap = {
     en: 'EN',
@@ -90,6 +119,22 @@ export default function Navbar({ user, onLogout }) {
               Browse Products
             </Button>
           </Link>
+          
+          {compareCount > 0 && (
+            <Link to="/compare" className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-3 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
+              >
+                <GitCompare className="w-4 h-4" />
+                <span className="ml-1 hidden sm:inline">Compare</span>
+                <span className="ml-1.5 bg-afrikoni-gold text-afrikoni-chestnut text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {compareCount}
+                </span>
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Right: language, currency, user */}
