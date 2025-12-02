@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, Paperclip, Search, MoreVertical, Phone, Video, MapPin,
-  Shield, CheckCircle, Clock, User, Verified, Star
+  Shield, CheckCircle, CheckCircle2, Clock, User, Verified, Star, X, File, Image as ImageIcon,
+  FileText, Download, Eye, Loader2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -125,6 +126,14 @@ export default function MessagesPremium() {
           // If this message is for the currently selected conversation, add it to the UI
           if (newMessage.conversation_id === selectedConversation) {
             setMessages(prev => [...prev, newMessage]);
+            
+            // Mark as read if viewing the conversation
+            if (companyId === newMessage.receiver_company_id) {
+              await supabase
+                .from('messages')
+                .update({ read: true })
+                .eq('id', newMessage.id);
+            }
           }
 
           // Always create notification for new messages (even if user is viewing the conversation)
@@ -138,51 +147,6 @@ export default function MessagesPremium() {
             );
           } catch (error) {
             // Silently fail - notification might already exist or there's a duplicate
-          }
-
-          // Refresh conversations to update unread counts
-          loadUserAndConversations();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [companyId, selectedConversation]);
-
-  // Real-time subscription for new messages
-  useEffect(() => {
-    if (!companyId) return;
-
-    const channel = supabase
-      .channel('messages-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_company_id=eq.${companyId}`
-        },
-        async (payload) => {
-          const newMessage = payload.new;
-          
-          // If this message is for the currently selected conversation, add it
-          if (newMessage.conversation_id === selectedConversation) {
-            setMessages(prev => [...prev, newMessage]);
-          }
-
-          // Always create notification for new messages
-          try {
-            await notifyNewMessage(
-              newMessage.id,
-              newMessage.conversation_id,
-              newMessage.receiver_company_id,
-              newMessage.sender_company_id
-            );
-          } catch (error) {
-            // Silently fail - notification might already exist
           }
 
           // Refresh conversations to update unread counts
@@ -284,23 +248,105 @@ export default function MessagesPremium() {
     }
   };
 
-  const [attachment, setAttachment] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // Typing indicator: send typing status
+  const handleTyping = useCallback(() => {
+    if (!selectedConversation || !companyId) return;
+    
+    setIsTyping(true);
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Send typing indicator via real-time (using a separate channel or payload)
+    // For now, we'll use a simple debounce approach
+    
+    // Stop typing after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+    }, 3000);
+  }, [selectedConversation, companyId]);
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     
+    // Validate files
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+    
+    const validFiles = files.filter(file => {
+      if (file.size > maxSize) {
+        toast.error(`${file.name} is too large (max 10MB)`);
+        return false;
+      }
+      if (!allowedTypes.includes(file.type) && !file.type.startsWith('image/')) {
+        toast.error(`${file.name} is not a supported file type`);
+        return false;
+      }
+      return true;
+    });
+    
+    if (validFiles.length === 0) return;
+    
+    setUploadingFile(true);
     try {
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'messages');
-      setAttachment(file_url);
-      toast.success('File attached');
+      const uploadPromises = validFiles.map(async (file) => {
+        const { file_url } = await supabaseHelpers.storage.uploadFile(
+          file,
+          'messages',
+          `${selectedConversation}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+        );
+        return {
+          url: file_url,
+          name: file.name,
+          type: file.type,
+          size: file.size
+        };
+      });
+      
+      const uploadedFiles = await Promise.all(uploadPromises);
+      setAttachments(prev => [...prev, ...uploadedFiles]);
+      toast.success(`${uploadedFiles.length} file(s) attached`);
     } catch (error) {
-      toast.error('Failed to upload file');
+      toast.error('Failed to upload file(s)');
+      console.error('File upload error:', error);
+    } finally {
+      setUploadingFile(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
+  const removeAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getFileIcon = (fileType) => {
+    if (fileType.startsWith('image/')) return ImageIcon;
+    if (fileType === 'application/pdf') return FileText;
+    return File;
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !attachment) || !selectedConversation || !companyId) return;
+    if ((!newMessage.trim() && attachments.length === 0) || !selectedConversation || !companyId) return;
 
     try {
       const selectedConv = conversations.find(c => c.id === selectedConversation);
@@ -315,6 +361,16 @@ export default function MessagesPremium() {
         return;
       }
 
+      // Prepare payload with attachments
+      const payload = attachments.length > 0 ? {
+        attachments: attachments.map(att => ({
+          url: att.url,
+          name: att.name,
+          type: att.type,
+          size: att.size
+        }))
+      } : null;
+
       // Insert message
       const { data: newMsg, error } = await supabase
         .from('messages')
@@ -323,8 +379,8 @@ export default function MessagesPremium() {
           sender_company_id: companyId,
           receiver_company_id: receiverCompanyId,
           sender_user_email: currentUser.email,
-          content: newMessage.trim() || (attachment ? 'Sent an attachment' : ''),
-          attachments: attachment ? [attachment] : null,
+          content: newMessage.trim() || (attachments.length > 0 ? `Sent ${attachments.length} file(s)` : ''),
+          payload: payload,
           read: false
         })
         .select()
@@ -336,7 +392,7 @@ export default function MessagesPremium() {
       await supabase
         .from('conversations')
         .update({
-          last_message: newMessage.trim() || (attachment ? 'Sent an attachment' : ''),
+          last_message: newMessage.trim() || (attachments.length > 0 ? `Sent ${attachments.length} file(s)` : ''),
           last_message_at: new Date().toISOString()
         })
         .eq('id', selectedConversation);
@@ -346,7 +402,8 @@ export default function MessagesPremium() {
 
       setMessages([...messages, newMsg]);
       setNewMessage('');
-      setAttachment(null);
+      setAttachments([]);
+      setIsTyping(false);
 
       // Refresh conversations
       loadUserAndConversations();
@@ -355,6 +412,7 @@ export default function MessagesPremium() {
       setTimeout(() => inputRef.current?.focus(), 100);
     } catch (error) {
       toast.error('Failed to send message');
+      console.error('Send message error:', error);
     }
   };
 
@@ -362,8 +420,22 @@ export default function MessagesPremium() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    } else {
+      handleTyping();
     }
   };
+
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+    handleTyping();
+  };
+
+  // Filter messages by search query
+  const filteredMessages = messageSearchQuery
+    ? messages.filter(msg =>
+        msg.content?.toLowerCase().includes(messageSearchQuery.toLowerCase())
+      )
+    : messages;
 
   const filteredConversations = conversations.filter(conv =>
     conv.otherCompany?.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -610,12 +682,39 @@ export default function MessagesPremium() {
                     </div>
                   </div>
 
+                  {/* Message Search */}
+                  {selectedConversation && (
+                    <div className="px-4 py-2 border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-deep/70" />
+                        <Input
+                          placeholder="Search messages in this conversation..."
+                          value={messageSearchQuery}
+                          onChange={(e) => setMessageSearchQuery(e.target.value)}
+                          className="pl-10 text-sm"
+                        />
+                        {messageSearchQuery && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                            onClick={() => setMessageSearchQuery('')}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-afrikoni-offwhite">
                     <AnimatePresence>
-                      {Array.isArray(messages) && messages.map((msg, idx) => {
+                      {Array.isArray(filteredMessages) && filteredMessages.map((msg, idx) => {
                         const isMine = msg.sender_company_id === companyId;
-                        const showAvatar = idx === 0 || messages[idx - 1].sender_company_id !== msg.sender_company_id;
+                        const prevMsg = idx > 0 ? filteredMessages[idx - 1] : null;
+                        const showAvatar = !prevMsg || prevMsg.sender_company_id !== msg.sender_company_id;
+                        const msgAttachments = msg.payload?.attachments || [];
                         
                         return (
                           <motion.div
@@ -627,7 +726,15 @@ export default function MessagesPremium() {
                           >
                             {!isMine && showAvatar && (
                               <div className="w-8 h-8 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                <User className="w-4 h-4 text-afrikoni-gold" />
+                                {selectedConv.otherCompany?.logo_url ? (
+                                  <img 
+                                    src={selectedConv.otherCompany.logo_url} 
+                                    alt={selectedConv.otherCompany.company_name}
+                                    className="w-full h-full rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <User className="w-4 h-4 text-afrikoni-gold" />
+                                )}
                               </div>
                             )}
                             {!isMine && !showAvatar && <div className="w-8" />}
@@ -642,23 +749,86 @@ export default function MessagesPremium() {
                                   px-4 py-2.5 rounded-2xl shadow-sm
                                   ${isMine
                                     ? 'bg-afrikoni-gold text-afrikoni-cream rounded-br-md'
-                                    : 'bg-afrikoni-offwhite text-afrikoni-chestnut border border-afrikoni-gold/20 rounded-bl-md'
+                                    : 'bg-white text-afrikoni-chestnut border border-afrikoni-gold/20 rounded-bl-md'
                                   }
                                 `}
                               >
-                                <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                {msg.content && (
+                                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                )}
+                                
+                                {/* Attachments */}
+                                {msgAttachments.length > 0 && (
+                                  <div className={`mt-2 space-y-2 ${msg.content ? 'mt-3' : ''}`}>
+                                    {msgAttachments.map((attachment, attIdx) => {
+                                      const FileIcon = getFileIcon(attachment.type);
+                                      const isImage = attachment.type?.startsWith('image/');
+                                      
+                                      return (
+                                        <div
+                                          key={attIdx}
+                                          className={`
+                                            rounded-lg overflow-hidden border
+                                            ${isMine
+                                              ? 'border-afrikoni-cream/30 bg-afrikoni-cream/10'
+                                              : 'border-afrikoni-gold/30 bg-afrikoni-offwhite'
+                                            }
+                                          `}
+                                        >
+                                          {isImage ? (
+                                            <a
+                                              href={attachment.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="block"
+                                            >
+                                              <img
+                                                src={attachment.url}
+                                                alt={attachment.name}
+                                                className="max-w-full h-auto max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                                              />
+                                            </a>
+                                          ) : (
+                                            <a
+                                              href={attachment.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="flex items-center gap-3 p-3 hover:bg-afrikoni-gold/5 transition-colors"
+                                            >
+                                              <div className={`p-2 rounded-lg ${isMine ? 'bg-afrikoni-cream/20' : 'bg-afrikoni-gold/20'}`}>
+                                                <FileIcon className={`w-5 h-5 ${isMine ? 'text-afrikoni-cream' : 'text-afrikoni-gold'}`} />
+                                              </div>
+                                              <div className="flex-1 min-w-0">
+                                                <p className={`text-sm font-medium truncate ${isMine ? 'text-afrikoni-cream' : 'text-afrikoni-chestnut'}`}>
+                                                  {attachment.name}
+                                                </p>
+                                                <p className={`text-xs ${isMine ? 'text-afrikoni-cream/70' : 'text-afrikoni-deep/70'}`}>
+                                                  {formatFileSize(attachment.size || 0)}
+                                                </p>
+                                              </div>
+                                              <Download className={`w-4 h-4 ${isMine ? 'text-afrikoni-cream/70' : 'text-afrikoni-gold/70'}`} />
+                                            </a>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                                
                                 <div className={`flex items-center gap-1 mt-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
                                   <span className={`text-xs ${isMine ? 'text-afrikoni-cream/80' : 'text-afrikoni-deep/70'}`}>
                                     {format(new Date(msg.created_at), 'h:mm a')}
                                   </span>
                                   {isMine && (
-                                    <span className="text-afrikoni-cream/80">
-                                      {msg.read ? (
-                                        <CheckCircle className="w-3 h-3" />
-                                      ) : (
-                                        <Clock className="w-3 h-3" />
-                                      )}
-                                    </span>
+                                    <Tooltip content={msg.read ? 'Read' : 'Sent'}>
+                                      <span className="text-afrikoni-cream/80 cursor-help">
+                                        {msg.read ? (
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                                        ) : (
+                                          <CheckCircle className="w-3.5 h-3.5" />
+                                        )}
+                                      </span>
+                                    </Tooltip>
                                   )}
                                 </div>
                               </div>
@@ -668,45 +838,128 @@ export default function MessagesPremium() {
                         );
                       })}
                     </AnimatePresence>
+                    
+                    {/* Typing Indicator */}
+                    {isTyping && selectedConv && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="flex justify-start gap-2"
+                      >
+                        <div className="w-8 h-8 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
+                          {selectedConv.otherCompany?.logo_url ? (
+                            <img 
+                              src={selectedConv.otherCompany.logo_url} 
+                              alt={selectedConv.otherCompany.company_name}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-4 h-4 text-afrikoni-gold" />
+                          )}
+                        </div>
+                        <div className="bg-white border border-afrikoni-gold/20 rounded-2xl rounded-bl-md px-4 py-2.5">
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-afrikoni-deep/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <div className="w-2 h-2 bg-afrikoni-deep/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <div className="w-2 h-2 bg-afrikoni-deep/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                    
                     <div ref={messagesEndRef} />
                   </div>
+
+                  {/* Attachments Preview */}
+                  {attachments.length > 0 && (
+                    <div className="px-4 py-2 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                      <div className="flex flex-wrap gap-2">
+                        {attachments.map((attachment, idx) => {
+                          const FileIcon = getFileIcon(attachment.type);
+                          const isImage = attachment.type?.startsWith('image/');
+                          
+                          return (
+                            <div
+                              key={idx}
+                              className="relative group border border-afrikoni-gold/30 rounded-lg overflow-hidden bg-white"
+                            >
+                              {isImage ? (
+                                <div className="relative">
+                                  <img
+                                    src={attachment.url}
+                                    alt={attachment.name}
+                                    className="w-20 h-20 object-cover"
+                                  />
+                                  <button
+                                    onClick={() => removeAttachment(idx)}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 p-2 pr-8">
+                                  <FileIcon className="w-4 h-4 text-afrikoni-gold" />
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-medium text-afrikoni-chestnut truncate max-w-[100px]">
+                                      {attachment.name}
+                                    </p>
+                                    <p className="text-xs text-afrikoni-deep/70">
+                                      {formatFileSize(attachment.size)}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => removeAttachment(idx)}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Message Input */}
                   <div className="p-3 md:p-4 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
                     <div className="flex items-end gap-2">
                       <input
+                        ref={fileInputRef}
                         type="file"
                         id="file-upload"
                         onChange={handleFileUpload}
                         className="hidden"
+                        multiple
+                        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
                       />
-                      <Tooltip content="Attach File">
+                      <Tooltip content="Attach files (images, PDFs, documents)">
                         <label htmlFor="file-upload">
-                          <Button variant="ghost" size="sm" className="p-1.5 md:p-2 flex-shrink-0 cursor-pointer" asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1.5 md:p-2 flex-shrink-0 cursor-pointer"
+                            disabled={uploadingFile}
+                            asChild
+                          >
                             <span>
-                              <Paperclip className="w-4 h-4" />
+                              {uploadingFile ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Paperclip className="w-4 h-4" />
+                              )}
                             </span>
                           </Button>
                         </label>
                       </Tooltip>
-                      {attachment && (
-                        <div className="text-xs text-afrikoni-deep/70 flex items-center gap-2 flex-shrink-0">
-                          <span className="hidden sm:inline">File attached</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 h-auto"
-                            onClick={() => setAttachment(null)}
-                          >
-                            ×
-                          </Button>
-                        </div>
-                      )}
                       <div className="flex-1 relative min-w-0">
                         <Input
                           ref={inputRef}
                           value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
+                          onChange={handleInputChange}
                           onKeyPress={handleKeyPress}
                           placeholder="Type a message..."
                           className="pr-10 md:pr-12 text-sm"
@@ -716,7 +969,7 @@ export default function MessagesPremium() {
                         variant="primary"
                         size="sm"
                         onClick={handleSendMessage}
-                        disabled={!newMessage.trim() && !attachment}
+                        disabled={(!newMessage.trim() && attachments.length === 0) || uploadingFile}
                         className="flex-shrink-0"
                       >
                         <Send className="w-4 h-4 md:mr-2" />
@@ -724,7 +977,7 @@ export default function MessagesPremium() {
                       </Button>
                     </div>
                     <p className="text-xs text-afrikoni-deep/70 mt-2 text-center hidden sm:block">
-                      Press Enter to send • Shift+Enter for new line
+                      Press Enter to send • Shift+Enter for new line • Max file size: 10MB
                     </p>
                   </div>
                 </>
