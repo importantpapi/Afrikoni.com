@@ -41,6 +41,9 @@ const AuditLogs = lazy(() => import('./pages/dashboard/audit'));
 const AdminDashboard = lazy(() => import('./pages/admindashboard'));
 const AdminUsers = lazy(() => import('./pages/dashboard/admin/users'));
 const AdminReview = lazy(() => import('./pages/dashboard/admin/review'));
+const AdminAnalytics = lazy(() => import('./pages/dashboard/admin/analytics'));
+const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'));
+const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 
 // Lazy-loaded heavy routes - Marketplace
 const Products = lazy(() => import('./pages/products'));
@@ -134,6 +137,9 @@ function App() {
             <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/dashboard/admin/review" element={<ProtectedRoute><AdminReview /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />

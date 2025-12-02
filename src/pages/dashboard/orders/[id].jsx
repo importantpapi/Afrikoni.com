@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   ShoppingCart, Package, Truck, CheckCircle, Clock, X, 
-  DollarSign, Calendar, MapPin, MessageSquare, FileText, User
+  DollarSign, Calendar, MapPin, MessageSquare, FileText, User, Star
 } from 'lucide-react';
+import ReviewForm from '@/components/reviews/ReviewForm';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
@@ -33,15 +34,18 @@ export default function OrderDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentRole, setCurrentRole] = useState('buyer');
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [existingReview, setExistingReview] = useState(null);
 
   useEffect(() => {
     loadOrderData();
   }, [id]);
 
-  const loadOrderData = async () => {
+      const loadOrderData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         navigate('/login');
         return;
@@ -99,6 +103,21 @@ export default function OrderDetail() {
       // Build timeline using helper
       const timelineData = buildOrderTimeline(orderData, shipmentData);
       setTimeline(timelineData);
+
+      // Check if user has already reviewed this order/supplier
+      if ((orderData.status === 'completed' || orderData.status === 'delivered') && userCompanyId) {
+        const { data: reviewData } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('order_id', id)
+          .eq('reviewer_company_id', userCompanyId)
+          .maybeSingle();
+        
+        if (reviewData) {
+          setHasReviewed(true);
+          setExistingReview(reviewData);
+        }
+      }
 
     } catch (error) {
       toast.error('Failed to load order details');
@@ -615,10 +634,74 @@ export default function OrderDetail() {
                     Mark as Paid
                   </Button>
                 )}
+
+                {/* Review Prompt for Completed Orders */}
+                {(order.status === 'completed' || order.status === 'delivered') && 
+                 (currentRole === 'buyer' || currentRole === 'hybrid') && 
+                 !hasReviewed && (
+                  <div className="mt-4 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="w-5 h-5 text-afrikoni-gold" />
+                      <span className="font-semibold text-afrikoni-text-dark">Rate Your Experience</span>
+                    </div>
+                    <p className="text-sm text-afrikoni-text-dark/70 mb-3">
+                      Help other buyers by sharing your experience with this supplier
+                    </p>
+                    <Button
+                      onClick={() => setShowReviewForm(true)}
+                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal"
+                      size="sm"
+                    >
+                      Write a Review
+                    </Button>
+                  </div>
+                )}
+
+                {hasReviewed && existingReview && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span className="font-semibold text-green-800">Review Submitted</span>
+                    </div>
+                    <div className="flex items-center gap-1 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${
+                            star <= existingReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {existingReview.comment && (
+                      <p className="text-sm text-green-700">{existingReview.comment}</p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
+
+        {/* Review Form */}
+        {showReviewForm && order && sellerCompany && product && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6"
+          >
+            <ReviewForm
+              order={order}
+              product={product}
+              company={sellerCompany}
+              onSuccess={() => {
+                setShowReviewForm(false);
+                setHasReviewed(true);
+                loadOrderData();
+              }}
+            />
+          </motion.div>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Truck, FileText, MessageSquare,
   BarChart3, Wallet, Shield, Settings, HelpCircle, Bell, Search, ChevronDown,
   User, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
-  AlertTriangle, Lock, FileCheck, AlertCircle
+  AlertTriangle, Lock, FileCheck, AlertCircle, Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -116,7 +116,10 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     ],
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/admin' },
+      { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics' },
+      { icon: Package, label: 'Marketplace', path: '/dashboard/admin/marketplace' },
       { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
+      { icon: Star, label: 'Review Moderation', path: '/dashboard/admin/reviews' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true }
     ]
   };
