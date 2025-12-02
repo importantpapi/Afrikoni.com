@@ -49,6 +49,7 @@ const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
 
 // Lazy-loaded heavy routes - Marketplace
 const Products = lazy(() => import('./pages/products'));
+const Marketplace = lazy(() => import('./pages/marketplace'));
 const ProductDetail = lazy(() => import('./pages/productdetails'));
 const CompareProducts = lazy(() => import('./pages/compare'));
 const RFQMarketplace = lazy(() => import('./pages/rfq-marketplace'));
@@ -118,7 +119,7 @@ function App() {
             <Route path="/dashboard/verification" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
             <Route path="/verification-center" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
             <Route path="/products" element={<Products />} />
-            <Route path="/marketplace" element={<Products />} />
+            <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product" element={<ProductDetail />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/compare" element={<CompareProducts />} />
