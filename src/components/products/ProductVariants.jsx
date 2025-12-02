@@ -42,10 +42,10 @@ export default function ProductVariants({ variants = [], onVariantSelect, select
           return (
             <Card
               key={variant.id}
-              className={`cursor-pointer transition-all ${
+              className={`cursor-pointer transition-all touch-manipulation ${
                 isSelected
                   ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/20 bg-afrikoni-gold/5'
-                  : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+                  : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40 active:border-afrikoni-gold/60'
               }`}
               onClick={() => handleVariantSelect(variant)}
             >

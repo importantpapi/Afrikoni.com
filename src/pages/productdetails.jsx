@@ -301,10 +301,10 @@ export default function ProductDetail() {
           <span className="text-afrikoni-chestnut">{product.title}</span>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
+        <div className="grid md:grid-cols-3 gap-4 md:gap-8">
+          <div className="md:col-span-2 space-y-4 md:space-y-6">
             <Card className="border-afrikoni-gold/20">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <ProductImageGallery 
                   images={product.allImages || []} 
                   productTitle={product.title}
@@ -451,9 +451,9 @@ export default function ProductDetail() {
             </Card>
           </div>
 
-          <div className="space-y-6">
-            <Card className="border-afrikoni-gold/20 sticky top-24">
-              <CardContent className="p-6 space-y-6">
+          <div className="space-y-4 md:space-y-6">
+            <Card className="border-afrikoni-gold/20 md:sticky md:top-24">
+              <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h1 className="text-2xl font-bold text-afrikoni-chestnut">{product.title}</h1>
@@ -600,18 +600,27 @@ export default function ProductDetail() {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <Button onClick={handleContactSupplier} className="w-full bg-afrikoni-gold hover:bg-amber-700" size="lg">
+                <div className="space-y-2 md:space-y-3">
+                  <Button 
+                    onClick={handleContactSupplier} 
+                    className="w-full bg-afrikoni-gold hover:bg-amber-700 touch-manipulation" 
+                    size="lg"
+                  >
                     <MessageCircle className="w-4 h-4 mr-2" /> Contact Supplier
                   </Button>
-                  <Button onClick={handleCreateRFQ} variant="outline" className="w-full" size="lg">
+                  <Button 
+                    onClick={handleCreateRFQ} 
+                    variant="outline" 
+                    className="w-full touch-manipulation" 
+                    size="lg"
+                  >
                     <FileText className="w-4 h-4 mr-2" /> Request Quote
                   </Button>
                   <AICopilotButton
                     label="Generate RFQ with AI"
                     onClick={handleGenerateRFQWithAI}
                     loading={aiRFQLoading}
-                    className="w-full"
+                    className="w-full touch-manipulation"
                     size="sm"
                   />
                 </div>

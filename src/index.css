@@ -12,6 +12,34 @@ html, body {
   max-width: 100%;
 }
 
+/* Mobile touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device optimizations */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: rgba(212, 169, 55, 0.2);
+    tap-highlight-color: rgba(212, 169, 55, 0.2);
+  }
+  
+  /* Ensure minimum touch target size (44x44px recommended by Apple/Google) */
+  button:not(.touch-ignore),
+  a:not(.touch-ignore),
+  [role="button"]:not(.touch-ignore) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Disable hover effects on touch devices */
+  *:hover {
+    /* Let individual components handle hover states */
+  }
+}
+
+/* Touch manipulation for better mobile performance */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Navbar horizontal scroll without visible scrollbar (if ever needed) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

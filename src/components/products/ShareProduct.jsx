@@ -71,7 +71,7 @@ export default function ShareProduct({ product, productUrl }) {
             <Button
               onClick={handleNativeShare}
               variant="outline"
-              className="w-full"
+              className="w-full touch-manipulation min-h-[44px] md:min-h-0"
               size="sm"
             >
               <Share2 className="w-4 h-4 mr-2" />
@@ -85,34 +85,37 @@ export default function ShareProduct({ product, productUrl }) {
               onClick={() => handleShare('facebook')}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 touch-manipulation min-h-[44px] md:min-h-0"
             >
               <Facebook className="w-4 h-4 text-blue-600" />
-              Facebook
+              <span className="hidden sm:inline">Facebook</span>
+              <span className="sm:hidden">FB</span>
             </Button>
             <Button
               onClick={() => handleShare('twitter')}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 touch-manipulation min-h-[44px] md:min-h-0"
             >
               <Twitter className="w-4 h-4 text-blue-400" />
-              Twitter
+              <span className="hidden sm:inline">Twitter</span>
+              <span className="sm:hidden">TW</span>
             </Button>
             <Button
               onClick={() => handleShare('linkedin')}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 touch-manipulation min-h-[44px] md:min-h-0"
             >
               <Linkedin className="w-4 h-4 text-blue-700" />
-              LinkedIn
+              <span className="hidden sm:inline">LinkedIn</span>
+              <span className="sm:hidden">LI</span>
             </Button>
             <Button
               onClick={() => handleShare('email')}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 touch-manipulation min-h-[44px] md:min-h-0"
             >
               <Mail className="w-4 h-4 text-afrikoni-gold" />
               Email
@@ -123,7 +126,7 @@ export default function ShareProduct({ product, productUrl }) {
           <Button
             onClick={handleCopyLink}
             variant="outline"
-            className="w-full"
+            className="w-full touch-manipulation min-h-[44px] md:min-h-0"
             size="sm"
           >
             {copied ? (

@@ -215,11 +215,11 @@ export default function CompareProducts() {
           </motion.div>
 
           {/* Comparison Table */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
             <Card className="border-afrikoni-gold/20">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[800px]">
+                  <table className="w-full min-w-[600px] md:min-w-[800px]">
                     <thead>
                       <tr className="border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
                         <th className="text-left p-4 font-semibold text-afrikoni-chestnut sticky left-0 bg-afrikoni-offwhite z-10">
@@ -228,32 +228,33 @@ export default function CompareProducts() {
                         {products.map((product, idx) => (
                           <th
                             key={product.id}
-                            className="text-center p-4 min-w-[250px] border-l border-afrikoni-gold/10"
+                            className="text-center p-2 md:p-4 min-w-[180px] md:min-w-[250px] border-l border-afrikoni-gold/10"
                           >
                             <div className="flex flex-col items-center gap-2">
                               <button
                                 onClick={() => removeProduct(product.id)}
-                                className="ml-auto p-1 hover:bg-red-50 rounded text-red-600 transition-colors"
+                                className="ml-auto p-1.5 md:p-1 hover:bg-red-50 active:bg-red-100 rounded text-red-600 transition-colors touch-manipulation min-w-[32px] min-h-[32px] flex items-center justify-center"
                                 title="Remove from comparison"
+                                aria-label="Remove product"
                               >
                                 <X className="w-4 h-4" />
                               </button>
                               <Link
                                 to={`/product?id=${product.id}`}
-                                className="block hover:opacity-80 transition-opacity"
+                                className="block hover:opacity-80 transition-opacity w-full"
                               >
                                 {getProductImage(product) ? (
                                   <img
                                     src={getProductImage(product)}
                                     alt={product.title}
-                                    className="w-32 h-32 object-cover rounded-lg mb-2 mx-auto"
+                                    className="w-20 h-20 md:w-32 md:h-32 object-cover rounded-lg mb-2 mx-auto"
                                   />
                                 ) : (
-                                  <div className="w-32 h-32 bg-afrikoni-cream rounded-lg flex items-center justify-center mb-2 mx-auto">
-                                    <Package className="w-12 h-12 text-afrikoni-deep/50" />
+                                  <div className="w-20 h-20 md:w-32 md:h-32 bg-afrikoni-cream rounded-lg flex items-center justify-center mb-2 mx-auto">
+                                    <Package className="w-8 h-8 md:w-12 md:h-12 text-afrikoni-deep/50" />
                                   </div>
                                 )}
-                                <h3 className="font-semibold text-afrikoni-chestnut text-sm line-clamp-2">
+                                <h3 className="font-semibold text-afrikoni-chestnut text-xs md:text-sm line-clamp-2 px-1">
                                   {product.title}
                                 </h3>
                               </Link>
@@ -265,15 +266,15 @@ export default function CompareProducts() {
                     <tbody>
                       {/* Price */}
                       <tr className="border-b border-afrikoni-gold/10">
-                        <td className="p-4 font-medium text-afrikoni-deep sticky left-0 bg-white z-10">
-                          <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4 text-afrikoni-gold" />
-                            Price
+                        <td className="p-2 md:p-4 font-medium text-afrikoni-deep sticky left-0 bg-white z-10 text-xs md:text-sm">
+                          <div className="flex items-center gap-1 md:gap-2">
+                            <DollarSign className="w-3 h-3 md:w-4 md:h-4 text-afrikoni-gold flex-shrink-0" />
+                            <span className="whitespace-nowrap">Price</span>
                           </div>
                         </td>
                         {products.map((product) => (
-                          <td key={product.id} className="p-4 text-center border-l border-afrikoni-gold/10">
-                            <div className="text-lg font-bold text-afrikoni-gold">
+                          <td key={product.id} className="p-2 md:p-4 text-center border-l border-afrikoni-gold/10">
+                            <div className="text-base md:text-lg font-bold text-afrikoni-gold">
                               {getPriceDisplay(product)}
                             </div>
                             {product.unit && (
@@ -437,27 +438,41 @@ export default function CompareProducts() {
 
                       {/* Actions */}
                       <tr className="bg-afrikoni-offwhite/50">
-                        <td className="p-4 font-medium text-afrikoni-deep sticky left-0 bg-afrikoni-offwhite/50 z-10">
+                        <td className="p-2 md:p-4 font-medium text-afrikoni-deep sticky left-0 bg-afrikoni-offwhite/50 z-10 text-xs md:text-sm">
                           Actions
                         </td>
                         {products.map((product) => (
-                          <td key={product.id} className="p-4 text-center border-l border-afrikoni-gold/10">
-                            <div className="flex flex-col gap-2">
+                          <td key={product.id} className="p-2 md:p-4 text-center border-l border-afrikoni-gold/10">
+                            <div className="flex flex-col gap-1.5 md:gap-2">
                               <Link to={`/product?id=${product.id}`}>
-                                <Button variant="outline" size="sm" className="w-full">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="w-full text-xs md:text-sm touch-manipulation min-h-[36px] md:min-h-0"
+                                >
                                   View Details
                                 </Button>
                               </Link>
                               <Link to={`/messages?recipient=${product.companies?.id || product.company_id}`}>
-                                <Button variant="outline" size="sm" className="w-full">
-                                  <MessageCircle className="w-4 h-4 mr-2" />
-                                  Contact Supplier
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="w-full text-xs md:text-sm touch-manipulation min-h-[36px] md:min-h-0"
+                                >
+                                  <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                                  <span className="hidden sm:inline">Contact Supplier</span>
+                                  <span className="sm:hidden">Contact</span>
                                 </Button>
                               </Link>
                               <Link to={`/dashboard/rfqs/new?product=${product.id}`}>
-                                <Button variant="outline" size="sm" className="w-full">
-                                  <FileText className="w-4 h-4 mr-2" />
-                                  Request Quote
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="w-full text-xs md:text-sm touch-manipulation min-h-[36px] md:min-h-0"
+                                >
+                                  <FileText className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                                  <span className="hidden sm:inline">Request Quote</span>
+                                  <span className="sm:hidden">RFQ</span>
                                 </Button>
                               </Link>
                             </div>

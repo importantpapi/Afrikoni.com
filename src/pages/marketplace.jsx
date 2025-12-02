@@ -382,13 +382,23 @@ if (!Array.isArray(productsList)) return [];
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="secondary" size="sm" className="flex-1 text-xs" asChild>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="flex-1 text-xs touch-manipulation min-h-[36px] md:min-h-0" 
+                  asChild
+                >
                   <Link to={`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}`}>
                     <MessageSquare className="w-3 h-3 mr-1" />
                     Contact
                   </Link>
                 </Button>
-                <Button variant="primary" size="sm" className="flex-1 text-xs" asChild>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  className="flex-1 text-xs touch-manipulation min-h-[36px] md:min-h-0" 
+                  asChild
+                >
                   <Link to={`/dashboard/rfqs/new?product=${product.id}`}>
                     <FileText className="w-3 h-3 mr-1" />
                     Quote

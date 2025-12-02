@@ -472,8 +472,8 @@ export default function MessagesPremium() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-4 md:gap-6 h-[calc(100vh-180px)] md:h-[calc(100vh-200px)]">
+      <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6">
+        <div className="grid lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 h-[calc(100vh-160px)] md:h-[calc(100vh-180px)] lg:h-[calc(100vh-200px)]">
           {/* Conversations List */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -483,14 +483,14 @@ export default function MessagesPremium() {
           >
             <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md">
               {/* Search */}
-              <div className="p-4 border-b border-afrikoni-gold/20">
+              <div className="p-3 md:p-4 border-b border-afrikoni-gold/20">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-deep/70" />
                   <Input
                     placeholder="Search conversations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 text-sm md:text-base"
                   />
                 </div>
               </div>
@@ -925,7 +925,7 @@ export default function MessagesPremium() {
                   )}
 
                   {/* Message Input */}
-                  <div className="p-3 md:p-4 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                  <div className="p-2 md:p-3 lg:p-4 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
                     <div className="flex items-end gap-2">
                       <input
                         ref={fileInputRef}
@@ -941,15 +941,15 @@ export default function MessagesPremium() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="p-1.5 md:p-2 flex-shrink-0 cursor-pointer"
+                            className="p-2 md:p-2.5 flex-shrink-0 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
                             disabled={uploadingFile}
                             asChild
                           >
                             <span>
                               {uploadingFile ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                               ) : (
-                                <Paperclip className="w-4 h-4" />
+                                <Paperclip className="w-4 h-4 md:w-5 md:h-5" />
                               )}
                             </span>
                           </Button>
@@ -962,7 +962,7 @@ export default function MessagesPremium() {
                           onChange={handleInputChange}
                           onKeyPress={handleKeyPress}
                           placeholder="Type a message..."
-                          className="pr-10 md:pr-12 text-sm"
+                          className="pr-10 md:pr-12 text-sm md:text-base min-h-[44px] md:min-h-0"
                         />
                       </div>
                       <Button
@@ -970,7 +970,7 @@ export default function MessagesPremium() {
                         size="sm"
                         onClick={handleSendMessage}
                         disabled={(!newMessage.trim() && attachments.length === 0) || uploadingFile}
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 touch-manipulation"
                       >
                         <Send className="w-4 h-4 md:mr-2" />
                         <span className="hidden md:inline">Send</span>
