@@ -354,20 +354,64 @@ export default function ProductForm() {
 
   const handleSave = async (publish = false) => {
     try {
-      // Only validate critical issues for publishing
+      // Validate required fields
+      if (!formData.title || !formData.title.trim()) {
+        toast.error('Product title is required');
+        setErrors({ title: 'Product title is required' });
+        return;
+      }
+
+      if (!formData.category_id) {
+        toast.error('Please select a category');
+        setErrors({ category_id: 'Category is required' });
+        return;
+      }
+
+      // Validate price - at least one price field is required
+      const priceMin = formData.price_min ? parseFloat(formData.price_min) : null;
+      const priceMax = formData.price_max ? parseFloat(formData.price_max) : null;
+      
+      if (!priceMin && !priceMax) {
+        toast.error('Please enter at least one price (minimum or maximum)');
+        setErrors({ price_min: 'At least one price is required' });
+        return;
+      }
+
+      if (priceMin && priceMin <= 0) {
+        toast.error('Minimum price must be greater than 0');
+        setErrors({ price_min: 'Price must be greater than 0' });
+        return;
+      }
+
+      if (priceMax && priceMax <= 0) {
+        toast.error('Maximum price must be greater than 0');
+        setErrors({ price_max: 'Price must be greater than 0' });
+        return;
+      }
+
+      if (priceMin && priceMax && priceMin > priceMax) {
+        toast.error('Minimum price cannot be greater than maximum price');
+        setErrors({ price_max: 'Maximum price must be greater than minimum price' });
+        return;
+      }
+
+      // For publishing, require more fields
       if (publish) {
-        if (!formData.title.trim()) {
-          toast.warning('Product title is recommended for publishing');
-          // Don't block, just warn
+        if (!formData.description || !formData.description.trim()) {
+          toast.error('Product description is required for publishing');
+          setErrors({ description: 'Description is required for publishing' });
+          return;
         }
-        if (formData.price_max && formData.price_min && parseFloat(formData.price_max) < parseFloat(formData.price_min)) {
-          toast.error('Please fix price range before publishing');
-          return; // Only block if price range is invalid
+        if (formData.images.length === 0) {
+          toast.error('At least one product image is required for publishing');
+          return;
         }
-        // Images are optional - don't block
       }
 
       setIsSaving(true);
+
+      // Calculate price field - use price_min if available, otherwise price_max, or 0 as fallback
+      const price = priceMin || priceMax || 0;
 
       // Prepare product data
       const productData = {
@@ -380,9 +424,10 @@ export default function ProductForm() {
         country_of_origin: formData.country_of_origin || null,
         min_order_quantity: formData.min_order_quantity ? parseFloat(formData.min_order_quantity) : null,
         moq_unit: formData.moq_unit,
-        price_min: formData.price_min ? parseFloat(formData.price_min) : null,
-        price_max: formData.price_max ? parseFloat(formData.price_max) : null,
-        currency: formData.currency,
+        price: price, // Required field - use price_min or price_max
+        price_min: priceMin,
+        price_max: priceMax,
+        currency: formData.currency || 'USD',
         lead_time_min_days: formData.lead_time_min_days ? parseInt(formData.lead_time_min_days) : null,
         lead_time_max_days: formData.lead_time_max_days ? parseInt(formData.lead_time_max_days) : null,
         supply_ability_qty: formData.supply_ability_qty ? parseFloat(formData.supply_ability_qty) : null,
@@ -391,8 +436,8 @@ export default function ProductForm() {
         shipping_terms: formData.shipping_terms,
         certifications: formData.certifications,
         specifications: formData.specifications,
-        status: publish ? 'active' : formData.status,
-        featured: formData.featured,
+        status: publish ? 'active' : (formData.status || 'draft'),
+        featured: formData.featured || false,
         published_at: publish ? new Date().toISOString() : null
       };
 
@@ -446,7 +491,22 @@ export default function ProductForm() {
       toast.success(publish ? 'Product published successfully!' : 'Product saved as draft');
       navigate('/dashboard/products');
     } catch (error) {
-      toast.error(error.message || 'Failed to save product');
+      console.error('Product save error:', error);
+      const errorMessage = error.message || 'Failed to save product';
+      
+      // Provide more specific error messages
+      if (errorMessage.includes('price') && errorMessage.includes('not-null')) {
+        toast.error('Price is required. Please enter at least a minimum or maximum price.');
+        setErrors({ price_min: 'At least one price is required' });
+      } else if (errorMessage.includes('category_id') && errorMessage.includes('not-null')) {
+        toast.error('Category is required. Please select a category.');
+        setErrors({ category_id: 'Category is required' });
+      } else if (errorMessage.includes('title') && errorMessage.includes('not-null')) {
+        toast.error('Product title is required.');
+        setErrors({ title: 'Product title is required' });
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsSaving(false);
     }
