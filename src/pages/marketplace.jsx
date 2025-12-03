@@ -93,6 +93,47 @@ export default function Marketplace() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
 
+  // Helper: log search analytics to Supabase (non-blocking)
+  const logSearchEvent = async ({ resultCount }) => {
+    try {
+      const hasQuery = debouncedSearchQuery && debouncedSearchQuery.trim().length > 0;
+      const hasFilters =
+        selectedFilters.category ||
+        selectedFilters.country ||
+        selectedFilters.verification ||
+        selectedFilters.priceRange ||
+        selectedFilters.moq ||
+        selectedFilters.certifications.length > 0 ||
+        selectedFilters.deliveryTime ||
+        selectedFilters.verified ||
+        selectedFilters.fastResponse ||
+        selectedFilters.readyToShip ||
+        priceMin ||
+        priceMax ||
+        moqMin;
+
+      // Only log meaningful searches (query or filters applied)
+      if (!hasQuery && !hasFilters) return;
+
+      await supabase.from('search_events').insert({
+        query: hasQuery ? debouncedSearchQuery.trim() : null,
+        filters: {
+          ...selectedFilters,
+          priceMin,
+          priceMax,
+          moqMin,
+          sortBy,
+        },
+        result_count: typeof resultCount === 'number' ? resultCount : null,
+        source_page: 'marketplace',
+      });
+    } catch (error) {
+      // Analytics failures should never block UX
+      // eslint-disable-next-line no-console
+      console.error('Failed to log search event:', error);
+    }
+  };
+
   useEffect(() => {
     trackPageView('Marketplace');
     loadProducts();
@@ -234,6 +275,9 @@ export default function Marketplace() {
       // Apply client-side filters (search, price range, MOQ, certifications, lead time, chip filters)
       const filtered = applyClientSideFilters(productsWithImages);
       setProducts(filtered);
+
+      // Log search event (non-blocking)
+      logSearchEvent({ resultCount: filtered.length });
     } catch (error) {
       setProducts([]);
     } finally {

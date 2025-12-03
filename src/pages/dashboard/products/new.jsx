@@ -159,15 +159,38 @@ export default function ProductForm() {
       }
 
       // Load categories
-      const { data: categoriesData } = await supabase
+      const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('*')
         .order('name');
-      setCategories(categoriesData || []);
+
+      if (categoriesError) {
+        console.error('Failed to load categories:', categoriesError);
+        toast.error('Failed to load categories. Please refresh the page.');
+      } else {
+        setCategories(categoriesData || []);
+      }
 
       // If editing, load product data
       if (productId) {
         await loadProductData(productId, userCompanyId);
+      } else {
+        // If coming from supplier onboarding, pre-fill basic fields
+        const fromOnboarding = searchParams.get('fromOnboarding') === '1';
+        if (fromOnboarding) {
+          const prefillTitle = searchParams.get('title') || '';
+          const prefillDescription = searchParams.get('description') || '';
+          const prefillPriceMin = searchParams.get('price_min') || '';
+          const prefillCategoryId = searchParams.get('category_id') || '';
+
+          setFormData(prev => ({
+            ...prev,
+            title: prefillTitle || prev.title,
+            description: prefillDescription || prev.description,
+            price_min: prefillPriceMin || prev.price_min,
+            category_id: prefillCategoryId || prev.category_id,
+          }));
+        }
       }
     } catch (error) {
       toast.error('Failed to load form data');

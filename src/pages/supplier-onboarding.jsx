@@ -312,41 +312,47 @@ export default function SupplierOnboarding() {
       // Save all data
       await saveCompanyInfo();
 
-      // Update company with categories
-      if (companyId && formData.categories.length > 0) {
-        // Store categories in company metadata or create company_categories records
+      // Update company with categories and mark onboarding as completed
+      if (companyId) {
+        const updatePayload = {
+          onboarding_completed: true,
+        };
+
+        if (formData.categories.length > 0) {
+          updatePayload.categories = formData.categories;
+        }
+
         const { error } = await supabase
           .from('companies')
-          .update({
-            categories: formData.categories,
-            onboarding_completed: true,
-          })
+          .update(updatePayload)
           .eq('id', companyId);
 
         if (error) throw error;
       }
 
-      // Create first product if provided
-      if (formData.first_product_title && companyId) {
-        const { error: productError } = await supabase
-          .from('products')
-          .insert({
-            company_id: companyId,
-            title: formData.first_product_title,
-            description: formData.first_product_description,
-            price: parseFloat(formData.first_product_price) || 0,
-            category_id: formData.first_product_category,
-            status: 'draft', // Start as draft, user can publish later
-          });
-
-        if (productError) {
-          console.error('Failed to create first product:', productError);
-          // Continue anyway
-        }
-      }
-
       toast.success('Onboarding completed! Welcome to Afrikoni!');
-      navigate('/dashboard/products');
+
+      // If the supplier provided first-product info, guide them into the full product wizard
+      if (formData.first_product_title && companyId) {
+        const params = new URLSearchParams();
+        params.set('fromOnboarding', '1');
+        params.set('title', formData.first_product_title);
+
+        if (formData.first_product_description) {
+          params.set('description', formData.first_product_description);
+        }
+        if (formData.first_product_price) {
+          params.set('price_min', formData.first_product_price);
+        }
+        if (formData.first_product_category) {
+          params.set('category_id', formData.first_product_category);
+        }
+
+        navigate(`/dashboard/products/new?${params.toString()}`);
+      } else {
+        // Otherwise take them to their products dashboard
+        navigate('/dashboard/products');
+      }
     } catch (error) {
       toast.error('Failed to complete onboarding');
       console.error('Completion error:', error);
