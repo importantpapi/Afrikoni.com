@@ -76,7 +76,7 @@ export default function AdminReview() {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .in('status', ['draft'])
+      .in('status', ['pending_review'])
       .order('created_at', { ascending: false })
       .limit(50);
     if (!error) setPendingProducts(data || []);
@@ -148,7 +148,7 @@ export default function AdminReview() {
     try {
       const { error } = await supabase
         .from('products')
-        .update({ status: 'inactive' })
+        .update({ status: 'rejected' })
         .eq('id', id);
       if (error) throw error;
       toast.success('Product rejected');

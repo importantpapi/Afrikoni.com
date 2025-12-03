@@ -177,7 +177,7 @@ export default function AddProduct() {
         delivery_time: sanitizeString(formData.delivery_time || ''),
         packaging: sanitizeString(formData.packaging || ''),
         currency: formData.currency || 'USD',
-        status: formData.status || 'active',
+        status: 'pending_review', // Always require admin approval before going live
         company_id: companyId, // Always from authenticated user, never from input
         views: 0,
         inquiries: 0
