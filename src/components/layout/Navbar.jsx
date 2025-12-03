@@ -29,6 +29,7 @@ export default function Navbar({ user, onLogout }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [compareCount, setCompareCount] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Load compare count from localStorage
   useEffect(() => {
@@ -56,6 +57,28 @@ export default function Navbar({ user, onLogout }) {
       clearInterval(interval);
     };
   }, []);
+
+  // Close Explore menu on route change
+  useEffect(() => {
+    setMegaOpen(false);
+    setLanguageOpen(false);
+    setCurrencyOpen(false);
+    setUserMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close Explore menu on scroll (mobile)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (megaOpen) {
+        setMegaOpen(false);
+      }
+      // Add shadow when scrolled
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [megaOpen]);
 
   const languageMap = {
     en: 'EN',
@@ -94,38 +117,61 @@ export default function Navbar({ user, onLogout }) {
     setUserMenuOpen(false);
   };
 
+  const openLanguageMenu = () => {
+    setLanguageOpen(true);
+    setMegaOpen(false);
+    setCurrencyOpen(false);
+    setUserMenuOpen(false);
+  };
+
+  const openCurrencyMenu = () => {
+    setCurrencyOpen(true);
+    setMegaOpen(false);
+    setLanguageOpen(false);
+    setUserMenuOpen(false);
+  };
+
+  const openUserMenu = () => {
+    setUserMenuOpen(true);
+    setMegaOpen(false);
+    setLanguageOpen(false);
+    setCurrencyOpen(false);
+  };
+
   return (
-    <nav className="w-full bg-afrikoni-chestnut text-afrikoni-cream border-b border-afrikoni-gold/30 sticky top-0 z-50 relative">
+    <nav className={`w-full bg-afrikoni-chestnut text-afrikoni-cream border-b border-afrikoni-gold/30 sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
       {/* Top bar */}
       <div className="max-w-[1440px] mx-auto px-4 flex items-center justify-between gap-6 h-16 lg:h-20">
         {/* Left: logo + explore + quick link */}
-        <div className="flex items-center gap-8">
-          <Logo type="full" size="md" link={true} showTagline={false} direction="horizontal" />
+        <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 flex-shrink-0 min-w-0">
+          <div className="max-w-[140px] sm:max-w-none flex-shrink-0">
+            <Logo type="full" size="md" link={true} showTagline={false} direction="horizontal" />
+          </div>
 
           <button
             type="button"
             onClick={toggleMegaMenu}
-            className="flex items-center gap-1 text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition"
+            className="hidden sm:flex items-center gap-1 text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors"
           >
-            Explore <span>▼</span>
+            Explore <span className={`transition-transform duration-200 ${megaOpen ? 'rotate-180' : ''}`}>▼</span>
           </button>
 
-          <Link to="/marketplace">
+          <Link to="/marketplace" className="hidden md:block">
             <Button
               variant="outline"
               size="sm"
-              className="h-9 px-4 border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 rounded-full font-semibold"
+              className="h-9 px-3 md:px-4 border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 rounded-full font-semibold text-xs md:text-sm"
             >
               Browse Products
             </Button>
           </Link>
           
           {compareCount > 0 && (
-            <Link to="/compare" className="relative">
+            <Link to="/compare" className="relative hidden sm:block">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 px-3 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                className="h-9 px-2 sm:px-3 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
               >
                 <GitCompare className="w-4 h-4" />
                 <span className="ml-1 hidden sm:inline">Compare</span>
@@ -138,33 +184,31 @@ export default function Navbar({ user, onLogout }) {
         </div>
 
         {/* Right: language, currency, user */}
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
           {/* Language selector */}
-          <div className="hidden lg:block relative">
+          <div className="relative">
             <button
-              onClick={() => {
-                setLanguageOpen(!languageOpen);
-                setCurrencyOpen(false);
-              }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
+              onClick={openLanguageMenu}
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
             >
-              <Globe className="w-4 h-4" />
-              <span className="hidden xl:inline">{selectedLanguageCode}</span>
-              <ChevronDown className="w-3 h-3" />
+              <Globe className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline">{selectedLanguageCode}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${languageOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
               {languageOpen && (
                 <>
                   <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0 z-[60]"
                     onClick={() => setLanguageOpen(false)}
                   />
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 bg-afrikoni-offwhite rounded-lg shadow-afrikoni-lg border border-afrikoni-gold/30 z-50 py-1"
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="absolute right-0 mt-2 w-56 bg-afrikoni-offwhite rounded-lg shadow-afrikoni-lg border border-afrikoni-gold/30 z-[70] py-1"
                   >
                     {languages.map((lang) => (
                       <button
@@ -174,12 +218,12 @@ export default function Navbar({ user, onLogout }) {
                           setLanguageOpen(false);
                         }}
                         className={`
-                          w-full text-left px-4 py-2 text-sm hover:bg-afrikoni-gold/10 transition-colors flex items-center gap-2
-                          ${language === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold' : 'text-afrikoni-deep'}
+                          w-full text-left px-4 py-2.5 text-sm hover:bg-afrikoni-gold/10 transition-colors flex items-center gap-2.5 whitespace-nowrap
+                          ${language === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold font-medium' : 'text-afrikoni-deep'}
                         `}
                       >
-                        <span>{lang.flag}</span>
-                        {lang.name}
+                        <span className="text-lg flex-shrink-0">{lang.flag}</span>
+                        <span className="truncate">{lang.name}</span>
                       </button>
                     ))}
                   </motion.div>
@@ -191,31 +235,29 @@ export default function Navbar({ user, onLogout }) {
           {/* Currency selector */}
           <div className="hidden lg:block relative">
             <button
-              onClick={() => {
-                setCurrencyOpen(!currencyOpen);
-                setLanguageOpen(false);
-              }}
+              onClick={openCurrencyMenu}
               className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
             >
               <span className="hidden xl:inline">{selectedCurrency}</span>
               <span className="xl:hidden">
                 {currencies.find((c) => c.code === selectedCurrency)?.symbol || '$'}
               </span>
-              <ChevronDown className="w-3 h-3" />
+              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${currencyOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
               {currencyOpen && (
                 <>
                   <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0 z-[60]"
                     onClick={() => setCurrencyOpen(false)}
                   />
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 bg-afrikoni-offwhite rounded-lg shadow-afrikoni-lg border border-afrikoni-gold/30 z-50 py-1"
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="absolute right-0 mt-2 w-48 bg-afrikoni-offwhite rounded-lg shadow-afrikoni-lg border border-afrikoni-gold/30 z-[70] py-1"
                   >
                     {currencies.map((curr) => (
                       <button
@@ -226,7 +268,7 @@ export default function Navbar({ user, onLogout }) {
                         }}
                         className={`
                           w-full text-left px-4 py-2 text-sm hover:bg-afrikoni-gold/10 transition-colors
-                          ${selectedCurrency === curr.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold' : 'text-afrikoni-deep'}
+                          ${selectedCurrency === curr.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold font-medium' : 'text-afrikoni-deep'}
                         `}
                       >
                         {curr.symbol} {curr.name}
@@ -257,18 +299,14 @@ export default function Navbar({ user, onLogout }) {
 
               <div className="relative">
                 <button
-                  onClick={() => {
-                    setUserMenuOpen(!userMenuOpen);
-                    setLanguageOpen(false);
-                    setCurrencyOpen(false);
-                  }}
+                  onClick={openUserMenu}
                   className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-afrikoni-gold/10 transition-colors"
                 >
                   <div className="w-8 h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-chestnut font-bold text-sm flex-shrink-0">
                     {user.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-afrikoni-cream transition-transform ${
+                    className={`w-4 h-4 text-afrikoni-cream transition-transform duration-200 ${
                       userMenuOpen ? 'rotate-180' : ''
                     }`}
                   />
@@ -278,15 +316,15 @@ export default function Navbar({ user, onLogout }) {
                   {userMenuOpen && (
                     <>
                       <div
-                        className="fixed inset-0 z-40"
+                        className="fixed inset-0 z-[60]"
                         onClick={() => setUserMenuOpen(false)}
                       />
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-afrikoni-offwhite border border-afrikoni-gold/20 rounded-lg shadow-afrikoni-xl z-50 overflow-hidden"
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                        className="absolute right-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-afrikoni-offwhite border border-afrikoni-gold/20 rounded-lg shadow-afrikoni-xl z-[70] overflow-hidden"
                       >
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-afrikoni-gold/20">
@@ -398,12 +436,21 @@ export default function Navbar({ user, onLogout }) {
       </div>
 
       {/* Mega dropdown */}
-      <div
-        className={`${
-          megaOpen ? 'flex' : 'hidden'
-        } absolute left-0 w-full bg-white shadow-xl border-t border-gray-200 z-50`}
-      >
-        <div className="max-w-[1440px] mx-auto px-8 py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-h-[400px] overflow-y-auto">
+      <AnimatePresence>
+        {megaOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-[45] bg-black/20"
+              onClick={() => setMegaOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="absolute left-0 w-full bg-white shadow-xl border-t border-gray-200 z-[50]"
+            >
+              <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 max-h-[400px] overflow-y-auto">
           {/* Marketplace */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Marketplace</h3>
@@ -451,7 +498,10 @@ export default function Navbar({ user, onLogout }) {
             </nav>
           </div>
         </div>
-      </div>
+      </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

@@ -55,7 +55,7 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-cream mb-4 leading-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-cream mb-4 leading-tight px-2"
           >
             {t('hero.title') || 'The AI-powered B2B marketplace connecting Africa and the world'}
           </motion.h1>
@@ -65,7 +65,7 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-base md:text-lg lg:text-xl text-afrikoni-cream/90 mb-6 max-w-3xl mx-auto"
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-afrikoni-cream/90 mb-6 max-w-3xl mx-auto px-2"
           >
             {t('hero.subtitle') || 'Verified African suppliers. Secure escrow payments. Cross-border logistics across 54 countries.'}
           </motion.p>
@@ -97,7 +97,7 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.22 }}
-            className="inline-flex flex-wrap items-center justify-center gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-4 py-2 text-[11px] md:text-xs text-afrikoni-cream mb-5"
+            className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-[11px] md:text-xs text-afrikoni-cream mb-5 mx-2"
           >
             <span className="font-semibold uppercase tracking-wide text-afrikoni-gold">
               Afrikoni&nbsp;Shield™

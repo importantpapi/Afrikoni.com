@@ -12,6 +12,7 @@ import Home from './pages/index';
 import Login from './pages/login';
 import Signup from './pages/signup';
 import Onboarding from './pages/onboarding';
+import NotFound from './pages/NotFound';
 
 // Lazy-loaded heavy routes - Dashboard
 const Dashboard = lazy(() => import('./pages/dashboard'));
@@ -209,6 +210,8 @@ function App() {
             <Route path="/buyer-protection" element={<BuyerProtectionPolicy />} />
             <Route path="/anti-corruption-policy" element={<AntiCorruptionPolicy />} />
             <Route path="/escrow-policy" element={<EscrowPolicy />} />
+            {/* Catch-all 404 route - must be last */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </Layout>
