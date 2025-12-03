@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { buildProductQuery } from '@/utils/queryBuilders';
@@ -32,6 +32,7 @@ import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 
 export default function Marketplace() {
+  const [searchParams] = useSearchParams();
   const { trackPageView } = useAnalytics();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [products, setProducts] = useState([]);
@@ -61,29 +62,46 @@ export default function Marketplace() {
   useEffect(() => {
     const loadCategoriesAndCountries = async () => {
       try {
-        const [categoriesRes, countriesRes] = await Promise.all([
-          supabase.from('categories').select('id, name').order('name'),
-          supabase.from('companies').select('country').not('country', 'is', null)
+        const [categoriesRes] = await Promise.all([
+          supabase.from('categories').select('id, name').order('name')
         ]);
         
         if (categoriesRes.data) {
           setCategories(['All Categories', ...categoriesRes.data.map(c => c.name)]);
         }
         
-        if (countriesRes.data) {
-          const uniqueCountries = [...new Set(countriesRes.data.map(c => c.country).filter(Boolean))].sort();
-          setCountries(['All Countries', ...uniqueCountries]);
+        // Use full static list of African countries for a consistent marketplace selector
+        setCountries(['All Countries', ...AFRICAN_COUNTRIES]);
+
+        // Apply country from URL (e.g. /marketplace?country=Nigeria)
+        const urlCountry = searchParams.get('country');
+        if (urlCountry && AFRICAN_COUNTRIES.includes(urlCountry)) {
+          setSelectedFilters(prev => ({ ...prev, country: urlCountry }));
         }
       } catch (error) {
         // Fallback to default categories
         setCategories(['All Categories', 'Agriculture', 'Textiles', 'Industrial', 'Beauty & Health']);
-        setCountries(['All Countries', 'Nigeria', 'Ghana', 'Egypt', 'Kenya', 'South Africa']);
+        setCountries(['All Countries', ...AFRICAN_COUNTRIES]);
       }
     };
     
     loadCategoriesAndCountries();
-  }, []);
+  }, [searchParams]);
   const verificationOptions = ['All', 'Verified', 'Premium Partner'];
+  const POPULAR_COUNTRIES = ['Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Egypt', 'Morocco'];
+
+  // Static list of all African countries for clean, predictable country marketplaces
+  const AFRICAN_COUNTRIES = [
+    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi',
+    'Cameroon', 'Cape Verde', 'Central African Republic', 'Chad', 'Comoros',
+    'Congo', 'DR Congo', "Côte d'Ivoire", 'Djibouti', 'Egypt', 'Equatorial Guinea',
+    'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea',
+    'Guinea-Bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar',
+    'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique',
+    'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'São Tomé and Príncipe', 'Senegal',
+    'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan',
+    'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
+  ];
   const [pagination, setPagination] = useState(createPaginationState());
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [aiBestMatch, setAiBestMatch] = useState(null);
@@ -351,6 +369,13 @@ if (!Array.isArray(productsList)) return [];
 
   const filteredProducts = products;
 
+  const selectedCountryForSeo =
+    selectedFilters.country && selectedFilters.country !== 'All Countries'
+      ? selectedFilters.country
+      : searchParams.get('country') && AFRICAN_COUNTRIES.includes(searchParams.get('country'))
+      ? searchParams.get('country')
+      : '';
+
   const ProductCard = React.memo(({ product }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -480,15 +505,27 @@ if (!Array.isArray(productsList)) return [];
   return (
     <>
       <SEO 
-        title="Marketplace - Browse African Products & Suppliers"
-        description="Browse thousands of verified products and suppliers across Africa. Filter by category, country, verification status, and more."
-        url="/marketplace"
+        title={
+          selectedCountryForSeo
+            ? `Marketplace – ${selectedCountryForSeo} Suppliers & Products`
+            : 'Marketplace - Browse African Products & Suppliers'
+        }
+        description={
+          selectedCountryForSeo
+            ? `Browse verified suppliers and products based in ${selectedCountryForSeo}. Filter by category, MOQ, verification status, and more for trade within and from ${selectedCountryForSeo}.`
+            : 'Browse thousands of verified products and suppliers across Africa. Filter by category, country, verification status, and more.'
+        }
+        url={
+          selectedCountryForSeo
+            ? `/marketplace?country=${encodeURIComponent(selectedCountryForSeo)}`
+            : '/marketplace'
+        }
       />
       <StructuredData type="WebSite" />
       <div className="min-h-screen bg-afrikoni-offwhite">
       {/* Header */}
       <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
               <Search className="w-4 h-4 text-afrikoni-deep/70 absolute left-3 top-1/2 -translate-y-1/2 z-10" />
@@ -582,6 +619,67 @@ if (!Array.isArray(productsList)) return [];
               <SlidersHorizontal className="w-4 h-4 mr-2" />
               Filters
             </Button>
+          </div>
+          
+          {/* Country marketplace selector */}
+          <div className="flex flex-col gap-2 md:gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm">
+              <div className="text-afrikoni-deep/80">
+                {selectedFilters.country && selectedFilters.country !== 'All Countries'
+                  ? <>You are viewing the <span className="font-semibold text-afrikoni-chestnut">{selectedFilters.country}</span> marketplace. Search results are limited to suppliers from this country.</>
+                  : <>You are viewing the <span className="font-semibold text-afrikoni-chestnut">All Africa</span> marketplace. Choose a country if you want results from one market only.</>}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-afrikoni-deep/70 hidden sm:inline">Country marketplace:</span>
+                <Select
+                  value={selectedFilters.country || 'All Countries'}
+                  onValueChange={(value) => {
+                    const countryValue = value === 'All Countries' ? '' : value;
+                    setSelectedFilters({ ...selectedFilters, country: countryValue });
+                  }}
+                >
+                  <SelectTrigger className="w-40 h-9 border-afrikoni-gold/40 bg-white text-afrikoni-deep text-xs md:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(countries) && countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country === 'All Countries' ? 'All Africa' : country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {/* Quick access chips for popular markets so users don't scroll 54 countries */}
+            <div className="flex flex-wrap items-center gap-2 text-[11px] md:text-xs text-afrikoni-deep/80">
+              <span className="font-semibold text-afrikoni-chestnut/80">Popular markets:</span>
+              <button
+                type="button"
+                onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
+                className={`px-3 py-1 rounded-full border text-xs transition-colors ${
+                  !selectedFilters.country
+                    ? 'bg-afrikoni-gold text-afrikoni-chestnut border-afrikoni-gold'
+                    : 'border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/10'
+                }`}
+              >
+                All Africa
+              </button>
+              {POPULAR_COUNTRIES.map((country) => (
+                <button
+                  key={country}
+                  type="button"
+                  onClick={() => setSelectedFilters({ ...selectedFilters, country })}
+                  className={`px-3 py-1 rounded-full border text-xs transition-colors ${
+                    selectedFilters.country === country
+                      ? 'bg-afrikoni-gold text-afrikoni-chestnut border-afrikoni-gold'
+                      : 'border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/10'
+                  }`}
+                >
+                  {country}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

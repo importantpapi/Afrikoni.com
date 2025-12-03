@@ -11,9 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Upload, ArrowLeft } from 'lucide-react';
+import { CalendarIcon, Upload, ArrowLeft, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { validateNumeric, sanitizeString } from '@/utils/security';
 
 const AFRICAN_COUNTRIES = [
@@ -34,6 +35,7 @@ export default function CreateRFQ() {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentRole, setCurrentRole] = useState('buyer');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -161,9 +163,42 @@ export default function CreateRFQ() {
     }
   };
 
+  const handleGenerateRFQ = async () => {
+    if (!formData.title && !formData.description) {
+      toast.error('Start with one or two simple sentences about what you need.');
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const brief = {
+        title: formData.title,
+        description: formData.description,
+        quantity: formData.quantity,
+        unit: formData.unit,
+        delivery_location: formData.delivery_location,
+        target_country: formData.target_country,
+      };
+      const result = await AIDescriptionService.generateRFQFromBrief(brief);
+      setFormData((prev) => ({
+        ...prev,
+        title: result.title || prev.title,
+        description: result.description || prev.description,
+        quantity: result.quantity || prev.quantity,
+        unit: result.unit || prev.unit,
+        delivery_location: result.delivery_location || prev.delivery_location,
+        target_country: result.target_country || prev.target_country,
+      }));
+      toast.success('Afrikoni AI structured your RFQ. Please review before publishing.');
+    } catch (error) {
+      toast.error('Afrikoni AI could not generate the RFQ. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/rfqs')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -171,9 +206,43 @@ export default function CreateRFQ() {
           </Button>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Create Request for Quote</h1>
-            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Describe what you need and get competitive quotes from suppliers</p>
+            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">
+              Describe what you need and get competitive quotes from trusted African suppliers.
+            </p>
           </div>
         </div>
+
+        {/* Simple explanation of how RFQs work */}
+        <Card className="border-afrikoni-gold/30 bg-afrikoni-offwhite/60">
+          <CardContent className="p-4 md:p-5">
+            <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut mb-2 uppercase tracking-wide">
+              How it works on Afrikoni
+            </p>
+            <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-afrikoni-deep">
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 1 — Tell us what you need</p>
+                <p>Fill this form with quantity, quality and delivery details. The clearer you are, the better the quotes.</p>
+              </div>
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 2 — Suppliers send quotes</p>
+                <p>Verified suppliers across Africa review your RFQ and respond with prices and terms inside Afrikoni.</p>
+              </div>
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 3 — Choose and confirm</p>
+                <p>You compare offers, chat with suppliers, then confirm the one that fits your budget and timeline.</p>
+              </div>
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 4 — Pay safely with Shield™</p>
+                <p>
+                  Payments are protected by Afrikoni Shield™ escrow. Funds are held until delivery is confirmed.
+                  <span className="block mt-1 font-semibold text-red-700">
+                    Never pay suppliers outside Afrikoni.
+                  </span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardContent className="p-6">
@@ -189,13 +258,26 @@ export default function CreateRFQ() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="description">Detailed Requirements *</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Detailed Requirements *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    onClick={handleGenerateRFQ}
+                    disabled={isGenerating}
+                    className="flex items-center gap-1 text-xs border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    {isGenerating ? 'Generating…' : 'Afrikoni AI help'}
+                  </Button>
+                </div>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Provide detailed specifications, quality standards, preferred materials, etc."
+                  placeholder="Describe your need in your own words. Afrikoni AI will help you turn it into a clear RFQ."
                   rows={6}
                   required
                 />

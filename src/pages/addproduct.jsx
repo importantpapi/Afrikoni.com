@@ -266,11 +266,36 @@ export default function AddProduct() {
         </div>
 
         {/* Product Details Section */}
-        <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Product Details</h2>
-          <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
-            Provide comprehensive information about your product to attract more buyers and increase your chances of making sales.
-          </p>
+        <div className="mb-6 text-center space-y-4">
+          <div>
+            <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Product Details</h2>
+            <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+              Provide clear information so buyers from other African countries can quickly trust and understand your offer.
+            </p>
+          </div>
+          {/* Simple guidance strip */}
+          <Card className="border-afrikoni-gold/25 bg-white/90 text-left">
+            <CardContent className="p-4 md:p-5 space-y-2">
+              <div className="flex items-center gap-2 text-xs md:text-sm text-afrikoni-text-dark">
+                <Shield className="w-4 h-4 text-afrikoni-gold" />
+                <span className="font-semibold">Afrikoni tip for sellers</span>
+              </div>
+              <div className="grid md:grid-cols-3 gap-3 text-[11px] md:text-xs text-afrikoni-text-dark/80">
+                <p>
+                  <span className="font-semibold">1. Clear title</span> — Mention product, material and main use.
+                  Example: “Organic Ghanaian Shea Butter – Cosmetic Grade”.
+                </p>
+                <p>
+                  <span className="font-semibold">2. Honest details</span> — Be transparent about quality, packaging
+                  and minimum order. Clear info brings serious RFQs, not endless questions.
+                </p>
+                <p>
+                  <span className="font-semibold">3. Real photos</span> — Upload bright photos of the real product,
+                  not stock images. This builds trust with buyers you have never met.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite">
@@ -285,13 +310,26 @@ export default function AddProduct() {
                   placeholder="Enter product name"
                 />
               </div>
-              <div>
-                <Label htmlFor="description">Description *</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Description *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    onClick={handleGenerateDescription}
+                    disabled={isGenerating || !formData.title}
+                    className="flex items-center gap-1 text-xs border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    {isGenerating ? 'Generating…' : 'Let Afrikoni AI help'}
+                  </Button>
+                </div>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  placeholder="Enter product description"
+                  placeholder="Describe your product in simple words or let Afrikoni AI expand it for you."
                   rows={4}
                 />
               </div>

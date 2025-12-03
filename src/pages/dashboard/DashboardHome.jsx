@@ -11,7 +11,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import {
   ShoppingCart, FileText, Package, MessageSquare, Wallet, Truck,
   Users, Plus, TrendingUp, ArrowRight, Clock, CheckCircle, XCircle, Building2,
-  Shield, AlertTriangle
+  Shield, AlertTriangle, GraduationCap, HelpCircle
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { format, subDays } from 'date-fns';
@@ -78,6 +78,19 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
       isMounted = false;
     };
   }, [currentRole, navigate]);
+
+  const AcademyLesson = ({ title, description, link }) => (
+    <Link to={link}>
+      <div className="group cursor-pointer p-3 rounded-lg border border-afrikoni-gold/20 bg-white/80 hover:border-afrikoni-gold/60 hover:shadow-premium-lg transition-all h-full">
+        <p className="text-xs font-semibold text-afrikoni-text-dark mb-1 group-hover:text-afrikoni-gold">
+          {title}
+        </p>
+        <p className="text-[11px] md:text-xs text-afrikoni-text-dark/75">
+          {description}
+        </p>
+      </div>
+    </Link>
+  );
 
   const loadKPIs = async (role, cid) => {
     try {
@@ -403,6 +416,98 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           {currentRole}
         </Badge>
       </motion.div>
+
+      {/* Afrikoni Academy: Guided learning for buyers & sellers */}
+      {(currentRole === 'buyer' || currentRole === 'seller' || currentRole === 'hybrid') && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.12 }}
+        >
+          <Card className="border-afrikoni-gold/30 bg-gradient-to-r from-afrikoni-gold/10 via-afrikoni-cream to-afrikoni-gold/5 rounded-afrikoni-lg shadow-premium-lg">
+            <CardContent className="p-5 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-afrikoni-gold/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-6 h-6 md:w-7 md:h-7 text-afrikoni-gold" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base md:text-lg font-bold text-afrikoni-text-dark flex items-center gap-2">
+                    Afrikoni Academy
+                  </h2>
+                  <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-[10px] md:text-xs uppercase tracking-wide">
+                    Guided learning
+                  </Badge>
+                </div>
+                <p className="text-xs md:text-sm text-afrikoni-text-dark/80 max-w-3xl">
+                  Short, practical lessons to help you trade safely and confidently on Afrikoni. Start with the steps
+                  below — each one is designed for busy African businesses, not lawyers.
+                </p>
+                <div className="grid md:grid-cols-3 gap-3 text-xs md:text-sm">
+                  {currentRole === 'buyer' && (
+                    <>
+                      <AcademyLesson
+                        title="How protected payments work"
+                        description="Understand Afrikoni Trade Shield™ (escrow) so you never lose money on a bad order."
+                        link="/protection"
+                      />
+                      <AcademyLesson
+                        title="How to write a strong RFQ"
+                        description="See examples of clear RFQs that attract serious suppliers and good prices."
+                        link="/rfq"
+                      />
+                      <AcademyLesson
+                        title="How to vet a supplier"
+                        description="Learn what to check on a supplier profile before you place a big order."
+                        link="/suppliers"
+                      />
+                    </>
+                  )}
+                  {(currentRole === 'seller' || currentRole === 'hybrid') && (
+                    <>
+                      <AcademyLesson
+                        title="Get verified & build trust"
+                        description="Step‑by‑step guide to complete verification and earn the Verified Supplier badge."
+                        link="/verification-center"
+                      />
+                      <AcademyLesson
+                        title="Create winning product pages"
+                        description="Learn how great photos, clear specs and pricing increase your RFQs and orders."
+                        link="/dashboard/products/new"
+                      />
+                      <AcademyLesson
+                        title="Reply to RFQs like a pro"
+                        description="See how to answer RFQs with clear prices, terms and delivery so buyers choose you."
+                        link="/rfq"
+                      />
+                    </>
+                  )}
+                  {currentRole === 'hybrid' && (
+                    <AcademyLesson
+                      title="Use one account for buying & selling"
+                      description="Understand how your hybrid dashboard works for both sourcing and exporting."
+                      link="/dashboard"
+                    />
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 w-full md:w-auto">
+                <Link to="/resources">
+                  <Button
+                    size="sm"
+                    className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal"
+                  >
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    Open learning hub
+                  </Button>
+                </Link>
+                <p className="text-[10px] md:text-xs text-afrikoni-text-dark/60">
+                  Coming soon: AI coach that answers questions in your language about orders, RFQs and payments.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* KPI Bar - Premium Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">

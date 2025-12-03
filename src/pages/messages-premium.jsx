@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, Paperclip, Search, MoreVertical, Phone, Video, MapPin,
   Shield, CheckCircle, CheckCircle2, Clock, User, Verified, Star, X, File, Image as ImageIcon,
-  FileText, Download, Eye, Loader2
+  FileText, Download, Eye, Loader2, Sparkles
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,8 @@ import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { notifyNewMessage } from '@/services/notificationService';
+import VirtualList from '@/components/ui/VirtualList';
+import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 
 export default function MessagesPremium() {
   const [conversations, setConversations] = useState([]);
@@ -255,6 +257,36 @@ export default function MessagesPremium() {
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(true);
+  const [aiDraft, setAiDraft] = useState('');
+  const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
+
+  const handleGenerateAISuggestions = useCallback(async () => {
+    if (!selectedConversation || !selectedConv) {
+      toast.error('Select a conversation first.');
+      return;
+    }
+    setIsGeneratingSuggestion(true);
+    try {
+      const lastMessage = messages[messages.length - 1];
+      const context = {
+        type: searchParams.get('rfq') ? 'rfq' : undefined,
+        lastMessage: lastMessage?.content || '',
+      };
+      const suggestions = await AIDescriptionService.generateMessageSuggestions({
+        role: 'buyer', // In future: infer from current user role / company
+        context,
+      });
+      if (suggestions && suggestions.length > 0) {
+        setAiDraft(suggestions[0]);
+      }
+      toast.success('Afrikoni AI prepared a suggested message. You can edit it before sending.');
+    } catch (error) {
+      toast.error('Afrikoni AI could not generate a suggestion. Please try again.');
+    } finally {
+      setIsGeneratingSuggestion(false);
+    }
+  }, [messages, searchParams, selectedConversation, selectedConv]);
 
   // Typing indicator: send typing status
   const handleTyping = useCallback(() => {
@@ -496,7 +528,7 @@ export default function MessagesPremium() {
               </div>
 
               {/* Conversations */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1">
                 {filteredConversations.length === 0 ? (
                   <div className="p-8 text-center text-afrikoni-deep/70">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 text-afrikoni-deep/50" />
@@ -504,103 +536,101 @@ export default function MessagesPremium() {
                     <p className="text-xs mt-2">Start a conversation from a product, RFQ, or order</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-afrikoni-gold/10">
-                    <AnimatePresence>
-                      {filteredConversations.map((conv, idx) => {
-                        const isSelected = selectedConversation === conv.id;
-                        const unreadCount = messages.filter(
-                          m => m.conversation_id === conv.id && 
-                          !m.read && 
-                          m.receiver_company_id === companyId
-                        ).length;
-                        
-                        return (
-                          <motion.button
-                            key={conv.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2, delay: idx * 0.05 }}
-                            onClick={() => setSelectedConversation(conv.id)}
-                            className={`
-                              w-full p-4 text-left transition-all hover:bg-afrikoni-offwhite
-                              ${isSelected ? 'bg-afrikoni-offwhite border-l-4 border-afrikoni-gold' : ''}
-                            `}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="relative flex-shrink-0">
-                                <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                                  {conv.otherCompany?.logo_url ? (
-                                    <img 
-                                      src={conv.otherCompany.logo_url} 
-                                      alt={conv.otherCompany.company_name}
-                                      className="w-full h-full rounded-full object-cover"
-                                    />
-                                  ) : (
-                                    <User className="w-6 h-6 text-afrikoni-gold" />
-                                  )}
-                                </div>
-                                {conv.verified && (
-                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
-                                    <Verified className="w-2.5 h-2.5 text-afrikoni-chestnut" />
-                                  </div>
+                  <VirtualList
+                    items={filteredConversations}
+                    itemHeight={96}
+                    containerHeight={400}
+                    className="h-full divide-y divide-afrikoni-gold/10"
+                    renderItem={(conv) => {
+                      const isSelected = selectedConversation === conv.id;
+                      const unreadCount = messages.filter(
+                        m => m.conversation_id === conv.id && 
+                        !m.read && 
+                        m.receiver_company_id === companyId
+                      ).length;
+
+                      return (
+                        <button
+                          onClick={() => setSelectedConversation(conv.id)}
+                          className={`
+                            w-full p-4 text-left transition-all hover:bg-afrikoni-offwhite
+                            ${isSelected ? 'bg-afrikoni-offwhite border-l-4 border-afrikoni-gold' : ''}
+                          `}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="relative flex-shrink-0">
+                              <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                                {conv.otherCompany?.logo_url ? (
+                                  <img 
+                                    src={conv.otherCompany.logo_url} 
+                                    alt={conv.otherCompany.company_name}
+                                    className="w-full h-full rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <User className="w-6 h-6 text-afrikoni-gold" />
                                 )}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-afrikoni-chestnut text-sm truncate">
-                                      {conv.otherCompany?.company_name || 'Unknown Company'}
-                                    </span>
-                                    {conv.verified && (
-                                      <Badge variant="verified" className="text-xs px-1.5 py-0">✓</Badge>
-                                    )}
-                                  </div>
-                                  {unreadCount > 0 && (
-                                    <Badge variant="primary" className="text-xs min-w-[20px] h-5 flex items-center justify-center">
-                                      {unreadCount}
-                                    </Badge>
-                                  )}
+                              {conv.verified && (
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
+                                  <Verified className="w-2.5 h-2.5 text-afrikoni-chestnut" />
                                 </div>
-                                <div className="flex items-center justify-between">
-                                  <p className="text-xs text-afrikoni-deep truncate flex-1">
-                                    {conv.lastMessage || conv.subject || 'No messages yet'}
-                                  </p>
-                                  <span className="text-xs text-afrikoni-deep/70 ml-2 flex-shrink-0">
-                                    {conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : ''}
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-afrikoni-chestnut text-sm truncate">
+                                    {conv.otherCompany?.company_name || 'Unknown Company'}
                                   </span>
-                                </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-xs text-afrikoni-deep/70 capitalize">{conv.role || ''}</span>
-                                  {conv.country && (
-                                    <>
-                                      <span className="text-xs text-afrikoni-deep/70">•</span>
-                                      <div className="flex items-center gap-1">
-                                        <MapPin className="w-3 h-3 text-afrikoni-deep/70" />
-                                        <span className="text-xs text-afrikoni-deep/70">{conv.country}</span>
-                                      </div>
-                                    </>
+                                  {conv.verified && (
+                                    <Badge variant="verified" className="text-xs px-1.5 py-0">✓</Badge>
                                   )}
                                 </div>
+                                {unreadCount > 0 && (
+                                  <Badge className="bg-afrikoni-gold text-afrikoni-charcoal text-[10px] min-w-[20px] h-5 flex items-center justify-center">
+                                    {unreadCount}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs text-afrikoni-deep truncate flex-1">
+                                  {conv.lastMessage || conv.subject || 'No messages yet'}
+                                </p>
+                                <span className="text-xs text-afrikoni-deep/70 ml-2 flex-shrink-0">
+                                  {conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : ''}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-afrikoni-deep/70 capitalize">{conv.role || ''}</span>
+                                {conv.country && (
+                                  <>
+                                    <span className="text-xs text-afrikoni-deep/70">•</span>
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3 text-afrikoni-deep/70" />
+                                      <span className="text-xs text-afrikoni-deep/70">{conv.country}</span>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          </motion.button>
-                        );
-                      })}
-                    </AnimatePresence>
-                  </div>
+                          </div>
+                        </button>
+                      );
+                    }}
+                  />
                 )}
               </div>
             </Card>
           </motion.div>
 
-          {/* Chat Interface */}
+          {/* Chat Interface + AI helper */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className={`${selectedConversation ? 'lg:col-span-2' : 'hidden lg:block lg:col-span-2'} lg:col-span-2`}
+            className={`${selectedConversation ? 'lg:col-span-2' : 'hidden lg:block lg:col-span-2'} lg:col-span-2 flex flex-col xl:flex-row gap-3`}
           >
-            <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md">
+            <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md flex-1">
               {selectedConversation && selectedConv ? (
                 <>
                   {/* Chat Header */}
@@ -991,6 +1021,74 @@ export default function MessagesPremium() {
                 </div>
               )}
             </Card>
+
+            {/* AI Assistant Panel (desktop-only) */}
+            {selectedConversation && selectedConv && (
+              <Card className="hidden xl:flex flex-col h-full w-80 border-afrikoni-gold/30 bg-white/95 shadow-md">
+                <div className="p-3 border-b border-afrikoni-gold/20 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-afrikoni-chestnut">Afrikoni AI</p>
+                      <p className="text-[11px] text-afrikoni-deep/70">Helps you write clear, professional messages.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
+                    className="text-xs text-afrikoni-deep/60 hover:text-afrikoni-gold"
+                  >
+                    {aiSuggestionsOpen ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                {aiSuggestionsOpen && (
+                  <CardContent className="flex-1 flex flex-col p-3 space-y-2">
+                    <p className="text-[11px] text-afrikoni-deep/80">
+                      Type your own idea or let Afrikoni AI suggest a message you can edit before sending.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isGeneratingSuggestion}
+                      className="w-full flex items-center justify-center gap-1 text-xs border-afrikoni-gold/60 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                      onClick={handleGenerateAISuggestions}
+                    >
+                      {isGeneratingSuggestion ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Thinking…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3" />
+                          Suggest message
+                        </>
+                      )}
+                    </Button>
+                    <textarea
+                      value={aiDraft}
+                      onChange={(e) => setAiDraft(e.target.value)}
+                      placeholder="Afrikoni AI suggestion will appear here. Adjust the tone, add quantities or translate before using."
+                      className="flex-1 text-xs border border-afrikoni-gold/30 rounded-lg p-2 resize-none focus:outline-none focus:ring-1 focus:ring-afrikoni-gold bg-afrikoni-offwhite/40"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!aiDraft.trim()}
+                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal text-xs"
+                      onClick={() => {
+                        setNewMessage(aiDraft);
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      Use this in chat
+                    </Button>
+                  </CardContent>
+                )}
+              </Card>
+            )}
           </motion.div>
         </div>
       </div>

@@ -182,14 +182,14 @@ export default function RFQMarketplace() {
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Header */}
         <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20 sticky top-0 z-30">
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+          <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">
                   RFQ Marketplace
                 </h1>
                 <p className="text-afrikoni-deep">
-                  Browse active requests for quotations from buyers across Africa
+                  Browse active requests for quotations from buyers across Africa.
                 </p>
               </div>
               <Link to="/dashboard/rfqs/new">
@@ -198,6 +198,34 @@ export default function RFQMarketplace() {
                   Post an RFQ
                 </Button>
               </Link>
+            </div>
+
+            {/* Short explainer for suppliers */}
+            <div className="bg-white/90 border border-afrikoni-gold/30 rounded-lg p-4">
+              <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut uppercase tracking-wide mb-2">
+                How to use this page as a supplier
+              </p>
+              <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-afrikoni-deep">
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">1. Find good RFQs</p>
+                  <p>Use search and filters to focus on products, quantities and countries you can really serve well.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">2. Read details carefully</p>
+                  <p>Open the RFQ, check delivery dates, documents and buyer profile before you send any price.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">3. Send a clear quote</p>
+                  <p>Include unit price, total amount, lead time and Incoterms. Clear quotes win more business.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">4. Keep all talks in Afrikoni</p>
+                  <p>
+                    Chat, share documents and confirm orders inside Afrikoni so that Trade Shield™ can protect you
+                    and the buyer.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Search and Filters */}

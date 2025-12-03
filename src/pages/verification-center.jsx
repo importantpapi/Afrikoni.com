@@ -236,12 +236,41 @@ export default function VerificationCenter() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-8"
+          className="mb-8 space-y-3"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3">Verification Center</h1>
-          <p className="text-lg text-afrikoni-deep">
-            Complete your profile to unlock all Afrikoni features and build trust with partners
-          </p>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3">Verification Center</h1>
+            <p className="text-lg text-afrikoni-deep">
+              Complete your profile to unlock all Afrikoni features and build trust with serious buyers and suppliers.
+            </p>
+          </div>
+          <Card className="border-afrikoni-gold/30 bg-white/80">
+            <CardContent className="p-4 md:p-5">
+              <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut uppercase tracking-wide mb-2">
+                Why we verify on Afrikoni
+              </p>
+              <div className="grid md:grid-cols-3 gap-3 text-xs md:text-sm text-afrikoni-deep">
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">1. Protect your business</p>
+                  <p>We check that each company and contact person is real to reduce fraud and fake profiles.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">2. Unlock bigger opportunities</p>
+                  <p>
+                    Verified suppliers get higher visibility, larger order limits and access to premium buyers across
+                    Africa and the world.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">3. Simple, one‑time process</p>
+                  <p>
+                    Upload your key documents once (ID, business registration, bank proof). Afrikoni Shield™ keeps them
+                    encrypted and reviews them for you.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Progress Overview */}

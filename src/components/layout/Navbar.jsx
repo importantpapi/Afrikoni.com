@@ -286,7 +286,7 @@ export default function Navbar({ user, onLogout }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-56 bg-afrikoni-offwhite border border-afrikoni-gold/20 rounded-lg shadow-afrikoni-xl z-50"
+                        className="absolute right-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-afrikoni-offwhite border border-afrikoni-gold/20 rounded-lg shadow-afrikoni-xl z-50 overflow-hidden"
                       >
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-afrikoni-gold/20">

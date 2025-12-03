@@ -313,7 +313,11 @@ export default function OrderDetail() {
   if (!order) {
     return (
       <DashboardLayout currentRole={currentRole}>
-        <EmptyState type="orders" title="Order not found" description="The order you're looking for doesn't exist" />
+        <EmptyState
+          type="orders"
+          title="Order not found"
+          description="The order you're looking for doesn't exist"
+        />
       </DashboardLayout>
     );
   }
@@ -325,7 +329,7 @@ export default function OrderDetail() {
 
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -341,6 +345,44 @@ export default function OrderDetail() {
             <StatusBadge status={order.payment_status} type="payment" size="md" />
           </div>
         </div>
+
+        {/* Simple explanation of the protected order journey */}
+        <Card className="border-afrikoni-gold/30 bg-afrikoni-offwhite/70">
+          <CardContent className="p-4 md:p-5">
+            <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut mb-2 uppercase tracking-wide">
+              How Afrikoni Shield™ protects this order
+            </p>
+            <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-afrikoni-deep">
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">1. Agreement</p>
+                <p>You and the supplier agreed on price, quantity and delivery terms from an RFQ or product page.</p>
+              </div>
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">2. Escrow payment</p>
+                <p>
+                  When you pay through Afrikoni, money is held safely in escrow — not sent directly to the supplier —
+                  until delivery is confirmed.
+                </p>
+              </div>
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">3. Shipping & tracking</p>
+                <p>
+                  The supplier ships the goods. You can see shipment status and key events in the timeline on this page.
+                </p>
+              </div>
+              <div>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">4. Release or dispute</p>
+                <p>
+                  After you receive the goods, payment is released and you can leave a review. If there is any issue,
+                  you can raise a dispute instead of releasing funds.
+                  <span className="block mt-1 font-semibold text-red-700 text-[11px]">
+                    For your safety, avoid side payments outside Afrikoni.
+                  </span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid md:grid-cols-3 gap-4">
           {/* Main Content */}
