@@ -137,23 +137,34 @@ export const supabaseHelpers = {
   // Storage helpers
   storage: {
     uploadFile: async (file, bucket = 'files', path = null) => {
-      const fileExt = file.name.split('.').pop();
-      const fileName = path || `${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-      
-      if (error) throw error;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
-      
-      return { file_url: publicUrl, path: data.path };
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = path || `${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
+        // Clean filename to remove special characters
+        const cleanFileName = fileName.replace(/[^a-zA-Z0-9._/-]/g, '_');
+        
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .upload(cleanFileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (error) {
+          console.error('Storage upload error:', error);
+          throw new Error(error.message || 'Failed to upload file');
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(data.path);
+        
+        return { file_url: publicUrl, path: data.path };
+      } catch (error) {
+        console.error('Upload file error:', error);
+        throw error;
+      }
     }
   },
   

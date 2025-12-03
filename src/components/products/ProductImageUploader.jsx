@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, ArrowUp, ArrowDown, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ export default function ProductImageUploader({
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     setUploading(true);
@@ -29,10 +29,19 @@ export default function ProductImageUploader({
           throw new Error(`${file.name} is too large (max 5MB)`);
         }
 
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop();
+        const timestamp = Date.now();
+        const randomStr = Math.random().toString(36).substring(2, 9);
+        const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileName = productId 
+          ? `${productId}/${timestamp}-${randomStr}-${cleanFileName}`
+          : `${timestamp}-${randomStr}-${cleanFileName}`;
+
         const result = await supabaseHelpers.storage.uploadFile(
           file,
           'product-images',
-          productId ? `${productId}/${Date.now()}-${file.name}` : null
+          fileName
         );
 
         return {
@@ -46,7 +55,13 @@ export default function ProductImageUploader({
       const newImages = await Promise.all(uploadPromises);
       onImagesChange([...images, ...newImages]);
       toast.success(`${files.length} image(s) uploaded successfully`);
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
+      console.error('Image upload error:', error);
       toast.error(error.message || 'Failed to upload images');
     } finally {
       setUploading(false);
@@ -83,14 +98,23 @@ export default function ProductImageUploader({
     onImagesChange(newImages);
   };
 
+  const fileInputRef = React.useRef(null);
+
+  const handleButtonClick = () => {
+    if (fileInputRef.current && !uploading) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-afrikoni-chestnut">
           Product Images ({images.length})
         </label>
-        <label>
+        <div>
           <input
+            ref={fileInputRef}
             type="file"
             multiple
             accept="image/*"
@@ -103,12 +127,12 @@ export default function ProductImageUploader({
             variant="outline"
             size="sm"
             disabled={uploading}
-            as="span"
+            onClick={handleButtonClick}
           >
             <Upload className="w-4 h-4 mr-2" />
             {uploading ? 'Uploading...' : 'Upload Images'}
           </Button>
-        </label>
+        </div>
       </div>
 
       {images.length === 0 ? (
