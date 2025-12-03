@@ -29,6 +29,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
   const [recentOrders, setRecentOrders] = useState([]);
   const [recentRFQs, setRecentRFQs] = useState([]);
   const [recentMessages, setRecentMessages] = useState([]);
+  const [approvalSummary, setApprovalSummary] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,7 +62,8 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           loadChartData(currentRole, cid),
           loadRecentOrders(cid),
           loadRecentRFQs(cid),
-          loadRecentMessages(cid)
+          loadRecentMessages(cid),
+          loadApprovalSummary(cid)
         ]);
       } finally {
         if (isMounted) {
@@ -259,6 +261,48 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
     }
   };
 
+  const loadApprovalSummary = async (cid) => {
+    try {
+      if (!cid || (currentRole !== 'seller' && currentRole !== 'hybrid')) {
+        setApprovalSummary(null);
+        return;
+      }
+
+      const [companyRes, productsRes] = await Promise.allSettled([
+        supabase
+          .from('companies')
+          .select('verification_status, verified')
+          .eq('id', cid)
+          .maybeSingle(),
+        supabase
+          .from('products')
+          .select('status', { count: 'exact' })
+          .eq('company_id', cid)
+      ]);
+
+      const company = companyRes.status === 'fulfilled' ? companyRes.value?.data : null;
+      const productsData = productsRes.status === 'fulfilled' ? (productsRes.value?.data || []) : [];
+
+      const statusCounts = productsData.reduce(
+        (acc, p) => {
+          acc[p.status] = (acc[p.status] || 0) + 1;
+          return acc;
+        },
+        {}
+      );
+
+      setApprovalSummary({
+        verificationStatus: company?.verification_status || 'unverified',
+        verified: !!company?.verified,
+        pendingCount: statusCounts.pending_review || 0,
+        activeCount: statusCounts.active || 0,
+        rejectedCount: statusCounts.rejected || 0
+      });
+    } catch {
+      setApprovalSummary(null);
+    }
+  };
+
   const loadRecentRFQs = async (cid) => {
     try {
       if (!cid) {
@@ -401,6 +445,138 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           );
         })}
       </div>
+
+      {/* Verification & Approvals (Seller / Hybrid) */}
+      {(currentRole === 'seller' || currentRole === 'hybrid') && approvalSummary && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.22 }}
+        >
+          <Card className="border-afrikoni-gold/30 bg-white rounded-afrikoni-lg shadow-premium-lg">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-afrikoni-gold/15 pb-4">
+              <div>
+                <CardTitle className="text-base md:text-lg font-bold text-afrikoni-text-dark flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-afrikoni-gold" />
+                  Verification & Approvals
+                </CardTitle>
+                <p className="text-xs md:text-sm text-afrikoni-text-dark/70 mt-1">
+                  Track your supplier verification and product approval status.
+                </p>
+              </div>
+              <Badge
+                className={`
+                  text-xs px-3 py-1 rounded-full border 
+                  ${approvalSummary.verificationStatus === 'verified'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                    : approvalSummary.verificationStatus === 'pending'
+                    ? 'bg-amber-50 text-amber-700 border-amber-300'
+                    : approvalSummary.verificationStatus === 'rejected'
+                    ? 'bg-red-50 text-red-700 border-red-300'
+                    : 'bg-slate-50 text-slate-700 border-slate-300'}
+                `}
+              >
+                {approvalSummary.verificationStatus === 'verified' && 'Verified Supplier'}
+                {approvalSummary.verificationStatus === 'pending' && 'Verification Pending'}
+                {approvalSummary.verificationStatus === 'rejected' && 'Verification Rejected'}
+                {approvalSummary.verificationStatus !== 'verified' &&
+                  approvalSummary.verificationStatus !== 'pending' &&
+                  approvalSummary.verificationStatus !== 'rejected' &&
+                  'Unverified'}
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-5 md:p-6">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-medium text-afrikoni-text-dark/60 uppercase tracking-wide">
+                    Product Status
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/30 text-xs px-3 py-1 rounded-full">
+                      Pending Review: {approvalSummary.pendingCount}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 text-xs px-3 py-1 rounded-full">
+                      Active: {approvalSummary.activeCount}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-red-50 text-red-700 border-red-300 text-xs px-3 py-1 rounded-full">
+                      Rejected: {approvalSummary.rejectedCount}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <span className="text-xs font-medium text-afrikoni-text-dark/60 uppercase tracking-wide">
+                    Recommended Actions
+                  </span>
+                  <div className="space-y-2 text-xs text-afrikoni-text-dark/80">
+                    {approvalSummary.verificationStatus !== 'verified' && (
+                      <p>
+                        <span className="font-semibold">1.</span> Complete your verification to unlock the
+                        Verified Supplier badge and higher marketplace ranking.
+                      </p>
+                    )}
+                    {approvalSummary.pendingCount > 0 && (
+                      <p>
+                        <span className="font-semibold">2.</span> You have products waiting for admin review. Ensure titles, images,
+                        and specs clearly show quality and compliance.
+                      </p>
+                    )}
+                    {approvalSummary.rejectedCount > 0 && (
+                      <p>
+                        <span className="font-semibold">3.</span> Some products were rejected. Review and fix them before resubmitting.
+                      </p>
+                    )}
+                    {approvalSummary.pendingCount === 0 && approvalSummary.rejectedCount === 0 && (
+                      <p>
+                        All your active products are approved. Keep your catalogue fresh and up to date to stay competitive.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 justify-between">
+                  <span className="text-xs font-medium text-afrikoni-text-dark/60 uppercase tracking-wide">
+                    Shortcuts
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <Link to="/verification-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-between border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
+                      >
+                        <span>Open Verification Center</span>
+                        <Shield className="w-4 h-4 text-afrikoni-gold" />
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/products">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-between border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
+                      >
+                        <span>Manage Products</span>
+                        <Package className="w-4 h-4 text-afrikoni-gold" />
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/products/new">
+                      <Button
+                        size="sm"
+                        className="w-full justify-between bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal"
+                      >
+                        <span>Add New Product</span>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Quick Actions */}
       <motion.div
