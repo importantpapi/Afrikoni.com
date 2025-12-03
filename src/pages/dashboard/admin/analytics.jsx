@@ -48,6 +48,11 @@ export default function AdminAnalytics() {
   const [orderStatusData, setOrderStatusData] = useState([]);
   const [disputeData, setDisputeData] = useState([]);
   const [countryData, setCountryData] = useState([]);
+  const [searchInsights, setSearchInsights] = useState({
+    topQueries: [],
+    lowSupplyQueries: [],
+    topFilters: []
+  });
 
   useEffect(() => {
     checkAccess();
@@ -100,7 +105,8 @@ export default function AdminAnalytics() {
         disputesRes,
         shipmentsRes,
         usersRes,
-        companiesRes
+        companiesRes,
+        searchEventsRes
       ] = await Promise.allSettled([
         // GMV & Orders
         supabase
@@ -144,6 +150,13 @@ export default function AdminAnalytics() {
           .select('id, role, created_at, country')
           .eq('role', 'seller')
           .gte('created_at', startISO)
+          .lte('created_at', endISO),
+
+        // Search events (for search insights)
+        supabase
+          .from('search_events')
+          .select('query, filters, result_count, created_at')
+          .gte('created_at', startISO)
           .lte('created_at', endISO)
       ]);
 
@@ -184,6 +197,10 @@ export default function AdminAnalytics() {
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 10);
+
+      // Process Search Events
+      const searchEvents = searchEventsRes.status === 'fulfilled' ? (searchEventsRes.value?.data || []) : [];
+      buildSearchInsights(searchEvents);
 
       setMetrics({
         gmv,
@@ -250,6 +267,116 @@ export default function AdminAnalytics() {
       disputeByPeriod[key] += 1;
     });
     setDisputeData(Object.entries(disputeByPeriod).map(([date, value]) => ({ date, value })));
+  };
+
+  // Build search insights from search_events
+  const buildSearchInsights = (events) => {
+    if (!Array.isArray(events) || events.length === 0) {
+      setSearchInsights({
+        topQueries: [],
+        lowSupplyQueries: [],
+        topFilters: []
+      });
+      return;
+    }
+
+    const queryStats = {};
+    const filterStats = {};
+
+    events.forEach(evt => {
+      const rawQuery = (evt.query || '').trim();
+      const normalizedQuery = rawQuery.toLowerCase();
+      const resultCount = typeof evt.result_count === 'number' ? evt.result_count : null;
+
+      if (normalizedQuery) {
+        if (!queryStats[normalizedQuery]) {
+          queryStats[normalizedQuery] = {
+            query: rawQuery,
+            count: 0,
+            totalResults: 0,
+            withResultCount: 0
+          };
+        }
+        queryStats[normalizedQuery].count += 1;
+        if (resultCount !== null) {
+          queryStats[normalizedQuery].totalResults += resultCount;
+          queryStats[normalizedQuery].withResultCount += 1;
+        }
+      }
+
+      // Aggregate filters usage
+      const filters = evt.filters || {};
+      const {
+        category,
+        country,
+        verification,
+        priceRange,
+        moq,
+        certifications,
+        deliveryTime,
+        verified,
+        fastResponse,
+        readyToShip,
+        priceMin,
+        priceMax,
+        moqMin,
+        sortBy
+      } = filters;
+
+      const addFilterKey = (key) => {
+        if (!key) return;
+        filterStats[key] = (filterStats[key] || 0) + 1;
+      };
+
+      if (category) addFilterKey(`Category: ${category}`);
+      if (country) addFilterKey(`Country: ${country}`);
+      if (verification) addFilterKey(`Verification: ${verification}`);
+      if (priceRange) addFilterKey(`Price Range: ${priceRange}`);
+      if (moq) addFilterKey(`MOQ: ${moq}`);
+      if (deliveryTime) addFilterKey(`Lead Time: ${deliveryTime}`);
+      if (sortBy) addFilterKey(`Sort: ${sortBy}`);
+
+      if (Array.isArray(certifications)) {
+        certifications.forEach(cert => addFilterKey(`Cert: ${cert}`));
+      }
+
+      if (verified) addFilterKey('Chip: Verified Only');
+      if (fastResponse) addFilterKey('Chip: Fast Response');
+      if (readyToShip) addFilterKey('Chip: Ready to Ship');
+
+      if (priceMin) addFilterKey(`Min Price ≥ ${priceMin}`);
+      if (priceMax) addFilterKey(`Max Price ≤ ${priceMax}`);
+      if (moqMin) addFilterKey(`Min MOQ ≥ ${moqMin}`);
+    });
+
+    // Top queries by count
+    const topQueries = Object.values(queryStats)
+      .map(stat => ({
+        query: stat.query,
+        count: stat.count,
+        avgResults: stat.withResultCount > 0
+          ? (stat.totalResults / stat.withResultCount)
+          : null
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Low-supply queries: average results <= 3 and at least 2 occurrences
+    const lowSupplyQueries = topQueries
+      .filter(q => q.avgResults !== null && q.avgResults <= 3 && q.count >= 2)
+      .slice(0, 10);
+
+    // Top filters by usage
+    const topFilters = Object.entries(filterStats)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+
+    setSearchInsights({
+      topQueries,
+      lowSupplyQueries,
+      topFilters
+    });
   };
 
   // Export Functions
@@ -807,6 +934,130 @@ export default function AdminAnalytics() {
             </Card>
           </motion.div>
         </div>
+
+        {/* Search Insights Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className="grid lg:grid-cols-3 gap-6"
+        >
+          {/* Top Search Queries */}
+          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+            <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+              <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-2 inline-block flex items-center gap-2">
+                <Search className="w-4 h-4 text-afrikoni-gold" />
+                Top Search Queries
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {searchInsights.topQueries.length === 0 ? (
+                <div className="text-afrikoni-text-dark/60 text-sm">
+                  Not enough search data yet. Come back after buyers have used the marketplace.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {searchInsights.topQueries.map((q, idx) => (
+                    <div
+                      key={q.query + idx}
+                      className="flex items-center justify-between p-3 rounded-lg border border-afrikoni-gold/10 bg-afrikoni-offwhite"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-afrikoni-chestnut truncate">
+                            {q.query || '(no query)'}
+                          </span>
+                          <Badge className="bg-afrikoni-gold/10 text-afrikoni-gold text-[10px] uppercase tracking-wide">
+                            {q.count} searches
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-afrikoni-text-dark/60 mt-1">
+                          Avg. results:&nbsp;
+                          {q.avgResults === null
+                            ? 'N/A'
+                            : q.avgResults.toFixed(1)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Low-Supply Queries */}
+          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+            <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+              <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-2 inline-block flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-afrikoni-red" />
+                High-Intent, Low-Supply Queries
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {searchInsights.lowSupplyQueries.length === 0 ? (
+                <div className="text-afrikoni-text-dark/60 text-sm">
+                  No clear supply gaps detected yet. Once buyers start searching more, you&apos;ll see which queries have few results.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {searchInsights.lowSupplyQueries.map((q, idx) => (
+                    <div
+                      key={q.query + idx}
+                      className="flex items-center justify-between p-3 rounded-lg border border-afrikoni-gold/10 bg-afrikoni-gold/5"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-afrikoni-chestnut truncate">
+                            {q.query || '(no query)'}
+                          </span>
+                          <Badge className="bg-afrikoni-red/10 text-afrikoni-red text-[10px] uppercase tracking-wide">
+                            Gap
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-afrikoni-text-dark/60 mt-1">
+                          {q.count} searches · Avg. results {q.avgResults?.toFixed(1) ?? 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Top Filters Used */}
+          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+            <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+              <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-2 inline-block flex items-center gap-2">
+                <Filter className="w-4 h-4 text-afrikoni-gold" />
+                Most Used Filters
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {searchInsights.topFilters.length === 0 ? (
+                <div className="text-afrikoni-text-dark/60 text-sm">
+                  Filters haven&apos;t been used enough yet to show insights.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {searchInsights.topFilters.map((f, idx) => (
+                    <div
+                      key={f.name + idx}
+                      className="flex items-center justify-between p-3 rounded-lg border border-afrikoni-gold/10 bg-afrikoni-offwhite"
+                    >
+                      <span className="text-sm font-medium text-afrikoni-chestnut truncate">
+                        {f.name}
+                      </span>
+                      <Badge className="bg-afrikoni-gold/10 text-afrikoni-gold text-[10px] uppercase tracking-wide">
+                        {f.value} uses
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Summary Stats */}
         <motion.div
