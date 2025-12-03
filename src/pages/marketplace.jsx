@@ -30,6 +30,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import SearchHistory from '@/components/search/SearchHistory';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
+import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
 
 export default function Marketplace() {
   const [searchParams] = useSearchParams();
@@ -73,10 +74,16 @@ export default function Marketplace() {
         // Use full static list of African countries for a consistent marketplace selector
         setCountries(['All Countries', ...AFRICAN_COUNTRIES]);
 
-        // Apply country from URL (e.g. /marketplace?country=Nigeria)
-        const urlCountry = searchParams.get('country');
-        if (urlCountry && AFRICAN_COUNTRIES.includes(urlCountry)) {
-          setSelectedFilters(prev => ({ ...prev, country: urlCountry }));
+        // Apply country from URL (e.g. /marketplace?country=Nigeria or ?country=nigeria)
+        const urlParam = searchParams.get('country');
+        if (urlParam) {
+          const lower = urlParam.toLowerCase();
+          const mappedName =
+            AFRICAN_COUNTRY_CODES[lower] ||
+            AFRICAN_COUNTRIES.find((c) => c.toLowerCase() === lower);
+          if (mappedName) {
+            setSelectedFilters((prev) => ({ ...prev, country: mappedName }));
+          }
         }
       } catch (error) {
         // Fallback to default categories
@@ -89,19 +96,6 @@ export default function Marketplace() {
   }, [searchParams]);
   const verificationOptions = ['All', 'Verified', 'Premium Partner'];
   const POPULAR_COUNTRIES = ['Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Egypt', 'Morocco'];
-
-  // Static list of all African countries for clean, predictable country marketplaces
-  const AFRICAN_COUNTRIES = [
-    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi',
-    'Cameroon', 'Cape Verde', 'Central African Republic', 'Chad', 'Comoros',
-    'Congo', 'DR Congo', "Côte d'Ivoire", 'Djibouti', 'Egypt', 'Equatorial Guinea',
-    'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea',
-    'Guinea-Bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar',
-    'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique',
-    'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'São Tomé and Príncipe', 'Senegal',
-    'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan',
-    'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
-  ];
   const [pagination, setPagination] = useState(createPaginationState());
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [aiBestMatch, setAiBestMatch] = useState(null);
@@ -369,12 +363,16 @@ if (!Array.isArray(productsList)) return [];
 
   const filteredProducts = products;
 
+  const urlCountryParam = searchParams.get('country');
+  const urlCountryName = urlCountryParam
+    ? AFRICAN_COUNTRY_CODES[urlCountryParam.toLowerCase()] ||
+      AFRICAN_COUNTRIES.find((c) => c.toLowerCase() === urlCountryParam.toLowerCase())
+    : '';
+
   const selectedCountryForSeo =
     selectedFilters.country && selectedFilters.country !== 'All Countries'
       ? selectedFilters.country
-      : searchParams.get('country') && AFRICAN_COUNTRIES.includes(searchParams.get('country'))
-      ? searchParams.get('country')
-      : '';
+      : urlCountryName || '';
 
   const ProductCard = React.memo(({ product }) => (
     <motion.div
