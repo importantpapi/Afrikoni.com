@@ -505,7 +505,7 @@ export default function MessagesPremium() {
       </div>
 
       <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6">
-        <div className="grid lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 h-[calc(100vh-160px)] md:h-[calc(100vh-180px)] lg:h-[calc(100vh-200px)]">
+        <div className="grid lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 h-[calc(100vh-140px)] sm:h-[calc(100vh-160px)] md:h-[calc(100vh-180px)] lg:h-[calc(100vh-200px)]">
           {/* Conversations List */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -522,7 +522,7 @@ export default function MessagesPremium() {
                     placeholder="Search conversations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 text-sm md:text-base"
+                    className="pl-10 text-sm md:text-base min-h-[44px] sm:min-h-0"
                   />
                 </div>
               </div>
@@ -553,13 +553,13 @@ export default function MessagesPremium() {
                         <button
                           onClick={() => setSelectedConversation(conv.id)}
                           className={`
-                            w-full p-4 text-left transition-all hover:bg-afrikoni-offwhite
+                            w-full p-3 sm:p-4 text-left transition-all hover:bg-afrikoni-offwhite min-h-[60px] sm:min-h-0
                             ${isSelected ? 'bg-afrikoni-offwhite border-l-4 border-afrikoni-gold' : ''}
                           `}
                         >
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-2 sm:gap-3">
                             <div className="relative flex-shrink-0">
-                              <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
                                 {conv.otherCompany?.logo_url ? (
                                   <img 
                                     src={conv.otherCompany.logo_url} 
@@ -567,36 +567,36 @@ export default function MessagesPremium() {
                                     className="w-full h-full rounded-full object-cover"
                                   />
                                 ) : (
-                                  <User className="w-6 h-6 text-afrikoni-gold" />
+                                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-afrikoni-gold" />
                                 )}
                               </div>
                               {conv.verified && (
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
-                                  <Verified className="w-2.5 h-2.5 text-afrikoni-chestnut" />
+                                <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
+                                  <Verified className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-afrikoni-chestnut" />
                                 </div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-afrikoni-chestnut text-sm truncate">
+                              <div className="flex items-center justify-between mb-1 gap-2">
+                                <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
+                                  <span className="font-semibold text-afrikoni-chestnut text-xs sm:text-sm truncate">
                                     {conv.otherCompany?.company_name || 'Unknown Company'}
                                   </span>
                                   {conv.verified && (
-                                    <Badge variant="verified" className="text-xs px-1.5 py-0">✓</Badge>
+                                    <Badge variant="verified" className="text-[10px] sm:text-xs px-1 sm:px-1.5 py-0 flex-shrink-0">✓</Badge>
                                   )}
                                 </div>
                                 {unreadCount > 0 && (
-                                  <Badge className="bg-afrikoni-gold text-afrikoni-charcoal text-[10px] min-w-[20px] h-5 flex items-center justify-center">
+                                  <Badge className="bg-afrikoni-gold text-afrikoni-charcoal text-[10px] sm:text-xs min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 flex items-center justify-center flex-shrink-0">
                                     {unreadCount}
                                   </Badge>
                                 )}
                               </div>
-                              <div className="flex items-center justify-between">
-                                <p className="text-xs text-afrikoni-deep truncate flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs sm:text-sm text-afrikoni-deep truncate flex-1">
                                   {conv.lastMessage || conv.subject || 'No messages yet'}
                                 </p>
-                                <span className="text-xs text-afrikoni-deep/70 ml-2 flex-shrink-0">
+                                <span className="text-[10px] sm:text-xs text-afrikoni-deep/70 flex-shrink-0">
                                   {conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : ''}
                                 </span>
                               </div>

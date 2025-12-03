@@ -218,12 +218,12 @@ export default function AddProduct() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-stone-50 py-4 sm:py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Intro Section */}
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-4">List Your Product</h1>
-          <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto mb-8">
+        <div className="mb-8 sm:mb-12 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">List Your Product</h1>
+          <p className="text-base sm:text-lg text-afrikoni-deep max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
             Join thousands of successful sellers on Africa's leading B2B marketplace. Create compelling product listings that attract buyers and drive sales.
           </p>
           
@@ -299,29 +299,30 @@ export default function AddProduct() {
         </div>
 
         <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite">
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title">Product Name *</Label>
+                <Label htmlFor="title" className="text-sm sm:text-base">Product Name *</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
                   placeholder="Enter product name"
+                  className="text-sm sm:text-base min-h-[44px] sm:min-h-0 mt-1"
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="description">Description *</Label>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <Label htmlFor="description" className="text-sm sm:text-base">Description *</Label>
                   <Button
                     type="button"
                     variant="outline"
                     size="xs"
                     onClick={handleGenerateDescription}
                     disabled={isGenerating || !formData.title}
-                    className="flex items-center gap-1 text-xs border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                    className="flex items-center gap-1 text-xs sm:text-sm border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10 min-h-[36px] sm:min-h-0"
                   >
-                    <Sparkles className="w-3 h-3" />
+                    <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                     {isGenerating ? 'Generating…' : 'Let Afrikoni AI help'}
                   </Button>
                 </div>
@@ -331,12 +332,13 @@ export default function AddProduct() {
                   onChange={(e) => handleChange('description', e.target.value)}
                   placeholder="Describe your product in simple words or let Afrikoni AI expand it for you."
                   rows={4}
+                  className="text-sm sm:text-base min-h-[100px]"
                 />
               </div>
               <div>
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category" className="text-sm sm:text-base">Category *</Label>
                 <Select value={formData.category_id} onValueChange={(v) => handleChange('category_id', v)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base mt-1">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -347,17 +349,18 @@ export default function AddProduct() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="country">Country *</Label>
+                <Label htmlFor="country" className="text-sm sm:text-base">Country *</Label>
                 <Input
                   id="country"
                   value={company?.country || ''}
                   placeholder="Enter country"
                   disabled
+                  className="text-sm sm:text-base min-h-[44px] sm:min-h-0 mt-1"
                 />
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="price">Price *</Label>
+                  <Label htmlFor="price" className="text-sm sm:text-base">Price *</Label>
                   <Input
                     id="price"
                     type="number"
@@ -365,12 +368,13 @@ export default function AddProduct() {
                     value={formData.price}
                     onChange={(e) => handleChange('price', e.target.value)}
                     placeholder="Enter price"
+                    className="text-sm sm:text-base min-h-[44px] sm:min-h-0 mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="currency">Currency</Label>
+                  <Label htmlFor="currency" className="text-sm sm:text-base">Currency</Label>
                   <Select value={formData.currency} onValueChange={(v) => handleChange('currency', v)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -385,28 +389,30 @@ export default function AddProduct() {
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="moq">Minimum Order Quantity *</Label>
+                  <Label htmlFor="moq" className="text-sm sm:text-base">Minimum Order Quantity *</Label>
                   <Input
                     id="moq"
                     type="number"
                     value={formData.moq || '1'}
                     onChange={(e) => handleChange('moq', e.target.value)}
                     placeholder="1"
+                    className="text-sm sm:text-base min-h-[44px] sm:min-h-0 mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="available">Available Quantity</Label>
+                  <Label htmlFor="available" className="text-sm sm:text-base">Available Quantity</Label>
                   <Input
                     id="available"
                     type="number"
                     placeholder="Enter available quantity"
+                    className="text-sm sm:text-base min-h-[44px] sm:min-h-0 mt-1"
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-sm sm:text-base">Status</Label>
                 <Select value={formData.status} onValueChange={(v) => handleChange('status', v)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -417,8 +423,8 @@ export default function AddProduct() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="images">Product Images (Max 5)</Label>
-                <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-12 text-center hover:border-blue-500 transition">
+                <Label htmlFor="images" className="text-sm sm:text-base">Product Images (Max 5)</Label>
+                <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-6 sm:p-12 text-center hover:border-blue-500 transition mt-1">
                   <input
                     type="file"
                     accept="image/*"
@@ -428,9 +434,9 @@ export default function AddProduct() {
                     id="image-upload"
                     disabled={uploadingImages}
                   />
-                  <label htmlFor="image-upload" className="cursor-pointer">
-                    <Upload className="w-12 h-12 text-afrikoni-deep/70 mx-auto mb-3" />
-                    <div className="text-afrikoni-chestnut font-medium mb-1">
+                  <label htmlFor="image-upload" className="cursor-pointer block min-h-[44px] flex items-center justify-center">
+                    <Upload className="w-8 h-8 sm:w-12 sm:h-12 text-afrikoni-deep/70 mx-auto mb-2 sm:mb-3" />
+                    <div className="text-sm sm:text-base text-afrikoni-chestnut font-medium mb-1">
                       Click to upload images ({5 - formData.images.length} remaining)
                     </div>
                   </label>
@@ -457,14 +463,14 @@ export default function AddProduct() {
               <Button
                 variant="outline"
                 onClick={() => navigate(createPageUrl('SellerDashboard'))}
-                className="flex-1"
+                className="flex-1 min-h-[44px] sm:min-h-0 text-sm sm:text-base"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isLoading || uploadingImages}
-                className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream"
+                className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream min-h-[44px] sm:min-h-0 text-sm sm:text-base touch-manipulation"
               >
                 {isLoading ? 'Creating...' : 'Create Product'}
               </Button>

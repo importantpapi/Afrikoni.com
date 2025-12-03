@@ -466,15 +466,17 @@ export default function ProductDetail() {
                         )}
                         {/* Supplier verification / trust badge */}
                         {supplier?.verification_status === 'verified' && (
-                          <Badge className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                            <Shield className="w-3 h-3" />
-                            Verified by Afrikoni Shield™
+                          <Badge className="text-[10px] sm:text-xs bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                            <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Verified by Afrikoni Shield™</span>
+                            <span className="sm:hidden">Verified</span>
                           </Badge>
                         )}
                         {supplier?.verification_status === 'pending' && (
-                          <Badge className="text-[10px] bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                            <Clock className="w-3 h-3" />
-                            Supplier Under Review
+                          <Badge className="text-[10px] sm:text-xs bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Supplier Under Review</span>
+                            <span className="sm:hidden">Pending</span>
                           </Badge>
                         )}
                       </div>
@@ -619,24 +621,24 @@ export default function ProductDetail() {
                 <div className="space-y-2 md:space-y-3">
                   <Button 
                     onClick={handleContactSupplier} 
-                    className="w-full bg-afrikoni-gold hover:bg-amber-700 touch-manipulation" 
+                    className="w-full bg-afrikoni-gold hover:bg-amber-700 touch-manipulation min-h-[44px]" 
                     size="lg"
                   >
-                    <MessageCircle className="w-4 h-4 mr-2" /> Contact Supplier
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">Contact Supplier</span>
                   </Button>
                   <Button 
                     onClick={handleCreateRFQ} 
                     variant="outline" 
-                    className="w-full touch-manipulation" 
+                    className="w-full touch-manipulation min-h-[44px]" 
                     size="lg"
                   >
-                    <FileText className="w-4 h-4 mr-2" /> Request Quote
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">Request Quote</span>
                   </Button>
                   <AICopilotButton
                     label="Generate RFQ with AI"
                     onClick={handleGenerateRFQWithAI}
                     loading={aiRFQLoading}
-                    className="w-full touch-manipulation"
+                    className="w-full touch-manipulation min-h-[44px]"
                     size="sm"
                   />
                 </div>

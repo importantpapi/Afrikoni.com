@@ -193,11 +193,11 @@ export default function CreateRFQ() {
   };
 
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite py-8">
-      <div className="max-w-4xl mx-auto px-4 space-y-6">
+    <div className="min-h-screen bg-afrikoni-offwhite py-4 sm:py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6">
         <div className="mb-2">
-          <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-2">Create Request for Quote</h1>
-          <p className="text-lg text-afrikoni-deep">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">Create Request for Quote</h1>
+          <p className="text-base sm:text-lg text-afrikoni-deep">
             Describe what you need and get competitive quotes from trusted African suppliers.
           </p>
         </div>
@@ -236,26 +236,27 @@ export default function CreateRFQ() {
         <Card className="border-afrikoni-gold/20">
           <CardContent className="p-6 space-y-6">
             <div>
-              <Label htmlFor="title">What are you looking for? *</Label>
+              <Label htmlFor="title" className="text-sm sm:text-base">What are you looking for? *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
                 placeholder="e.g. 1000 units of printed packaging boxes"
+                className="text-sm sm:text-base min-h-[44px] mt-1"
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="description">Detailed Requirements *</Label>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <Label htmlFor="description" className="text-sm sm:text-base">Detailed Requirements *</Label>
                 <Button
                   type="button"
                   variant="outline"
                   size="xs"
                   onClick={handleGenerateRFQ}
                   disabled={isGenerating}
-                  className="flex items-center gap-1 text-xs border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                  className="flex items-center gap-1 text-xs sm:text-sm border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10 min-h-[36px] sm:min-h-0"
                 >
-                  <Sparkles className="w-3 h-3" />
+                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                   {isGenerating ? 'Generating…' : 'Afrikoni AI help'}
                 </Button>
               </div>
@@ -265,7 +266,7 @@ export default function CreateRFQ() {
                 onChange={(e) => handleChange('description', e.target.value)}
                 placeholder="Describe what you need in simple words. Afrikoni AI can turn it into a clear RFQ for suppliers."
                 rows={6}
-                className={errors.description ? 'border-red-500' : ''}
+                className={`text-sm sm:text-base min-h-[120px] ${errors.description ? 'border-red-500' : ''}`}
               />
               {errors.description && (
                 <p className="text-red-500 text-sm mt-1">{errors.description}</p>
@@ -273,9 +274,9 @@ export default function CreateRFQ() {
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="text-sm sm:text-base">Category</Label>
                 <Select value={formData.category_id} onValueChange={(v) => handleChange('category_id', v)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -286,14 +287,14 @@ export default function CreateRFQ() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="quantity">Quantity Needed *</Label>
+                <Label htmlFor="quantity" className="text-sm sm:text-base">Quantity Needed *</Label>
                 <Input
                   id="quantity"
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => handleChange('quantity', e.target.value)}
                   placeholder="1000"
-                  className={errors.quantity ? 'border-red-500' : ''}
+                  className={`text-sm sm:text-base min-h-[44px] sm:min-h-0 ${errors.quantity ? 'border-red-500' : ''}`}
                 />
                 {errors.quantity && (
                   <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
@@ -390,11 +391,15 @@ export default function CreateRFQ() {
               <Button
                 variant="outline"
                 onClick={() => navigate(createPageUrl('BuyerDashboard'))}
-                className="flex-1"
+                className="flex-1 min-h-[44px] sm:min-h-0 text-sm sm:text-base"
               >
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={isLoading} className="flex-1 bg-afrikoni-gold hover:bg-amber-700">
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isLoading} 
+                className="flex-1 bg-afrikoni-gold hover:bg-amber-700 min-h-[44px] sm:min-h-0 text-sm sm:text-base touch-manipulation"
+              >
                 {isLoading ? 'Creating...' : 'Publish RFQ'}
               </Button>
             </div>

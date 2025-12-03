@@ -410,17 +410,19 @@ if (!Array.isArray(productsList)) return [];
               {/* Supplier verification / trust badge */}
               {product.companies?.verification_status === 'verified' && (
                 <div className="absolute top-2 right-2">
-                  <Badge className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                    <Shield className="w-3 h-3" />
-                    Verified Supplier
+                  <Badge className="text-[10px] sm:text-xs bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                    <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Verified Supplier</span>
+                    <span className="sm:hidden">Verified</span>
                   </Badge>
                 </div>
               )}
               {product.companies?.verification_status === 'pending' && (
                 <div className="absolute top-2 right-2">
-                  <Badge className="text-[10px] bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                    <Clock className="w-3 h-3" />
-                    Pending Review
+                  <Badge className="text-[10px] sm:text-xs bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Pending Review</span>
+                    <span className="sm:hidden">Pending</span>
                   </Badge>
                 </div>
               )}
@@ -432,22 +434,22 @@ if (!Array.isArray(productsList)) return [];
               <h3 className="font-bold text-afrikoni-chestnut mb-2 line-clamp-2 text-sm md:text-base">
                 {product.title || product.name}
               </h3>
-              <p className="text-xs text-afrikoni-deep/70 mb-2 line-clamp-2">
+              <p className="text-xs sm:text-sm text-afrikoni-deep/70 mb-2 line-clamp-2">
                 {product.short_description || product.description}
               </p>
               
               {/* Price Range */}
               <div className="flex items-center gap-2 mb-2">
                 {product.price_min && product.price_max ? (
-                  <div className="text-lg font-bold text-afrikoni-gold">
+                  <div className="text-base sm:text-lg font-bold text-afrikoni-gold">
                     {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()} – {parseFloat(product.price_max).toLocaleString()}
                   </div>
                 ) : product.price_min ? (
-                  <div className="text-lg font-bold text-afrikoni-gold">
+                  <div className="text-base sm:text-lg font-bold text-afrikoni-gold">
                     {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()}+
                   </div>
                 ) : product.price ? (
-                  <div className="text-lg font-bold text-afrikoni-gold">
+                  <div className="text-base sm:text-lg font-bold text-afrikoni-gold">
                     {product.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
                   </div>
                 ) : (
@@ -457,38 +459,38 @@ if (!Array.isArray(productsList)) return [];
               
               {/* MOQ */}
               {product.min_order_quantity && (
-                <div className="text-xs text-afrikoni-deep/70 mb-2">
+                <div className="text-xs sm:text-sm text-afrikoni-deep/70 mb-2">
                   MOQ: {product.min_order_quantity} {product.moq_unit || product.unit || 'units'}
                 </div>
               )}
               
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-afrikoni-deep/70" />
-                  <span className="text-xs text-afrikoni-deep">{product?.companies?.company_name || 'Supplier'}</span>
-                  <span className="text-xs text-afrikoni-deep/70">• {product?.country_of_origin || product?.companies?.country || 'N/A'}</span>
+                <div className="flex items-center gap-1 flex-wrap">
+                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-afrikoni-deep truncate">{product?.companies?.company_name || 'Supplier'}</span>
+                  <span className="text-xs sm:text-sm text-afrikoni-deep/70 hidden sm:inline">• {product?.country_of_origin || product?.companies?.country || 'N/A'}</span>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button 
                   variant="secondary" 
                   size="sm" 
-                  className="flex-1 text-xs touch-manipulation min-h-[36px] md:min-h-0" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-4" 
                   asChild
                 >
                   <Link to={`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}`}>
-                    <MessageSquare className="w-3 h-3 mr-1" />
+                    <MessageSquare className="w-4 h-4 mr-1" />
                     Contact
                   </Link>
                 </Button>
                 <Button 
                   variant="primary" 
                   size="sm" 
-                  className="flex-1 text-xs touch-manipulation min-h-[36px] md:min-h-0" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-4" 
                   asChild
                 >
                   <Link to={`/dashboard/rfqs/new?product=${product.id}`}>
-                    <FileText className="w-3 h-3 mr-1" />
+                    <FileText className="w-4 h-4 mr-1" />
                     Quote
                   </Link>
                 </Button>
@@ -1184,7 +1186,7 @@ if (!Array.isArray(productsList)) return [];
               ))}
             </div>
           </div>
-          <Button variant="primary" className="w-full">
+          <Button variant="primary" className="w-full min-h-[44px] text-sm sm:text-base touch-manipulation">
             Apply Filters
           </Button>
         </div>

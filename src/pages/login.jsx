@@ -113,7 +113,7 @@ export default function Login() {
                 type="submit"
                 variant="primary"
                 disabled={isLoading}
-                className="w-full h-12"
+                className="w-full h-12 min-h-[44px] text-sm sm:text-base touch-manipulation"
               >
                 {isLoading ? (
                   <>

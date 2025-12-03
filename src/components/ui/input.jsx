@@ -10,7 +10,7 @@ const Input = React.forwardRef(({ className, type, error, ...props }, ref) => {
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       className={cn(
-        'flex h-10 w-full rounded-lg border-[1.5px] bg-afrikoni-offwhite px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-afrikoni-earth/60 text-afrikoni-earth transition-all disabled:cursor-not-allowed disabled:opacity-50',
+        'flex h-10 sm:h-10 w-full rounded-lg border-[1.5px] bg-afrikoni-offwhite px-3 py-2 text-sm sm:text-base ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-afrikoni-earth/60 text-afrikoni-earth transition-all disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] sm:min-h-0',
         error 
           ? 'border-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2' 
           : focused
