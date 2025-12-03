@@ -384,9 +384,21 @@ if (!Array.isArray(productsList)) return [];
                   <Badge variant="primary" className="text-xs">⭐ Featured</Badge>
                 </div>
               )}
-              {product.companies?.verified && (
+              {/* Supplier verification / trust badge */}
+              {product.companies?.verification_status === 'verified' && (
                 <div className="absolute top-2 right-2">
-                  <Badge variant="verified" className="text-xs">✓ Verified</Badge>
+                  <Badge className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                    <Shield className="w-3 h-3" />
+                    Verified Supplier
+                  </Badge>
+                </div>
+              )}
+              {product.companies?.verification_status === 'pending' && (
+                <div className="absolute top-2 right-2">
+                  <Badge className="text-[10px] bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                    <Clock className="w-3 h-3" />
+                    Pending Review
+                  </Badge>
                 </div>
               )}
               <div className="absolute top-2 right-2 z-10" onClick={(e) => e.preventDefault()}>

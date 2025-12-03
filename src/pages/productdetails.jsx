@@ -456,7 +456,29 @@ export default function ProductDetail() {
               <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-bold text-afrikoni-chestnut">{product.title}</h1>
+                    <div className="space-y-1">
+                      <h1 className="text-2xl font-bold text-afrikoni-chestnut">{product.title}</h1>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {product.categories && (
+                          <Badge variant="outline">
+                            {product.categories.name}
+                          </Badge>
+                        )}
+                        {/* Supplier verification / trust badge */}
+                        {supplier?.verification_status === 'verified' && (
+                          <Badge className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                            <Shield className="w-3 h-3" />
+                            Verified by Afrikoni Shield™
+                          </Badge>
+                        )}
+                        {supplier?.verification_status === 'pending' && (
+                          <Badge className="text-[10px] bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
+                            <Clock className="w-3 h-3" />
+                            Supplier Under Review
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2">
                       <SaveButton itemId={product.id} itemType="product" />
                       <Button
@@ -480,12 +502,6 @@ export default function ProductDetail() {
                       </Button>
                     </div>
                   </div>
-                  
-                  {product.categories && (
-                    <Badge variant="outline" className="mb-4">
-                      {product.categories.name}
-                    </Badge>
-                  )}
                   
                   <div className="space-y-4">
                     <div>

@@ -151,19 +151,38 @@ export default function SupplierProfile() {
                       <span>{supplier.city && `${supplier.city}, `}{supplier.country}</span>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {supplier.verified && (
-                        <Badge className="bg-green-100 text-green-700 border-green-300">
-                          <Shield className="w-3 h-3 mr-1" /> Verified Supplier
+                      {supplier.verification_status === 'verified' && (
+                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1">
+                          <Shield className="w-3 h-3" /> Verified by Afrikoni Shield™
                         </Badge>
                       )}
-                      {supplier.trust_score >= 80 && (
-                        <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold-300">
-                          <Award className="w-3 h-3 mr-1" /> Trade Shield Eligible
+                      {supplier.verification_status === 'pending' && (
+                        <Badge className="bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Verification Pending
                         </Badge>
                       )}
-                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                        {supplier.business_type?.replace(/_/g, ' ')}
-                      </Badge>
+                      {supplier.verification_status === 'rejected' && (
+                        <Badge className="bg-red-50 text-red-700 border-red-300 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" /> Verification Rejected
+                        </Badge>
+                      )}
+                      {supplier.verification_status !== 'verified' &&
+                        supplier.verification_status !== 'pending' &&
+                        supplier.verification_status !== 'rejected' && (
+                          <Badge className="bg-slate-50 text-slate-700 border-slate-300 flex items-center gap-1">
+                            <Shield className="w-3 h-3" /> Unverified Supplier
+                          </Badge>
+                        )}
+                      {typeof supplier.trust_score === 'number' && supplier.trust_score >= 80 && (
+                        <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold-300 flex items-center gap-1">
+                          <Award className="w-3 h-3" /> Trade Shield Eligible
+                        </Badge>
+                      )}
+                      {supplier.business_type && (
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {supplier.business_type.replace(/_/g, ' ')}
+                        </Badge>
+                      )}
                       {supplier.year_established && (
                         <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
                           <Calendar className="w-3 h-3 mr-1" /> Est. {supplier.year_established}
