@@ -597,19 +597,35 @@ export default function ProductForm() {
                       <Label htmlFor="category_id">Category *</Label>
                       <Select
                         value={formData.category_id}
-                        onValueChange={(value) => handleChange('category_id', value)}
+                        onValueChange={(value) => {
+                          handleChange('category_id', value);
+                          // Also clear subcategory when category changes
+                          handleChange('subcategory_id', '');
+                        }}
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue 
+                            placeholder="Select category"
+                            displayValue={categories.find(c => c.id === formData.category_id)?.name}
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
+                          {categories.length === 0 ? (
+                            <div className="px-2 py-1.5 text-sm text-afrikoni-deep/70">
+                              No categories available
+                            </div>
+                          ) : (
+                            categories.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
+                      {errors.category_id && (
+                        <p className="text-sm text-red-600 mt-1">{errors.category_id}</p>
+                      )}
                     </div>
 
                     <div>

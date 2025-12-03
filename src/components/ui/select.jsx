@@ -35,13 +35,28 @@ export const SelectTrigger = React.forwardRef(({ className, children, ...props }
 });
 SelectTrigger.displayName = 'SelectTrigger';
 
-export const SelectValue = ({ placeholder }) => {
+export const SelectValue = ({ placeholder, displayValue }) => {
   const { value } = React.useContext(SelectContext);
-  return <span>{value || placeholder}</span>;
+  // Use displayValue if provided, otherwise show value or placeholder
+  return <span>{displayValue || value || placeholder}</span>;
 };
 
 export const SelectContent = ({ children, className }) => {
   const { open, setOpen } = React.useContext(SelectContext);
+  const contentRef = React.useRef(null);
+  
+  React.useEffect(() => {
+    if (open) {
+      // Close on escape key
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          setOpen(false);
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [open, setOpen]);
   
   if (!open) return null;
   
@@ -60,10 +75,17 @@ export const SelectContent = ({ children, className }) => {
           }
         }}
       />
-      <div className={cn(
-        'absolute z-50 min-w-[8rem] overflow-hidden rounded-md border border-afrikoni-gold/20 bg-afrikoni-offwhite text-afrikoni-chestnut shadow-afrikoni',
-        className
-      )}>
+      <div 
+        ref={contentRef}
+        className={cn(
+          'absolute z-50 min-w-[8rem] max-h-[300px] overflow-y-auto rounded-md border border-afrikoni-gold/20 bg-afrikoni-offwhite text-afrikoni-chestnut shadow-afrikoni',
+          className
+        )}
+        onClick={(e) => {
+          // Prevent clicks inside content from closing dropdown
+          e.stopPropagation();
+        }}
+      >
         <div className="p-1">{children}</div>
       </div>
     </>
@@ -73,15 +95,25 @@ export const SelectContent = ({ children, className }) => {
 export const SelectItem = ({ children, value, className, ...props }) => {
   const { onValueChange, setOpen } = React.useContext(SelectContext);
   
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onValueChange && value !== undefined) {
+      onValueChange(value);
+    }
+    setOpen(false);
+  };
+  
   return (
     <div
       className={cn(
-        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-afrikoni-cream focus:bg-afrikoni-cream text-afrikoni-deep',
+        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-afrikoni-cream focus:bg-afrikoni-cream text-afrikoni-deep transition-colors',
         className
       )}
-      onClick={() => {
-        onValueChange(value);
-        setOpen(false);
+      onClick={handleClick}
+      onMouseDown={(e) => {
+        // Prevent focus loss
+        e.preventDefault();
       }}
       {...props}
     >
