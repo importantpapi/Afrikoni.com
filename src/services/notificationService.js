@@ -85,29 +85,51 @@ async function getUserNotificationPreferences(userId, companyId) {
 /**
  * Send email notification (mock implementation - ready for real email service)
  */
-async function sendEmailNotification(email, title, message, link) {
+async function sendEmailNotification(email, title, message, link, type = 'default') {
   try {
-    // TODO: Integrate with real email service (SendGrid, AWS SES, Resend, etc.)
-    // For now, this is a mock that logs the email
-    if (import.meta.env.DEV) {
-      console.log('📧 Email Notification:', {
+    // Import email service dynamically to avoid loading if not configured
+    const { sendEmail } = await import('./emailService');
+    
+    // Map notification types to email templates
+    const templateMap = {
+      'order': 'orderConfirmation',
+      'rfq': 'rfqReceived',
+      'quote': 'quoteSubmitted',
+      'payment': 'paymentReceived',
+      'message': 'default',
+      'review': 'default',
+      'default': 'default'
+    };
+    
+    const template = templateMap[type] || 'default';
+    
+    const result = await sendEmail({
+      to: email,
+      subject: title,
+      template,
+      data: {
+        title,
+        message,
+        buttonLink: link ? `${window.location.origin}${link}` : null
+      }
+    });
+    
+    if (!result.success && import.meta.env.DEV) {
+      console.log('📧 Email Notification (not sent):', {
         to: email,
         subject: title,
         body: message,
-        link: link
+        link: link,
+        reason: result.error
       });
     }
     
-    // In production, this would call your email service:
-    // await emailService.send({
-    //   to: email,
-    //   subject: title,
-    //   html: generateEmailTemplate(title, message, link)
-    // });
-    
-    return true;
+    return result.success;
   } catch (error) {
-    console.error('Failed to send email notification:', error);
+    // Silently fail - email is not critical for app functionality
+    if (import.meta.env.DEV) {
+      console.error('Failed to send email notification:', error);
+    }
     return false;
   }
 }
@@ -195,7 +217,8 @@ export async function createNotification({
         recipientEmail,
         emailSubject || title,
         message,
-        link ? `${window.location.origin}${link}` : null
+        link,
+        type // Pass notification type for template selection
       );
     }
 
