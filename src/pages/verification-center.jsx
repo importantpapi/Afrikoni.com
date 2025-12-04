@@ -391,11 +391,79 @@ export default function VerificationCenter() {
           </Card>
         </motion.div>
 
-        {/* Public explanation of verification levels */}
+        {/* Business Information Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
+          className="mb-8"
+        >
+          <Card className="border-afrikoni-gold/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-afrikoni-gold" />
+                Business Information
+              </CardTitle>
+              <p className="text-sm text-afrikoni-deep/70 mt-2">
+                Provide your business registration details to complete verification
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="business_id" className="flex items-center gap-2 mb-2">
+                  <Hash className="w-4 h-4 text-afrikoni-gold" />
+                  Business ID / Registration Number
+                </Label>
+                <Input
+                  id="business_id"
+                  type="text"
+                  placeholder="Enter your business registration number"
+                  value={businessIdNumber}
+                  onChange={(e) => setBusinessIdNumber(e.target.value)}
+                  onBlur={handleSaveBusinessInfo}
+                  className="border-afrikoni-gold/30"
+                />
+                <p className="text-xs text-afrikoni-deep/70 mt-1">
+                  This is the official registration number from your business certificate
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="country_registration" className="flex items-center gap-2 mb-2">
+                  <Globe className="w-4 h-4 text-afrikoni-gold" />
+                  Country of Registration
+                </Label>
+                <Select
+                  value={countryOfRegistration}
+                  onValueChange={(value) => {
+                    setCountryOfRegistration(value);
+                    handleSaveBusinessInfo();
+                  }}
+                >
+                  <SelectTrigger id="country_registration" className="border-afrikoni-gold/30">
+                    <SelectValue placeholder="Select country where your business is registered" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {AFRICAN_COUNTRIES.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-afrikoni-deep/70 mt-1">
+                  The country where your business is legally registered
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Public explanation of verification levels */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
           className="mb-8"
         >
           <Card className="border-afrikoni-gold/20 bg-white/80">
