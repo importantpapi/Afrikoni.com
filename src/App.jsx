@@ -63,6 +63,7 @@ const SupplierProfile = lazy(() => import('./pages/supplierprofile'));
 
 // Lazy-loaded heavy routes - Other pages
 const AddProduct = lazy(() => import('./pages/addproduct'));
+const AddProductSmart = lazy(() => import('./pages/addproduct-smart'));
 const CreateRFQ = lazy(() => import('./pages/createrfq'));
 const Categories = lazy(() => import('./pages/categories'));
 const Orders = lazy(() => import('./pages/orders'));
@@ -128,7 +129,8 @@ function App() {
             <Route path="/product" element={<ProductDetail />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/compare" element={<CompareProducts />} />
-            <Route path="/products/add" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
+            <Route path="/products/add" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
+            <Route path="/products/add-old" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
             <Route path="/rfq/create" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
             <Route path="/rfq" element={<RFQMarketplace />} />
             <Route path="/rfq/detail" element={<ProtectedRoute><RFQDetail /></ProtectedRoute>} />
