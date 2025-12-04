@@ -64,6 +64,14 @@ export const DialogTitle = ({ children, className }) => {
   );
 };
 
+export const DialogDescription = ({ children, className }) => {
+  return (
+    <p className={cn('text-sm text-afrikoni-deep/70 mt-1', className)}>
+      {children}
+    </p>
+  );
+};
+
 export const DialogClose = ({ onClose }) => {
   return (
     <button
