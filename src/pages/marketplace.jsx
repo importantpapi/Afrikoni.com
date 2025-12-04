@@ -70,21 +70,39 @@ export default function Marketplace() {
         ]);
         
         if (categoriesRes.data) {
-          setCategories(['All Categories', ...categoriesRes.data.map(c => c.name)]);
+          // Store categories with both ID and name for filtering
+          setCategories(categoriesRes.data);
         }
         
         // Use full static list of African countries for a consistent marketplace selector
         setCountries([t('marketplace.allCountries'), ...AFRICAN_COUNTRIES]);
 
         // Apply country from URL (e.g. /marketplace?country=Nigeria or ?country=nigeria)
-        const urlParam = searchParams.get('country');
-        if (urlParam) {
-          const lower = urlParam.toLowerCase();
+        const urlCountryParam = searchParams.get('country');
+        if (urlCountryParam) {
+          const lower = urlCountryParam.toLowerCase();
           const mappedName =
             AFRICAN_COUNTRY_CODES[lower] ||
             AFRICAN_COUNTRIES.find((c) => c.toLowerCase() === lower);
           if (mappedName) {
             setSelectedFilters((prev) => ({ ...prev, country: mappedName }));
+          }
+        }
+
+        // Apply category from URL (e.g. /marketplace?category=category-id or ?category=category-name)
+        const urlCategoryParam = searchParams.get('category');
+        if (urlCategoryParam && categoriesRes.data) {
+          // Try to find by ID first
+          const categoryById = categoriesRes.data.find(c => c.id === urlCategoryParam);
+          // If not found, try by name
+          const categoryByName = categoriesRes.data.find(c => 
+            c.name.toLowerCase() === urlCategoryParam.toLowerCase()
+          );
+          
+          if (categoryById) {
+            setSelectedFilters((prev) => ({ ...prev, category: categoryById.id }));
+          } else if (categoryByName) {
+            setSelectedFilters((prev) => ({ ...prev, category: categoryByName.id }));
           }
         }
       } catch (error) {
@@ -694,18 +712,28 @@ if (!Array.isArray(productsList)) return [];
               <CardContent className="p-4 space-y-6">
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.category')}</h3>
-                  <div className="space-y-2">
-                    {categories.map((cat) => (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <button
+                      onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        !selectedFilters.category
+                          ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
+                          : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                      }`}
+                    >
+                      All Categories
+                    </button>
+                    {Array.isArray(categories) && categories.map((cat) => (
                       <button
-                        key={cat}
-                        onClick={() => setSelectedFilters({ ...selectedFilters, category: cat })}
+                        key={cat.id || cat}
+                        onClick={() => setSelectedFilters({ ...selectedFilters, category: cat.id || cat })}
                         className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          selectedFilters.category === cat
-                            ? 'bg-afrikoni-gold-50 text-afrikoni-gold font-semibold'
+                          selectedFilters.category === (cat.id || cat)
+                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
                             : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
                         }`}
                       >
-                        {cat}
+                        {cat.name || cat}
                       </button>
                     ))}
                   </div>
@@ -1084,13 +1112,12 @@ if (!Array.isArray(productsList)) return [];
                     <SelectValue placeholder={t('marketplace.sortBy') + '...'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="relevance">{t('marketplace.mostPopular')}</SelectItem>
-                    <SelectItem value="-created_at">{t('marketplace.newest')}</SelectItem>
-                    <SelectItem value="created_at">{t('marketplace.oldest')}</SelectItem>
-                    <SelectItem value="price_min">{t('marketplace.priceLow')}</SelectItem>
-                    <SelectItem value="-price_min">{t('marketplace.priceHigh')}</SelectItem>
-                    <SelectItem value="-views">{t('marketplace.mostPopular')}</SelectItem>
-                    <SelectItem value="-rating">{t('marketplace.mostPopular')}</SelectItem>
+                    <SelectItem value="relevance">⭐ {t('marketplace.mostPopular') || 'Most Relevant'}</SelectItem>
+                    <SelectItem value="-created_at">🆕 {t('marketplace.newest') || 'Newest First'}</SelectItem>
+                    <SelectItem value="created_at">📅 {t('marketplace.oldest') || 'Oldest First'}</SelectItem>
+                    <SelectItem value="price_min">💰 {t('marketplace.priceLow') || 'Price: Low to High'}</SelectItem>
+                    <SelectItem value="-price_min">💎 {t('marketplace.priceHigh') || 'Price: High to Low'}</SelectItem>
+                    <SelectItem value="-views">👁️ {t('marketplace.mostViewed') || 'Most Viewed'}</SelectItem>
                   </SelectContent>
                 </Select>
               <div className="hidden md:flex items-center gap-2">

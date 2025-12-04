@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, MapPin, Star, Shield, Phone, Mail, Globe, CheckCircle, Package, Calendar, Users, Award } from 'lucide-react';
+import { Building2, MapPin, Star, Shield, Phone, Mail, Globe, CheckCircle, Package, Calendar, Users, Award, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import NewMessageDialog from '../components/messaging/NewMessageDialog';
 import SEO from '@/components/SEO';
@@ -260,16 +260,77 @@ export default function SupplierProfile() {
                     )}
                     {supplier.certifications && supplier.certifications.length > 0 && (
                       <div>
-                        <h3 className="font-semibold text-afrikoni-chestnut mb-3">Certifications</h3>
-                        <div className="flex flex-wrap gap-2">
+                        <h3 className="font-semibold text-afrikoni-chestnut mb-3 flex items-center gap-2">
+                          <Award className="w-5 h-5 text-afrikoni-gold" />
+                          Certifications & Compliance
+                        </h3>
+                        <div className="grid sm:grid-cols-2 gap-3">
                           {Array.isArray(supplier?.certifications) && supplier.certifications.map((cert, idx) => (
-                            <Badge key={idx} className="bg-green-50 text-green-700 border-green-200">
-                              <Award className="w-3 h-3 mr-1" /> {cert}
-                            </Badge>
+                            <div key={idx} className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <Award className="w-4 h-4 text-green-700 flex-shrink-0" />
+                              <span className="text-sm font-medium text-green-700">{cert}</span>
+                            </div>
                           ))}
                         </div>
                       </div>
                     )}
+                    
+                    {/* Additional Company Info */}
+                    <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-afrikoni-gold/20">
+                      {supplier.employee_count && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Company Size</h4>
+                          <p className="text-sm text-afrikoni-deep">{supplier.employee_count} employees</p>
+                        </div>
+                      )}
+                      {supplier.website && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Website</h4>
+                          <a 
+                            href={supplier.website.startsWith('http') ? supplier.website : `https://${supplier.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-afrikoni-gold hover:underline flex items-center gap-1"
+                          >
+                            <Globe className="w-3 h-3" />
+                            {supplier.website}
+                          </a>
+                        </div>
+                      )}
+                      {supplier.email && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Email</h4>
+                          <a 
+                            href={`mailto:${supplier.email}`}
+                            className="text-sm text-afrikoni-gold hover:underline flex items-center gap-1"
+                          >
+                            <Mail className="w-3 h-3" />
+                            {supplier.email}
+                          </a>
+                        </div>
+                      )}
+                      {supplier.phone && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Phone</h4>
+                          <a 
+                            href={`tel:${supplier.phone}`}
+                            className="text-sm text-afrikoni-gold hover:underline flex items-center gap-1"
+                          >
+                            <Phone className="w-3 h-3" />
+                            {supplier.phone}
+                          </a>
+                        </div>
+                      )}
+                      {supplier.address && (
+                        <div className="sm:col-span-2">
+                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Address</h4>
+                          <p className="text-sm text-afrikoni-deep flex items-start gap-1">
+                            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-afrikoni-gold" />
+                            {supplier.address}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -283,31 +344,72 @@ export default function SupplierProfile() {
                         <p className="text-afrikoni-deep">No products listed yet</p>
                       </div>
                     ) : (
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {products.map(product => (
-                          <Link
-                            key={product.id}
-                            to={createPageUrl('ProductDetail') + '?id=' + product.id}
-                            className="border border-afrikoni-gold/20 rounded-lg p-4 hover:border-afrikoni-gold transition"
-                          >
-                            <div className="flex gap-3">
-                              <div className="w-20 h-20 bg-afrikoni-cream rounded-lg overflow-hidden flex-shrink-0">
-                                {product.images?.[0] ? (
-                                  <OptimizedImage src={product.images?.[0] || '/placeholder.png'} alt={product.title} className="w-full h-full object-cover" />
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {products.map(product => {
+                          const primaryImage = Array.isArray(product.images) ? product.images[0] : null;
+                          const productPrice = product.price_min || product.price || null;
+                          const moq = product.min_order_quantity || product.moq || null;
+                          
+                          return (
+                            <Link
+                              key={product.id}
+                              to={createPageUrl('ProductDetail') + '?id=' + product.id}
+                              className="group border border-afrikoni-gold/20 rounded-lg overflow-hidden hover:border-afrikoni-gold hover:shadow-lg transition-all bg-white"
+                            >
+                              <div className="relative h-48 bg-afrikoni-cream overflow-hidden">
+                                {primaryImage ? (
+                                  <OptimizedImage 
+                                    src={primaryImage} 
+                                    alt={product.title || 'Product'} 
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                  />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <Package className="w-8 h-8 text-afrikoni-deep/70" />
+                                    <Package className="w-16 h-16 text-afrikoni-deep/70" />
+                                  </div>
+                                )}
+                                {product.featured && (
+                                  <div className="absolute top-2 left-2">
+                                    <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs">⭐ Featured</Badge>
                                   </div>
                                 )}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-afrikoni-chestnut line-clamp-2 mb-1">{product.title}</h4>
-                                <div className="text-lg font-bold text-amber-600">${product.price}</div>
-                                <div className="text-xs text-afrikoni-deep/70">MOQ: {product.moq} {product.unit}</div>
+                              <div className="p-4">
+                                <h4 className="font-semibold text-afrikoni-chestnut line-clamp-2 mb-2 text-sm md:text-base group-hover:text-afrikoni-gold transition-colors">
+                                  {product.title || product.name}
+                                </h4>
+                                {product.short_description && (
+                                  <p className="text-xs text-afrikoni-deep/70 line-clamp-2 mb-3">
+                                    {product.short_description}
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-between mb-2">
+                                  {productPrice ? (
+                                    <div className="text-lg font-bold text-afrikoni-gold">
+                                      {product.currency || 'USD'} {parseFloat(productPrice).toLocaleString()}
+                                      {product.price_max && product.price_max !== productPrice && (
+                                        <span className="text-sm text-afrikoni-deep/70"> - {parseFloat(product.price_max).toLocaleString()}</span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-afrikoni-deep/70">Price on request</div>
+                                  )}
+                                </div>
+                                {moq && (
+                                  <div className="text-xs text-afrikoni-deep/70 mb-2">
+                                    MOQ: {moq} {product.moq_unit || product.unit || 'units'}
+                                  </div>
+                                )}
+                                {product.country_of_origin && (
+                                  <div className="flex items-center gap-1 text-xs text-afrikoni-deep/70">
+                                    <MapPin className="w-3 h-3" />
+                                    {product.country_of_origin}
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          </Link>
-                        ))}
+                            </Link>
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>

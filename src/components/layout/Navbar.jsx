@@ -19,6 +19,7 @@ import { Logo } from '@/components/ui/Logo';
 import NotificationBell from '@/components/notificationbell';
 import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { supabase } from '@/api/supabaseClient';
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
@@ -30,6 +31,8 @@ export default function Navbar({ user, onLogout }) {
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [compareCount, setCompareCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   // Load compare count from localStorage
   useEffect(() => {
@@ -78,6 +81,33 @@ export default function Navbar({ user, onLogout }) {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, [megaOpen]);
+
+  // Load categories for mega dropdown
+  useEffect(() => {
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('id, name')
+          .order('name')
+          .limit(12); // Show top 12 categories in dropdown
+        
+        if (error) throw error;
+        setCategories(data || []);
+      } catch (error) {
+        // Fallback to empty array on error
+        setCategories([]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    // Only load when mega menu might be opened
+    if (megaOpen || categories.length === 0) {
+      loadCategories();
+    }
   }, [megaOpen]);
 
   const languageMap = {
@@ -450,14 +480,40 @@ export default function Navbar({ user, onLogout }) {
               transition={{ duration: 0.2, ease: 'easeOut' }}
               className="absolute left-0 w-full bg-white shadow-xl border-t border-gray-200 z-[50]"
             >
-              <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 max-h-[400px] overflow-y-auto">
+              <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 max-h-[500px] overflow-y-auto">
+          {/* Categories */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-3">Browse by Category</h3>
+            <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+              <Link to="/categories" onClick={() => setMegaOpen(false)} className="font-medium text-afrikoni-gold hover:text-afrikoni-chestnut">
+                All Categories →
+              </Link>
+              {categoriesLoading ? (
+                <div className="text-gray-500 text-xs">Loading categories...</div>
+              ) : categories.length > 0 ? (
+                categories.map((category) => (
+                  <Link
+                    key={category.id}
+                    to={`/marketplace?category=${encodeURIComponent(category.id)}`}
+                    onClick={() => setMegaOpen(false)}
+                    className="hover:text-afrikoni-gold transition-colors"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              ) : (
+                <div className="text-gray-500 text-xs">No categories available</div>
+              )}
+            </nav>
+          </div>
+
           {/* Marketplace */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Marketplace</h3>
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/categories" onClick={() => setMegaOpen(false)}>All Categories</Link>
               <Link to="/marketplace" onClick={() => setMegaOpen(false)}>Browse Products</Link>
               <Link to="/trending" onClick={() => setMegaOpen(false)}>Trending</Link>
+              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
               <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Buyer Protection</Link>
             </nav>
           </div>
