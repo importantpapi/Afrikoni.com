@@ -29,19 +29,10 @@ export const supabaseHelpers = {
         .single();
       
       if (profilesErr && profilesErr.code !== 'PGRST116') {
-        // If profiles table doesn't exist, try users table as fallback
+        // If profiles table doesn't exist, fall back to auth user metadata only.
+        // Do NOT query the private users table from the client (it is not exposed via RLS).
         if (profilesErr.code === '42P01') {
-          const { data: usersData, error: usersErr } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          if (usersErr && usersErr.code !== 'PGRST116') {
-            profileError = usersErr;
-          } else {
-            profile = usersData;
-          }
+          profile = null;
         } else {
           profileError = profilesErr;
         }
@@ -108,17 +99,10 @@ export const supabaseHelpers = {
         .single();
       
       if (profilesErr && profilesErr.code !== '42P01') {
-        // If profiles table doesn't exist, try users table as fallback
+        // If profiles table doesn't exist or other errors, surface the error
         if (profilesErr.code === '42P01' || profilesErr.code === 'PGRST116') {
-          const { data: usersData, error: usersErr } = await supabase
-            .from('users')
-            .update(updates)
-            .eq('id', user.id)
-            .select()
-            .single();
-          
-          if (usersErr) throw usersErr;
-          result = usersData;
+          // Silently ignore profiles table missing; use auth metadata only
+          result = null;
         } else {
           throw profilesErr;
         }

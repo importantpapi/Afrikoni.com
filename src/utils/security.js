@@ -77,17 +77,7 @@ export async function verifyCompanyOwnership(supabase, companyId, userId) {
       return true;
     }
     
-    // Fallback to users table
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('company_id')
-      .eq('id', userId)
-      .single();
-    
-    if (!userError && user?.company_id === companyId) {
-      return true;
-    }
-    
+    // If profiles table missing or no match, we do not try to read the private users table from the client.
     return false;
   } catch (error) {
     return false;
