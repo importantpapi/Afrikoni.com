@@ -7,8 +7,6 @@ import ScrollToTop from './components/ScrollToTop';
 import { PageLoader } from './components/ui/skeletons';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
-import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
-import { useEffect } from 'react';
 
 // Lightweight routes - keep as regular imports for faster initial load
 import Home from './pages/index';
