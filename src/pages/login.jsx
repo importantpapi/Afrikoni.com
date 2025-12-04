@@ -41,19 +41,33 @@ export default function Login() {
 
       toast.success(t('login.success'));
       
+      // Check email verification first
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const emailVerified = authUser?.email_confirmed_at !== null;
+      
+      if (!emailVerified) {
+        toast.warning('Please verify your email address before accessing the dashboard.');
+        // Still allow access but show warning
+        // In production, you might want to redirect to a verification page
+      }
+      
       // Check onboarding status and redirect accordingly
       const { onboardingCompleted, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!onboardingCompleted) {
-        navigate('/onboarding');
+        navigate('/onboarding?step=1');
       } else {
         const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
         const dashboardPath = getDashboardPathForRole(role);
+        
+        // For hybrid users, use unified dashboard
+        const finalPath = role === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
+        
         // If user came from a specific page (RFQ / product), send them back there
-        if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
+        if (redirectUrl && redirectUrl !== createPageUrl('Home') && !redirectUrl.includes('/dashboard')) {
           navigate(redirectUrl);
         } else {
-          navigate(dashboardPath);
+          navigate(finalPath);
         }
       }
     } catch (error) {

@@ -18,15 +18,26 @@ export default function Dashboard() {
 
     const init = async () => {
     try {
-        const { role, onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        // Check email verification
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const emailVerified = authUser?.email_confirmed_at !== null;
         
         if (!isMounted) return;
-
-        // If onboarding not completed, redirect to onboarding
+        
+        // Check onboarding and role
+        const { role, onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        
+        // If onboarding not completed, redirect to onboarding step 1
         if (!onboardingCompleted) {
-          navigate('/onboarding');
-            return;
-          }
+          navigate('/onboarding?step=1', { replace: true });
+          return;
+        }
+        
+        // Warn about unverified email but don't block access
+        if (!emailVerified && authUser) {
+          // Could show a banner here in production
+          console.warn('Email not verified');
+        }
           
         const normalizedRole = role || 'buyer';
         setCurrentRole(normalizedRole);
@@ -34,7 +45,9 @@ export default function Dashboard() {
         // If user hit the base /dashboard route, redirect them to a role-specific dashboard
         if (location.pathname === '/dashboard') {
           const dashboardPath = getDashboardPathForRole(normalizedRole);
-          navigate(dashboardPath, { replace: true });
+          // For hybrid, use unified dashboard
+          const finalPath = normalizedRole === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
+          navigate(finalPath, { replace: true });
           return;
         }
       } catch (error) {

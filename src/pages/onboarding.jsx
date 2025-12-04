@@ -44,6 +44,13 @@ export default function Onboarding() {
 
   useEffect(() => {
     checkOnboardingStatus();
+    
+    // Check for step query param
+    const params = new URLSearchParams(window.location.search);
+    const stepParam = params.get('step');
+    if (stepParam && parseInt(stepParam) === 1) {
+      setCurrentStep(1);
+    }
   }, []);
 
   const checkOnboardingStatus = async () => {
@@ -175,9 +182,16 @@ export default function Onboarding() {
       }
 
       toast.success('Onboarding completed! Welcome to Afrikoni.');
+      
+      // Get dashboard path based on selected role
       const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
-      const dashboardPath = getDashboardPathForRole(selectedRole || 'buyer');
-      navigate(dashboardPath);
+      const normalizedRole = selectedRole || 'buyer';
+      const dashboardPath = getDashboardPathForRole(normalizedRole);
+      
+      // For hybrid users, go to unified dashboard
+      const finalPath = normalizedRole === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
+      
+      navigate(finalPath, { replace: true });
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to complete onboarding. Please try again.');

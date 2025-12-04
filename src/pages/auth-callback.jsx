@@ -78,6 +78,13 @@ export default function AuthCallback() {
 
         toast.success(t('login.success') || 'Logged in successfully!');
 
+        // Check email verification
+        const emailVerified = user.email_confirmed_at !== null;
+        if (!emailVerified) {
+          // Warn but don't block - in production you might redirect to verification page
+          console.warn('Email not verified');
+        }
+
         // Check onboarding status and redirect
         const { onboardingCompleted, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
         
@@ -85,15 +92,18 @@ export default function AuthCallback() {
         const redirectUrl = searchParams.get('redirect_to') || searchParams.get('redirect');
 
         if (!onboardingCompleted) {
-          navigate('/onboarding');
+          navigate('/onboarding?step=1', { replace: true });
         } else {
           const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
           const dashboardPath = getDashboardPathForRole(role);
           
-          if (redirectUrl && redirectUrl !== window.location.origin) {
+          // For hybrid users, use unified dashboard
+          const finalPath = role === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
+          
+          if (redirectUrl && redirectUrl !== window.location.origin && !redirectUrl.includes('/dashboard')) {
             navigate(redirectUrl);
           } else {
-            navigate(dashboardPath);
+            navigate(finalPath);
           }
         }
       } catch (err) {

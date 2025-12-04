@@ -67,7 +67,8 @@ export default function Signup() {
           .upsert({
             id: data.user.id,
             full_name: formData.fullName,
-            role: 'buyer', // Default role
+            email: formData.email,
+            role: 'buyer', // Default role - will be set in onboarding
             onboarding_completed: false // Must complete onboarding
           }, { onConflict: 'id' });
 
@@ -77,10 +78,12 @@ export default function Signup() {
         }
 
         toast.success(t('signup.success'));
-        navigate('/onboarding');
+        // Always redirect to onboarding step 1 (role selection)
+        navigate('/onboarding?step=1');
       } else {
+        // Email confirmation required
         toast.success(t('signup.checkEmail'));
-        navigate('/login');
+        navigate('/login?message=check-email');
       }
     } catch (error) {
       // Error logged (removed for production)

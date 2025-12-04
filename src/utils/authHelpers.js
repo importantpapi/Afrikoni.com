@@ -178,3 +178,46 @@ export async function requireOnboarding(supabase, supabaseHelpers) {
   return result;
 }
 
+/**
+ * Check if user's email is verified
+ * 
+ * @param {Object} supabase - Supabase client instance
+ * @returns {Promise<boolean>}
+ */
+export async function isEmailVerified(supabase) {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error || !user) {
+      return false;
+    }
+    
+    // Check email_verified flag from auth user
+    return user.email_confirmed_at !== null || user.email_verified === true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Require email verification before allowing dashboard access
+ * 
+ * @param {Object} supabase - Supabase client instance
+ * @param {Object} supabaseHelpers - Supabase helpers object
+ * @returns {Promise<{user: Object, profile: Object, role: string, emailVerified: boolean}|null>}
+ */
+export async function requireEmailVerification(supabase, supabaseHelpers) {
+  const result = await getCurrentUserAndRole(supabase, supabaseHelpers);
+  
+  if (!result.user) {
+    return null; // Not authenticated
+  }
+  
+  const emailVerified = await isEmailVerified(supabase);
+  
+  return {
+    ...result,
+    emailVerified
+  };
+}
+
