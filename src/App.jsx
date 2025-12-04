@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Layout from './layout';
@@ -6,6 +6,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import { PageLoader } from './components/ui/skeletons';
 import { LanguageProvider } from './i18n/LanguageContext';
+import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
+import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
+import { useEffect } from 'react';
 
 // Lightweight routes - keep as regular imports for faster initial load
 import Home from './pages/index';
@@ -108,6 +111,12 @@ const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 
 function App() {
+  // Setup preloading on mount
+  useEffect(() => {
+    setupLinkPreloading();
+    useIdlePreloading();
+  }, []);
+
   return (
     <LanguageProvider>
       <ScrollToTop />

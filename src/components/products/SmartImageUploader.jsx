@@ -86,7 +86,7 @@ export default function SmartImageUploader({
     });
   };
 
-  // Compress image if needed
+  // Compress image if needed - optimized for better performance
   const compressImage = (file, maxWidth = 1920, quality = 0.85) => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -97,30 +97,59 @@ export default function SmartImageUploader({
           let width = img.width;
           let height = img.height;
 
-          // Resize if too large
+          // Resize if too large - use more aggressive compression for large images
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
             width = maxWidth;
+            // Reduce quality for very large images to save bandwidth
+            if (file.size > 5 * 1024 * 1024) {
+              quality = 0.75;
+            }
           }
 
+          // Use better image quality settings
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          
+          // Enable better image rendering
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          
           ctx.drawImage(img, 0, 0, width, height);
+
+          // Prefer JPEG for better compression, fallback to original type
+          const outputType = file.type === 'image/png' && file.size > 2 * 1024 * 1024 
+            ? 'image/jpeg' 
+            : file.type;
 
           canvas.toBlob(
             (blob) => {
+              if (!blob) {
+                // Fallback if compression fails
+                resolve(file);
+                return;
+              }
+              
               const compressedFile = new File([blob], file.name, {
-                type: file.type,
+                type: outputType,
                 lastModified: Date.now(),
               });
               resolve(compressedFile);
             },
-            file.type,
+            outputType,
             quality
           );
         };
+        img.onerror = () => {
+          // Fallback on error
+          resolve(file);
+        };
         img.src = e.target.result;
+      };
+      reader.onerror = () => {
+        // Fallback on read error
+        resolve(file);
       };
       reader.readAsDataURL(file);
     });
