@@ -21,15 +21,15 @@ export async function getOrCreateCompany(supabase, userData) {
 
   if (existingCompany) {
     // Update profile with company_id
-    await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
       .upsert({ 
         id: userData.id,
         company_id: existingCompany.id 
-      }, { onConflict: 'id' })
-      .catch(() => {
-        // Silently fail if update doesn't work
-      });
+      }, { onConflict: 'id' });
+    if (profileError) {
+      // Silently ignore profile upsert errors here to avoid blocking flows
+    }
     
     return existingCompany.id;
   }
@@ -60,15 +60,15 @@ export async function getOrCreateCompany(supabase, userData) {
   }
 
   // Update profile with company_id
-  await supabase
+  const { error: profileError } = await supabase
     .from('profiles')
     .upsert({ 
       id: userData.id,
       company_id: newCompany.id 
-    }, { onConflict: 'id' })
-    .catch(() => {
-      // Silently fail if update doesn't work
-    });
+    }, { onConflict: 'id' });
+  if (profileError) {
+    // Silently ignore profile upsert errors here to avoid blocking flows
+  }
 
   return newCompany.id;
 }

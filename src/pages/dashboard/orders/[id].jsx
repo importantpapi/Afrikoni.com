@@ -159,18 +159,20 @@ export default function OrderDetail() {
           const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
           const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
           if (userData?.email) {
-        await supabase.from('notifications').insert({
-          company_id: otherCompanyId,
+            const { error: notifError } = await supabase.from('notifications').insert({
+              company_id: otherCompanyId,
               user_email: userData.email,
               user_id: userData.id,
-          title: 'Order Status Updated',
-          message: `Order ${id.slice(0, 8)} status changed to ${newStatus}`,
-          type: 'order',
-          link: `/dashboard/orders/${id}`,
-          related_id: id
-            }).catch(() => {
-              // Silently fail
-        });
+              title: 'Order Status Updated',
+              message: `Order ${id.slice(0, 8)} status changed to ${newStatus}`,
+              type: 'order',
+              link: `/dashboard/orders/${id}`,
+              related_id: id
+            });
+            // Silently ignore notification failures
+            if (notifError) {
+              // noop
+            }
           }
         }
       }

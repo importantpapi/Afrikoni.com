@@ -163,7 +163,7 @@ export default function CreateRFQ() {
 
       // Create notification for buyer
       if (companyId) {
-        await supabase.from('notifications').insert({
+        const { error: notifError } = await supabase.from('notifications').insert({
           user_email: user.email,
           company_id: companyId,
           title: 'RFQ Created',
@@ -171,9 +171,11 @@ export default function CreateRFQ() {
           type: 'rfq',
           link: `/dashboard/rfqs/${newRFQ.id}`,
           related_id: newRFQ.id
-        }).catch(() => {
-          // Silently fail if notification creation fails
         });
+        // Silently ignore notification failures
+        if (notifError) {
+          // noop
+        }
       }
 
       // Notify all sellers about new RFQ

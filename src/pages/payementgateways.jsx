@@ -164,7 +164,7 @@ export default function PaymentGateway() {
                 type: 'payment',
                 link: createPageUrl('OrderDetail') + '?id=' + order.id,
                 related_id: order.id
-              }).catch(() => {});
+              });
 
               toast.success('Payment processed successfully via Flutterwave!');
               navigate(createPageUrl('OrderDetail') + '?id=' + order.id);

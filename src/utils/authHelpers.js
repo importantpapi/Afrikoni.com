@@ -54,17 +54,17 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
     } catch (profileError) {
       // If profile doesn't exist, create minimal one
       if (profileError.code === 'PGRST116' || profileError.code === '42P01') {
-        await supabase
+        const { error: upsertError } = await supabase
           .from('profiles')
           .upsert({
             id: authUser.id,
             full_name: authUser.user_metadata?.name || authUser.email?.split('@')[0],
             role: 'buyer',
             onboarding_completed: false
-          }, { onConflict: 'id' })
-          .catch(() => {
-            // Silently fail if upsert doesn't work
-          });
+          }, { onConflict: 'id' });
+        if (upsertError) {
+          // Ignore profile creation error and fall back to minimal profile
+        }
         
         // Return minimal profile data
         profile = {

@@ -164,13 +164,14 @@ export default function Onboarding() {
       if (profileError) {
         // If profiles table doesn't exist, try users table
         if (profileError.code === '42P01' || profileError.code === 'PGRST116') {
-          await supabase
+          const { error: usersError } = await supabase
             .from('users')
             .update(updateData)
-            .eq('id', user.id)
-            .catch(() => {
-              // Silently fail if users table also doesn't exist
-            });
+            .eq('id', user.id);
+          // Silently ignore users table update failures
+          if (usersError) {
+            // noop
+          }
         } else {
           throw profileError;
         }

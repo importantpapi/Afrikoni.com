@@ -142,16 +142,18 @@ export default function RFQDetail() {
           await notifyQuoteSubmitted(newQuote.id, id, rfq.buyer_company_id);
         } catch (err) {
           // Fallback to direct insert if service fails
-          await supabase.from('notifications').insert({
+          const { error: notifError } = await supabase.from('notifications').insert({
             company_id: rfq.buyer_company_id,
             title: 'New Quote Received',
             message: `You received a new quote for RFQ: ${rfq.title}`,
             type: 'rfq',
             link: `/dashboard/rfqs/${id}`,
             related_id: newQuote.id
-          }).catch(() => {
-            // Silently fail
           });
+          // Silently ignore notification failures
+          if (notifError) {
+            // noop
+          }
         }
       }
 
