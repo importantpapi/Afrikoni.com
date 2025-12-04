@@ -1,134 +1,112 @@
 /**
- * Performance utilities for optimization
+ * Performance Monitoring Utilities
+ * 
+ * Track key performance metrics and operations
  */
 
-/**
- * Preload critical resources
- */
-export function preloadResource(href, as = 'script', crossorigin = false) {
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.href = href;
-  link.as = as;
-  if (crossorigin) {
-    link.crossOrigin = 'anonymous';
-  }
-  document.head.appendChild(link);
-}
+import { trackOperation, trackMetric } from './sentry';
 
 /**
- * Prefetch resources for faster navigation
+ * Track API call performance
  */
-export function prefetchResource(href, as = 'script') {
-  const link = document.createElement('link');
-  link.rel = 'prefetch';
-  link.href = href;
-  link.as = as;
-  document.head.appendChild(link);
-}
-
-/**
- * Defer non-critical script execution
- */
-export function deferExecution(callback, delay = 0) {
-  if (delay === 0) {
-    requestIdleCallback ? requestIdleCallback(callback) : setTimeout(callback, 0);
-  } else {
-    setTimeout(callback, delay);
-  }
-}
-
-/**
- * Throttle function calls
- */
-export function throttle(func, limit) {
-  let inThrottle;
-  return function(...args) {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
-    }
-  };
-}
-
-/**
- * Debounce function calls
- */
-export function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-/**
- * Check if user is on slow connection
- */
-export function isSlowConnection() {
-  if ('connection' in navigator) {
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (connection) {
-      return connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g';
-    }
-  }
-  return false;
-}
-
-/**
- * Lazy load script
- */
-export function loadScript(src, async = true) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.async = async;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-/**
- * Lazy load stylesheet
- */
-export function loadStylesheet(href) {
-  return new Promise((resolve, reject) => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    link.onload = resolve;
-    link.onerror = reject;
-    document.head.appendChild(link);
-  });
-}
-
-/**
- * Measure performance metrics
- */
-export function measurePerformance(name, fn) {
-  if (typeof performance !== 'undefined' && performance.mark) {
-    performance.mark(`${name}-start`);
-    const result = fn();
-    performance.mark(`${name}-end`);
-    performance.measure(name, `${name}-start`, `${name}-end`);
-    const measure = performance.getEntriesByName(name)[0];
-    console.log(`${name}: ${measure.duration.toFixed(2)}ms`);
+export async function trackAPICall(name, apiCall) {
+  const startTime = performance.now();
+  
+  try {
+    const result = await trackOperation(name, 'http', async () => {
+      return await apiCall();
+    });
+    
+    const duration = performance.now() - startTime;
+    trackMetric(`api.${name}.duration`, duration);
+    trackMetric(`api.${name}.success`, 1, 'none');
+    
     return result;
+  } catch (error) {
+    const duration = performance.now() - startTime;
+    trackMetric(`api.${name}.duration`, duration);
+    trackMetric(`api.${name}.error`, 1, 'none');
+    
+    throw error;
   }
-  return fn();
 }
 
 /**
- * Batch DOM updates for better performance
+ * Track page load performance
  */
-export function batchDOMUpdates(updates) {
-  requestAnimationFrame(() => {
-    updates.forEach(update => update());
+export function trackPageLoad() {
+  if (typeof window === 'undefined' || !window.performance) return;
+
+  // Track Web Vitals
+  const navigation = performance.getEntriesByType('navigation')[0];
+  if (navigation) {
+    const loadTime = navigation.loadEventEnd - navigation.fetchStart;
+    const domContentLoaded = navigation.domContentLoadedEventEnd - navigation.fetchStart;
+    const firstByte = navigation.responseStart - navigation.fetchStart;
+
+    trackMetric('page.load_time', loadTime);
+    trackMetric('page.dom_content_loaded', domContentLoaded);
+    trackMetric('page.first_byte', firstByte);
+  }
+
+  // Track Largest Contentful Paint (LCP)
+  if ('PerformanceObserver' in window) {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        const lastEntry = entries[entries.length - 1];
+        trackMetric('page.lcp', lastEntry.renderTime || lastEntry.loadTime);
+      });
+      observer.observe({ entryTypes: ['largest-contentful-paint'] });
+    } catch (e) {
+      // PerformanceObserver not supported
+    }
+  }
+}
+
+/**
+ * Track component render performance
+ */
+export function trackComponentRender(componentName, renderFn) {
+  const startTime = performance.now();
+  
+  const result = trackOperation(`component.${componentName}`, 'react', () => {
+    return renderFn();
   });
+  
+  const duration = performance.now() - startTime;
+  trackMetric(`component.${componentName}.render_time`, duration);
+  
+  return result;
+}
+
+/**
+ * Track database query performance
+ */
+export async function trackDBQuery(queryName, queryFn) {
+  return trackAPICall(`db.${queryName}`, queryFn);
+}
+
+/**
+ * Track image load performance
+ */
+export function trackImageLoad(imageUrl) {
+  if (typeof window === 'undefined') return;
+
+  const img = new Image();
+  const startTime = performance.now();
+
+  img.onload = () => {
+    const duration = performance.now() - startTime;
+    trackMetric('image.load_time', duration);
+    trackMetric('image.load_success', 1, 'none');
+  };
+
+  img.onerror = () => {
+    const duration = performance.now() - startTime;
+    trackMetric('image.load_time', duration);
+    trackMetric('image.load_error', 1, 'none');
+  };
+
+  img.src = imageUrl;
 }

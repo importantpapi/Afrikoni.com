@@ -9,6 +9,7 @@
  */
 
 import * as Sentry from "@sentry/react";
+import { browserTracingIntegration } from "@sentry/browser";
 
 export function initSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
@@ -20,22 +21,44 @@ export function initSentry() {
     return;
   }
 
+  // Build integrations array
+  const integrations = [];
+  
+  // Add BrowserTracing for performance monitoring
+  try {
+    integrations.push(
+      browserTracingIntegration({
+        // Trace all navigation routes
+        tracePropagationTargets: [
+          "localhost",
+          /^https:\/\/.*\.supabase\.co/,
+          /^https:\/\/.*\.afrikoni\.com/,
+        ],
+        // Enable routing instrumentation for React Router
+        enableInp: true, // Enable INP (Interaction to Next Paint) tracking
+      })
+    );
+  } catch (error) {
+    // If browserTracingIntegration fails, continue without it
+    if (import.meta.env.DEV) {
+      console.warn('[Sentry] BrowserTracing integration not available:', error);
+    }
+  }
+
   Sentry.init({
     dsn: dsn,
     environment: import.meta.env.MODE,
-    integrations: [
-      // Basic error tracking - BrowserTracing and Replay require additional packages
-      // For now, we'll use basic error tracking which works out of the box
-    ],
-    // Performance Monitoring (disabled for now - requires @sentry/tracing)
-    // tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-    // Session Replay (disabled for now - requires @sentry/replay)
-    // replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-    // replaysOnErrorSampleRate: 1.0,
+    integrations: integrations,
+    // Performance Monitoring
+    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in production, 100% in dev
+    // Web Vitals tracking
+    enableTracing: true,
+    // Track long tasks (performance bottlenecks)
+    enableLongTask: true,
   });
 
   if (import.meta.env.DEV) {
-    console.log('[Sentry] Initialized successfully');
+    console.log('[Sentry] Initialized with performance monitoring');
   }
 }
 
@@ -57,6 +80,41 @@ export function captureMessage(message, level = 'info', context = {}) {
     });
   } else if (import.meta.env.DEV) {
     console.log(`[Sentry] Message (${level}, not sent - Sentry not initialized):`, message, context);
+  }
+}
+
+/**
+ * Track a custom operation with Sentry
+ * Use this to track API calls, database queries, etc.
+ * 
+ * @param {string} name - Operation name
+ * @param {string} op - Operation type (e.g., 'http', 'db', 'task')
+ * @param {Function} callback - Function to execute within the span
+ * @returns {Promise} Result of the callback
+ */
+export async function trackOperation(name, op, callback) {
+  if (typeof window !== 'undefined' && window.Sentry && Sentry.startSpan) {
+    return Sentry.startSpan({
+      name,
+      op,
+    }, callback);
+  }
+  // Fallback: just execute the callback
+  return callback();
+}
+
+/**
+ * Track a performance metric
+ * 
+ * @param {string} name - Metric name
+ * @param {number} value - Metric value (in milliseconds)
+ * @param {string} unit - Unit type ('millisecond', 'second', etc.)
+ */
+export function trackMetric(name, value, unit = 'millisecond') {
+  if (typeof window !== 'undefined' && window.Sentry) {
+    Sentry.metrics.distribution(name, value, {
+      unit,
+    });
   }
 }
 
