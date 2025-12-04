@@ -22,7 +22,8 @@ export default function SmartImageUploader({
   onImagesChange,
   userId,
   maxImages = 5,
-  maxSizeMB = 5
+  maxSizeMB = 5,
+  onFirstImageUpload = null // Callback when first image is uploaded (for AI analysis)
 }) {
   const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
@@ -30,6 +31,60 @@ export default function SmartImageUploader({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
+
+  // Auto-crop and center image to 1:1 aspect ratio with clean background
+  const cropAndCenterImage = (file, size = 1200, quality = 0.9) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          
+          // Fill with white background
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, size, size);
+          
+          // Calculate dimensions to center and fit image
+          const imgAspect = img.width / img.height;
+          let drawWidth = size;
+          let drawHeight = size;
+          let offsetX = 0;
+          let offsetY = 0;
+          
+          if (imgAspect > 1) {
+            // Image is wider - fit to height
+            drawWidth = size * imgAspect;
+            offsetX = (size - drawWidth) / 2;
+          } else {
+            // Image is taller - fit to width
+            drawHeight = size / imgAspect;
+            offsetY = (size - drawHeight) / 2;
+          }
+          
+          // Draw image centered
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+          
+          canvas.toBlob(
+            (blob) => {
+              const croppedFile = new File([blob], file.name, {
+                type: 'image/jpeg', // Always convert to JPEG for consistency
+                lastModified: Date.now(),
+              });
+              resolve(croppedFile);
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Compress image if needed
   const compressImage = (file, maxWidth = 1920, quality = 0.85) => {
@@ -89,24 +144,26 @@ export default function SmartImageUploader({
     return true;
   };
 
-  // Upload single image
-  const uploadImage = async (file) => {
+  // Upload single image with auto-crop and thumbnail generation
+  const uploadImage = async (file, isFirstImage = false) => {
     if (!validateFile(file)) return null;
 
     try {
-      // Compress if needed
+      // Auto-crop and center first image to 1:1 aspect (main product image)
       let fileToUpload = file;
-      if (file.size > 2 * 1024 * 1024) { // Compress if > 2MB
+      if (isFirstImage) {
+        fileToUpload = await cropAndCenterImage(file, 1200, 0.9);
+      } else if (file.size > 2 * 1024 * 1024) {
+        // Compress other images if > 2MB
         fileToUpload = await compressImage(file);
       }
 
       // Generate unique path: products/{userId}/{timestamp}-{random}.{ext}
-      const fileExt = fileToUpload.name.split('.').pop();
       const timestamp = Date.now();
       const randomStr = Math.random().toString(36).substring(2, 9);
-      const path = `products/${userId}/${timestamp}-${randomStr}.${fileExt}`;
+      const path = `products/${userId}/${timestamp}-${randomStr}.jpg`; // Always .jpg after crop
 
-      // Upload to product-images bucket
+      // Upload main image
       const { data, error } = await supabase.storage
         .from('product-images')
         .upload(path, fileToUpload, {
@@ -121,8 +178,34 @@ export default function SmartImageUploader({
         .from('product-images')
         .getPublicUrl(data.path);
 
+      // Generate thumbnail (300x300) for first image
+      let thumbnailUrl = publicUrl;
+      if (isFirstImage) {
+        try {
+          const thumbnailFile = await cropAndCenterImage(file, 300, 0.85);
+          const thumbPath = `products/${userId}/${timestamp}-${randomStr}-thumb.jpg`;
+          const { data: thumbData, error: thumbError } = await supabase.storage
+            .from('product-images')
+            .upload(thumbPath, thumbnailFile, {
+              cacheControl: '3600',
+              upsert: false
+            });
+          
+          if (!thumbError && thumbData) {
+            const { data: { publicUrl: thumbPublicUrl } } = supabase.storage
+              .from('product-images')
+              .getPublicUrl(thumbData.path);
+            thumbnailUrl = thumbPublicUrl;
+          }
+        } catch (thumbError) {
+          // Thumbnail generation is optional, continue with main image
+          console.warn('Thumbnail generation failed:', thumbError);
+        }
+      }
+
       return {
         url: publicUrl,
+        thumbnail_url: thumbnailUrl,
         path: data.path,
         is_primary: images.length === 0,
         sort_order: images.length
@@ -148,13 +231,25 @@ export default function SmartImageUploader({
 
     setUploading(true);
     try {
-      const uploadPromises = fileArray.map(file => uploadImage(file));
-      const results = await Promise.all(uploadPromises);
-      const successful = results.filter(r => r !== null);
+      // Upload sequentially to ensure first image gets special treatment
+      const successful = [];
+      for (let i = 0; i < fileArray.length; i++) {
+        const isFirstImage = images.length === 0 && i === 0;
+        const result = await uploadImage(fileArray[i], isFirstImage);
+        if (result) {
+          successful.push(result);
+        }
+      }
       
       if (successful.length > 0) {
-        onImagesChange([...images, ...successful]);
-        toast.success(`${successful.length} image(s) uploaded successfully`);
+        const newImages = [...images, ...successful];
+        onImagesChange(newImages);
+        toast.success(`${successful.length} image(s) uploaded successfully${images.length === 0 ? ' - First image auto-cropped to 1:1' : ''}`);
+        
+        // Trigger callback for AI analysis if first image
+        if (images.length === 0 && successful.length > 0 && onFirstImageUpload) {
+          onFirstImageUpload(successful[0]);
+        }
       }
     } finally {
       setUploading(false);
