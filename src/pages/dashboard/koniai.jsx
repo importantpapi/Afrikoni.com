@@ -27,6 +27,7 @@ import { generateProductListing, suggestSuppliers, generateSupplierReply } from 
 import KoniAILogo from '@/components/koni/KoniAILogo';
 import KoniAIBadge from '@/components/koni/KoniAIBadge';
 import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
+import KoniAIHero from '@/components/koni/KoniAIHero';
 
 export default function KoniAIHub() {
   const navigate = useNavigate();
@@ -262,24 +263,21 @@ export default function KoniAIHub() {
   return (
     <div className="min-h-screen bg-afrikoni-offwhite py-6 md:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Header */}
+        {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <KoniAILogo size="large" />
-              <p className="text-afrikoni-deep mt-2 text-lg">
-                The intelligence behind African trade. Ask, connect, and grow faster.
-              </p>
-            </div>
-            <KoniAIBadge />
-          </div>
+          <KoniAIHero />
 
           {!hasApiKey && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+            >
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                 <div>
@@ -289,7 +287,7 @@ export default function KoniAIHub() {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
         </motion.div>
 
