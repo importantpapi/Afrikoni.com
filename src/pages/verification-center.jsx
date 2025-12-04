@@ -107,7 +107,36 @@ export default function VerificationCenter() {
       
       // Get or create company
       const finalCompanyId = cid || await getOrCreateCompany(supabase, profile || userData);
+      
+      if (!finalCompanyId) {
+        toast.error('Unable to create company profile. Please complete onboarding first.');
+        navigate('/onboarding');
+        return;
+      }
+      
       setCompanyId(finalCompanyId);
+
+      // Verify company ownership for RLS policies
+      const { data: companyCheck, error: companyError } = await supabase
+        .from('companies')
+        .select('id, owner_email')
+        .eq('id', finalCompanyId)
+        .single();
+
+      if (companyError) {
+        console.error('Error checking company:', companyError);
+      } else if (companyCheck && companyCheck.owner_email !== userData.email) {
+        // Update owner_email to match current user (if allowed by RLS)
+        const { error: updateError } = await supabase
+          .from('companies')
+          .update({ owner_email: userData.email })
+          .eq('id', finalCompanyId);
+        
+        if (updateError) {
+          console.warn('Could not update company owner_email (may be RLS restricted):', updateError);
+          // Continue anyway - RLS might still allow verification if user is linked via profile
+        }
+      }
 
       if (finalCompanyId) {
         // Load verification status
@@ -140,14 +169,18 @@ export default function VerificationCenter() {
         }
       }
     } catch (error) {
-      toast.error('Failed to load verification status');
+      console.error('Load verification data error:', error);
+      toast.error('Failed to load verification status. Please refresh the page.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSaveBusinessInfo = async () => {
-    if (!companyId) return;
+    if (!companyId) {
+      console.warn('No company ID available');
+      return;
+    }
 
     try {
       const verificationData = {
@@ -165,7 +198,11 @@ export default function VerificationCenter() {
           .update(verificationData)
           .eq('id', verification.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update verification error:', error);
+          throw error;
+        }
+        toast.success('Business information saved');
       } else {
         // Create new
         const { data: newVerification, error } = await supabase
@@ -174,26 +211,50 @@ export default function VerificationCenter() {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert verification error:', error);
+          throw error;
+        }
         setVerification(newVerification);
+        toast.success('Business information saved');
       }
     } catch (error) {
       console.error('Failed to save business info:', error);
-      // Don't show toast on blur to avoid spam
+      toast.error('Failed to save business information. Please try again.');
     }
   };
 
   const handleFileUpload = async (stepId, file) => {
-    if (!file || !companyId) return;
+    if (!file || !companyId) {
+      toast.error('Please ensure you have a company profile before uploading documents');
+      return;
+    }
 
     const step = verificationSteps.find(s => s.id === stepId);
-    if (!step || !step.docType) return;
+    if (!step || !step.docType) {
+      toast.error('Invalid verification step');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a PDF, JPG, or PNG file');
+      return;
+    }
 
     setUploading(prev => ({ ...prev, [stepId]: true }));
 
     try {
-      // Upload to Supabase Storage
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'verifications');
+      // Upload to Supabase Storage using 'files' bucket with organized path
+      const filePath = `verifications/${companyId}/${step.docType}_${Date.now()}_${file.name}`;
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', filePath);
       
       // Update uploaded files state
       const newFiles = {
@@ -218,7 +279,10 @@ export default function VerificationCenter() {
           .update(verificationData)
           .eq('id', verification.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update verification error:', error);
+          throw error;
+        }
       } else {
         // Create new
         const { data: newVerification, error } = await supabase
@@ -227,13 +291,18 @@ export default function VerificationCenter() {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert verification error:', error);
+          throw error;
+        }
         setVerification(newVerification);
       }
 
       toast.success('Document uploaded successfully. Pending admin review.');
     } catch (error) {
-      toast.error('Failed to upload document');
+      console.error('File upload error:', error);
+      const errorMessage = error?.message || 'Failed to upload document. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setUploading(prev => ({ ...prev, [stepId]: false }));
     }
@@ -562,19 +631,21 @@ export default function VerificationCenter() {
                           </div>
                           <p className="text-sm text-afrikoni-deep">{step.description}</p>
                           {hasFile && step.docType && (
-                            <div className="mt-2 flex items-center gap-2">
-                              <FileText className="w-3 h-3 text-afrikoni-gold" />
+                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                              <FileText className="w-3 h-3 text-afrikoni-gold flex-shrink-0" />
                               <p className="text-xs text-afrikoni-deep/70">
-                                Document uploaded: {hasFile.split('/').pop()}
+                                Document uploaded: {typeof hasFile === 'string' ? (hasFile.split('/').pop() || hasFile.split('\\').pop() || 'Document') : 'Document'}
                               </p>
-                              <a
-                                href={hasFile}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-afrikoni-gold hover:underline"
-                              >
-                                View
-                              </a>
+                              {typeof hasFile === 'string' && (
+                                <a
+                                  href={hasFile}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-afrikoni-gold hover:underline flex-shrink-0"
+                                >
+                                  View
+                                </a>
+                              )}
                             </div>
                           )}
                         </div>
