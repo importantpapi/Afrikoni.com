@@ -13,9 +13,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
   FileText, DollarSign, Calendar, MapPin, MessageSquare, 
-  CheckCircle, Clock, Send, User, Package
+  CheckCircle, Clock, Send, User, Package, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { generateSupplierReply } from '@/ai/aiFunctions';
+import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -47,6 +49,7 @@ export default function RFQDetail() {
     payment_terms: '',
     notes: ''
   });
+  const [koniaiLoading, setKoniaiLoading] = useState(false);
 
   useEffect(() => {
     loadRFQData();
@@ -257,6 +260,50 @@ export default function RFQDetail() {
       toast.error('Failed to submit quote');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleKoniaiDraftReply = async () => {
+    if (!rfq || !companyId) {
+      toast.error('RFQ or company information not available');
+      return;
+    }
+
+    setKoniaiLoading(true);
+    try {
+      // Load company data
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', companyId)
+        .single();
+
+      const supplier = companyData || {
+        id: companyId,
+        company_name: 'Your Company',
+        country: '',
+        certifications: [],
+        trust_score: 50
+      };
+
+      const result = await generateSupplierReply(rfq, supplier, {
+        tone: 'Professional'
+      });
+
+      if (result.success && result.data?.message) {
+        setQuoteForm(prev => ({
+          ...prev,
+          notes: result.data.message
+        }));
+        toast.success('✨ KoniAI generated a draft reply! Review and edit before submitting.');
+      } else {
+        toast.error('KoniAI couldn\'t generate a reply. Please try again.');
+      }
+    } catch (error) {
+      console.error('KoniAI draft reply error:', error);
+      toast.error('KoniAI couldn\'t complete this request. Please try again in a moment.');
+    } finally {
+      setKoniaiLoading(false);
     }
   };
 
@@ -715,7 +762,17 @@ export default function RFQDetail() {
                         />
                       </div>
                       <div>
-                        <Label>Additional Notes</Label>
+                        <div className="flex items-center justify-between mb-2">
+                          <Label>Additional Notes</Label>
+                          <KoniAIActionButton
+                            label="KoniAI Draft Reply"
+                            onClick={handleKoniaiDraftReply}
+                            loading={koniaiLoading}
+                            variant="ghost"
+                            size="sm"
+                            icon={Sparkles}
+                          />
+                        </div>
                         <Textarea
                           value={quoteForm.notes}
                           onChange={(e) => setQuoteForm({ ...quoteForm, notes: e.target.value })}

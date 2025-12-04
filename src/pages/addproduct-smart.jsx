@@ -9,7 +9,7 @@
  * - Better UX with validation and error messages
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -19,12 +19,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { 
   Sparkles, Image, DollarSign, Truck, Shield, CheckCircle, 
   ArrowLeft, ArrowRight, Save, Loader2, Lightbulb, FileText
 } from 'lucide-react';
 import SmartImageUploader from '@/components/products/SmartImageUploader';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
+import { generateProductListing } from '@/ai/aiFunctions';
+import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
@@ -50,11 +54,15 @@ export default function AddProductSmart() {
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [draftId, setDraftId] = useState(null);
+  const [koniaiModalOpen, setKoniaiModalOpen] = useState(false);
+  const [koniaiSuggestions, setKoniaiSuggestions] = useState(null);
+  const [koniaiLoading, setKoniaiLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category_id: '',
+    suggested_category: '', // AI-suggested category when not in DB
     images: [],
     price: '',
     moq: '1',
@@ -212,11 +220,77 @@ export default function AddProductSmart() {
     }
   };
 
+  // Auto-detect category when title or description changes (debounced)
+  const autoDetectCategory = useCallback(async (title, description) => {
+    if (!title || title.length < 3) return; // Need at least 3 characters
+    if (formData.category_id) return; // Already has category
+    
+    try {
+      const detected = await AIDescriptionService.detectCategory(title, description);
+      
+      if (detected && detected.category) {
+        // Try to find matching category in database
+        const matchedCategory = categories.find(c => 
+          c.name.toLowerCase() === detected.category.toLowerCase() ||
+          c.name.toLowerCase().includes(detected.category.toLowerCase()) ||
+          detected.category.toLowerCase().includes(c.name.toLowerCase())
+        );
+        
+        if (matchedCategory) {
+          // Auto-select if found in DB
+          setFormData(prev => {
+            if (prev.category_id !== matchedCategory.id) {
+              toast.success(`✨ AI detected category: ${matchedCategory.name}`, { duration: 2000 });
+              return { ...prev, category_id: matchedCategory.id, suggested_category: '' };
+            }
+            return prev;
+          });
+        } else {
+          // Show AI suggestion (works even if no categories in DB)
+          setFormData(prev => {
+            if (prev.suggested_category !== detected.category) {
+              toast.info(`💡 AI suggests category: "${detected.category}"`, {
+                duration: 3000,
+                description: 'This category will be created automatically when you publish'
+              });
+              return { ...prev, suggested_category: detected.category };
+            }
+            return prev;
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Auto category detection error:', error);
+      // Silent fail - don't interrupt user
+    }
+  }, [categories, formData.category_id]);
+
+  // Debounce timer ref for category detection
+  const categoryDetectionTimer = useRef(null);
+
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: null }));
+    }
+    
+    // Auto-detect category when title or description changes (debounced)
+    if ((field === 'title' || field === 'description') && !formData.category_id) {
+      // Clear previous timer
+      if (categoryDetectionTimer.current) {
+        clearTimeout(categoryDetectionTimer.current);
+      }
+      
+      // Set new timer
+      categoryDetectionTimer.current = setTimeout(() => {
+        const title = field === 'title' ? value : formData.title;
+        const description = field === 'description' ? value : formData.description;
+        
+        if (title && title.length >= 3) {
+          autoDetectCategory(title, description);
+        }
+      }, 1500); // Wait 1.5 seconds after user stops typing
     }
   };
 
@@ -226,6 +300,12 @@ export default function AddProductSmart() {
 
     try {
       setIsGenerating(true);
+      
+      // Show prominent AI analysis notification
+      toast.info('🤖 AI is analyzing your image...', {
+        duration: 2000,
+        description: 'This will suggest category, title, and description'
+      });
       
       // Call AI service to analyze image
       // In production, this would use an image recognition API (e.g., OpenAI Vision, Google Vision)
@@ -256,18 +336,20 @@ export default function AddProductSmart() {
             category_id: prev.category_id || selectedCategory.id
           }));
           
-          toast.success('AI analyzed your image and generated suggestions!');
+          toast.success('✨ AI analyzed your image and generated suggestions!', {
+            duration: 4000,
+            description: 'Check Step 1 to see the AI-generated title, category, and description'
+          });
         }
-      }
-      
-      // If no category selected, suggest most popular categories
-      if (!formData.category_id && categories.length > 0) {
-        // Suggest first 3 categories as options
-        toast.info('Upload your first image to get AI-powered category suggestions');
+      } else if (!formData.category_id && categories.length > 0) {
+        // If no category selected, suggest most popular categories
+        toast.info('💡 Upload your first image to get AI-powered category suggestions', {
+          duration: 3000
+        });
       }
     } catch (error) {
       console.error('Image analysis error:', error);
-      // Don't show error - AI analysis is optional
+      toast.error('AI analysis failed. You can continue manually.');
     } finally {
       setIsGenerating(false);
     }
@@ -278,7 +360,57 @@ export default function AddProductSmart() {
     await analyzeFirstImage(imageData);
   }, [categories, company]);
 
-  // AI: Generate title and description
+  // KoniAI: Improve existing product listing
+  const handleKoniAIImprove = async () => {
+    if (!formData.title && !formData.description) {
+      toast.error('Please enter at least a title or description first');
+      return;
+    }
+
+    setKoniaiLoading(true);
+    setKoniaiModalOpen(true);
+    setKoniaiSuggestions(null);
+
+    try {
+      const selectedCategory = categories.find(c => c.id === formData.category_id);
+      const result = await generateProductListing({
+        title: formData.title || '',
+        description: formData.description || '',
+        category: selectedCategory?.name || '',
+        language: 'English',
+        tone: 'Professional'
+      });
+
+      if (result.success && result.data) {
+        setKoniaiSuggestions(result.data);
+      } else {
+        toast.error('KoniAI couldn\'t generate improvements. Please try again.');
+      }
+    } catch (error) {
+      console.error('KoniAI improve error:', error);
+      toast.error('KoniAI couldn\'t complete this request. Please try again in a moment.');
+    } finally {
+      setKoniaiLoading(false);
+    }
+  };
+
+  const applyKoniaiSuggestions = () => {
+    if (!koniaiSuggestions) return;
+
+    setFormData(prev => ({
+      ...prev,
+      title: koniaiSuggestions.title || prev.title,
+      description: koniaiSuggestions.description || prev.description,
+      category_id: prev.category_id || (categories.find(c => 
+        c.name.toLowerCase() === koniaiSuggestions.suggestedCategory?.toLowerCase()
+      )?.id || '')
+    }));
+
+    toast.success('✨ KoniAI suggestions applied!');
+    setKoniaiModalOpen(false);
+  };
+
+  // AI: Generate title, description, and detect category
   const handleAIGenerate = async () => {
     if (formData.images.length === 0 && !formData.title) {
       toast.error('Please upload at least one image or enter a product title first');
@@ -289,13 +421,43 @@ export default function AddProductSmart() {
     try {
       // If we have images but no title, try to detect from image
       if (formData.images.length > 0 && !formData.title) {
-        await detectCategoryFromImage(formData.images[0]?.url || formData.images[0]);
+        await analyzeFirstImage({ url: formData.images[0]?.url || formData.images[0] });
       }
 
-      const selectedCategory = categories.find(c => c.id === formData.category_id);
+      // First, detect category if not set
+      let detectedCategory = null;
+      if (!formData.category_id && formData.title) {
+        toast.info('🤖 AI is detecting category...', { duration: 1500 });
+        const categoryResult = await AIDescriptionService.detectCategory(
+          formData.title, 
+          formData.description
+        );
+        
+        if (categoryResult?.category) {
+          // Try to find in existing categories
+          const matchedCategory = categories.find(c => 
+            c.name.toLowerCase() === categoryResult.category.toLowerCase() ||
+            c.name.toLowerCase().includes(categoryResult.category.toLowerCase())
+          );
+          
+          if (matchedCategory) {
+            detectedCategory = matchedCategory;
+            toast.success(`✨ AI detected category: ${matchedCategory.name}`, { duration: 2000 });
+          } else {
+            // Store suggested category
+            detectedCategory = { name: categoryResult.category, isSuggested: true };
+            toast.info(`💡 AI suggests category: "${categoryResult.category}"`, {
+              duration: 3000,
+              description: 'This will be created automatically when you publish'
+            });
+          }
+        }
+      }
+
+      const selectedCategory = categories.find(c => c.id === formData.category_id) || detectedCategory;
       const result = await AIDescriptionService.generateProductDescription({
         title: formData.title || 'Product',
-        category: selectedCategory?.name,
+        category: selectedCategory?.name || detectedCategory?.name,
         country: formData.country_of_origin || company?.country
       });
 
@@ -304,10 +466,13 @@ export default function AddProductSmart() {
           ...prev,
           title: result.optimized_title || prev.title,
           description: result.full_description || prev.description,
-          // Auto-suggest category if not set
-          category_id: prev.category_id || selectedCategory?.id || ''
+          // Auto-set category if detected
+          category_id: prev.category_id || (detectedCategory && !detectedCategory.isSuggested ? detectedCategory.id : ''),
+          suggested_category: detectedCategory?.isSuggested ? detectedCategory.name : prev.suggested_category
         }));
-        toast.success('AI generated content! Review and adjust as needed.');
+        toast.success('✨ AI generated all content! Review and adjust as needed.', {
+          duration: 3000
+        });
       }
     } catch (error) {
       console.error('AI generation error:', error);
@@ -323,7 +488,10 @@ export default function AddProductSmart() {
 
     if (step === 1) {
       if (!formData.title?.trim()) newErrors.title = 'Product title is required';
-      if (!formData.category_id) newErrors.category_id = 'Category is required';
+      // Category is valid if we have category_id OR suggested_category
+      if (!formData.category_id && !formData.suggested_category) {
+        newErrors.category_id = 'Category is required. Enter a title and AI will suggest one, or select manually.';
+      }
       if (!formData.description?.trim()) newErrors.description = 'Description is required';
     }
 
@@ -403,11 +571,41 @@ export default function AddProductSmart() {
         return;
       }
 
+      // Handle category - create if suggested, or use existing
+      let finalCategoryId = formData.category_id;
+      
+      if (!finalCategoryId && formData.suggested_category) {
+        // Create the suggested category
+        const { data: newCategory, error: catError } = await supabase
+          .from('categories')
+          .insert({
+            name: formData.suggested_category,
+            description: `Category for ${formData.title}`
+          })
+          .select('id')
+          .single();
+        
+        if (!catError && newCategory) {
+          finalCategoryId = newCategory.id;
+          toast.success(`Category "${formData.suggested_category}" created!`);
+        } else {
+          toast.error('Failed to create category. Please select an existing category.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (!finalCategoryId) {
+        toast.error('Category is required');
+        setIsLoading(false);
+        return;
+      }
+
       // Create product
       const { data: newProduct, error } = await supabase.from('products').insert({
         title: sanitizeString(formData.title),
         description: sanitizeString(formData.description),
-        category_id: formData.category_id,
+        category_id: finalCategoryId,
         images: formData.images.map(img => img.url || img),
         price: price,
         price_min: price,
@@ -552,21 +750,35 @@ export default function AddProductSmart() {
                           Tell us about your product
                         </p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAIGenerate}
-                        disabled={isGenerating}
-                        className="flex items-center gap-2"
-                      >
-                        {isGenerating ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="w-4 h-4" />
-                        )}
-                        {isGenerating ? 'Generating...' : 'AI Assist'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAIGenerate}
+                          disabled={isGenerating}
+                          className="flex items-center gap-2 border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold hover:text-white"
+                        >
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4" />
+                              ✨ AI Generate All
+                            </>
+                          )}
+                        </Button>
+                        <KoniAIActionButton
+                          label="Improve with KoniAI"
+                          onClick={handleKoniAIImprove}
+                          loading={koniaiLoading}
+                          variant="ghost"
+                          size="sm"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -586,38 +798,161 @@ export default function AddProductSmart() {
                     </div>
 
                     <div>
-                      <Label htmlFor="category">
-                        Category <span className="text-red-500">*</span>
-                      </Label>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label htmlFor="category">
+                          Category <span className="text-red-500">*</span>
+                        </Label>
+                        {!formData.category_id && formData.title && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!formData.title) {
+                                toast.error('Please enter a product title first');
+                                return;
+                              }
+                              setIsGenerating(true);
+                              try {
+                                const detected = await AIDescriptionService.detectCategory(
+                                  formData.title,
+                                  formData.description
+                                );
+                                if (detected?.category) {
+                                  const matched = categories.find(c => 
+                                    c.name.toLowerCase() === detected.category.toLowerCase()
+                                  );
+                                  if (matched) {
+                                    handleChange('category_id', matched.id);
+                                    toast.success(`✨ Category set: ${matched.name}`);
+                                  } else {
+                                    toast.info(`💡 AI suggests: "${detected.category}"`, {
+                                      description: 'This category will be created when you publish'
+                                    });
+                                    setFormData(prev => ({ 
+                                      ...prev, 
+                                      suggested_category: detected.category 
+                                    }));
+                                  }
+                                }
+                              } catch (error) {
+                                toast.error('Category detection failed');
+                              } finally {
+                                setIsGenerating(false);
+                              }
+                            }}
+                            disabled={isGenerating}
+                            className="text-xs text-afrikoni-gold hover:underline flex items-center gap-1"
+                          >
+                            {isGenerating ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Detecting...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-3 h-3" />
+                                AI Detect Category
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
                       <Select 
-                        value={formData.category_id} 
+                        value={formData.category_id || ''} 
                         onValueChange={(v) => handleChange('category_id', v)}
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category or let AI detect it"} />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map(cat => (
-                            <SelectItem key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
+                          {categories.length > 0 ? (
+                            categories.map(cat => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="p-2 text-sm text-afrikoni-deep/70">
+                              {formData.suggested_category ? (
+                                <div>
+                                  <p className="font-medium text-afrikoni-gold mb-1">AI Suggested:</p>
+                                  <p>{formData.suggested_category}</p>
+                                  <p className="text-xs mt-1">This will be created automatically when you publish</p>
+                                </div>
+                              ) : (
+                                <p>No categories available. Enter a product title and AI will suggest a category.</p>
+                              )}
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
+                      {formData.suggested_category && !formData.category_id && (
+                        <div className="mt-2 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+                            <div>
+                              <p className="font-medium text-afrikoni-chestnut">AI Suggested Category:</p>
+                              <p className="text-afrikoni-deep">{formData.suggested_category}</p>
+                              <p className="text-xs text-afrikoni-deep/70 mt-1">This category will be created automatically when you publish your product.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {errors.category_id && (
                         <p className="text-red-500 text-sm mt-1">{errors.category_id}</p>
                       )}
                     </div>
 
                     <div>
-                      <Label htmlFor="description">
-                        Description <span className="text-red-500">*</span>
-                      </Label>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label htmlFor="description">
+                          Description <span className="text-red-500">*</span>
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!formData.title && !formData.category_id) {
+                              toast.error('Please enter a title or select a category first');
+                              return;
+                            }
+                            setIsGenerating(true);
+                            try {
+                              const selectedCategory = categories.find(c => c.id === formData.category_id);
+                              const result = await AIDescriptionService.generateProductDescription({
+                                title: formData.title || 'Product',
+                                category: selectedCategory?.name,
+                                country: formData.country_of_origin || company?.country
+                              });
+                              if (result?.full_description) {
+                                handleChange('description', result.full_description);
+                                toast.success('AI generated description! Review and adjust as needed.');
+                              }
+                            } catch (error) {
+                              toast.error('AI generation failed. Please try again.');
+                            } finally {
+                              setIsGenerating(false);
+                            }
+                          }}
+                          disabled={isGenerating}
+                          className="text-xs text-afrikoni-gold hover:underline flex items-center gap-1"
+                        >
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3 h-3" />
+                              Afrikoni AI help
+                            </>
+                          )}
+                        </button>
+                      </div>
                       <Textarea
                         id="description"
                         value={formData.description}
                         onChange={(e) => handleChange('description', e.target.value)}
-                        placeholder="Describe your product in detail..."
+                        placeholder="Write a few lines or let Afrikoni AI generate a clear description for buyers."
                         rows={6}
                         className="mt-1"
                       />
@@ -634,13 +969,25 @@ export default function AddProductSmart() {
                 {/* Step 2: Images */}
                 {currentStep === 2 && (
                   <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-1">
-                        Product Images
-                      </h2>
-                      <p className="text-sm text-afrikoni-deep/70">
-                        Upload high-quality photos (first image will be the main photo)
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-1">
+                          Product Images
+                        </h2>
+                        <p className="text-sm text-afrikoni-deep/70">
+                          Upload high-quality photos (first image will be the main photo)
+                        </p>
+                      </div>
+                      {formData.images.length === 0 && (
+                        <div className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+                            <span className="text-afrikoni-chestnut font-medium">
+                              AI will analyze your first image and suggest category, title & description
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <SmartImageUploader
@@ -656,14 +1003,38 @@ export default function AddProductSmart() {
                     )}
 
                     {formData.images.length > 0 && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div className="flex gap-2">
-                          <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm text-blue-800">
-                            <p className="font-semibold mb-1">Tip:</p>
-                            <p>Drag images to reorder. The first image will be your main product photo shown in search results.</p>
+                      <div className="space-y-3">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="flex gap-2">
+                            <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div className="text-sm text-blue-800">
+                              <p className="font-semibold mb-1">Tip:</p>
+                              <p>Drag images to reorder. The first image will be your main product photo shown in search results.</p>
+                            </div>
                           </div>
                         </div>
+                        {!formData.title && (
+                          <div className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="w-5 h-5 text-afrikoni-gold" />
+                                <div>
+                                  <p className="font-semibold text-afrikoni-chestnut text-sm">AI Image Analysis Complete!</p>
+                                  <p className="text-xs text-afrikoni-deep/70">Go back to Step 1 to see AI-generated suggestions</p>
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentStep(1)}
+                                className="text-xs h-8"
+                              >
+                                View Suggestions
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -672,13 +1043,21 @@ export default function AddProductSmart() {
                 {/* Step 3: Pricing & MOQ */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-1">
-                        Pricing & Minimum Order
-                      </h2>
-                      <p className="text-sm text-afrikoni-deep/70">
-                        Set your pricing and minimum order quantity
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-1">
+                          Pricing & Minimum Order
+                        </h2>
+                        <p className="text-sm text-afrikoni-deep/70">
+                          Set your pricing and minimum order quantity
+                        </p>
+                      </div>
+                      <div className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+                          <span className="text-afrikoni-chestnut font-medium">AI Pricing Helper Available</span>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
@@ -811,13 +1190,65 @@ export default function AddProductSmart() {
                 {/* Step 4: Supply & Logistics */}
                 {currentStep === 4 && (
                   <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-1">
-                        Supply & Logistics
-                      </h2>
-                      <p className="text-sm text-afrikoni-deep/70">
-                        Shipping and delivery information
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-1">
+                          Supply & Logistics
+                        </h2>
+                        <p className="text-sm text-afrikoni-deep/70">
+                          Shipping and delivery information
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          setIsGenerating(true);
+                          try {
+                            // AI suggestions for logistics based on country and product type
+                            const selectedCategory = categories.find(c => c.id === formData.category_id);
+                            const country = formData.country_of_origin || company?.country || 'Africa';
+                            
+                            // Generate smart suggestions
+                            const suggestions = {
+                              delivery_time: selectedCategory?.name?.toLowerCase().includes('food') 
+                                ? '7-14 business days (refrigerated shipping available)'
+                                : selectedCategory?.name?.toLowerCase().includes('textile')
+                                ? '14-21 business days'
+                                : '10-18 business days',
+                              packaging: `Standard export packaging suitable for ${selectedCategory?.name || 'product'} shipping to international markets. Includes protective materials and proper labeling.`
+                            };
+                            
+                            if (!formData.delivery_time) {
+                              handleChange('delivery_time', suggestions.delivery_time);
+                            }
+                            if (!formData.packaging) {
+                              handleChange('packaging', suggestions.packaging);
+                            }
+                            
+                            toast.success('AI generated logistics suggestions! Review and adjust as needed.');
+                          } catch (error) {
+                            toast.error('AI suggestions failed. Please try again.');
+                          } finally {
+                            setIsGenerating(false);
+                          }
+                        }}
+                        disabled={isGenerating}
+                        className="flex items-center gap-2"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" />
+                            AI Suggest Logistics
+                          </>
+                        )}
+                      </Button>
                     </div>
 
                     <div>
@@ -943,6 +1374,86 @@ export default function AddProductSmart() {
             </div>
           </CardContent>
         </Card>
+
+        {/* KoniAI Improvement Modal */}
+        <Dialog open={koniaiModalOpen} onOpenChange={setKoniaiModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-afrikoni-gold" />
+                KoniAI Suggestions
+              </DialogTitle>
+              <DialogDescription>
+                Here are improved suggestions from KoniAI for your product listing
+              </DialogDescription>
+            </DialogHeader>
+
+            {koniaiLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold" />
+                <span className="ml-3 text-afrikoni-deep">KoniAI is thinking...</span>
+              </div>
+            ) : koniaiSuggestions ? (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-semibold text-afrikoni-chestnut">Improved Title</Label>
+                  <p className="mt-1 p-3 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg text-sm">
+                    {koniaiSuggestions.title}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-semibold text-afrikoni-chestnut">Improved Description</Label>
+                  <p className="mt-1 p-3 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg text-sm whitespace-pre-wrap">
+                    {koniaiSuggestions.description}
+                  </p>
+                </div>
+
+                {koniaiSuggestions.tags && koniaiSuggestions.tags.length > 0 && (
+                  <div>
+                    <Label className="text-sm font-semibold text-afrikoni-chestnut">Suggested Tags</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {koniaiSuggestions.tags.map((tag, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {koniaiSuggestions.suggestedCategory && (
+                  <div>
+                    <Label className="text-sm font-semibold text-afrikoni-chestnut">Suggested Category</Label>
+                    <Badge className="mt-2 bg-afrikoni-gold text-afrikoni-chestnut">
+                      {koniaiSuggestions.suggestedCategory}
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4 border-t border-afrikoni-gold/20">
+                  <Button
+                    onClick={applyKoniaiSuggestions}
+                    className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                  >
+                    Use Suggestions
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setKoniaiModalOpen(false)}
+                    className="flex-1"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-afrikoni-deep/70 text-center py-8">
+                No suggestions available. Please try again.
+              </p>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

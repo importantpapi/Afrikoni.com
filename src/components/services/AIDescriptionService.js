@@ -2,6 +2,76 @@
 // Replace with your preferred LLM service (OpenAI, Anthropic, etc.)
 
 export const AIDescriptionService = {
+  // Detect category from product title and description
+  detectCategory: async (title, description = '') => {
+    try {
+      // Use AI to detect category from product information
+      const { callChatAsJson } = await import('@/ai/aiClient');
+      
+      const system = `You are a category detection assistant for Afrikoni B2B marketplace.
+Given a product title and description, determine the most appropriate B2B product category.
+Respond with a JSON object containing:
+{
+  "category": "string - the category name (e.g., 'Agricultural Products', 'Textiles', 'Food & Beverages', 'Raw Materials', 'Handicrafts', 'Electronics', 'Machinery', 'Chemicals', 'Metals & Minerals', 'Packaging', 'Beauty & Personal Care', 'Home & Garden', 'Sports & Recreation', 'Automotive', 'Construction Materials')",
+  "confidence": "number between 0 and 1",
+  "alternative_categories": ["string array of alternative category names"]
+}`;
+
+      const user = `Product Title: ${title}
+Description: ${description || 'No description provided'}
+
+Determine the best B2B category for this product.`;
+
+      const { success, data } = await callChatAsJson(
+        { system, user },
+        { 
+          fallback: { 
+            category: 'General Products', 
+            confidence: 0.5, 
+            alternative_categories: [] 
+          }
+        }
+      );
+
+      if (success && data) {
+        return {
+          category: data.category || 'General Products',
+          confidence: data.confidence || 0.5,
+          alternatives: data.alternative_categories || []
+        };
+      }
+
+      // Fallback: Simple keyword matching
+      const titleLower = (title || '').toLowerCase();
+      const descLower = (description || '').toLowerCase();
+      const combined = `${titleLower} ${descLower}`;
+
+      if (combined.match(/\b(cocoa|cacao|coffee|tea|spices|herbs|grains|rice|wheat|maize|corn|beans|nuts|seeds|fruits|vegetables|agricultural|farming|crop)\b/)) {
+        return { category: 'Agricultural Products', confidence: 0.8, alternatives: ['Food & Beverages'] };
+      }
+      if (combined.match(/\b(textile|fabric|cloth|garment|apparel|clothing|woven|yarn|cotton|silk|leather)\b/)) {
+        return { category: 'Textiles', confidence: 0.8, alternatives: ['Fashion & Apparel'] };
+      }
+      if (combined.match(/\b(food|beverage|drink|snack|ingredient|organic|processed)\b/)) {
+        return { category: 'Food & Beverages', confidence: 0.8, alternatives: ['Agricultural Products'] };
+      }
+      if (combined.match(/\b(handicraft|artisan|handmade|traditional|art|sculpture|pottery|basket|woodwork)\b/)) {
+        return { category: 'Handicrafts', confidence: 0.8, alternatives: ['Home & Garden'] };
+      }
+      if (combined.match(/\b(mineral|metal|ore|gold|diamond|copper|iron|steel|aluminum|mining)\b/)) {
+        return { category: 'Metals & Minerals', confidence: 0.8, alternatives: ['Raw Materials'] };
+      }
+      if (combined.match(/\b(machine|equipment|tool|industrial|manufacturing|automation)\b/)) {
+        return { category: 'Machinery', confidence: 0.8, alternatives: ['Industrial Equipment'] };
+      }
+
+      return { category: 'General Products', confidence: 0.5, alternatives: [] };
+    } catch (error) {
+      console.error('Category detection error:', error);
+      return { category: 'General Products', confidence: 0.3, alternatives: [] };
+    }
+  },
+
   generateProductDescription: async (productInfo) => {
     try {
       // TODO: Replace with your LLM API call

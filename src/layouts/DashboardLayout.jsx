@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Truck, FileText, MessageSquare,
   BarChart3, Wallet, Shield, Settings, HelpCircle, Bell, Search, ChevronDown,
   User, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
-  AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp
+  AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,6 +71,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const sidebarItems = {
     buyer: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/buyer' },
+      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
       { icon: ShoppingCart, label: t('dashboard.orders'), path: '/dashboard/orders' },
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
       { icon: Package, label: t('dashboard.saved') || 'Saved Products', path: '/dashboard/saved' },
@@ -83,6 +84,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     ],
     seller: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/seller' },
+      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
       { icon: ShoppingCart, label: t('dashboard.sales') || 'Sales', path: '/dashboard/sales' },
       { icon: Package, label: t('dashboard.products'), path: '/dashboard/products' },
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
@@ -96,6 +98,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     ],
     hybrid: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/hybrid' },
+      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
       { icon: ShoppingCart, label: t('dashboard.orders') + ' & Sales', path: '/dashboard/orders' },
       { icon: Package, label: t('dashboard.products'), path: '/dashboard/products' },
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
@@ -109,6 +112,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     ],
     logistics: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard' },
+      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
       { icon: Truck, label: t('dashboard.shipments') || 'Shipments', path: '/dashboard/shipments' },
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },

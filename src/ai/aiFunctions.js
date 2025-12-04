@@ -423,5 +423,216 @@ ${JSON.stringify(
   return { success, data: result };
 }
 
+/**
+ * Generate optimized product listing from draft/product info
+ * Used by KoniAI Product Assistant
+ */
+export async function generateProductListing(productDraft) {
+  if (!productDraft || (!productDraft.title && !productDraft.description)) {
+    return { 
+      success: false, 
+      data: { 
+        title: '', 
+        description: '', 
+        tags: [], 
+        suggestedCategory: '' 
+      } 
+    };
+  }
+
+  const system = `
+You are KoniAI, the intelligence behind African trade on Afrikoni B2B marketplace.
+Generate an optimized product listing that will help sellers attract serious B2B buyers.
+
+Given product information, return a JSON object:
+{
+  "title": string - optimized, SEO-friendly product title (max 80 chars),
+  "description": string - professional B2B product description (2-4 paragraphs),
+  "tags": string[] - array of 5-8 relevant keywords/tags for search,
+  "suggestedCategory": string - best matching B2B category name
+}
+
+Guidelines:
+- Title should be clear, professional, include key attributes (quality, origin, quantity)
+- Description should highlight: quality, specifications, use cases, certifications, MOQ, pricing flexibility
+- Tags should include product type, materials, applications, certifications
+- Category should match common B2B categories (Agricultural Products, Textiles, Food & Beverages, Raw Materials, Handicrafts, etc.)
+- Language: ${productDraft.language || 'English'}
+- Tone: ${productDraft.tone || 'Professional'}
+`.trim();
+
+  const user = `
+Product Information:
+${JSON.stringify(
+    {
+      title: productDraft.title || '',
+      description: productDraft.description || '',
+      category: productDraft.category || '',
+      country: productDraft.country || '',
+      existingTags: productDraft.tags || []
+    },
+    null,
+    2
+  )}
+`.trim();
+
+  const fallback = {
+    title: productDraft.title || 'Product',
+    description: productDraft.description || 'High-quality product from Africa.',
+    tags: [],
+    suggestedCategory: productDraft.category || 'General Products'
+  };
+
+  const { success, data } = await callChatAsJson(
+    { system, user, maxTokens: 800 },
+    {
+      fallback,
+      schemaDescription: 'Ensure title is under 80 characters, description is 2-4 paragraphs, tags array has 5-8 items.'
+    }
+  );
+
+  const result = { ...fallback, ...(data || {}) };
+  
+  // Ensure tags is an array
+  if (!Array.isArray(result.tags)) {
+    result.tags = [];
+  }
+  
+  // Ensure title and description are strings
+  result.title = String(result.title || fallback.title).trim();
+  result.description = String(result.description || fallback.description).trim();
+  result.suggestedCategory = String(result.suggestedCategory || fallback.suggestedCategory).trim();
+
+  return { success, data: result };
+}
+
+/**
+ * Suggest suppliers based on query and filters
+ * Used by KoniAI Supplier Finder
+ */
+export async function suggestSuppliers(query, filters = {}) {
+  if (!query || typeof query !== 'string' || query.trim().length < 3) {
+    return { success: false, suggestions: [] };
+  }
+
+  // First, query Supabase for relevant products/suppliers
+  // This is a simplified version - in production, you'd want more sophisticated matching
+  try {
+    const { supabase } = await import('@/api/supabaseClient');
+    
+    let productsQuery = supabase
+      .from('products')
+      .select(`
+        id,
+        title,
+        description,
+        company_id,
+        category_id,
+        country_of_origin,
+        companies:company_id (
+          id,
+          company_name,
+          country,
+          verified,
+          trust_score,
+          certifications
+        )
+      `)
+      .eq('status', 'active')
+      .limit(20);
+
+    // Apply filters
+    if (filters.category) {
+      productsQuery = productsQuery.eq('category_id', filters.category);
+    }
+    if (filters.country) {
+      productsQuery = productsQuery.eq('country_of_origin', filters.country);
+    }
+    if (filters.minQty) {
+      productsQuery = productsQuery.gte('min_order_quantity', filters.minQty);
+    }
+
+    const { data: products, error } = await productsQuery;
+
+    if (error) {
+      console.error('Error fetching products:', error);
+    }
+
+    const candidates = (products || []).map(p => ({
+      productId: p.id,
+      productTitle: p.title,
+      supplierId: p.companies?.id,
+      supplierName: p.companies?.company_name,
+      country: p.companies?.country || p.country_of_origin,
+      verified: p.companies?.verified,
+      trustScore: p.companies?.trust_score || 50,
+      certifications: p.companies?.certifications || []
+    }));
+
+    // If we have candidates, use AI to rank and explain
+    if (candidates.length > 0) {
+      const system = `
+You are KoniAI, helping buyers find the best suppliers on Afrikoni B2B marketplace.
+Given a buyer's query and a list of candidate suppliers, rank them and explain why each is a good match.
+
+Return a JSON array of supplier suggestions:
+[
+  {
+    "supplierId": string,
+    "supplierName": string,
+    "companyName": string,
+    "confidence": "High" | "Medium" | "Low",
+    "reason": string - brief explanation (1-2 sentences),
+    "productExample": string - example product title from this supplier
+  }
+]
+
+Rank by: relevance to query, trust score, verification status, certifications.
+`.trim();
+
+      const user = `
+Buyer Query: "${query}"
+
+Filters:
+${JSON.stringify(filters || {}, null, 2)}
+
+Candidate Suppliers:
+${JSON.stringify(candidates, null, 2)}
+`.trim();
+
+      const { success, data } = await callChatAsJson(
+        { system, user, maxTokens: 1000 },
+        {
+          fallback: { suggestions: [] },
+          schemaDescription: 'Return an array of supplier objects, sorted by relevance.'
+        }
+      );
+
+      if (success && Array.isArray(data?.suggestions)) {
+        return { success: true, suggestions: data.suggestions };
+      }
+
+      // Fallback: return candidates with basic ranking
+      return {
+        success: true,
+        suggestions: candidates.slice(0, 10).map((c, idx) => ({
+          supplierId: c.supplierId,
+          supplierName: c.supplierName,
+          companyName: c.supplierName,
+          confidence: idx < 3 ? 'High' : idx < 6 ? 'Medium' : 'Low',
+          reason: `Matches your search for "${query}"`,
+          productExample: c.productTitle
+        }))
+      };
+    }
+
+    // No candidates found - return empty
+    return { success: true, suggestions: [] };
+  } catch (error) {
+    console.error('Error in suggestSuppliers:', error);
+    return { success: false, suggestions: [], error: error.message };
+  }
+}
+
 
 
