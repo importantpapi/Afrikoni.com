@@ -469,7 +469,7 @@ export default function Pricing() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-afrikoni-deep/80">
-                    Yes! High-volume sellers get custom rates. Contact us at <a href="mailto:sales@afrikoni.com" className="text-afrikoni-gold hover:underline">sales@afrikoni.com</a> to discuss enterprise pricing.
+                    Yes! High-volume sellers get custom rates. Contact us at <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">hello@afrikoni.com</a> to discuss enterprise pricing.
                   </p>
                 </CardContent>
               </Card>

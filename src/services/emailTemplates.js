@@ -49,10 +49,11 @@ const baseTemplate = (content, buttonText = null, buttonLink = null) => `
       <p style="margin: 0 0 10px 0;">
         <a href="https://afrikoni.com" style="color: #D4A574; text-decoration: none;">Visit Website</a> | 
         <a href="https://afrikoni.com/help" style="color: #D4A574; text-decoration: none;">Help Center</a> | 
-        <a href="https://afrikoni.com/contact" style="color: #D4A574; text-decoration: none;">Contact Us</a>
+        <a href="mailto:hello@afrikoni.com" style="color: #D4A574; text-decoration: none;">Contact Us</a>
       </p>
       <p style="margin: 0; font-size: 11px; color: #999;">
         You're receiving this email because you have an account with Afrikoni.<br>
+        Questions? Reply to this email or contact us at <a href="mailto:hello@afrikoni.com" style="color: #D4A574;">hello@afrikoni.com</a><br>
         © ${new Date().getFullYear()} Afrikoni. All rights reserved.
       </p>
     </div>

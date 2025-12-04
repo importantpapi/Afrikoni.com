@@ -259,8 +259,8 @@ export default function Help() {
                 <Mail className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <h3 className="font-bold text-afrikoni-chestnut mb-2">Email Support</h3>
                 <p className="text-sm text-afrikoni-deep mb-2">
-                  <a href="mailto:support@afrikoni.com" className="text-afrikoni-gold hover:underline">
-                    support@afrikoni.com
+                  <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">
+                    hello@afrikoni.com
                   </a>
                 </p>
                 <p className="text-xs text-afrikoni-deep/70">Response within 24 hours</p>
@@ -389,7 +389,7 @@ export default function Help() {
                   <Link to="/contact">Contact Support</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <a href="mailto:support@afrikoni.com">Email Us</a>
+                  <a href="mailto:hello@afrikoni.com">Email Us</a>
                 </Button>
               </div>
             </CardContent>

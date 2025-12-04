@@ -26,7 +26,7 @@ export async function sendEmail({
   subject,
   template,
   data = {},
-  from = 'Afrikoni <noreply@afrikoni.com>'
+  from = 'Afrikoni <hello@afrikoni.com>'
 }) {
   if (!EMAIL_API_KEY || EMAIL_PROVIDER === 'none') {
     if (import.meta.env.DEV) {
