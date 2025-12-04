@@ -14,6 +14,7 @@ import Signup from './pages/signup';
 import Onboarding from './pages/onboarding';
 import AuthCallback from './pages/auth-callback';
 import NotFound from './pages/NotFound';
+import SitemapXML from './pages/sitemap.xml';
 
 // Lazy-loaded heavy routes - Dashboard
 const Dashboard = lazy(() => import('./pages/dashboard'));
@@ -136,6 +137,7 @@ function App() {
             <Route path="/become-supplier" element={<BecomeSupplier />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/countries" element={<Countries />} />
+            <Route path="/sitemap.xml" element={<SitemapXML />} />
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
             <Route path="/order" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><MessagesPremium /></ProtectedRoute>} />

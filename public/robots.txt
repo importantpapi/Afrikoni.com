@@ -1,0 +1,21 @@
+# robots.txt for Afrikoni Marketplace
+# https://afrikoni.com/robots.txt
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /dashboard/
+Disallow: /onboarding
+Disallow: /auth/callback
+
+# Allow important pages
+Allow: /marketplace
+Allow: /products
+Allow: /rfq
+Allow: /suppliers
+Allow: /categories
+
+# Sitemap location
+Sitemap: https://afrikoni.com/sitemap.xml
+
