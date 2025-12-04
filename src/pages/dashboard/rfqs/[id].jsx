@@ -152,6 +152,74 @@ export default function RFQDetail() {
 
       if (quoteError) throw quoteError;
 
+      // Auto-create conversation between buyer and seller when quote is submitted
+      if (rfq.buyer_company_id && companyId) {
+        try {
+          // Check if conversation already exists
+          const { data: existingConv } = await supabase
+            .from('conversations')
+            .select('id')
+            .or(`and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${companyId}),and(buyer_company_id.eq.${companyId},seller_company_id.eq.${rfq.buyer_company_id})`)
+            .maybeSingle();
+
+          if (!existingConv) {
+            // Get user IDs for buyer and seller
+            const [buyerProfile, sellerProfile] = await Promise.all([
+              supabase.from('profiles').select('id').eq('company_id', rfq.buyer_company_id).limit(1).maybeSingle(),
+              supabase.from('profiles').select('id').eq('company_id', companyId).limit(1).maybeSingle()
+            ]);
+
+            // Create conversation
+            const { error: convError } = await supabase.from('conversations').insert({
+              buyer_id: buyerProfile.data?.id || null,
+              seller_id: sellerProfile.data?.id || null,
+              buyer_company_id: rfq.buyer_company_id,
+              seller_company_id: companyId,
+              subject: `RFQ: ${rfq.title}`,
+              last_message: `Quote submitted for RFQ: ${rfq.title}`,
+              last_message_at: new Date().toISOString()
+            });
+
+            if (convError && convError.code !== '23505') {
+              // Ignore duplicate key errors
+              console.warn('Conversation creation failed:', convError);
+            }
+          }
+
+          // Create initial message in the conversation
+          let finalConversationId = existingConv?.id;
+          if (!finalConversationId) {
+            // Get the newly created conversation
+            const { data: newConv } = await supabase
+              .from('conversations')
+              .select('id')
+              .or(`and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${companyId}),and(buyer_company_id.eq.${companyId},seller_company_id.eq.${rfq.buyer_company_id})`)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            finalConversationId = newConv?.id;
+          }
+          
+          if (finalConversationId) {
+            const { data: currentUser } = await supabase.auth.getUser();
+            await supabase.from('messages').insert({
+              conversation_id: finalConversationId,
+              sender_company_id: companyId,
+              receiver_company_id: rfq.buyer_company_id,
+              sender_user_email: currentUser.data?.user?.email || '',
+              content: `I've submitted a quote for your RFQ: "${rfq.title}". Please review and let me know if you have any questions.`,
+              read: false,
+              related_to: id,
+              related_type: 'rfq',
+              subject: `Quote for RFQ: ${rfq.title}`
+            });
+          }
+        } catch (convError) {
+          // Conversation creation is optional, continue
+          console.warn('Auto-conversation creation failed:', convError);
+        }
+      }
+
       // Create notification for buyer using notification service
       if (rfq.buyer_company_id) {
         try {

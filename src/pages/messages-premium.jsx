@@ -102,7 +102,8 @@ export default function MessagesPremium() {
 
   useEffect(() => {
     if (selectedConversation) {
-      loadMessages(selectedConversation);
+      loadMessages(selectedConversation, 0, false);
+      setHasMoreMessages(false); // Reset pagination state
     }
   }, [selectedConversation]);
 
@@ -110,7 +111,7 @@ export default function MessagesPremium() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Real-time subscription for new messages - creates notifications automatically
+  // Real-time subscription for new messages - creates notifications and shows toast
   useEffect(() => {
     if (!companyId) return;
 
@@ -127,6 +128,21 @@ export default function MessagesPremium() {
         async (payload) => {
           const newMessage = payload.new;
           
+          // Get sender company info for toast
+          let senderCompanyName = 'Someone';
+          try {
+            const { data: senderCompany } = await supabase
+              .from('companies')
+              .select('company_name')
+              .eq('id', newMessage.sender_company_id)
+              .maybeSingle();
+            if (senderCompany) {
+              senderCompanyName = senderCompany.company_name;
+            }
+          } catch (err) {
+            // Ignore error
+          }
+          
           // If this message is for the currently selected conversation, add it to the UI
           if (newMessage.conversation_id === selectedConversation) {
             setMessages(prev => [...prev, newMessage]);
@@ -138,10 +154,34 @@ export default function MessagesPremium() {
                 .update({ read: true })
                 .eq('id', newMessage.id);
             }
+            
+            // Show toast notification (even if viewing conversation)
+            toast.info(`New message from ${senderCompanyName}`, {
+              description: newMessage.content?.substring(0, 50) + (newMessage.content?.length > 50 ? '...' : ''),
+              action: {
+                label: 'View',
+                onClick: () => {
+                  // Already viewing, just scroll to bottom
+                  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }
+            });
+          } else {
+            // Message is for a different conversation - show prominent toast
+            toast.success(`New message from ${senderCompanyName}`, {
+              description: newMessage.content?.substring(0, 50) + (newMessage.content?.length > 50 ? '...' : ''),
+              duration: 5000,
+              action: {
+                label: 'Open',
+                onClick: () => {
+                  setSelectedConversation(newMessage.conversation_id);
+                  navigate(`/messages?conversation=${newMessage.conversation_id}`);
+                }
+              }
+            });
           }
 
-          // Always create notification for new messages (even if user is viewing the conversation)
-          // This ensures notifications are created even if the message was sent while user was offline
+          // Always create notification for new messages
           try {
             await notifyNewMessage(
               newMessage.id,
@@ -162,7 +202,7 @@ export default function MessagesPremium() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId, selectedConversation]);
+  }, [companyId, selectedConversation, navigate]);
 
   const loadUserAndConversations = async () => {
     try {
@@ -219,36 +259,65 @@ export default function MessagesPremium() {
     }
   };
 
-  const loadMessages = async (conversationId) => {
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const messagesPageSize = 50;
+
+  const loadMessages = async (conversationId, page = 0, append = false) => {
     try {
       const { data: messagesData, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .range(page * messagesPageSize, (page + 1) * messagesPageSize - 1);
 
       if (error) throw error;
 
-      setMessages(messagesData || []);
+      const messages = messagesData || [];
+      
+      // Check if there are more messages
+      setHasMoreMessages(messages.length === messagesPageSize);
+
+      // Reverse to show oldest first (ascending order)
+      const sortedMessages = [...messages].reverse();
+
+      if (append) {
+        setMessages(prev => [...sortedMessages, ...prev]);
+      } else {
+        setMessages(sortedMessages);
+      }
 
       // Mark messages as read
       if (companyId) {
-        const unreadMessages = messagesData?.filter(
+        const unreadMessages = messages.filter(
           m => !m.read && m.receiver_company_id === companyId
         ) || [];
 
-        for (const msg of unreadMessages) {
+        if (unreadMessages.length > 0) {
           await supabase
             .from('messages')
             .update({ read: true })
-            .eq('id', msg.id);
+            .in('id', unreadMessages.map(m => m.id));
         }
 
         // Refresh conversations to update unread counts
         loadUserAndConversations();
       }
     } catch (error) {
-      toast.error(t('messages.loading'));
+      toast.error(t('messages.loading') || 'Failed to load messages');
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (loadingMore || !hasMoreMessages || !selectedConversation) return;
+    
+    setLoadingMore(true);
+    try {
+      const currentPage = Math.floor(messages.length / messagesPageSize);
+      await loadMessages(selectedConversation, currentPage, true);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -742,6 +811,28 @@ export default function MessagesPremium() {
 
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-afrikoni-offwhite">
+                    {/* Load More Button - Show at top */}
+                    {hasMoreMessages && (
+                      <div className="flex justify-center py-2 sticky top-0 bg-afrikoni-offwhite z-10 -mb-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={loadMoreMessages}
+                          disabled={loadingMore}
+                          className="text-afrikoni-gold border-afrikoni-gold/30 hover:bg-afrikoni-gold/10"
+                        >
+                          {loadingMore ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            'Load Older Messages'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    
                     <AnimatePresence>
                       {Array.isArray(filteredMessages) && filteredMessages.map((msg, idx) => {
                         const isMine = msg.sender_company_id === companyId;
@@ -850,18 +941,34 @@ export default function MessagesPremium() {
                                 
                                 <div className={`flex items-center gap-1 mt-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
                                   <span className={`text-xs ${isMine ? 'text-afrikoni-cream/80' : 'text-afrikoni-deep/70'}`}>
-                                    {format(new Date(msg.created_at), 'h:mm a')}
+                                    {(() => {
+                                      const msgDate = new Date(msg.created_at);
+                                      const today = new Date();
+                                      const isToday = msgDate.toDateString() === today.toDateString();
+                                      
+                                      if (isToday) {
+                                        return format(msgDate, 'h:mm a');
+                                      } else {
+                                        const isThisYear = msgDate.getFullYear() === today.getFullYear();
+                                        return isThisYear 
+                                          ? format(msgDate, 'MMM d, h:mm a')
+                                          : format(msgDate, 'MMM d, yyyy h:mm a');
+                                      }
+                                    })()}
                                   </span>
                                   {isMine && (
                                     <Tooltip content={msg.read ? 'Read' : 'Sent'}>
                                       <span className="text-afrikoni-cream/80 cursor-help">
                                         {msg.read ? (
-                                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" title="Read" />
                                         ) : (
-                                          <CheckCircle className="w-3.5 h-3.5" />
+                                          <CheckCircle className="w-3.5 h-3.5 text-afrikoni-deep/50" title="Sent" />
                                         )}
                                       </span>
                                     </Tooltip>
+                                  )}
+                                  {!isMine && !msg.read && (
+                                    <span className="w-2 h-2 bg-afrikoni-gold rounded-full" title="Unread" />
                                   )}
                                 </div>
                               </div>

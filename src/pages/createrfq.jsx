@@ -154,27 +154,38 @@ export default function CreateRFQ() {
       const { data: newRFQ, error } = await supabase.from('rfqs').insert(rfqData).select().single();
       if (error) throw error;
 
-      // Send email notification (placeholder)
-      await supabaseHelpers.email.send({
-        to: user.email,
-        subject: 'RFQ Created - AFRIKONI',
-        body: `Your RFQ "${rfqData.title}" has been created successfully. Suppliers will start sending quotes soon.`
-      });
+      // Send email notification
+      try {
+        const { sendRFQReceivedEmail } = await import('@/services/emailService');
+        await sendRFQReceivedEmail(user.email, {
+          rfqTitle: rfqData.title,
+          rfqId: newRFQ.id,
+          category: categories.find(c => c.id === formData.category_id)?.name || 'General',
+          quantity: quantity,
+          unit: formData.unit || 'pieces',
+          deliveryLocation: formData.delivery_location || 'TBD',
+          deadline: formData.delivery_deadline ? format(formData.delivery_deadline, 'yyyy-MM-dd') : 'TBD'
+        });
+      } catch (emailError) {
+        // Email is optional, continue
+        console.log('Email notification failed:', emailError);
+      }
 
       // Create notification for buyer
       if (companyId) {
-        const { error: notifError } = await supabase.from('notifications').insert({
-          user_email: user.email,
-          company_id: companyId,
-          title: 'RFQ Created',
-          message: `Your RFQ "${rfqData.title}" is now live`,
-          type: 'rfq',
-          link: `/dashboard/rfqs/${newRFQ.id}`,
-          related_id: newRFQ.id
-        });
-        // Silently ignore notification failures
-        if (notifError) {
-          // noop
+        try {
+          const { createNotification } = await import('@/services/notificationService');
+          await createNotification({
+            company_id: companyId,
+            user_email: user.email,
+            title: 'RFQ Created',
+            message: `Your RFQ "${rfqData.title}" is now live and visible to suppliers`,
+            type: 'rfq',
+            link: `/dashboard/rfqs/${newRFQ.id}`,
+            related_id: newRFQ.id
+          });
+        } catch (notifError) {
+          // Silently ignore notification failures
         }
       }
 
