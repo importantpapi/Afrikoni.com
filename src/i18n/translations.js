@@ -295,6 +295,7 @@ export const translations = {
     'product.rewriteDescription': 'Rewrite description',
     'product.aiSummary': 'AI Summary',
     'product.shippingCalculator': 'Shipping Calculator',
+    'product.actionsHelp': 'Use chat for quick questions and Request Quote when you are ready to receive offers.',
     
     // Add Product
     'addProduct.title': 'List Your Product',
@@ -450,6 +451,10 @@ export const translations = {
     'login.trusted': 'Trusted by 50,000+',
     'login.dontHaveAccount': 'Don\'t have an account?',
     'login.createAccount': 'Create account',
+    'login.contextRFQTitle': 'You are almost done creating an RFQ.',
+    'login.contextRFQBody': 'Sign in so we can save your request and send it securely to verified African suppliers.',
+    'login.contextMessageTitle': 'You are about to contact a supplier.',
+    'login.contextMessageBody': 'Sign in to chat safely with suppliers, keep all messages in one place, and protect your trade history.',
     
     // Signup
     'signup.joinAfrikoni': 'Join Afrikoni',
@@ -851,6 +856,10 @@ export const translations = {
     'login.trusted': 'Approuvé par 50 000+',
     'login.dontHaveAccount': 'Vous n\'avez pas de compte?',
     'login.createAccount': 'Créer un compte',
+    'login.contextRFQTitle': 'Vous êtes sur le point de créer une demande de devis.',
+    'login.contextRFQBody': 'Connectez-vous pour enregistrer votre demande et l\'envoyer en toute sécurité à des fournisseurs africains vérifiés.',
+    'login.contextMessageTitle': 'Vous êtes sur le point de contacter un fournisseur.',
+    'login.contextMessageBody': 'Connectez-vous pour discuter en toute sécurité avec les fournisseurs, garder tous vos messages au même endroit et protéger votre historique commercial.',
     
     // Signup
     'signup.joinAfrikoni': 'Rejoindre Afrikoni',
@@ -1215,6 +1224,10 @@ export const translations = {
     'login.trusted': 'موثوق من قبل 50,000+',
     'login.dontHaveAccount': 'ليس لديك حساب?',
     'login.createAccount': 'إنشاء حساب',
+    'login.contextRFQTitle': 'أنت على وشك إنشاء طلب عرض سعر.',
+    'login.contextRFQBody': 'سجّل الدخول حتى نتمكن من حفظ طلبك وإرساله بأمان إلى موردين أفارقة موثقين.',
+    'login.contextMessageTitle': 'أنت على وشك التواصل مع مورد.',
+    'login.contextMessageBody': 'سجّل الدخول للتحدث بأمان مع الموردين، والاحتفاظ بجميع الرسائل في مكان واحد، وحماية سجلك التجاري.',
     
     // Signup
     'signup.joinAfrikoni': 'انضم إلى أفريكوني',
@@ -1579,6 +1592,10 @@ export const translations = {
     'login.trusted': 'Confiado por 50.000+',
     'login.dontHaveAccount': 'Não tem uma conta?',
     'login.createAccount': 'Criar conta',
+    'login.contextRFQTitle': 'Você está quase terminando de criar uma solicitação de cotação.',
+    'login.contextRFQBody': 'Entre para salvar sua solicitação e enviá-la com segurança para fornecedores africanos verificados.',
+    'login.contextMessageTitle': 'Você está prestes a contactar um fornecedor.',
+    'login.contextMessageBody': 'Entre para conversar com segurança com fornecedores, manter todas as mensagens em um só lugar e proteger seu histórico de negociações.',
     
     // Signup
     'signup.joinAfrikoni': 'Junte-se ao Afrikoni',

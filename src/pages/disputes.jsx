@@ -47,6 +47,18 @@ export default function Disputes() {
             <p className="text-xs md:text-sm text-afrikoni-deep/80 mt-2">
               Important: disputes are only fully covered when payment and communication stay inside Afrikoni Trade Shield™.
             </p>
+            <div className="mt-4 space-y-2">
+              <h3 className="font-semibold text-afrikoni-chestnut text-sm md:text-base">Typical timelines</h3>
+              <ul className="list-disc list-inside text-xs md:text-sm text-afrikoni-deep/80 space-y-1">
+                <li>Afrikoni acknowledges new disputes within 1 business day.</li>
+                <li>Initial review and information request usually within 3–5 business days.</li>
+                <li>Most cases are resolved within 7–14 business days, depending on evidence and inspections.</li>
+              </ul>
+              <p className="text-xs md:text-sm text-afrikoni-deep/70">
+                Complex cross-border cases may take longer, but Afrikoni will always communicate clearly inside
+                the order chat about the status and next steps.
+              </p>
+            </div>
           </section>
         </div>
       </div>

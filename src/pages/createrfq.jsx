@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function CreateRFQ() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -184,11 +186,13 @@ export default function CreateRFQ() {
 
       toast.success(t('rfq.success'));
       setTimeout(() => {
-        navigate(createPageUrl('BuyerDashboard'));
+        navigate(`/dashboard/rfqs/${newRFQ.id}`);
       }, 1000);
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error(t('rfq.error'));
+      // Surface error details temporarily to help debug RFQ creation issues
+      // eslint-disable-next-line no-console
+      console.error('RFQ create error:', error);
+      toast.error(error?.message || t('rfq.error'));
     } finally {
       setIsLoading(false);
     }

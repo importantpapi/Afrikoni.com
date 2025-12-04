@@ -22,6 +22,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
+  const intent = searchParams.get('intent');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -45,7 +46,12 @@ export default function Login() {
       } else {
         const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
         const dashboardPath = getDashboardPathForRole(role);
-        navigate(dashboardPath);
+        // If user came from a specific page (RFQ / product), send them back there
+        if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
+          navigate(redirectUrl);
+        } else {
+          navigate(dashboardPath);
+        }
       }
     } catch (error) {
       // Error logged (removed for production)
@@ -72,6 +78,27 @@ export default function Login() {
               <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">{t('login.welcomeBack')}</h1>
               <p className="text-afrikoni-deep">{t('login.subtitle')}</p>
             </div>
+
+            {intent && (
+              <div className="mb-6 p-3 rounded-lg bg-afrikoni-cream border border-afrikoni-gold/40 text-xs sm:text-sm text-afrikoni-deep flex flex-col gap-1">
+                {intent === 'rfq' && (
+                  <>
+                    <span className="font-semibold text-afrikoni-chestnut">
+                      {t('login.contextRFQTitle')}
+                    </span>
+                    <span>{t('login.contextRFQBody')}</span>
+                  </>
+                )}
+                {intent === 'message' && (
+                  <>
+                    <span className="font-semibold text-afrikoni-chestnut">
+                      {t('login.contextMessageTitle')}
+                    </span>
+                    <span>{t('login.contextMessageBody')}</span>
+                  </>
+                )}
+              </div>
+            )}
 
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
@@ -155,7 +182,14 @@ export default function Login() {
             <div className="mt-6 text-center text-sm">
               <p className="text-afrikoni-deep">
                 {t('login.dontHaveAccount')}{' '}
-                <Link to={createPageUrl('Signup')} className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold">
+                <Link
+                  to={
+                    redirectUrl
+                      ? `${createPageUrl('Signup')}?redirect=${encodeURIComponent(redirectUrl)}`
+                      : createPageUrl('Signup')
+                  }
+                  className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold"
+                >
                   {t('login.createAccount')}
                 </Link>
               </p>

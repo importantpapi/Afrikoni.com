@@ -16,6 +16,29 @@ export default function PaymentGateway() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const flutterwavePublicKey = import.meta.env.VITE_FLW_PUBLIC_KEY;
+
+  // Load Flutterwave inline script lazily
+  const loadFlutterwaveScript = () => {
+    return new Promise((resolve, reject) => {
+      if (window.FlutterwaveCheckout) {
+        resolve(true);
+        return;
+      }
+      const existing = document.querySelector('script[src="https://checkout.flutterwave.com/v3.js"]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(true));
+        existing.addEventListener('error', reject);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.flutterwave.com/v3.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = reject;
+      document.body.appendChild(script);
+    });
+  };
 
   useEffect(() => {
     loadOrder();
@@ -77,48 +100,90 @@ export default function PaymentGateway() {
       return;
     }
 
+    if (!flutterwavePublicKey) {
+      toast.error('Payment gateway not configured. Please contact support.');
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await loadFlutterwaveScript();
 
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          payment_status: 'paid',
-          payment_method: selectedMethod,
-          status: 'processing'
-        })
-        .eq('id', order.id);
+      const txRef = `${order.id}-${Date.now()}`;
+      const amount = Number(order.total_amount) || 0;
+      if (!amount || amount <= 0) {
+        throw new Error('Invalid order amount');
+      }
 
-      if (error) throw error;
+      // eslint-disable-next-line no-undef
+      window.FlutterwaveCheckout({
+        public_key: flutterwavePublicKey,
+        tx_ref: txRef,
+        amount,
+        currency: order.currency || 'USD',
+        payment_options: selectedMethod === 'bank_transfer' ? 'banktransfer' : 'card,banktransfer',
+        customer: {
+          email: user.email,
+          name: user.full_name || user.email,
+        },
+        meta: {
+          order_id: order.id,
+          buyer_company_id: user.company_id,
+        },
+        customizations: {
+          title: 'Afrikoni Trade Shield',
+          description: `Payment for Order #${order.id.slice(0, 8)}`,
+          logo: '/logo192.png',
+        },
+        callback: async (response) => {
+          try {
+            if (response.status === 'successful' || response.status === 'completed') {
+              const { error } = await supabase
+                .from('orders')
+                .update({
+                  payment_status: 'paid',
+                  payment_method: 'flutterwave',
+                  status: 'processing',
+                  payment_reference: response.transaction_id || response.tx_ref || txRef
+                })
+                .eq('id', order.id);
 
-      // Send email notification
-      await supabaseHelpers.email.send({
-        to: user.email,
-        subject: 'Payment Confirmed - AFRIKONI',
-        body: `Your payment of $${order.total_amount} for Order #${order.id.slice(0, 8)} has been confirmed.`
+              if (error) throw error;
+
+              await supabaseHelpers.email.send({
+                to: user.email,
+                subject: 'Payment Confirmed - AFRIKONI',
+                body: `Your payment of $${order.total_amount} for Order #${order.id.slice(0, 8)} has been confirmed.`
+              });
+
+              await supabase.from('notifications').insert({
+                user_email: user.email,
+                company_id: user.company_id,
+                title: 'Payment Confirmed',
+                message: `Payment of $${order.total_amount} confirmed for Order #${order.id.slice(0, 8)}`,
+                type: 'payment',
+                link: createPageUrl('OrderDetail') + '?id=' + order.id,
+                related_id: order.id
+              }).catch(() => {});
+
+              toast.success('Payment processed successfully via Flutterwave!');
+              navigate(createPageUrl('OrderDetail') + '?id=' + order.id);
+            } else {
+              toast.error('Payment was not completed. Please try again.');
+            }
+          } catch (err) {
+            toast.error('Error confirming payment. Please contact support.');
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        onclose: () => {
+          setIsProcessing(false);
+        }
       });
-
-      // Create notification
-      await supabase.from('notifications').insert({
-        user_email: user.email,
-        company_id: user.company_id,
-        title: 'Payment Confirmed',
-        message: `Payment of $${order.total_amount} confirmed for Order #${order.id.slice(0, 8)}`,
-        type: 'payment',
-        link: createPageUrl('OrderDetail') + '?id=' + order.id,
-        related_id: order.id
-      });
-
-      toast.success('Payment processed successfully!');
-      setTimeout(() => {
-        navigate(createPageUrl('OrderDetail') + '?id=' + order.id);
-      }, 1500);
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Payment failed. Please try again.');
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -190,9 +255,9 @@ export default function PaymentGateway() {
             <div className="p-4 bg-afrikoni-offwhite rounded-lg">
               <p className="text-sm text-afrikoni-deep mb-2">Payment Terms:</p>
               <ul className="text-sm text-afrikoni-deep space-y-1 list-disc list-inside">
-                <li>Secure payment processing</li>
-                <li>Money-back guarantee</li>
-                <li>Protected transactions</li>
+                <li>Secure payment processing via Flutterwave</li>
+                <li>Money-back guarantee under Afrikoni Trade Shield</li>
+                <li>Protected transactions with dispute resolution</li>
               </ul>
             </div>
 

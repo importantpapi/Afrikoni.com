@@ -133,6 +133,10 @@ export default function OrderDetail() {
 
   const isBuyer = user?.company_id === order.buyer_company_id;
   const isSeller = user?.company_id === order.seller_company_id;
+  const platformFeeRate = 0.08;
+  const totalAmountNumber = Number(order.total_amount) || 0;
+  const platformFeeAmount = totalAmountNumber * platformFeeRate;
+  const supplierPayoutEstimate = totalAmountNumber - platformFeeAmount;
 
   return (
     <div className="min-h-screen bg-stone-50 py-8">
@@ -177,6 +181,24 @@ export default function OrderDetail() {
                     <div className="text-sm text-afrikoni-deep mb-1">Currency</div>
                     <div className="font-semibold text-afrikoni-chestnut">{order.currency}</div>
                   </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-afrikoni-gold/20 space-y-1">
+                  <div className="flex items-center justify-between text-sm text-afrikoni-deep/80">
+                    <span>Afrikoni fee (8%)</span>
+                    <span className="font-semibold text-afrikoni-chestnut">
+                      ${platformFeeAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-afrikoni-deep/80">
+                    <span>Estimated supplier payout</span>
+                    <span className="font-semibold text-afrikoni-chestnut">
+                      ${supplierPayoutEstimate.toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-afrikoni-deep/60 mt-1">
+                    This breakdown is indicative. Final payouts may differ slightly after payment
+                    processor fees or special agreements.
+                  </p>
                 </div>
                 {order.shipping_address && (
                   <div>

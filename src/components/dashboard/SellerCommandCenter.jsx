@@ -91,7 +91,10 @@ export default function SellerCommandCenter({ data, company }) {
             {products.length === 0 ? (
               <div className="text-center py-8 text-afrikoni-deep/70">
                 <Package className="w-12 h-12 mx-auto mb-4 text-afrikoni-deep/50" />
-                <p>No products yet</p>
+                <p className="mb-1">No products yet</p>
+                <p className="text-xs text-afrikoni-deep/70 mb-4">
+                  Start by adding your first product. Once it’s approved, it will appear in the marketplace for buyers.
+                </p>
                 <Link to={createPageUrl('AddProduct')}>
                   <Button variant="outline" className="mt-4">Add Your First Product</Button>
                 </Link>

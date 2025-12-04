@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,8 @@ export default function Signup() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -202,7 +204,14 @@ export default function Signup() {
           <div className="mt-6 text-center text-sm">
             <p className="text-afrikoni-deep">
               {t('signup.alreadyHaveAccount')}{' '}
-              <a href={createPageUrl('Login')} className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold">
+              <a
+                href={
+                  redirectUrl
+                    ? `${createPageUrl('Login')}?redirect=${encodeURIComponent(redirectUrl)}`
+                    : createPageUrl('Login')
+                }
+                className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold"
+              >
                 {t('signup.signIn')}
               </a>
             </p>

@@ -329,6 +329,42 @@ export default function VerificationCenter() {
           </Card>
         </motion.div>
 
+        {/* Public explanation of verification levels */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="mb-8"
+        >
+          <Card className="border-afrikoni-gold/20 bg-white/80">
+            <CardContent className="p-4 md:p-5 space-y-2">
+              <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut uppercase tracking-wide">
+                How Afrikoni shows verification
+              </p>
+              <ul className="list-disc list-inside text-xs md:text-sm text-afrikoni-deep/80 space-y-1.5">
+                <li>
+                  <span className="font-semibold">Not verified</span> – the company has not yet completed the basic KYC and
+                  business registration checks. No badge is shown on the profile.
+                </li>
+                <li>
+                  <span className="font-semibold">Verified supplier</span> – core documents (ID, business registration, bank
+                  proof) have been reviewed by Afrikoni and the account passed manual checks. A verified badge is
+                  shown to buyers.
+                </li>
+                <li>
+                  <span className="font-semibold">Additional checks</span> – in some cases Afrikoni or partners may perform
+                  extra checks (site visits, trade references, compliance checks). These are reflected in your trust
+                  score and future &quot;Gold&quot; or advanced verification tiers as the program expands.
+                </li>
+              </ul>
+              <p className="text-xs md:text-sm text-afrikoni-deep/70">
+                All documents are stored securely and used only for verification, compliance and fraud-prevention
+                purposes in line with Afrikoni&apos;s privacy policy.
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Verification Checklist */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

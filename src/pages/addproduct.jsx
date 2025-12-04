@@ -209,7 +209,7 @@ export default function AddProduct() {
       
       toast.success(t('addProduct.success'));
       setTimeout(() => {
-        navigate('/dashboard/products');
+        navigate(`/product?id=${newProduct.id}&from=seller_create`);
       }, 1000);
     } catch (error) {
       // Error logged (removed for production)

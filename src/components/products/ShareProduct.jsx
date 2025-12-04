@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Share2, Copy, CheckCircle, Facebook, Twitter, Linkedin, Mail, Link2 } from 'lucide-react';
+import { Share2, Copy, CheckCircle, Facebook, Twitter, Linkedin, Mail, Link2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -26,6 +26,7 @@ export default function ShareProduct({ product, productUrl }) {
     const encodedText = encodeURIComponent(shareText);
 
     const shareUrls = {
+      whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
       twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
@@ -81,6 +82,16 @@ export default function ShareProduct({ product, productUrl }) {
 
           {/* Social Media Buttons */}
           <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={() => handleShare('whatsapp')}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 touch-manipulation min-h-[44px] md:min-h-0"
+            >
+              <MessageCircle className="w-4 h-4 text-green-600" />
+              <span className="hidden sm:inline">WhatsApp</span>
+              <span className="sm:hidden">WA</span>
+            </Button>
             <Button
               onClick={() => handleShare('facebook')}
               variant="outline"

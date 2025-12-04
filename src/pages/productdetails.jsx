@@ -48,10 +48,13 @@ export default function ProductDetail() {
   const [variants, setVariants] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const navigate = useNavigate();
+  const [fromSellerCreate, setFromSellerCreate] = useState(false);
 
   const { trackPageView } = useAnalytics();
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    setFromSellerCreate(urlParams.get('from') === 'seller_create');
     loadData();
     loadUser();
     trackPageView('Product Details');
@@ -188,18 +191,20 @@ export default function ProductDetail() {
 
   const handleContactSupplier = () => {
     if (!user) {
-      navigate('/login');
+      const redirect = `/product?id=${product.id}`;
+      navigate(`/login?redirect=${encodeURIComponent(redirect)}&intent=message`);
       return;
     }
     setShowMessageDialog(true);
   };
 
   const handleCreateRFQ = () => {
+    const targetUrl = createPageUrl('CreateRFQ') + '?product=' + product.id;
     if (!user) {
-      navigate('/login');
+      navigate(`/login?redirect=${encodeURIComponent(targetUrl)}&intent=rfq`);
       return;
     }
-    navigate(createPageUrl('CreateRFQ') + '?product=' + product.id);
+    navigate(targetUrl);
   };
 
   const handleGenerateAISummary = async () => {
@@ -295,6 +300,20 @@ export default function ProductDetail() {
       )}
       <div className="min-h-screen bg-stone-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {fromSellerCreate && supplier && user && user.company_id === supplier.id && (
+          <div className="mb-4 rounded-lg border border-afrikoni-gold/30 bg-afrikoni-cream px-4 py-3 text-xs sm:text-sm text-afrikoni-deep flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <span className="font-semibold text-afrikoni-chestnut">
+              You’re viewing your own product as buyers see it.
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/products')}
+              className="inline-flex items-center text-xs sm:text-sm font-medium text-afrikoni-gold hover:text-afrikoni-goldDark underline-offset-2 hover:underline"
+            >
+              Go to product list in your seller dashboard
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-sm text-afrikoni-deep mb-6">
           <Link to={createPageUrl('Home')} className="hover:text-amber-600">{t('product.home')}</Link>
           <span>/</span>
@@ -636,6 +655,9 @@ export default function ProductDetail() {
                   >
                     <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">{t('product.requestQuote')}</span>
                   </Button>
+                  <p className="text-xs sm:text-sm text-afrikoni-deep/70 text-center pt-1">
+                    {t('product.actionsHelp')}
+                  </p>
                   <AICopilotButton
                     label="Generate RFQ with AI"
                     onClick={handleGenerateRFQWithAI}
