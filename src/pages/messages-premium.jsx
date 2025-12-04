@@ -263,6 +263,9 @@ export default function MessagesPremium() {
   const [aiDraft, setAiDraft] = useState('');
   const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
 
+  // Currently selected conversation details, used by multiple hooks and render logic
+  const selectedConv = conversations.find(c => c.id === selectedConversation);
+
   const handleGenerateAISuggestions = useCallback(async () => {
     if (!selectedConversation || !selectedConv) {
       toast.error(t('messages.selectConversation'));
@@ -288,7 +291,7 @@ export default function MessagesPremium() {
     } finally {
       setIsGeneratingSuggestion(false);
     }
-  }, [messages, searchParams, selectedConversation, selectedConv]);
+  }, [messages, searchParams, selectedConversation, selectedConv, t]);
 
   // Typing indicator: send typing status
   const handleTyping = useCallback(() => {
@@ -476,8 +479,6 @@ export default function MessagesPremium() {
     conv.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const selectedConv = conversations.find(c => c.id === selectedConversation);
 
   if (isLoading) {
     return (

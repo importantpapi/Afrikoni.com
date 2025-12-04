@@ -155,26 +155,14 @@ export default function Onboarding() {
         updateData.company_id = companyId;
       }
 
-      // Try profiles table first
+      // Try profiles table first; if it doesn't exist, ignore and rely on auth metadata only
       const { error: profileError } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', user.id);
 
-      if (profileError) {
-        // If profiles table doesn't exist, try users table
-        if (profileError.code === '42P01' || profileError.code === 'PGRST116') {
-          const { error: usersError } = await supabase
-            .from('users')
-            .update(updateData)
-            .eq('id', user.id);
-          // Silently ignore users table update failures
-          if (usersError) {
-            // noop
-          }
-        } else {
-          throw profileError;
-        }
+      if (profileError && profileError.code !== '42P01' && profileError.code !== 'PGRST116') {
+        throw profileError;
       }
 
       toast.success('Onboarding completed! Welcome to Afrikoni.');
