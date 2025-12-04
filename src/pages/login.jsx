@@ -9,10 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Lock, Loader2, Shield, CheckCircle } from 'lucide-react';
+import { FaFacebook } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
+import GoogleSignIn from '@/components/auth/GoogleSignIn';
+import FacebookSignIn from '@/components/auth/FacebookSignIn';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -59,6 +62,16 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Determine the redirect path after OAuth login
+  const getOAuthRedirectPath = () => {
+    // If user came from a specific page, redirect there
+    if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
+      return redirectUrl;
+    }
+    // Otherwise, default to dashboard (will be determined by role in callback)
+    return '/dashboard';
   };
 
   return (
@@ -154,6 +167,40 @@ export default function Login() {
                 )}
               </Button>
             </form>
+
+            {/* OAuth Buttons */}
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-afrikoni-gold/20"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-afrikoni-offwhite px-2 text-afrikoni-deep/70">{t('login.continueWith')}</span>
+                </div>
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <GoogleSignIn 
+                  redirectTo={getOAuthRedirectPath()}
+                  onSuccess={() => {
+                    // Optional: Show success message (redirect happens automatically)
+                    toast.success(t('login.success') || 'Redirecting...');
+                  }}
+                  onError={(error) => {
+                    // Error handling is done in the component, but we can add additional logic here if needed
+                    setIsLoading(false);
+                  }}
+                />
+                <FacebookSignIn 
+                  redirectTo={getOAuthRedirectPath()}
+                  onSuccess={() => {
+                    toast.success(t('login.success') || 'Redirecting...');
+                  }}
+                  onError={(error) => {
+                    setIsLoading(false);
+                  }}
+                />
+              </div>
+            </div>
 
             {/* Quick Role Hints */}
             <div className="mt-6 pt-6 border-t border-afrikoni-gold/20">

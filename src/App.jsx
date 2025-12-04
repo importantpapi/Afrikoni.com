@@ -12,6 +12,7 @@ import Home from './pages/index';
 import Login from './pages/login';
 import Signup from './pages/signup';
 import Onboarding from './pages/onboarding';
+import AuthCallback from './pages/auth-callback';
 import NotFound from './pages/NotFound';
 
 // Lazy-loaded heavy routes - Dashboard
@@ -114,6 +115,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
             <Route path="/supplier-onboarding" element={<ProtectedRoute><SupplierOnboarding /></ProtectedRoute>} />
             {/* Trust & Verification Center */}

@@ -455,6 +455,9 @@ export const translations = {
     'login.contextRFQBody': 'Sign in so we can save your request and send it securely to verified African suppliers.',
     'login.contextMessageTitle': 'You are about to contact a supplier.',
     'login.contextMessageBody': 'Sign in to chat safely with suppliers, keep all messages in one place, and protect your trade history.',
+    'login.continueWith': 'Or continue with',
+    'login.signInWithGoogle': 'Sign in with Google',
+    'login.signInWithFacebook': 'Sign in with Facebook',
     
     // Signup
     'signup.joinAfrikoni': 'Join Afrikoni',
@@ -477,6 +480,9 @@ export const translations = {
     'signup.passwordMinLength': 'Password must be at least 6 characters',
     'signup.alreadyHaveAccount': 'Already have an account?',
     'signup.signIn': 'Sign in',
+    'signup.continueWith': 'Or continue with',
+    'signup.signUpWithGoogle': 'Sign up with Google',
+    'signup.signUpWithFacebook': 'Sign up with Facebook',
   },
   
   fr: {
@@ -860,6 +866,9 @@ export const translations = {
     'login.contextRFQBody': 'Connectez-vous pour enregistrer votre demande et l\'envoyer en toute sécurité à des fournisseurs africains vérifiés.',
     'login.contextMessageTitle': 'Vous êtes sur le point de contacter un fournisseur.',
     'login.contextMessageBody': 'Connectez-vous pour discuter en toute sécurité avec les fournisseurs, garder tous vos messages au même endroit et protéger votre historique commercial.',
+    'login.continueWith': 'Ou continuer avec',
+    'login.signInWithGoogle': 'Se connecter avec Google',
+    'login.signInWithFacebook': 'Se connecter avec Facebook',
     
     // Signup
     'signup.joinAfrikoni': 'Rejoindre Afrikoni',
@@ -882,6 +891,9 @@ export const translations = {
     'signup.passwordMinLength': 'Le mot de passe doit contenir au moins 6 caractères',
     'signup.alreadyHaveAccount': 'Vous avez déjà un compte?',
     'signup.signIn': 'Se connecter',
+    'signup.continueWith': 'Ou continuer avec',
+    'signup.signUpWithGoogle': 'S\'inscrire avec Google',
+    'signup.signUpWithFacebook': 'S\'inscrire avec Facebook',
   },
   
   ar: {
@@ -1228,6 +1240,9 @@ export const translations = {
     'login.contextRFQBody': 'سجّل الدخول حتى نتمكن من حفظ طلبك وإرساله بأمان إلى موردين أفارقة موثقين.',
     'login.contextMessageTitle': 'أنت على وشك التواصل مع مورد.',
     'login.contextMessageBody': 'سجّل الدخول للتحدث بأمان مع الموردين، والاحتفاظ بجميع الرسائل في مكان واحد، وحماية سجلك التجاري.',
+    'login.continueWith': 'أو المتابعة باستخدام',
+    'login.signInWithGoogle': 'تسجيل الدخول باستخدام Google',
+    'login.signInWithFacebook': 'تسجيل الدخول باستخدام Facebook',
     
     // Signup
     'signup.joinAfrikoni': 'انضم إلى أفريكوني',
@@ -1250,6 +1265,9 @@ export const translations = {
     'signup.passwordMinLength': 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
     'signup.alreadyHaveAccount': 'لديك حساب بالفعل?',
     'signup.signIn': 'تسجيل الدخول',
+    'signup.continueWith': 'أو المتابعة باستخدام',
+    'signup.signUpWithGoogle': 'إنشاء حساب باستخدام Google',
+    'signup.signUpWithFacebook': 'إنشاء حساب باستخدام Facebook',
   },
   
   pt: {
@@ -1596,6 +1614,9 @@ export const translations = {
     'login.contextRFQBody': 'Entre para salvar sua solicitação e enviá-la com segurança para fornecedores africanos verificados.',
     'login.contextMessageTitle': 'Você está prestes a contactar um fornecedor.',
     'login.contextMessageBody': 'Entre para conversar com segurança com fornecedores, manter todas as mensagens em um só lugar e proteger seu histórico de negociações.',
+    'login.continueWith': 'Ou continue com',
+    'login.signInWithGoogle': 'Entrar com Google',
+    'login.signInWithFacebook': 'Entrar com Facebook',
     
     // Signup
     'signup.joinAfrikoni': 'Junte-se ao Afrikoni',
@@ -1618,6 +1639,9 @@ export const translations = {
     'signup.passwordMinLength': 'A senha deve ter pelo menos 6 caracteres',
     'signup.alreadyHaveAccount': 'Já tem uma conta?',
     'signup.signIn': 'Entrar',
+    'signup.continueWith': 'Ou continue com',
+    'signup.signUpWithGoogle': 'Cadastrar com Google',
+    'signup.signUpWithFacebook': 'Cadastrar com Facebook',
   }
 };
 

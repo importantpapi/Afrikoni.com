@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
+import GoogleSignIn from '@/components/auth/GoogleSignIn';
+import FacebookSignIn from '@/components/auth/FacebookSignIn';
 
 
 export default function Signup() {
@@ -86,6 +88,16 @@ export default function Signup() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Determine the redirect path after OAuth signup
+  const getOAuthRedirectPath = () => {
+    // If user came from a specific page, redirect there
+    if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
+      return redirectUrl;
+    }
+    // For new signups, go to onboarding first
+    return '/onboarding';
   };
 
   return (
@@ -200,6 +212,38 @@ export default function Signup() {
               )}
             </Button>
           </form>
+
+          {/* OAuth Buttons */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-afrikoni-gold/20"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-afrikoni-offwhite px-2 text-afrikoni-deep/70">{t('signup.continueWith')}</span>
+              </div>
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <GoogleSignIn 
+                redirectTo={getOAuthRedirectPath()}
+                onSuccess={() => {
+                  toast.success(t('signup.success') || 'Account created successfully!');
+                }}
+                onError={(error) => {
+                  setIsLoading(false);
+                }}
+              />
+              <FacebookSignIn 
+                redirectTo={getOAuthRedirectPath()}
+                onSuccess={() => {
+                  toast.success(t('signup.success') || 'Account created successfully!');
+                }}
+                onError={(error) => {
+                  setIsLoading(false);
+                }}
+              />
+            </div>
+          </div>
 
           <div className="mt-6 text-center text-sm">
             <p className="text-afrikoni-deep">

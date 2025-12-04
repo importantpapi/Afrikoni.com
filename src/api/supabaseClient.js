@@ -115,6 +115,19 @@ export const supabaseHelpers = {
     
     redirectToLogin: (redirectUrl) => {
       window.location.href = `/login?redirect=${encodeURIComponent(redirectUrl)}`;
+    },
+    
+    signInWithOAuth: async (provider, options = {}) => {
+      const redirectUrl = options.queryParams?.redirect_to || window.location.origin;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect_to=${encodeURIComponent(redirectUrl)}`,
+          ...options
+        }
+      });
+      if (error) throw error;
+      return data;
     }
   },
   
