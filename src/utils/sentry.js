@@ -24,17 +24,14 @@ export function initSentry() {
     dsn: dsn,
     environment: import.meta.env.MODE,
     integrations: [
-      new Sentry.BrowserTracing(),
-      new Sentry.Replay({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
+      // Basic error tracking - BrowserTracing and Replay require additional packages
+      // For now, we'll use basic error tracking which works out of the box
     ],
-    // Performance Monitoring
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in production
-    // Session Replay
-    replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in production
-    replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
+    // Performance Monitoring (disabled for now - requires @sentry/tracing)
+    // tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+    // Session Replay (disabled for now - requires @sentry/replay)
+    // replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+    // replaysOnErrorSampleRate: 1.0,
   });
 
   if (import.meta.env.DEV) {
