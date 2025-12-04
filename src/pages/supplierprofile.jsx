@@ -72,8 +72,13 @@ export default function SupplierProfile() {
       setProducts(prodsRes.data?.filter(p => p.company_id === supplierId) || []);
       setReviews(revsRes.data?.filter(r => r.reviewed_company_id === supplierId) || []);
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to load supplier profile');
+      console.error('Failed to load supplier profile:', error);
+      toast.error('Failed to load supplier profile. Please try again.', {
+        action: {
+          label: 'Retry',
+          onClick: () => loadData()
+        }
+      });
     } finally {
       setIsLoading(false);
     }

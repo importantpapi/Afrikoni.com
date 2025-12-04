@@ -17,6 +17,7 @@ import NotificationBell from '@/components/notificationbell';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { isAdmin } from '@/utils/permissions';
+import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useLanguage();
@@ -530,10 +531,13 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 px-4 md:px-6 lg:px-8 py-6 bg-afrikoni-ivory">
+        <main className="flex-1 px-4 md:px-6 lg:px-8 py-6 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav userRole={userRole} />
     </div>
   );
 }

@@ -19,10 +19,10 @@ const Button = React.forwardRef(({
   };
   
   const sizes = {
-    sm: 'h-9 px-3 text-sm rounded-[0.6rem]',
-    md: 'h-10 px-4 py-2 rounded-[0.6rem]',
-    lg: 'h-11 px-8 text-base rounded-[0.6rem]',
-    icon: 'h-10 w-10 rounded-[0.6rem]'
+    sm: 'h-9 sm:h-9 min-h-[44px] sm:min-h-0 px-3 text-sm rounded-[0.6rem] touch-manipulation',
+    md: 'h-10 sm:h-10 min-h-[44px] sm:min-h-0 px-4 py-2 rounded-[0.6rem] touch-manipulation',
+    lg: 'h-11 sm:h-11 min-h-[44px] sm:min-h-0 px-8 text-base rounded-[0.6rem] touch-manipulation',
+    icon: 'h-10 w-10 sm:h-10 sm:w-10 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-[0.6rem] touch-manipulation'
   };
 
   const buttonContent = (

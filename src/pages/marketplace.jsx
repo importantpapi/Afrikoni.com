@@ -28,6 +28,7 @@ import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import SearchHistory from '@/components/search/SearchHistory';
+import { toast } from 'sonner';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
@@ -311,7 +312,14 @@ export default function Marketplace() {
       // Log search event (non-blocking)
       logSearchEvent({ resultCount: filtered.length });
     } catch (error) {
+      console.error('Failed to load products:', error);
       setProducts([]);
+      toast.error('Failed to load products. Please try again.', {
+        action: {
+          label: 'Retry',
+          onClick: () => loadProducts()
+        }
+      });
     } finally {
       setIsLoading(false);
     }

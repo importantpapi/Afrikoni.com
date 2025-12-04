@@ -120,13 +120,13 @@ export default function HeroSection({ categories = [] }) {
           >
             <div
               className={`
-                flex flex-col sm:flex-row gap-2 bg-afrikoni-offwhite rounded-xl p-2 shadow-afrikoni-xl transition-all border-[1.5px] border-afrikoni-gold
+                w-full flex flex-col sm:flex-row gap-2 bg-afrikoni-offwhite rounded-xl p-2 shadow-afrikoni-xl transition-all border-[1.5px] border-afrikoni-gold
                 ${searchFocused ? 'ring-4 ring-afrikoni-gold/50 shadow-afrikoni-xl' : ''}
               `}
             >
               {/* Category Dropdown */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-56 border-0 focus:ring-0 bg-transparent text-afrikoni-earth">
+                <SelectTrigger className="w-full sm:w-56 border-0 focus:ring-0 bg-transparent text-afrikoni-earth min-h-[44px]">
                   <SelectValue placeholder={t('categories.all')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -145,17 +145,18 @@ export default function HeroSection({ categories = [] }) {
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
-                className="flex-1 border-0 focus:ring-0 text-base sm:text-lg bg-transparent text-afrikoni-earth placeholder:text-afrikoni-earth/60"
+                className="flex-1 w-full border-0 focus:ring-0 text-base sm:text-lg bg-transparent text-afrikoni-earth placeholder:text-afrikoni-earth/60 min-h-[44px]"
               />
 
               {/* Search Button */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                className="w-full sm:w-auto"
               >
                 <Button
                   onClick={handleSearch}
-                  className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 sm:px-8"
+                  className="w-full sm:w-auto bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 sm:px-8 min-h-[44px] touch-manipulation"
                 >
                   <Search className="w-5 h-5 sm:mr-2" />
                   <span className="hidden sm:inline">{t('hero.searchButton')}</span>
