@@ -34,13 +34,41 @@ export default function ScrollToTop() {
   // Handle hash links separately
   useEffect(() => {
     if (hash) {
+      // Skip OAuth callback hashes (they contain access_token, expires_at, etc.)
+      // These are not CSS selectors and will cause querySelector errors
+      const isOAuthCallback = hash.includes('access_token') || 
+                             hash.includes('expires_at') || 
+                             hash.includes('provider_token') ||
+                             hash.includes('refresh_token') ||
+                             hash.includes('token_type');
+      
+      if (isOAuthCallback) {
+        // This is an OAuth callback, don't try to use it as a selector
+        return;
+      }
+
+      // Validate that hash looks like a valid CSS selector
+      // Should start with # followed by alphanumeric, dash, underscore, or colon
+      const isValidSelector = /^#[a-zA-Z0-9_-]+/.test(hash);
+      
+      if (!isValidSelector) {
+        // Not a valid selector, skip
+        return;
+      }
+
       // Small delay to ensure DOM is ready
       setTimeout(() => {
-        const element = document.querySelector(hash);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-          // If hash element not found, scroll to top
+        try {
+          const element = document.querySelector(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            // If hash element not found, scroll to top
+            window.scrollTo(0, 0);
+          }
+        } catch (error) {
+          // If querySelector fails (invalid selector), just scroll to top
+          console.warn('Invalid hash selector:', hash, error);
           window.scrollTo(0, 0);
         }
       }, 100);
