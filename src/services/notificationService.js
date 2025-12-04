@@ -131,10 +131,9 @@ export async function createNotification({
   try {
     // Get user email if not provided
     let recipientEmail = user_email;
-    if (!recipientEmail && user_id) {
-      const { data: user } = await supabase.auth.admin.getUserById(user_id);
-      recipientEmail = user?.user?.email;
-    }
+    // Note: We intentionally avoid using auth.admin here because this code runs on the client
+    // and the admin API requires a service key that should never be exposed in the browser.
+    // When needed, callers should pass user_email explicitly, or we fall back to company owner email.
     if (!recipientEmail && company_id) {
       const { data: company } = await supabase
         .from('companies')

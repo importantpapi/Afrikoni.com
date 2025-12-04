@@ -123,14 +123,14 @@ export default function DashboardAnalytics() {
         }));
 
         // Load inquiries (messages related to products)
-        const { data: inquiriesRes } = await supabase
+        const { data: inquiriesData } = await supabase
           .from('messages')
           .select('*')
           .eq('receiver_company_id', companyId)
           .not('related_type', 'is', null)
           .gte('created_at', startDate);
 
-        const inquiries = Array.isArray(inquiriesRes?.data) ? inquiriesRes.data : [];
+        const inquiries = Array.isArray(inquiriesData) ? inquiriesData : [];
 
         // Load top categories
         const { data: categoryData } = await supabase

@@ -30,6 +30,15 @@ export default function RFQDetail() {
   const [currentRole, setCurrentRole] = useState('buyer');
   const [companyId, setCompanyId] = useState(null);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    quantity: '',
+    unit: '',
+    target_price: '',
+    delivery_location: ''
+  });
   const [quoteForm, setQuoteForm] = useState({
     price_per_unit: '',
     total_price: '',
@@ -74,6 +83,14 @@ export default function RFQDetail() {
       }
 
       setRfq(rfqData);
+      setEditForm({
+        title: rfqData.title || '',
+        description: rfqData.description || '',
+        quantity: rfqData.quantity != null ? String(rfqData.quantity) : '',
+        unit: rfqData.unit || '',
+        target_price: rfqData.target_price != null ? String(rfqData.target_price) : '',
+        delivery_location: rfqData.delivery_location || ''
+      });
 
       // Load buyer company
       if (rfqData.buyer_company_id) {
@@ -303,6 +320,87 @@ export default function RFQDetail() {
     }
   };
 
+  const handleEditChange = (field, value) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveEdits = async () => {
+    if (!rfq) return;
+
+    const title = editForm.title?.trim();
+    const description = editForm.description?.trim();
+    const quantityNum = parseFloat(editForm.quantity);
+    const targetPriceNum = editForm.target_price ? parseFloat(editForm.target_price) : null;
+
+    if (!title || !description || !editForm.quantity) {
+      toast.error('Title, description and quantity are required');
+      return;
+    }
+    if (Number.isNaN(quantityNum) || quantityNum <= 0) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+    if (editForm.target_price && (Number.isNaN(targetPriceNum) || targetPriceNum < 0)) {
+      toast.error('Please enter a valid target price');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const updateData = {
+        title,
+        description,
+        quantity: quantityNum,
+        unit: editForm.unit || rfq.unit || 'pieces',
+        target_price: targetPriceNum,
+        delivery_location: editForm.delivery_location || null
+      };
+
+      const { error } = await supabase
+        .from('rfqs')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('RFQ updated successfully');
+      setIsEditing(false);
+      await loadRFQData();
+    } catch (error) {
+      toast.error('Failed to update RFQ');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteRFQ = async () => {
+    if (!rfq) return;
+    if (quotes.length > 0) {
+      toast.error('You cannot delete this RFQ because it already has quotes. You can close it instead.');
+      return;
+    }
+    if (!window.confirm('Delete this RFQ permanently? This cannot be undone.')) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('rfqs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('RFQ deleted');
+      navigate('/dashboard/rfqs');
+    } catch (error) {
+      toast.error('Failed to delete RFQ');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout currentRole={currentRole}>
@@ -352,41 +450,128 @@ export default function RFQDetail() {
                 <CardTitle>RFQ Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-2">Description</h3>
-                  <p className="text-afrikoni-deep/70 whitespace-pre-wrap">{rfq.description}</p>
-                </div>
+                {isOwner && isEditing ? (
+                  <>
+                    <div>
+                      <Label htmlFor="edit-title">Title</Label>
+                      <Input
+                        id="edit-title"
+                        value={editForm.title}
+                        onChange={(e) => handleEditChange('title', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-description">Description</Label>
+                      <Textarea
+                        id="edit-description"
+                        rows={5}
+                        value={editForm.description}
+                        onChange={(e) => handleEditChange('description', e.target.value)}
+                      />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="edit-quantity">Quantity</Label>
+                        <Input
+                          id="edit-quantity"
+                          type="number"
+                          value={editForm.quantity}
+                          onChange={(e) => handleEditChange('quantity', e.target.value)}
+                          min="1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-unit">Unit</Label>
+                        <Input
+                          id="edit-unit"
+                          value={editForm.unit}
+                          onChange={(e) => handleEditChange('unit', e.target.value)}
+                          placeholder="pieces, kg, tons..."
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-target-price">Target Price per Unit (optional)</Label>
+                        <Input
+                          id="edit-target-price"
+                          type="number"
+                          step="0.01"
+                          value={editForm.target_price}
+                          onChange={(e) => handleEditChange('target_price', e.target.value)}
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-delivery-location">Delivery Location</Label>
+                        <Input
+                          id="edit-delivery-location"
+                          value={editForm.delivery_location}
+                          onChange={(e) => handleEditChange('delivery_location', e.target.value)}
+                          placeholder="City, Country"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button onClick={handleSaveEdits} disabled={isSubmitting}>
+                        {isSubmitting ? 'Saving...' : 'Save changes'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditForm({
+                            title: rfq.title || '',
+                            description: rfq.description || '',
+                            quantity: rfq.quantity != null ? String(rfq.quantity) : '',
+                            unit: rfq.unit || '',
+                            target_price: rfq.target_price != null ? String(rfq.target_price) : '',
+                            delivery_location: rfq.delivery_location || ''
+                          });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <h3 className="font-semibold text-afrikoni-chestnut mb-2">Description</h3>
+                      <p className="text-afrikoni-deep/70 whitespace-pre-wrap">{rfq.description}</p>
+                    </div>
 
-                <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
-                  <div>
-                    <span className="text-sm text-afrikoni-deep/70">Quantity</span>
-                    <p className="font-medium">{rfq.quantity} {rfq.unit}</p>
-                  </div>
-                  {rfq.target_price && (
-                    <div>
-                      <span className="text-sm text-afrikoni-deep/70">Target Price</span>
-                      <p className="font-medium">{rfq.target_price}</p>
+                    <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                      <div>
+                        <span className="text-sm text-afrikoni-deep/70">Quantity</span>
+                        <p className="font-medium">{rfq.quantity} {rfq.unit}</p>
+                      </div>
+                      {rfq.target_price && (
+                        <div>
+                          <span className="text-sm text-afrikoni-deep/70">Target Price</span>
+                          <p className="font-medium">{rfq.target_price}</p>
+                        </div>
+                      )}
+                      {rfq.delivery_location && (
+                        <div>
+                          <span className="text-sm text-afrikoni-deep/70">Delivery Location</span>
+                          <p className="font-medium">{rfq.delivery_location}</p>
+                        </div>
+                      )}
+                      {rfq.delivery_deadline && (
+                        <div>
+                          <span className="text-sm text-afrikoni-deep/70">Delivery Deadline</span>
+                          <p className="font-medium">{format(new Date(rfq.delivery_deadline), 'MMM d, yyyy')}</p>
+                        </div>
+                      )}
+                      {rfq.expires_at && (
+                        <div>
+                          <span className="text-sm text-afrikoni-deep/70">Expires</span>
+                          <p className="font-medium">{format(new Date(rfq.expires_at), 'MMM d, yyyy')}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {rfq.delivery_location && (
-                    <div>
-                      <span className="text-sm text-afrikoni-deep/70">Delivery Location</span>
-                      <p className="font-medium">{rfq.delivery_location}</p>
-                    </div>
-                  )}
-                  {rfq.delivery_deadline && (
-                    <div>
-                      <span className="text-sm text-afrikoni-deep/70">Delivery Deadline</span>
-                      <p className="font-medium">{format(new Date(rfq.delivery_deadline), 'MMM d, yyyy')}</p>
-                    </div>
-                  )}
-                  {rfq.expires_at && (
-                    <div>
-                      <span className="text-sm text-afrikoni-deep/70">Expires</span>
-                      <p className="font-medium">{format(new Date(rfq.expires_at), 'MMM d, yyyy')}</p>
-                    </div>
-                  )}
-                </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -605,16 +790,37 @@ export default function RFQDetail() {
                     <span>{format(new Date(rfq.expires_at), 'MMM d, yyyy')}</span>
                   </div>
                 )}
-                {isOwner && rfq.status === 'open' && (
-                  <Button 
-                    onClick={handleCloseRFQ}
-                    disabled={isSubmitting}
-                    variant="outline"
-                    size="sm"
-                    className="w-full mt-3"
-                  >
-                    Close RFQ
-                  </Button>
+                {isOwner && (
+                  <div className="space-y-2 pt-3 border-t border-afrikoni-gold/20 mt-3">
+                    {rfq.status === 'open' && (
+                      <Button 
+                        onClick={handleCloseRFQ}
+                        disabled={isSubmitting}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        Close RFQ
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => setIsEditing(true)}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Edit RFQ
+                    </Button>
+                    <Button
+                      onClick={handleDeleteRFQ}
+                      disabled={isSubmitting}
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      Delete RFQ
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
