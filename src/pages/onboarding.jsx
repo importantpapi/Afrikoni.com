@@ -165,6 +165,15 @@ export default function Onboarding() {
         throw profileError;
       }
 
+      // Send welcome email
+      try {
+        const { sendWelcomeEmail } = await import('@/services/emailService');
+        await sendWelcomeEmail(user.email, formData.full_name || user.email?.split('@')[0] || 'there');
+      } catch (emailError) {
+        // Don't block onboarding if email fails
+        console.log('Welcome email not sent:', emailError);
+      }
+
       toast.success('Onboarding completed! Welcome to Afrikoni.');
       const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
       const dashboardPath = getDashboardPathForRole(selectedRole || 'buyer');

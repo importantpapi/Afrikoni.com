@@ -150,11 +150,55 @@ export default function PaymentGateway() {
 
               if (error) throw error;
 
-              await supabaseHelpers.email.send({
-                to: user.email,
-                subject: 'Payment Confirmed - AFRIKONI',
-                body: `Your payment of $${order.total_amount} for Order #${order.id.slice(0, 8)} has been confirmed.`
-              });
+              // Get order details with product and supplier info for email
+              const { data: orderDetails } = await supabase
+                .from('orders')
+                .select(`
+                  *,
+                  products:product_id (
+                    title,
+                    supplier_id,
+                    companies:supplier_id (
+                      company_name,
+                      email
+                    )
+                  )
+                `)
+                .eq('id', order.id)
+                .single();
+
+              // Send order confirmation email to buyer
+              try {
+                const { sendOrderConfirmationEmail } = await import('@/services/emailService');
+                await sendOrderConfirmationEmail(user.email, {
+                  orderNumber: order.id.slice(0, 8),
+                  orderId: order.id,
+                  productName: orderDetails?.products?.title || 'Product',
+                  quantity: order.quantity || 1,
+                  totalAmount: order.total_amount,
+                  currency: order.currency || 'USD',
+                  supplierName: orderDetails?.products?.companies?.company_name || 'Supplier',
+                  estimatedDelivery: order.estimated_delivery_date || null
+                });
+              } catch (emailError) {
+                console.log('Order confirmation email not sent:', emailError);
+              }
+
+              // Send payment received email to supplier
+              if (orderDetails?.products?.companies?.email) {
+                try {
+                  const { sendPaymentReceivedEmail } = await import('@/services/emailService');
+                  await sendPaymentReceivedEmail(orderDetails.products.companies.email, {
+                    amount: order.total_amount,
+                    currency: order.currency || 'USD',
+                    orderNumber: order.id.slice(0, 8),
+                    orderId: order.id,
+                    buyerName: user.full_name || user.email
+                  });
+                } catch (emailError) {
+                  console.log('Payment received email not sent to supplier:', emailError);
+                }
+              }
 
               await supabase.from('notifications').insert({
                 user_email: user.email,

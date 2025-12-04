@@ -231,6 +231,109 @@ export const emailTemplates = {
   },
 
   /**
+   * Password Reset
+   */
+  passwordReset: (data) => {
+    const { resetLink, userName = 'there', expiresIn = '24 hours' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Password Reset Request</h2>
+      <p>Hello ${userName},</p>
+      <p>We received a request to reset your password for your Afrikoni account.</p>
+      
+      <div style="background: #fff3cd; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #ffc107;">
+        <p style="margin: 0;"><strong>Important:</strong> This link will expire in ${expiresIn}.</p>
+        <p style="margin: 5px 0 0 0; font-size: 14px;">If you didn't request this, please ignore this email. Your password will remain unchanged.</p>
+      </div>
+      
+      <p>Click the button below to reset your password:</p>
+    `;
+    return baseTemplate(content, 'Reset Password', resetLink);
+  },
+
+  /**
+   * Account Verification
+   */
+  accountVerification: (data) => {
+    const { verificationLink, userName = 'there' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Verify Your Email Address</h2>
+      <p>Hello ${userName},</p>
+      <p>Thank you for signing up with Afrikoni! Please verify your email address to complete your account setup.</p>
+      
+      <p>Click the button below to verify your email:</p>
+    `;
+    return baseTemplate(content, 'Verify Email', verificationLink);
+  },
+
+  /**
+   * Order Cancelled
+   */
+  orderCancelled: (data) => {
+    const { orderNumber, reason, refundAmount, currency = 'USD' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Order Cancelled</h2>
+      <p>Your order #${orderNumber} has been cancelled.</p>
+      
+      <div style="background: #f9f9f9; padding: 20px; border-radius: 6px; margin: 20px 0;">
+        <p style="margin: 5px 0;"><strong>Order Number:</strong> #${orderNumber}</p>
+        ${reason ? `<p style="margin: 5px 0;"><strong>Reason:</strong> ${reason}</p>` : ''}
+        ${refundAmount ? `<p style="margin: 5px 0;"><strong>Refund Amount:</strong> ${currency} ${refundAmount?.toLocaleString()}</p>` : ''}
+      </div>
+      
+      ${refundAmount ? `
+        <p><strong>Refund Information:</strong></p>
+        <p>If a payment was made, your refund will be processed within 5-10 business days. You'll receive a confirmation email once the refund is complete.</p>
+      ` : ''}
+      
+      <p>If you have any questions, please contact our support team.</p>
+    `;
+    return baseTemplate(content, 'View Order Details', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+  },
+
+  /**
+   * Order Delivered
+   */
+  orderDelivered: (data) => {
+    const { orderNumber, supplierName } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Order Delivered!</h2>
+      <p>Great news! Your order #${orderNumber} from <strong>${supplierName}</strong> has been delivered.</p>
+      
+      <div style="background: #f0f9f0; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+        <p style="margin: 0;"><strong>Next Steps:</strong></p>
+        <ol style="margin: 10px 0 0 20px; padding: 0;">
+          <li>Inspect your order to ensure everything is correct</li>
+          <li>Confirm delivery in your dashboard</li>
+          <li>Leave a review to help other buyers</li>
+          <li>Payment will be released to the supplier after confirmation</li>
+        </ol>
+      </div>
+      
+      <p>If there are any issues with your order, please open a dispute within 48 hours.</p>
+    `;
+    return baseTemplate(content, 'Confirm Delivery', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+  },
+
+  /**
+   * Payment Released
+   */
+  paymentReleased: (data) => {
+    const { orderNumber, amount, currency = 'USD' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Payment Released</h2>
+      <p>Your payment of <strong>${currency} ${amount?.toLocaleString()}</strong> for Order #${orderNumber} has been released from escrow.</p>
+      
+      <div style="background: #f0f9f0; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+        <p style="margin: 0;"><strong>Status:</strong> Payment successfully transferred</p>
+        <p style="margin: 5px 0 0 0; font-size: 14px;">The buyer has confirmed delivery and satisfaction. Funds have been released to your account.</p>
+      </div>
+      
+      <p>Thank you for being a trusted supplier on Afrikoni!</p>
+    `;
+    return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+  },
+
+  /**
    * Default template
    */
   default: (data) => {

@@ -36,6 +36,7 @@ const DashboardSettings = lazy(() => import('./pages/dashboard/settings'));
 const CompanyInfo = lazy(() => import('./pages/dashboard/company-info'));
 const NotificationsCenter = lazy(() => import('./pages/dashboard/notifications'));
 const DashboardHelp = lazy(() => import('./pages/dashboard/help'));
+const TestEmails = lazy(() => import('./pages/dashboard/test-emails'));
 const RiskManagement = lazy(() => import('./pages/dashboard/risk'));
 const ComplianceCenter = lazy(() => import('./pages/dashboard/compliance'));
 const KYCTracker = lazy(() => import('./pages/dashboard/kyc'));
@@ -173,6 +174,7 @@ function App() {
             <Route path="/dashboard/company-info" element={<ProtectedRoute><CompanyInfo /></ProtectedRoute>} />
             <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
             <Route path="/dashboard/help" element={<ProtectedRoute><DashboardHelp /></ProtectedRoute>} />
+            <Route path="/dashboard/test-emails" element={<ProtectedRoute><TestEmails /></ProtectedRoute>} />
             {/* Risk & Compliance Routes */}
             <Route path="/dashboard/risk" element={<ProtectedRoute><RiskManagement /></ProtectedRoute>} />
             <Route path="/dashboard/compliance" element={<ProtectedRoute><ComplianceCenter /></ProtectedRoute>} />

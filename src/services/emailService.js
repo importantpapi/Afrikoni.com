@@ -201,3 +201,48 @@ export async function sendDisputeOpenedEmail(userEmail, disputeData) {
   });
 }
 
+export async function sendPasswordResetEmail(userEmail, resetLink, userName) {
+  return await sendEmail({
+    to: userEmail,
+    subject: 'Reset Your Afrikoni Password',
+    template: 'passwordReset',
+    data: { resetLink, userName, expiresIn: '24 hours' }
+  });
+}
+
+export async function sendAccountVerificationEmail(userEmail, verificationLink, userName) {
+  return await sendEmail({
+    to: userEmail,
+    subject: 'Verify Your Afrikoni Account',
+    template: 'accountVerification',
+    data: { verificationLink, userName }
+  });
+}
+
+export async function sendOrderCancelledEmail(userEmail, orderData) {
+  return await sendEmail({
+    to: userEmail,
+    subject: `Order #${orderData.orderNumber} Cancelled`,
+    template: 'orderCancelled',
+    data: orderData
+  });
+}
+
+export async function sendOrderDeliveredEmail(userEmail, orderData) {
+  return await sendEmail({
+    to: userEmail,
+    subject: `Order #${orderData.orderNumber} Delivered`,
+    template: 'orderDelivered',
+    data: orderData
+  });
+}
+
+export async function sendPaymentReleasedEmail(userEmail, paymentData) {
+  return await sendEmail({
+    to: userEmail,
+    subject: `Payment Released for Order #${paymentData.orderNumber}`,
+    template: 'paymentReleased',
+    data: paymentData
+  });
+}
+
