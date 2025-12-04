@@ -28,6 +28,7 @@ const ProductForm = lazy(() => import('./pages/dashboard/products/new'));
 const DashboardSales = lazy(() => import('./pages/dashboard/sales'));
 const DashboardShipments = lazy(() => import('./pages/dashboard/shipments'));
 const ShipmentDetailPage = lazy(() => import('./pages/dashboard/shipments/[id]'));
+const LogisticsDashboard = lazy(() => import('./pages/dashboard/logistics-dashboard'));
 const DashboardAnalytics = lazy(() => import('./pages/dashboard/analytics'));
 const SupplierAnalytics = lazy(() => import('./pages/dashboard/supplier-analytics'));
 const DashboardPayments = lazy(() => import('./pages/dashboard/payments'));
@@ -176,6 +177,7 @@ function App() {
             <Route path="/dashboard/sales" element={<ProtectedRoute><DashboardSales /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><DashboardShipments /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetailPage /></ProtectedRoute>} />
+            <Route path="/dashboard/logistics" element={<ProtectedRoute><LogisticsDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/analytics" element={<ProtectedRoute><DashboardAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/payments" element={<ProtectedRoute><DashboardPayments /></ProtectedRoute>} />
             <Route path="/dashboard/protection" element={<ProtectedRoute><DashboardProtection /></ProtectedRoute>} />

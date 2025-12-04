@@ -111,8 +111,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
     ],
     logistics: [
-      { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard' },
+      { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/logistics' },
       { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
+      { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics' },
       { icon: Truck, label: t('dashboard.shipments') || 'Shipments', path: '/dashboard/shipments' },
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
