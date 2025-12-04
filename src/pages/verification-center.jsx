@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  CheckCircle, XCircle, Mail, Phone, Building2, CreditCard, Shield, Lock, FileText, Clock, Upload, X
+  CheckCircle, XCircle, Mail, Phone, Building2, CreditCard, Shield, Lock, FileText, Clock, Upload, X, Globe, Hash
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { getOrCreateCompany } from '@/utils/companyHelper';
@@ -71,7 +74,20 @@ export default function VerificationCenter() {
   const [isLoading, setIsLoading] = useState(true);
   const [uploading, setUploading] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState({});
+  const [businessIdNumber, setBusinessIdNumber] = useState('');
+  const [countryOfRegistration, setCountryOfRegistration] = useState('');
   const navigate = useNavigate();
+  
+  const AFRICAN_COUNTRIES = [
+    'Nigeria', 'South Africa', 'Kenya', 'Egypt', 'Ghana', 'Morocco', 'Ethiopia',
+    'Tanzania', 'Uganda', 'Rwanda', 'Senegal', 'Algeria', 'Sudan', 'Mozambique',
+    'Madagascar', 'Angola', 'Cameroon', 'Ivory Coast', 'Niger', 'Mali', 'Burkina Faso',
+    'Malawi', 'Zambia', 'Zimbabwe', 'Somalia', 'Guinea', 'Benin', 'Burundi',
+    'Tunisia', 'Togo', 'Sierra Leone', 'Libya', 'Liberia', 'Central African Republic',
+    'Mauritania', 'Eritrea', 'Gambia', 'Botswana', 'Namibia', 'Gabon', 'Lesotho',
+    'Guinea-Bissau', 'Equatorial Guinea', 'Mauritius', 'Eswatini', 'Djibouti',
+    'Comoros', 'Cape Verde', 'Sao Tome and Principe', 'Seychelles'
+  ];
 
   useEffect(() => {
     loadData();
@@ -114,12 +130,56 @@ export default function VerificationCenter() {
           if (verificationData.documents && typeof verificationData.documents === 'object') {
             setUploadedFiles(verificationData.documents);
           }
+          // Load business info
+          if (verificationData.business_id_number) {
+            setBusinessIdNumber(verificationData.business_id_number);
+          }
+          if (verificationData.country_of_registration) {
+            setCountryOfRegistration(verificationData.country_of_registration);
+          }
         }
       }
     } catch (error) {
       toast.error('Failed to load verification status');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveBusinessInfo = async () => {
+    if (!companyId) return;
+
+    try {
+      const verificationData = {
+        company_id: companyId,
+        business_id_number: businessIdNumber || null,
+        country_of_registration: countryOfRegistration || null,
+        documents: uploadedFiles || {},
+        status: verification?.status || 'pending'
+      };
+
+      if (verification) {
+        // Update existing
+        const { error } = await supabase
+          .from('verifications')
+          .update(verificationData)
+          .eq('id', verification.id);
+
+        if (error) throw error;
+      } else {
+        // Create new
+        const { data: newVerification, error } = await supabase
+          .from('verifications')
+          .insert(verificationData)
+          .select()
+          .single();
+
+        if (error) throw error;
+        setVerification(newVerification);
+      }
+    } catch (error) {
+      console.error('Failed to save business info:', error);
+      // Don't show toast on blur to avoid spam
     }
   };
 
@@ -146,6 +206,8 @@ export default function VerificationCenter() {
       const verificationData = {
         company_id: companyId,
         documents: newFiles,
+        business_id_number: businessIdNumber || null,
+        country_of_registration: countryOfRegistration || null,
         status: 'pending' // Admin will review
       };
 
@@ -432,9 +494,20 @@ export default function VerificationCenter() {
                           </div>
                           <p className="text-sm text-afrikoni-deep">{step.description}</p>
                           {hasFile && step.docType && (
-                            <p className="text-xs text-afrikoni-deep/70 mt-1">
-                              Document uploaded: {hasFile.split('/').pop()}
-                            </p>
+                            <div className="mt-2 flex items-center gap-2">
+                              <FileText className="w-3 h-3 text-afrikoni-gold" />
+                              <p className="text-xs text-afrikoni-deep/70">
+                                Document uploaded: {hasFile.split('/').pop()}
+                              </p>
+                              <a
+                                href={hasFile}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-afrikoni-gold hover:underline"
+                              >
+                                View
+                              </a>
+                            </div>
                           )}
                         </div>
                         <div>
