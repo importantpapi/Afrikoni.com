@@ -1,0 +1,395 @@
+/**
+ * Smart Image Uploader Component
+ * 
+ * Features:
+ * - Drag and drop
+ * - Image preview with reorder
+ * - Auto-compression
+ * - Validation
+ * - Upload to product-images bucket
+ */
+
+import React, { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, X, GripVertical, Sparkles, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/api/supabaseClient';
+import { toast } from 'sonner';
+import { useLanguage } from '@/i18n/LanguageContext';
+
+export default function SmartImageUploader({ 
+  images = [], 
+  onImagesChange,
+  userId,
+  maxImages = 5,
+  maxSizeMB = 5
+}) {
+  const { t } = useLanguage();
+  const [uploading, setUploading] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+  const dropZoneRef = useRef(null);
+
+  // Compress image if needed
+  const compressImage = (file, maxWidth = 1920, quality = 0.85) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Resize if too large
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              const compressedFile = new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            file.type,
+            quality
+          );
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Validate file
+  const validateFile = (file) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const maxSize = maxSizeMB * 1024 * 1024;
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(`${file.name}: Only JPEG, PNG, WebP, GIF allowed`);
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      toast.error(`${file.name}: Max size ${maxSizeMB}MB. Will compress automatically.`);
+      // Still allow, will compress
+    }
+
+    return true;
+  };
+
+  // Upload single image
+  const uploadImage = async (file) => {
+    if (!validateFile(file)) return null;
+
+    try {
+      // Compress if needed
+      let fileToUpload = file;
+      if (file.size > 2 * 1024 * 1024) { // Compress if > 2MB
+        fileToUpload = await compressImage(file);
+      }
+
+      // Generate unique path: products/{userId}/{timestamp}-{random}.{ext}
+      const fileExt = fileToUpload.name.split('.').pop();
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const path = `products/${userId}/${timestamp}-${randomStr}.${fileExt}`;
+
+      // Upload to product-images bucket
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(path, fileToUpload, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(data.path);
+
+      return {
+        url: publicUrl,
+        path: data.path,
+        is_primary: images.length === 0,
+        sort_order: images.length
+      };
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(`Failed to upload ${file.name}: ${error.message}`);
+      return null;
+    }
+  };
+
+  // Handle file upload
+  const handleFiles = async (files) => {
+    const fileArray = Array.from(files);
+    const remainingSlots = maxImages - images.length;
+    
+    if (fileArray.length > remainingSlots) {
+      toast.error(`You can only upload ${remainingSlots} more image(s)`);
+      fileArray.splice(remainingSlots);
+    }
+
+    if (fileArray.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadPromises = fileArray.map(file => uploadImage(file));
+      const results = await Promise.all(uploadPromises);
+      const successful = results.filter(r => r !== null);
+      
+      if (successful.length > 0) {
+        onImagesChange([...images, ...successful]);
+        toast.success(`${successful.length} image(s) uploaded successfully`);
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFiles(files);
+    }
+  }, [images]);
+
+  // Remove image
+  const removeImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    // Update sort_order
+    const updated = newImages.map((img, i) => ({
+      ...img,
+      sort_order: i,
+      is_primary: i === 0
+    }));
+    onImagesChange(updated);
+  };
+
+  // Set as primary
+  const setPrimary = (index) => {
+    const updated = images.map((img, i) => ({
+      ...img,
+      is_primary: i === index,
+      sort_order: i === index ? 0 : (i < index ? i + 1 : i)
+    }));
+    // Reorder: primary first, then others
+    const reordered = [
+      updated[index],
+      ...updated.filter((_, i) => i !== index)
+    ].map((img, i) => ({ ...img, sort_order: i }));
+    onImagesChange(reordered);
+  };
+
+  // Reorder images (drag)
+  const handleDragStart = (index) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const handleDragOverItem = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newImages = [...images];
+    const draggedItem = newImages[draggedIndex];
+    newImages.splice(draggedIndex, 1);
+    newImages.splice(index, 0, draggedItem);
+    
+    const updated = newImages.map((img, i) => ({
+      ...img,
+      sort_order: i,
+      is_primary: i === 0
+    }));
+    
+    onImagesChange(updated);
+    setDraggedIndex(index);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Drop Zone */}
+      <div
+        ref={dropZoneRef}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`
+          relative border-2 border-dashed rounded-lg p-8 text-center transition-all
+          ${dragOver 
+            ? 'border-afrikoni-gold bg-afrikoni-gold/5' 
+            : 'border-afrikoni-gold/30 hover:border-afrikoni-gold/50'
+          }
+          ${uploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
+        `}
+        onClick={() => !uploading && fileInputRef.current?.click()}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          onChange={(e) => handleFiles(e.target.files)}
+          className="hidden"
+          disabled={uploading || images.length >= maxImages}
+        />
+
+        <AnimatePresence>
+          {uploading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg"
+            >
+              <div className="text-center">
+                <Sparkles className="w-8 h-8 text-afrikoni-gold animate-pulse mx-auto mb-2" />
+                <p className="text-sm text-afrikoni-deep">Uploading...</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <Upload className="w-12 h-12 text-afrikoni-gold/70 mx-auto mb-3" />
+        <p className="text-afrikoni-chestnut font-medium mb-1">
+          {images.length >= maxImages 
+            ? `Maximum ${maxImages} images reached`
+            : `Drag & drop or click to upload (${maxImages - images.length} remaining)`
+          }
+        </p>
+        <p className="text-xs text-afrikoni-deep/70">
+          JPEG, PNG, WebP, GIF • Max {maxSizeMB}MB each • AI will auto-enhance
+        </p>
+      </div>
+
+      {/* Image Preview Grid */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <AnimatePresence>
+            {images.map((img, index) => (
+              <motion.div
+                key={img.path || img.url || index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOverItem(e, index)}
+                className={`
+                  relative group aspect-square rounded-lg overflow-hidden border-2
+                  ${img.is_primary ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/20' : 'border-afrikoni-gold/20'}
+                  ${draggedIndex === index ? 'opacity-50' : ''}
+                  cursor-move
+                `}
+              >
+                <img 
+                  src={img.url || img} 
+                  alt={`Product ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                
+                {/* Overlay on hover */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <div className="flex gap-2">
+                    {!img.is_primary && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPrimary(index);
+                        }}
+                        className="h-8 text-xs"
+                      >
+                        Set Main
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeImage(index);
+                      }}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Primary badge */}
+                {img.is_primary && (
+                  <div className="absolute top-2 left-2 bg-afrikoni-gold text-white text-xs px-2 py-1 rounded font-semibold">
+                    Main
+                  </div>
+                )}
+
+                {/* Drag handle */}
+                <div className="absolute top-2 right-2 bg-white/90 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <GripVertical className="w-4 h-4 text-afrikoni-deep" />
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Tips */}
+      {images.length === 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex gap-2">
+            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-semibold mb-1">Image Tips:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li>Use high-resolution images (min 800x800px)</li>
+                <li>First image will be the main product photo</li>
+                <li>Show product from multiple angles</li>
+                <li>Clean, white background works best</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, X, Sparkles, Lightbulb, Image, FileText, DollarSign, Shield, TrendingUp } from 'lucide-react';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
+import SmartImageUploader from '@/components/products/SmartImageUploader';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
@@ -80,28 +81,9 @@ export default function AddProduct() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-    setUploadingImages(true);
-    try {
-      const uploadedUrls = [];
-      for (const file of files) {
-        const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files');
-        uploadedUrls.push(file_url);
-      }
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
-      toast.success(t('addProduct.uploadSuccess'));
-    } catch (error) {
-      // Error logged (removed for production)
-      toast.error(t('addProduct.uploadError'));
-    } finally {
-      setUploadingImages(false);
-    }
-  };
-
-  const removeImage = (index) => {
-    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+  // Images are now handled by SmartImageUploader component
+  const handleImagesChange = (newImages) => {
+    setFormData(prev => ({ ...prev, images: newImages }));
   };
 
   const handleGenerateDescription = async () => {
@@ -189,12 +171,12 @@ export default function AddProduct() {
       
       // Save images to product_images table
       if (newProduct?.id && formData.images && formData.images.length > 0) {
-        const imageRecords = formData.images.map((imgUrl, index) => ({
+        const imageRecords = formData.images.map((img, index) => ({
           product_id: newProduct.id,
-          url: typeof imgUrl === 'string' ? imgUrl : imgUrl.url || imgUrl,
+          url: typeof img === 'string' ? img : img.url || img,
           alt_text: formData.title || 'Product image',
-          is_primary: index === 0,
-          sort_order: index
+          is_primary: img.is_primary || index === 0,
+          sort_order: img.sort_order !== undefined ? img.sort_order : index
         }));
 
         const { error: imagesError } = await supabase
@@ -202,7 +184,7 @@ export default function AddProduct() {
           .insert(imageRecords);
 
         if (imagesError) {
-          // Error logged (removed for production)
+          console.error('Error saving product images:', imagesError);
           // Don't fail the whole operation, just log it
         }
       }
@@ -416,39 +398,16 @@ export default function AddProduct() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="images" className="text-sm sm:text-base">Product Images (Max 5)</Label>
-                <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-6 sm:p-12 text-center hover:border-blue-500 transition mt-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="image-upload"
-                    disabled={uploadingImages}
-                  />
-                  <label htmlFor="image-upload" className="cursor-pointer block min-h-[44px] flex items-center justify-center">
-                    <Upload className="w-8 h-8 sm:w-12 sm:h-12 text-afrikoni-deep/70 mx-auto mb-2 sm:mb-3" />
-                    <div className="text-sm sm:text-base text-afrikoni-chestnut font-medium mb-1">
-                      Click to upload images ({5 - formData.images.length} remaining)
-                    </div>
-                  </label>
-                </div>
-                {formData.images.length > 0 && (
-                  <div className="grid grid-cols-5 gap-4 mt-4">
-                    {formData.images.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-afrikoni-gold/20">
-                        <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                        <button
-                          onClick={() => removeImage(idx)}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-afrikoni-creamrounded-full hover:bg-red-600"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <Label htmlFor="images" className="text-sm sm:text-base mb-2 block">
+                  Product Images {formData.images.length > 0 && <span className="text-afrikoni-deep/70 font-normal">({formData.images.length}/5)</span>}
+                </Label>
+                <SmartImageUploader
+                  images={formData.images}
+                  onImagesChange={handleImagesChange}
+                  userId={user?.id}
+                  maxImages={5}
+                  maxSizeMB={5}
+                />
               </div>
             </div>
 
