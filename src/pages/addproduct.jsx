@@ -12,8 +12,10 @@ import { AIDescriptionService } from '@/components/services/AIDescriptionService
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function AddProduct() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
@@ -89,10 +91,10 @@ export default function AddProduct() {
         uploadedUrls.push(file_url);
       }
       setFormData(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
-      toast.success('Images uploaded successfully');
+      toast.success(t('addProduct.uploadSuccess'));
     } catch (error) {
       // Error logged (removed for production)
-      toast.error('Failed to upload images');
+      toast.error(t('addProduct.uploadError'));
     } finally {
       setUploadingImages(false);
     }
@@ -121,11 +123,11 @@ export default function AddProduct() {
           title: result.optimized_title || prev.title,
           description: `${result.full_description}\n\n**Key Selling Points:**\n${result.selling_points.map(p => `- ${p}`).join('\n')}`
         }));
-        toast.success('AI description generated!');
+        toast.success(t('addProduct.generateSuccess') || 'AI description generated!');
       }
     } catch (error) {
       // Error logged (removed for production)
-      toast.error('Failed to generate description.');
+      toast.error(t('addProduct.generateError'));
     } finally {
       setIsGenerating(false);
     }
@@ -133,7 +135,7 @@ export default function AddProduct() {
 
   const handleSubmit = async () => {
     if (!formData.title || !formData.description || !formData.price || !formData.moq) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('addProduct.fillRequired'));
       return;
     }
     
@@ -142,12 +144,12 @@ export default function AddProduct() {
     const moq = validateNumeric(formData.moq, { min: 1 });
     
     if (price === null || price <= 0) {
-      toast.error('Please enter a valid price (must be greater than 0)');
+      toast.error(t('addProduct.validPrice'));
       return;
     }
     
     if (moq === null || moq < 1) {
-      toast.error('Please enter a valid MOQ (must be at least 1)');
+      toast.error(t('addProduct.validMOQ'));
       return;
     }
     
@@ -158,7 +160,7 @@ export default function AddProduct() {
       const companyId = await getOrCreateCompany(supabase, user);
       
       if (!companyId) {
-        toast.error('No company associated with your account. Please complete onboarding.');
+        toast.error(t('addProduct.noCompany'));
         setIsLoading(false);
         return;
       }
@@ -205,13 +207,13 @@ export default function AddProduct() {
         }
       }
       
-      toast.success('Product created successfully!');
+      toast.success(t('addProduct.success'));
       setTimeout(() => {
         navigate('/dashboard/products');
       }, 1000);
     } catch (error) {
       // Error logged (removed for production)
-      toast.error('Failed to create product');
+      toast.error(t('addProduct.error'));
     } finally {
       setIsLoading(false);
     }
@@ -222,9 +224,9 @@ export default function AddProduct() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Intro Section */}
         <div className="mb-8 sm:mb-12 text-center">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">List Your Product</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">{t('addProduct.title')}</h1>
           <p className="text-base sm:text-lg text-afrikoni-deep max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-            Join thousands of successful sellers on Africa's leading B2B marketplace. Create compelling product listings that attract buyers and drive sales.
+            {t('addProduct.subtitle')}
           </p>
           
           {/* Feature Cards */}
@@ -236,8 +238,8 @@ export default function AddProduct() {
                     <span className="text-afrikoni-creamfont-bold text-xl">+</span>
                   </div>
                 </div>
-                <h3 className="font-bold text-afrikoni-chestnut mb-2">Reach Million+ Buyers</h3>
-                <p className="text-sm text-afrikoni-deep">Connect with verified buyers across Africa</p>
+                <h3 className="font-bold text-afrikoni-chestnut mb-2">{t('addProduct.reachBuyers')}</h3>
+                <p className="text-sm text-afrikoni-deep">{t('addProduct.reachBuyersDesc')}</p>
               </CardContent>
             </Card>
             <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite">
@@ -247,8 +249,8 @@ export default function AddProduct() {
                     <Shield className="w-6 h-6 text-afrikoni-cream" />
                   </div>
                 </div>
-                <h3 className="font-bold text-afrikoni-chestnut mb-2">Secure Transactions</h3>
-                <p className="text-sm text-afrikoni-deep">Protected payments and verified orders</p>
+                <h3 className="font-bold text-afrikoni-chestnut mb-2">{t('addProduct.secureTransactions')}</h3>
+                <p className="text-sm text-afrikoni-deep">{t('addProduct.secureTransactionsDesc')}</p>
               </CardContent>
             </Card>
             <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite">
@@ -258,8 +260,8 @@ export default function AddProduct() {
                     <TrendingUp className="w-6 h-6 text-afrikoni-cream" />
                   </div>
                 </div>
-                <h3 className="font-bold text-afrikoni-chestnut mb-2">Boost Your Sales</h3>
-                <p className="text-sm text-afrikoni-deep">AI-powered product optimization</p>
+                <h3 className="font-bold text-afrikoni-chestnut mb-2">{t('addProduct.boostSales')}</h3>
+                <p className="text-sm text-afrikoni-deep">{t('addProduct.boostSalesDesc')}</p>
               </CardContent>
             </Card>
           </div>
@@ -268,9 +270,9 @@ export default function AddProduct() {
         {/* Product Details Section */}
         <div className="mb-6 text-center space-y-4">
           <div>
-            <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Product Details</h2>
+            <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2">{t('addProduct.productDetails')}</h2>
             <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
-              Provide clear information so buyers from other African countries can quickly trust and understand your offer.
+              {t('addProduct.productDetailsDesc')}
             </p>
           </div>
           {/* Simple guidance strip */}
@@ -278,21 +280,12 @@ export default function AddProduct() {
             <CardContent className="p-4 md:p-5 space-y-2">
               <div className="flex items-center gap-2 text-xs md:text-sm text-afrikoni-text-dark">
                 <Shield className="w-4 h-4 text-afrikoni-gold" />
-                <span className="font-semibold">Afrikoni tip for sellers</span>
+                <span className="font-semibold">{t('addProduct.tipTitle')}</span>
               </div>
               <div className="grid md:grid-cols-3 gap-3 text-[11px] md:text-xs text-afrikoni-text-dark/80">
-                <p>
-                  <span className="font-semibold">1. Clear title</span> — Mention product, material and main use.
-                  Example: “Organic Ghanaian Shea Butter – Cosmetic Grade”.
-                </p>
-                <p>
-                  <span className="font-semibold">2. Honest details</span> — Be transparent about quality, packaging
-                  and minimum order. Clear info brings serious RFQs, not endless questions.
-                </p>
-                <p>
-                  <span className="font-semibold">3. Real photos</span> — Upload bright photos of the real product,
-                  not stock images. This builds trust with buyers you have never met.
-                </p>
+                <p>{t('addProduct.tip1')}</p>
+                <p>{t('addProduct.tip2')}</p>
+                <p>{t('addProduct.tip3')}</p>
               </div>
             </CardContent>
           </Card>
@@ -302,18 +295,18 @@ export default function AddProduct() {
           <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title" className="text-sm sm:text-base">Product Name *</Label>
+                <Label htmlFor="title" className="text-sm sm:text-base">{t('addProduct.productTitle')}</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
-                  placeholder="Enter product name"
+                  placeholder={t('addProduct.productNamePlaceholder')}
                   className="text-sm sm:text-base min-h-[44px] sm:min-h-0 mt-1"
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <Label htmlFor="description" className="text-sm sm:text-base">Description *</Label>
+                  <Label htmlFor="description" className="text-sm sm:text-base">{t('addProduct.description')}</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -323,23 +316,23 @@ export default function AddProduct() {
                     className="flex items-center gap-1 text-xs sm:text-sm border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10 min-h-[36px] sm:min-h-0"
                   >
                     <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {isGenerating ? 'Generating…' : 'Let Afrikoni AI help'}
+                    {isGenerating ? t('addProduct.generating') : t('addProduct.letAiHelp')}
                   </Button>
                 </div>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  placeholder="Describe your product in simple words or let Afrikoni AI expand it for you."
+                  placeholder={t('addProduct.descriptionPlaceholder')}
                   rows={4}
                   className="text-sm sm:text-base min-h-[100px]"
                 />
               </div>
               <div>
-                <Label htmlFor="category" className="text-sm sm:text-base">Category *</Label>
+                <Label htmlFor="category" className="text-sm sm:text-base">{t('addProduct.category')}</Label>
                 <Select value={formData.category_id} onValueChange={(v) => handleChange('category_id', v)}>
                   <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base mt-1">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('addProduct.selectCategoryPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map(cat => (
@@ -360,14 +353,14 @@ export default function AddProduct() {
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="price" className="text-sm sm:text-base">Price *</Label>
+                  <Label htmlFor="price" className="text-sm sm:text-base">{t('addProduct.price')}</Label>
                   <Input
                     id="price"
                     type="number"
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => handleChange('price', e.target.value)}
-                    placeholder="Enter price"
+                    placeholder={t('addProduct.pricePlaceholder')}
                     className="text-sm sm:text-base min-h-[44px] sm:min-h-0 mt-1"
                   />
                 </div>

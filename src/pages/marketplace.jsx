@@ -31,8 +31,10 @@ import SearchHistory from '@/components/search/SearchHistory';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Marketplace() {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const { trackPageView } = useAnalytics();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -72,7 +74,7 @@ export default function Marketplace() {
         }
         
         // Use full static list of African countries for a consistent marketplace selector
-        setCountries(['All Countries', ...AFRICAN_COUNTRIES]);
+        setCountries([t('marketplace.allCountries'), ...AFRICAN_COUNTRIES]);
 
         // Apply country from URL (e.g. /marketplace?country=Nigeria or ?country=nigeria)
         const urlParam = searchParams.get('country');
@@ -88,7 +90,7 @@ export default function Marketplace() {
       } catch (error) {
         // Fallback to default categories
         setCategories(['All Categories', 'Agriculture', 'Textiles', 'Industrial', 'Beauty & Health']);
-        setCountries(['All Countries', ...AFRICAN_COUNTRIES]);
+        setCountries([t('marketplace.allCountries'), ...AFRICAN_COUNTRIES]);
       }
     };
     
@@ -164,7 +166,7 @@ export default function Marketplace() {
   };
 
   const saveCurrentSearch = () => {
-    const searchName = prompt('Name this search:');
+    const searchName = prompt(t('marketplace.nameThisSearch'));
     if (!searchName) return;
 
     const search = {
@@ -231,10 +233,10 @@ export default function Marketplace() {
       
       // Add companies to select
       query = query.select(`
-        *,
-        companies(*),
-        categories(*),
-        product_images(*)
+          *,
+          companies(*),
+          categories(*),
+          product_images(*)
       `);
       
       // Apply sorting
@@ -352,9 +354,9 @@ if (!Array.isArray(productsList)) return [];
       if (selectedFilters.verified && !product?.companies?.verified) return false;
       if (selectedFilters.fastResponse && !hasFastResponse(product?.companies)) return false;
       if (selectedFilters.readyToShip && !isReadyToShip(product)) return false;
-      
-      return true;
-    });
+    
+    return true;
+  });
   };
 
   const applyFilters = () => {
@@ -370,7 +372,7 @@ if (!Array.isArray(productsList)) return [];
     : '';
 
   const selectedCountryForSeo =
-    selectedFilters.country && selectedFilters.country !== 'All Countries'
+    selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries')
       ? selectedFilters.country
       : urlCountryName || '';
 
@@ -404,7 +406,7 @@ if (!Array.isArray(productsList)) return [];
               />
               {product.featured && (
                 <div className="absolute top-2 left-2">
-                  <Badge variant="primary" className="text-xs">⭐ Featured</Badge>
+                  <Badge variant="primary" className="text-xs">⭐ {t('marketplace.featured')}</Badge>
                 </div>
               )}
               {/* Supplier verification / trust badge */}
@@ -412,8 +414,8 @@ if (!Array.isArray(productsList)) return [];
                 <div className="absolute top-2 right-2">
                   <Badge className="text-[10px] sm:text-xs bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
                     <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Verified Supplier</span>
-                    <span className="sm:hidden">Verified</span>
+                    <span className="hidden sm:inline">{t('marketplace.verifiedSupplier')}</span>
+                    <span className="sm:hidden">{t('products.verified')}</span>
                   </Badge>
                 </div>
               )}
@@ -421,8 +423,8 @@ if (!Array.isArray(productsList)) return [];
                 <div className="absolute top-2 right-2">
                   <Badge className="text-[10px] sm:text-xs bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Pending Review</span>
-                    <span className="sm:hidden">Pending</span>
+                    <span className="hidden sm:inline">{t('marketplace.pendingReview')}</span>
+                    <span className="sm:hidden">{t('verification.pending')}</span>
                   </Badge>
                 </div>
               )}
@@ -453,7 +455,7 @@ if (!Array.isArray(productsList)) return [];
                     {product.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
                   </div>
                 ) : (
-                  <div className="text-sm text-afrikoni-deep/70">Price on request</div>
+                  <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
                 )}
               </div>
               
@@ -480,7 +482,7 @@ if (!Array.isArray(productsList)) return [];
                 >
                   <Link to={`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}`}>
                     <MessageSquare className="w-4 h-4 mr-1" />
-                    Contact
+                    {t('marketplace.contact')}
                   </Link>
                 </Button>
                 <Button 
@@ -491,7 +493,7 @@ if (!Array.isArray(productsList)) return [];
                 >
                   <Link to={`/dashboard/rfqs/new?product=${product.id}`}>
                     <FileText className="w-4 h-4 mr-1" />
-                    Quote
+                    {t('marketplace.quote')}
                   </Link>
                 </Button>
               </div>
@@ -530,7 +532,7 @@ if (!Array.isArray(productsList)) return [];
             <div className="flex-1 relative">
               <Search className="w-4 h-4 text-afrikoni-deep/70 absolute left-3 top-1/2 -translate-y-1/2 z-10" />
               <Input
-                placeholder="Search products, suppliers, or services..."
+                placeholder={t('marketplace.searchPlaceholder')}
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => {
@@ -578,17 +580,17 @@ if (!Array.isArray(productsList)) return [];
             {/* Quick Filter Chips */}
             <div className="hidden md:flex items-center gap-2 flex-wrap">
               <FilterChip
-                label="Verified Only"
+                label={t('marketplace.verifiedOnly')}
                 active={selectedFilters.verified}
                 onRemove={() => setSelectedFilters({ ...selectedFilters, verified: !selectedFilters.verified })}
               />
               <FilterChip
-                label="Fast Response"
+                label={t('marketplace.fastResponse')}
                 active={selectedFilters.fastResponse}
                 onRemove={() => setSelectedFilters({ ...selectedFilters, fastResponse: !selectedFilters.fastResponse })}
               />
               <FilterChip
-                label="Ready to Ship"
+                label={t('marketplace.readyToShip')}
                 active={selectedFilters.readyToShip}
                 onRemove={() => setSelectedFilters({ ...selectedFilters, readyToShip: !selectedFilters.readyToShip })}
               />
@@ -617,7 +619,7 @@ if (!Array.isArray(productsList)) return [];
               className="md:hidden"
             >
               <SlidersHorizontal className="w-4 h-4 mr-2" />
-              Filters
+              {t('marketplace.filters')}
             </Button>
           </div>
           
@@ -625,16 +627,16 @@ if (!Array.isArray(productsList)) return [];
           <div className="flex flex-col gap-2 md:gap-1">
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm">
               <div className="text-afrikoni-deep/80">
-                {selectedFilters.country && selectedFilters.country !== 'All Countries'
-                  ? <>You are viewing the <span className="font-semibold text-afrikoni-chestnut">{selectedFilters.country}</span> marketplace. Search results are limited to suppliers from this country.</>
-                  : <>You are viewing the <span className="font-semibold text-afrikoni-chestnut">All Africa</span> marketplace. Choose a country if you want results from one market only.</>}
+                {selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries')
+                  ? <>{t('marketplace.viewingCountry', { country: selectedFilters.country })}</>
+                  : <>{t('marketplace.viewingAllAfrica')}</>}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-afrikoni-deep/70 hidden sm:inline">Country marketplace:</span>
+                <span className="text-afrikoni-deep/70 hidden sm:inline">{t('marketplace.countryMarketplace')}</span>
                 <Select
-                  value={selectedFilters.country || 'All Countries'}
+                  value={selectedFilters.country || t('marketplace.allCountries')}
                   onValueChange={(value) => {
-                    const countryValue = value === 'All Countries' ? '' : value;
+                    const countryValue = value === t('marketplace.allCountries') ? '' : value;
                     setSelectedFilters({ ...selectedFilters, country: countryValue });
                   }}
                 >
@@ -644,7 +646,7 @@ if (!Array.isArray(productsList)) return [];
                   <SelectContent>
                     {Array.isArray(countries) && countries.map((country) => (
                       <SelectItem key={country} value={country}>
-                        {country === 'All Countries' ? 'All Africa' : country}
+                        {country === t('marketplace.allCountries') ? t('countries.title') : country}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -653,7 +655,7 @@ if (!Array.isArray(productsList)) return [];
             </div>
             {/* Quick access chips for popular markets so users don't scroll 54 countries */}
             <div className="flex flex-wrap items-center gap-2 text-[11px] md:text-xs text-afrikoni-deep/80">
-              <span className="font-semibold text-afrikoni-chestnut/80">Popular markets:</span>
+              <span className="font-semibold text-afrikoni-chestnut/80">{t('marketplace.popularMarkets')}:</span>
               <button
                 type="button"
                 onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
@@ -663,7 +665,7 @@ if (!Array.isArray(productsList)) return [];
                     : 'border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/10'
                 }`}
               >
-                All Africa
+                {t('marketplace.allAfrica')}
               </button>
               {POPULAR_COUNTRIES.map((country) => (
                 <button
@@ -691,7 +693,7 @@ if (!Array.isArray(productsList)) return [];
             <Card>
               <CardContent className="p-4 space-y-6">
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">Category</h3>
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.category')}</h3>
                   <div className="space-y-2">
                     {categories.map((cat) => (
                       <button
@@ -710,7 +712,7 @@ if (!Array.isArray(productsList)) return [];
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">Country</h3>
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.country')}</h3>
                   <div className="space-y-2">
                     {Array.isArray(countries) && countries.map((country) => (
                       <button
@@ -729,7 +731,7 @@ if (!Array.isArray(productsList)) return [];
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">Verification</h3>
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.verification')}</h3>
                   <div className="space-y-2">
                     {Array.isArray(verificationOptions) && verificationOptions.map((opt) => (
                       <button
@@ -749,17 +751,17 @@ if (!Array.isArray(productsList)) return [];
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">Price Range</h3>
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.priceRange')}</h3>
                   <div className="space-y-2">
                     <Input 
-                      placeholder="Min $" 
+                      placeholder={t('marketplace.minPrice')} 
                       type="number" 
                       className="text-sm"
                       value={priceMin}
                       onChange={(e) => setPriceMin(e.target.value)}
                     />
                     <Input 
-                      placeholder="Max $" 
+                      placeholder={t('marketplace.maxPrice')} 
                       type="number" 
                       className="text-sm"
                       value={priceMax}
@@ -769,10 +771,10 @@ if (!Array.isArray(productsList)) return [];
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">Minimum Order (MOQ)</h3>
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.minimumOrder')}</h3>
                   <div className="space-y-2">
                     <Input 
-                      placeholder="Min quantity" 
+                      placeholder={t('marketplace.minQuantity')} 
                       type="number" 
                       className="text-sm"
                       value={moqMin}
@@ -782,7 +784,7 @@ if (!Array.isArray(productsList)) return [];
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">Certifications</h3>
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.certifications')}</h3>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm text-afrikoni-deep">
                       <input 
@@ -796,7 +798,7 @@ if (!Array.isArray(productsList)) return [];
                           setSelectedFilters({ ...selectedFilters, certifications: certs });
                         }}
                       />
-                      <span>ISO Certified</span>
+                      <span>{t('marketplace.isoCertified')}</span>
                     </label>
                     <label className="flex items-center gap-2 text-sm text-afrikoni-deep">
                       <input 
@@ -810,13 +812,13 @@ if (!Array.isArray(productsList)) return [];
                           setSelectedFilters({ ...selectedFilters, certifications: certs });
                         }}
                       />
-                      <span>Trade Shield Eligible</span>
+                      <span>{t('marketplace.tradeShieldEligible')}</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">Lead Time</h3>
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.leadTime')}</h3>
                   <div className="space-y-2">
                     <button 
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -829,7 +831,7 @@ if (!Array.isArray(productsList)) return [];
                         deliveryTime: selectedFilters.deliveryTime === 'ready' ? '' : 'ready' 
                       })}
                     >
-                      Ready to Ship
+                      {t('marketplace.ready')}
                     </button>
                     <button 
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -842,7 +844,7 @@ if (!Array.isArray(productsList)) return [];
                         deliveryTime: selectedFilters.deliveryTime === '7days' ? '' : '7days' 
                       })}
                     >
-                      Within 7 days
+                      {t('marketplace.within7Days')}
                     </button>
                     <button 
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -855,7 +857,7 @@ if (!Array.isArray(productsList)) return [];
                         deliveryTime: selectedFilters.deliveryTime === '30days' ? '' : '30days' 
                       })}
                     >
-                      Within 30 days
+                      {t('marketplace.within30Days')}
                     </button>
                   </div>
                 </div>
@@ -865,7 +867,7 @@ if (!Array.isArray(productsList)) return [];
                   size="sm"
                   onClick={applyFilters}
                 >
-                  Apply Filters
+                  {t('marketplace.applyFilters')}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -890,7 +892,7 @@ if (!Array.isArray(productsList)) return [];
                     setSearchQuery('');
                   }}
                 >
-                  Clear All
+                  {t('marketplace.clearAll')}
                 </Button>
               </CardContent>
             </Card>
@@ -911,7 +913,7 @@ if (!Array.isArray(productsList)) return [];
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-afrikoni-chestnut flex items-center gap-2">
                       <Bookmark className="w-4 h-4" />
-                      Saved Searches
+                      {t('marketplace.savedSearches')}
                     </h3>
                   </div>
                   <div className="space-y-2">
@@ -952,7 +954,7 @@ if (!Array.isArray(productsList)) return [];
                     onClick={saveCurrentSearch}
                   >
                     <BookmarkCheck className="w-4 h-4 mr-2" />
-                    Save This Search
+                    {t('marketplace.saveThisSearch')}
                   </Button>
                 </CardContent>
               </Card>
@@ -964,11 +966,11 @@ if (!Array.isArray(productsList)) return [];
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
-                  Marketplace
+                  {t('marketplace.title')}
                 </h1>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <p className="text-sm text-afrikoni-deep">
-                    {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+                <p className="text-sm text-afrikoni-deep">
+                    {filteredProducts.length} {filteredProducts.length === 1 ? t('marketplace.productFound') : t('marketplace.productsFound')}
                   </p>
                   {/* Active Filters Display */}
                   {(selectedFilters.category || selectedFilters.country || selectedFilters.verification || 
@@ -976,17 +978,17 @@ if (!Array.isArray(productsList)) return [];
                     selectedFilters.deliveryTime || selectedFilters.verified || selectedFilters.fastResponse ||
                     selectedFilters.readyToShip || debouncedSearchQuery) && (
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-afrikoni-deep/70">Active filters:</span>
+                      <span className="text-xs text-afrikoni-deep/70">{t('marketplace.activeFilters')}</span>
                       {debouncedSearchQuery && (
                         <Badge variant="outline" className="text-xs">
-                          Search: "{debouncedSearchQuery}"
+                          {t('common.search')}: "{debouncedSearchQuery}"
                           <X 
                             className="w-3 h-3 ml-1 cursor-pointer" 
                             onClick={() => setSearchQuery('')}
                           />
                         </Badge>
                       )}
-                      {selectedFilters.category && selectedFilters.category !== 'All Categories' && (
+                      {selectedFilters.category && selectedFilters.category !== t('categories.all') && (
                         <Badge variant="outline" className="text-xs">
                           {selectedFilters.category}
                           <X 
@@ -995,7 +997,7 @@ if (!Array.isArray(productsList)) return [];
                           />
                         </Badge>
                       )}
-                      {selectedFilters.country && selectedFilters.country !== 'All Countries' && (
+                      {selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries') && (
                         <Badge variant="outline" className="text-xs">
                           {selectedFilters.country}
                           <X 
@@ -1006,7 +1008,7 @@ if (!Array.isArray(productsList)) return [];
                       )}
                       {selectedFilters.verified && (
                         <Badge variant="outline" className="text-xs">
-                          Verified
+                          {t('products.verified')}
                           <X 
                             className="w-3 h-3 ml-1 cursor-pointer" 
                             onClick={() => setSelectedFilters({ ...selectedFilters, verified: false })}
@@ -1027,7 +1029,7 @@ if (!Array.isArray(productsList)) return [];
                       )}
                       {moqMin && (
                         <Badge variant="outline" className="text-xs">
-                          MOQ: {moqMin}+
+                          {t('products.moq')}: {moqMin}+
                           <X 
                             className="w-3 h-3 ml-1 cursor-pointer" 
                             onClick={() => setMoqMin('')}
@@ -1040,7 +1042,7 @@ if (!Array.isArray(productsList)) return [];
               </div>
               <div className="flex items-center gap-3">
                 <AICopilotButton
-                  label="Best match for you"
+                  label={t('marketplace.bestMatchForYou')}
                   size="xs"
                   loading={aiBestMatchLoading}
                   onClick={async () => {
@@ -1079,21 +1081,21 @@ if (!Array.isArray(productsList)) return [];
                 />
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-40 md:w-48 border-afrikoni-gold/30">
-                    <SelectValue placeholder="Sort by..." />
+                    <SelectValue placeholder={t('marketplace.sortBy') + '...'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="relevance">Relevance</SelectItem>
-                    <SelectItem value="-created_at">Newest First</SelectItem>
-                    <SelectItem value="created_at">Oldest First</SelectItem>
-                    <SelectItem value="price_min">Price: Low to High</SelectItem>
-                    <SelectItem value="-price_min">Price: High to Low</SelectItem>
-                    <SelectItem value="-views">Most Popular</SelectItem>
-                    <SelectItem value="-rating">Highest Rated</SelectItem>
+                    <SelectItem value="relevance">{t('marketplace.mostPopular')}</SelectItem>
+                    <SelectItem value="-created_at">{t('marketplace.newest')}</SelectItem>
+                    <SelectItem value="created_at">{t('marketplace.oldest')}</SelectItem>
+                    <SelectItem value="price_min">{t('marketplace.priceLow')}</SelectItem>
+                    <SelectItem value="-price_min">{t('marketplace.priceHigh')}</SelectItem>
+                    <SelectItem value="-views">{t('marketplace.mostPopular')}</SelectItem>
+                    <SelectItem value="-rating">{t('marketplace.mostPopular')}</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="hidden md:flex items-center gap-2">
-                  <Button variant="ghost" size="sm">Grid</Button>
-                  <Button variant="ghost" size="sm">List</Button>
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" size="sm">{t('marketplace.grid')}</Button>
+                <Button variant="ghost" size="sm">{t('marketplace.list')}</Button>
                 </div>
               </div>
             </div>
@@ -1135,8 +1137,8 @@ if (!Array.isArray(productsList)) return [];
               <Card className="border-afrikoni-gold/20">
                 <CardContent className="p-12 text-center">
                   <Package className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No products found</h3>
-                  <p className="text-afrikoni-deep">Try adjusting your filters</p>
+                  <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">{t('marketplace.noProductsFound')}</h3>
+                  <p className="text-afrikoni-deep">{t('marketplace.tryDifferentSearch')}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -1164,7 +1166,7 @@ if (!Array.isArray(productsList)) return [];
         open={filtersOpen}
         onOpenChange={setFiltersOpen}
         position="bottom"
-        title="Filters"
+        title={t('marketplace.filters')}
       >
         <div className="space-y-6">
           {/* Same filter content as sidebar */}

@@ -16,8 +16,10 @@ import { validateNumeric, sanitizeString } from '@/utils/security';
 import { validateRFQForm } from '@/utils/validation';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import ShippingCalculator from '@/components/shipping/ShippingCalculator';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function CreateRFQ() {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,7 +83,7 @@ export default function CreateRFQ() {
 
   const handleGenerateRFQ = async () => {
     if (!formData.title && !formData.description) {
-      toast.error('Start by writing a simple sentence about what you need.');
+      toast.error(t('rfq.startWriting'));
       return;
     }
     setIsGenerating(true);
@@ -102,9 +104,9 @@ export default function CreateRFQ() {
         unit: result.unit || prev.unit,
         delivery_location: result.delivery_location || prev.delivery_location,
       }));
-      toast.success('Afrikoni AI structured your RFQ. Please review before sending.');
+      toast.success(t('rfq.aiStructured'));
     } catch (error) {
-      toast.error('Afrikoni AI could not generate the RFQ. Please try again.');
+      toast.error(t('rfq.aiError'));
     } finally {
       setIsGenerating(false);
     }
@@ -115,7 +117,7 @@ export default function CreateRFQ() {
     const validationErrors = validateRFQForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      toast.error('Please fix the errors before submitting');
+      toast.error(t('rfq.fixErrors'));
       return;
     }
     
@@ -180,13 +182,13 @@ export default function CreateRFQ() {
         // Notification failed, but RFQ was created
       }
 
-      toast.success('RFQ created successfully!');
+      toast.success(t('rfq.success'));
       setTimeout(() => {
         navigate(createPageUrl('BuyerDashboard'));
       }, 1000);
     } catch (error) {
       // Error logged (removed for production)
-      toast.error('Failed to create RFQ');
+      toast.error(t('rfq.error'));
     } finally {
       setIsLoading(false);
     }
@@ -196,9 +198,9 @@ export default function CreateRFQ() {
     <div className="min-h-screen bg-afrikoni-offwhite py-4 sm:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6">
         <div className="mb-2">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">Create Request for Quote</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">{t('rfq.createTitle')}</h1>
           <p className="text-base sm:text-lg text-afrikoni-deep">
-            Describe what you need and get competitive quotes from trusted African suppliers.
+            {t('rfq.createSubtitle')}
           </p>
         </div>
 

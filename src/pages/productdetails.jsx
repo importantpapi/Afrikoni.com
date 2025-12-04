@@ -27,8 +27,10 @@ import ProductVariants from '@/components/products/ProductVariants';
 import BulkPricingTiers from '@/components/products/BulkPricingTiers';
 import ShareProduct from '@/components/products/ShareProduct';
 import { Share2, GitCompare } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function ProductDetail() {
+  const { t } = useLanguage();
   const [product, setProduct] = useState(null);
   const [supplier, setSupplier] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -294,9 +296,9 @@ export default function ProductDetail() {
       <div className="min-h-screen bg-stone-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center gap-2 text-sm text-afrikoni-deep mb-6">
-          <Link to={createPageUrl('Home')} className="hover:text-amber-600">Home</Link>
+          <Link to={createPageUrl('Home')} className="hover:text-amber-600">{t('product.home')}</Link>
           <span>/</span>
-          <Link to={createPageUrl('Products')} className="hover:text-amber-600">Products</Link>
+          <Link to={createPageUrl('Products')} className="hover:text-amber-600">{t('product.products')}</Link>
           <span>/</span>
           <span className="text-afrikoni-chestnut">{product.title}</span>
         </div>
@@ -332,10 +334,10 @@ export default function ProductDetail() {
               <Tabs defaultValue="description">
                 <CardHeader className="border-b">
                   <TabsList className="w-full justify-start">
-                    <TabsTrigger value="description">Description</TabsTrigger>
-                    <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                    <TabsTrigger value="packaging">Packaging & Delivery</TabsTrigger>
-                    <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+                    <TabsTrigger value="description">{t('product.description')}</TabsTrigger>
+                    <TabsTrigger value="specifications">{t('product.specifications')}</TabsTrigger>
+                    <TabsTrigger value="packaging">{t('product.packaging')}</TabsTrigger>
+                    <TabsTrigger value="reviews">{t('product.reviews')} ({reviews.length})</TabsTrigger>
                   </TabsList>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -343,13 +345,13 @@ export default function ProductDetail() {
                     <div className="space-y-4">
                       <div className="flex flex-wrap gap-2 justify-between items-center">
                         <AICopilotButton
-                          label="Generate AI summary"
+                          label={t('product.generateAISummary')}
                           loading={aiSummaryLoading}
                           onClick={handleGenerateAISummary}
                           size="xs"
                         />
                         <AICopilotButton
-                          label="Rewrite description"
+                          label={t('product.rewriteDescription')}
                           loading={aiDescriptionLoading}
                           onClick={handleRewriteDescription}
                           size="xs"
@@ -358,7 +360,7 @@ export default function ProductDetail() {
                         />
                       </div>
                       {aiSummary && (
-                        <AISummaryBox title="AI Summary">
+                        <AISummaryBox title={t('product.aiSummary')}>
                           {aiSummary}
                         </AISummaryBox>
                       )}
@@ -380,21 +382,21 @@ export default function ProductDetail() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-afrikoni-deep/70">No specifications available</p>
+                      <p className="text-afrikoni-deep/70">{t('product.noSpecifications')}</p>
                     )}
                   </TabsContent>
                   <TabsContent value="packaging">
                     <div className="space-y-4">
                       {product.packaging_details && (
                         <div>
-                          <h4 className="font-semibold text-afrikoni-chestnut mb-2">Packaging Details</h4>
+                          <h4 className="font-semibold text-afrikoni-chestnut mb-2">{t('product.packagingDetails')}</h4>
                           <p className="text-afrikoni-deep whitespace-pre-wrap">{product.packaging_details}</p>
                         </div>
                       )}
                       
                       {(product.lead_time_min_days || product.lead_time_max_days) && (
                         <div>
-                          <h4 className="font-semibold text-afrikoni-chestnut mb-2">Lead Time</h4>
+                          <h4 className="font-semibold text-afrikoni-chestnut mb-2">{t('product.leadTime')}</h4>
                           <p className="text-afrikoni-deep">
                             {product.lead_time_min_days && product.lead_time_max_days
                               ? `${product.lead_time_min_days} - ${product.lead_time_max_days} days`
@@ -624,7 +626,7 @@ export default function ProductDetail() {
                     className="w-full bg-afrikoni-gold hover:bg-amber-700 touch-manipulation min-h-[44px]" 
                     size="lg"
                   >
-                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">Contact Supplier</span>
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">{t('product.contactSupplier')}</span>
                   </Button>
                   <Button 
                     onClick={handleCreateRFQ} 
@@ -632,7 +634,7 @@ export default function ProductDetail() {
                     className="w-full touch-manipulation min-h-[44px]" 
                     size="lg"
                   >
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">Request Quote</span>
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">{t('product.requestQuote')}</span>
                   </Button>
                   <AICopilotButton
                     label="Generate RFQ with AI"
@@ -701,7 +703,7 @@ export default function ProductDetail() {
       {/* Similar Products */}
       {similarProducts.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">Similar Products</h2>
+          <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">{t('product.similarProducts')}</h2>
           <div className="grid md:grid-cols-4 gap-6">
             {Array.isArray(similarProducts) && similarProducts.map(product => (
               product && (

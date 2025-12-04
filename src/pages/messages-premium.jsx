@@ -17,8 +17,10 @@ import { format } from 'date-fns';
 import { notifyNewMessage } from '@/services/notificationService';
 import VirtualList from '@/components/ui/VirtualList';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function MessagesPremium() {
+  const { t } = useLanguage();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -44,7 +46,7 @@ export default function MessagesPremium() {
         .single();
 
       if (!recipientCompany) {
-        toast.error('Recipient not found');
+        toast.error(t('messages.recipientNotFound'));
         return;
       }
 
@@ -54,7 +56,7 @@ export default function MessagesPremium() {
         .insert({
           buyer_company_id: companyId,
           seller_company_id: recipientCompanyId,
-          subject: 'New Conversation',
+          subject: t('messages.newConversation'),
           last_message: '',
           last_message_at: new Date().toISOString()
         })
@@ -67,7 +69,7 @@ export default function MessagesPremium() {
       // Reload conversations
       loadUserAndConversations();
     } catch (error) {
-      toast.error('Failed to create conversation');
+      toast.error(t('messages.createError'));
     }
   };
 
@@ -211,7 +213,7 @@ export default function MessagesPremium() {
 
       setConversations(formattedConversations);
     } catch (error) {
-      toast.error('Failed to load conversations');
+      toast.error(t('messages.loading'));
     } finally {
       setIsLoading(false);
     }
@@ -246,7 +248,7 @@ export default function MessagesPremium() {
         loadUserAndConversations();
       }
     } catch (error) {
-      toast.error('Failed to load messages');
+      toast.error(t('messages.loading'));
     }
   };
 
@@ -263,7 +265,7 @@ export default function MessagesPremium() {
 
   const handleGenerateAISuggestions = useCallback(async () => {
     if (!selectedConversation || !selectedConv) {
-      toast.error('Select a conversation first.');
+      toast.error(t('messages.selectConversation'));
       return;
     }
     setIsGeneratingSuggestion(true);
@@ -280,9 +282,9 @@ export default function MessagesPremium() {
       if (suggestions && suggestions.length > 0) {
         setAiDraft(suggestions[0]);
       }
-      toast.success('Afrikoni AI prepared a suggested message. You can edit it before sending.');
+      toast.success(t('messages.aiSuggestSuccess') || 'Afrikoni AI prepared a suggested message. You can edit it before sending.');
     } catch (error) {
-      toast.error('Afrikoni AI could not generate a suggestion. Please try again.');
+      toast.error(t('messages.aiSuggestError') || 'Afrikoni AI could not generate a suggestion. Please try again.');
     } finally {
       setIsGeneratingSuggestion(false);
     }
@@ -348,9 +350,9 @@ export default function MessagesPremium() {
       
       const uploadedFiles = await Promise.all(uploadPromises);
       setAttachments(prev => [...prev, ...uploadedFiles]);
-      toast.success(`${uploadedFiles.length} file(s) attached`);
+      toast.success(t('messages.filesAttached', { count: uploadedFiles.length }) || `${uploadedFiles.length} file(s) attached`);
     } catch (error) {
-      toast.error('Failed to upload file(s)');
+      toast.error(t('messages.uploadError') || 'Failed to upload file(s)');
       console.error('File upload error:', error);
     } finally {
       setUploadingFile(false);
@@ -389,7 +391,7 @@ export default function MessagesPremium() {
         : selectedConv.otherCompany?.id;
 
       if (!receiverCompanyId) {
-        toast.error('Cannot determine recipient');
+        toast.error(t('messages.recipientNotFound'));
         return;
       }
 
@@ -443,7 +445,7 @@ export default function MessagesPremium() {
       // Auto-focus input
       setTimeout(() => inputRef.current?.focus(), 100);
     } catch (error) {
-      toast.error('Failed to send message');
+      toast.error(t('messages.sendError'));
       console.error('Send message error:', error);
     }
   };
@@ -519,7 +521,7 @@ export default function MessagesPremium() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-deep/70" />
                   <Input
-                    placeholder="Search conversations..."
+                    placeholder={t('messages.searchConversations')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 text-sm md:text-base min-h-[44px] sm:min-h-0"
@@ -532,7 +534,7 @@ export default function MessagesPremium() {
                 {filteredConversations.length === 0 ? (
                   <div className="p-8 text-center text-afrikoni-deep/70">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 text-afrikoni-deep/50" />
-                    <p className="text-sm">No conversations found</p>
+                    <p className="text-sm">{t('messages.noConversations')}</p>
                     <p className="text-xs mt-2">Start a conversation from a product, RFQ, or order</p>
                   </div>
                 ) : (
@@ -708,7 +710,7 @@ export default function MessagesPremium() {
                       <Shield className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
                       <span className="font-semibold">Protected by Afrikoni Trade Protection</span>
                       <span className="hidden sm:inline text-afrikoni-deep/70">•</span>
-                      <span className="text-afrikoni-deep/70">Do not send money outside the platform</span>
+                      <span className="text-afrikoni-deep/70">{t('messages.safetyWarning') || 'Do not send money outside the platform'}</span>
                     </div>
                   </div>
 
@@ -966,7 +968,7 @@ export default function MessagesPremium() {
                         multiple
                         accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
                       />
-                      <Tooltip content="Attach files (images, PDFs, documents)">
+                      <Tooltip content={t('messages.attachFile')}>
                         <label htmlFor="file-upload">
                           <Button
                             variant="ghost"
@@ -991,7 +993,7 @@ export default function MessagesPremium() {
                           value={newMessage}
                           onChange={handleInputChange}
                           onKeyPress={handleKeyPress}
-                          placeholder="Type a message..."
+                          placeholder={t('messages.typeMessagePlaceholder')}
                           className="pr-10 md:pr-12 text-sm md:text-base min-h-[44px] md:min-h-0"
                         />
                       </div>
@@ -1003,7 +1005,7 @@ export default function MessagesPremium() {
                         className="flex-shrink-0 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 touch-manipulation"
                       >
                         <Send className="w-4 h-4 md:mr-2" />
-                        <span className="hidden md:inline">Send</span>
+                        <span className="hidden md:inline">{t('messages.send')}</span>
                       </Button>
                     </div>
                     <p className="text-xs text-afrikoni-deep/70 mt-2 text-center hidden sm:block">

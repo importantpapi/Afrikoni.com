@@ -12,9 +12,11 @@ import { User, Mail, Lock, Shield, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 
 export default function Signup() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -27,17 +29,17 @@ export default function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!formData.fullName || !formData.email || !formData.password) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('signup.fillRequired'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error(t('signup.passwordMismatch'));
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(t('signup.passwordMinLength'));
       return;
     }
 
@@ -70,15 +72,15 @@ export default function Signup() {
           // Don't fail signup if profile creation fails - user can still proceed
         }
 
-        toast.success('Account created successfully!');
+        toast.success(t('signup.success'));
         navigate('/onboarding');
       } else {
-        toast.success('Please check your email to confirm your account');
+        toast.success(t('signup.checkEmail'));
         navigate('/login');
       }
     } catch (error) {
       // Error logged (removed for production)
-      toast.error(error.message || 'Failed to create account');
+      toast.error(error.message || t('signup.error'));
     } finally {
       setIsLoading(false);
     }
@@ -98,26 +100,26 @@ export default function Signup() {
               <div className="flex justify-center mb-6">
                 <Logo type="full" size="lg" link={true} showTagline={true} />
               </div>
-              <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Join Afrikoni</h1>
-              <p className="text-afrikoni-deep">Create your account to start trading across Africa</p>
+              <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">{t('signup.joinAfrikoni')}</h1>
+              <p className="text-afrikoni-deep">{t('signup.subtitle')}</p>
             </div>
 
 
             {/* Trust Badges */}
             <div className="flex items-center justify-center gap-4 mb-6 text-xs text-afrikoni-deep/70">
-              <div className="flex items-center gap-1">
-                <Shield className="w-4 h-4 text-green-600" />
-                <span>SSL Secured</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-4 h-4 text-blue-600" />
-                <span>Trusted by 50,000+</span>
-              </div>
+                <div className="flex items-center gap-1">
+                  <Shield className="w-4 h-4 text-green-600" />
+                  <span>{t('login.sslSecured')}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4 text-blue-600" />
+                  <span>{t('login.trusted')}</span>
+                </div>
             </div>
 
           <form onSubmit={handleSignup} className="space-y-5">
             <div>
-              <Label htmlFor="fullName" className="mb-2 block font-semibold">Full Name *</Label>
+              <Label htmlFor="fullName" className="mb-2 block font-semibold">{t('signup.fullName')}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                 <Input
@@ -125,7 +127,7 @@ export default function Signup() {
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                  placeholder="Enter your full name"
+                  placeholder={t('signup.fullNamePlaceholder')}
                   className="pl-10"
                   required
                 />
@@ -133,7 +135,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <Label htmlFor="email" className="mb-2 block font-semibold">Email *</Label>
+              <Label htmlFor="email" className="mb-2 block font-semibold">{t('signup.email')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                 <Input
@@ -141,7 +143,7 @@ export default function Signup() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="your@business.com"
+                  placeholder={t('signup.emailPlaceholder')}
                   className="pl-10"
                   required
                 />
@@ -149,7 +151,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <Label htmlFor="password" className="mb-2 block font-semibold">Password *</Label>
+              <Label htmlFor="password" className="mb-2 block font-semibold">{t('signup.password')}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                 <Input
@@ -157,7 +159,7 @@ export default function Signup() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  placeholder="Create a password (min. 6 characters)"
+                  placeholder={t('signup.passwordPlaceholder')}
                   className="pl-10"
                   required
                 />
@@ -165,7 +167,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <Label htmlFor="confirmPassword" className="mb-2 block font-semibold">Confirm Password *</Label>
+              <Label htmlFor="confirmPassword" className="mb-2 block font-semibold">{t('signup.confirmPassword')}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                 <Input
@@ -173,7 +175,7 @@ export default function Signup() {
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  placeholder="Confirm your password"
+                  placeholder={t('signup.confirmPasswordPlaceholder')}
                   className="pl-10"
                   required
                 />
@@ -189,19 +191,19 @@ export default function Signup() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Account...
+                  {t('signup.creatingAccount')}
                 </>
               ) : (
-                'Create Account'
+                t('signup.createAccount')
               )}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm">
             <p className="text-afrikoni-deep">
-              Already have an account?{' '}
+              {t('signup.alreadyHaveAccount')}{' '}
               <a href={createPageUrl('Login')} className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold">
-                Sign in
+                {t('signup.signIn')}
               </a>
             </p>
           </div>

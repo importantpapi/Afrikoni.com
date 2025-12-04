@@ -12,8 +12,10 @@ import { Mail, Lock, Loader2, Shield, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Login() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +26,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error('Please fill in all fields');
+      toast.error(t('login.fillFields'));
       return;
     }
 
@@ -33,7 +35,7 @@ export default function Login() {
       const { data, error } = await supabaseHelpers.auth.signIn(email, password);
       if (error) throw error;
 
-      toast.success('Logged in successfully!');
+      toast.success(t('login.success'));
       
       // Check onboarding status and redirect accordingly
       const { onboardingCompleted, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
@@ -47,7 +49,7 @@ export default function Login() {
       }
     } catch (error) {
       // Error logged (removed for production)
-      toast.error(error.message || 'Failed to login');
+      toast.error(error.message || t('login.error'));
     } finally {
       setIsLoading(false);
     }
@@ -67,13 +69,13 @@ export default function Login() {
               <div className="flex justify-center mb-6">
                 <Logo type="full" size="lg" link={true} showTagline={true} />
               </div>
-              <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Welcome back</h1>
-              <p className="text-afrikoni-deep">Sign in to continue your African trade journey</p>
+              <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">{t('login.welcomeBack')}</h1>
+              <p className="text-afrikoni-deep">{t('login.subtitle')}</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <Label htmlFor="email" className="mb-2 block font-semibold text-afrikoni-chestnut">Email</Label>
+                <Label htmlFor="email" className="mb-2 block font-semibold text-afrikoni-chestnut">{t('login.email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                   <Input
@@ -81,7 +83,7 @@ export default function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@business.com"
+                    placeholder={t('login.emailPlaceholder')}
                     className="pl-10"
                     required
                   />
@@ -89,7 +91,7 @@ export default function Login() {
               </div>
 
               <div>
-                <Label htmlFor="password" className="mb-2 block font-semibold text-afrikoni-chestnut">Password</Label>
+                <Label htmlFor="password" className="mb-2 block font-semibold text-afrikoni-chestnut">{t('login.password')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                   <Input
@@ -97,14 +99,14 @@ export default function Login() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t('login.passwordPlaceholder')}
                     className="pl-10"
                     required
                   />
                 </div>
                 <div className="mt-2 text-right">
                   <Link to="#" className="text-sm text-afrikoni-gold hover:text-afrikoni-goldDark font-medium">
-                    Forgot password?
+                    {t('login.forgotPassword')}
                   </Link>
                 </div>
               </div>
@@ -118,21 +120,21 @@ export default function Login() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing In...
+                    {t('login.signingIn')}
                   </>
                 ) : (
-                  'Sign In'
+                  t('login.signIn')
                 )}
               </Button>
             </form>
 
             {/* Quick Role Hints */}
             <div className="mt-6 pt-6 border-t border-afrikoni-gold/20">
-              <p className="text-xs text-afrikoni-deep/70 text-center mb-3">Continue as:</p>
+              <p className="text-xs text-afrikoni-deep/70 text-center mb-3">{t('login.continueAs')}</p>
               <div className="flex gap-2 justify-center">
-                <Badge variant="outline" className="text-xs">Buyer</Badge>
-                <Badge variant="outline" className="text-xs">Seller</Badge>
-                <Badge variant="outline" className="text-xs">Logistics</Badge>
+                <Badge variant="outline" className="text-xs">{t('login.buyer')}</Badge>
+                <Badge variant="outline" className="text-xs">{t('login.seller')}</Badge>
+                <Badge variant="outline" className="text-xs">{t('login.logistics')}</Badge>
               </div>
             </div>
 
@@ -141,20 +143,20 @@ export default function Login() {
               <div className="flex items-center justify-center gap-4 text-xs text-afrikoni-deep/70">
                 <div className="flex items-center gap-1">
                   <Shield className="w-4 h-4 text-green-600" />
-                  <span>SSL Secured</span>
+                  <span>{t('login.sslSecured')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-blue-600" />
-                  <span>Trusted by 50,000+</span>
+                  <span>{t('login.trusted')}</span>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 text-center text-sm">
               <p className="text-afrikoni-deep">
-                Don't have an account?{' '}
+                {t('login.dontHaveAccount')}{' '}
                 <Link to={createPageUrl('Signup')} className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold">
-                  Create account
+                  {t('login.createAccount')}
                 </Link>
               </p>
             </div>
