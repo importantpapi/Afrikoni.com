@@ -205,6 +205,16 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {menuItems.map((item, idx) => {
+              if (!item.path) {
+                console.warn('Menu item missing path:', item);
+                return null;
+              }
+
+              if (!item.icon) {
+                console.warn('Menu item missing icon:', item);
+                return null;
+              }
+
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
                                (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products')) ||
@@ -213,14 +223,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               // Check if this is a section header (Risk & Compliance)
               const isSection = item.isSection;
               
-              if (!item.path) {
-                console.warn('Menu item missing path:', item);
-                return null;
-              }
-
               return (
                 <motion.div
-                  key={idx}
+                  key={`${item.path}-${idx}`}
                   whileHover={{ x: 2 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -253,8 +258,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                         transition={{ type: "spring", stiffness: 500, damping: 30 }}
                       />
                     )}
-                    <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />
-                    <span className="flex-1">{item.label}</span>
+                    {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />}
+                    <span className="flex-1">{item.label || 'Menu Item'}</span>
                     {isActive && <ChevronRight className="w-4 h-4 text-white" />}
                   </Link>
                   
