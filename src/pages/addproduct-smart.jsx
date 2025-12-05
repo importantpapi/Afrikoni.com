@@ -984,10 +984,17 @@ export default function AddProductSmart() {
                         value={formData.category_id || ''} 
                         onValueChange={(v) => {
                           // Allow clearing selection (empty string) or selecting a category
-                          handleChange('category_id', v === '' ? '' : v);
+                          const categoryValue = v === '' ? '' : v;
+                          handleChange('category_id', categoryValue);
                           setCategorySearch('');
                           if (v && v !== '') {
-                            toast.success('Category selected');
+                            const selectedCat = categories.find(c => String(c.id) === v);
+                            if (selectedCat) {
+                              toast.success(`Category selected: ${selectedCat.name}`, { duration: 2000 });
+                            }
+                          } else if (v === '') {
+                            // User explicitly chose "No Category"
+                            toast.info('No category selected - you can still publish', { duration: 2000 });
                           }
                         }}
                       >
