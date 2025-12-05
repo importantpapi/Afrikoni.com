@@ -80,7 +80,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
   }, [currentRole, navigate]);
 
   const AcademyLesson = ({ title, description, link }) => (
-    <Link to={link}>
+    <Link to={link} className="block h-full">
       <div className="group cursor-pointer p-3 rounded-lg border border-afrikoni-gold/20 bg-white/80 hover:border-afrikoni-gold/60 hover:shadow-premium-lg transition-all h-full">
         <p className="text-xs font-semibold text-afrikoni-text-dark mb-1 group-hover:text-afrikoni-gold">
           {title}

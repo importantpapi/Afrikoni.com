@@ -478,12 +478,44 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             <div className="text-xs text-afrikoni-text-dark/70 capitalize">{userRole}</div>
                           </div>
                           <Link 
+                            to="/dashboard" 
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            {t('dashboard.title') || 'Dashboard'}
+                          </Link>
+                          <Link 
                             to="/dashboard/settings" 
                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <User className="w-4 h-4" />
-                            {t('dashboard.profile') || 'Profile & Settings'}
+                            {t('common.view') || 'View'} Profile
+                          </Link>
+                          <Link 
+                            to="/messages" 
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                            {t('messages.title') || 'Messages'}
+                          </Link>
+                          <Link 
+                            to="/dashboard/orders" 
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <Package className="w-4 h-4" />
+                            {t('dashboard.orders') || 'Orders'}
+                          </Link>
+                          <Link 
+                            to="/dashboard/rfqs" 
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <FileText className="w-4 h-4" />
+                            {t('nav.rfq') || 'RFQ'}
                           </Link>
                           <Link 
                             to="/verification-center" 
@@ -491,7 +523,15 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Shield className="w-4 h-4" />
-                            {t('verification.title')}
+                            {t('verification.title') || 'Verification'}
+                          </Link>
+                          <Link 
+                            to="/dashboard/settings" 
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <Settings className="w-4 h-4" />
+                            {t('dashboard.settings') || 'Settings'}
                           </Link>
                           {isUserAdmin && (
                             <>
