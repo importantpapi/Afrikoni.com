@@ -591,11 +591,13 @@ export default function AddProductSmart() {
         return;
       }
 
-      // Handle category - auto-assign default if missing, but allow null if no categories exist
+      // Handle category - completely optional, allow null
       let finalCategoryId = formData.category_id || null;
       
-      if (!finalCategoryId) {
-        // Try to auto-assign default category
+      // Only try to auto-assign if user hasn't explicitly chosen "None"
+      // If category_id is empty string, user chose "None" - respect that
+      if (!finalCategoryId && formData.category_id !== '') {
+        // Try to auto-assign default category (silently, no toast)
         finalCategoryId = await ensureCategory();
         
         // If still no category and we have a suggestion, create it
@@ -612,19 +614,15 @@ export default function AddProductSmart() {
             
             if (!catError && newCategory) {
               finalCategoryId = newCategory.id;
-              toast.success(`Category "${formData.suggested_category}" created!`);
+              // Silent - don't interrupt user flow
             }
           } catch (catErr) {
             // Silent fail - continue without category
           }
         }
-        
-        // Last resort: use first available category (only if categories exist)
-        if (!finalCategoryId && categories.length > 0) {
-          finalCategoryId = categories[0].id;
-          toast.info(`Auto-assigned category: ${categories[0].name}`);
-        }
       }
+      
+      // If still no category, that's fine - category_id will be null
 
       // Create product - category_id can be null if no categories exist
       const { data: newProduct, error } = await supabase.from('products').insert({
