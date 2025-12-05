@@ -469,46 +469,42 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               </Link>
 
               {/* User Menu */}
-              <div className="relative">
+              <div className="relative" onMouseLeave={() => setUserMenuOpen(false)}>
                 <button
                   onClick={(e) => {
-                    try {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setUserMenuOpen(!userMenuOpen);
-                    } catch (error) {
-                      console.error('Error toggling user menu:', error);
-                      toast.error('Error opening menu. Please try again.');
-                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setUserMenuOpen(prev => !prev);
                   }}
-                  className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all"
+                  className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all cursor-pointer"
                   type="button"
+                  aria-label="User menu"
+                  aria-expanded={userMenuOpen}
                 >
                   <div className="w-8 h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-charcoal font-bold text-sm shadow-afrikoni">
-                    {(user?.email || profile?.email || user?.user_email)?.charAt(0)?.toUpperCase() || 'U'}
+                    {(() => {
+                      const email = user?.email || profile?.email || user?.user_email;
+                      return email?.charAt(0)?.toUpperCase() || 'U';
+                    })()}
                   </div>
                   <ChevronDown className={`w-4 h-4 text-afrikoni-text-dark transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                <AnimatePresence>
-                  {userMenuOpen && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => {
-                          try {
-                            setUserMenuOpen(false);
-                          } catch (error) {
-                            console.error('Error closing user menu:', error);
-                          }
-                        }}
-                      />
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute right-0 mt-2 w-56 bg-white border border-afrikoni-gold/20 rounded-afrikoni shadow-premium-lg z-[100]"
-                      >
+                {userMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setUserMenuOpen(false)}
+                      onTouchStart={() => setUserMenuOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-56 bg-white border border-afrikoni-gold/20 rounded-afrikoni shadow-premium-lg z-[100]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-afrikoni-gold/20">
                             <div className="font-semibold text-afrikoni-text-dark text-sm">
@@ -627,10 +623,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             {t('auth.logout') || 'Logout'}
                           </button>
                         </div>
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
+                    </motion.div>
+                  </>
+                )}
               </div>
             </div>
           </div>
