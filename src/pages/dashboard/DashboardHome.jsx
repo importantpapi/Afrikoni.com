@@ -250,44 +250,6 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
     }
   };
 
-  const getDefaultKPIs = (role) => {
-    // v2.5: Brand-consistent colors
-    return [
-      {
-        icon: ShoppingCart,
-        label: t('dashboard.totalOrders') || 'Total Orders',
-        value: '0',
-        change: null,
-        color: 'bg-afrikoni-gold/15 text-afrikoni-gold',
-        iconBg: 'bg-afrikoni-gold/20'
-      },
-      {
-        icon: FileText,
-        label: t('dashboard.totalRFQs') || 'Total RFQs',
-        value: '0',
-        change: null,
-        color: 'bg-afrikoni-purple/15 text-afrikoni-purple',
-        iconBg: 'bg-afrikoni-purple/20'
-      },
-      {
-        icon: Package,
-        label: t('dashboard.products') || 'Products',
-        value: '0',
-        change: null,
-        color: 'bg-afrikoni-green/15 text-afrikoni-green',
-        iconBg: 'bg-afrikoni-green/20'
-      },
-      {
-        icon: MessageSquare,
-        label: t('dashboard.unreadMessages') || 'Unread Messages',
-        value: '0',
-        change: null,
-        color: 'bg-afrikoni-red/15 text-afrikoni-red',
-        iconBg: 'bg-afrikoni-red/20'
-      }
-    ];
-  };
-
   const loadChartData = async (role, cid) => {
     try {
       if (!cid) {
