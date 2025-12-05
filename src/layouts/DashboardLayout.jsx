@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ShoppingCart, Truck, FileText, MessageSquare,
   BarChart3, Wallet, Shield, Settings, HelpCircle, Bell, Search, ChevronDown,
-  User, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
+  User, Users, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
   AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
