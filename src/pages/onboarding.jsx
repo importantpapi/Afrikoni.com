@@ -183,14 +183,15 @@ export default function Onboarding() {
 
       toast.success('Onboarding completed! Welcome to Afrikoni.');
       
-      // Get dashboard path based on selected role
+      // Get dashboard path based on selected role - go directly to dashboard
       const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
       const normalizedRole = selectedRole || 'buyer';
       const dashboardPath = getDashboardPathForRole(normalizedRole);
       
       // For hybrid users, go to unified dashboard
-      const finalPath = normalizedRole === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
+      const finalPath = normalizedRole === 'hybrid' ? '/dashboard' : dashboardPath;
       
+      // Navigate directly to dashboard - no more "Join Afrikoni" screen
       navigate(finalPath, { replace: true });
     } catch (error) {
       // Error logged (removed for production)

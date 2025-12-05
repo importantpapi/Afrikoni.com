@@ -21,8 +21,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Sparkles, Image, DollarSign, Truck, Shield, CheckCircle, 
-  ArrowLeft, ArrowRight, Save, Loader2, Lightbulb, FileText
+  Sparkles, Image as ImageIcon, DollarSign, Truck, Shield, CheckCircle, 
+  ArrowLeft, ArrowRight, Save, Loader2, Lightbulb, FileText,
+  Search, Copy, Tag, ChevronRight, Home
 } from 'lucide-react';
 import SmartImageUploader from '@/components/products/SmartImageUploader';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
@@ -74,8 +75,12 @@ export default function AddProductSmart() {
     shipping_options: [],
     certifications: [],
     compliance_notes: '',
+    tags: [], // Product tags for search
     status: 'draft'
   });
+  
+  const [categorySearch, setCategorySearch] = useState('');
+  const [previousProducts, setPreviousProducts] = useState([]);
 
   const [errors, setErrors] = useState({});
 
@@ -101,7 +106,7 @@ export default function AddProductSmart() {
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
       const [userResult, catsRes] = await Promise.all([
         getCurrentUserAndRole(supabase, supabaseHelpers),
-        supabase.from('categories').select('*')
+        supabase.from('categories').select('*').order('name')
       ]);
 
       if (catsRes.error) throw catsRes.error;
@@ -114,21 +119,27 @@ export default function AddProductSmart() {
       const companyId = await getOrCreateCompany(supabase, userData);
       
       if (companyId) {
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', companyId)
-          .maybeSingle();
-        if (companyData) {
-          setCompany(companyData);
+        const [companyRes, productsRes] = await Promise.all([
+          supabase.from('companies').select('*').eq('id', companyId).maybeSingle(),
+          supabase.from('products').select('id, title, category_id, price, currency, country_of_origin').eq('company_id', companyId).order('created_at', { ascending: false }).limit(10)
+        ]);
+        
+        if (companyRes.data) {
+          setCompany(companyRes.data);
+          // Preload business info
           setFormData(prev => ({
             ...prev,
-            country_of_origin: companyData.country || prev.country_of_origin
+            country_of_origin: companyRes.data.country || prev.country_of_origin,
+            currency: prev.currency || 'USD'
           }));
+        }
+        
+        if (productsRes.data) {
+          setPreviousProducts(productsRes.data || []);
         }
       }
     } catch (error) {
-      console.error('Load data error:', error);
+      // Error logged (removed for production)
       supabaseHelpers.auth.redirectToLogin();
     }
   };
@@ -294,71 +305,50 @@ export default function AddProductSmart() {
     }
   };
 
-  // AI: Auto-analyze first image and suggest category, title, tags, attributes
+  // AI: Auto-analyze first image and suggest title, description (NO FORCED CATEGORY)
   const analyzeFirstImage = async (imageData) => {
-    if (!imageData?.url || categories.length === 0) return;
+    if (!imageData?.url) return;
 
     try {
       setIsGenerating(true);
       
-      // Show prominent AI analysis notification
-      toast.info('🤖 AI is analyzing your image...', {
-        duration: 2000,
-        description: 'This will suggest category, title, and description'
-      });
-      
-      // Call AI service to analyze image
-      // In production, this would use an image recognition API (e.g., OpenAI Vision, Google Vision)
-      // For now, we'll use a smart placeholder that can be enhanced
-      
-      // Simulate AI analysis (replace with actual API call)
-      const imageUrl = imageData.url;
-      
-      // Placeholder: In production, call your AI service here
-      // const aiResult = await fetch('/api/analyze-image', { method: 'POST', body: JSON.stringify({ imageUrl }) });
-      
-      // For now, generate suggestions based on existing data
+      // Only analyze if user wants suggestions (non-blocking)
       const selectedCategory = categories.find(c => c.id === formData.category_id);
       
-      // Auto-generate product description if we have category
-      if (selectedCategory && !formData.description) {
+      // Auto-generate product description if we have category OR title
+      if ((selectedCategory || formData.title) && !formData.description) {
         const result = await AIDescriptionService.generateProductDescription({
-          title: formData.title || `Premium ${selectedCategory.name}`,
-          category: selectedCategory.name,
+          title: formData.title || `Premium Product`,
+          category: selectedCategory?.name,
           country: formData.country_of_origin || company?.country
         });
 
         if (result) {
           setFormData(prev => ({
             ...prev,
-            title: prev.title || result.optimized_title || `Premium ${selectedCategory.name}`,
-            description: result.full_description || prev.description,
-            category_id: prev.category_id || selectedCategory.id
+            title: prev.title || result.optimized_title || prev.title,
+            description: result.full_description || prev.description
           }));
           
-          toast.success('✨ AI analyzed your image and generated suggestions!', {
-            duration: 4000,
-            description: 'Check Step 1 to see the AI-generated title, category, and description'
+          toast.success('✨ AI generated description suggestions!', {
+            duration: 3000
           });
         }
-      } else if (!formData.category_id && categories.length > 0) {
-        // If no category selected, suggest most popular categories
-        toast.info('💡 Upload your first image to get AI-powered category suggestions', {
-          duration: 3000
-        });
       }
     } catch (error) {
-      console.error('Image analysis error:', error);
-      toast.error('AI analysis failed. You can continue manually.');
+      // Silent fail - don't interrupt user flow
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Handle first image upload - trigger AI analysis
+  // Handle first image upload - optional AI analysis (non-blocking)
   const handleFirstImageUpload = useCallback(async (imageData) => {
-    await analyzeFirstImage(imageData);
-  }, [categories, company]);
+    // Only analyze if user has title or category - no forced prompts
+    if (formData.title || formData.category_id) {
+      await analyzeFirstImage(imageData);
+    }
+  }, [formData.title, formData.category_id, categories, company]);
 
   // KoniAI: Improve existing product listing
   const handleKoniAIImprove = async () => {
@@ -482,20 +472,22 @@ export default function AddProductSmart() {
     }
   };
 
-  // Validate current step
+  // Validate current step - make secondary fields optional
   const validateStep = (step) => {
     const newErrors = {};
 
     if (step === 1) {
       if (!formData.title?.trim()) newErrors.title = 'Product title is required';
-      // Category is valid if we have category_id OR suggested_category
-      if (!formData.category_id && !formData.suggested_category) {
-        newErrors.category_id = 'Category is required. Enter a title and AI will suggest one, or select manually.';
+      // Category is optional - auto-assign default if missing
+      // No error, just auto-assign "General" or first category if available
+      if (!formData.description?.trim()) {
+        // Description is optional but recommended
+        // Only show warning, not error
       }
-      if (!formData.description?.trim()) newErrors.description = 'Description is required';
     }
 
     if (step === 2) {
+      // Images are required for publishing
       if (formData.images.length === 0) {
         newErrors.images = 'At least one image is required before publishing';
       }
@@ -510,14 +502,25 @@ export default function AddProductSmart() {
       }
     }
 
-    if (step === 4) {
-      if (!formData.delivery_time?.trim()) {
-        newErrors.delivery_time = 'Delivery time is required';
-      }
-    }
+    // Step 4 (delivery_time) is now optional - removed from validation
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+  
+  // Auto-assign default category if missing
+  const ensureCategory = async () => {
+    if (formData.category_id || formData.suggested_category) return formData.category_id || null;
+    
+    // Auto-assign first category or "General" if available
+    if (categories.length > 0) {
+      const defaultCategory = categories.find(c => c.name.toLowerCase().includes('general')) || categories[0];
+      if (defaultCategory) {
+        setFormData(prev => ({ ...prev, category_id: defaultCategory.id }));
+        return defaultCategory.id;
+      }
+    }
+    return null;
   };
 
   // Navigation
@@ -571,34 +574,35 @@ export default function AddProductSmart() {
         return;
       }
 
-      // Handle category - create if suggested, or use existing
+      // Handle category - auto-assign default if missing
       let finalCategoryId = formData.category_id;
       
-      if (!finalCategoryId && formData.suggested_category) {
-        // Create the suggested category
-        const { data: newCategory, error: catError } = await supabase
-          .from('categories')
-          .insert({
-            name: formData.suggested_category,
-            description: `Category for ${formData.title}`
-          })
-          .select('id')
-          .single();
-        
-        if (!catError && newCategory) {
-          finalCategoryId = newCategory.id;
-          toast.success(`Category "${formData.suggested_category}" created!`);
-        } else {
-          toast.error('Failed to create category. Please select an existing category.');
-          setIsLoading(false);
-          return;
-        }
-      }
-
       if (!finalCategoryId) {
-        toast.error('Category is required');
-        setIsLoading(false);
-        return;
+        // Try to auto-assign default category
+        finalCategoryId = await ensureCategory();
+        
+        // If still no category and we have a suggestion, create it
+        if (!finalCategoryId && formData.suggested_category) {
+          const { data: newCategory, error: catError } = await supabase
+            .from('categories')
+            .insert({
+              name: formData.suggested_category,
+              description: `Category for ${formData.title}`
+            })
+            .select('id')
+            .single();
+          
+          if (!catError && newCategory) {
+            finalCategoryId = newCategory.id;
+            toast.success(`Category "${formData.suggested_category}" created!`);
+          }
+        }
+        
+        // Last resort: use first available category
+        if (!finalCategoryId && categories.length > 0) {
+          finalCategoryId = categories[0].id;
+          toast.info(`Auto-assigned category: ${categories[0].name}`);
+        }
       }
 
       // Create product
@@ -663,17 +667,111 @@ export default function AddProductSmart() {
   const progress = (currentStep / STEPS.length) * 100;
   const CurrentStepIcon = STEPS[currentStep - 1]?.icon || FileText;
 
+  // Duplicate previous product
+  const handleDuplicateProduct = async (productId) => {
+    try {
+      const { data: product, error } = await supabase
+        .from('products')
+        .select('*, product_images(*)')
+        .eq('id', productId)
+        .single();
+      
+      if (error || !product) {
+        toast.error('Failed to load product');
+        return;
+      }
+      
+      // Load product images
+      const productImages = (product.product_images || []).map(img => ({
+        url: img.url,
+        is_primary: img.is_primary,
+        sort_order: img.sort_order
+      }));
+      
+      setFormData({
+        title: `${product.title} (Copy)`,
+        description: product.description || '',
+        category_id: product.category_id || '',
+        images: productImages.length > 0 ? productImages : (Array.isArray(product.images) ? product.images.map(url => ({ url })) : []),
+        price: product.price?.toString() || '',
+        moq: product.moq?.toString() || '1',
+        unit: product.unit || 'pieces',
+        delivery_time: product.delivery_time || '',
+        packaging: product.packaging || '',
+        currency: product.currency || 'USD',
+        country_of_origin: product.country_of_origin || company?.country || '',
+        shipping_options: [],
+        certifications: [],
+        compliance_notes: '',
+        tags: [],
+        status: 'draft'
+      });
+      
+      toast.success('Product duplicated! Review and edit as needed.');
+      setCurrentStep(1);
+    } catch (error) {
+      toast.error('Failed to duplicate product');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-afrikoni-offwhite py-4 sm:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        {/* Breadcrumb Navigation */}
+        <nav className="mb-6 flex items-center gap-2 text-sm text-afrikoni-deep/70">
+          <button onClick={() => navigate('/dashboard')} className="hover:text-afrikoni-gold flex items-center gap-1">
+            <Home className="w-4 h-4" />
+            Dashboard
+          </button>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-afrikoni-deep">Add Product</span>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-afrikoni-chestnut font-medium">
+            {STEPS[currentStep - 1]?.name}
+          </span>
+        </nav>
+        
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">
-            Add New Product
-          </h1>
-          <p className="text-afrikoni-deep">
-            Step {currentStep} of {STEPS.length} — {STEPS[currentStep - 1]?.name}
-          </p>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">
+                Add New Product
+              </h1>
+              <p className="text-afrikoni-deep">
+                Step {currentStep} of {STEPS.length} — {STEPS[currentStep - 1]?.name}
+              </p>
+            </div>
+            {previousProducts.length > 0 && (
+              <div className="relative group">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  Duplicate Previous
+                </Button>
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-afrikoni-gold/30 rounded-lg shadow-lg p-2 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  <div className="max-h-60 overflow-y-auto space-y-1">
+                    {previousProducts.slice(0, 5).map(product => (
+                      <button
+                        key={product.id}
+                        onClick={() => handleDuplicateProduct(product.id)}
+                        className="w-full text-left px-3 py-2 hover:bg-afrikoni-gold/10 rounded text-sm"
+                      >
+                        <div className="font-medium truncate">{product.title}</div>
+                        <div className="text-xs text-afrikoni-deep/60">
+                          {product.price} {product.currency}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Progress Bar */}
@@ -800,16 +898,12 @@ export default function AddProductSmart() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <Label htmlFor="category">
-                          Category <span className="text-red-500">*</span>
+                          Category <span className="text-afrikoni-deep/50 text-xs">(optional - will auto-assign if empty)</span>
                         </Label>
                         {!formData.category_id && formData.title && (
                           <button
                             type="button"
                             onClick={async () => {
-                              if (!formData.title) {
-                                toast.error('Please enter a product title first');
-                                return;
-                              }
                               setIsGenerating(true);
                               try {
                                 const detected = await AIDescriptionService.detectCategory(
@@ -824,13 +918,11 @@ export default function AddProductSmart() {
                                     handleChange('category_id', matched.id);
                                     toast.success(`✨ Category set: ${matched.name}`);
                                   } else {
-                                    toast.info(`💡 AI suggests: "${detected.category}"`, {
-                                      description: 'This category will be created when you publish'
-                                    });
                                     setFormData(prev => ({ 
                                       ...prev, 
                                       suggested_category: detected.category 
                                     }));
+                                    toast.info(`💡 AI suggests: "${detected.category}"`);
                                   }
                                 }
                               } catch (error) {
@@ -850,26 +942,56 @@ export default function AddProductSmart() {
                             ) : (
                               <>
                                 <Sparkles className="w-3 h-3" />
-                                AI Detect Category
+                                AI Detect
                               </>
                             )}
                           </button>
                         )}
                       </div>
+                      
+                      {/* Category Search Input */}
+                      <div className="relative mt-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-afrikoni-deep/40" />
+                        <Input
+                          placeholder="Search categories..."
+                          value={categorySearch}
+                          onChange={(e) => setCategorySearch(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      
+                      {/* Category Select with Search */}
                       <Select 
                         value={formData.category_id || ''} 
-                        onValueChange={(v) => handleChange('category_id', v)}
+                        onValueChange={(v) => {
+                          handleChange('category_id', v);
+                          setCategorySearch('');
+                        }}
                       >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category or let AI detect it"} />
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category (optional)"} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-[300px]">
                           {categories.length > 0 ? (
-                            categories.map(cat => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))
+                            (() => {
+                              const filtered = categorySearch
+                                ? categories.filter(cat => 
+                                    cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+                                  )
+                                : categories;
+                              
+                              return filtered.length > 0 ? (
+                                filtered.map(cat => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <div className="p-2 text-sm text-afrikoni-deep/70">
+                                  No categories found matching "{categorySearch}"
+                                </div>
+                              );
+                            })()
                           ) : (
                             <div className="p-2 text-sm text-afrikoni-deep/70">
                               {formData.suggested_category ? (
@@ -879,7 +1001,7 @@ export default function AddProductSmart() {
                                   <p className="text-xs mt-1">This will be created automatically when you publish</p>
                                 </div>
                               ) : (
-                                <p>No categories available. Enter a product title and AI will suggest a category.</p>
+                                <p>No categories available. Category will be auto-assigned.</p>
                               )}
                             </div>
                           )}
@@ -897,9 +1019,105 @@ export default function AddProductSmart() {
                           </div>
                         </div>
                       )}
-                      {errors.category_id && (
-                        <p className="text-red-500 text-sm mt-1">{errors.category_id}</p>
-                      )}
+                    </div>
+                    
+                    {/* Tags Field with AI Suggestions */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label htmlFor="tags">Tags <span className="text-afrikoni-deep/50 text-xs">(optional)</span></Label>
+                        {formData.title && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setIsGenerating(true);
+                              try {
+                                // Generate tags based on product title using AI
+                                const { callChatAsJson } = await import('@/ai/aiClient');
+                                const selectedCategory = categories.find(c => c.id === formData.category_id);
+                                
+                                const system = `You are a tag generation assistant. Generate 5-8 relevant search tags for a B2B product listing. Return only a JSON array of tag strings.`;
+                                const user = `Product: ${formData.title}\nCategory: ${selectedCategory?.name || 'General'}\n\nGenerate relevant tags for search optimization.`;
+                                
+                                const { success, data } = await callChatAsJson(
+                                  { system, user },
+                                  { fallback: { tags: [] } }
+                                );
+                                
+                                const suggestedTags = (data?.tags || []).slice(0, 8);
+                                if (suggestedTags.length > 0) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    tags: [...new Set([...prev.tags, ...suggestedTags])].slice(0, 10)
+                                  }));
+                                  toast.success('Tags suggested!');
+                                } else {
+                                  // Fallback: extract keywords from title
+                                  const words = formData.title.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    tags: [...new Set([...prev.tags, ...words.slice(0, 5)])].slice(0, 10)
+                                  }));
+                                  toast.success('Tags generated from title!');
+                                }
+                              } catch (error) {
+                                toast.error('Tag generation failed');
+                              } finally {
+                                setIsGenerating(false);
+                              }
+                            }}
+                            disabled={isGenerating}
+                            className="text-xs text-afrikoni-gold hover:underline flex items-center gap-1"
+                          >
+                            {isGenerating ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Tag className="w-3 h-3" />
+                                AI Suggest Tags
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-2 p-3 border border-afrikoni-deep/20 rounded-lg min-h-[44px]">
+                        {formData.tags.map((tag, idx) => (
+                          <Badge key={idx} variant="outline" className="flex items-center gap-1">
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  tags: prev.tags.filter((_, i) => i !== idx)
+                                }));
+                              }}
+                              className="ml-1 hover:text-red-500"
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        ))}
+                        <Input
+                          placeholder="Add tag and press Enter"
+                          className="flex-1 min-w-[120px] border-0 focus:ring-0 p-0 h-auto"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && e.target.value.trim()) {
+                              e.preventDefault();
+                              const newTag = e.target.value.trim();
+                              if (!formData.tags.includes(newTag) && formData.tags.length < 10) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  tags: [...prev.tags, newTag]
+                                }));
+                                e.target.value = '';
+                              }
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -979,11 +1197,11 @@ export default function AddProductSmart() {
                         </p>
                       </div>
                       {formData.images.length === 0 && (
-                        <div className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-3">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                           <div className="flex items-center gap-2 text-sm">
-                            <Sparkles className="w-4 h-4 text-afrikoni-gold" />
-                            <span className="text-afrikoni-chestnut font-medium">
-                              AI will analyze your first image and suggest category, title & description
+                            <ImageIcon className="w-4 h-4 text-blue-600" />
+                            <span className="text-blue-800">
+                              Upload at least one image. The first image will be your main product photo.
                             </span>
                           </div>
                         </div>
@@ -1065,15 +1283,41 @@ export default function AddProductSmart() {
                         <Label htmlFor="price">
                           Price per Unit <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                          id="price"
-                          type="number"
-                          step="0.01"
-                          value={formData.price}
-                          onChange={(e) => handleChange('price', e.target.value)}
-                          placeholder="0.00"
-                          className="mt-1"
-                        />
+                        <div className="relative mt-1">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-afrikoni-deep/60 text-sm">
+                            {formData.currency === 'USD' ? '$' : 
+                             formData.currency === 'EUR' ? '€' :
+                             formData.currency === 'GBP' ? '£' :
+                             formData.currency === 'ZAR' ? 'R' :
+                             formData.currency === 'NGN' ? '₦' :
+                             formData.currency === 'GHS' ? '₵' :
+                             formData.currency === 'KES' ? 'KSh' : ''}
+                          </span>
+                          <Input
+                            id="price"
+                            type="text"
+                            value={formData.price}
+                            onChange={(e) => {
+                              // Auto-format price: remove non-numeric except decimal point
+                              const value = e.target.value.replace(/[^\d.]/g, '');
+                              // Ensure only one decimal point
+                              const parts = value.split('.');
+                              const formatted = parts.length > 2 
+                                ? parts[0] + '.' + parts.slice(1).join('')
+                                : value;
+                              handleChange('price', formatted);
+                            }}
+                            onBlur={(e) => {
+                              // Format to 2 decimal places on blur
+                              const num = parseFloat(e.target.value);
+                              if (!isNaN(num)) {
+                                handleChange('price', num.toFixed(2));
+                              }
+                            }}
+                            placeholder="0.00"
+                            className="pl-8"
+                          />
+                        </div>
                         {errors.price && (
                           <p className="text-red-500 text-sm mt-1">{errors.price}</p>
                         )}
@@ -1264,7 +1508,7 @@ export default function AddProductSmart() {
 
                     <div>
                       <Label htmlFor="delivery_time">
-                        Delivery Time <span className="text-red-500">*</span>
+                        Delivery Time <span className="text-afrikoni-deep/50 text-xs">(optional)</span>
                       </Label>
                       <Input
                         id="delivery_time"

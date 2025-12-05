@@ -712,9 +712,14 @@ export default function ProductDetail() {
                       </div>
                     </div>
                   )}
-                  <Link to={createPageUrl('SupplierProfile') + '?id=' + supplier.id}>
-                    <Button variant="outline" className="w-full">View Full Profile</Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link to={`/business/${supplier.id}`} className="flex-1">
+                      <Button variant="outline" className="w-full">View Business Profile</Button>
+                    </Link>
+                    <Link to={createPageUrl('SupplierProfile') + '?id=' + supplier.id} className="flex-1">
+                      <Button variant="outline" className="w-full">Legacy Profile</Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             )}

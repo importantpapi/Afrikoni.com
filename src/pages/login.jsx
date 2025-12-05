@@ -57,17 +57,19 @@ export default function Login() {
       if (!onboardingCompleted) {
         navigate('/onboarding?step=1');
       } else {
+        // After successful login + onboarding, go directly to dashboard
         const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
         const dashboardPath = getDashboardPathForRole(role);
         
         // For hybrid users, use unified dashboard
-        const finalPath = role === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
+        const finalPath = role === 'hybrid' ? '/dashboard' : dashboardPath;
         
         // If user came from a specific page (RFQ / product), send them back there
         if (redirectUrl && redirectUrl !== createPageUrl('Home') && !redirectUrl.includes('/dashboard')) {
           navigate(redirectUrl);
         } else {
-          navigate(finalPath);
+          // Go directly to dashboard - no repeated "Join Afrikoni" screen
+          navigate(finalPath, { replace: true });
         }
       }
     } catch (error) {

@@ -386,7 +386,7 @@ export default function CompareProducts() {
                             {product.companies ? (
                               <div className="space-y-1">
                                 <Link
-                                  to={`/supplier?id=${product.companies.id}`}
+                                  to={`/business/${product.companies.id}`}
                                   className="font-semibold text-afrikoni-chestnut hover:text-afrikoni-gold transition-colors"
                                 >
                                   {product.companies.company_name}

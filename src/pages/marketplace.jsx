@@ -495,11 +495,34 @@ if (!Array.isArray(productsList)) return [];
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-1 flex-wrap">
                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm text-afrikoni-deep truncate">{product?.companies?.company_name || 'Supplier'}</span>
+                  {product?.companies?.id ? (
+                    <Link 
+                      to={`/business/${product.companies.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs sm:text-sm text-afrikoni-deep hover:text-afrikoni-gold truncate font-medium"
+                    >
+                      {product?.companies?.company_name || 'Supplier'}
+                    </Link>
+                  ) : (
+                    <span className="text-xs sm:text-sm text-afrikoni-deep truncate">{product?.companies?.company_name || 'Supplier'}</span>
+                  )}
                   <span className="text-xs sm:text-sm text-afrikoni-deep/70 hidden sm:inline">• {product?.country_of_origin || product?.companies?.country || 'N/A'}</span>
                 </div>
               </div>
               <div className="flex gap-2">
+                {product?.companies?.id && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2" 
+                    asChild
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Link to={`/business/${product.companies.id}`}>
+                      <Building2 className="w-4 h-4" />
+                    </Link>
+                  </Button>
+                )}
                 <Button 
                   variant="secondary" 
                   size="sm" 

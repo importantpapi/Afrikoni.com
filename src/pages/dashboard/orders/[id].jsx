@@ -611,9 +611,9 @@ export default function OrderDetail() {
                     <div>
                       <h4 className="font-semibold text-afrikoni-chestnut">{sellerCompany.company_name}</h4>
                       <p className="text-sm text-afrikoni-deep/70 mt-1">{sellerCompany.country}</p>
-                      <Link to={`/supplier/${sellerCompany.id}`}>
+                      <Link to={`/business/${sellerCompany.id}`}>
                         <Button variant="outline" size="sm" className="w-full mt-3">
-                          View Profile
+                          View Business Profile
                         </Button>
                       </Link>
                     </div>

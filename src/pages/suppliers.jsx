@@ -272,9 +272,9 @@ export default function Suppliers() {
                       </div>
 
                       {/* View Profile Button */}
-                      <Link to={createPageUrl('SupplierProfile') + '?id=' + supplier.id}>
+                      <Link to={`/business/${supplier.id}`}>
                         <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
-                          View Profile
+                          View Business Profile
                         </Button>
                       </Link>
                     </div>

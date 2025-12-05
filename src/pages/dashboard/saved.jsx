@@ -207,8 +207,8 @@ export default function DashboardSaved() {
                           <Bookmark className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
                         </Button>
                       </div>
-                      <Link to={`/supplier?id=${supplier.id}`}>
-                        <Button variant="outline" className="w-full" size="sm">View Profile</Button>
+                      <Link to={`/business/${supplier.id}`}>
+                        <Button variant="outline" className="w-full" size="sm">View Business Profile</Button>
                       </Link>
                     </CardContent>
                   </Card>

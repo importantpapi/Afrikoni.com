@@ -122,8 +122,8 @@ export default function AIMatchmaking() {
                         </span>
                       )}
                     </div>
-                    <Link to={createPageUrl('SupplierProfile') + '?id=' + match.supplier?.id}>
-                      <Button variant="outline" className="w-full">View Profile</Button>
+                    <Link to={`/business/${match.supplier?.id}`}>
+                      <Button variant="outline" className="w-full">View Business Profile</Button>
                     </Link>
                   </CardContent>
                 </Card>

@@ -64,6 +64,7 @@ const RFQMarketplace = lazy(() => import('./pages/rfq-marketplace'));
 const RFQDetail = lazy(() => import('./pages/rfqdetails'));
 const Suppliers = lazy(() => import('./pages/suppliers'));
 const SupplierProfile = lazy(() => import('./pages/supplierprofile'));
+const BusinessProfile = lazy(() => import('./pages/business/[id]'));
 
 // Lazy-loaded heavy routes - Other pages
 const AddProduct = lazy(() => import('./pages/addproduct'));
@@ -150,6 +151,7 @@ function App() {
             <Route path="/rfq-management" element={<ProtectedRoute><RFQManagement /></ProtectedRoute>} />
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/supplier" element={<SupplierProfile />} />
+            <Route path="/business/:id" element={<BusinessProfile />} />
             <Route path="/become-supplier" element={<BecomeSupplier />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/countries" element={<Countries />} />

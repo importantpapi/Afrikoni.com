@@ -766,9 +766,9 @@ export default function LogisticsDashboard() {
                           )}
                         </div>
                         <div className="flex items-center gap-2 pt-3 border-t border-afrikoni-gold/10">
-                          <Link to={`/supplier/${partner.id}`}>
+                          <Link to={`/business/${partner.id}`}>
                             <Button variant="outline" size="sm" className="flex-1">
-                              View Profile
+                              View Business Profile
                             </Button>
                           </Link>
                           <Link to="/messages">
