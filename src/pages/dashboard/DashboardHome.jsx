@@ -32,6 +32,60 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
   const [approvalSummary, setApprovalSummary] = useState(null);
   const navigate = useNavigate();
 
+  const getDefaultKPIs = (role) => {
+    // v2.5: Brand-consistent colors
+    return [
+      {
+        icon: ShoppingCart,
+        label: t('dashboard.totalOrders') || 'Total Orders',
+        value: '0',
+        change: null,
+        color: 'bg-afrikoni-gold/15 text-afrikoni-gold',
+        iconBg: 'bg-afrikoni-gold/20'
+      },
+      {
+        icon: FileText,
+        label: t('dashboard.totalRFQs') || 'Total RFQs',
+        value: '0',
+        change: null,
+        color: 'bg-afrikoni-purple/15 text-afrikoni-purple',
+        iconBg: 'bg-afrikoni-purple/20'
+      },
+      {
+        icon: Package,
+        label: t('dashboard.products') || 'Products',
+        value: '0',
+        change: null,
+        color: 'bg-afrikoni-green/15 text-afrikoni-green',
+        iconBg: 'bg-afrikoni-green/20'
+      },
+      {
+        icon: MessageSquare,
+        label: t('dashboard.unreadMessages') || 'Unread Messages',
+        value: '0',
+        change: null,
+        color: 'bg-afrikoni-red/15 text-afrikoni-red',
+        iconBg: 'bg-afrikoni-red/20'
+      },
+      {
+        icon: Users,
+        label: t('dashboard.suppliers') || 'Suppliers',
+        value: '0',
+        change: null,
+        color: 'bg-afrikoni-clay/10 text-afrikoni-clay',
+        iconBg: 'bg-afrikoni-clay/20'
+      },
+      {
+        icon: Wallet,
+        label: t('dashboard.payoutBalance') || 'Payout Balance',
+        value: '$0',
+        change: null,
+        color: 'bg-afrikoni-green/10 text-afrikoni-green',
+        iconBg: 'bg-afrikoni-green/20'
+      }
+    ];
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -49,7 +103,10 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           return;
         }
 
-        if (!isMounted) return;
+        if (!isMounted) {
+          setIsLoading(false);
+          return;
+        }
 
         setIsUserAdmin(isAdmin(authUser));
 
@@ -65,6 +122,18 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           loadRecentMessages(cid),
           loadApprovalSummary(cid)
         ]);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        // Set default values on error
+        if (isMounted) {
+          setKpis(getDefaultKPIs(currentRole));
+          setSalesChartData([]);
+          setRfqChartData([]);
+          setRecentOrders([]);
+          setRecentRFQs([]);
+          setRecentMessages([]);
+          setApprovalSummary(null);
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
