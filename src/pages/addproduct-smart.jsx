@@ -591,44 +591,56 @@ export default function AddProductSmart() {
         return;
       }
 
-      // Handle category - completely optional, allow null
+      // Handle category - use "No Category" as fallback if not selected
       let finalCategoryId = formData.category_id || null;
       
-      // Only try to auto-assign if user hasn't explicitly chosen "None"
-      // If category_id is empty string, user chose "None" - respect that
-      if (!finalCategoryId && formData.category_id !== '') {
-        // Try to auto-assign default category (silently, no toast)
-        finalCategoryId = await ensureCategory();
+      // If no category selected, try to find "No Category" fallback
+      if (!finalCategoryId) {
+        // Try to find "No Category" category
+        const { data: noCategory } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', 'No Category')
+          .maybeSingle();
         
-        // If still no category and we have a suggestion, create it
-        if (!finalCategoryId && formData.suggested_category) {
-          try {
-            const { data: newCategory, error: catError } = await supabase
-              .from('categories')
-              .insert({
-                name: formData.suggested_category,
-                description: `Category for ${formData.title}`
-              })
-              .select('id')
-              .single();
-            
-            if (!catError && newCategory) {
-              finalCategoryId = newCategory.id;
-              // Silent - don't interrupt user flow
+        if (noCategory) {
+          finalCategoryId = noCategory.id;
+        } else {
+          // Try to auto-assign default category
+          finalCategoryId = await ensureCategory();
+          
+          // If still no category and we have a suggestion, create it
+          if (!finalCategoryId && formData.suggested_category) {
+            try {
+              const { data: newCategory, error: catError } = await supabase
+                .from('categories')
+                .insert({
+                  name: formData.suggested_category,
+                  description: `Category for ${formData.title}`
+                })
+                .select('id')
+                .single();
+              
+              if (!catError && newCategory) {
+                finalCategoryId = newCategory.id;
+              }
+            } catch (catErr) {
+              // Silent fail
             }
-          } catch (catErr) {
-            // Silent fail - continue without category
+          }
+          
+          // Last resort: use first available category
+          if (!finalCategoryId && categories.length > 0) {
+            finalCategoryId = categories[0].id;
           }
         }
       }
-      
-      // If still no category, that's fine - category_id will be null
 
-      // Create product - category_id can be null if no categories exist
+      // Create product - always have a category_id (use "No Category" as fallback)
       const { data: newProduct, error } = await supabase.from('products').insert({
         title: sanitizeString(formData.title),
         description: sanitizeString(formData.description),
-        category_id: finalCategoryId || null, // Allow null if no category available
+        category_id: finalCategoryId, // Always has a value (either selected or "No Category")
         images: formData.images.map(img => img.url || img),
         price: price,
         price_min: price,
