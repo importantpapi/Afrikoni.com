@@ -471,11 +471,21 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               {/* User Menu */}
               <div className="relative">
                 <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  onClick={(e) => {
+                    try {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setUserMenuOpen(!userMenuOpen);
+                    } catch (error) {
+                      console.error('Error toggling user menu:', error);
+                      toast.error('Error opening menu. Please try again.');
+                    }
+                  }}
                   className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all"
+                  type="button"
                 >
                   <div className="w-8 h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-charcoal font-bold text-sm shadow-afrikoni">
-                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    {(user?.email || profile?.email || user?.user_email)?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <ChevronDown className={`w-4 h-4 text-afrikoni-text-dark transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -485,18 +495,28 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                     <>
                       <div
                         className="fixed inset-0 z-40"
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={() => {
+                          try {
+                            setUserMenuOpen(false);
+                          } catch (error) {
+                            console.error('Error closing user menu:', error);
+                          }
+                        }}
                       />
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="absolute right-0 mt-2 w-56 bg-white border border-afrikoni-gold/20 rounded-afrikoni shadow-premium-lg z-50"
+                        className="absolute right-0 mt-2 w-56 bg-white border border-afrikoni-gold/20 rounded-afrikoni shadow-premium-lg z-[100]"
                       >
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-afrikoni-gold/20">
-                            <div className="font-semibold text-afrikoni-text-dark text-sm">{user?.email || 'user@example.com'}</div>
-                            <div className="text-xs text-afrikoni-text-dark/70 capitalize">{userRole}</div>
+                            <div className="font-semibold text-afrikoni-text-dark text-sm">
+                              {user?.email || profile?.email || user?.user_email || 'user@example.com'}
+                            </div>
+                            <div className="text-xs text-afrikoni-text-dark/70 capitalize">
+                              {userRole || 'user'}
+                            </div>
                           </div>
                           <Link 
                             to="/dashboard" 
@@ -560,7 +580,13 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                               <Link 
                                 to="/dashboard/risk" 
                                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-gold/10 text-sm text-afrikoni-gold font-semibold transition-colors"
-                                onClick={() => setUserMenuOpen(false)}
+                                onClick={(e) => {
+                                  try {
+                                    setUserMenuOpen(false);
+                                  } catch (error) {
+                                    console.error('Error navigating:', error);
+                                  }
+                                }}
                               >
                                 <AlertTriangle className="w-4 h-4" />
                                 Admin Panel
@@ -568,7 +594,13 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                               <Link 
                                 to="/dashboard/admin/users" 
                                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                                onClick={() => setUserMenuOpen(false)}
+                                onClick={(e) => {
+                                  try {
+                                    setUserMenuOpen(false);
+                                  } catch (error) {
+                                    console.error('Error navigating:', error);
+                                  }
+                                }}
                               >
                                 <Users className="w-4 h-4" />
                                 User Management
@@ -577,14 +609,22 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                           )}
                           <div className="border-t border-afrikoni-gold/20 my-1"></div>
                           <button
-                            onClick={() => {
-                              handleLogout();
-                              setUserMenuOpen(false);
+                            onClick={(e) => {
+                              try {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleLogout();
+                                setUserMenuOpen(false);
+                              } catch (error) {
+                                console.error('Error logging out:', error);
+                                toast.error('Error logging out. Please try again.');
+                              }
                             }}
                             className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-red-50 text-sm text-afrikoni-red transition-colors"
+                            type="button"
                           >
                             <LogOut className="w-4 h-4" />
-                            {t('auth.logout')}
+                            {t('auth.logout') || 'Logout'}
                           </button>
                         </div>
                       </motion.div>
