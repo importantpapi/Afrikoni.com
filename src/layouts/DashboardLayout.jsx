@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -29,6 +29,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const [userRole, setUserRole] = useState(currentRole);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [activeView, setActiveView] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  const userMenuButtonRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -39,6 +41,17 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   useEffect(() => {
     setUserRole(currentRole);
   }, [currentRole]);
+
+  // Calculate menu position when it opens
+  useEffect(() => {
+    if (userMenuOpen && userMenuButtonRef.current) {
+      const buttonRect = userMenuButtonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: buttonRect.bottom + 8,
+        right: window.innerWidth - buttonRect.right
+      });
+    }
+  }, [userMenuOpen]);
 
   const loadUser = async () => {
     try {
@@ -469,14 +482,15 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               </Link>
 
               {/* User Menu */}
-              <div className="relative z-[200]" onMouseLeave={() => setUserMenuOpen(false)}>
+              <div className="relative">
                 <button
+                  ref={userMenuButtonRef}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setUserMenuOpen(prev => !prev);
                   }}
-                  className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all cursor-pointer z-[200] relative"
+                  className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all cursor-pointer relative"
                   type="button"
                   aria-label="User menu"
                   aria-expanded={userMenuOpen}
@@ -489,28 +503,31 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                   </div>
                   <ChevronDown className={`w-4 h-4 text-afrikoni-text-dark transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
+              </div>
+            </div>
+          </div>
+        </header>
 
-                {userMenuOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-[150]"
-                      onClick={() => setUserMenuOpen(false)}
-                      onTouchStart={() => setUserMenuOpen(false)}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-56 bg-white border-2 border-afrikoni-gold/30 rounded-afrikoni shadow-2xl z-[200]"
-                      style={{ 
-                        position: 'absolute',
-                        top: '100%',
-                        right: 0,
-                        marginTop: '0.5rem'
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
+        {/* User Menu Dropdown - Fixed position for visibility */}
+        {userMenuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-[9998] bg-transparent"
+              onClick={() => setUserMenuOpen(false)}
+              onTouchStart={() => setUserMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="fixed w-56 bg-white border-2 border-afrikoni-gold/30 rounded-afrikoni shadow-2xl z-[9999]"
+              style={{ 
+                top: `${menuPosition.top}px`,
+                right: `${menuPosition.right}px`
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-afrikoni-gold/20">
                             <div className="font-semibold text-afrikoni-text-dark text-sm">
@@ -629,13 +646,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             {t('auth.logout') || 'Logout'}
                           </button>
                         </div>
-                    </motion.div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+            </motion.div>
+          </>
+        )}
 
         {/* Page Content */}
         <main className="flex-1 px-4 md:px-6 lg:px-8 py-6 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden">
