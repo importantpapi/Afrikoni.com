@@ -549,8 +549,25 @@ export default function AddProductSmart() {
 
   // Submit product
   const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
-      toast.error('Please fix the errors before submitting');
+    // Validate only critical fields - category is NOT required
+    const criticalErrors = {};
+    
+    if (!formData.title?.trim()) {
+      criticalErrors.title = 'Product title is required';
+    }
+    if (formData.images.length === 0) {
+      criticalErrors.images = 'At least one image is required';
+    }
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      criticalErrors.price = 'Valid price is required';
+    }
+    if (!formData.moq || parseInt(formData.moq) < 1) {
+      criticalErrors.moq = 'MOQ must be at least 1';
+    }
+    
+    if (Object.keys(criticalErrors).length > 0) {
+      setErrors(criticalErrors);
+      toast.error('Please fix the required fields before submitting');
       return;
     }
 
@@ -574,8 +591,8 @@ export default function AddProductSmart() {
         return;
       }
 
-      // Handle category - auto-assign default if missing
-      let finalCategoryId = formData.category_id;
+      // Handle category - auto-assign default if missing, but allow null if no categories exist
+      let finalCategoryId = formData.category_id || null;
       
       if (!finalCategoryId) {
         // Try to auto-assign default category
@@ -583,33 +600,37 @@ export default function AddProductSmart() {
         
         // If still no category and we have a suggestion, create it
         if (!finalCategoryId && formData.suggested_category) {
-          const { data: newCategory, error: catError } = await supabase
-            .from('categories')
-            .insert({
-              name: formData.suggested_category,
-              description: `Category for ${formData.title}`
-            })
-            .select('id')
-            .single();
-          
-          if (!catError && newCategory) {
-            finalCategoryId = newCategory.id;
-            toast.success(`Category "${formData.suggested_category}" created!`);
+          try {
+            const { data: newCategory, error: catError } = await supabase
+              .from('categories')
+              .insert({
+                name: formData.suggested_category,
+                description: `Category for ${formData.title}`
+              })
+              .select('id')
+              .single();
+            
+            if (!catError && newCategory) {
+              finalCategoryId = newCategory.id;
+              toast.success(`Category "${formData.suggested_category}" created!`);
+            }
+          } catch (catErr) {
+            // Silent fail - continue without category
           }
         }
         
-        // Last resort: use first available category
+        // Last resort: use first available category (only if categories exist)
         if (!finalCategoryId && categories.length > 0) {
           finalCategoryId = categories[0].id;
           toast.info(`Auto-assigned category: ${categories[0].name}`);
         }
       }
 
-      // Create product
+      // Create product - category_id can be null if no categories exist
       const { data: newProduct, error } = await supabase.from('products').insert({
         title: sanitizeString(formData.title),
         description: sanitizeString(formData.description),
-        category_id: finalCategoryId,
+        category_id: finalCategoryId || null, // Allow null if no category available
         images: formData.images.map(img => img.url || img),
         price: price,
         price_min: price,
@@ -964,12 +985,16 @@ export default function AddProductSmart() {
                       <Select 
                         value={formData.category_id || ''} 
                         onValueChange={(v) => {
-                          handleChange('category_id', v);
+                          // Allow clearing selection (empty string) or selecting a category
+                          handleChange('category_id', v === '' ? '' : v);
                           setCategorySearch('');
+                          if (v && v !== '') {
+                            toast.success('Category selected');
+                          }
                         }}
                       >
                         <SelectTrigger className="mt-2">
-                          <SelectValue placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category (optional)"} />
+                          <SelectValue placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category (optional - can publish without)"} />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {categories.length > 0 ? (
@@ -981,15 +1006,21 @@ export default function AddProductSmart() {
                                 : categories;
                               
                               return filtered.length > 0 ? (
-                                filtered.map(cat => (
-                                  <SelectItem key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                  </SelectItem>
-                                ))
+                                <>
+                                  <SelectItem value="">None (Optional)</SelectItem>
+                                  {filtered.map(cat => (
+                                    <SelectItem key={cat.id} value={String(cat.id)}>
+                                      {cat.name}
+                                    </SelectItem>
+                                  ))}
+                                </>
                               ) : (
-                                <div className="p-2 text-sm text-afrikoni-deep/70">
-                                  No categories found matching "{categorySearch}"
-                                </div>
+                                <>
+                                  <SelectItem value="">None (Optional)</SelectItem>
+                                  <div className="p-2 text-sm text-afrikoni-deep/70">
+                                    No categories found matching "{categorySearch}"
+                                  </div>
+                                </>
                               );
                             })()
                           ) : (
@@ -1001,7 +1032,7 @@ export default function AddProductSmart() {
                                   <p className="text-xs mt-1">This will be created automatically when you publish</p>
                                 </div>
                               ) : (
-                                <p>No categories available. Category will be auto-assigned.</p>
+                                <p>No categories available. You can publish without a category.</p>
                               )}
                             </div>
                           )}
