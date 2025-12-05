@@ -995,19 +995,17 @@ export default function AddProductSmart() {
                       <Select 
                         value={formData.category_id ? String(formData.category_id) : ''} 
                         onValueChange={(v) => {
-                          // Handle category selection
-                          if (v === '' || v === null) {
-                            // User chose "No Category"
-                            handleChange('category_id', '');
-                            setCategorySearch('');
-                            toast.info('No category selected - you can still publish', { duration: 2000 });
-                          } else if (v) {
-                            // User selected a category - find the actual category object
+                          // Handle category selection - v is always a valid category ID string
+                          if (v && v !== '') {
                             const selectedCat = categories.find(c => String(c.id) === String(v));
                             if (selectedCat) {
                               handleChange('category_id', selectedCat.id); // Store the actual UUID
                               setCategorySearch('');
-                              toast.success(`Category selected: ${selectedCat.name}`, { duration: 2000 });
+                              if (selectedCat.name === 'No Category') {
+                                toast.info('Using "No Category" - you can still publish', { duration: 2000 });
+                              } else {
+                                toast.success(`Category selected: ${selectedCat.name}`, { duration: 2000 });
+                              }
                             } else {
                               // Fallback: store the string value if category not found
                               handleChange('category_id', v);
