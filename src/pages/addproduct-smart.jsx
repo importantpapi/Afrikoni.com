@@ -981,25 +981,34 @@ export default function AddProductSmart() {
                       
                       {/* Category Select with Search */}
                       <Select 
-                        value={formData.category_id || ''} 
+                        value={formData.category_id ? String(formData.category_id) : ''} 
                         onValueChange={(v) => {
-                          // Allow clearing selection (empty string) or selecting a category
-                          const categoryValue = v === '' ? '' : v;
-                          handleChange('category_id', categoryValue);
-                          setCategorySearch('');
-                          if (v && v !== '') {
-                            const selectedCat = categories.find(c => String(c.id) === v);
-                            if (selectedCat) {
-                              toast.success(`Category selected: ${selectedCat.name}`, { duration: 2000 });
-                            }
-                          } else if (v === '') {
-                            // User explicitly chose "No Category"
+                          // Handle category selection
+                          if (v === '' || v === null) {
+                            // User chose "No Category"
+                            handleChange('category_id', '');
+                            setCategorySearch('');
                             toast.info('No category selected - you can still publish', { duration: 2000 });
+                          } else if (v) {
+                            // User selected a category - find the actual category object
+                            const selectedCat = categories.find(c => String(c.id) === String(v));
+                            if (selectedCat) {
+                              handleChange('category_id', selectedCat.id); // Store the actual UUID
+                              setCategorySearch('');
+                              toast.success(`Category selected: ${selectedCat.name}`, { duration: 2000 });
+                            } else {
+                              // Fallback: store the string value if category not found
+                              handleChange('category_id', v);
+                              setCategorySearch('');
+                            }
                           }
                         }}
                       >
                         <SelectTrigger className="mt-2">
-                          <SelectValue placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category (optional - can publish without)"} />
+                          <SelectValue 
+                            placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category (optional - can publish without)"}
+                            displayValue={formData.category_id ? (categories.find(c => c.id === formData.category_id || String(c.id) === String(formData.category_id))?.name) : undefined}
+                          />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {categories.length > 0 ? (
