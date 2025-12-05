@@ -359,8 +359,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 md:ml-64 min-h-screen relative z-10">
         {/* Premium Top Bar */}
-        <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm">
-          <div className="flex items-center justify-between px-4 md:px-6 py-4">
+        <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
+          <div className="flex items-center justify-between px-4 md:px-6 py-4 relative overflow-visible">
             {/* Left: Menu + Search */}
             <div className="flex items-center gap-4 flex-1">
               <button
@@ -469,14 +469,14 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               </Link>
 
               {/* User Menu */}
-              <div className="relative" onMouseLeave={() => setUserMenuOpen(false)}>
+              <div className="relative z-[200]" onMouseLeave={() => setUserMenuOpen(false)}>
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setUserMenuOpen(prev => !prev);
                   }}
-                  className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all cursor-pointer"
+                  className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all cursor-pointer z-[200] relative"
                   type="button"
                   aria-label="User menu"
                   aria-expanded={userMenuOpen}
@@ -493,7 +493,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 {userMenuOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-40"
+                      className="fixed inset-0 z-[150]"
                       onClick={() => setUserMenuOpen(false)}
                       onTouchStart={() => setUserMenuOpen(false)}
                     />
@@ -502,7 +502,13 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-56 bg-white border border-afrikoni-gold/20 rounded-afrikoni shadow-premium-lg z-[100]"
+                      className="absolute right-0 mt-2 w-56 bg-white border-2 border-afrikoni-gold/30 rounded-afrikoni shadow-2xl z-[200]"
+                      style={{ 
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        marginTop: '0.5rem'
+                      }}
                       onClick={(e) => e.stopPropagation()}
                     >
                         <div className="py-1">
