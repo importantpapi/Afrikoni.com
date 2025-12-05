@@ -156,7 +156,7 @@ export function getDashboardPathForRole(role) {
     case 'admin':
       return '/dashboard/admin';
     case 'logistics':
-      return '/dashboard/shipments';
+      return '/dashboard/logistics';
     default:
       return '/dashboard';
   }

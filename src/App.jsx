@@ -179,6 +179,7 @@ function App() {
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/logistics" element={<ProtectedRoute><LogisticsDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/analytics" element={<ProtectedRoute><DashboardAnalytics /></ProtectedRoute>} />
+            <Route path="/dashboard/supplier-analytics" element={<ProtectedRoute><SupplierAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/payments" element={<ProtectedRoute><DashboardPayments /></ProtectedRoute>} />
             <Route path="/dashboard/protection" element={<ProtectedRoute><DashboardProtection /></ProtectedRoute>} />
             <Route path="/dashboard/saved" element={<ProtectedRoute><DashboardSaved /></ProtectedRoute>} />
