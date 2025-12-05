@@ -213,6 +213,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               // Check if this is a section header (Risk & Compliance)
               const isSection = item.isSection;
               
+              if (!item.path) {
+                console.warn('Menu item missing path:', item);
+                return null;
+              }
+
               return (
                 <motion.div
                   key={idx}
@@ -221,6 +226,17 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 >
                   <Link
                     to={item.path}
+                    onClick={(e) => {
+                      try {
+                        // Close sidebar on mobile after navigation
+                        if (window.innerWidth < 768) {
+                          setSidebarOpen(false);
+                        }
+                      } catch (error) {
+                        console.error('Error navigating to:', item.path, error);
+                        toast.error('Navigation error. Please try again.');
+                      }
+                    }}
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative
                       ${isActive 
