@@ -357,7 +357,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       </motion.aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 md:ml-64 min-h-screen relative z-10">
+      <div className="flex flex-col flex-1 md:ml-64 min-h-screen relative z-10 overflow-visible">
         {/* Premium Top Bar */}
         <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
           <div className="flex items-center justify-between px-4 md:px-6 py-4 relative overflow-visible">
