@@ -33,11 +33,7 @@ export default function Dashboard() {
           return;
         }
         
-        // Warn about unverified email but don't block access
-        if (!emailVerified && authUser) {
-          // Could show a banner here in production
-          console.warn('Email not verified');
-        }
+        // Email verification status checked (not blocking access)
           
         const normalizedRole = role || 'buyer';
         setCurrentRole(normalizedRole);

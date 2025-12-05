@@ -177,7 +177,7 @@ export default function OrderDetail() {
         }
       }
 
-      toast.success('Order status updated');
+      toast.success(`Order status updated to ${getStatusLabel(newStatus, 'order')}`);
       loadOrderData();
     } catch (error) {
       toast.error('Failed to update order status');

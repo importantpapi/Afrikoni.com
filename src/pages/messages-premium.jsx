@@ -511,14 +511,17 @@ export default function MessagesPremium() {
       setAttachments([]);
       setIsTyping(false);
 
+      // Show success toast
+      toast.success(t('messages.sent') || 'Message sent successfully');
+
       // Refresh conversations
       loadUserAndConversations();
 
       // Auto-focus input
       setTimeout(() => inputRef.current?.focus(), 100);
     } catch (error) {
-      toast.error(t('messages.sendError'));
-      console.error('Send message error:', error);
+      console.error('Error sending message:', error);
+      toast.error(t('messages.sendError') || 'Failed to send message. Please try again.');
     }
   };
 

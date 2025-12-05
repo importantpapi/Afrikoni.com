@@ -228,7 +228,7 @@ export default function SmartImageUploader({
           }
         } catch (thumbError) {
           // Thumbnail generation is optional, continue with main image
-          console.warn('Thumbnail generation failed:', thumbError);
+          // Silently fail - thumbnail is optional
         }
       }
 
@@ -240,7 +240,7 @@ export default function SmartImageUploader({
         sort_order: images.length
       };
     } catch (error) {
-      console.error('Upload error:', error);
+      // Error handled by toast below
       toast.error(`Failed to upload ${file.name}: ${error.message}`);
       return null;
     }

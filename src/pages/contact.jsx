@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageCircle, Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { MessageCircle, Mail, Phone, MapPin, Clock, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabaseHelpers } from '@/api/supabaseClient';
+import OptimizedImage from '@/components/OptimizedImage';
 
 export default function Contact() {
   const { trackPageView } = useAnalytics();
@@ -24,6 +26,37 @@ export default function Contact() {
     message: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+
+  const handleAttachmentUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    setUploadingAttachment(true);
+    try {
+      const { file_url } = await supabaseHelpers.storage.uploadFile(
+        file, 
+        'files', 
+        `contact-attachments/${Date.now()}-${file.name}`
+      );
+      setAttachments(prev => [...prev, { url: file_url, name: file.name, type: file.type }]);
+      toast.success('Attachment uploaded');
+    } catch (error) {
+      toast.error('Failed to upload attachment');
+    } finally {
+      setUploadingAttachment(false);
+    }
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,12 +65,30 @@ export default function Contact() {
       return;
     }
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      // Save contact form submission to database
+      const { error } = await supabaseHelpers.db.insert('contact_submissions', {
+        name: formData.name,
+        email: formData.email,
+        category: formData.category || 'general',
+        subject: formData.subject || '',
+        message: formData.message,
+        attachments: attachments.map(a => a.url),
+        created_at: new Date().toISOString()
+      });
+
+      if (error) throw error;
+
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       setFormData({ name: '', email: '', category: '', subject: '', message: '' });
+      setAttachments([]);
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const offices = [
@@ -71,7 +122,7 @@ export default function Contact() {
       <div className="min-h-screen bg-stone-50 py-12">
       <div className="max-w-7xl mx-auto px-4">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-12 text-center text-afrikoni-creammb-12">
+        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-12 text-center text-white mb-12">
           <div className="w-16 h-16 bg-afrikoni-offwhite/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <MessageCircle className="w-8 h-8" />
           </div>
@@ -193,6 +244,57 @@ export default function Contact() {
                     required
                   />
                 </div>
+                
+                {/* Attachment Upload */}
+                <div>
+                  <Label>Attachments (Optional)</Label>
+                  <div className="mt-2 space-y-2">
+                    {attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {attachments.map((attachment, idx) => (
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-afrikoni-cream rounded-lg border border-afrikoni-gold/20">
+                            {attachment.type?.startsWith('image/') ? (
+                              <OptimizedImage 
+                                src={attachment.url} 
+                                alt={attachment.name}
+                                className="w-12 h-12 rounded object-cover"
+                              />
+                            ) : (
+                              <ImageIcon className="w-8 h-8 text-afrikoni-gold" />
+                            )}
+                            <span className="text-sm text-afrikoni-deep truncate max-w-[150px]">{attachment.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(idx)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf,.doc,.docx"
+                        onChange={handleAttachmentUpload}
+                        disabled={uploadingAttachment}
+                        className="hidden"
+                        id="attachment-upload"
+                      />
+                      <label htmlFor="attachment-upload">
+                        <Button type="button" variant="outline" size="sm" disabled={uploadingAttachment} asChild>
+                          <span className="cursor-pointer">
+                            <Upload className="w-4 h-4 mr-2 inline" />
+                            {uploadingAttachment ? 'Uploading...' : 'Add Attachment'}
+                          </span>
+                        </Button>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
                 <Button type="submit" disabled={isLoading} className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark">
                   {isLoading ? 'Sending...' : 'Send Message'}
                 </Button>

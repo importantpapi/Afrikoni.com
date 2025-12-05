@@ -16,8 +16,9 @@ import {
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { StatCardSkeleton, CardSkeleton } from '@/components/ui/skeletons';
 
-export default function DashboardHome({ currentRole = 'buyer' }) {
+export default function DashboardHome({ currentRole = 'buyer', activeView = 'all' }) {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -114,7 +115,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
         setCompanyId(cid || null);
 
         // Load all data in parallel
-        await Promise.allSettled([
+        const results = await Promise.allSettled([
           loadKPIs(currentRole, cid),
           loadChartData(currentRole, cid),
           loadRecentOrders(cid),
@@ -122,6 +123,15 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           loadRecentMessages(cid),
           loadApprovalSummary(cid)
         ]);
+        
+        // Check for failures and show toast if critical data failed
+        const failedCount = results.filter(r => r.status === 'rejected').length;
+        if (failedCount > 0 && isMounted) {
+          // Only show error if multiple things failed (partial failures are OK)
+          if (failedCount >= 3) {
+            toast.error('Some dashboard data failed to load. Please refresh the page.');
+          }
+        }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
         // Set default values on error
@@ -133,6 +143,7 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
           setRecentRFQs([]);
           setRecentMessages([]);
           setApprovalSummary(null);
+          toast.error('Failed to load dashboard data. Please try again.');
         }
       } finally {
         if (isMounted) {
@@ -168,14 +179,64 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
         return;
       }
 
-      const [ordersRes, rfqsRes, productsRes, messagesRes, suppliersRes, payoutsRes] = await Promise.allSettled([
-        supabase.from('orders').select('*', { count: 'exact' }).or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid}`),
-        supabase.from('rfqs').select('*', { count: 'exact' }).eq('buyer_company_id', cid),
-        supabase.from('products').select('*', { count: 'exact' }).eq('company_id', cid),
-        supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', cid).eq('read', false),
-        supabase.from('companies').select('id', { count: 'exact' }),
-        supabase.from('wallet_transactions').select('amount').eq('company_id', cid).eq('type', 'payout').eq('status', 'completed')
-      ]);
+      // For hybrid users, filter based on activeView
+      const loadBuyerData = shouldLoadBuyerData(role, activeView);
+      const loadSellerData = shouldLoadSellerData(role, activeView);
+
+      const queries = [];
+      
+      // Orders: load buyer orders, seller orders, or both
+      if (loadBuyerData || loadSellerData) {
+        if (role === 'hybrid' && activeView === 'all') {
+          // Load both buyer and seller orders
+          queries.push(supabase.from('orders').select('*', { count: 'exact' }).or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid}`));
+        } else if (loadBuyerData) {
+          queries.push(supabase.from('orders').select('*', { count: 'exact' }).eq('buyer_company_id', cid));
+        } else if (loadSellerData) {
+          queries.push(supabase.from('orders').select('*', { count: 'exact' }).eq('seller_company_id', cid));
+        }
+      }
+      
+      // RFQs: only for buyers
+      if (loadBuyerData) {
+        queries.push(supabase.from('rfqs').select('*', { count: 'exact' }).eq('buyer_company_id', cid));
+      } else {
+        queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
+      }
+      
+      // Products: only for sellers
+      if (loadSellerData) {
+        queries.push(supabase.from('products').select('*', { count: 'exact' }).eq('company_id', cid));
+      } else {
+        queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
+      }
+      
+      // Messages: always load
+      queries.push(supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', cid).eq('read', false));
+      
+      // Suppliers: only for buyers
+      if (loadBuyerData) {
+        queries.push(supabase.from('companies').select('id', { count: 'exact' }));
+      } else {
+        queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
+      }
+      
+      // Payouts: only for sellers
+      if (loadSellerData) {
+        queries.push(supabase.from('wallet_transactions').select('amount').eq('company_id', cid).eq('type', 'payout').eq('status', 'completed'));
+      } else {
+        queries.push(Promise.resolve({ status: 'fulfilled', value: { data: [] } }));
+      }
+
+      const results = await Promise.allSettled(queries);
+      
+      // Extract results (first query is orders, then rfqs, products, messages, suppliers, payouts)
+      const ordersRes = results[0];
+      const rfqsRes = results[1];
+      const productsRes = results[2];
+      const messagesRes = results[3];
+      const suppliersRes = results[4];
+      const payoutsRes = results[5];
 
       const totalOrders = ordersRes.status === 'fulfilled' ? (ordersRes.value?.count || 0) : 0;
       const totalRFQs = rfqsRes.status === 'fulfilled' ? (rfqsRes.value?.count || 0) : 0;
@@ -417,8 +478,37 @@ export default function DashboardHome({ currentRole = 'buyer' }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="h-10 w-64 bg-afrikoni-cream rounded mb-3 animate-pulse" />
+            <div className="h-5 w-96 bg-afrikoni-cream rounded animate-pulse" />
+          </div>
+          <div className="h-8 w-20 bg-afrikoni-cream rounded animate-pulse" />
+        </div>
+        
+        {/* KPI Skeleton */}
+        <StatCardSkeleton count={5} />
+        
+        {/* Charts Skeleton */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+            <CardContent className="p-6">
+              <div className="h-6 w-32 bg-afrikoni-cream rounded mb-4 animate-pulse" />
+              <div className="h-64 bg-afrikoni-cream rounded animate-pulse" />
+            </CardContent>
+          </Card>
+          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+            <CardContent className="p-6">
+              <div className="h-6 w-32 bg-afrikoni-cream rounded mb-4 animate-pulse" />
+              <div className="h-64 bg-afrikoni-cream rounded animate-pulse" />
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Recent Items Skeleton */}
+        <CardSkeleton count={2} />
       </div>
     );
   }

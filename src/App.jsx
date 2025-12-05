@@ -7,6 +7,7 @@ import ScrollToTop from './components/ScrollToTop';
 import { PageLoader } from './components/ui/skeletons';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
+import { useSessionRefresh } from './hooks/useSessionRefresh';
 
 // Lightweight routes - keep as regular imports for faster initial load
 import Home from './pages/index';
@@ -111,6 +112,9 @@ const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 
 function App() {
+  // Setup session refresh to keep users logged in
+  useSessionRefresh();
+  
   // Setup preloading on mount
   useEffect(() => {
     setupLinkPreloading();

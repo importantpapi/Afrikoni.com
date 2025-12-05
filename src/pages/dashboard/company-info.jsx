@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Building2, Save, CheckCircle, AlertCircle, Upload, X, Image as ImageIcon, Users, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -22,6 +23,33 @@ const AFRICAN_COUNTRIES = [
   'Rwanda', 'São Tomé and Príncipe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia',
   'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
 ];
+
+// Validation function for company form
+const validateCompanyForm = (formData) => {
+  const errors = {};
+  
+  if (!formData.company_name || formData.company_name.trim().length < 2) {
+    errors.company_name = 'Company name must be at least 2 characters';
+  }
+  
+  if (!formData.country) {
+    errors.country = 'Please select a country';
+  }
+  
+  if (!formData.phone || formData.phone.trim().length < 5) {
+    errors.phone = 'Please enter a valid phone number';
+  }
+  
+  if (formData.business_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.business_email)) {
+    errors.business_email = 'Please enter a valid email address';
+  }
+  
+  if (formData.website && !/^https?:\/\/.+/.test(formData.website)) {
+    errors.website = 'Please enter a valid website URL (starting with http:// or https://)';
+  }
+  
+  return errors;
+};
 
 export default function CompanyInfo() {
   const [searchParams] = useSearchParams();
@@ -45,8 +73,10 @@ export default function CompanyInfo() {
   });
   const [logoUrl, setLogoUrl] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
+  const [galleryImages, setGalleryImages] = useState([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
   const [newTeamMember, setNewTeamMember] = useState({ email: '', role: 'member' });
   const [isAddingTeamMember, setIsAddingTeamMember] = useState(false);
@@ -87,12 +117,57 @@ export default function CompanyInfo() {
     try {
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', `company-covers/${Date.now()}-${file.name}`);
       setCoverUrl(file_url);
-        toast.success('Cover image uploaded successfully');
-      } catch (error) {
-        toast.error('Failed to upload cover image');
+      toast.success('Cover image uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload cover image');
     } finally {
       setUploadingCover(false);
     }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (galleryImages.length + files.length > 10) {
+      toast.error('Maximum 10 gallery images allowed');
+      return;
+    }
+
+    setUploadingGallery(true);
+    try {
+      const uploadPromises = files.map(file => {
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name} is too large (max 10MB)`);
+          return null;
+        }
+        return supabaseHelpers.storage.uploadFile(
+          file, 
+          'files', 
+          `company-gallery/${Date.now()}-${Math.random()}-${file.name}`
+        );
+      });
+
+      const results = await Promise.all(uploadPromises);
+      const successfulUploads = results
+        .filter(r => r && r.file_url)
+        .map(r => r.file_url);
+      
+      if (successfulUploads.length > 0) {
+        setGalleryImages(prev => [...prev, ...successfulUploads]);
+        toast.success(`${successfulUploads.length} image(s) uploaded successfully`);
+      }
+    } catch (error) {
+      console.error('Gallery upload error:', error);
+      toast.error('Failed to upload gallery images');
+    } finally {
+      setUploadingGallery(false);
+    }
+  };
+
+  const removeGalleryImage = (index) => {
+    setGalleryImages(prev => prev.filter((_, i) => i !== index));
+    toast.success('Image removed');
   };
 
   useEffect(() => {
@@ -128,7 +203,7 @@ export default function CompanyInfo() {
           .eq('id', profileData.company_id)
           .maybeSingle();
 
-          if (companyData) {
+        if (companyData) {
           setFormData({
             company_name: companyData.company_name || profileData.company_name || '',
             business_type: companyData.business_type || profileData.business_type || 'manufacturer',
@@ -143,6 +218,7 @@ export default function CompanyInfo() {
           });
           setLogoUrl(companyData.logo_url || '');
           setCoverUrl(companyData.cover_image_url || companyData.cover_url || '');
+          setGalleryImages(Array.isArray(companyData.gallery_images) ? companyData.gallery_images : []);
         }
         
         // Load team members
@@ -225,7 +301,8 @@ export default function CompanyInfo() {
             employee_count: formData.company_size,
             description: formData.company_description,
             logo_url: logoUrl,
-            cover_image_url: coverUrl
+            cover_image_url: coverUrl,
+            gallery_images: galleryImages
           })
           .eq('id', companyId);
 
@@ -248,7 +325,8 @@ export default function CompanyInfo() {
             description: formData.company_description,
             logo_url: logoUrl,
             cover_image_url: coverUrl,
-            cover_url: coverUrl
+            cover_url: coverUrl,
+            gallery_images: galleryImages
           })
           .select('id')
           .single();
@@ -350,9 +428,9 @@ export default function CompanyInfo() {
   if (isLoading) {
     return (
       <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
       </DashboardLayout>
     );
   }
@@ -362,7 +440,7 @@ export default function CompanyInfo() {
 
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-3">
+    <div className="space-y-3">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -454,11 +532,11 @@ export default function CompanyInfo() {
 
           <TabsContent value="info" className="space-y-4">
             {/* Form content stays the same */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
         {/* v2.5: Premium Company Info Cards */}
         <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
           <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
@@ -467,8 +545,8 @@ export default function CompanyInfo() {
               Provide your company information. This will be visible to potential buyers and partners.
             </CardDescription>
           </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Logo and Cover Upload */}
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
@@ -553,165 +631,165 @@ export default function CompanyInfo() {
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {/* Company Name */}
-                      <div className="md:col-span-2">
-                        <Label htmlFor="company_name">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Company Name */}
+                <div className="md:col-span-2">
+                  <Label htmlFor="company_name">
                           Company Name <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="company_name"
-                          value={formData.company_name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                          placeholder="e.g. Acme Trading Ltd"
-                          required
+                  </Label>
+                  <Input
+                    id="company_name"
+                    value={formData.company_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
+                    placeholder="e.g. Acme Trading Ltd"
+                    required
                           className={`mt-1 ${errors.company_name ? 'border-red-500' : ''}`}
-                        />
+                  />
                         {errors.company_name && (
                           <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
                         )}
-                      </div>
+                </div>
 
-                      {/* Business Type */}
-                      <div>
-                        <Label htmlFor="business_type">
-                          Business Type
-                        </Label>
-                        <Select 
-                          value={formData.business_type} 
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="manufacturer">Manufacturer</SelectItem>
-                            <SelectItem value="wholesaler">Wholesaler</SelectItem>
-                            <SelectItem value="distributor">Distributor</SelectItem>
-                            <SelectItem value="trading_company">Trading Company</SelectItem>
-                            <SelectItem value="logistics_provider">Logistics Provider</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                {/* Business Type */}
+                <div>
+                  <Label htmlFor="business_type">
+                    Business Type
+                  </Label>
+                  <Select 
+                    value={formData.business_type} 
+                    onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manufacturer">Manufacturer</SelectItem>
+                      <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                      <SelectItem value="distributor">Distributor</SelectItem>
+                      <SelectItem value="trading_company">Trading Company</SelectItem>
+                      <SelectItem value="logistics_provider">Logistics Provider</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                      {/* Country */}
-                      <div>
-                        <Label htmlFor="country">
+                {/* Country */}
+                <div>
+                  <Label htmlFor="country">
                           Country <span className="text-red-500">*</span>
-                        </Label>
-                        <Select 
-                          value={formData.country} 
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
-                        >
+                  </Label>
+                  <Select 
+                    value={formData.country} 
+                    onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
+                  >
                           <SelectTrigger className={`mt-1 ${errors.country ? 'border-red-500' : ''}`}>
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {AFRICAN_COUNTRIES.map(country => (
-                              <SelectItem key={country} value={country}>{country}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AFRICAN_COUNTRIES.map(country => (
+                        <SelectItem key={country} value={country}>{country}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                         {errors.country && (
                           <p className="text-red-500 text-sm mt-1">{errors.country}</p>
                         )}
-                      </div>
+                </div>
 
-                      {/* City */}
-                      <div>
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          value={formData.city}
-                          onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          placeholder="e.g. Lagos"
-                          className="mt-1"
-                        />
-                      </div>
+                {/* City */}
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="e.g. Lagos"
+                    className="mt-1"
+                  />
+                </div>
 
-                      {/* Phone Number */}
-                      <div>
-                        <Label htmlFor="phone">
+                {/* Phone Number */}
+                <div>
+                  <Label htmlFor="phone">
                           Phone Number <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="phone"
-                          value={formData.phone}
-                          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                          placeholder="+234 800 000 0000"
-                          required
+                  </Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+234 800 000 0000"
+                    required
                           className={`mt-1 ${errors.phone ? 'border-red-500' : ''}`}
-                        />
+                  />
                         {errors.phone && (
                           <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
                         )}
-                      </div>
+                </div>
 
-                      {/* Business Email */}
-                      <div>
-                        <Label htmlFor="business_email">Business Email</Label>
-                        <Input
-                          id="business_email"
-                          type="email"
-                          value={formData.business_email}
-                          onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
-                          placeholder="contact@company.com"
+                {/* Business Email */}
+                <div>
+                  <Label htmlFor="business_email">Business Email</Label>
+                  <Input
+                    id="business_email"
+                    type="email"
+                    value={formData.business_email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
+                    placeholder="contact@company.com"
                           className={`mt-1 ${errors.business_email ? 'border-red-500' : ''}`}
-                        />
+                  />
                         {errors.business_email && (
                           <p className="text-red-500 text-sm mt-1">{errors.business_email}</p>
                         )}
-                      </div>
+                </div>
 
-                      {/* Website */}
-                      <div>
-                        <Label htmlFor="website">Website</Label>
-                        <Input
-                          id="website"
-                          value={formData.website}
-                          onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                          placeholder="https://yourcompany.com"
+                {/* Website */}
+                <div>
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                    placeholder="https://yourcompany.com"
                           className={`mt-1 ${errors.website ? 'border-red-500' : ''}`}
-                        />
+                  />
                         {errors.website && (
                           <p className="text-red-500 text-sm mt-1">{errors.website}</p>
                         )}
-                      </div>
+                </div>
 
-                      {/* Year Established */}
-                      <div>
-                        <Label htmlFor="year_established">Year Established</Label>
-                        <Input
-                          id="year_established"
-                          type="number"
-                          value={formData.year_established}
-                          onChange={(e) => setFormData(prev => ({ ...prev, year_established: e.target.value }))}
-                          placeholder="2020"
-                          min="1900"
-                          max={new Date().getFullYear()}
-                          className="mt-1"
-                        />
-                      </div>
+                {/* Year Established */}
+                <div>
+                  <Label htmlFor="year_established">Year Established</Label>
+                  <Input
+                    id="year_established"
+                    type="number"
+                    value={formData.year_established}
+                    onChange={(e) => setFormData(prev => ({ ...prev, year_established: e.target.value }))}
+                    placeholder="2020"
+                    min="1900"
+                    max={new Date().getFullYear()}
+                    className="mt-1"
+                  />
+                </div>
 
-                      {/* Company Size */}
-                      <div>
-                        <Label htmlFor="company_size">Company Size</Label>
-                        <Select 
-                          value={formData.company_size} 
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, company_size: v }))}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1-10">1-10 employees</SelectItem>
-                            <SelectItem value="11-50">11-50 employees</SelectItem>
-                            <SelectItem value="51-200">51-200 employees</SelectItem>
-                            <SelectItem value="201-500">201-500 employees</SelectItem>
-                            <SelectItem value="500+">500+ employees</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                {/* Company Size */}
+                <div>
+                  <Label htmlFor="company_size">Company Size</Label>
+                  <Select 
+                    value={formData.company_size} 
+                    onValueChange={(v) => setFormData(prev => ({ ...prev, company_size: v }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1-10">1-10 employees</SelectItem>
+                      <SelectItem value="11-50">11-50 employees</SelectItem>
+                      <SelectItem value="51-200">51-200 employees</SelectItem>
+                      <SelectItem value="201-500">201-500 employees</SelectItem>
+                      <SelectItem value="500+">500+ employees</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                       {/* Company Description */}
                       <div className="md:col-span-2">
@@ -730,38 +808,100 @@ export default function CompanyInfo() {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-between pt-6 border-t border-afrikoni-gold/20">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate(returnUrl)}
-                        disabled={isSaving}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={isSaving}
-                        className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
-                      >
-                        {isSaving ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-chestnut mr-2" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4 mr-2" />
-                            Save Company Information
-                          </>
-                        )}
-                      </Button>
+                    {/* Gallery Images Section */}
+                    <div className="md:col-span-2 border-t border-afrikoni-gold/20 pt-6">
+                      <Label>Company Gallery (Create Your Visual World)</Label>
+                      <p className="text-xs text-afrikoni-deep/70 mt-1 mb-4">
+                        Upload up to 10 images showcasing your company, products, facilities, or team. Make your profile come alive!
+                      </p>
+                      
+                      {/* Gallery Grid */}
+                      {galleryImages.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                          {galleryImages.map((imageUrl, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={imageUrl}
+                                alt={`Gallery ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-lg border border-afrikoni-gold/20"
+                                loading="lazy"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeGalleryImage(index)}
+                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Upload Button */}
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleGalleryUpload}
+                          disabled={uploadingGallery || galleryImages.length >= 10}
+                          className="hidden"
+                          id="gallery-upload"
+                        />
+                        <label htmlFor="gallery-upload">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            disabled={uploadingGallery || galleryImages.length >= 10}
+                            asChild
+                          >
+                            <span className="cursor-pointer">
+                              <Upload className="w-4 h-4 mr-2 inline" />
+                              {uploadingGallery 
+                                ? 'Uploading...' 
+                                : galleryImages.length >= 10 
+                                  ? 'Maximum 10 images reached' 
+                                  : `Add Images (${galleryImages.length}/10)`
+                              }
+                            </span>
+                          </Button>
+                        </label>
+                      </div>
                     </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </motion.div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-6 border-t border-afrikoni-gold/20">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(returnUrl)}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                        disabled={isSaving}
+                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-chestnut mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Company Information
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
           </TabsContent>
 
           <TabsContent value="team" className="space-y-4">
@@ -846,11 +986,11 @@ export default function CompanyInfo() {
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
           </TabsContent>
         </Tabs>
-      </div>
+    </div>
     </DashboardLayout>
   );
 }

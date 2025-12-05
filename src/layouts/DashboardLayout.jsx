@@ -18,6 +18,7 @@ import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { isAdmin } from '@/utils/permissions';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
+import { DashboardContextProvider } from '@/contexts/DashboardContext';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useLanguage();
@@ -62,9 +63,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       if (role) setUserRole(role);
       const admin = isAdmin(userData);
       setIsUserAdmin(admin);
-      if (admin && userData) {
-        console.log('Admin access granted for:', userData.email);
-      }
+      // Admin access verified silently
     } catch (error) {
       console.error('Error loading user:', error);
       setIsUserAdmin(false);
