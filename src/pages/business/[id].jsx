@@ -22,7 +22,7 @@ import OptimizedImage from '@/components/OptimizedImage';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import { isValidUUID } from '@/utils/security';
 import { motion } from 'framer-motion';
-import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
+import { getPrimaryImageFromProduct } from '@/utils/productImages';
 
 export default function BusinessProfile() {
   const { id } = useParams();

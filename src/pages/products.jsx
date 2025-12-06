@@ -17,7 +17,7 @@ import SaveButton from '@/components/ui/SaveButton';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
+import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
 
 export default function Products() {

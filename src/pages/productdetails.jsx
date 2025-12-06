@@ -145,8 +145,9 @@ export default function ProductDetail() {
           
           setProduct({
             ...productWithJoins,
-            primaryImage: getProductPrimaryImage(productWithJoins),
-            allImages: getProductAllImages(productWithJoins)
+            // NOTE: product_images is the single source of truth. products.images is deprecated.
+            primaryImage: getPrimaryImageFromProduct(productWithJoins),
+            allImages: getAllImagesFromProduct(productWithJoins)
           });
           
           return;

@@ -1,6 +1,12 @@
 /**
  * Image URL Helper - Normalizes image URLs for Supabase Storage
  * Ensures all image URLs are in the correct format for display
+ * 
+ * NOTE: This file is being replaced by src/utils/productImages.js
+ * which is the new single source of truth for product image handling.
+ * This file is kept for backward compatibility.
+ * 
+ * @deprecated Use productImages.js helpers instead
  */
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;

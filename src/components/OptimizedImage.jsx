@@ -9,7 +9,8 @@ export default function OptimizedImage({
   src, 
   alt, 
   className = '', 
-  placeholder = '/placeholder.png',
+  placeholder = '/product-placeholder.svg',
+  fallbackSrc,
   width,
   height,
   sizes: customSizes,
@@ -19,6 +20,8 @@ export default function OptimizedImage({
   responsive = true, // Generate responsive srcSet automatically
   ...props 
 }) {
+  // Use fallbackSrc if provided, otherwise use placeholder
+  const finalPlaceholder = fallbackSrc || placeholder;
   const optimizedSrc = getOptimizedImageUrl(src, { width, height, quality });
   const [imageSrc, setImageSrc] = useState(priority ? optimizedSrc : placeholder);
   const [isLoading, setIsLoading] = useState(!priority);

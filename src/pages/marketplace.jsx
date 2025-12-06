@@ -33,7 +33,7 @@ import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
 import { useLanguage } from '@/i18n/LanguageContext';
-import { getProductPrimaryImage, getProductAllImages, normalizeImageUrl } from '@/utils/imageUrlHelper';
+import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 
 export default function Marketplace() {
   const { t } = useLanguage();

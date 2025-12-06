@@ -19,7 +19,7 @@ import { Package, Plus, Search, Edit, Trash2, Eye, Pause, Play } from 'lucide-re
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import ProductStatsBar from '@/components/products/ProductStatsBar';
-import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
+import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
 
 const AFRICAN_COUNTRIES = [

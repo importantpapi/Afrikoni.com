@@ -13,7 +13,7 @@ import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import SEO from '@/components/SEO';
-import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
+import { getPrimaryImageFromProduct } from '@/utils/productImages';
 
 export default function CompareProducts() {
   const [products, setProducts] = useState([]);
