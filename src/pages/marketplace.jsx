@@ -296,12 +296,33 @@ export default function Marketplace() {
       
       if (error) throw error;
       
-      // Transform products to include primary image
+      // Transform products to include primary image - ensure images are properly loaded
       const productsWithImages = Array.isArray(data) ? data.map(product => {
-        const primaryImage = Array.isArray(product.product_images) ? product.product_images.find(img => img.is_primary) || product.product_images[0] : null;
+        // Try multiple sources for product images
+        let primaryImage = null;
+        
+        // 1. Check product_images table (preferred)
+        if (Array.isArray(product.product_images) && product.product_images.length > 0) {
+          const primary = product.product_images.find(img => img.is_primary);
+          primaryImage = primary?.url || product.product_images[0]?.url;
+        }
+        
+        // 2. Fallback to legacy images array
+        if (!primaryImage && Array.isArray(product.images) && product.images.length > 0) {
+          primaryImage = typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url;
+        }
+        
+        // 3. Fallback to placeholder
+        if (!primaryImage) {
+          primaryImage = '/placeholder.png';
+        }
+        
         return {
           ...product,
-          primaryImage: primaryImage?.url || (Array.isArray(product.images) ? product.images[0] : null) || null
+          primaryImage: primaryImage,
+          allImages: Array.isArray(product.product_images) && product.product_images.length > 0
+            ? product.product_images.map(img => img.url).filter(Boolean)
+            : (Array.isArray(product.images) ? product.images.map(img => typeof img === 'string' ? img : img?.url).filter(Boolean) : [])
         };
       }) : [];
       

@@ -635,6 +635,81 @@ ${JSON.stringify(candidates, null, 2)}
 }
 
 /**
+ * Auto-detect product category, country, and city from product title and description
+ * Uses AI to intelligently categorize products and determine location for transport facilitation
+ */
+export async function autoDetectProductLocation(productInfo) {
+  if (!productInfo || (!productInfo.title && !productInfo.description)) {
+    return {
+      success: false,
+      category: null,
+      country: null,
+      city: null
+    };
+  }
+
+  const system = `
+You are KoniAI, helping sellers on Afrikoni B2B marketplace automatically categorize products and determine their location.
+
+Given product information (title, description, keywords), determine:
+1. The most appropriate B2B category
+2. The country of origin (must be an African country)
+3. The city (if mentioned or can be inferred)
+
+Respond with a JSON object:
+{
+  "category": "string - category name (e.g., 'Agriculture', 'Food & Beverages', 'Textiles & Apparel', 'Beauty & Personal Care', 'Consumer Electronics', 'Industrial Machinery')",
+  "country": "string - African country name (e.g., 'Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Egypt', 'Morocco', 'Senegal', 'Tanzania', 'Ethiopia', 'Angola')",
+  "city": "string - city name if mentioned or can be inferred (e.g., 'Lagos', 'Accra', 'Nairobi', 'Cairo', 'Casablanca', 'Dakar', 'Dar es Salaam', 'Addis Ababa', 'Luanda')",
+  "confidence": "number between 0 and 1"
+}
+
+Guidelines:
+- Category must match common B2B categories
+- Country MUST be an African country
+- City should be a major city in that country if mentioned
+- If location is unclear, use seller's company location as fallback
+- Focus on transport facilitation - accurate location helps buyers find logistics
+`.trim();
+
+  const user = `
+Product Information:
+${JSON.stringify({
+  title: productInfo.title || '',
+  description: productInfo.description || '',
+  keywords: productInfo.keywords || [],
+  sellerCountry: productInfo.sellerCountry || '',
+  sellerCity: productInfo.sellerCity || ''
+}, null, 2)}
+
+Determine the best category, country, and city for this product to facilitate transport and logistics.
+`.trim();
+
+  const fallback = {
+    category: null,
+    country: productInfo.sellerCountry || null,
+    city: productInfo.sellerCity || null,
+    confidence: 0.3
+  };
+
+  const { success, data } = await callChatAsJson(
+    { system, user, maxTokens: 400 },
+    {
+      fallback,
+      schemaDescription: 'Category must be a valid B2B category name. Country must be an African country. City is optional but helpful for logistics.'
+    }
+  );
+
+  return {
+    success,
+    category: data?.category || fallback.category,
+    country: data?.country || fallback.country,
+    city: data?.city || fallback.city,
+    confidence: data?.confidence || fallback.confidence
+  };
+}
+
+/**
  * Generate a professional buyer inquiry message for contacting suppliers
  * Used when buyers click "Contact Supplier" from marketplace
  */

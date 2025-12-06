@@ -16,7 +16,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { getOrCreateCompany } from '@/utils/companyHelper';
-import { generateProductListing } from '@/ai/aiFunctions';
+import { generateProductListing, autoDetectProductLocation } from '@/ai/aiFunctions';
 import { AFRICAN_COUNTRIES } from '@/constants/countries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
