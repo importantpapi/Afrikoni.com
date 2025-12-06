@@ -13,6 +13,7 @@ import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import SEO from '@/components/SEO';
+import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
 
 export default function CompareProducts() {
   const [products, setProducts] = useState([]);
@@ -88,14 +89,7 @@ export default function CompareProducts() {
   };
 
   const getProductImage = (product) => {
-    if (product.product_images && product.product_images.length > 0) {
-      const primaryImage = product.product_images.find(img => img.is_primary) || product.product_images[0];
-      return primaryImage.url;
-    }
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      return product.images[0];
-    }
-    return null;
+    return getProductPrimaryImage(product);
   };
 
   const getPriceDisplay = (product) => {

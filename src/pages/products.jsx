@@ -337,7 +337,6 @@ export default function Products() {
                       <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all duration-300 hover:shadow-lg overflow-hidden">
                         <div className="h-48 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden relative">
                           {(() => {
-                            const { getProductPrimaryImage } = require('@/utils/imageUrlHelper');
                             const imageUrl = getProductPrimaryImage(product);
                             return imageUrl ? (
                               <OptimizedImage
