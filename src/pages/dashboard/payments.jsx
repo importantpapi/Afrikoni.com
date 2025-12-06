@@ -1,384 +1,284 @@
+/**
+ * Payments & Escrow Dashboard
+ * Shows wallet balance, transactions, and escrow payments
+ */
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import DashboardLayout from '@/layouts/DashboardLayout';
+import { Wallet, ArrowUpRight, ArrowDownLeft, Shield, Clock, CheckCircle, XCircle, DollarSign, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DataTable, StatusChip } from '@/components/ui/data-table';
-import { Wallet, DollarSign, CreditCard, TrendingUp, AlertCircle, Lock } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import EmptyState from '@/components/ui/EmptyState';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { 
+  getWalletAccount, 
+  getWalletTransactions, 
+  getEscrowPaymentsByCompany,
+  getEscrowEvents
+} from '@/lib/supabaseQueries/payments';
 import { format } from 'date-fns';
+import EmptyState from '@/components/ui/EmptyState';
+import { CardSkeleton } from '@/components/ui/skeletons';
 
-export default function DashboardPayments() {
+export default function PaymentsDashboard() {
+  const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [summary, setSummary] = useState(null);
+  const [escrowPayments, setEscrowPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentRole, setCurrentRole] = useState('buyer');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('wallet');
+  const [companyId, setCompanyId] = useState(null);
+  const [userRole, setUserRole] = useState('buyer');
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadUserAndPayments();
-  }, [typeFilter, statusFilter]);
+    loadData();
+  }, []);
 
-  const loadUserAndPayments = async () => {
+  const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
+      setIsLoading(true);
+      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase);
+      
+      if (!user || !userCompanyId) {
         navigate('/login');
         return;
       }
 
-      const role = userRole || userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+      setCompanyId(userCompanyId);
+      setUserRole(role);
 
-      // Get or create company
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
-
-      // Load wallet transactions
-      let walletQuery = supabase.from('wallet_transactions').select('*, orders(id, products(title))');
-      if (companyId) {
-        walletQuery = walletQuery.eq('company_id', companyId);
-      } else if (userData.id) {
-        walletQuery = walletQuery.eq('user_id', userData.id);
+      // Load wallet account
+      let walletAccount = await getWalletAccount(userCompanyId);
+      if (!walletAccount) {
+        // Create wallet if it doesn't exist
+        const { createWalletAccount } = await import('@/lib/supabaseQueries/payments');
+        walletAccount = await createWalletAccount(userCompanyId);
       }
-      const { data: walletTransactions } = await walletQuery.order('created_at', { ascending: false });
+      setWallet(walletAccount);
 
-      // Calculate summary
-      const allTransactions = walletTransactions || [];
-      
-      // Wallet balance = sum of completed credits - debits
-      const credits = allTransactions.filter(tx => 
-        ['deposit', 'escrow_release', 'payout'].includes(tx.type) && tx.status === 'completed'
-      );
-      const debits = allTransactions.filter(tx => 
-        ['escrow_hold', 'fee', 'adjustment'].includes(tx.type) && tx.status === 'completed'
-      );
-      
-      const walletBalance = credits.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0) -
-                           debits.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
-      
-      const totalReceived = credits.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
-      const totalPaid = debits.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
-      
-      // Escrow held = sum of escrow_hold that are completed and not yet released
-      const escrowHolds = allTransactions.filter(tx => 
-        tx.type === 'escrow_hold' && tx.status === 'completed'
-      );
-      const escrowReleases = allTransactions.filter(tx => 
-        tx.type === 'escrow_release' && tx.status === 'completed'
-      );
-      
-      // Calculate escrow held (holds minus releases for same orders)
-      const escrowHeld = escrowHolds.reduce((sum, hold) => {
-        const released = escrowReleases.find(r => r.order_id === hold.order_id);
-        if (!released) {
-          return sum + parseFloat(hold.amount || 0);
-        }
-        return sum;
-      }, 0);
+      // Load transactions
+      const txs = await getWalletTransactions(userCompanyId, { limit: 50 });
+      setTransactions(txs);
 
-      setSummary({
-        walletBalance,
-        totalReceived,
-        totalPaid,
-        escrowHeld
-      });
-
-      // Format transactions for display
-      const formattedTransactions = allTransactions.map(tx => {
-        const typeLabels = {
-          deposit: 'Deposit',
-          payout: 'Payout',
-          escrow_hold: `Escrow Hold for Order #${tx.order_id?.slice(0, 8) || 'N/A'}`,
-          escrow_release: `Escrow Release for Order #${tx.order_id?.slice(0, 8) || 'N/A'}`,
-          fee: 'Fee',
-          adjustment: 'Adjustment'
-        };
-
-        return {
-          id: tx.id,
-          date: tx.created_at,
-          type: tx.type,
-          typeLabel: typeLabels[tx.type] || tx.type,
-          amount: parseFloat(tx.amount || 0),
-          currency: tx.currency || 'USD',
-          status: tx.status || 'pending',
-          order_id: tx.order_id,
-          description: tx.description || '',
-          order: tx.orders
-        };
-      });
-
-      // Apply filters
-      let filtered = formattedTransactions;
-      
-      if (typeFilter !== 'all') {
-        if (typeFilter === 'escrow') {
-          filtered = filtered.filter(tx => ['escrow_hold', 'escrow_release'].includes(tx.type));
-        } else {
-          filtered = filtered.filter(tx => tx.type === typeFilter);
-        }
-      }
-      
-      if (statusFilter !== 'all') {
-        filtered = filtered.filter(tx => tx.status === statusFilter);
-      }
-      
-      if (searchQuery) {
-        filtered = filtered.filter(tx => 
-          tx.typeLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.order_id?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-
-      setTransactions(filtered);
+      // Load escrow payments
+      const escrows = await getEscrowPaymentsByCompany(userCompanyId, role);
+      setEscrowPayments(escrows);
     } catch (error) {
-      toast.error('Failed to load payments');
+      console.error('Error loading payments data:', error);
+      toast.error('Failed to load payments data');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const transactionColumns = [
-    { 
-      header: 'Date',
-      accessor: 'date',
-      render: (value) => value ? format(new Date(value), 'MMM d, yyyy') : 'N/A'
-    },
-    { 
-      header: 'Type',
-      accessor: 'typeLabel',
-      render: (value, row) => (
-        <div>
-          <div className="font-medium">{value}</div>
-          {row.description && (
-            <div className="text-xs text-afrikoni-deep/70">{row.description}</div>
-          )}
-        </div>
-      )
-    },
-    { 
-      header: 'Amount',
-      accessor: 'amount',
-      render: (value, row) => {
-        const isDebit = ['escrow_hold', 'fee', 'adjustment'].includes(row.type);
-        return (
-          <span className={isDebit ? 'text-red-600' : 'text-green-600'}>
-            {isDebit ? '-' : '+'}{row.currency || 'USD'} {Math.abs(value).toLocaleString()}
-          </span>
-        );
-      }
-    },
-    { 
-      header: 'Status',
-      accessor: 'status',
-      render: (value) => <StatusChip status={value} />
-    },
-    { 
-      header: 'Actions',
-      accessor: 'order_id',
-      render: (value) => value ? (
-        <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/orders/${value}`)}>
-          View Order
-        </Button>
-      ) : null
-    }
-  ];
+  const getStatusBadge = (status) => {
+    const variants = {
+      'completed': 'success',
+      'pending': 'outline',
+      'failed': 'destructive',
+      'held': 'outline',
+      'released': 'success',
+      'refunded': 'destructive'
+    };
+    return variants[status] || 'outline';
+  };
+
+  const getStatusIcon = (status) => {
+    if (status === 'completed' || status === 'released') return <CheckCircle className="w-4 h-4" />;
+    if (status === 'pending' || status === 'held') return <Clock className="w-4 h-4" />;
+    if (status === 'failed' || status === 'refunded') return <XCircle className="w-4 h-4" />;
+    return null;
+  };
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
+      <DashboardLayout>
+        <CardSkeleton count={3} />
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <DashboardLayout>
       <div className="space-y-6">
-        {/* v2.5: Premium Header with Improved Spacing */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8"
+          className="flex items-center justify-between"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Payments</h1>
-          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
-            {currentRole === 'buyer' && 'Track your payment history'}
-            {currentRole === 'seller' && 'Manage your payment receipts'}
-            {currentRole === 'hybrid' && 'View all payments'}
-            {currentRole === 'logistics' && 'Track payment transactions'}
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Payments & Escrow</h1>
+            <p className="text-afrikoni-text-dark/70">Manage your wallet, transactions, and escrow payments</p>
+          </div>
         </motion.div>
 
-        {/* Summary Cards */}
-        {summary ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* v2.5: Premium Payment KPI Cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-            >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                      <Wallet className="w-6 h-6 text-afrikoni-gold" />
-                    </div>
+        {/* Wallet Balance Card */}
+        {wallet && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-cream border-afrikoni-gold/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-afrikoni-text-dark/70 mb-1">Available Balance</p>
+                    <h2 className="text-4xl font-bold text-afrikoni-text-dark">
+                      {wallet.currency} {parseFloat(wallet.available_balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </h2>
+                    {wallet.pending_balance > 0 && (
+                      <p className="text-sm text-afrikoni-text-dark/60 mt-2">
+                        Pending: {wallet.currency} {parseFloat(wallet.pending_balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    )}
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-gold mb-2">${summary.walletBalance.toLocaleString()}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Wallet Balance</div>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                      <DollarSign className="w-6 h-6 text-afrikoni-green" />
-                    </div>
+                  <div className="p-4 bg-afrikoni-gold/20 rounded-full">
+                    <Wallet className="w-8 h-8 text-afrikoni-gold" />
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">${summary.totalReceived.toLocaleString()}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Received</div>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-            >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-red/20 rounded-full flex items-center justify-center">
-                      <CreditCard className="w-6 h-6 text-afrikoni-red" />
-                    </div>
-                  </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">${summary.totalPaid.toLocaleString()}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Paid</div>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                      <Lock className="w-6 h-6 text-afrikoni-purple" />
-                    </div>
-                  </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">${summary.escrowHeld.toLocaleString()}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Escrow Held</div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <Card key={i}>
-                <CardContent className="p-5 md:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-afrikoni-deep">Loading...</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">$0</p>
-                    </div>
-                    <Wallet className="w-8 h-8 text-afrikoni-deep/30" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
-        {/* v2.5: Premium Filters */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardContent className="p-5 md:p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
-                <Input
-                  placeholder="Search transactions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
-                />
-              </div>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="deposit">Deposit</SelectItem>
-                  <SelectItem value="payout">Payout</SelectItem>
-                  <SelectItem value="escrow">Escrow</SelectItem>
-                  <SelectItem value="fee">Fee</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="wallet">Wallet Transactions</TabsTrigger>
+            <TabsTrigger value="escrow">Escrow Payments</TabsTrigger>
+          </TabsList>
 
-        {/* v2.5: Premium Transactions Table */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">Transaction History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {transactions.length === 0 ? (
-              <EmptyState 
-                type="payments" 
-                title="No transactions yet"
-                description="Your wallet transactions will appear here"
-              />
-            ) : (
-              <DataTable
-                data={transactions}
-                columns={transactionColumns}
-              />
-            )}
-          </CardContent>
-        </Card>
+          {/* Wallet Transactions Tab */}
+          <TabsContent value="wallet" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Transaction History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {transactions.length === 0 ? (
+                  <EmptyState
+                    icon={Wallet}
+                    title="No transactions yet"
+                    description="Your transaction history will appear here"
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    {transactions.map((tx) => (
+                      <motion.div
+                        key={tx.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-afrikoni-cream/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-full ${
+                            tx.type === 'deposit' || tx.type === 'refund' 
+                              ? 'bg-green-100 text-green-600' 
+                              : 'bg-red-100 text-red-600'
+                          }`}>
+                            {tx.type === 'deposit' || tx.type === 'refund' ? (
+                              <ArrowDownLeft className="w-4 h-4" />
+                            ) : (
+                              <ArrowUpRight className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold">{tx.description || tx.type}</p>
+                            <p className="text-sm text-afrikoni-text-dark/60">
+                              {format(new Date(tx.created_at), 'MMM dd, yyyy HH:mm')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${
+                            tx.type === 'deposit' || tx.type === 'refund' 
+                              ? 'text-green-600' 
+                              : 'text-red-600'
+                          }`}>
+                            {tx.type === 'deposit' || tx.type === 'refund' ? '+' : '-'}
+                            {tx.currency} {Math.abs(parseFloat(tx.amount || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                          <Badge variant={getStatusBadge(tx.status)} className="mt-1">
+                            {getStatusIcon(tx.status)}
+                            <span className="ml-1 capitalize">{tx.status}</span>
+                          </Badge>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Escrow Payments Tab */}
+          <TabsContent value="escrow" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Escrow Payments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {escrowPayments.length === 0 ? (
+                  <EmptyState
+                    icon={Shield}
+                    title="No escrow payments"
+                    description="Escrow payments for your orders will appear here"
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    {escrowPayments.map((escrow) => (
+                      <motion.div
+                        key={escrow.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="font-semibold">
+                              Order #{escrow.orders?.order_number || escrow.order_id?.slice(0, 8)}
+                            </p>
+                            <p className="text-sm text-afrikoni-text-dark/60">
+                              {format(new Date(escrow.created_at), 'MMM dd, yyyy')}
+                            </p>
+                          </div>
+                          <Badge variant={getStatusBadge(escrow.status)}>
+                            {getStatusIcon(escrow.status)}
+                            <span className="ml-1 capitalize">{escrow.status}</span>
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-afrikoni-text-dark/70">Escrow Amount</p>
+                            <p className="text-xl font-bold text-afrikoni-gold">
+                              {escrow.currency} {parseFloat(escrow.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          <Link to={`/dashboard/escrow/${escrow.order_id}`}>
+                            <Button variant="outline" size="sm">
+                              View Details
+                            </Button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
 }
-
