@@ -440,6 +440,9 @@ export default function Marketplace() {
       // Apply client-side filters (search, price range, MOQ, certifications, lead time, chip filters)
       const filtered = applyClientSideFilters(productsWithImages);
       setProducts(filtered);
+      
+      // Backfill images from storage for products without images (async, non-blocking)
+      backfillMissingImages(filtered);
 
       // Log search event (non-blocking)
       logSearchEvent({ resultCount: filtered.length });
