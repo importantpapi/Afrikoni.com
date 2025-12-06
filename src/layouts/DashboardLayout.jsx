@@ -5,7 +5,9 @@ import {
   LayoutDashboard, Package, ShoppingCart, Truck, FileText, MessageSquare,
   BarChart3, Wallet, Shield, Settings, HelpCircle, Bell, Search, ChevronDown,
   User, Users, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
-  AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp, Sparkles
+  AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp, Sparkles,
+  Receipt, RotateCcw, Star as StarIcon, Warehouse, TrendingDown, Users as UsersIcon,
+  FileSearch, Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,10 +90,12 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
       { icon: Package, label: t('dashboard.saved') || 'Saved Products', path: '/dashboard/saved' },
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
+      { icon: Wallet, label: 'Payments & Escrow', path: '/dashboard/payments' },
+      { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
+      { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
+      { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
-      { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' }
     ],
     seller: [
@@ -101,10 +105,14 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: Package, label: t('dashboard.products'), path: '/dashboard/products' },
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
+      { icon: Truck, label: 'Fulfillment', path: '/dashboard/fulfillment' },
+      { icon: Wallet, label: 'Payments & Escrow', path: '/dashboard/payments' },
+      { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
+      { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
+      { icon: StarIcon, label: 'Reviews & Performance', path: '/dashboard/reviews' },
+      { icon: TrendingUp, label: 'Performance Metrics', path: '/dashboard/performance' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
-      { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Shield, label: t('verification.title'), path: '/verification-center' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
     ],
@@ -127,11 +135,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
       { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics' },
       { icon: Truck, label: t('dashboard.shipments') || 'Shipments', path: '/dashboard/shipments' },
+      { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment' },
       { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
       { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
       { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Settings, label: t('dashboard.settings'), path: '/dashboard/settings' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
@@ -139,10 +147,13 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/admin' },
       { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics' },
-      { icon: DollarSign, label: 'Revenue', path: '/dashboard/admin/revenue' },
+      { icon: DollarSign, label: 'Revenue & Finance', path: '/dashboard/admin/revenue' },
       { icon: Package, label: 'Marketplace', path: '/dashboard/admin/marketplace' },
       { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
       { icon: Star, label: 'Review Moderation', path: '/dashboard/admin/reviews' },
+      { icon: Target, label: 'Marketing Leads', path: '/dashboard/admin/leads' },
+      { icon: FileSearch, label: 'KYB Verification', path: '/dashboard/admin/kyb' },
+      { icon: UsersIcon, label: 'Disputes & Escrow', path: '/dashboard/admin/disputes' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true }
     ]
   };
