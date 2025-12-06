@@ -301,19 +301,6 @@ export default function Marketplace() {
         // Try multiple sources for product images
         let primaryImage = null;
         
-        // Debug: Log product structure
-        console.log('🔍 Product image data:', {
-          id: product.id,
-          title: product.title,
-          has_product_images: !!product.product_images,
-          product_images: product.product_images,
-          product_images_type: Array.isArray(product.product_images) ? 'array' : typeof product.product_images,
-          product_images_length: Array.isArray(product.product_images) ? product.product_images.length : 'N/A',
-          has_images: !!product.images,
-          images: product.images,
-          images_type: Array.isArray(product.images) ? 'array' : typeof product.images
-        });
-        
         // 1. Check product_images table (preferred) - handle both array and object formats
         if (product.product_images) {
           const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
@@ -323,9 +310,6 @@ export default function Marketplace() {
             
             // Ensure URL is valid (starts with http or /)
             if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
-              if (import.meta.env.DEV) {
-                console.warn('Invalid image URL format:', primaryImage);
-              }
               primaryImage = null; // Invalid URL format
             }
           }
@@ -353,20 +337,14 @@ export default function Marketplace() {
             
             // Ensure URL is valid
             if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
-              if (import.meta.env.DEV) {
-                console.warn('Invalid image URL format:', primaryImage);
-              }
               primaryImage = null;
             }
           }
         }
         
-        // 3. Don't set placeholder here - let the component handle it
-        // This allows us to show a proper placeholder UI instead of broken image
-        
         return {
           ...product,
-          primaryImage: primaryImage || null, // null instead of placeholder string
+          primaryImage: primaryImage || null,
           allImages: (() => {
             const all = [];
             if (product.product_images) {
@@ -377,10 +355,87 @@ export default function Marketplace() {
               const images = Array.isArray(product.images) ? product.images : [product.images];
               all.push(...images.map(img => typeof img === 'string' ? img : img?.url).filter(url => url && (url.startsWith('http') || url.startsWith('/'))));
             }
+            if (primaryImage && !all.includes(primaryImage)) {
+              all.unshift(primaryImage);
+            }
             return all;
           })()
         };
       }) : [];
+      
+      // Backfill images from storage for products without images (async, non-blocking)
+      if (productsWithImages.length > 0) {
+        productsWithImages.forEach(async (product) => {
+          if (!product.primaryImage && product.company_id) {
+            try {
+              // Get company owner
+              const { data: company } = await supabase
+                .from('companies')
+                .select('owner_email')
+                .eq('id', product.company_id)
+                .single();
+              
+              if (company?.owner_email) {
+                // Find user ID
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('id')
+                  .eq('email', company.owner_email)
+                  .single();
+                
+                if (profile?.id) {
+                  // List storage files
+                  const { data: storageFiles } = await supabase.storage
+                    .from('product-images')
+                    .list(`products/${profile.id}`, {
+                      limit: 10,
+                      sortBy: { column: 'created_at', order: 'desc' }
+                    });
+                  
+                  if (storageFiles && storageFiles.length > 0) {
+                    const mainImage = storageFiles.find(file => 
+                      !file.name.includes('-thumb') && 
+                      (file.name.endsWith('.jpg') || file.name.endsWith('.jpeg') || file.name.endsWith('.png') || file.name.endsWith('.webp'))
+                    );
+                    
+                    if (mainImage) {
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('product-images')
+                        .getPublicUrl(`products/${profile.id}/${mainImage.name}`);
+                      
+                      // Update product with image
+                      product.primaryImage = publicUrl;
+                      if (!product.allImages.includes(publicUrl)) {
+                        product.allImages.unshift(publicUrl);
+                      }
+                      
+                      // Backfill to database
+                      try {
+                        await supabase
+                          .from('product_images')
+                          .insert({
+                            product_id: product.id,
+                            url: publicUrl,
+                            alt_text: product.title || 'Product image',
+                            is_primary: true,
+                            sort_order: 0
+                          });
+                      } catch (backfillError) {
+                        // Silently fail
+                      }
+                      
+                      // Force re-render
+                      setProducts([...productsWithImages]);
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              // Silently fail
+            }
+          }
+        });
+      }
       
       // Apply client-side filters (search, price range, MOQ, certifications, lead time, chip filters)
       const filtered = applyClientSideFilters(productsWithImages);
