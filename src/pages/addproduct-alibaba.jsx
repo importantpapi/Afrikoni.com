@@ -508,24 +508,42 @@ Contact us for more details, custom specifications, or to request samples.`;
       }
 
       // Save images to product_images table
+      console.log('Saving product images:', {
+        imageCount: formData.images.length,
+        productId: savedProductId,
+        images: formData.images
+      });
+      
       if (formData.images.length > 0 && savedProductId) {
         const imageRecords = formData.images
           .map((img, index) => {
-            const imageUrl = typeof img === 'string' ? img : img.url;
+            const imageUrl = typeof img === 'string' ? img : (img?.url || null);
+            
+            console.log('Processing image:', { index, img, imageUrl, type: typeof img });
+            
             // Only include valid URLs
-            if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
-              console.warn('Skipping invalid image URL:', imageUrl);
+            if (!imageUrl) {
+              console.warn('Skipping image with no URL:', img);
               return null;
             }
+            
+            // Validate URL format
+            if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/') && !imageUrl.startsWith('data:')) {
+              console.warn('Skipping invalid image URL format:', imageUrl);
+              return null;
+            }
+            
             return {
               product_id: savedProductId,
               url: imageUrl,
               alt_text: formData.title || 'Product image',
-              is_primary: (typeof img === 'object' ? img.is_primary : false) || index === 0,
+              is_primary: (typeof img === 'object' && img.is_primary === true) || index === 0,
               sort_order: (typeof img === 'object' && img.sort_order !== undefined) ? img.sort_order : index
             };
           })
           .filter(Boolean); // Remove null entries
+
+        console.log('Image records to insert:', imageRecords);
 
         if (imageRecords.length > 0) {
           const { data: insertedImages, error: imagesError } = await supabase
@@ -537,12 +555,25 @@ Contact us for more details, custom specifications, or to request samples.`;
             console.error('Images insert error:', imagesError);
             toast.error('Failed to save product images: ' + (imagesError.message || 'Unknown error'));
           } else if (insertedImages && insertedImages.length > 0) {
-            console.log('Successfully saved images:', insertedImages.length);
+            console.log('Successfully saved images:', insertedImages);
             toast.success(`Product saved with ${insertedImages.length} image(s)`);
+          } else {
+            console.warn('No images were inserted despite no error');
+            toast.warning('Product saved but images may not have been saved. Please check.');
           }
         } else {
-          console.warn('No valid image URLs to save');
+          console.warn('No valid image URLs to save after filtering');
           toast.warning('Product saved but no valid images were found to upload.');
+        }
+      } else {
+        console.warn('Cannot save images:', {
+          hasImages: formData.images.length > 0,
+          hasProductId: !!savedProductId,
+          imageCount: formData.images.length
+        });
+        
+        if (formData.images.length > 0 && !savedProductId) {
+          toast.error('Product ID missing - cannot save images');
         }
       }
 
