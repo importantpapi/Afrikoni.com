@@ -23,6 +23,7 @@ import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import { isValidUUID } from '@/utils/security';
 import { motion } from 'framer-motion';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
+import { getPrimaryImageFromProduct } from '@/utils/productImages';
 
 export default function BusinessProfile() {
   const { id } = useParams();
@@ -312,7 +313,7 @@ export default function BusinessProfile() {
                       >
                         <div className="aspect-square bg-afrikoni-offwhite rounded-t-lg overflow-hidden">
                           {(() => {
-                            const imageUrl = getProductPrimaryImage(product);
+                            const imageUrl = getPrimaryImageFromProduct(product);
                             return imageUrl ? (
                               <OptimizedImage
                                 src={imageUrl}
