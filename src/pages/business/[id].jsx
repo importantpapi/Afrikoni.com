@@ -22,6 +22,7 @@ import OptimizedImage from '@/components/OptimizedImage';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import { isValidUUID } from '@/utils/security';
 import { motion } from 'framer-motion';
+import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
 
 export default function BusinessProfile() {
   const { id } = useParams();
@@ -311,7 +312,6 @@ export default function BusinessProfile() {
                       >
                         <div className="aspect-square bg-afrikoni-offwhite rounded-t-lg overflow-hidden">
                           {(() => {
-                            const { getProductPrimaryImage } = require('@/utils/imageUrlHelper');
                             const imageUrl = getProductPrimaryImage(product);
                             return imageUrl ? (
                               <OptimizedImage
