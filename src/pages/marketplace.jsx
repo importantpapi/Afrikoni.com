@@ -301,18 +301,18 @@ export default function Marketplace() {
         // Try multiple sources for product images
         let primaryImage = null;
         
-        // Debug: Log product structure in development
-        if (import.meta.env.DEV && product.id) {
-          console.log('Product image data:', {
-            id: product.id,
-            title: product.title,
-            has_product_images: !!product.product_images,
-            product_images_type: Array.isArray(product.product_images) ? 'array' : typeof product.product_images,
-            product_images_length: Array.isArray(product.product_images) ? product.product_images.length : 'N/A',
-            has_images: !!product.images,
-            images_type: Array.isArray(product.images) ? 'array' : typeof product.images
-          });
-        }
+        // Debug: Log product structure
+        console.log('🔍 Product image data:', {
+          id: product.id,
+          title: product.title,
+          has_product_images: !!product.product_images,
+          product_images: product.product_images,
+          product_images_type: Array.isArray(product.product_images) ? 'array' : typeof product.product_images,
+          product_images_length: Array.isArray(product.product_images) ? product.product_images.length : 'N/A',
+          has_images: !!product.images,
+          images: product.images,
+          images_type: Array.isArray(product.images) ? 'array' : typeof product.images
+        });
         
         // 1. Check product_images table (preferred) - handle both array and object formats
         if (product.product_images) {
