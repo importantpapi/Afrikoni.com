@@ -49,6 +49,8 @@ const STEPS = [
 export default function AddProductSmart() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { id: productId } = useParams();
+  const isEditing = !!productId;
   const [currentStep, setCurrentStep] = useState(1);
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
