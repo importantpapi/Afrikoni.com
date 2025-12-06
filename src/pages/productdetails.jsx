@@ -23,7 +23,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { isValidUUID } from '@/utils/security';
 import ShippingCalculator from '@/components/shipping/ShippingCalculator';
 import ProductImageGallery from '@/components/products/ProductImageGallery';
-import { getProductPrimaryImage, getProductAllImages, normalizeImageUrl } from '@/utils/imageUrlHelper';
+import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 import ProductVariants from '@/components/products/ProductVariants';
 import BulkPricingTiers from '@/components/products/BulkPricingTiers';
 import ShareProduct from '@/components/products/ShareProduct';

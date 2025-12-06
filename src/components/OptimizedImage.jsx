@@ -77,10 +77,8 @@ export default function OptimizedImage({
     };
     
     img.onerror = () => {
-      // Log error for debugging (only for missing images)
-      if (import.meta.env.DEV && optimizedSrc) {
-        console.error('Image failed to load:', optimizedSrc);
-      }
+      // Log warning for missing images (controlled warning)
+      console.warn('Failed to load product image, using placeholder', { src: optimizedSrc });
       
       // Fallback to original src if optimized fails
       if (optimizedSrc !== src && src) {
@@ -93,15 +91,15 @@ export default function OptimizedImage({
         fallbackImg.onerror = () => {
           setHasError(true);
           setIsLoading(false);
-          setImageSrc(placeholder);
+          setImageSrc(finalPlaceholder);
         };
       } else {
         setHasError(true);
         setIsLoading(false);
-        setImageSrc(placeholder);
+        setImageSrc(finalPlaceholder);
       }
     };
-  }, [isInView, optimizedSrc, src, placeholder]);
+  }, [isInView, optimizedSrc, src, finalPlaceholder]);
 
   return (
     <img
