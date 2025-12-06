@@ -145,7 +145,7 @@ export default function AddProductSimple() {
         unit: 'pieces',
         currency: formData.currency || 'USD',
         country_of_origin: company?.country || '',
-        status: 'pending_review',
+        status: 'draft', // New products start as draft, admin can activate later
         company_id: companyId,
         views: 0,
         inquiries: 0
