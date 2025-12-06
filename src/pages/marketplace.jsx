@@ -470,11 +470,31 @@ if (!Array.isArray(productsList)) return [];
         >
           <Card hover className="h-full">
             <div className="relative h-48 bg-afrikoni-cream rounded-t-xl overflow-hidden">
-              <OptimizedImage
-                src={product.primaryImage || product.images?.[0] || '/placeholder.png'}
-                alt={product.title || product.name || 'Product'}
-                className="w-full h-full object-cover"
-              />
+              {(() => {
+                const imageUrl = product.primaryImage || product.images?.[0] || null;
+                
+                if (imageUrl && imageUrl !== '/placeholder.png' && !imageUrl.includes('placeholder')) {
+                  return (
+                    <img
+                      src={imageUrl}
+                      alt={product.title || product.name || 'Product'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to placeholder on error
+                        e.target.src = '/placeholder.png';
+                        e.target.onerror = null; // Prevent infinite loop
+                      }}
+                      loading="lazy"
+                    />
+                  );
+                }
+                
+                return (
+                  <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-cream flex items-center justify-center">
+                    <Package className="w-12 h-12 text-afrikoni-gold/50" />
+                  </div>
+                );
+              })()}
               {product.featured && (
                 <div className="absolute top-2 left-2">
                   <Badge variant="primary" className="text-xs">⭐ {t('marketplace.featured')}</Badge>
