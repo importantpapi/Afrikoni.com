@@ -403,11 +403,18 @@ export default function Marketplace() {
                         .from('product-images')
                         .getPublicUrl(`products/${profile.id}/${mainImage.name}`);
                       
-                      // Update product with image
-                      product.primaryImage = publicUrl;
-                      if (!product.allImages.includes(publicUrl)) {
-                        product.allImages.unshift(publicUrl);
-                      }
+                      // Update the products array with the new image
+                      setProducts(prevProducts => 
+                        prevProducts.map(p => 
+                          p.id === product.id 
+                            ? { 
+                                ...p, 
+                                primaryImage: publicUrl, 
+                                allImages: [publicUrl, ...(p.allImages || [])] 
+                              }
+                            : p
+                        )
+                      );
                       
                       // Backfill to database
                       try {
@@ -421,11 +428,8 @@ export default function Marketplace() {
                             sort_order: 0
                           });
                       } catch (backfillError) {
-                        // Silently fail
+                        // Silently fail - image is still displayed
                       }
-                      
-                      // Force re-render
-                      setProducts([...productsWithImages]);
                     }
                   }
                 }
