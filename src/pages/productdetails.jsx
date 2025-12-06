@@ -145,10 +145,8 @@ export default function ProductDetail() {
           
           setProduct({
             ...productWithJoins,
-            primaryImage: (imagesRes.data?.[0]?.url) || (simpleProduct.images?.[0]),
-            allImages: (imagesRes.data?.map(img => img.url) || []).filter(Boolean).length > 0 
-              ? imagesRes.data.map(img => img.url).filter(Boolean)
-              : (Array.isArray(simpleProduct.images) ? simpleProduct.images : []).filter(Boolean)
+            primaryImage: getProductPrimaryImage(productWithJoins),
+            allImages: getProductAllImages(productWithJoins)
           });
           
           return;
