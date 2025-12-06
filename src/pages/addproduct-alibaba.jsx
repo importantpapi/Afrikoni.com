@@ -131,6 +131,7 @@ export default function AddProductAlibaba() {
       }
       setUser(userData);
 
+      const { getOrCreateCompany } = await import('@/utils/companyHelper');
       const companyId = await getOrCreateCompany(supabase, userData);
       if (companyId) {
         const { data: companyData } = await supabase
