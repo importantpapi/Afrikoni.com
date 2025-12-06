@@ -33,6 +33,17 @@ const LogisticsDashboard = lazy(() => import('./pages/dashboard/logistics-dashbo
 const DashboardAnalytics = lazy(() => import('./pages/dashboard/analytics'));
 const SupplierAnalytics = lazy(() => import('./pages/dashboard/supplier-analytics'));
 const DashboardPayments = lazy(() => import('./pages/dashboard/payments'));
+const DashboardInvoices = lazy(() => import('./pages/dashboard/invoices'));
+const DashboardReturns = lazy(() => import('./pages/dashboard/returns'));
+const DashboardReviews = lazy(() => import('./pages/dashboard/reviews'));
+const DashboardFulfillment = lazy(() => import('./pages/dashboard/fulfillment'));
+const DashboardPerformance = lazy(() => import('./pages/dashboard/performance'));
+const EscrowDetail = lazy(() => import('./pages/dashboard/escrow/[orderId]'));
+const InvoiceDetailPage = lazy(() => import('./pages/dashboard/invoices/[id]'));
+const ReturnDetailPage = lazy(() => import('./pages/dashboard/returns/[id]'));
+const AdminLeads = lazy(() => import('./pages/dashboard/admin/leads'));
+const AdminKYB = lazy(() => import('./pages/dashboard/admin/kyb'));
+const AdminDisputes = lazy(() => import('./pages/dashboard/admin/disputes'));
 const DashboardProtection = lazy(() => import('./pages/dashboard/protection'));
 const DashboardSaved = lazy(() => import('./pages/dashboard/saved'));
 const DashboardSettings = lazy(() => import('./pages/dashboard/settings'));
@@ -175,6 +186,9 @@ function App() {
             <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
             <Route path="/dashboard/admin/revenue" element={<ProtectedRoute><AdminRevenue /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/leads" element={<ProtectedRoute><AdminLeads /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/kyb" element={<ProtectedRoute><AdminKYB /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/disputes" element={<ProtectedRoute><AdminDisputes /></ProtectedRoute>} />
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
@@ -192,6 +206,14 @@ function App() {
             <Route path="/dashboard/analytics" element={<ProtectedRoute><DashboardAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/supplier-analytics" element={<ProtectedRoute><SupplierAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/payments" element={<ProtectedRoute><DashboardPayments /></ProtectedRoute>} />
+            <Route path="/dashboard/invoices" element={<ProtectedRoute><DashboardInvoices /></ProtectedRoute>} />
+            <Route path="/dashboard/invoices/:id" element={<ProtectedRoute><InvoiceDetailPage /></ProtectedRoute>} />
+            <Route path="/dashboard/returns" element={<ProtectedRoute><DashboardReturns /></ProtectedRoute>} />
+            <Route path="/dashboard/returns/:id" element={<ProtectedRoute><ReturnDetailPage /></ProtectedRoute>} />
+            <Route path="/dashboard/reviews" element={<ProtectedRoute><DashboardReviews /></ProtectedRoute>} />
+            <Route path="/dashboard/fulfillment" element={<ProtectedRoute><DashboardFulfillment /></ProtectedRoute>} />
+            <Route path="/dashboard/performance" element={<ProtectedRoute><DashboardPerformance /></ProtectedRoute>} />
+            <Route path="/dashboard/escrow/:orderId" element={<ProtectedRoute><EscrowDetail /></ProtectedRoute>} />
             <Route path="/dashboard/protection" element={<ProtectedRoute><DashboardProtection /></ProtectedRoute>} />
             <Route path="/dashboard/saved" element={<ProtectedRoute><DashboardSaved /></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettings /></ProtectedRoute>} />
