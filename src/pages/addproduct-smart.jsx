@@ -649,7 +649,11 @@ export default function AddProductSmart() {
         title: sanitizeString(formData.title),
         description: sanitizeString(formData.description),
         category_id: finalCategoryId, // Always has a value (either selected or "No Category")
-        images: formData.images.map(img => img.url || img),
+        images: formData.images.map(img => {
+          // Handle all image formats - ensure we get the URL
+          if (typeof img === 'string') return img;
+          return img.url || img.thumbnail_url || img;
+        }).filter(Boolean), // Remove any null/undefined values
         price: price,
         price_min: price,
         min_order_quantity: moq,

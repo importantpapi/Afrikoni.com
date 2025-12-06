@@ -443,10 +443,20 @@ export default function SmartImageUploader({
                 `}
               >
                 <img 
-                  src={img.url || img} 
+                  src={img.url || img.thumbnail_url || (typeof img === 'string' ? img : '')} 
                   alt={`Product ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    if (img.thumbnail_url && e.target.src !== img.thumbnail_url) {
+                      e.target.src = img.thumbnail_url;
+                    } else if (img.url && e.target.src !== img.url) {
+                      e.target.src = img.url;
+                    } else {
+                      e.target.style.display = 'none';
+                    }
+                  }}
                 />
                 
                 {/* Overlay on hover */}
