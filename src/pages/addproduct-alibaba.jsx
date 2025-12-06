@@ -220,30 +220,64 @@ export default function AddProductAlibaba() {
 
   // AI Description Generation
   const generateAIDescription = async () => {
-    if (!formData.title) {
+    if (!formData.title?.trim()) {
       toast.error('Please enter a product title first');
+      return;
+    }
+
+    // Check if API key is configured
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) {
+      toast.error('AI features require API key configuration. Please contact support.', {
+        description: 'VITE_OPENAI_API_KEY is not set in environment variables.'
+      });
       return;
     }
 
     try {
       setIsGeneratingAI(true);
-      const result = await generateProductListing({
-        title: formData.title,
+      
+      const productDraft = {
+        title: formData.title.trim(),
+        description: formData.description || '',
         category: categories.find(c => c.id === formData.category_id)?.name || '',
-        country: formData.country_of_origin
-      });
+        country: formData.country_of_origin || '',
+        tags: []
+      };
+
+      const result = await generateProductListing(productDraft);
 
       if (result.success && result.data) {
-        setFormData(prev => ({
-          ...prev,
-          description: result.data.description || prev.description
-        }));
-        toast.success('AI description generated!');
+        const generatedDescription = result.data.description || result.data?.description || '';
+        
+        if (generatedDescription) {
+          setFormData(prev => ({
+            ...prev,
+            description: generatedDescription
+          }));
+          toast.success('✨ AI description generated successfully!', {
+            description: 'Review and edit as needed.'
+          });
+        } else {
+          toast.warning('AI generated response but no description was returned');
+        }
       } else {
-        toast.error('Failed to generate description');
+        const errorMsg = result.error?.message || 'Unknown error';
+        console.error('AI generation failed:', result.error || errorMsg);
+        toast.error('Failed to generate description', {
+          description: errorMsg.includes('API key') 
+            ? 'Please check your OpenAI API key configuration'
+            : 'Please try again or write your own description'
+        });
       }
     } catch (error) {
-      toast.error('AI generation failed');
+      console.error('AI generation error:', error);
+      const errorMessage = error?.message || 'Unknown error occurred';
+      toast.error('AI generation failed', {
+        description: errorMessage.includes('API') || errorMessage.includes('key')
+          ? 'API key issue. Please check configuration.'
+          : 'Please try again or write your own description'
+      });
     } finally {
       setIsGeneratingAI(false);
     }
