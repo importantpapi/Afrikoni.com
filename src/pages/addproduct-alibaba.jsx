@@ -183,12 +183,21 @@ export default function AddProductAlibaba() {
       if (error) throw error;
       if (!product) throw new Error('Product not found');
 
-      // Load images
-      const productImages = (product.product_images || []).map(img => ({
-        url: img.url,
-        id: img.id,
-        is_primary: img.is_primary,
-        sort_order: img.sort_order
+      // Load images - ensure format matches SmartImageUploader expectations
+      const productImages = (product.product_images || [])
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map((img, idx) => ({
+          url: img.url,
+          id: img.id,
+          is_primary: img.is_primary || idx === 0,
+          sort_order: img.sort_order !== undefined ? img.sort_order : idx
+        }));
+
+      // Fallback to legacy images array if no product_images
+      const fallbackImages = (product.images || []).map((url, idx) => ({
+        url,
+        is_primary: idx === 0,
+        sort_order: idx
       }));
 
       setFormData({
@@ -197,7 +206,7 @@ export default function AddProductAlibaba() {
         category_id: product.category_id || '',
         country_of_origin: product.country_of_origin || '',
         city: product.city || '',
-        images: productImages.length > 0 ? productImages : (product.images || []).map((url, idx) => ({ url, is_primary: idx === 0 })),
+        images: productImages.length > 0 ? productImages : fallbackImages,
         price: product.price || product.price_min || '',
         currency: product.currency || 'USD',
         moq: product.moq || product.min_order_quantity || '1',
