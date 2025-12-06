@@ -301,28 +301,52 @@ export default function Marketplace() {
         // Try multiple sources for product images
         let primaryImage = null;
         
-        // 1. Check product_images table (preferred)
-        if (Array.isArray(product.product_images) && product.product_images.length > 0) {
-          const primary = product.product_images.find(img => img.is_primary);
-          primaryImage = primary?.url || product.product_images[0]?.url;
+        // 1. Check product_images table (preferred) - handle both array and object formats
+        if (product.product_images) {
+          const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
+          if (images.length > 0) {
+            const primary = images.find(img => img?.is_primary === true);
+            primaryImage = primary?.url || images[0]?.url || null;
+            
+            // Ensure URL is valid (starts with http or /)
+            if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
+              primaryImage = null; // Invalid URL format
+            }
+          }
         }
         
         // 2. Fallback to legacy images array
-        if (!primaryImage && Array.isArray(product.images) && product.images.length > 0) {
-          primaryImage = typeof product.images[0] === 'string' ? product.images[0] : product.images[0]?.url;
+        if (!primaryImage && product.images) {
+          const images = Array.isArray(product.images) ? product.images : [product.images];
+          if (images.length > 0) {
+            const firstImg = images[0];
+            primaryImage = typeof firstImg === 'string' ? firstImg : firstImg?.url || null;
+            
+            // Ensure URL is valid
+            if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
+              primaryImage = null;
+            }
+          }
         }
         
-        // 3. Fallback to placeholder
-        if (!primaryImage) {
-          primaryImage = '/placeholder.png';
-        }
+        // 3. Don't set placeholder here - let the component handle it
+        // This allows us to show a proper placeholder UI instead of broken image
         
         return {
           ...product,
-          primaryImage: primaryImage,
-          allImages: Array.isArray(product.product_images) && product.product_images.length > 0
-            ? product.product_images.map(img => img.url).filter(Boolean)
-            : (Array.isArray(product.images) ? product.images.map(img => typeof img === 'string' ? img : img?.url).filter(Boolean) : [])
+          primaryImage: primaryImage || null, // null instead of placeholder string
+          allImages: (() => {
+            const all = [];
+            if (product.product_images) {
+              const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
+              all.push(...images.map(img => img?.url).filter(url => url && (url.startsWith('http') || url.startsWith('/'))));
+            }
+            if (product.images) {
+              const images = Array.isArray(product.images) ? product.images : [product.images];
+              all.push(...images.map(img => typeof img === 'string' ? img : img?.url).filter(url => url && (url.startsWith('http') || url.startsWith('/'))));
+            }
+            return all;
+          })()
         };
       }) : [];
       
