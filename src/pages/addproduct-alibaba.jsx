@@ -29,8 +29,9 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Package, Image as ImageIcon, DollarSign, Truck, Globe, Sparkles,
   ArrowLeft, ArrowRight, Save, Loader2, Trash2, Edit, CheckCircle,
-  Upload, X, GripVertical, Calculator, MapPin
+  Upload, X, GripVertical, Calculator, MapPin, AlertCircle
 } from 'lucide-react';
+import SmartImageUploader from '@/components/products/SmartImageUploader';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/layouts/DashboardLayout';
