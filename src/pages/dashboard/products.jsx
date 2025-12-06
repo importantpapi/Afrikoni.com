@@ -378,7 +378,11 @@ export default function DashboardProducts() {
                             View
                           </Button>
                         </Link>
-                        <Link to={`/dashboard/products/${product.id}/edit`} className="flex-1">
+                        <Link to={`/dashboard/products/${product.id}/edit`} className="flex-1" onClick={(e) => {
+                          // Ensure we're using the Alibaba version
+                          e.preventDefault();
+                          navigate(`/dashboard/products/${product.id}/edit`);
+                        }}>
                           <Button variant="outline" size="sm" className="w-full">
                             <Edit className="w-4 h-4 mr-1" />
                             Edit

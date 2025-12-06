@@ -70,6 +70,7 @@ const BusinessProfile = lazy(() => import('./pages/business/[id]'));
 const AddProduct = lazy(() => import('./pages/addproduct'));
 const AddProductSmart = lazy(() => import('./pages/addproduct-smart'));
 const AddProductSimple = lazy(() => import('./pages/addproduct-simple'));
+const AddProductAlibaba = lazy(() => import('./pages/addproduct-alibaba'));
 const CreateRFQ = lazy(() => import('./pages/createrfq'));
 const Categories = lazy(() => import('./pages/categories'));
 const Orders = lazy(() => import('./pages/orders'));
@@ -181,8 +182,9 @@ function App() {
             <Route path="/dashboard/rfqs/:id" element={<ProtectedRoute><RFQDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/products" element={<ProtectedRoute><DashboardProducts /></ProtectedRoute>} />
             <Route path="/dashboard/products/new" element={<ProtectedRoute><AddProductSimple /></ProtectedRoute>} />
-            <Route path="/dashboard/products/:id/edit" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
-            <Route path="/dashboard/products/new" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
+            <Route path="/dashboard/products/:id/edit" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
+            <Route path="/dashboard/products/new" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
+            <Route path="/products/add" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
             <Route path="/dashboard/sales" element={<ProtectedRoute><DashboardSales /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><DashboardShipments /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetailPage /></ProtectedRoute>} />
