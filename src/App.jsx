@@ -181,9 +181,8 @@ function App() {
             <Route path="/dashboard/rfqs/new" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
             <Route path="/dashboard/rfqs/:id" element={<ProtectedRoute><RFQDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/products" element={<ProtectedRoute><DashboardProducts /></ProtectedRoute>} />
-            <Route path="/dashboard/products/new" element={<ProtectedRoute><AddProductSimple /></ProtectedRoute>} />
-            <Route path="/dashboard/products/:id/edit" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
             <Route path="/dashboard/products/new" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
+            <Route path="/dashboard/products/:id/edit" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
             <Route path="/products/add" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
             <Route path="/dashboard/sales" element={<ProtectedRoute><DashboardSales /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><DashboardShipments /></ProtectedRoute>} />
