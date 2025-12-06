@@ -33,6 +33,7 @@ import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { getProductPrimaryImage, getProductAllImages, normalizeImageUrl } from '@/utils/imageUrlHelper';
 
 export default function Marketplace() {
   const { t } = useLanguage();
@@ -296,46 +297,13 @@ export default function Marketplace() {
       
       if (error) throw error;
       
-      // Transform products and fetch images from storage (Alibaba/Facebook style)
+      // Transform products and normalize image URLs
       const productsWithImages = await Promise.all(
         (Array.isArray(data) ? data : []).map(async (product) => {
-          let primaryImage = null;
-          const allImages = [];
+          // Get primary image using helper function
+          let primaryImage = getProductPrimaryImage(product);
           
-          // 1. Check product_images table (preferred)
-          if (product.product_images) {
-            const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
-            if (images.length > 0) {
-              const primary = images.find(img => img?.is_primary === true);
-              primaryImage = primary?.url || images[0]?.url || null;
-              if (primaryImage && primaryImage.startsWith('http')) {
-                allImages.push(primaryImage);
-              }
-            }
-          }
-          
-          // 2. Fallback to legacy images array
-          if (!primaryImage && product.images) {
-            let images = [];
-            if (Array.isArray(product.images)) {
-              images = product.images;
-            } else if (typeof product.images === 'string') {
-              try {
-                images = JSON.parse(product.images);
-              } catch (e) {
-                images = [product.images];
-              }
-            }
-            if (images.length > 0) {
-              const firstImg = images[0];
-              primaryImage = typeof firstImg === 'string' ? firstImg : firstImg?.url || null;
-              if (primaryImage && primaryImage.startsWith('http')) {
-                allImages.push(primaryImage);
-              }
-            }
-          }
-          
-          // 3. Fetch from storage if no image found (Alibaba/Facebook approach)
+          // Fetch from storage if no image found (Alibaba/Facebook approach)
           if (!primaryImage && product.company_id) {
             try {
               // Get company owner email
@@ -375,12 +343,13 @@ export default function Marketplace() {
                         .from('product-images')
                         .getPublicUrl(`products/${profile.id}/${mainImage.name}`);
                       
-                      primaryImage = publicUrl;
-                      allImages.push(publicUrl);
+                      primaryImage = normalizeImageUrl(publicUrl);
                       
                       // Preload image (Alibaba/Facebook style)
-                      const img = new Image();
-                      img.src = publicUrl;
+                      if (primaryImage) {
+                        const img = new Image();
+                        img.src = primaryImage;
+                      }
                       
                       // Backfill to database (non-blocking)
                       supabase
@@ -402,10 +371,16 @@ export default function Marketplace() {
             }
           }
           
+          // Get all images
+          const allImages = getProductAllImages(product);
+          if (primaryImage && !allImages.includes(primaryImage)) {
+            allImages.unshift(primaryImage);
+          }
+          
           return {
             ...product,
             primaryImage: primaryImage || null,
-            allImages: allImages.length > 0 ? allImages : []
+            allImages: allImages
           };
         })
       );

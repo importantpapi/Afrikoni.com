@@ -17,6 +17,8 @@ import SaveButton from '@/components/ui/SaveButton';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
+import OptimizedImage from '@/components/OptimizedImage';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -334,19 +336,25 @@ export default function Products() {
                     >
                       <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all duration-300 hover:shadow-lg overflow-hidden">
                         <div className="h-48 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden relative">
-                          {product.images?.[0] ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.title || 'Product image'}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="w-12 h-12 text-afrikoni-deep/70" />
-                            </div>
-                          )}
+                          {(() => {
+                            const { getProductPrimaryImage } = require('@/utils/imageUrlHelper');
+                            const imageUrl = getProductPrimaryImage(product);
+                            return imageUrl ? (
+                              <OptimizedImage
+                                src={imageUrl}
+                                alt={product.title || 'Product image'}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                width={400}
+                                height={300}
+                                quality={85}
+                                placeholder="/placeholder.png"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Package className="w-12 h-12 text-afrikoni-deep/70" />
+                              </div>
+                            );
+                          })()}
                           {product.views > 50 && (
                             <Badge className="absolute top-3 left-3 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
                               <TrendingUp className="w-3 h-3 mr-1" /> Trending

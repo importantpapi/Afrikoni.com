@@ -19,6 +19,8 @@ import { Package, Plus, Search, Edit, Trash2, Eye, Pause, Play } from 'lucide-re
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import ProductStatsBar from '@/components/products/ProductStatsBar';
+import { getProductPrimaryImage } from '@/utils/imageUrlHelper';
+import OptimizedImage from '@/components/OptimizedImage';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -79,15 +81,12 @@ export default function DashboardProducts() {
         pageSize: pagination.pageSize
       });
 
-      // Transform products to include primary image
+      // Transform products to include primary image using helper
       const productsWithImages = Array.isArray(result.data) ? result.data.map(product => {
         if (!product) return null;
-        const productImages = Array.isArray(product.product_images) ? product.product_images : [];
-        const primaryImage = productImages.find(img => img && img.is_primary) || productImages[0];
-        const imagesArray = Array.isArray(product.images) ? product.images : [];
         return {
           ...product,
-          primaryImage: primaryImage?.url || imagesArray[0] || null
+          primaryImage: getProductPrimaryImage(product)
         };
       }).filter(Boolean) : [];
 
@@ -314,10 +313,14 @@ export default function DashboardProducts() {
                     <CardContent className="p-4 flex flex-col flex-1">
                       <div className="aspect-video bg-afrikoni-sand rounded-afrikoni mb-4 flex items-center justify-center overflow-hidden relative">
                         {product.primaryImage ? (
-                          <img 
-                            src={product.primaryImage} 
-                            alt={product.title} 
+                          <OptimizedImage
+                            src={product.primaryImage}
+                            alt={product.title || 'Product'}
                             className="w-full h-full object-cover"
+                            width={400}
+                            height={300}
+                            quality={85}
+                            placeholder="/placeholder.png"
                           />
                         ) : (
                           <Package className="w-12 h-12 text-afrikoni-deep/70" />

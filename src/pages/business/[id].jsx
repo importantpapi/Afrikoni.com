@@ -310,17 +310,25 @@ export default function BusinessProfile() {
                         onClick={() => navigate(`/product?id=${product.id}`)}
                       >
                         <div className="aspect-square bg-afrikoni-offwhite rounded-t-lg overflow-hidden">
-                          {product.images && product.images[0] ? (
-                            <OptimizedImage
-                              src={product.images[0]}
-                              alt={product.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="w-16 h-16 text-afrikoni-deep/30" />
-                            </div>
-                          )}
+                          {(() => {
+                            const { getProductPrimaryImage } = require('@/utils/imageUrlHelper');
+                            const imageUrl = getProductPrimaryImage(product);
+                            return imageUrl ? (
+                              <OptimizedImage
+                                src={imageUrl}
+                                alt={product.title || 'Product'}
+                                className="w-full h-full object-cover"
+                                width={400}
+                                height={400}
+                                quality={85}
+                                placeholder="/placeholder.png"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Package className="w-16 h-16 text-afrikoni-deep/30" />
+                              </div>
+                            );
+                          })()}
                         </div>
                         <CardContent className="p-4">
                           <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">

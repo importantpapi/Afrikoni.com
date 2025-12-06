@@ -74,8 +74,13 @@ export default function OptimizedImage({
     };
     
     img.onerror = () => {
+      // Log error for debugging (only for missing images)
+      if (import.meta.env.DEV && optimizedSrc) {
+        console.error('Image failed to load:', optimizedSrc);
+      }
+      
       // Fallback to original src if optimized fails
-      if (optimizedSrc !== src) {
+      if (optimizedSrc !== src && src) {
         const fallbackImg = new Image();
         fallbackImg.src = src;
         fallbackImg.onload = () => {
