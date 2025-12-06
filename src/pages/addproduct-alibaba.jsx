@@ -430,6 +430,9 @@ Contact us for more details, custom specifications, or to request samples.`;
         throw new Error('Unable to create or find your company. Please complete your profile first.');
       }
 
+      // Ensure company_id is set correctly
+      console.log('🏢 Company info:', { companyId, user: user?.id });
+      
       const productData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -444,6 +447,7 @@ Contact us for more details, custom specifications, or to request samples.`;
         unit: formData.unit,
         delivery_time: formData.delivery_time || null,
         packaging: formData.packaging || null,
+        company_id: companyId, // Ensure company_id is set
         specifications: {
           weight_kg: formData.weight_kg || null,
           dimensions: formData.dimensions,
