@@ -10,7 +10,7 @@ import { FileSearch, CheckCircle, XCircle, Clock, Building2, FileText } from 'lu
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-// Textarea component - using textarea element directly
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
@@ -192,11 +192,11 @@ export default function AdminKYB() {
               <h3 className="text-xl font-bold mb-4">
                 Review {selectedDoc.document_type.replace('_', ' ')}
               </h3>
-              <textarea
+              <Textarea
                 placeholder="Review notes (optional)"
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                className="w-full min-h-[100px] p-3 border rounded-md mb-4"
+                className="mb-4"
               />
               <div className="flex gap-2 justify-end">
                 <Button
