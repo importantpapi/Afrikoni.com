@@ -415,16 +415,25 @@ Contact us for more details, custom specifications, or to request samples.`;
       return;
     }
 
+    if (!user?.id) {
+      toast.error('You must be logged in to save a product');
+      navigate('/login');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
       const companyId = await getOrCreateCompany(supabase, user);
-      if (!companyId) throw new Error('Company not found');
+      
+      if (!companyId) {
+        throw new Error('Unable to create or find your company. Please complete your profile first.');
+      }
 
       const productData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        category_id: formData.category_id,
+        category_id: formData.category_id || null,
         country_of_origin: formData.country_of_origin,
         city: formData.city || null,
         price: parseFloat(formData.price),
@@ -449,17 +458,35 @@ Contact us for more details, custom specifications, or to request samples.`;
 
       if (isEditing && productId) {
         // Update existing product
-        const { error: updateError } = await supabase
+        const { data: updatedProduct, error: updateError } = await supabase
           .from('products')
           .update(productData)
           .eq('id', productId)
-          .eq('company_id', companyId);
+          .eq('company_id', companyId)
+          .select('id')
+          .single();
 
-        if (updateError) throw updateError;
-        savedProductId = productId;
+        if (updateError) {
+          console.error('Update error:', updateError);
+          throw new Error(updateError.message || 'Failed to update product');
+        }
+        
+        if (!updatedProduct) {
+          throw new Error('Product not found or you do not have permission to edit it');
+        }
+        
+        savedProductId = updatedProduct.id;
 
         // Delete existing images
-        await supabase.from('product_images').delete().eq('product_id', productId);
+        const { error: deleteImagesError } = await supabase
+          .from('product_images')
+          .delete()
+          .eq('product_id', productId);
+          
+        if (deleteImagesError) {
+          console.error('Delete images error:', deleteImagesError);
+          // Continue even if image deletion fails
+        }
       } else {
         // Create new product
         const { data: newProduct, error: insertError } = await supabase
@@ -468,7 +495,15 @@ Contact us for more details, custom specifications, or to request samples.`;
           .select('id')
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw new Error(insertError.message || 'Failed to create product');
+        }
+        
+        if (!newProduct || !newProduct.id) {
+          throw new Error('Product was created but ID was not returned');
+        }
+        
         savedProductId = newProduct.id;
       }
 
@@ -478,21 +513,29 @@ Contact us for more details, custom specifications, or to request samples.`;
           product_id: savedProductId,
           url: typeof img === 'string' ? img : img.url,
           alt_text: formData.title,
-          is_primary: img.is_primary || index === 0,
-          sort_order: img.sort_order !== undefined ? img.sort_order : index
+          is_primary: (typeof img === 'object' ? img.is_primary : false) || index === 0,
+          sort_order: (typeof img === 'object' && img.sort_order !== undefined) ? img.sort_order : index
         }));
 
         const { error: imagesError } = await supabase
           .from('product_images')
           .insert(imageRecords);
 
-        if (imagesError) throw imagesError;
+        if (imagesError) {
+          console.error('Images insert error:', imagesError);
+          // Don't fail the whole operation if images fail, but warn user
+          toast.warning('Product saved but some images may not have been uploaded. Please try editing the product to add images.');
+        }
       }
 
       toast.success(isEditing ? 'Product updated successfully!' : 'Product published to marketplace!');
-      navigate('/dashboard/products');
+      setTimeout(() => {
+        navigate('/dashboard/products');
+      }, 1000);
     } catch (error) {
-      toast.error('Failed to save product: ' + (error.message || 'Unknown error'));
+      console.error('Save product error:', error);
+      const errorMessage = error?.message || 'Unknown error occurred';
+      toast.error('Failed to save product: ' + errorMessage);
     } finally {
       setIsSaving(false);
     }
