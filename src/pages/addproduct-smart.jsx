@@ -36,11 +36,13 @@ import { validateNumeric, sanitizeString } from '@/utils/security';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// SIMPLIFIED: Only 3 essential steps for easy product listing
+// Full-featured Add Product with AI assistance
 const STEPS = [
-  { id: 1, name: 'Basic Info', icon: FileText, description: 'Product name & price' },
-  { id: 2, name: 'Photos', icon: ImageIcon, description: 'Add product photos' },
-  { id: 3, name: 'Publish', icon: CheckCircle, description: 'Review & publish' },
+  { id: 1, name: 'Product Basics', icon: FileText, description: 'Name, Category, Description' },
+  { id: 2, name: 'Images', icon: ImageIcon, description: 'Upload & arrange photos' },
+  { id: 3, name: 'Pricing & MOQ', icon: DollarSign, description: 'Price tiers, MOQ, currency' },
+  { id: 4, name: 'Supply & Logistics', icon: Truck, description: 'Lead time, origin, shipping' },
+  { id: 5, name: 'Compliance', icon: Shield, description: 'Certifications & compliance' },
 ];
 
 export default function AddProductSmart() {
@@ -546,9 +548,9 @@ export default function AddProductSmart() {
     }
   };
 
-  // Submit product
+  // Submit product - Optimized validation
   const handleSubmit = async () => {
-    // Validate only critical fields - category is NOT required
+    // Validate critical fields
     const criticalErrors = {};
     
     if (!formData.title?.trim()) {
@@ -566,6 +568,13 @@ export default function AddProductSmart() {
     
     if (Object.keys(criticalErrors).length > 0) {
       setErrors(criticalErrors);
+      // Scroll to first error
+      const firstErrorField = Object.keys(criticalErrors)[0];
+      const element = document.getElementById(firstErrorField);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
       toast.error('Please fix the required fields before submitting');
       return;
     }
@@ -990,33 +999,56 @@ export default function AddProductSmart() {
                         />
                       </div>
                       
-                      {/* Category Select with Search */}
+                      {/* Category Select with Search - OPTIMIZED */}
                       <Select 
                         value={formData.category_id ? String(formData.category_id) : ''} 
                         onValueChange={(v) => {
-                          // Handle category selection - v is always a valid category ID string
+                          // Handle category selection - ensure it works reliably
                           if (v && v !== '') {
-                            const selectedCat = categories.find(c => String(c.id) === String(v));
+                            const selectedCat = categories.find(c => 
+                              String(c.id) === String(v) || c.id === v
+                            );
                             if (selectedCat) {
                               handleChange('category_id', selectedCat.id); // Store the actual UUID
                               setCategorySearch('');
+                              // Clear suggested category if we selected one
+                              if (formData.suggested_category) {
+                                setFormData(prev => ({ ...prev, suggested_category: '' }));
+                              }
                               if (selectedCat.name === 'No Category') {
                                 toast.info('Using "No Category" - you can still publish', { duration: 2000 });
                               } else {
-                                toast.success(`Category selected: ${selectedCat.name}`, { duration: 2000 });
+                                toast.success(`✅ Category selected: ${selectedCat.name}`, { duration: 2000 });
                               }
                             } else {
                               // Fallback: store the string value if category not found
                               handleChange('category_id', v);
                               setCategorySearch('');
                             }
+                          } else if (v === '') {
+                            // User cleared selection
+                            handleChange('category_id', '');
+                            setCategorySearch('');
                           }
                         }}
                       >
-                        <SelectTrigger className="mt-2">
+                        <SelectTrigger className="mt-2" id="category">
                           <SelectValue 
-                            placeholder={formData.suggested_category ? `AI suggests: ${formData.suggested_category}` : "Select category (optional - can publish without)"}
-                            displayValue={formData.category_id ? (categories.find(c => c.id === formData.category_id || String(c.id) === String(formData.category_id))?.name) : undefined}
+                            placeholder={
+                              formData.suggested_category 
+                                ? `✨ AI suggests: ${formData.suggested_category}` 
+                                : formData.category_id
+                                ? categories.find(c => c.id === formData.category_id || String(c.id) === String(formData.category_id))?.name || "Select category"
+                                : "Select category (optional - AI will help)"
+                            }
+                            displayValue={
+                              formData.category_id 
+                                ? (categories.find(c => 
+                                    c.id === formData.category_id || 
+                                    String(c.id) === String(formData.category_id)
+                                  )?.name) 
+                                : undefined
+                            }
                           />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
@@ -1030,7 +1062,6 @@ export default function AddProductSmart() {
                               
                               return filtered.length > 0 ? (
                                 <>
-                                  <SelectItem value="">None (Optional)</SelectItem>
                                   {filtered.map(cat => (
                                     <SelectItem key={cat.id} value={String(cat.id)}>
                                       {cat.name}
@@ -1038,29 +1069,42 @@ export default function AddProductSmart() {
                                   ))}
                                 </>
                               ) : (
-                                <>
-                                  <SelectItem value="">None (Optional)</SelectItem>
-                                  <div className="p-2 text-sm text-afrikoni-deep/70">
-                                    No categories found matching "{categorySearch}"
-                                  </div>
-                                </>
+                                <div className="p-2 text-sm text-afrikoni-deep/70">
+                                  No categories found matching "{categorySearch}"
+                                </div>
                               );
                             })()
                           ) : (
                             <div className="p-2 text-sm text-afrikoni-deep/70">
                               {formData.suggested_category ? (
                                 <div>
-                                  <p className="font-medium text-afrikoni-gold mb-1">AI Suggested:</p>
+                                  <p className="font-medium text-afrikoni-gold mb-1">✨ AI Suggested:</p>
                                   <p>{formData.suggested_category}</p>
                                   <p className="text-xs mt-1">This will be created automatically when you publish</p>
                                 </div>
                               ) : (
-                                <p>No categories available. You can publish without a category.</p>
+                                <p>Loading categories... AI will help you select one.</p>
                               )}
                             </div>
                           )}
                         </SelectContent>
                       </Select>
+                      
+                      {/* AI Category Suggestion Display */}
+                      {formData.suggested_category && !formData.category_id && (
+                        <div className="mt-2 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+                            <div>
+                              <p className="font-medium text-afrikoni-chestnut">AI Suggested Category:</p>
+                              <p className="text-afrikoni-deep">{formData.suggested_category}</p>
+                              <p className="text-xs text-afrikoni-deep/70 mt-1">
+                                This category will be created automatically when you publish. You can also select a different category above.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {formData.suggested_category && !formData.category_id && (
                         <div className="mt-2 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-3">
                           <div className="flex items-center gap-2 text-sm">
@@ -1264,14 +1308,35 @@ export default function AddProductSmart() {
 
                     <SmartImageUploader
                       images={formData.images}
-                      onImagesChange={(newImages) => handleChange('images', newImages)}
+                      onImagesChange={(newImages) => {
+                        handleChange('images', newImages);
+                        // Clear image error if images are added
+                        if (newImages.length > 0 && errors.images) {
+                          setErrors(prev => ({ ...prev, images: null }));
+                        }
+                      }}
                       onFirstImageUpload={handleFirstImageUpload}
                       userId={user?.id}
-                      maxImages={5}
+                      maxImages={10}
                       maxSizeMB={5}
                     />
                     {errors.images && (
-                      <p className="text-red-500 text-sm">{errors.images}</p>
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
+                        <p className="text-red-600 text-sm flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.images}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Image Preview Count */}
+                    {formData.images.length > 0 && (
+                      <div className="mt-2 text-sm text-afrikoni-deep/70">
+                        ✅ {formData.images.length} image{formData.images.length > 1 ? 's' : ''} uploaded
+                        {formData.images.length > 0 && formData.images[0]?.is_primary && (
+                          <span className="ml-2 text-afrikoni-gold">• First image is primary</span>
+                        )}
+                      </div>
                     )}
 
                     {formData.images.length > 0 && (

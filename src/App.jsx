@@ -54,7 +54,6 @@ const AdminAnalytics = lazy(() => import('./pages/dashboard/admin/analytics'));
 const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'));
 const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
-const ManualProcessesAdmin = lazy(() => import('./pages/mvp/admin/manual-processes'));
 
 // Lazy-loaded heavy routes - Marketplace
 const Products = lazy(() => import('./pages/products'));
@@ -113,8 +112,6 @@ const BuyerProtectionPolicy = lazy(() => import('./pages/buyer-protection'));
 const AntiCorruptionPolicy = lazy(() => import('./pages/anti-corruption-policy'));
 const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
-const SupplierApplication = lazy(() => import('./pages/mvp/supplier-application'));
-const RFQSubmission = lazy(() => import('./pages/mvp/rfq-submission'));
 
 function App() {
   // Setup session refresh to keep users logged in
@@ -147,7 +144,7 @@ function App() {
             <Route path="/product" element={<ProductDetail />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/compare" element={<CompareProducts />} />
-            <Route path="/products/add" element={<ProtectedRoute><AddProductSimple /></ProtectedRoute>} />
+            <Route path="/products/add" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
             <Route path="/products/add-smart" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
             <Route path="/products/add-old" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
             <Route path="/rfq/create" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
@@ -158,8 +155,6 @@ function App() {
             <Route path="/supplier" element={<SupplierProfile />} />
             <Route path="/business/:id" element={<BusinessProfile />} />
             <Route path="/become-supplier" element={<BecomeSupplier />} />
-            <Route path="/supplier-application" element={<SupplierApplication />} />
-            <Route path="/rfq/submit" element={<RFQSubmission />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/countries" element={<Countries />} />
             <Route path="/sitemap.xml" element={<SitemapXML />} />
@@ -178,7 +173,6 @@ function App() {
             <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
             <Route path="/dashboard/admin/revenue" element={<ProtectedRoute><AdminRevenue /></ProtectedRoute>} />
-            <Route path="/dashboard/admin/mvp" element={<ProtectedRoute><ManualProcessesAdmin /></ProtectedRoute>} />
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
