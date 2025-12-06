@@ -572,22 +572,68 @@ Contact us for more details, custom specifications, or to request samples.`;
           .filter(Boolean); // Remove null entries
 
         console.log('📋 Image records to insert:', imageRecords.length, imageRecords);
+        console.log('🔍 Product ID for images:', savedProductId);
+        console.log('🔍 User ID:', user?.id);
+        console.log('🔍 Company ID:', companyId);
 
         if (imageRecords.length > 0) {
-          const { data: insertedImages, error: imagesError } = await supabase
-            .from('product_images')
-            .insert(imageRecords)
-            .select();
-
-          if (imagesError) {
-            console.error('❌ Images insert error:', imagesError);
-            toast.error('Failed to save product images: ' + (imagesError.message || 'Unknown error'));
-          } else if (insertedImages && insertedImages.length > 0) {
-            console.log('✅ Successfully saved images:', insertedImages.length, insertedImages);
+          // Insert images one by one to ensure all are saved
+          const insertedImages = [];
+          const errors = [];
+          
+          for (let i = 0; i < imageRecords.length; i++) {
+            const record = imageRecords[i];
+            console.log(`🔄 Inserting image ${i + 1}/${imageRecords.length}:`, record);
+            
+            const { data: inserted, error: err } = await supabase
+              .from('product_images')
+              .insert(record)
+              .select()
+              .single();
+            
+            if (err) {
+              console.error(`❌ Failed to insert image ${i + 1}:`, err);
+              errors.push({ index: i, error: err, record });
+            } else {
+              console.log(`✅ Successfully inserted image ${i + 1}:`, inserted);
+              insertedImages.push(inserted);
+            }
+          }
+          
+          if (insertedImages.length > 0) {
+            console.log(`✅ Successfully saved ${insertedImages.length}/${imageRecords.length} image(s):`, insertedImages);
             toast.success(`Product saved with ${insertedImages.length} image(s)`);
-          } else {
-            console.warn('⚠️ No images were inserted despite no error');
-            toast.warning('Product saved but images may not have been saved. Please check.');
+          }
+          
+          if (errors.length > 0) {
+            console.error(`❌ Failed to save ${errors.length} image(s):`, errors);
+            toast.error(`Failed to save ${errors.length} image(s). Check console for details.`);
+            
+            // Log detailed error information
+            errors.forEach(({ index, error, record }) => {
+              console.error(`Image ${index + 1} error:`, {
+                error,
+                record,
+                product_id: record.product_id,
+                url: record.url
+              });
+            });
+          }
+          
+          // If all failed, try batch insert as last resort
+          if (insertedImages.length === 0 && errors.length === imageRecords.length) {
+            console.log('🔄 All individual inserts failed, trying batch insert...');
+            const { data: batchInserted, error: batchError } = await supabase
+              .from('product_images')
+              .insert(imageRecords)
+              .select();
+            
+            if (batchError) {
+              console.error('❌ Batch insert also failed:', batchError);
+            } else if (batchInserted && batchInserted.length > 0) {
+              console.log('✅ Batch insert succeeded:', batchInserted);
+              toast.success(`Product saved with ${batchInserted.length} image(s)`);
+            }
           }
         } else {
           console.warn('⚠️ No valid image URLs to save after filtering');
