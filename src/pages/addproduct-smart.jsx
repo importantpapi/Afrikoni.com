@@ -721,39 +721,91 @@ export default function AddProductSmart() {
         }
       }
 
-      // Create product - always have a category_id (use "No Category" as fallback)
-      const { data: newProduct, error } = await supabase.from('products').insert({
-        title: sanitizeString(formData.title),
-        description: sanitizeString(formData.description),
-        category_id: finalCategoryId, // Always has a value (either selected or "No Category")
-        images: formData.images.map(img => {
-          // Handle all image formats - ensure we get the URL
-          if (typeof img === 'string') return img;
-          return img.url || img.thumbnail_url || img;
-        }).filter(Boolean), // Remove any null/undefined values
-        price: price,
-        price_min: price,
-        min_order_quantity: moq,
-        moq: moq,
-        unit: sanitizeString(formData.unit || 'pieces'),
-        delivery_time: sanitizeString(formData.delivery_time || ''),
-        packaging: sanitizeString(formData.packaging || ''),
-        currency: formData.currency || 'USD',
-        country_of_origin: formData.country_of_origin || company?.country || '',
-        city: sanitizeString(formData.city || ''),
-        status: 'active', // Products are active immediately (can be changed to draft if needed)
-        company_id: companyId,
-        views: 0,
-        inquiries: 0
+      // Create or update product
+      let savedProductId;
+      
+      if (isEditing && productId) {
+        // Update existing product
+        const { data, error: updateError } = await supabase
+          .from('products')
+          .update({
+            title: sanitizeString(formData.title),
+            description: sanitizeString(formData.description),
+            category_id: finalCategoryId,
+            images: formData.images.map(img => {
+              if (typeof img === 'string') return img;
+              return img.url || img.thumbnail_url || img;
+            }).filter(Boolean),
+            price: price,
+            price_min: price,
+            min_order_quantity: moq,
+            moq: moq,
+            unit: sanitizeString(formData.unit || 'pieces'),
+            delivery_time: sanitizeString(formData.delivery_time || ''),
+            packaging: sanitizeString(formData.packaging || ''),
+            currency: formData.currency || 'USD',
+            country_of_origin: formData.country_of_origin || company?.country || '',
+            city: sanitizeString(formData.city || ''),
+            status: formData.status || 'active',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', productId)
+          .eq('company_id', companyId)
+          .select('id')
+          .single();
+        
+        if (updateError) throw updateError;
+        savedProductId = data?.id || productId;
+        
+        // Update product_images
+        if (savedProductId && formData.images.length > 0) {
+          // Delete existing images
+          await supabase.from('product_images').delete().eq('product_id', productId);
+          
+          // Insert updated images
+          const imageRecords = formData.images.map((img, index) => ({
+            product_id: savedProductId,
+            url: typeof img === 'string' ? img : img.url || img.thumbnail_url || img,
+            alt_text: formData.title || 'Product image',
+            is_primary: img.is_primary || index === 0,
+            sort_order: img.sort_order !== undefined ? img.sort_order : index
+          }));
+          
+          await supabase.from('product_images').insert(imageRecords);
+        }
+      } else {
+        // Create new product
+        const { data: newProduct, error: insertError } = await supabase.from('products').insert({
+          title: sanitizeString(formData.title),
+          description: sanitizeString(formData.description),
+          category_id: finalCategoryId,
+          images: formData.images.map(img => {
+            if (typeof img === 'string') return img;
+            return img.url || img.thumbnail_url || img;
+          }).filter(Boolean),
+          price: price,
+          price_min: price,
+          min_order_quantity: moq,
+          moq: moq,
+          unit: sanitizeString(formData.unit || 'pieces'),
+          delivery_time: sanitizeString(formData.delivery_time || ''),
+          packaging: sanitizeString(formData.packaging || ''),
+          currency: formData.currency || 'USD',
+          country_of_origin: formData.country_of_origin || company?.country || '',
+          city: sanitizeString(formData.city || ''),
+          status: 'active',
+          company_id: companyId,
+          views: 0,
+          inquiries: 0
         }).select('id').single();
         
-        newProduct = data;
-        error = insertError;
+        if (insertError) throw insertError;
+        savedProductId = newProduct?.id;
         
         // Save images to product_images table for new products
-        if (newProduct?.id && formData.images.length > 0) {
+        if (savedProductId && formData.images.length > 0) {
           const imageRecords = formData.images.map((img, index) => ({
-            product_id: newProduct.id,
+            product_id: savedProductId,
             url: typeof img === 'string' ? img : img.url || img,
             alt_text: formData.title || 'Product image',
             is_primary: img.is_primary || index === 0,
@@ -763,8 +815,6 @@ export default function AddProductSmart() {
           await supabase.from('product_images').insert(imageRecords);
         }
       }
-      
-      if (error) throw error;
 
 
       // Delete draft after successful submission
