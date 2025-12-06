@@ -505,6 +505,18 @@ if (!Array.isArray(productsList)) return [];
               {(() => {
                 const imageUrl = product.primaryImage || product.images?.[0] || null;
                 
+                // Debug logging
+                if (import.meta.env.DEV) {
+                  console.log('🖼️ Rendering product image:', {
+                    productId: product.id,
+                    productTitle: product.title,
+                    primaryImage: product.primaryImage,
+                    hasImages: !!product.images,
+                    imageUrl,
+                    product_images: product.product_images
+                  });
+                }
+                
                 if (imageUrl && imageUrl !== '/placeholder.png' && !imageUrl.includes('placeholder')) {
                   return (
                     <img
@@ -512,9 +524,15 @@ if (!Array.isArray(productsList)) return [];
                       alt={product.title || product.name || 'Product'}
                       className="w-full h-full object-cover"
                       onError={(e) => {
+                        console.error('❌ Image failed to load:', imageUrl, e);
                         // Fallback to placeholder on error
                         e.target.src = '/placeholder.png';
                         e.target.onerror = null; // Prevent infinite loop
+                      }}
+                      onLoad={() => {
+                        if (import.meta.env.DEV) {
+                          console.log('✅ Image loaded successfully:', imageUrl);
+                        }
                       }}
                       loading="lazy"
                     />
