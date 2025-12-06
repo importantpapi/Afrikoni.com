@@ -112,6 +112,8 @@ const BuyerProtectionPolicy = lazy(() => import('./pages/buyer-protection'));
 const AntiCorruptionPolicy = lazy(() => import('./pages/anti-corruption-policy'));
 const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
+const SupplierApplication = lazy(() => import('./pages/mvp/supplier-application'));
+const RFQSubmission = lazy(() => import('./pages/mvp/rfq-submission'));
 
 function App() {
   // Setup session refresh to keep users logged in
@@ -155,6 +157,8 @@ function App() {
             <Route path="/supplier" element={<SupplierProfile />} />
             <Route path="/business/:id" element={<BusinessProfile />} />
             <Route path="/become-supplier" element={<BecomeSupplier />} />
+            <Route path="/supplier-application" element={<SupplierApplication />} />
+            <Route path="/rfq/submit" element={<RFQSubmission />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/countries" element={<Countries />} />
             <Route path="/sitemap.xml" element={<SitemapXML />} />
