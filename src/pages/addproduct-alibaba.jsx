@@ -509,7 +509,24 @@ Contact us for more details, custom specifications, or to request samples.`;
         }
         
         savedProductId = newProduct.id;
+        
+        // Verify the product was created and is accessible
+        console.log('✅ Product created:', savedProductId);
+        const { data: verifyProduct, error: verifyError } = await supabase
+          .from('products')
+          .select('id, company_id, title')
+          .eq('id', savedProductId)
+          .single();
+        
+        if (verifyError) {
+          console.error('❌ Cannot verify product:', verifyError);
+        } else {
+          console.log('✅ Product verified:', verifyProduct);
+        }
       }
+
+      // Small delay to ensure product is fully committed
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Save images to product_images table
       console.log('💾 Saving product images:', {
