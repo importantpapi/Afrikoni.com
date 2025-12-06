@@ -158,7 +158,7 @@ export default function AdminKYB() {
                           variant="outline"
                           className="text-red-600 border-red-600 hover:bg-red-50"
                           onClick={() => {
-                            setSelectedDoc(doc);
+                            setSelectedDoc({ ...doc, action: 'reject' });
                             setReviewNotes('');
                           }}
                         >
@@ -169,7 +169,7 @@ export default function AdminKYB() {
                           size="sm"
                           className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
                           onClick={() => {
-                            setSelectedDoc(doc);
+                            setSelectedDoc({ ...doc, action: 'approve' });
                             setReviewNotes('');
                           }}
                         >
@@ -187,37 +187,47 @@ export default function AdminKYB() {
 
         {/* Review Modal */}
         {selectedDoc && (
-          <Card className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <CardContent className="bg-white p-6 rounded-lg max-w-md w-full m-4">
-              <h3 className="text-xl font-bold mb-4">
-                Review {selectedDoc.document_type.replace('_', ' ')}
-              </h3>
-              <Textarea
-                placeholder="Review notes (optional)"
-                value={reviewNotes}
-                onChange={(e) => setReviewNotes(e.target.value)}
-                className="mb-4"
-              />
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedDoc(null);
-                    setReviewNotes('');
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
-                  onClick={() => {
-                    const status = selectedDoc.status === 'pending' ? 'approved' : 'rejected';
-                    handleReviewDocument(selectedDoc.id, status);
-                  }}
-                >
-                  {selectedDoc.status === 'pending' ? 'Approve' : 'Reject'}
-                </Button>
-              </div>
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={() => {
+              setSelectedDoc(null);
+              setReviewNotes('');
+            }}
+          >
+            <Card 
+              className="bg-white p-6 rounded-lg max-w-md w-full m-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CardContent className="p-0">
+                <h3 className="text-xl font-bold mb-4">
+                  Review {selectedDoc.document_type.replace('_', ' ')}
+                </h3>
+                <Textarea
+                  placeholder="Review notes (optional)"
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  className="mb-4"
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedDoc(null);
+                      setReviewNotes('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                    onClick={() => {
+                      const status = selectedDoc.action === 'reject' ? 'rejected' : 'approved';
+                      handleReviewDocument(selectedDoc.id, status);
+                    }}
+                  >
+                    {selectedDoc.action === 'reject' ? 'Reject' : 'Approve'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

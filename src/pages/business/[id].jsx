@@ -23,7 +23,6 @@ import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import { isValidUUID } from '@/utils/security';
 import { motion } from 'framer-motion';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
-import { getPrimaryImageFromProduct } from '@/utils/productImages';
 
 export default function BusinessProfile() {
   const { id } = useParams();
