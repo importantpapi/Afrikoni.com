@@ -144,6 +144,7 @@ function App() {
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product" element={<ProductDetail />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
+            <Route path="/product" element={<ProductDetail />} />
             <Route path="/compare" element={<CompareProducts />} />
             <Route path="/products/add" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
             <Route path="/products/add-smart" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />

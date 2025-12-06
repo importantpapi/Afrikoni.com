@@ -93,8 +93,7 @@ export default function ProductDetail() {
           product_images(*),
           companies(*),
           product_variants(*)
-        `)
-        .eq('status', 'active');
+        `);
 
       // Check if it's a UUID or slug
       if (isValidUUID(productId)) {
@@ -105,10 +104,23 @@ export default function ProductDetail() {
 
       const { data: foundProduct, error: productError } = await query.single();
 
-      if (productError || !foundProduct) {
+      if (productError) {
+        console.error('Product load error:', productError);
+        toast.error('Failed to load product: ' + (productError.message || 'Unknown error'));
+        navigate('/marketplace');
+        return;
+      }
+
+      if (!foundProduct) {
         toast.error('Product not found');
         navigate('/marketplace');
         return;
+      }
+
+      // Check if product is active (only show warning for non-active products, don't block)
+      if (foundProduct.status !== 'active') {
+        console.warn('Product is not active:', foundProduct.status);
+        // Still show the product but with a warning
       }
 
       // Get primary image or first image
