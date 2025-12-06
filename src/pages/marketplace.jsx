@@ -446,7 +446,10 @@ export default function Marketplace() {
       setProducts(filtered);
       
       // Backfill images from storage for products without images (async, non-blocking)
-      backfillMissingImages(filtered);
+      // Run after a short delay to ensure state is set
+      setTimeout(() => {
+        backfillMissingImages(filtered);
+      }, 100);
 
       // Log search event (non-blocking)
       logSearchEvent({ resultCount: filtered.length });
