@@ -760,55 +760,71 @@ Contact us for more details, custom specifications, or to request samples.`;
                   </div>
                 )}
 
-                {/* Step 2: Product Images */}
+                {/* Step 2: Product Images - Smart Upload */}
                 {currentStep === 2 && (
                   <div className="space-y-6">
                     <div>
                       <Label>Product Images *</Label>
-                      <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                        <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          id="image-upload"
-                        />
-                        <Label htmlFor="image-upload" className="cursor-pointer">
-                          <Button type="button" variant="outline" asChild>
-                            <span>Upload Images</span>
-                          </Button>
-                        </Label>
-                        <p className="text-sm text-gray-500 mt-2">Max 10 images, 5MB each</p>
-                      </div>
-                      {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
-                    </div>
-
-                    {formData.images.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {formData.images.map((img, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={typeof img === 'string' ? img : img.url}
-                              alt={`Product ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg"
-                            />
-                            {img.is_primary && (
-                              <Badge className="absolute top-2 left-2 bg-afrikoni-gold">Primary</Badge>
-                            )}
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                              {!img.is_primary && (
-                                <Button size="sm" variant="secondary" onClick={() => setPrimaryImage(index)}>
-                                  Set Primary
-                                </Button>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Upload high-quality product images. Drag & drop or click to upload. First image will be your main product photo.
+                      </p>
+                      
+                      <SmartImageUploader
+                        images={formData.images}
+                        onImagesChange={handleImagesChange}
+                        onFirstImageUpload={handleFirstImageUpload}
+                        userId={user?.id}
+                        maxImages={10}
+                        maxSizeMB={5}
+                      />
+                      
+                      {errors.images && (
+                        <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
+                          <p className="text-red-600 text-sm flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4" />
+                            {errors.images}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {formData.images.length > 0 && (
+                        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2 text-green-800">
+                            <CheckCircle className="w-5 h-5" />
+                            <div>
+                              <p className="font-semibold">✅ {formData.images.length} image{formData.images.length > 1 ? 's' : ''} uploaded</p>
+                              {formData.images.some(img => {
+                                if (typeof img === 'string') return formData.images.indexOf(img) === 0;
+                                return img.is_primary || formData.images.indexOf(img) === 0;
+                              }) && (
+                                <p className="text-sm text-green-700 mt-1">
+                                  First image is set as primary product photo
+                                </p>
                               )}
-                              <Button size="sm" variant="destructive" onClick={() => removeImage(index)}>
-                                <X className="w-4 h-4" />
-                              </Button>
                             </div>
                           </div>
-                        ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Image Tips */}
+                    {formData.images.length === 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex gap-3">
+                          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div className="text-sm text-blue-800">
+                            <p className="font-semibold mb-2">📸 Smart Image Features:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              <li>✨ Drag & drop images directly onto the upload area</li>
+                              <li>🖼️ First image auto-cropped to perfect 1:1 square format</li>
+                              <li>⚡ Automatic compression for fast loading</li>
+                              <li>🔄 Drag to reorder images</li>
+                              <li>⭐ Set any image as primary with one click</li>
+                              <li>📏 High-resolution images (min 800x800px recommended)</li>
+                              <li>🎨 Clean, white background works best</li>
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
