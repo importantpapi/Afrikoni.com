@@ -89,15 +89,25 @@ export default function AddProductSmart() {
 
   const [errors, setErrors] = useState({});
 
-  // Load data and restore draft
+  // Load data first
   useEffect(() => {
     loadData();
+  }, []);
+  
+  // Restore draft or load product for editing after data is loaded
+  useEffect(() => {
+    if (!user?.id) return; // Wait for user to be loaded
+    
     if (!isEditing) {
       restoreDraft();
     } else if (productId && user?.id) {
-      loadProductForEdit();
+      // Small delay to ensure company is also loaded
+      const timer = setTimeout(() => {
+        loadProductForEdit();
+      }, 200);
+      return () => clearTimeout(timer);
     }
-  }, [productId, user?.id]);
+  }, [productId, user?.id, isEditing, company?.id]);
   
   // Load product data for editing
   const loadProductForEdit = async () => {
