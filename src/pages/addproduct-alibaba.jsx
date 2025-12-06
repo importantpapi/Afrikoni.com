@@ -662,13 +662,67 @@ Contact us for more details, custom specifications, or to request samples.`;
                   <div className="space-y-6">
                     <div>
                       <Label htmlFor="title">Product Title *</Label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                        placeholder="e.g., Premium African Shea Butter"
-                        className="mt-1"
-                      />
+                      <div className="relative">
+                        <Input
+                          id="title"
+                          value={formData.title}
+                          onChange={async (e) => {
+                            const newTitle = e.target.value;
+                            setFormData(prev => ({ ...prev, title: newTitle }));
+                            
+                            // Auto-detect category, country, city when title is entered
+                            if (newTitle.trim().length > 5 && !formData.category_id && !formData.country_of_origin) {
+                              try {
+                                const detection = await autoDetectProductLocation({
+                                  title: newTitle,
+                                  description: formData.description || '',
+                                  sellerCountry: company?.country || '',
+                                  sellerCity: company?.city || ''
+                                });
+                                
+                                if (detection.success && detection.confidence > 0.5) {
+                                  // Auto-set category if found
+                                  if (detection.category) {
+                                    const matchedCategory = categories.find(c => 
+                                      c.name.toLowerCase() === detection.category.toLowerCase()
+                                    );
+                                    if (matchedCategory) {
+                                      setFormData(prev => ({ ...prev, category_id: matchedCategory.id }));
+                                      toast.success(`✨ AI detected category: ${matchedCategory.name}`, { duration: 2000 });
+                                    }
+                                  }
+                                  
+                                  // Auto-set country if found
+                                  if (detection.country) {
+                                    const matchedCountry = AFRICAN_COUNTRIES.find(c => 
+                                      c.toLowerCase() === detection.country.toLowerCase()
+                                    );
+                                    if (matchedCountry) {
+                                      setFormData(prev => ({ ...prev, country_of_origin: matchedCountry }));
+                                      toast.success(`🌍 AI detected country: ${matchedCountry}`, { duration: 2000 });
+                                    }
+                                  }
+                                  
+                                  // Auto-set city if found
+                                  if (detection.city) {
+                                    setFormData(prev => ({ ...prev, city: detection.city }));
+                                    toast.success(`📍 AI detected city: ${detection.city}`, { duration: 2000 });
+                                  }
+                                }
+                              } catch (error) {
+                                // Silently fail - AI is optional
+                              }
+                            }
+                          }}
+                          placeholder="e.g., Premium African Shea Butter"
+                          className="mt-1"
+                        />
+                        {formData.title && formData.title.length > 5 && (
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            <Sparkles className="w-4 h-4 text-afrikoni-gold animate-pulse" />
+                          </div>
+                        )}
+                      </div>
                       {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
                     </div>
 
