@@ -296,72 +296,119 @@ export default function Marketplace() {
       
       if (error) throw error;
       
-      // Transform products to include primary image - ensure images are properly loaded
-      const productsWithImages = Array.isArray(data) ? data.map(product => {
-        // Try multiple sources for product images
-        let primaryImage = null;
-        
-        // 1. Check product_images table (preferred) - handle both array and object formats
-        if (product.product_images) {
-          const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
-          if (images.length > 0) {
-            const primary = images.find(img => img?.is_primary === true);
-            primaryImage = primary?.url || images[0]?.url || null;
-            
-            // Ensure URL is valid (starts with http or /)
-            if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
-              primaryImage = null; // Invalid URL format
+      // Transform products and fetch images from storage (Alibaba/Facebook style)
+      const productsWithImages = await Promise.all(
+        (Array.isArray(data) ? data : []).map(async (product) => {
+          let primaryImage = null;
+          const allImages = [];
+          
+          // 1. Check product_images table (preferred)
+          if (product.product_images) {
+            const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
+            if (images.length > 0) {
+              const primary = images.find(img => img?.is_primary === true);
+              primaryImage = primary?.url || images[0]?.url || null;
+              if (primaryImage && primaryImage.startsWith('http')) {
+                allImages.push(primaryImage);
+              }
             }
           }
-        }
-        
-        // 2. Fallback to legacy images array (JSONB column)
-        if (!primaryImage && product.images) {
-          let images = [];
           
-          // Handle JSONB array
-          if (Array.isArray(product.images)) {
-            images = product.images;
-          } else if (typeof product.images === 'string') {
+          // 2. Fallback to legacy images array
+          if (!primaryImage && product.images) {
+            let images = [];
+            if (Array.isArray(product.images)) {
+              images = product.images;
+            } else if (typeof product.images === 'string') {
+              try {
+                images = JSON.parse(product.images);
+              } catch (e) {
+                images = [product.images];
+              }
+            }
+            if (images.length > 0) {
+              const firstImg = images[0];
+              primaryImage = typeof firstImg === 'string' ? firstImg : firstImg?.url || null;
+              if (primaryImage && primaryImage.startsWith('http')) {
+                allImages.push(primaryImage);
+              }
+            }
+          }
+          
+          // 3. Fetch from storage if no image found (Alibaba/Facebook approach)
+          if (!primaryImage && product.company_id) {
             try {
-              images = JSON.parse(product.images);
-            } catch (e) {
-              // Not valid JSON, treat as single string
-              images = [product.images];
+              // Get company owner email
+              const { data: company } = await supabase
+                .from('companies')
+                .select('owner_email')
+                .eq('id', product.company_id)
+                .single();
+              
+              if (company?.owner_email) {
+                // Get user ID
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('id')
+                  .eq('email', company.owner_email)
+                  .single();
+                
+                if (profile?.id) {
+                  // List all images in storage for this user
+                  const { data: storageFiles } = await supabase.storage
+                    .from('product-images')
+                    .list(`products/${profile.id}`, {
+                      limit: 50,
+                      sortBy: { column: 'created_at', order: 'desc' }
+                    });
+                  
+                  if (storageFiles && storageFiles.length > 0) {
+                    // Get first non-thumbnail image
+                    const mainImage = storageFiles.find(file => 
+                      !file.name.includes('-thumb') && 
+                      (file.name.endsWith('.jpg') || file.name.endsWith('.jpeg') || file.name.endsWith('.png') || file.name.endsWith('.webp'))
+                    );
+                    
+                    if (mainImage) {
+                      // Get public URL from Supabase Storage
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('product-images')
+                        .getPublicUrl(`products/${profile.id}/${mainImage.name}`);
+                      
+                      primaryImage = publicUrl;
+                      allImages.push(publicUrl);
+                      
+                      // Preload image (Alibaba/Facebook style)
+                      const img = new Image();
+                      img.src = publicUrl;
+                      
+                      // Backfill to database (non-blocking)
+                      supabase
+                        .from('product_images')
+                        .insert({
+                          product_id: product.id,
+                          url: publicUrl,
+                          alt_text: product.title || 'Product image',
+                          is_primary: true,
+                          sort_order: 0
+                        })
+                        .catch(() => {}); // Silently fail
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              // Silently fail - continue with other products
             }
           }
           
-          if (images.length > 0) {
-            const firstImg = images[0];
-            primaryImage = typeof firstImg === 'string' ? firstImg : firstImg?.url || null;
-            
-            // Ensure URL is valid
-            if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
-              primaryImage = null;
-            }
-          }
-        }
-        
-        return {
-          ...product,
-          primaryImage: primaryImage || null,
-          allImages: (() => {
-            const all = [];
-            if (product.product_images) {
-              const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
-              all.push(...images.map(img => img?.url).filter(url => url && (url.startsWith('http') || url.startsWith('/'))));
-            }
-            if (product.images) {
-              const images = Array.isArray(product.images) ? product.images : [product.images];
-              all.push(...images.map(img => typeof img === 'string' ? img : img?.url).filter(url => url && (url.startsWith('http') || url.startsWith('/'))));
-            }
-            if (primaryImage && !all.includes(primaryImage)) {
-              all.unshift(primaryImage);
-            }
-            return all;
-          })()
-        };
-      }) : [];
+          return {
+            ...product,
+            primaryImage: primaryImage || null,
+            allImages: allImages.length > 0 ? allImages : []
+          };
+        })
+      );
       
       // Apply client-side filters (search, price range, MOQ, certifications, lead time, chip filters)
       const filtered = applyClientSideFilters(productsWithImages);
