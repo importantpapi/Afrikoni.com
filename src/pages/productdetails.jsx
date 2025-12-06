@@ -108,21 +108,60 @@ export default function ProductDetail() {
 
       if (productError) {
         console.error('Product load error:', productError);
+        console.error('Product ID searched:', productId);
+        console.error('Error details:', JSON.stringify(productError, null, 2));
+        
+        // If it's a permission error, try loading without joins first
+        if (productError.code === 'PGRST116' || productError.message?.includes('permission') || productError.message?.includes('row-level security')) {
+          // Try loading product without joins to see if it's a join issue
+          const { data: simpleProduct, error: simpleError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', productId)
+            .eq('status', 'active')
+            .single();
+            
+          if (simpleError || !simpleProduct) {
+            toast.error('Product not found or you do not have permission to view it');
+            navigate('/marketplace');
+            return;
+          }
+          
+          // If simple query works, the issue is with joins - load them separately
+          const [categoriesRes, imagesRes, companiesRes] = await Promise.all([
+            supabase.from('categories').select('*').eq('id', simpleProduct.category_id).maybeSingle(),
+            supabase.from('product_images').select('*').eq('product_id', simpleProduct.id).order('sort_order'),
+            supabase.from('companies').select('*').eq('id', simpleProduct.company_id).maybeSingle()
+          ]);
+          
+          const productWithJoins = {
+            ...simpleProduct,
+            categories: categoriesRes.data ? [categoriesRes.data] : [],
+            product_images: imagesRes.data || [],
+            companies: companiesRes.data || null
+          };
+          
+          setProduct({
+            ...productWithJoins,
+            primaryImage: (imagesRes.data?.[0]?.url) || (simpleProduct.images?.[0]),
+            allImages: (imagesRes.data?.map(img => img.url) || []).filter(Boolean).length > 0 
+              ? imagesRes.data.map(img => img.url).filter(Boolean)
+              : (Array.isArray(simpleProduct.images) ? simpleProduct.images : []).filter(Boolean)
+          });
+          
+          return;
+        }
+        
         toast.error('Failed to load product: ' + (productError.message || 'Unknown error'));
         navigate('/marketplace');
         return;
       }
 
       if (!foundProduct) {
+        console.error('Product not found for ID:', productId);
         toast.error('Product not found');
         navigate('/marketplace');
         return;
-      }
-
-      // Check if product is active (only show warning for non-active products, don't block)
-      if (foundProduct.status !== 'active') {
-        console.warn('Product is not active:', foundProduct.status);
-        // Still show the product but with a warning
       }
 
       // Get primary image or first image
