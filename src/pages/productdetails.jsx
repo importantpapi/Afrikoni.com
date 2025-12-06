@@ -86,13 +86,14 @@ export default function ProductDetail() {
     try {
       // Try to find by slug first, then by ID
       // Only show active products to non-owners, but allow owners to see their own products
+      // Note: Use explicit relationship name since products has multiple FKs to companies
       let query = supabase
         .from('products')
         .select(`
           *,
           categories(*),
           product_images(*),
-          companies(*),
+          companies!company_id(*),
           product_variants(*)
         `)
         .eq('status', 'active'); // Only show active products to public
