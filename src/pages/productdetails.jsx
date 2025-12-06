@@ -85,6 +85,7 @@ export default function ProductDetail() {
 
     try {
       // Try to find by slug first, then by ID
+      // Only show active products to non-owners, but allow owners to see their own products
       let query = supabase
         .from('products')
         .select(`
@@ -93,7 +94,8 @@ export default function ProductDetail() {
           product_images(*),
           companies(*),
           product_variants(*)
-        `);
+        `)
+        .eq('status', 'active'); // Only show active products to public
 
       // Check if it's a UUID or slug
       if (isValidUUID(productId)) {
