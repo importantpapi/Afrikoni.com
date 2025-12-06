@@ -18,6 +18,7 @@ import { notifyNewMessage } from '@/services/notificationService';
 import VirtualList from '@/components/ui/VirtualList';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { generateBuyerInquiry } from '@/ai/aiFunctions';
 
 export default function MessagesPremium() {
   const { t } = useLanguage();
@@ -33,8 +34,31 @@ export default function MessagesPremium() {
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [productContext, setProductContext] = useState(null);
 
-  const createConversationWithRecipient = async (recipientCompanyId) => {
+  const generateSmartInquiry = async (product) => {
+    if (!product) return;
+    
+    setIsGeneratingAI(true);
+    try {
+      const result = await generateBuyerInquiry(product, {
+        companyName: currentUser?.company_name || '',
+        country: currentUser?.country || ''
+      });
+      
+      if (result.success && result.message) {
+        setNewMessage(result.message);
+        toast.success('✨ Smart message draft generated! Review and edit as needed.');
+      }
+    } catch (error) {
+      // Silently fail - AI is optional
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const createConversationWithRecipient = async (recipientCompanyId, productInfo = null) => {
     if (!companyId || !recipientCompanyId) return;
     
     try {
@@ -50,13 +74,18 @@ export default function MessagesPremium() {
         return;
       }
 
+      // Create subject based on product if available
+      const subject = productInfo?.productTitle 
+        ? `Inquiry about ${productInfo.productTitle}`
+        : t('messages.newConversation');
+
       // Create conversation
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
           buyer_company_id: companyId,
           seller_company_id: recipientCompanyId,
-          subject: t('messages.newConversation'),
+          subject: subject,
           last_message: '',
           last_message_at: new Date().toISOString()
         })
@@ -66,6 +95,27 @@ export default function MessagesPremium() {
       if (convError) throw convError;
 
       setSelectedConversation(newConv.id);
+      
+      // If product context exists, generate smart message
+      if (productInfo && productInfo.productId) {
+        try {
+          // Load product details
+          const { data: product } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', productInfo.productId)
+            .single();
+            
+          if (product) {
+            setProductContext(product);
+            // Generate smart inquiry message
+            generateSmartInquiry(product);
+          }
+        } catch (err) {
+          // Silently fail - product loading is optional
+        }
+      }
+      
       // Reload conversations
       loadUserAndConversations();
     } catch (error) {
@@ -80,6 +130,28 @@ export default function MessagesPremium() {
   useEffect(() => {
     const conversationParam = searchParams.get('conversation');
     const recipientParam = searchParams.get('recipient');
+    const productParam = searchParams.get('product');
+    const productTitleParam = searchParams.get('productTitle');
+    
+    // Check for product context from sessionStorage (set by marketplace)
+    const storedContext = sessionStorage.getItem('contactProductContext');
+    let productInfo = null;
+    if (storedContext) {
+      try {
+        productInfo = JSON.parse(storedContext);
+        sessionStorage.removeItem('contactProductContext'); // Clear after use
+      } catch (e) {
+        // Invalid JSON, ignore
+      }
+    }
+    
+    // Also check URL params
+    if (productParam && productTitleParam) {
+      productInfo = {
+        productId: productParam,
+        productTitle: decodeURIComponent(productTitleParam)
+      };
+    }
     
     if (conversationParam && Array.isArray(conversations) && conversations.length > 0) {
       setSelectedConversation(conversationParam);
@@ -90,9 +162,23 @@ export default function MessagesPremium() {
       ) : null;
       if (existingConv) {
         setSelectedConversation(existingConv.id);
+        // Still generate smart message if product context exists
+        if (productInfo && productInfo.productId) {
+          supabase
+            .from('products')
+            .select('*')
+            .eq('id', productInfo.productId)
+            .single()
+            .then(({ data: product }) => {
+              if (product) {
+                setProductContext(product);
+                generateSmartInquiry(product);
+              }
+            });
+        }
       } else {
-        // Create new conversation
-        createConversationWithRecipient(recipientParam);
+        // Create new conversation with product context
+        createConversationWithRecipient(recipientParam, productInfo);
       }
     } else if (Array.isArray(conversations) && conversations.length > 0 && !selectedConversation) {
       setSelectedConversation(conversations[0].id);
@@ -1098,13 +1184,30 @@ export default function MessagesPremium() {
                           </Button>
                         </label>
                       </Tooltip>
+                      {productContext && (
+                        <Tooltip content="Generate smart message with KoniAI">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => generateSmartInquiry(productContext)}
+                            disabled={isGeneratingAI}
+                            className="p-2 md:p-2.5 flex-shrink-0 touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
+                          >
+                            {isGeneratingAI ? (
+                              <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin text-afrikoni-gold" />
+                            ) : (
+                              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold" />
+                            )}
+                          </Button>
+                        </Tooltip>
+                      )}
                       <div className="flex-1 relative min-w-0">
                         <Input
                           ref={inputRef}
                           value={newMessage}
                           onChange={handleInputChange}
                           onKeyPress={handleKeyPress}
-                          placeholder={t('messages.typeMessagePlaceholder')}
+                          placeholder={productContext ? `Ask about ${productContext.title}...` : t('messages.typeMessagePlaceholder')}
                           className="pr-10 md:pr-12 text-sm md:text-base min-h-[44px] md:min-h-0"
                         />
                       </div>

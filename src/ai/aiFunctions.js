@@ -634,5 +634,71 @@ ${JSON.stringify(candidates, null, 2)}
   }
 }
 
+/**
+ * Generate a professional buyer inquiry message for contacting suppliers
+ * Used when buyers click "Contact Supplier" from marketplace
+ */
+export async function generateBuyerInquiry(product, buyerContext = {}) {
+  if (!product || !product.id) {
+    return { 
+      success: false, 
+      message: 'Hello, I am interested in learning more about your products.' 
+    };
+  }
+
+  const system = `
+You are KoniAI, helping buyers craft professional B2B inquiry messages on Afrikoni marketplace.
+Generate a concise, professional message that:
+- Shows genuine interest in the product
+- Asks relevant questions (pricing, MOQ, delivery, samples)
+- Maintains professional B2B tone
+- Is friendly but business-focused
+- Mentions the specific product
+
+Keep it 2-3 short paragraphs, professional but approachable.
+`.trim();
+
+  const user = `
+Product Information:
+${JSON.stringify({
+  title: product.title || product.name,
+  price: product.price || product.price_min,
+  currency: product.currency || 'USD',
+  moq: product.moq || product.min_order_quantity,
+  country: product.country_of_origin,
+  category: product.category_name || product.category
+}, null, 2)}
+
+Buyer Context (optional):
+${JSON.stringify(buyerContext || {}, null, 2)}
+`.trim();
+
+  const fallback = `Hello,
+
+I came across your ${product.title || 'product'} on Afrikoni and I'm interested in learning more.
+
+Could you please provide:
+- Current pricing and payment terms
+- Minimum order quantity (MOQ)
+- Delivery timeframes
+- Sample availability (if applicable)
+
+I look forward to hearing from you.
+
+Best regards`;
+
+  const { success, content } = await callChat({ 
+    system, 
+    user, 
+    maxTokens: 300,
+    temperature: 0.7
+  });
+
+  return { 
+    success, 
+    message: content || fallback 
+  };
+}
+
 
 

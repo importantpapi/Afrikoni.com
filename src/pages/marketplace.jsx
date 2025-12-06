@@ -529,7 +529,23 @@ if (!Array.isArray(productsList)) return [];
                   className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-4" 
                   asChild
                 >
-                  <Link to={`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}`}>
+                  <Link 
+                    to={`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}&product=${product?.id || ''}&productTitle=${encodeURIComponent(product?.title || '')}`}
+                    onClick={(e) => {
+                      // Store product context for smart message generation
+                      if (product?.id) {
+                        sessionStorage.setItem('contactProductContext', JSON.stringify({
+                          productId: product.id,
+                          productTitle: product.title,
+                          productPrice: product.price || product.price_min,
+                          productCurrency: product.currency,
+                          productMOQ: product.moq || product.min_order_quantity,
+                          supplierName: product?.companies?.company_name || 'Supplier',
+                          supplierCountry: product?.country_of_origin || product?.companies?.country
+                        }));
+                      }
+                    }}
+                  >
                     <MessageSquare className="w-4 h-4 mr-1" />
                     {t('marketplace.contact')}
                   </Link>
