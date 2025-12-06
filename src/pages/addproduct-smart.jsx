@@ -36,12 +36,11 @@ import { validateNumeric, sanitizeString } from '@/utils/security';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// SIMPLIFIED: Only 3 essential steps for easy product listing
 const STEPS = [
-  { id: 1, name: 'Product Basics', icon: FileText, description: 'Name, Category, Description' },
-  { id: 2, name: 'Images', icon: Image, description: 'Upload & arrange photos' },
-  { id: 3, name: 'Pricing & MOQ', icon: DollarSign, description: 'Price tiers, MOQ, currency' },
-  { id: 4, name: 'Supply & Logistics', icon: Truck, description: 'Lead time, origin, shipping' },
-  { id: 5, name: 'Compliance', icon: Shield, description: 'Certifications & compliance' },
+  { id: 1, name: 'Basic Info', icon: FileText, description: 'Product name & price' },
+  { id: 2, name: 'Photos', icon: ImageIcon, description: 'Add product photos' },
+  { id: 3, name: 'Publish', icon: CheckCircle, description: 'Review & publish' },
 ];
 
 export default function AddProductSmart() {

@@ -69,6 +69,7 @@ const BusinessProfile = lazy(() => import('./pages/business/[id]'));
 // Lazy-loaded heavy routes - Other pages
 const AddProduct = lazy(() => import('./pages/addproduct'));
 const AddProductSmart = lazy(() => import('./pages/addproduct-smart'));
+const AddProductSimple = lazy(() => import('./pages/addproduct-simple'));
 const CreateRFQ = lazy(() => import('./pages/createrfq'));
 const Categories = lazy(() => import('./pages/categories'));
 const Orders = lazy(() => import('./pages/orders'));
@@ -143,7 +144,8 @@ function App() {
             <Route path="/product" element={<ProductDetail />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/compare" element={<CompareProducts />} />
-            <Route path="/products/add" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
+            <Route path="/products/add" element={<ProtectedRoute><AddProductSimple /></ProtectedRoute>} />
+            <Route path="/products/add-smart" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
             <Route path="/products/add-old" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
             <Route path="/rfq/create" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
             <Route path="/rfq" element={<RFQMarketplace />} />
@@ -178,7 +180,7 @@ function App() {
             <Route path="/dashboard/rfqs/new" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
             <Route path="/dashboard/rfqs/:id" element={<ProtectedRoute><RFQDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/products" element={<ProtectedRoute><DashboardProducts /></ProtectedRoute>} />
-            <Route path="/dashboard/products/new" element={<ProtectedRoute><ProductForm /></ProtectedRoute>} />
+            <Route path="/dashboard/products/new" element={<ProtectedRoute><AddProductSimple /></ProtectedRoute>} />
             <Route path="/dashboard/products/:id/edit" element={<ProtectedRoute><ProductForm /></ProtectedRoute>} />
             <Route path="/dashboard/sales" element={<ProtectedRoute><DashboardSales /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><DashboardShipments /></ProtectedRoute>} />
