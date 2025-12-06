@@ -747,7 +747,54 @@ Contact us for more details, custom specifications, or to request samples.`;
                       <Textarea
                         id="description"
                         value={formData.description}
-                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        onChange={async (e) => {
+                          const newDescription = e.target.value;
+                          setFormData(prev => ({ ...prev, description: newDescription }));
+                          
+                          // Re-detect category/country/city when description is updated (if not already set)
+                          if (newDescription.trim().length > 20 && formData.title && (!formData.category_id || !formData.country_of_origin)) {
+                            try {
+                              const detection = await autoDetectProductLocation({
+                                title: formData.title,
+                                description: newDescription,
+                                sellerCountry: company?.country || '',
+                                sellerCity: company?.city || ''
+                              });
+                              
+                              if (detection.success && detection.confidence > 0.6) {
+                                // Auto-set category if not already set
+                                if (detection.category && !formData.category_id) {
+                                  const matchedCategory = categories.find(c => 
+                                    c.name.toLowerCase() === detection.category.toLowerCase()
+                                  );
+                                  if (matchedCategory) {
+                                    setFormData(prev => ({ ...prev, category_id: matchedCategory.id }));
+                                    toast.success(`✨ AI detected category: ${matchedCategory.name}`, { duration: 2000 });
+                                  }
+                                }
+                                
+                                // Auto-set country if not already set
+                                if (detection.country && !formData.country_of_origin) {
+                                  const matchedCountry = AFRICAN_COUNTRIES.find(c => 
+                                    c.toLowerCase() === detection.country.toLowerCase()
+                                  );
+                                  if (matchedCountry) {
+                                    setFormData(prev => ({ ...prev, country_of_origin: matchedCountry }));
+                                    toast.success(`🌍 AI detected country: ${matchedCountry}`, { duration: 2000 });
+                                  }
+                                }
+                                
+                                // Auto-set city if not already set
+                                if (detection.city && !formData.city) {
+                                  setFormData(prev => ({ ...prev, city: detection.city }));
+                                  toast.success(`📍 AI detected city: ${detection.city}`, { duration: 2000 });
+                                }
+                              }
+                            } catch (error) {
+                              // Silently fail - AI is optional
+                            }
+                          }
+                        }}
                         placeholder="Describe your product in detail..."
                         rows={6}
                         className="mt-1"
