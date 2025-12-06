@@ -42,7 +42,7 @@ export default function CompareProducts() {
           *,
           categories(*),
           product_images(*),
-          companies(*)
+          companies!company_id(*)
         `)
         .in('id', productIds)
         .eq('status', 'active');

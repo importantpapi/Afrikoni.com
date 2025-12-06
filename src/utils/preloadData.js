@@ -84,7 +84,7 @@ export async function preloadMarketplaceData() {
       
       supabase
         .from('products')
-        .select('*, companies(*), categories(*), product_images(*)')
+        .select('*, companies!company_id(*), categories(*), product_images(*)')
         .eq('status', 'active')
         .order('views', { ascending: false })
         .limit(20)

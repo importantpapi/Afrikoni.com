@@ -250,10 +250,10 @@ export default function Marketplace() {
         country: selectedFilters.country || null
       });
       
-      // Add companies to select
+      // Add companies to select - use explicit relationship since products has multiple FKs to companies
       query = query.select(`
           *,
-          companies(*),
+          companies!company_id(*),
           categories(*),
           product_images(*)
       `);

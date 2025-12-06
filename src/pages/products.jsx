@@ -55,7 +55,7 @@ export default function Products() {
         paginateQuery(
           supabase
             .from('products')
-            .select('*, companies(*), categories(*)')
+            .select('*, companies!company_id(*), categories(*)')
             .eq('status', 'active'),
           { page: pagination.page, pageSize: 20, orderBy: 'created_at', ascending: false }
         ),
