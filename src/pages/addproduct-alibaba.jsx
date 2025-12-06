@@ -509,22 +509,40 @@ Contact us for more details, custom specifications, or to request samples.`;
 
       // Save images to product_images table
       if (formData.images.length > 0 && savedProductId) {
-        const imageRecords = formData.images.map((img, index) => ({
-          product_id: savedProductId,
-          url: typeof img === 'string' ? img : img.url,
-          alt_text: formData.title,
-          is_primary: (typeof img === 'object' ? img.is_primary : false) || index === 0,
-          sort_order: (typeof img === 'object' && img.sort_order !== undefined) ? img.sort_order : index
-        }));
+        const imageRecords = formData.images
+          .map((img, index) => {
+            const imageUrl = typeof img === 'string' ? img : img.url;
+            // Only include valid URLs
+            if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('/'))) {
+              console.warn('Skipping invalid image URL:', imageUrl);
+              return null;
+            }
+            return {
+              product_id: savedProductId,
+              url: imageUrl,
+              alt_text: formData.title || 'Product image',
+              is_primary: (typeof img === 'object' ? img.is_primary : false) || index === 0,
+              sort_order: (typeof img === 'object' && img.sort_order !== undefined) ? img.sort_order : index
+            };
+          })
+          .filter(Boolean); // Remove null entries
 
-        const { error: imagesError } = await supabase
-          .from('product_images')
-          .insert(imageRecords);
+        if (imageRecords.length > 0) {
+          const { data: insertedImages, error: imagesError } = await supabase
+            .from('product_images')
+            .insert(imageRecords)
+            .select();
 
-        if (imagesError) {
-          console.error('Images insert error:', imagesError);
-          // Don't fail the whole operation if images fail, but warn user
-          toast.warning('Product saved but some images may not have been uploaded. Please try editing the product to add images.');
+          if (imagesError) {
+            console.error('Images insert error:', imagesError);
+            toast.error('Failed to save product images: ' + (imagesError.message || 'Unknown error'));
+          } else if (insertedImages && insertedImages.length > 0) {
+            console.log('Successfully saved images:', insertedImages.length);
+            toast.success(`Product saved with ${insertedImages.length} image(s)`);
+          }
+        } else {
+          console.warn('No valid image URLs to save');
+          toast.warning('Product saved but no valid images were found to upload.');
         }
       }
 
