@@ -333,80 +333,24 @@ Contact us for more details, custom specifications, or to request samples.`;
     }
   };
 
-  // Image Upload Handler
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    const validFiles = files.filter(file => {
-      if (file.size > maxSize) {
-        toast.error(`${file.name} is too large (max 5MB)`);
-        return false;
-      }
-      return true;
-    });
-
-    if (validFiles.length === 0) return;
-
-    try {
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
-      const uploadedImages = [];
-
-      for (const file of validFiles) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `products/${companyId}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(filePath);
-
-        uploadedImages.push({
-          url: publicUrl,
-          is_primary: formData.images.length === 0 && uploadedImages.length === 0,
-          sort_order: formData.images.length + uploadedImages.length
-        });
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, ...uploadedImages]
-      }));
-
-      toast.success(`${uploadedImages.length} image(s) uploaded`);
-    } catch (error) {
-      toast.error('Failed to upload images');
+  // Smart Image Upload Handler - uses SmartImageUploader component
+  const handleImagesChange = useCallback((newImages) => {
+    setFormData(prev => ({
+      ...prev,
+      images: newImages
+    }));
+    // Clear image error if images are added
+    if (newImages.length > 0 && errors.images) {
+      setErrors(prev => ({ ...prev, images: null }));
     }
-  };
+  }, [errors.images]);
 
-  const removeImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index).map((img, i) => ({
-        ...img,
-        is_primary: i === 0 ? true : img.is_primary,
-        sort_order: i
-      }))
-    }));
-  };
-
-  const setPrimaryImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.map((img, i) => ({
-        ...img,
-        is_primary: i === index
-      }))
-    }));
-  };
+  const handleFirstImageUpload = useCallback(async (imageUrl) => {
+    // When first image is uploaded, optionally trigger AI category detection
+    if (!formData.category_id && formData.title) {
+      // Could trigger AI category suggestion here if needed
+    }
+  }, [formData.category_id, formData.title]);
 
   // Shipping Cost Calculation
   const calculateShippingCost = () => {
