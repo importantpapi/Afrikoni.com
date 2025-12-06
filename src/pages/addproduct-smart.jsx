@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,7 @@ import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AFRICAN_COUNTRIES } from '@/constants/countries';
 
 // Full-featured Add Product with AI assistance
 const STEPS = [
@@ -73,6 +74,7 @@ export default function AddProductSmart() {
     packaging: '',
     currency: 'USD',
     country_of_origin: '',
+    city: '', // City where product is located
     shipping_options: [],
     certifications: [],
     compliance_notes: '',
@@ -663,7 +665,8 @@ export default function AddProductSmart() {
         packaging: sanitizeString(formData.packaging || ''),
         currency: formData.currency || 'USD',
         country_of_origin: formData.country_of_origin || company?.country || '',
-        status: 'draft', // New products start as draft, admin can activate later
+        city: sanitizeString(formData.city || ''),
+        status: 'active', // Products are active immediately (can be changed to draft if needed)
         company_id: companyId,
         views: 0,
         inquiries: 0
@@ -1618,15 +1621,44 @@ export default function AddProductSmart() {
                       </Button>
                     </div>
 
-                    <div>
-                      <Label htmlFor="country_of_origin">Country of Origin</Label>
-                      <Input
-                        id="country_of_origin"
-                        value={formData.country_of_origin || company?.country || ''}
-                        onChange={(e) => handleChange('country_of_origin', e.target.value)}
-                        placeholder="e.g., Nigeria, Kenya, Ghana"
-                        className="mt-1"
-                      />
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="country_of_origin">
+                          Country of Origin <span className="text-red-500">*</span>
+                        </Label>
+                        <Select 
+                          value={formData.country_of_origin || company?.country || ''} 
+                          onValueChange={(v) => handleChange('country_of_origin', v)}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            {AFRICAN_COUNTRIES.map(country => (
+                              <SelectItem key={country} value={country}>
+                                {country}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-afrikoni-deep/60 mt-1">
+                          Where is this product made or sourced from?
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="city">City</Label>
+                        <Input
+                          id="city"
+                          value={formData.city || ''}
+                          onChange={(e) => handleChange('city', e.target.value)}
+                          placeholder="e.g., Lagos, Nairobi, Accra"
+                          className="mt-1"
+                        />
+                        <p className="text-xs text-afrikoni-deep/60 mt-1">
+                          City where product is located (optional)
+                        </p>
+                      </div>
                     </div>
 
                     <div>
