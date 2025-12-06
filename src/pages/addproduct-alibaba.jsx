@@ -218,19 +218,10 @@ export default function AddProductAlibaba() {
     }
   };
 
-  // AI Description Generation
+  // AI Description Generation with Fallback
   const generateAIDescription = async () => {
     if (!formData.title?.trim()) {
       toast.error('Please enter a product title first');
-      return;
-    }
-
-    // Check if API key is configured
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      toast.error('AI features require API key configuration. Please contact support.', {
-        description: 'VITE_OPENAI_API_KEY is not set in environment variables.'
-      });
       return;
     }
 
@@ -245,6 +236,39 @@ export default function AddProductAlibaba() {
         tags: []
       };
 
+      // Check if API key is configured
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+      
+      if (!apiKey) {
+        // Fallback: Generate a simple description without AI
+        const categoryName = productDraft.category || 'product';
+        const countryName = productDraft.country || 'Africa';
+        const fallbackDescription = `${productDraft.title} is a high-quality ${categoryName.toLowerCase()} sourced from ${countryName}. 
+
+This premium product is ideal for B2B buyers looking for reliable suppliers. We offer competitive pricing, flexible MOQ, and professional packaging suitable for international trade.
+
+Key features:
+• Premium quality ${categoryName.toLowerCase()}
+• Sourced from ${countryName}
+• Competitive pricing
+• Flexible minimum order quantities
+• Professional export packaging
+• Reliable delivery times
+
+Contact us for more details, custom specifications, or to request samples.`;
+
+        setFormData(prev => ({
+          ...prev,
+          description: fallbackDescription
+        }));
+        
+        toast.success('✨ Description template generated!', {
+          description: 'AI is not configured. A template was created - please customize it.'
+        });
+        return;
+      }
+
+      // Try AI generation
       const result = await generateProductListing(productDraft);
 
       if (result.success && result.data) {
@@ -259,24 +283,49 @@ export default function AddProductAlibaba() {
             description: 'Review and edit as needed.'
           });
         } else {
-          toast.warning('AI generated response but no description was returned');
+          // Fallback if AI returns empty description
+          const categoryName = productDraft.category || 'product';
+          const countryName = productDraft.country || 'Africa';
+          const fallbackDescription = `${productDraft.title} is a premium ${categoryName.toLowerCase()} from ${countryName}. High quality, competitive pricing, flexible MOQ. Ideal for B2B buyers.`;
+          
+          setFormData(prev => ({
+            ...prev,
+            description: fallbackDescription
+          }));
+          toast.warning('AI response was empty - using template instead');
         }
       } else {
-        const errorMsg = result.error?.message || 'Unknown error';
-        console.error('AI generation failed:', result.error || errorMsg);
-        toast.error('Failed to generate description', {
-          description: errorMsg.includes('API key') 
-            ? 'Please check your OpenAI API key configuration'
-            : 'Please try again or write your own description'
+        // Fallback on AI failure
+        const categoryName = productDraft.category || 'product';
+        const countryName = productDraft.country || 'Africa';
+        const fallbackDescription = `${productDraft.title} is a high-quality ${categoryName.toLowerCase()} from ${countryName}. Premium quality, competitive pricing, flexible MOQ. Professional packaging and reliable delivery.`;
+        
+        setFormData(prev => ({
+          ...prev,
+          description: fallbackDescription
+        }));
+        
+        const errorMsg = result?.error?.message || 'Unknown error';
+        console.error('AI generation failed:', result?.error || errorMsg);
+        toast.warning('AI unavailable - template description created', {
+          description: 'You can edit the generated template or try again later.'
         });
       }
     } catch (error) {
       console.error('AI generation error:', error);
-      const errorMessage = error?.message || 'Unknown error occurred';
-      toast.error('AI generation failed', {
-        description: errorMessage.includes('API') || errorMessage.includes('key')
-          ? 'API key issue. Please check configuration.'
-          : 'Please try again or write your own description'
+      
+      // Fallback on exception
+      const categoryName = categories.find(c => c.id === formData.category_id)?.name || 'product';
+      const countryName = formData.country_of_origin || 'Africa';
+      const fallbackDescription = `${formData.title} is a premium ${categoryName.toLowerCase()} from ${countryName}. High quality, competitive pricing, flexible MOQ. Ideal for B2B buyers seeking reliable suppliers.`;
+      
+      setFormData(prev => ({
+        ...prev,
+        description: fallbackDescription
+      }));
+      
+      toast.warning('AI generation failed - template created', {
+        description: 'A template description was generated. Please customize it.'
       });
     } finally {
       setIsGeneratingAI(false);
