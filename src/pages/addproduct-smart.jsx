@@ -90,8 +90,81 @@ export default function AddProductSmart() {
   // Load data and restore draft
   useEffect(() => {
     loadData();
-    restoreDraft();
-  }, []);
+    if (!isEditing) {
+      restoreDraft();
+    } else if (productId && user?.id) {
+      loadProductForEdit();
+    }
+  }, [productId, user?.id]);
+  
+  // Load product data for editing
+  const loadProductForEdit = async () => {
+    if (!productId || !user?.id) return;
+    
+    try {
+      setIsLoading(true);
+      const { getOrCreateCompany } = await import('@/utils/companyHelper');
+      const companyId = await getOrCreateCompany(supabase, user);
+      
+      const { data: product, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          product_images(*),
+          categories(*)
+        `)
+        .eq('id', productId)
+        .eq('company_id', companyId)
+        .single();
+      
+      if (error) throw error;
+      
+      // Load images
+      const productImages = (product.product_images || []).map(img => ({
+        url: img.url,
+        thumbnail_url: img.thumbnail_url,
+        path: img.path,
+        is_primary: img.is_primary,
+        sort_order: img.sort_order
+      }));
+      
+      // If no images from product_images, use images array
+      const imagesToUse = productImages.length > 0 
+        ? productImages 
+        : (Array.isArray(product.images) ? product.images.map((url, idx) => ({
+            url,
+            is_primary: idx === 0,
+            sort_order: idx
+          })) : []);
+      
+      setFormData({
+        title: product.title || '',
+        description: product.description || '',
+        category_id: product.category_id || '',
+        images: imagesToUse,
+        price: product.price || product.price_min || '',
+        moq: product.moq || product.min_order_quantity || '1',
+        unit: product.unit || 'pieces',
+        delivery_time: product.delivery_time || '',
+        packaging: product.packaging || '',
+        currency: product.currency || 'USD',
+        country_of_origin: product.country_of_origin || '',
+        city: product.city || '',
+        shipping_options: product.shipping_options || [],
+        certifications: product.certifications || [],
+        compliance_notes: product.compliance_notes || '',
+        tags: product.tags || [],
+        status: product.status || 'draft'
+      });
+      
+      toast.success('Product loaded for editing');
+    } catch (error) {
+      toast.error('Failed to load product for editing');
+      navigate('/dashboard/products');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Auto-save on form data change
   useEffect(() => {
@@ -670,22 +743,27 @@ export default function AddProductSmart() {
         company_id: companyId,
         views: 0,
         inquiries: 0
-      }).select('id').single();
+        }).select('id').single();
+        
+        newProduct = data;
+        error = insertError;
+        
+        // Save images to product_images table for new products
+        if (newProduct?.id && formData.images.length > 0) {
+          const imageRecords = formData.images.map((img, index) => ({
+            product_id: newProduct.id,
+            url: typeof img === 'string' ? img : img.url || img,
+            alt_text: formData.title || 'Product image',
+            is_primary: img.is_primary || index === 0,
+            sort_order: img.sort_order !== undefined ? img.sort_order : index
+          }));
+
+          await supabase.from('product_images').insert(imageRecords);
+        }
+      }
       
       if (error) throw error;
 
-      // Save images to product_images table
-      if (newProduct?.id && formData.images.length > 0) {
-        const imageRecords = formData.images.map((img, index) => ({
-          product_id: newProduct.id,
-          url: typeof img === 'string' ? img : img.url || img,
-          alt_text: formData.title || 'Product image',
-          is_primary: img.is_primary || index === 0,
-          sort_order: img.sort_order !== undefined ? img.sort_order : index
-        }));
-
-        await supabase.from('product_images').insert(imageRecords);
-      }
 
       // Delete draft after successful submission
       if (draftId) {
@@ -694,14 +772,14 @@ export default function AddProductSmart() {
       localStorage.removeItem('product_draft');
 
       // Success animation with celebration
-      toast.success('🎉 Product created successfully! Pending admin review.', {
+      toast.success(isEditing ? '✅ Product updated successfully!' : '🎉 Product created successfully!', {
         duration: 4000,
-        description: 'Your product will be reviewed and published within 24-48 hours.'
+        description: isEditing ? 'Your product has been updated.' : 'Your product is now live in the marketplace!'
       });
       
       // Show success animation before redirect
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      navigate(`/product?id=${newProduct.id}&from=seller_create`);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      navigate('/dashboard/products');
     } catch (error) {
       console.error('Submit error:', error);
       toast.error('Failed to create product. Please try again.');
@@ -782,7 +860,7 @@ export default function AddProductSmart() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">
-                Add New Product
+                {isEditing ? 'Edit Product' : 'Add New Product'}
               </h1>
               <p className="text-afrikoni-deep">
                 Step {currentStep} of {STEPS.length} — {STEPS[currentStep - 1]?.name}
@@ -1764,7 +1842,7 @@ export default function AddProductSmart() {
                     ) : (
                       <>
                         <CheckCircle className="w-4 h-4" />
-                        Publish Product
+                        {isEditing ? 'Update Product' : 'Publish Product'}
                       </>
                     )}
                   </Button>
