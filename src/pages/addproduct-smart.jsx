@@ -101,12 +101,19 @@ export default function AddProductSmart() {
   
   // Load product data for editing
   const loadProductForEdit = async () => {
-    if (!productId || !user?.id) return;
+    if (!productId || !user?.id) {
+      console.log('loadProductForEdit: Missing productId or user', { productId, userId: user?.id });
+      return;
+    }
     
     try {
       setIsLoading(true);
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
       const companyId = await getOrCreateCompany(supabase, user);
+      
+      if (!companyId) {
+        throw new Error('Company not found');
+      }
       
       const { data: product, error } = await supabase
         .from('products')
@@ -119,7 +126,14 @@ export default function AddProductSmart() {
         .eq('company_id', companyId)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading product:', error);
+        throw error;
+      }
+      
+      if (!product) {
+        throw new Error('Product not found or you do not have permission to edit it');
+      }
       
       // Load images
       const productImages = (product.product_images || []).map(img => ({
@@ -161,8 +175,17 @@ export default function AddProductSmart() {
       
       toast.success('Product loaded for editing');
     } catch (error) {
-      toast.error('Failed to load product for editing');
-      navigate('/dashboard/products');
+      console.error('Failed to load product for editing:', error);
+      const errorMessage = error?.message || 'Failed to load product for editing';
+      toast.error(errorMessage, {
+        description: error?.code === 'PGRST116' 
+          ? 'Product not found or you do not have permission to edit it'
+          : 'Please try again or contact support if the problem persists'
+      });
+      // Don't navigate immediately - let user see the error
+      setTimeout(() => {
+        navigate('/dashboard/products');
+      }, 3000);
     } finally {
       setIsLoading(false);
     }
