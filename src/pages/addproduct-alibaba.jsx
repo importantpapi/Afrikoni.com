@@ -508,42 +508,70 @@ Contact us for more details, custom specifications, or to request samples.`;
       }
 
       // Save images to product_images table
-      console.log('Saving product images:', {
+      console.log('💾 Saving product images:', {
         imageCount: formData.images.length,
         productId: savedProductId,
-        images: formData.images
+        images: formData.images,
+        imagesStructure: formData.images.map((img, idx) => ({
+          index: idx,
+          type: typeof img,
+          isString: typeof img === 'string',
+          isObject: typeof img === 'object',
+          keys: typeof img === 'object' ? Object.keys(img) : [],
+          hasUrl: typeof img === 'object' ? 'url' in img : false,
+          url: typeof img === 'string' ? img : img?.url,
+          fullObject: img
+        }))
       });
       
       if (formData.images.length > 0 && savedProductId) {
         const imageRecords = formData.images
           .map((img, index) => {
-            const imageUrl = typeof img === 'string' ? img : (img?.url || null);
+            // Extract URL - handle both string and object formats
+            let imageUrl = null;
             
-            console.log('Processing image:', { index, img, imageUrl, type: typeof img });
+            if (typeof img === 'string') {
+              imageUrl = img;
+            } else if (typeof img === 'object' && img !== null) {
+              // Try multiple possible URL properties
+              imageUrl = img.url || img.publicUrl || img.imageUrl || img.src || null;
+            }
+            
+            console.log(`🖼️ Processing image ${index + 1}:`, { 
+              index, 
+              img, 
+              imageUrl, 
+              type: typeof img,
+              imgKeys: typeof img === 'object' ? Object.keys(img) : [],
+              hasUrl: !!imageUrl
+            });
             
             // Only include valid URLs
             if (!imageUrl) {
-              console.warn('Skipping image with no URL:', img);
+              console.warn(`⚠️ Skipping image ${index + 1} with no URL:`, img);
               return null;
             }
             
-            // Validate URL format
+            // Validate URL format - Supabase storage URLs start with https://
             if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/') && !imageUrl.startsWith('data:')) {
-              console.warn('Skipping invalid image URL format:', imageUrl);
+              console.warn(`⚠️ Skipping invalid image URL format for image ${index + 1}:`, imageUrl);
               return null;
             }
             
-            return {
+            const record = {
               product_id: savedProductId,
               url: imageUrl,
               alt_text: formData.title || 'Product image',
               is_primary: (typeof img === 'object' && img.is_primary === true) || index === 0,
               sort_order: (typeof img === 'object' && img.sort_order !== undefined) ? img.sort_order : index
             };
+            
+            console.log(`✅ Created image record ${index + 1}:`, record);
+            return record;
           })
           .filter(Boolean); // Remove null entries
 
-        console.log('Image records to insert:', imageRecords);
+        console.log('📋 Image records to insert:', imageRecords.length, imageRecords);
 
         if (imageRecords.length > 0) {
           const { data: insertedImages, error: imagesError } = await supabase
@@ -552,28 +580,31 @@ Contact us for more details, custom specifications, or to request samples.`;
             .select();
 
           if (imagesError) {
-            console.error('Images insert error:', imagesError);
+            console.error('❌ Images insert error:', imagesError);
             toast.error('Failed to save product images: ' + (imagesError.message || 'Unknown error'));
           } else if (insertedImages && insertedImages.length > 0) {
-            console.log('Successfully saved images:', insertedImages);
+            console.log('✅ Successfully saved images:', insertedImages.length, insertedImages);
             toast.success(`Product saved with ${insertedImages.length} image(s)`);
           } else {
-            console.warn('No images were inserted despite no error');
+            console.warn('⚠️ No images were inserted despite no error');
             toast.warning('Product saved but images may not have been saved. Please check.');
           }
         } else {
-          console.warn('No valid image URLs to save after filtering');
+          console.warn('⚠️ No valid image URLs to save after filtering');
           toast.warning('Product saved but no valid images were found to upload.');
         }
       } else {
-        console.warn('Cannot save images:', {
+        console.warn('⚠️ Cannot save images:', {
           hasImages: formData.images.length > 0,
           hasProductId: !!savedProductId,
-          imageCount: formData.images.length
+          imageCount: formData.images.length,
+          savedProductId: savedProductId
         });
         
         if (formData.images.length > 0 && !savedProductId) {
           toast.error('Product ID missing - cannot save images');
+        } else if (formData.images.length === 0) {
+          console.log('ℹ️ No images to save (this is OK if user didn\'t upload any)');
         }
       }
 
