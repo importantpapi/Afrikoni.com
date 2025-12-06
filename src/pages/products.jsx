@@ -346,7 +346,7 @@ export default function Products() {
                                 width={400}
                                 height={300}
                                 quality={85}
-                                placeholder="/placeholder.png"
+                                placeholder="/product-placeholder.svg"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">

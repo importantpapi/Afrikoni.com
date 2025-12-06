@@ -251,12 +251,20 @@ export default function Marketplace() {
         country: selectedFilters.country || null
       });
       
-      // Add companies to select - use explicit relationship since products has multiple FKs to companies
+      // Add companies and product_images to select
+      // NOTE: product_images is the single source of truth for product images
+      // products.images column is deprecated and should not be used
       query = query.select(`
           *,
           companies!company_id(*),
           categories(*),
-          product_images(*)
+          product_images(
+            id,
+            url,
+            alt_text,
+            is_primary,
+            sort_order
+          )
       `);
       
       // Apply sorting
@@ -297,93 +305,24 @@ export default function Marketplace() {
       
       if (error) throw error;
       
-      // Transform products and normalize image URLs
-      const productsWithImages = await Promise.all(
-        (Array.isArray(data) ? data : []).map(async (product) => {
-          // Get primary image using helper function
-          let primaryImage = getProductPrimaryImage(product);
-          
-          // Fetch from storage if no image found (Alibaba/Facebook approach)
-          if (!primaryImage && product.company_id) {
-            try {
-              // Get company owner email
-              const { data: company } = await supabase
-                .from('companies')
-                .select('owner_email')
-                .eq('id', product.company_id)
-                .single();
-              
-              if (company?.owner_email) {
-                // Get user ID
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('id')
-                  .eq('email', company.owner_email)
-                  .single();
-                
-                if (profile?.id) {
-                  // List all images in storage for this user
-                  const { data: storageFiles } = await supabase.storage
-                    .from('product-images')
-                    .list(`products/${profile.id}`, {
-                      limit: 50,
-                      sortBy: { column: 'created_at', order: 'desc' }
-                    });
-                  
-                  if (storageFiles && storageFiles.length > 0) {
-                    // Get first non-thumbnail image
-                    const mainImage = storageFiles.find(file => 
-                      !file.name.includes('-thumb') && 
-                      (file.name.endsWith('.jpg') || file.name.endsWith('.jpeg') || file.name.endsWith('.png') || file.name.endsWith('.webp'))
-                    );
-                    
-                    if (mainImage) {
-                      // Get public URL from Supabase Storage
-                      const { data: { publicUrl } } = supabase.storage
-                        .from('product-images')
-                        .getPublicUrl(`products/${profile.id}/${mainImage.name}`);
-                      
-                      primaryImage = normalizeImageUrl(publicUrl);
-                      
-                      // Preload image (Alibaba/Facebook style)
-                      if (primaryImage) {
-                        const img = new Image();
-                        img.src = primaryImage;
-                      }
-                      
-                      // Backfill to database (non-blocking)
-                      supabase
-                        .from('product_images')
-                        .insert({
-                          product_id: product.id,
-                          url: publicUrl,
-                          alt_text: product.title || 'Product image',
-                          is_primary: true,
-                          sort_order: 0
-                        })
-                        .catch(() => {}); // Silently fail
-                    }
-                  }
-                }
-              }
-            } catch (error) {
-              // Silently fail - continue with other products
-            }
-          }
-          
-          // Get all images
-          const allImages = getProductAllImages(product);
-          if (primaryImage && !allImages.includes(primaryImage)) {
-            allImages.unshift(primaryImage);
-          }
-          
-          return {
-            ...product,
-            primaryImage: primaryImage || null,
-            allImages: allImages
-          };
-        })
-      );
+      // Transform products and get images from product_images table
+      // NOTE: product_images is the single source of truth. products.images is deprecated.
+      const productsWithImages = Array.isArray(data) ? data.map(product => {
+        // Get primary image from product_images (preferred) or legacy products.images
+        const primaryImage = getPrimaryImageFromProduct(product);
+        const allImages = getAllImagesFromProduct(product);
+        
+        // Ensure primary image is in allImages
+        if (primaryImage && !allImages.includes(primaryImage)) {
+          allImages.unshift(primaryImage);
+        }
+        
+        return {
+          ...product,
+          primaryImage: primaryImage || null,
+          allImages: allImages
+        };
+      }) : [];
       
       // Apply client-side filters (search, price range, MOQ, certifications, lead time, chip filters)
       const filtered = applyClientSideFilters(productsWithImages);
@@ -514,7 +453,7 @@ if (!Array.isArray(productsList)) return [];
                   height={300}
                   priority={false}
                   quality={85}
-                  placeholder="/placeholder.png"
+                  placeholder="/product-placeholder.svg"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-cream flex items-center justify-center">

@@ -321,7 +321,7 @@ export default function BusinessProfile() {
                                 width={400}
                                 height={400}
                                 quality={85}
-                                placeholder="/placeholder.png"
+                                placeholder="/product-placeholder.svg"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">

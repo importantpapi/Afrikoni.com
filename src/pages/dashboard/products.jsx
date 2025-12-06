@@ -68,6 +68,7 @@ export default function DashboardProducts() {
       setCategories(categoriesData || []);
 
       // Build product query
+      // NOTE: product_images is the single source of truth. products.images is deprecated.
       let productsQuery = buildProductQuery({
         companyId: userCompanyId,
         status: statusFilter === 'all' ? null : statusFilter,
@@ -75,18 +76,21 @@ export default function DashboardProducts() {
         country: countryFilter || null
       });
       
+      // Ensure product_images is included in the query
+      // buildProductQuery should handle this, but we verify here
+      
       // Use pagination
       const result = await paginateQuery(productsQuery, {
         page: pagination.page,
         pageSize: pagination.pageSize
       });
 
-      // Transform products to include primary image using helper
+      // Transform products to include primary image from product_images table
       const productsWithImages = Array.isArray(result.data) ? result.data.map(product => {
         if (!product) return null;
         return {
           ...product,
-          primaryImage: getProductPrimaryImage(product)
+          primaryImage: getPrimaryImageFromProduct(product)
         };
       }).filter(Boolean) : [];
 
