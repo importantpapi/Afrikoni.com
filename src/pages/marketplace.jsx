@@ -301,6 +301,19 @@ export default function Marketplace() {
         // Try multiple sources for product images
         let primaryImage = null;
         
+        // Debug: Log product structure in development
+        if (import.meta.env.DEV && product.id) {
+          console.log('Product image data:', {
+            id: product.id,
+            title: product.title,
+            has_product_images: !!product.product_images,
+            product_images_type: Array.isArray(product.product_images) ? 'array' : typeof product.product_images,
+            product_images_length: Array.isArray(product.product_images) ? product.product_images.length : 'N/A',
+            has_images: !!product.images,
+            images_type: Array.isArray(product.images) ? 'array' : typeof product.images
+          });
+        }
+        
         // 1. Check product_images table (preferred) - handle both array and object formats
         if (product.product_images) {
           const images = Array.isArray(product.product_images) ? product.product_images : [product.product_images];
@@ -310,20 +323,39 @@ export default function Marketplace() {
             
             // Ensure URL is valid (starts with http or /)
             if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
+              if (import.meta.env.DEV) {
+                console.warn('Invalid image URL format:', primaryImage);
+              }
               primaryImage = null; // Invalid URL format
             }
           }
         }
         
-        // 2. Fallback to legacy images array
+        // 2. Fallback to legacy images array (JSONB column)
         if (!primaryImage && product.images) {
-          const images = Array.isArray(product.images) ? product.images : [product.images];
+          let images = [];
+          
+          // Handle JSONB array
+          if (Array.isArray(product.images)) {
+            images = product.images;
+          } else if (typeof product.images === 'string') {
+            try {
+              images = JSON.parse(product.images);
+            } catch (e) {
+              // Not valid JSON, treat as single string
+              images = [product.images];
+            }
+          }
+          
           if (images.length > 0) {
             const firstImg = images[0];
             primaryImage = typeof firstImg === 'string' ? firstImg : firstImg?.url || null;
             
             // Ensure URL is valid
             if (primaryImage && !primaryImage.startsWith('http') && !primaryImage.startsWith('/')) {
+              if (import.meta.env.DEV) {
+                console.warn('Invalid image URL format:', primaryImage);
+              }
               primaryImage = null;
             }
           }
