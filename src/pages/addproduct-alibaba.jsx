@@ -1326,8 +1326,9 @@ Contact us for more details, custom specifications, or to request samples.`;
                     </div>
                   </div>
                 )}
-              </motion.div>
-            </AnimatePresence>
+                </motion.div>
+              </AnimatePresence>
+            )}
 
             {/* Navigation */}
             <div className="flex justify-between mt-8 pt-6 border-t">
