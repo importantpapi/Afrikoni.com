@@ -367,14 +367,14 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
     }
 
     // Find sellers who have products in the same category
-    const { data: sellersWithCategory } = await supabase
+    // First, get all products in this category
+    const { data: productsInCategory } = await supabase
       .from('products')
-      .select('company_id, companies!company_id(id, owner_email, role)')
+      .select('company_id')
       .eq('category_id', rfqCategoryId)
-      .eq('status', 'active')
-      .in('companies.role', ['seller', 'hybrid']);
+      .eq('status', 'active');
 
-    if (!sellersWithCategory || sellersWithCategory.length === 0) {
+    if (!productsInCategory || productsInCategory.length === 0) {
       // Fallback: notify all sellers if no category match found
       const { data: allSellers } = await supabase
         .from('companies')
@@ -397,22 +397,26 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
       return;
     }
 
-    // Get unique seller companies
-    const uniqueSellers = new Map();
-    sellersWithCategory.forEach(product => {
-      if (product.companies && product.companies.id) {
-        const company = product.companies;
-        if (!uniqueSellers.has(company.id)) {
-          uniqueSellers.set(company.id, {
-            id: company.id,
-            owner_email: company.owner_email
-          });
-        }
-      }
-    });
+    // Get unique company IDs
+    const uniqueCompanyIds = [...new Set(productsInCategory.map(p => p.company_id).filter(Boolean))];
+    
+    if (uniqueCompanyIds.length === 0) {
+      return;
+    }
+
+    // Get company details for these sellers
+    const { data: sellers } = await supabase
+      .from('companies')
+      .select('id, owner_email, role')
+      .in('id', uniqueCompanyIds)
+      .in('role', ['seller', 'hybrid']);
+
+    if (!sellers || sellers.length === 0) {
+      return;
+    }
 
     // Notify only relevant sellers
-    for (const seller of uniqueSellers.values()) {
+    for (const seller of sellers) {
       await createNotification({
         company_id: seller.id,
         user_email: seller.owner_email,
