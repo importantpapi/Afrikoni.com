@@ -9,6 +9,17 @@ html, body {
   position: relative;
 }
 
+/* Mobile navbar fixes */
+@media (max-width: 768px) {
+  nav {
+    overflow: visible !important;
+  }
+  
+  nav > div {
+    overflow: visible !important;
+  }
+}
+
 /* Safety: prevent any child from exceeding viewport width */
 * {
   max-width: 100%;

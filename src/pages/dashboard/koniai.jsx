@@ -28,8 +28,10 @@ import KoniAILogo from '@/components/koni/KoniAILogo';
 import KoniAIBadge from '@/components/koni/KoniAIBadge';
 import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
 import KoniAIHero from '@/components/koni/KoniAIHero';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function KoniAIHub() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
@@ -336,22 +338,22 @@ export default function KoniAIHub() {
                 </div>
 
                 <div>
-                  <Label htmlFor="product-language">Language</Label>
+                  <Label htmlFor="product-language">{t('common.language')}</Label>
                   <Select value={productLanguage} onValueChange={setProductLanguage}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="English">English</SelectItem>
-                      <SelectItem value="French">French</SelectItem>
-                      <SelectItem value="Arabic">Arabic</SelectItem>
-                      <SelectItem value="Portuguese">Portuguese</SelectItem>
+                      <SelectItem value="French">Français</SelectItem>
+                      <SelectItem value="Arabic">العربية</SelectItem>
+                      <SelectItem value="Portuguese">Português</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <KoniAIActionButton
-                  label="Generate Listing with KoniAI"
+                  label={t('koniai.generateListing') || 'Generate Listing with KoniAI'}
                   onClick={handleGenerateProduct}
                   loading={productLoading}
                   disabled={!hasApiKey}

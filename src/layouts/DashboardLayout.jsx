@@ -556,7 +556,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             {t('dashboard.title') || 'Dashboard'}
                           </Link>
                           <Link 
-                            to="/dashboard/settings" 
+                            to={profile?.company_id ? `/business/${profile.company_id}` : '/dashboard/settings'} 
                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >

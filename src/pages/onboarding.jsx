@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { ShoppingCart, Package, Building2, Truck, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Logo } from '@/components/ui/Logo';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -100,8 +101,8 @@ export default function Onboarding() {
   };
 
   const handleNext = () => {
-    if (currentStep === 1 && !selectedRole) {
-      toast.error('Please select a role');
+      if (currentStep === 1 && !selectedRole) {
+      toast.error(t('onboarding.pleaseSelectRole'));
       return;
     }
     setCurrentStep(2);
@@ -212,29 +213,29 @@ export default function Onboarding() {
   const roles = [
     {
       id: 'buyer',
-      label: 'Buyer',
-      description: 'Source products and connect with verified suppliers',
+      label: t('onboarding.role.buyer'),
+      description: t('onboarding.role.buyerDesc'),
       icon: ShoppingCart,
       color: 'orange'
     },
     {
       id: 'seller',
-      label: 'Seller',
-      description: 'Sell products & services to buyers across Africa',
+      label: t('onboarding.role.seller'),
+      description: t('onboarding.role.sellerDesc'),
       icon: Package,
       color: 'blue'
     },
     {
       id: 'hybrid',
-      label: 'Hybrid',
-      description: 'Buy & Sell Products - Access both buying and selling tools',
+      label: t('onboarding.role.hybrid') || 'Hybrid',
+      description: t('onboarding.role.hybridDesc') || 'Buy & Sell Products - Access both buying and selling tools',
       icon: Building2,
       color: 'purple'
     },
     {
       id: 'logistics',
-      label: 'Logistics Partner',
-      description: 'Provide shipping and delivery services on the platform',
+      label: t('onboarding.role.logistics'),
+      description: t('onboarding.role.logisticsDesc'),
       icon: Truck,
       color: 'green'
     }
@@ -248,18 +249,18 @@ export default function Onboarding() {
           <div className="flex justify-center mb-6">
             <Logo type="full" size="lg" link={true} showTagline={true} />
           </div>
-          <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Complete Your Profile</h1>
-          <p className="text-afrikoni-deep">Let's set up your account to get started</p>
+          <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">{t('onboarding.completeProfile')}</h1>
+          <p className="text-afrikoni-deep">{t('onboarding.setupAccount')}</p>
         </div>
 
         {/* Progress */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-afrikoni-deep">
-              Step {currentStep} of 2
+              {t('onboarding.step')} {currentStep} {t('onboarding.of')} 2
             </span>
             <span className="text-sm text-afrikoni-deep/70">
-              {Math.round((currentStep / 2) * 100)}% Complete
+              {Math.round((currentStep / 2) * 100)}% {t('onboarding.complete')}
             </span>
           </div>
           <Progress value={(currentStep / 2) * 100} className="h-2" />
@@ -274,8 +275,8 @@ export default function Onboarding() {
           >
             <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader>
-                <CardTitle className="text-2xl text-afrikoni-chestnut">Choose Your Role</CardTitle>
-                <p className="text-afrikoni-deep/70 mt-2">Select how you'll use Afrikoni</p>
+                <CardTitle className="text-2xl text-afrikoni-chestnut">{t('onboarding.chooseRole')}</CardTitle>
+                <p className="text-afrikoni-deep/70 mt-2">{t('onboarding.selectHowUse')}</p>
               </CardHeader>
               <CardContent className="p-5 md:p-6">
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -323,7 +324,7 @@ export default function Onboarding() {
                     variant="primary"
                     className="min-w-[120px]"
                   >
-                    Continue
+                    {t('onboarding.continue')}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -341,20 +342,20 @@ export default function Onboarding() {
           >
             <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader>
-                <CardTitle className="text-2xl text-afrikoni-chestnut">Company Information</CardTitle>
-                <p className="text-afrikoni-deep/70 mt-2">Tell us about your business</p>
+                <CardTitle className="text-2xl text-afrikoni-chestnut">{t('onboarding.companyInfo')}</CardTitle>
+                <p className="text-afrikoni-deep/70 mt-2">{t('onboarding.tellAboutBusiness')}</p>
               </CardHeader>
               <CardContent className="p-5 md:p-6">
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
                     <Label htmlFor="company_name" className="mb-2 block font-semibold">
-                      Company Name <span className="text-red-500">*</span>
+                      {t('onboarding.companyName')} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="company_name"
                       value={formData.company_name}
                       onChange={(e) => handleChange('company_name', e.target.value)}
-                      placeholder="Your company name"
+                      placeholder={t('onboarding.companyName')}
                       required
                       className={errors.company_name ? 'border-red-500' : ''}
                     />
@@ -366,7 +367,7 @@ export default function Onboarding() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="country" className="mb-2 block font-semibold">
-                        Country <span className="text-red-500">*</span>
+                        {t('onboarding.country')} <span className="text-red-500">*</span>
                       </Label>
                       <select
                         id="country"
@@ -375,7 +376,7 @@ export default function Onboarding() {
                         className={`w-full px-3 py-2 border rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut focus:outline-none focus:ring-2 focus:ring-afrikoni-gold ${errors.country ? 'border-red-500' : 'border-afrikoni-gold/20'}`}
                         required
                       >
-                        <option value="">Select country</option>
+                        <option value="">{t('onboarding.selectCountry')}</option>
                         {AFRICAN_COUNTRIES.map((country) => (
                           <option key={country} value={country}>
                             {country}
@@ -388,18 +389,18 @@ export default function Onboarding() {
                     </div>
 
                     <div>
-                      <Label htmlFor="city" className="mb-2 block font-semibold">City</Label>
+                      <Label htmlFor="city" className="mb-2 block font-semibold">{t('onboarding.city')}</Label>
                       <Input
                         id="city"
                         value={formData.city}
                         onChange={(e) => handleChange('city', e.target.value)}
-                        placeholder="City"
+                        placeholder={t('onboarding.city')}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="phone" className="mb-2 block font-semibold">Phone Number</Label>
+                    <Label htmlFor="phone" className="mb-2 block font-semibold">{t('onboarding.phoneNumber')}</Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -414,7 +415,7 @@ export default function Onboarding() {
                   </div>
 
                   <div>
-                    <Label htmlFor="website" className="mb-2 block font-semibold">Website</Label>
+                    <Label htmlFor="website" className="mb-2 block font-semibold">{t('onboarding.website')}</Label>
                     <Input
                       id="website"
                       type="url"
@@ -429,21 +430,21 @@ export default function Onboarding() {
                   </div>
 
                   <div>
-                    <Label htmlFor="business_type" className="mb-2 block font-semibold">Business Type</Label>
+                    <Label htmlFor="business_type" className="mb-2 block font-semibold">{t('onboarding.businessType')}</Label>
                     <select
                       id="business_type"
                       value={formData.business_type}
                       onChange={(e) => handleChange('business_type', e.target.value)}
                       className="w-full px-3 py-2 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut focus:outline-none focus:ring-2 focus:ring-afrikoni-gold"
                     >
-                      <option value="">Select business type</option>
-                      <option value="manufacturer">Manufacturer</option>
-                      <option value="wholesaler">Wholesaler</option>
-                      <option value="retailer">Retailer</option>
-                      <option value="distributor">Distributor</option>
-                      <option value="trader">Trader</option>
-                      <option value="service_provider">Service Provider</option>
-                      <option value="other">Other</option>
+                      <option value="">{t('onboarding.selectBusinessType')}</option>
+                      <option value="manufacturer">{t('onboarding.businessType.manufacturer')}</option>
+                      <option value="wholesaler">{t('onboarding.businessType.wholesaler')}</option>
+                      <option value="retailer">{t('onboarding.businessType.retailer')}</option>
+                      <option value="distributor">{t('onboarding.businessType.distributor')}</option>
+                      <option value="trader">{t('onboarding.businessType.trader')}</option>
+                      <option value="service_provider">{t('onboarding.businessType.serviceProvider')}</option>
+                      <option value="other">{t('onboarding.businessType.other')}</option>
                     </select>
                   </div>
 
@@ -454,7 +455,7 @@ export default function Onboarding() {
                       variant="outline"
                       className="flex-1"
                     >
-                      Back
+                      {t('onboarding.previous')}
                     </Button>
                     <Button
                       type="submit"
@@ -465,11 +466,11 @@ export default function Onboarding() {
                       {isSubmitting ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Completing...
+                          {t('common.loading')}
                         </>
                       ) : (
                         <>
-                          Complete Setup
+                          {t('onboarding.finish')}
                           <CheckCircle className="w-4 h-4 ml-2" />
                         </>
                       )}

@@ -26,10 +26,10 @@ export default function NotFound() {
         >
           <h1 className="text-9xl font-bold text-afrikoni-gold mb-4">404</h1>
           <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
-            Page Not Found
+            {t('notFound.title')}
           </h2>
           <p className="text-lg text-afrikoni-deep mb-8 max-w-md mx-auto">
-            The page you're looking for doesn't exist or has been moved. Let's get you back on track.
+            {t('notFound.message')}
           </p>
         </motion.div>
 
@@ -37,13 +37,13 @@ export default function NotFound() {
           <Link to="/">
             <Button className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 py-3 rounded-full font-semibold shadow-lg flex items-center gap-2">
               <Home className="w-5 h-5" />
-              Go Home
+              {t('notFound.goHome')}
             </Button>
           </Link>
           <Link to="/marketplace">
             <Button variant="outline" className="border-afrikoni-gold/70 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-3 rounded-full font-semibold flex items-center gap-2">
               <Search className="w-5 h-5" />
-              Browse Marketplace
+              {t('notFound.browseMarketplace')}
             </Button>
           </Link>
           <Button
@@ -52,18 +52,18 @@ export default function NotFound() {
             className="text-afrikoni-deep hover:text-afrikoni-gold px-6 py-3 rounded-full font-semibold flex items-center gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
-            Go Back
+            {t('notFound.goBack')}
           </Button>
         </div>
 
         <div className="mt-12 pt-8 border-t border-afrikoni-gold/20">
-          <p className="text-sm text-afrikoni-deep/70 mb-4">Popular Pages:</p>
+          <p className="text-sm text-afrikoni-deep/70 mb-4">{t('notFound.popularPages')}</p>
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { to: '/marketplace', label: 'Marketplace' },
-              { to: '/become-supplier', label: 'Become a Supplier' },
-              { to: '/help', label: 'Help Center' },
-              { to: '/contact', label: 'Contact Us' },
+              { to: '/marketplace', label: t('nav.marketplace') },
+              { to: '/become-supplier', label: t('nav.becomeSupplier') },
+              { to: '/help', label: t('nav.help') },
+              { to: '/contact', label: t('common.contact') || 'Contact Us' },
             ].map((link, idx) => (
               <Link
                 key={idx}

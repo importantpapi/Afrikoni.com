@@ -225,27 +225,27 @@ export default function CreateRFQ() {
         <Card className="border-afrikoni-gold/30 bg-white/80 shadow-sm">
           <CardContent className="p-5 space-y-3">
             <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut uppercase tracking-wide">
-              Trade journey with Afrikoni Shield™
+              {t('rfq.tradeJourney')}
             </p>
             <div className="grid md:grid-cols-4 gap-4 text-sm text-afrikoni-deep">
               <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">1. Share your need</p>
-                <p>Explain the product, quantity and delivery city in simple language. You don’t need to be perfect.</p>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">{t('rfq.step1')}</p>
+                <p>{t('rfq.step1Desc')}</p>
               </div>
               <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">2. Receive quotes</p>
-                <p>Verified suppliers respond inside Afrikoni. You can compare prices and terms in one place.</p>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">{t('rfq.step2')}</p>
+                <p>{t('rfq.step2Desc')}</p>
               </div>
               <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">3. Confirm supplier</p>
-                <p>Chat, ask questions, then choose the supplier you trust based on price, lead time and verification.</p>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">{t('rfq.step3')}</p>
+                <p>{t('rfq.step3Desc')}</p>
               </div>
               <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">4. Pay securely</p>
+                <p className="font-semibold text-afrikoni-chestnut mb-1">{t('rfq.step4')}</p>
                 <p>
-                  You pay through Afrikoni Trade Shield™. We hold the funds in escrow until delivery is confirmed.
+                  {t('rfq.step4Desc')}
                   <span className="block mt-1 font-semibold text-red-700 text-xs">
-                    For your safety, do not send money outside Afrikoni.
+                    {t('rfq.safetyWarning')}
                   </span>
                 </p>
               </div>
@@ -255,18 +255,18 @@ export default function CreateRFQ() {
         <Card className="border-afrikoni-gold/20">
           <CardContent className="p-6 space-y-6">
             <div>
-              <Label htmlFor="title" className="text-sm sm:text-base">What are you looking for? *</Label>
+              <Label htmlFor="title" className="text-sm sm:text-base">{t('rfq.whatLookingFor')}</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="e.g. 1000 units of printed packaging boxes"
+                placeholder={t('rfq.whatLookingForPlaceholder')}
                 className="text-sm sm:text-base min-h-[44px] mt-1"
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Label htmlFor="description" className="text-sm sm:text-base">Detailed Requirements *</Label>
+                <Label htmlFor="description" className="text-sm sm:text-base">{t('rfq.detailedRequirements')}</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -276,14 +276,14 @@ export default function CreateRFQ() {
                   className="flex items-center gap-1 text-xs sm:text-sm border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10 min-h-[36px] sm:min-h-0"
                 >
                   <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-                  {isGenerating ? 'Generating…' : 'Afrikoni AI help'}
+                  {isGenerating ? t('rfq.generating') : t('rfq.aiHelp')}
                 </Button>
               </div>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Describe what you need in simple words. Afrikoni AI can turn it into a clear RFQ for suppliers."
+                placeholder={t('rfq.descriptionPlaceholder')}
                 rows={6}
                 className={`text-sm sm:text-base min-h-[120px] ${errors.description ? 'border-red-500' : ''}`}
               />
@@ -293,10 +293,10 @@ export default function CreateRFQ() {
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="category" className="text-sm sm:text-base">Category</Label>
+                <Label htmlFor="category" className="text-sm sm:text-base">{t('rfq.category')}</Label>
                 <Select value={formData.category_id} onValueChange={(v) => handleChange('category_id', v)}>
                   <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('rfq.selectCategory')} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map(cat => (
@@ -306,13 +306,13 @@ export default function CreateRFQ() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="quantity" className="text-sm sm:text-base">Quantity Needed *</Label>
+                <Label htmlFor="quantity" className="text-sm sm:text-base">{t('rfq.quantity')}</Label>
                 <Input
                   id="quantity"
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => handleChange('quantity', e.target.value)}
-                  placeholder="1000"
+                  placeholder={t('rfq.quantityPlaceholder')}
                   className={`text-sm sm:text-base min-h-[44px] sm:min-h-0 ${errors.quantity ? 'border-red-500' : ''}`}
                 />
                 {errors.quantity && (
@@ -320,30 +320,30 @@ export default function CreateRFQ() {
                 )}
               </div>
               <div>
-                <Label htmlFor="unit">Unit</Label>
+                <Label htmlFor="unit">{t('rfq.unit')}</Label>
                 <Select value={formData.unit} onValueChange={(v) => handleChange('unit', v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pieces">Pieces</SelectItem>
-                    <SelectItem value="kg">Kilograms</SelectItem>
-                    <SelectItem value="tons">Tons</SelectItem>
-                    <SelectItem value="liters">Liters</SelectItem>
-                    <SelectItem value="meters">Meters</SelectItem>
-                    <SelectItem value="boxes">Boxes</SelectItem>
+                    <SelectItem value="pieces">{t('rfq.unit.pieces')}</SelectItem>
+                    <SelectItem value="kg">{t('rfq.unit.kg')}</SelectItem>
+                    <SelectItem value="tons">{t('rfq.unit.tons')}</SelectItem>
+                    <SelectItem value="liters">{t('rfq.unit.liters')}</SelectItem>
+                    <SelectItem value="meters">{t('rfq.unit.meters')}</SelectItem>
+                    <SelectItem value="boxes">{t('rfq.unit.boxes')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="target_price">Target Price per Unit (USD)</Label>
+                <Label htmlFor="target_price">{t('rfq.targetPrice')}</Label>
                 <Input
                   id="target_price"
                   type="number"
                   step="0.01"
                   value={formData.target_price}
                   onChange={(e) => handleChange('target_price', e.target.value)}
-                  placeholder="Optional"
+                  placeholder={t('rfq.targetPricePlaceholder')}
                   className={errors.target_price ? 'border-red-500' : ''}
                 />
                 {errors.target_price && (
@@ -351,21 +351,21 @@ export default function CreateRFQ() {
                 )}
               </div>
               <div>
-                <Label htmlFor="delivery_location">Delivery Location *</Label>
+                <Label htmlFor="delivery_location">{t('rfq.deliveryLocation')}</Label>
                 <Input
                   id="delivery_location"
                   value={formData.delivery_location}
                   onChange={(e) => handleChange('delivery_location', e.target.value)}
-                  placeholder="City, Country"
+                  placeholder={t('rfq.deliveryLocationPlaceholder')}
                 />
               </div>
               <div>
-                <Label>Delivery Deadline</Label>
+                <Label>{t('rfq.deliveryDeadline')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.delivery_deadline ? format(formData.delivery_deadline, 'PPP') : 'Select date'}
+                      {formData.delivery_deadline ? format(formData.delivery_deadline, 'PPP') : t('rfq.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -394,16 +394,16 @@ export default function CreateRFQ() {
               </div>
             </div>
             <div>
-              <Label>Attachments</Label>
+              <Label>{t('rfq.attachments')}</Label>
               <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-6 text-center hover:border-afrikoni-gold transition">
                 <input type="file" onChange={handleFileUpload} className="hidden" id="file-upload" />
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <Upload className="w-10 h-10 text-afrikoni-deep/70 mx-auto mb-2" />
-                  <div className="text-sm text-afrikoni-deep">Upload specifications, drawings, or reference files</div>
+                  <div className="text-sm text-afrikoni-deep">{t('rfq.uploadSpecs')}</div>
                 </label>
               </div>
               {formData.attachments.length > 0 && (
-                <div className="mt-2 text-sm text-afrikoni-deep">{formData.attachments.length} file(s) uploaded</div>
+                <div className="mt-2 text-sm text-afrikoni-deep">{t('rfq.filesUploaded').replace('{count}', formData.attachments.length)}</div>
               )}
             </div>
             <div className="flex gap-3 pt-4">
@@ -412,14 +412,14 @@ export default function CreateRFQ() {
                 onClick={() => navigate(createPageUrl('BuyerDashboard'))}
                 className="flex-1 min-h-[44px] sm:min-h-0 text-sm sm:text-base"
               >
-                Cancel
+                {t('rfq.cancel')}
               </Button>
               <Button 
                 onClick={handleSubmit} 
                 disabled={isLoading} 
                 className="flex-1 bg-afrikoni-gold hover:bg-amber-700 min-h-[44px] sm:min-h-0 text-sm sm:text-base touch-manipulation"
               >
-                {isLoading ? 'Creating...' : 'Publish RFQ'}
+                {isLoading ? t('rfq.creating') : t('rfq.publish')}
               </Button>
             </div>
           </CardContent>

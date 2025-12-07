@@ -67,30 +67,68 @@ export default function DashboardProducts() {
         .order('name');
       setCategories(categoriesData || []);
 
-      // Build product query
+      // Build product query with explicit product_images select
       // NOTE: product_images is the single source of truth. products.images is deprecated.
-      let productsQuery = buildProductQuery({
-        companyId: userCompanyId,
-        status: statusFilter === 'all' ? null : statusFilter,
-        categoryId: categoryFilter || null,
-        country: countryFilter || null
-      });
+      // We need to pass the select string to paginateQuery to preserve product_images relationship
+      const selectString = `
+        *,
+        categories(*),
+        product_images(
+          id,
+          url,
+          alt_text,
+          is_primary,
+          sort_order
+        )
+      `;
       
-      // Ensure product_images is included in the query
-      // buildProductQuery should handle this, but we verify here
+      let productsQuery = supabase
+        .from('products')
+        .select(selectString);
       
-      // Use pagination
+      // Apply filters
+      if (userCompanyId) {
+        productsQuery = productsQuery.or(`supplier_id.eq.${userCompanyId},company_id.eq.${userCompanyId}`);
+      }
+      if (statusFilter !== 'all') {
+        productsQuery = productsQuery.eq('status', statusFilter);
+      }
+      if (categoryFilter) {
+        productsQuery = productsQuery.eq('category_id', categoryFilter);
+      }
+      if (countryFilter) {
+        productsQuery = productsQuery.eq('country_of_origin', countryFilter);
+      }
+      
+      // Use pagination with selectOverride to preserve product_images relationship
       const result = await paginateQuery(productsQuery, {
         page: pagination.page,
-        pageSize: pagination.pageSize
+        pageSize: pagination.pageSize,
+        selectOverride: selectString
       });
 
       // Transform products to include primary image from product_images table
       const productsWithImages = Array.isArray(result.data) ? result.data.map(product => {
         if (!product) return null;
+        
+        // Debug: Log product_images data (development only)
+        if (process.env.NODE_ENV === 'development') {
+          if (product.product_images) {
+            console.log(`📸 Dashboard: Product ${product.id} (${product.title}) has ${Array.isArray(product.product_images) ? product.product_images.length : 1} image(s):`, product.product_images);
+          } else {
+            console.warn(`⚠️ Dashboard: Product ${product.id} (${product.title}) has NO product_images`);
+          }
+        }
+        
+        const primaryImage = getPrimaryImageFromProduct(product);
+        
+        if (process.env.NODE_ENV === 'development' && !primaryImage && product.id) {
+          console.warn(`⚠️ Dashboard: No primary image found for product ${product.id} (${product.title})`);
+        }
+        
         return {
           ...product,
-          primaryImage: getPrimaryImageFromProduct(product)
+          primaryImage: primaryImage || null
         };
       }).filter(Boolean) : [];
 

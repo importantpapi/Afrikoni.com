@@ -89,7 +89,7 @@ export default function CompareProducts() {
   };
 
   const getProductImage = (product) => {
-    return getProductPrimaryImage(product);
+    return getPrimaryImageFromProduct(product);
   };
 
   const getPriceDisplay = (product) => {

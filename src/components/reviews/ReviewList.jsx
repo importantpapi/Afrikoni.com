@@ -1,50 +1,173 @@
-import React from 'react';
-import { Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
+import ReviewForm from './ReviewForm';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller, onUpdate }) {
-  if (reviews.length === 0) {
-    return <p className="text-afrikoni-deep/70">No reviews yet</p>;
-  }
+const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller, product, supplier, onUpdate }) {
+  const { t } = useLanguage();
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [user, setUser] = useState(null);
+  const [userCompanyId, setUserCompanyId] = useState(null);
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [existingReview, setExistingReview] = useState(null);
+
+  useEffect(() => {
+    loadUserAndCheckReview();
+  }, [product?.id, userCompanyId]);
+
+  const loadUserAndCheckReview = async () => {
+    try {
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user: userData, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      setUser(userData);
+      setUserCompanyId(companyId);
+
+      if (companyId && product?.id) {
+        // Check if user has already reviewed this product
+        const { data: existingReviews } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('product_id', product.id)
+          .eq('reviewer_company_id', companyId)
+          .maybeSingle();
+
+        if (existingReviews) {
+          setHasReviewed(true);
+          setExistingReview(existingReviews);
+        }
+      }
+    } catch (error) {
+      // Silently fail
+    }
+  };
+
+  const isBuyer = user && !isSeller;
 
   return (
-    <div className="space-y-4">
-      {reviews.map(review => {
-        const reviewerCompany = companies?.find(c => c.id === review.reviewer_company_id);
-        return (
-          <div key={review.id} className="border-b border-afrikoni-gold/20 pb-4 last:border-0">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="font-semibold text-afrikoni-chestnut">{reviewerCompany?.company_name || 'Anonymous'}</div>
-                <div className="flex items-center gap-1 mt-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`w-4 h-4 ${
-                        star <= review.rating ? 'text-amber-500 fill-amber-500' : 'text-afrikoni-deep/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-              {review.verified_purchase && (
-                <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
-                  <CheckCircle className="w-3 h-3 mr-1" /> Verified Purchase
-                </Badge>
-              )}
+    <div className="space-y-6">
+      {/* Review Form Section - Show for buyers who haven't reviewed */}
+      {isBuyer && !hasReviewed && !showReviewForm && (
+        <div className="p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-afrikoni-chestnut mb-1">
+                {t('reviews.shareExperience') || 'Share Your Experience'}
+              </h3>
+              <p className="text-sm text-afrikoni-deep/70">
+                {t('reviews.helpOthers') || 'Help other buyers by leaving a review'}
+              </p>
             </div>
-            {review.comment && <p className="text-sm text-afrikoni-deep mt-2">{review.comment}</p>}
-            {review.quality_rating && (
-              <div className="grid grid-cols-3 gap-3 mt-3 text-xs text-afrikoni-deep/70">
-                <div>Quality: {review.quality_rating}/5</div>
-                {review.communication_rating && <div>Communication: {review.communication_rating}/5</div>}
-                {review.delivery_rating && <div>Delivery: {review.delivery_rating}/5</div>}
-              </div>
-            )}
+            <Button
+              onClick={() => setShowReviewForm(true)}
+              className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {t('reviews.writeReview') || 'Write Review'}
+            </Button>
           </div>
-        );
-      })}
+        </div>
+      )}
+
+      {/* Show existing review if user has reviewed */}
+      {isBuyer && hasReviewed && existingReview && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <span className="font-semibold text-green-800">
+              {t('reviews.yourReview') || 'Your Review'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 mb-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={`w-4 h-4 ${
+                  star <= existingReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+          {existingReview.comment && (
+            <p className="text-sm text-green-700">{existingReview.comment}</p>
+          )}
+        </div>
+      )}
+
+      {/* Review Form */}
+      {showReviewForm && product && (
+        <ReviewForm
+          product={product}
+          company={supplier}
+          onSuccess={() => {
+            setShowReviewForm(false);
+            setHasReviewed(true);
+            if (onUpdate) onUpdate();
+          }}
+          onCancel={() => setShowReviewForm(false)}
+        />
+      )}
+
+      {/* Reviews List */}
+      {reviews.length === 0 ? (
+        <div className="text-center py-8">
+          <Star className="w-12 h-12 text-afrikoni-deep/30 mx-auto mb-3" />
+          <p className="text-afrikoni-deep/70">
+            {t('reviews.noReviews') || 'No reviews yet. Be the first to review this product!'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map(review => {
+            const reviewerCompany = companies?.find(c => c.id === review.reviewer_company_id);
+            const isUserReview = review.reviewer_company_id === userCompanyId;
+            return (
+              <div key={review.id} className={`border-b border-afrikoni-gold/20 pb-4 last:border-0 ${isUserReview ? 'bg-afrikoni-gold/5 p-4 rounded-lg' : ''}`}>
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <div className="font-semibold text-afrikoni-chestnut">
+                      {reviewerCompany?.company_name || 'Anonymous'}
+                      {isUserReview && (
+                        <span className="ml-2 text-xs text-afrikoni-gold">(You)</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${
+                            star <= review.rating ? 'text-amber-500 fill-amber-500' : 'text-afrikoni-deep/50'
+                          }`}
+                        />
+                      ))}
+                      <span className="ml-2 text-xs text-afrikoni-deep/70">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  {review.verified_purchase && (
+                    <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                      <CheckCircle className="w-3 h-3 mr-1" /> {t('reviews.verifiedPurchase') || 'Verified Purchase'}
+                    </Badge>
+                  )}
+                </div>
+                {review.comment && <p className="text-sm text-afrikoni-deep mt-2">{review.comment}</p>}
+                {review.quality_rating && (
+                  <div className="grid grid-cols-3 gap-3 mt-3 text-xs text-afrikoni-deep/70">
+                    <div>{t('reviews.quality') || 'Quality'}: {review.quality_rating}/5</div>
+                    {review.communication_rating && <div>{t('reviews.communication') || 'Communication'}: {review.communication_rating}/5</div>}
+                    {review.delivery_rating && <div>{t('reviews.delivery') || 'Delivery'}: {review.delivery_rating}/5</div>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 });

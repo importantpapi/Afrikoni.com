@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -26,6 +27,7 @@ const AFRICAN_COUNTRIES = [
 ];
 
 export default function DashboardSettings() {
+  const { t } = useLanguage();
   const [currentRole, setCurrentRole] = useState('buyer');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -325,10 +327,10 @@ export default function DashboardSettings() {
         {/* v2.5: Premium Tabs */}
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium grid grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Profile</TabsTrigger>
-            <TabsTrigger value="company" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Company</TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Notifications</TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Security</TabsTrigger>
+            <TabsTrigger value="profile" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.profile')}</TabsTrigger>
+            <TabsTrigger value="company" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.company') || 'Company'}</TabsTrigger>
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.notifications')}</TabsTrigger>
+            <TabsTrigger value="security" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.security')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
@@ -339,13 +341,13 @@ export default function DashboardSettings() {
                   <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
                     <User className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  Personal Information
+                  {t('settings.personalInformation')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
                 {/* Avatar Upload */}
                 <div>
-                  <Label>Profile Picture</Label>
+                  <Label>{t('settings.profilePicture')}</Label>
                   <div className="mt-2 flex items-center gap-4">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
@@ -366,7 +368,7 @@ export default function DashboardSettings() {
                       <label htmlFor="avatar-upload">
                         <Button type="button" variant="outline" size="sm" disabled={uploadingAvatar} asChild>
                           <span>
-                            {uploadingAvatar ? 'Uploading...' : avatarUrl ? 'Change Avatar' : 'Upload Avatar'}
+                            {uploadingAvatar ? t('settings.uploading') : avatarUrl ? t('settings.changeAvatar') : t('settings.uploadAvatar')}
                           </span>
                         </Button>
                       </label>
@@ -386,16 +388,16 @@ export default function DashboardSettings() {
                 </div>
 
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name">{t('settings.fullName') || 'Full Name'}</Label>
                   <Input
                     id="name"
                     value={formData.name || formData.full_name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="Your full name"
+                    placeholder={t('settings.fullNamePlaceholder') || 'Your full name'}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('auth.email')}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -403,11 +405,11 @@ export default function DashboardSettings() {
                     disabled
                     className="bg-afrikoni-cream"
                   />
-                  <p className="text-xs text-afrikoni-text-dark/70 mt-1">Email cannot be changed</p>
+                  <p className="text-xs text-afrikoni-text-dark/70 mt-1">{t('settings.emailCannotChange') || 'Email cannot be changed'}</p>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="language">Language</Label>
+                    <Label htmlFor="language">{t('common.language')}</Label>
                     <Select value={preferences.language} onValueChange={(v) => setPreferences({ ...preferences, language: v })}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -422,7 +424,7 @@ export default function DashboardSettings() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="currency">Currency</Label>
+                    <Label htmlFor="currency">{t('common.currency')}</Label>
                     <Select value={preferences.currency} onValueChange={(v) => setPreferences({ ...preferences, currency: v })}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -463,12 +465,12 @@ export default function DashboardSettings() {
                   <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
                     <Building2 className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  Company Information
+                  {t('settings.companyInformation')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
                 <div>
-                  <Label htmlFor="company_name">Company Name</Label>
+                  <Label htmlFor="company_name">{t('settings.companyName')}</Label>
                   <Input
                     id="company_name"
                     value={formData.company_name}
@@ -477,25 +479,25 @@ export default function DashboardSettings() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="business_type">Business Type</Label>
+                    <Label htmlFor="business_type">{t('settings.businessType')}</Label>
                     <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select business type" />
+                        <SelectValue placeholder={t('settings.selectBusinessType')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="manufacturer">Manufacturer</SelectItem>
-                        <SelectItem value="wholesaler">Wholesaler</SelectItem>
-                        <SelectItem value="distributor">Distributor</SelectItem>
-                        <SelectItem value="trading_company">Trading Company</SelectItem>
-                        <SelectItem value="logistics_provider">Logistics Provider</SelectItem>
+                        <SelectItem value="manufacturer">{t('onboarding.businessType.manufacturer')}</SelectItem>
+                        <SelectItem value="wholesaler">{t('onboarding.businessType.wholesaler')}</SelectItem>
+                        <SelectItem value="distributor">{t('onboarding.businessType.distributor')}</SelectItem>
+                        <SelectItem value="trading_company">{t('onboarding.businessType.trader')}</SelectItem>
+                        <SelectItem value="logistics_provider">{t('onboarding.businessType.serviceProvider')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="country">{t('onboarding.country')}</Label>
                     <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select country" />
+                        <SelectValue placeholder={t('onboarding.selectCountry')} />
                       </SelectTrigger>
                       <SelectContent>
                         {AFRICAN_COUNTRIES.map(country => (
@@ -506,7 +508,7 @@ export default function DashboardSettings() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">{t('onboarding.city')}</Label>
                   <Input
                     id="city"
                     value={formData.city}
@@ -515,7 +517,7 @@ export default function DashboardSettings() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="business_email">Business Email</Label>
+                    <Label htmlFor="business_email">{t('settings.businessEmail')}</Label>
                     <Input
                       id="business_email"
                       type="email"
@@ -524,7 +526,7 @@ export default function DashboardSettings() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="website">Website</Label>
+                    <Label htmlFor="website">{t('onboarding.website')}</Label>
                     <Input
                       id="website"
                       value={formData.website}

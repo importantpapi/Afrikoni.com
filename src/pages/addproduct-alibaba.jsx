@@ -35,14 +35,9 @@ import SmartImageUploader from '@/components/products/SmartImageUploader';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-const STEPS = [
-  { id: 1, name: 'Basic Information', icon: Package },
-  { id: 2, name: 'Product Images', icon: ImageIcon },
-  { id: 3, name: 'Pricing & MOQ', icon: DollarSign },
-  { id: 4, name: 'Location & Shipping', icon: Truck },
-  { id: 5, name: 'Review & Publish', icon: CheckCircle }
-];
+// STEPS will be defined inside component to use translations
 
 // Shipping cost calculator (real-world rates)
 const calculateShipping = (originCountry, destinationCountry, weight, dimensions) => {
@@ -80,9 +75,19 @@ const calculateShipping = (originCountry, destinationCountry, weight, dimensions
 };
 
 export default function AddProductAlibaba() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { id: productId } = useParams();
   const isEditing = !!productId;
+
+  // Define STEPS with translations
+  const STEPS = [
+    { id: 1, name: t('addProductAlibaba.stepBasicInfo') || 'Basic Information', icon: Package },
+    { id: 2, name: t('addProductAlibaba.stepImages') || 'Product Images', icon: ImageIcon },
+    { id: 3, name: t('addProductAlibaba.stepPricing') || 'Pricing & MOQ', icon: DollarSign },
+    { id: 4, name: t('addProductAlibaba.stepLocation') || 'Location & Shipping', icon: Globe },
+    { id: 5, name: t('addProductAlibaba.stepReview') || 'Review & Publish', icon: Sparkles },
+  ];
 
   const [currentStep, setCurrentStep] = useState(1);
   const [user, setUser] = useState(null);
@@ -323,7 +328,13 @@ Contact us for more details, custom specifications, or to request samples.`;
       }
 
       // Add unique seed to ensure different descriptions each time
-      const uniqueSeed = Date.now() + Math.random();
+      // Use multiple sources of randomness for maximum uniqueness
+      const timestamp = Date.now();
+      const random1 = Math.random() * 1000000;
+      const random2 = Math.random() * 1000000;
+      const titleHash = formData.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const uniqueSeed = timestamp + random1 + random2 + titleHash;
+      
       const enhancedDraft = {
         ...productDraft,
         uniqueSeed: uniqueSeed.toString(),
@@ -333,43 +344,74 @@ Contact us for more details, custom specifications, or to request samples.`;
           productTitle: productDraft.title,
           category: productDraft.category,
           country: productDraft.country,
-          city: productDraft.city || '',
+          city: formData.city || productDraft.city || '',
           sellerLocation: company?.country || '',
-          uniqueId: uniqueSeed
-        }
+          companyName: company?.company_name || '',
+          uniqueId: uniqueSeed,
+          randomSeed1: random1,
+          randomSeed2: random2,
+          titleHash: titleHash
+        },
+        // Add city if available
+        city: formData.city || productDraft.city || ''
       };
 
       // Try AI generation with enhanced draft
+      console.log('🤖 Generating AI description with unique seed:', uniqueSeed);
       const result = await generateProductListing(enhancedDraft);
 
       if (result.success && result.data) {
         const generatedDescription = result.data.description || result.data?.description || '';
         
         if (generatedDescription && generatedDescription.trim().length > 50) {
+          console.log('✅ AI description generated successfully, length:', generatedDescription.length);
           setFormData(prev => ({
             ...prev,
             description: generatedDescription
           }));
-          toast.success('✨ AI description generated successfully!', {
-            description: 'Review and edit as needed.'
+          toast.success(t('addProductAlibaba.aiDescriptionSuccess') || '✨ AI description generated successfully!', {
+            description: 'Review and edit as needed. Each description is unique.'
           });
         } else {
-          // Fallback if AI returns empty description
+          // Fallback if AI returns empty description - create unique fallback
           const categoryName = productDraft.category || 'product';
           const countryName = productDraft.country || 'Africa';
-          const fallbackDescription = `${productDraft.title} is a premium ${categoryName.toLowerCase()} from ${countryName}. High quality, competitive pricing, flexible MOQ. Ideal for B2B buyers.`;
+          const cityName = formData.city || '';
+          const locationText = cityName ? `${cityName}, ${countryName}` : countryName;
+          
+          // Create a unique fallback based on product title hash
+          const titleWords = formData.title.toLowerCase().split(' ');
+          const uniquePhrase = titleWords.length > 0 ? titleWords[0] : 'premium';
+          const fallbackDescription = `${formData.title} represents exceptional ${categoryName.toLowerCase()} sourced directly from ${locationText}. 
+
+This ${uniquePhrase} product offers outstanding quality and reliability for B2B buyers seeking authentic African goods. We provide competitive pricing structures, flexible minimum order quantities, and professional export-grade packaging.
+
+Key advantages include consistent quality standards, reliable supply chain management, and direct sourcing from ${locationText}. Ideal for importers, distributors, and businesses looking to expand their product range with premium African products.
+
+Contact us to discuss your specific requirements, request samples, or negotiate custom specifications.`;
           
           setFormData(prev => ({
             ...prev,
             description: fallbackDescription
           }));
-          toast.warning('AI response was empty - using template instead');
+          toast.warning('AI response was empty - using unique template instead');
         }
       } else {
-        // Fallback on AI failure
+        // Fallback on AI failure - create unique fallback
         const categoryName = productDraft.category || 'product';
         const countryName = productDraft.country || 'Africa';
-        const fallbackDescription = `${productDraft.title} is a high-quality ${categoryName.toLowerCase()} from ${countryName}. Premium quality, competitive pricing, flexible MOQ. Professional packaging and reliable delivery.`;
+        const cityName = formData.city || '';
+        const locationText = cityName ? `${cityName}, ${countryName}` : countryName;
+        const titleWords = formData.title.toLowerCase().split(' ');
+        const uniquePhrase = titleWords.length > 0 ? titleWords[0] : 'high-quality';
+        
+        const fallbackDescription = `${formData.title} is a ${uniquePhrase} ${categoryName.toLowerCase()} originating from ${locationText}. 
+
+This product features premium quality standards, making it an excellent choice for B2B buyers and international traders. We offer competitive pricing, flexible minimum order quantities, and professional packaging suitable for export markets.
+
+Our supply chain ensures consistent quality and reliable delivery times. Perfect for businesses looking to source authentic products directly from ${locationText}.
+
+For inquiries, custom specifications, or to request product samples, please contact us.`;
         
         setFormData(prev => ({
           ...prev,
@@ -378,26 +420,36 @@ Contact us for more details, custom specifications, or to request samples.`;
         
         const errorMsg = result?.error?.message || 'Unknown error';
         console.error('AI generation failed:', result?.error || errorMsg);
-        toast.warning('AI unavailable - template description created', {
+        toast.warning(t('addProductAlibaba.aiDescriptionError') || 'AI unavailable - unique template description created', {
           description: 'You can edit the generated template or try again later.'
         });
       }
     } catch (error) {
       console.error('AI generation error:', error);
       
-      // Fallback on exception
+      // Fallback on exception - create unique fallback
       const categoryName = categories.find(c => c.id === formData.category_id)?.name || 'product';
       const countryName = formData.country_of_origin || 'Africa';
-      const fallbackDescription = `${formData.title} is a premium ${categoryName.toLowerCase()} from ${countryName}. High quality, competitive pricing, flexible MOQ. Ideal for B2B buyers seeking reliable suppliers.`;
+      const cityName = formData.city || '';
+      const locationText = cityName ? `${cityName}, ${countryName}` : countryName;
+      const titleWords = formData.title.toLowerCase().split(' ');
+      const uniquePhrase = titleWords.length > 0 ? titleWords[0] : 'exceptional';
+      const randomSuffix = Math.floor(Math.random() * 1000);
+      
+      const fallbackDescription = `${formData.title} is an ${uniquePhrase} ${categoryName.toLowerCase()} sourced from ${locationText} (ID: ${randomSuffix}). 
+
+This product offers superior quality and reliability for B2B buyers. We provide competitive pricing, flexible minimum order quantities, and professional export packaging.
+
+Key features include direct sourcing from ${locationText}, consistent quality control, and reliable supply chain management. Suitable for importers, distributors, and businesses seeking authentic African products.
+
+Contact us for more information, custom specifications, or to request samples.`;
       
       setFormData(prev => ({
         ...prev,
         description: fallbackDescription
       }));
       
-      toast.warning('AI generation failed - template created', {
-        description: 'A template description was generated. Please customize it.'
-      });
+      toast.error(t('addProductAlibaba.aiDescriptionError') || 'AI generation failed - unique template created');
     } finally {
       setIsGeneratingAI(false);
     }
@@ -450,19 +502,24 @@ Contact us for more details, custom specifications, or to request samples.`;
   const validateStep = (step) => {
     const newErrors = {};
 
-    if (step === 1) {
-      if (!formData.title?.trim()) newErrors.title = 'Product title is required';
-      if (!formData.category_id) newErrors.category_id = 'Category is required';
-      if (!formData.country_of_origin) newErrors.country_of_origin = 'Country of origin is required';
-    }
-
-    if (step === 2) {
-      if (formData.images.length === 0) newErrors.images = 'At least one image is required';
-    }
-
-    if (step === 3) {
-      if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = 'Valid price is required';
-      if (!formData.moq || parseFloat(formData.moq) < 1) newErrors.moq = 'MOQ must be at least 1';
+    // If step is 5 or higher, validate all required fields
+    if (step >= 5) {
+      // Validate all required fields for final submission
+      if (!formData.title?.trim()) newErrors.title = t('addProductAlibaba.titleRequired') || 'Product title is required';
+      if (!formData.category_id) newErrors.category_id = t('addProductAlibaba.categoryRequired') || 'Category is required';
+      if (!formData.country_of_origin) newErrors.country_of_origin = t('addProductAlibaba.countryRequired') || 'Country of origin is required';
+      if (formData.images.length === 0) newErrors.images = t('addProductAlibaba.atLeastOneImage') || 'At least one image is required';
+      if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = t('addProductAlibaba.validPriceRequired') || 'Valid price is required';
+      if (!formData.moq || parseFloat(formData.moq) < 1) newErrors.moq = t('addProductAlibaba.validMOQRequired') || 'MOQ must be at least 1';
+    } else if (step === 1) {
+      if (!formData.title?.trim()) newErrors.title = t('addProductAlibaba.titleRequired') || 'Product title is required';
+      if (!formData.category_id) newErrors.category_id = t('addProductAlibaba.categoryRequired') || 'Category is required';
+      if (!formData.country_of_origin) newErrors.country_of_origin = t('addProductAlibaba.countryRequired') || 'Country of origin is required';
+    } else if (step === 2) {
+      if (formData.images.length === 0) newErrors.images = t('addProductAlibaba.atLeastOneImage') || 'At least one image is required';
+    } else if (step === 3) {
+      if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = t('addProductAlibaba.validPriceRequired') || 'Valid price is required';
+      if (!formData.moq || parseFloat(formData.moq) < 1) newErrors.moq = t('addProductAlibaba.validMOQRequired') || 'MOQ must be at least 1';
     }
 
     setErrors(newErrors);
@@ -472,7 +529,7 @@ Contact us for more details, custom specifications, or to request samples.`;
   // Submit Product
   const handleSubmit = async () => {
     if (!validateStep(5)) {
-      toast.error('Please fix errors before submitting');
+      toast.error(t('addProductAlibaba.fixErrors') || 'Please fix errors before submitting');
       return;
     }
 
@@ -575,7 +632,8 @@ Contact us for more details, custom specifications, or to request samples.`;
       }
 
       // Small delay to ensure product is fully committed
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Increased delay to ensure database transaction is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Save images to product_images table
       console.log('💾 Saving product images:', {
@@ -605,8 +663,8 @@ Contact us for more details, custom specifications, or to request samples.`;
             if (typeof img === 'string') {
               imageUrl = img;
             } else if (typeof img === 'object' && img !== null) {
-              // Try multiple possible URL properties
-              imageUrl = img.url || img.publicUrl || img.imageUrl || img.src || null;
+              // Try multiple possible URL properties (SmartImageUploader returns { url, thumbnail_url, path, ... })
+              imageUrl = img.url || img.publicUrl || img.imageUrl || img.src || img.thumbnail_url || null;
             }
             
             console.log(`🖼️ Processing image ${index + 1}:`, { 
@@ -615,18 +673,22 @@ Contact us for more details, custom specifications, or to request samples.`;
               imageUrl, 
               type: typeof img,
               imgKeys: typeof img === 'object' ? Object.keys(img) : [],
-              hasUrl: !!imageUrl
+              hasUrl: !!imageUrl,
+              urlType: imageUrl ? (imageUrl.startsWith('http') ? 'full URL' : imageUrl.startsWith('/') ? 'relative' : 'other') : 'none'
             });
             
             // Only include valid URLs
             if (!imageUrl) {
               console.warn(`⚠️ Skipping image ${index + 1} with no URL:`, img);
+              toast.warning(`Image ${index + 1} skipped: No URL found`);
               return null;
             }
             
             // Validate URL format - Supabase storage URLs start with https://
+            // Also accept relative paths and data URLs
             if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/') && !imageUrl.startsWith('data:')) {
               console.warn(`⚠️ Skipping invalid image URL format for image ${index + 1}:`, imageUrl);
+              toast.warning(`Image ${index + 1} skipped: Invalid URL format`);
               return null;
             }
             
@@ -650,6 +712,7 @@ Contact us for more details, custom specifications, or to request samples.`;
 
         if (imageRecords.length > 0) {
           // Verify product exists and user has access before inserting images
+          let canSaveImages = true;
           if (savedProductId) {
             const { data: productCheck, error: productCheckError } = await supabase
               .from('products')
@@ -659,35 +722,42 @@ Contact us for more details, custom specifications, or to request samples.`;
             
             if (productCheckError || !productCheck) {
               console.error('❌ Product verification failed:', productCheckError);
-              toast.error('Cannot save images: Product not found or access denied');
-              return;
-            }
-            
-            console.log('✅ Product verified:', {
-              product_id: productCheck.id,
-              company_id: productCheck.company_id,
-              expected_company_id: companyId,
-              match: productCheck.company_id === companyId
-            });
-            
-            // If company_id doesn't match, update it (shouldn't happen, but safety check)
-            if (productCheck.company_id !== companyId) {
-              console.warn('⚠️ Company ID mismatch, updating product...');
-              const { error: updateError } = await supabase
-                .from('products')
-                .update({ company_id: companyId })
-                .eq('id', savedProductId);
+              toast.error(t('addProductAlibaba.cannotSaveImages') || 'Cannot save images: Product not found or access denied');
+              canSaveImages = false;
+            } else {
+              console.log('✅ Product verified:', {
+                product_id: productCheck.id,
+                company_id: productCheck.company_id,
+                expected_company_id: companyId,
+                match: productCheck.company_id === companyId
+              });
               
-              if (updateError) {
-                console.error('❌ Failed to update product company_id:', updateError);
-                toast.error('Cannot save images: Product ownership issue');
-                return;
+              // If company_id doesn't match, update it (shouldn't happen, but safety check)
+              if (productCheck.company_id !== companyId) {
+                console.warn('⚠️ Company ID mismatch, updating product...');
+                const { error: updateError } = await supabase
+                  .from('products')
+                  .update({ company_id: companyId })
+                  .eq('id', savedProductId);
+                
+                if (updateError) {
+                  console.error('❌ Failed to update product company_id:', updateError);
+                  toast.error(t('addProductAlibaba.cannotSaveImages') || 'Cannot save images: Product ownership issue');
+                  canSaveImages = false;
+                }
               }
             }
+          } else {
+            canSaveImages = false;
           }
           
-          // If editing, delete old images FIRST, then insert new ones
-          if (isEditing && productId) {
+          // Only try to save images if we can
+          if (!canSaveImages) {
+            console.warn('⚠️ Skipping image save due to verification failure');
+            toast.warning(t('addProductAlibaba.imagesSkipped') || 'Product saved but images could not be saved. Please add images later.');
+          } else {
+            // If editing, delete old images FIRST, then insert new ones
+            if (isEditing && productId) {
             console.log('🗑️ Deleting old images before inserting new ones...');
             const { error: deleteImagesError } = await supabase
               .from('product_images')
@@ -703,9 +773,9 @@ Contact us for more details, custom specifications, or to request samples.`;
             
             // Small delay to ensure deletion is committed
             await new Promise(resolve => setTimeout(resolve, 200));
-          }
+            }
           
-          // Try batch insert first (more efficient)
+            // Try batch insert first (more efficient)
           console.log('🔄 Attempting batch insert of images...');
           const { data: batchInserted, error: batchError } = await supabase
             .from('product_images')
@@ -777,10 +847,28 @@ Contact us for more details, custom specifications, or to request samples.`;
             }
           } else if (batchInserted && batchInserted.length > 0) {
             console.log(`✅ Successfully saved ${batchInserted.length} image(s) via batch insert:`, batchInserted);
-            toast.success(`Product saved with ${batchInserted.length} image(s)`);
+            toast.success(t('addProductAlibaba.imagesSaved', { count: batchInserted.length }) || `Product saved with ${batchInserted.length} image(s)`);
           } else {
-            console.warn('⚠️ Batch insert returned no data');
-            toast.warning('Images may not have been saved. Please check your product.');
+            // Batch insert might succeed but return no data - verify in database
+            console.warn('⚠️ Batch insert returned no data - verifying in database...');
+            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for DB commit
+            
+            const { data: verifyImages, error: verifyError } = await supabase
+              .from('product_images')
+              .select('id, url, is_primary')
+              .eq('product_id', savedProductId);
+            
+            if (verifyError) {
+              console.error('❌ Error verifying saved images:', verifyError);
+              toast.warning(t('addProductAlibaba.imagesMayNotBeSaved') || 'Images may not have been saved. Please check your product.');
+            } else if (verifyImages && verifyImages.length > 0) {
+              console.log(`✅ Verified ${verifyImages.length} image(s) in database:`, verifyImages);
+              toast.success(t('addProductAlibaba.imagesSaved', { count: verifyImages.length }) || `Product saved with ${verifyImages.length} image(s)`);
+            } else {
+              console.warn('⚠️ No images found in database after insert attempt');
+              toast.warning(t('addProductAlibaba.imagesMayNotBeSaved') || 'Images may not have been saved. Please check your product.');
+            }
+          }
           }
         } else {
           console.warn('⚠️ No valid image URLs to save after filtering');
@@ -811,14 +899,14 @@ Contact us for more details, custom specifications, or to request samples.`;
         }
       }
 
-      toast.success(isEditing ? 'Product updated successfully!' : 'Product published to marketplace!');
+      toast.success(isEditing ? t('addProductAlibaba.updateSuccess') : t('addProductAlibaba.publishSuccess'));
       setTimeout(() => {
         navigate('/dashboard/products');
       }, 1000);
     } catch (error) {
       console.error('Save product error:', error);
       const errorMessage = error?.message || 'Unknown error occurred';
-      toast.error('Failed to save product: ' + errorMessage);
+      toast.error(t('addProductAlibaba.saveError') + ': ' + errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -828,7 +916,7 @@ Contact us for more details, custom specifications, or to request samples.`;
   const handleDelete = async () => {
     if (!isEditing || !productId) return;
     
-    if (!confirm('Are you sure you want to delete this product? It will be removed from the marketplace.')) {
+    if (!confirm(t('addProductAlibaba.deleteConfirm'))) {
       return;
     }
 
@@ -848,10 +936,10 @@ Contact us for more details, custom specifications, or to request samples.`;
 
       if (error) throw error;
 
-      toast.success('Product deleted and removed from marketplace');
+      toast.success(t('addProductAlibaba.deleteSuccess'));
       navigate('/dashboard/products');
     } catch (error) {
-      toast.error('Failed to delete product');
+      toast.error(t('addProductAlibaba.deleteError'));
     }
   };
 
@@ -885,10 +973,10 @@ Contact us for more details, custom specifications, or to request samples.`;
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-afrikoni-chestnut">
-                {isEditing ? 'Edit Product' : 'Add New Product'}
+                {isEditing ? t('addProductAlibaba.editProduct') : t('addProductAlibaba.addNewProduct')}
               </h1>
               <p className="text-afrikoni-deep/70 mt-1">
-                {isEditing ? 'Update your product listing' : 'Create a professional product listing'}
+                {isEditing ? t('addProductAlibaba.updateListing') : t('addProductAlibaba.createListing')}
               </p>
             </div>
             {isEditing && (
@@ -898,7 +986,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                 className="bg-red-600 hover:bg-red-700"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Product
+                {t('addProductAlibaba.deleteProduct')}
               </Button>
             )}
           </div>
@@ -940,7 +1028,7 @@ Contact us for more details, custom specifications, or to request samples.`;
             {isLoading && isEditing ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold mr-3" />
-                <span className="text-lg text-afrikoni-deep">Loading product data...</span>
+                <span className="text-lg text-afrikoni-deep">{t('addProductAlibaba.loadingProduct')}</span>
               </div>
             ) : (
               <AnimatePresence mode="wait">
@@ -954,7 +1042,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                   {currentStep === 1 && (
                   <div className="space-y-6">
                     <div>
-                      <Label htmlFor="title">Product Title *</Label>
+                      <Label htmlFor="title">{t('addProductAlibaba.productTitle')}</Label>
                       <div className="relative">
                         <Input
                           id="title"
@@ -1007,7 +1095,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                               }
                             }
                           }}
-                          placeholder="e.g., Premium African Shea Butter"
+                          placeholder={t('addProductAlibaba.productTitlePlaceholder')}
                           className="mt-1"
                         />
                         {formData.title && formData.title.length > 5 && (
@@ -1020,13 +1108,16 @@ Contact us for more details, custom specifications, or to request samples.`;
                     </div>
 
                     <div>
-                      <Label htmlFor="category">Category *</Label>
+                      <Label htmlFor="category">{t('addProductAlibaba.category')}</Label>
                       <Select
                         value={formData.category_id}
                         onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue 
+                            placeholder={t('addProductAlibaba.selectCategory')}
+                            displayValue={formData.category_id ? categories.find(c => c.id === formData.category_id)?.name : undefined}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {categories.map(cat => (
@@ -1039,13 +1130,13 @@ Contact us for more details, custom specifications, or to request samples.`;
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="country">Country of Origin *</Label>
+                        <Label htmlFor="country">{t('addProductAlibaba.countryOfOrigin')}</Label>
                         <Select
                           value={formData.country_of_origin}
                           onValueChange={(value) => setFormData(prev => ({ ...prev, country_of_origin: value }))}
                         >
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select country" />
+                            <SelectValue placeholder={t('addProductAlibaba.selectCountry')} />
                           </SelectTrigger>
                           <SelectContent>
                             {AFRICAN_COUNTRIES.map(country => (
@@ -1057,12 +1148,12 @@ Contact us for more details, custom specifications, or to request samples.`;
                       </div>
 
                       <div>
-                        <Label htmlFor="city">City</Label>
+                        <Label htmlFor="city">{t('addProductAlibaba.city')}</Label>
                         <Input
                           id="city"
                           value={formData.city}
                           onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          placeholder="e.g., Lagos, Nairobi"
+                          placeholder={t('addProductAlibaba.cityPlaceholder')}
                           className="mt-1"
                         />
                       </div>
@@ -1070,7 +1161,7 @@ Contact us for more details, custom specifications, or to request samples.`;
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <Label htmlFor="description">Product Description</Label>
+                        <Label htmlFor="description">{t('addProductAlibaba.description')}</Label>
                         <Button
                           type="button"
                           variant="outline"
@@ -1081,12 +1172,12 @@ Contact us for more details, custom specifications, or to request samples.`;
                           {isGeneratingAI ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Generating...
+                              {t('addProductAlibaba.generating')}
                             </>
                           ) : (
                             <>
                               <Sparkles className="w-4 h-4 mr-2" />
-                              AI Generate
+                              {t('addProductAlibaba.aiGenerate')}
                             </>
                           )}
                         </Button>
@@ -1160,9 +1251,9 @@ Contact us for more details, custom specifications, or to request samples.`;
                 {currentStep === 2 && (
                   <div className="space-y-6">
                     <div>
-                      <Label>Product Images *</Label>
+                      <Label>{t('addProductAlibaba.productImages')}</Label>
                       <p className="text-sm text-gray-600 mb-4">
-                        Upload high-quality product images. Drag & drop or click to upload. First image will be your main product photo.
+                        {t('addProductAlibaba.uploadHint')}
                       </p>
                       
                       {user?.id ? (
@@ -1195,13 +1286,13 @@ Contact us for more details, custom specifications, or to request samples.`;
                           <div className="flex items-center gap-2 text-green-800">
                             <CheckCircle className="w-5 h-5" />
                             <div>
-                              <p className="font-semibold">✅ {formData.images.length} image{formData.images.length > 1 ? 's' : ''} uploaded</p>
+                              <p className="font-semibold">✅ {t('addProductAlibaba.imagesUploaded', { count: formData.images.length })}</p>
                               {formData.images.some(img => {
                                 if (typeof img === 'string') return formData.images.indexOf(img) === 0;
                                 return img.is_primary || formData.images.indexOf(img) === 0;
                               }) && (
                                 <p className="text-sm text-green-700 mt-1">
-                                  First image is set as primary product photo
+                                  {t('addProductAlibaba.firstImagePrimary')}
                                 </p>
                               )}
                             </div>
@@ -1238,7 +1329,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                   <div className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="price">Price per Unit *</Label>
+                        <Label htmlFor="price">{t('addProductAlibaba.pricePerUnit')}</Label>
                         <div className="flex gap-2 mt-1">
                           <Select
                             value={formData.currency}
@@ -1269,7 +1360,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                       </div>
 
                       <div>
-                        <Label htmlFor="moq">Minimum Order Quantity (MOQ) *</Label>
+                        <Label htmlFor="moq">{t('addProductAlibaba.moq')}</Label>
                         <div className="flex gap-2 mt-1">
                           <Input
                             id="moq"
@@ -1300,7 +1391,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                     </div>
 
                     <div>
-                      <Label htmlFor="delivery_time">Delivery Time</Label>
+                        <Label htmlFor="delivery_time">{t('addProductAlibaba.deliveryTime')}</Label>
                       <Input
                         id="delivery_time"
                         value={formData.delivery_time}
@@ -1311,7 +1402,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                     </div>
 
                     <div>
-                      <Label htmlFor="packaging">Packaging Details</Label>
+                        <Label htmlFor="packaging">{t('addProductAlibaba.packaging')}</Label>
                       <Textarea
                         id="packaging"
                         value={formData.packaging}
@@ -1329,7 +1420,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                   <div className="space-y-6">
                     <div className="grid md:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="weight">Weight (kg)</Label>
+                        <Label htmlFor="weight">{t('addProductAlibaba.weight')}</Label>
                         <Input
                           id="weight"
                           type="number"
@@ -1341,7 +1432,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                       </div>
 
                       <div>
-                        <Label htmlFor="length">Length (cm)</Label>
+                        <Label htmlFor="length">{t('addProductAlibaba.length')}</Label>
                         <Input
                           id="length"
                           type="number"
@@ -1356,7 +1447,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                       </div>
 
                       <div>
-                        <Label htmlFor="width">Width (cm)</Label>
+                        <Label htmlFor="width">{t('addProductAlibaba.width')}</Label>
                         <Input
                           id="width"
                           type="number"
@@ -1372,7 +1463,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                     </div>
 
                     <div>
-                      <Label htmlFor="height">Height (cm)</Label>
+                      <Label htmlFor="height">{t('addProductAlibaba.height')}</Label>
                       <Input
                         id="height"
                         type="number"
@@ -1394,7 +1485,7 @@ Contact us for more details, custom specifications, or to request samples.`;
                         disabled={!formData.country_of_origin || !formData.weight_kg}
                       >
                         <Calculator className="w-4 h-4 mr-2" />
-                        Calculate Shipping
+                        {t('addProductAlibaba.calculateShipping')}
                       </Button>
                       {formData.shipping_cost && (
                         <div className="flex items-center gap-2">
@@ -1413,9 +1504,9 @@ Contact us for more details, custom specifications, or to request samples.`;
                       <div className="flex items-start gap-3">
                         <CheckCircle className="w-6 h-6 text-green-600 mt-0.5" />
                         <div>
-                          <h3 className="font-semibold text-green-900 mb-1">Ready to Publish</h3>
+                          <h3 className="font-semibold text-green-900 mb-1">{t('addProductAlibaba.reviewTitle')}</h3>
                           <p className="text-sm text-green-800">
-                            Your product will be immediately visible in the marketplace, organized by category and country.
+                            {t('addProductAlibaba.reviewSubtitle')}
                           </p>
                         </div>
                       </div>

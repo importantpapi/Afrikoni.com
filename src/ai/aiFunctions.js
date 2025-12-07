@@ -444,30 +444,60 @@ export async function generateProductListing(productDraft) {
 You are KoniAI, the intelligence behind African trade on Afrikoni B2B marketplace.
 Generate an optimized product listing that will help sellers attract serious B2B buyers.
 
-IMPORTANT: Each product description MUST be unique. Never use the same description twice.
-Use the product's specific details, origin, and characteristics to create a distinct description.
+🚨 ABSOLUTE CRITICAL REQUIREMENT: UNIQUENESS 🚨
+Each product description MUST be 100% unique and completely different from ANY other product description.
+NEVER reuse phrases, sentences, paragraphs, or descriptions - even if products are similar.
+Each product needs a distinct, original, one-of-a-kind description.
+
+STRICT UNIQUENESS RULES:
+1. NEVER copy or reuse any part of previous descriptions
+2. Use completely different vocabulary and phrasing for each product
+3. Vary sentence structure, length, and complexity
+4. Change the opening hook, middle content, and closing statement
+5. Focus on unique aspects: exact product name, specific origin, unique characteristics
+6. Use different emphasis points and benefit highlights
+7. Vary the writing style and tone for each product
+8. Include product-specific details that make it stand out
 
 Given product information, return a JSON object:
 {
   "title": string - optimized, SEO-friendly product title (max 80 chars),
-  "description": string - professional B2B product description (2-4 paragraphs, MUST be unique),
+  "description": string - professional B2B product description (2-4 paragraphs, MUST be 100% unique),
   "tags": string[] - array of 5-8 relevant keywords/tags for search,
   "suggestedCategory": string - best matching B2B category name
 }
 
 Guidelines:
 - Title should be clear, professional, include key attributes (quality, origin, quantity)
-- Description MUST be unique - focus on specific product characteristics, origin details, quality attributes, and use cases
-- Never reuse the same description - vary sentence structure, emphasis, and details
+- Description MUST be 100% unique - focus on specific product characteristics, origin details, quality attributes, and use cases
+- NEVER reuse the same description - vary sentence structure, emphasis, vocabulary, and details
 - Description should highlight: quality, specifications, use cases, certifications, MOQ, pricing flexibility
 - Tags should include product type, materials, applications, certifications
 - Category should match common B2B categories (Agricultural Products, Textiles, Food & Beverages, Raw Materials, Handicrafts, etc.)
 - Language: ${productDraft.language || 'English'}
 - Tone: ${productDraft.tone || 'Professional'}
 - Be creative and specific - no generic templates
+- Think of this as writing a unique story for each product
 `.trim();
 
   // Add unique context to ensure different descriptions
+  const uniqueId = productDraft.uniqueSeed || productDraft.context?.uniqueId || Date.now().toString();
+  const productHash = productDraft.title ? productDraft.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+  const randomComponent = Math.floor(Math.random() * 10000);
+  const variationSeed = (parseInt(uniqueId) || 0) + productHash + randomComponent;
+  
+  // Create unique writing style seed
+  const styleVariations = [
+    'professional and detailed',
+    'concise and impactful',
+    'descriptive and engaging',
+    'technical and precise',
+    'marketing-focused and persuasive',
+    'informative and comprehensive'
+  ];
+  const styleIndex = variationSeed % styleVariations.length;
+  const selectedStyle = styleVariations[styleIndex];
+  
   const uniqueContext = productDraft.uniqueSeed ? `\nUnique Request ID: ${productDraft.uniqueSeed}` : '';
   const timestampContext = productDraft.timestamp ? `\nGenerated at: ${productDraft.timestamp}` : '';
   const contextInfo = productDraft.context ? `\nAdditional Context: ${JSON.stringify(productDraft.context)}` : '';
@@ -488,7 +518,18 @@ ${JSON.stringify(
   )}
 ${uniqueContext}${timestampContext}${contextInfo}
 
-IMPORTANT: Generate a completely unique description. Do not use generic templates or repeat previous descriptions.
+CRITICAL UNIQUENESS REQUIREMENTS:
+- This is product variation #${variationSeed % 10000} (unique identifier: ${variationSeed})
+- Writing style: ${selectedStyle} (vary this for each product)
+- Create a completely original description that differs from ANY previous descriptions
+- NEVER reuse phrases, sentences, or descriptions from other products
+- Use unique phrasing, different sentence structures, and varied vocabulary
+- Focus on what makes THIS specific product unique (name: "${productDraft.title}")
+- Do NOT use generic templates or repeated phrases
+- Vary the opening sentence, key points, and closing statement
+- Include specific details about: ${productDraft.country ? `origin (${productDraft.country}${productDraft.city ? `, ${productDraft.city}` : ''})` : 'African origin'}
+- Make the description feel personalized and specific to this exact product
+- Each word should be chosen to highlight this product's unique value proposition
 `.trim();
 
   const fallback = {
@@ -498,8 +539,17 @@ IMPORTANT: Generate a completely unique description. Do not use generic template
     suggestedCategory: productDraft.category || 'General Products'
   };
 
+  // Increase temperature for more creative and unique descriptions
+  // Use higher temperature (0.8-0.9) to ensure maximum variation between products
+  const temperature = 0.85; // Higher temperature = more creative and varied outputs
+  
   const { success, data } = await callChatAsJson(
-    { system, user, maxTokens: 800 },
+    { 
+      system, 
+      user, 
+      maxTokens: 1000, // Increased for longer, more detailed descriptions
+      temperature: temperature // Pass temperature for uniqueness
+    },
     {
       fallback,
       schemaDescription: 'Ensure title is under 80 characters, description is 2-4 paragraphs, tags array has 5-8 items.'

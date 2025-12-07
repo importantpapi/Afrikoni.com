@@ -44,8 +44,15 @@ export default function Orders() {
       setOrders(myOrders);
       setCompanies(companiesRes.data || []);
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to load orders');
+      // Only show error if it's a real error, not just empty results
+      console.error('Error loading orders:', error);
+      // Don't show error toast for empty results - just set empty array
+      setOrders([]);
+      setCompanies([]);
+      // Only show error if it's a network/database error, not just no orders
+      if (error?.message && !error.message.includes('No rows')) {
+        toast.error('Failed to load orders. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

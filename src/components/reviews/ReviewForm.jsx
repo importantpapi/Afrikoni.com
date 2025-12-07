@@ -7,7 +7,7 @@ import { Star } from 'lucide-react';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 
-export default function ReviewForm({ order, product, company, onSuccess }) {
+export default function ReviewForm({ order, product, company, onSuccess, onCancel }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -31,17 +31,36 @@ export default function ReviewForm({ order, product, company, onSuccess }) {
         return;
       }
 
+      // Check if user already reviewed this product
+      if (product?.id) {
+        const { data: existingReview } = await supabase
+          .from('reviews')
+          .select('id')
+          .eq('product_id', product.id)
+          .eq('reviewer_company_id', companyId)
+          .maybeSingle();
+
+        if (existingReview) {
+          toast.error('You have already reviewed this product');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Check if this is a verified purchase (has order)
+      const isVerifiedPurchase = !!order?.id;
+
       const reviewData = {
-        order_id: order?.id,
-        product_id: product?.id,
-        reviewed_company_id: company?.id,
+        order_id: order?.id || null,
+        product_id: product?.id || null,
+        reviewed_company_id: company?.id || null,
         reviewer_company_id: companyId,
         rating,
         comment: comment.trim() || null,
         quality_rating: qualityRating || null,
         communication_rating: communicationRating || null,
         delivery_rating: deliveryRating || null,
-        verified_purchase: true
+        verified_purchase: isVerifiedPurchase
       };
 
       const { error } = await supabase.from('reviews').insert(reviewData);
@@ -55,8 +74,8 @@ export default function ReviewForm({ order, product, company, onSuccess }) {
       setDeliveryRating(0);
       if (onSuccess) onSuccess();
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to submit review');
+      console.error('Review submission error:', error);
+      toast.error('Failed to submit review. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -161,9 +180,25 @@ export default function ReviewForm({ order, product, company, onSuccess }) {
           </div>
         </div>
 
-        <Button onClick={handleSubmit} disabled={isLoading} className="w-full bg-afrikoni-gold hover:bg-amber-700">
-          {isLoading ? 'Submitting...' : 'Submit Review'}
-        </Button>
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button 
+              onClick={onCancel} 
+              variant="outline" 
+              className="flex-1"
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isLoading} 
+            className={`${onCancel ? 'flex-1' : 'w-full'} bg-afrikoni-gold hover:bg-amber-700`}
+          >
+            {isLoading ? 'Submitting...' : 'Submit Review'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

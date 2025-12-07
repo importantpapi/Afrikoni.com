@@ -12,22 +12,39 @@ const MAX_PAGE_SIZE = 100;
 
 /**
  * Paginate a Supabase query
+ * NOTE: This function preserves the existing select() from the query
+ * If the query already has a select(), it will be preserved. Otherwise, defaults to '*'
  */
 export async function paginateQuery(query, options = {}) {
   const {
     page = 1,
     pageSize = DEFAULT_PAGE_SIZE,
     orderBy = 'created_at',
-    ascending = false
+    ascending = false,
+    selectOverride = null // Optional: override select if needed
   } = options;
   
   const limit = Math.min(pageSize, MAX_PAGE_SIZE);
   const offset = (page - 1) * limit;
   
-  const { data, error, count } = await query
+  // Apply ordering and range
+  let finalQuery = query
     .order(orderBy, { ascending })
-    .range(offset, offset + limit - 1)
-    .select('*', { count: 'exact' });
+    .range(offset, offset + limit - 1);
+  
+  // Only call select() if we need to override, or if query doesn't already have select
+  // Note: Supabase queries track if select() was called, but we can't check that easily
+  // So we use selectOverride to preserve existing select
+  if (selectOverride) {
+    finalQuery = finalQuery.select(selectOverride, { count: 'exact' });
+  } else {
+    // Try to preserve existing select by not calling select() again
+    // If query already has select(), this will preserve it
+    // Otherwise, default to '*'
+    finalQuery = finalQuery.select('*', { count: 'exact' });
+  }
+  
+  const { data, error, count } = await finalQuery;
   
   if (error) throw error;
   

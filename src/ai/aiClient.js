@@ -107,7 +107,9 @@ export async function callChatAsJson(options, { fallback = {}, schemaDescription
     schemaDescription || ''
   }`.trim();
 
-  const result = await callChat({ ...options, system });
+  // Extract temperature from options if provided, otherwise use default
+  const temperature = options.temperature !== undefined ? options.temperature : 0.4;
+  const result = await callChat({ ...options, system, temperature });
 
   if (!result.success || !result.content) {
     return { success: false, data: fallback, raw: result.raw, error: result.error };

@@ -89,19 +89,11 @@ export default function ProductDetail() {
     }
 
     try {
-      // Try to find by slug first, then by ID
-      // Only show active products to non-owners, but allow owners to see their own products
-      // Note: Use explicit relationship name since products has multiple FKs to companies
+      // Load product first without joins to avoid RLS issues
+      // Then load related data separately
       let query = supabase
         .from('products')
-        .select(`
-          *,
-          categories(*),
-          product_images(*),
-          companies!company_id(*),
-          product_variants(*)
-        `)
-        .eq('status', 'active'); // Only show active products to public
+        .select('*');
 
       // Check if it's a UUID or slug
       if (isValidUUID(productId)) {
@@ -112,90 +104,78 @@ export default function ProductDetail() {
 
       const { data: foundProduct, error: productError } = await query.single();
 
-      if (productError) {
+      if (productError || !foundProduct) {
         console.error('Product load error:', productError);
         console.error('Product ID searched:', productId);
-        console.error('Error details:', JSON.stringify(productError, null, 2));
+        if (productError) {
+          console.error('Error details:', JSON.stringify(productError, null, 2));
+        }
         
-        // If it's a permission error, try loading without joins first
-        if (productError.code === 'PGRST116' || productError.message?.includes('permission') || productError.message?.includes('row-level security')) {
-          // Try loading product without joins to see if it's a join issue
-          const { data: simpleProduct, error: simpleError } = await supabase
-            .from('products')
-            .select('*')
-            .eq('id', productId)
-            .eq('status', 'active')
+        toast.error('Product not found or you do not have permission to view it');
+        navigate('/marketplace');
+        return;
+      }
+
+      // Check if product is active (RLS allows viewing active products or own products)
+      if (foundProduct.status !== 'active') {
+        // Check if user owns this product
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('id', user.id)
             .single();
-            
-          if (simpleError || !simpleProduct) {
+          
+          const userCompanyId = profile?.company_id;
+          const isOwner = foundProduct.company_id === userCompanyId || foundProduct.supplier_id === userCompanyId;
+          
+          if (!isOwner) {
             toast.error('Product not found or you do not have permission to view it');
             navigate('/marketplace');
             return;
           }
-          
-          // If simple query works, the issue is with joins - load them separately
-          const [categoriesRes, imagesRes, companiesRes] = await Promise.all([
-            supabase.from('categories').select('*').eq('id', simpleProduct.category_id).maybeSingle(),
-            supabase.from('product_images').select('*').eq('product_id', simpleProduct.id).order('sort_order'),
-            supabase.from('companies').select('*').eq('id', simpleProduct.company_id).maybeSingle()
-          ]);
-          
-          const productWithJoins = {
-            ...simpleProduct,
-            categories: categoriesRes.data ? [categoriesRes.data] : [],
-            product_images: imagesRes.data || [],
-            companies: companiesRes.data || null
-          };
-          
-          setProduct({
-            ...productWithJoins,
-            // NOTE: product_images is the single source of truth. products.images is deprecated.
-            primaryImage: getPrimaryImageFromProduct(productWithJoins),
-            allImages: getAllImagesFromProduct(productWithJoins)
-          });
-          
+        } else {
+          toast.error('Product not found or you do not have permission to view it');
+          navigate('/marketplace');
           return;
         }
-        
-        toast.error('Failed to load product: ' + (productError.message || 'Unknown error'));
-        navigate('/marketplace');
-        return;
       }
 
-      if (!foundProduct) {
-        console.error('Product not found for ID:', productId);
-        toast.error('Product not found');
-        navigate('/marketplace');
-        return;
-      }
+      // Load related data separately to avoid RLS issues with joins
+      const [categoriesRes, imagesRes, companiesRes, variantsRes] = await Promise.all([
+        foundProduct.category_id 
+          ? supabase.from('categories').select('*').eq('id', foundProduct.category_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        supabase.from('product_images').select('*').eq('product_id', foundProduct.id).order('sort_order'),
+        foundProduct.company_id
+          ? supabase.from('companies').select('*').eq('id', foundProduct.company_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        supabase.from('product_variants').select('*').eq('product_id', foundProduct.id).order('created_at')
+      ]);
 
-      // Get primary image or first image
-      const productImages = Array.isArray(foundProduct.product_images) ? foundProduct.product_images : [];
-      const primaryImage = productImages.find(img => img.is_primary) || productImages[0];
-      const allImages = productImages.length > 0 
-        ? productImages.map(img => img.url).filter(Boolean)
-        : (Array.isArray(foundProduct.images) ? foundProduct.images : []).filter(Boolean);
+      // Combine all data
+      const productWithJoins = {
+        ...foundProduct,
+        categories: categoriesRes.data ? [categoriesRes.data] : [],
+        product_images: imagesRes.data || [],
+        companies: companiesRes.data || null,
+        product_variants: variantsRes.data || []
+      };
+
+      // Get primary image or first image using helper functions
+      const primaryImage = getPrimaryImageFromProduct(productWithJoins);
+      const allImages = getAllImagesFromProduct(productWithJoins);
 
       setProduct({
-        ...foundProduct,
-        primaryImage: primaryImage?.url,
-        allImages: allImages.length > 0 ? allImages : (foundProduct.images || [])
+        ...productWithJoins,
+        primaryImage: primaryImage || null,
+        allImages: allImages.length > 0 ? allImages : []
       });
 
-      // Load product variants
-      if (foundProduct.product_variants && Array.isArray(foundProduct.product_variants)) {
-        setVariants(foundProduct.product_variants);
-      } else {
-        // Try to load variants separately
-        const { data: variantsData } = await supabase
-          .from('product_variants')
-          .select('*')
-          .eq('product_id', foundProduct.id)
-          .order('created_at', { ascending: true });
-        
-        if (variantsData) {
-          setVariants(variantsData);
-        }
+      // Set variants
+      if (variantsRes.data && variantsRes.data.length > 0) {
+        setVariants(variantsRes.data);
       }
 
       // Update views
@@ -545,7 +525,14 @@ export default function ProductDetail() {
                     </div>
                   </TabsContent>
                   <TabsContent value="reviews">
-                    <ReviewList reviews={reviews} companies={companies} isSeller={user?.company_id === product.company_id} onUpdate={loadData} />
+                    <ReviewList 
+                      reviews={reviews} 
+                      companies={companies} 
+                      isSeller={user?.company_id === product.company_id} 
+                      product={product}
+                      supplier={supplier}
+                      onUpdate={loadData} 
+                    />
                   </TabsContent>
                 </CardContent>
               </Tabs>

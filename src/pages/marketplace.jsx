@@ -249,27 +249,41 @@ export default function Marketplace() {
     setIsLoading(true);
     try {
       // Use buildProductQuery for server-side filtering
+      // buildProductQuery already includes product_images(*), so we just need to add companies
       let query = buildProductQuery({
         status: 'active',
         categoryId: selectedFilters.category || null,
         country: selectedFilters.country || null
       });
       
-      // Add companies and product_images to select
+      // Rebuild query to include companies (buildProductQuery already includes product_images)
       // NOTE: product_images is the single source of truth for product images
-      // products.images column is deprecated and should not be used
-      query = query.select(`
-          *,
-          companies!company_id(*),
-          categories(*),
-          product_images(
-            id,
-            url,
-            alt_text,
-            is_primary,
-            sort_order
-          )
-      `);
+      // We rebuild the query to ensure companies are included
+      const selectString = `
+        *,
+        companies!company_id(*),
+        categories(*),
+        product_images(
+          id,
+          url,
+          alt_text,
+          is_primary,
+          sort_order
+        )
+      `;
+      
+      query = supabase
+        .from('products')
+        .select(selectString);
+      
+      // Re-apply filters
+      query = query.eq('status', 'active');
+      if (selectedFilters.category) {
+        query = query.eq('category_id', selectedFilters.category);
+      }
+      if (selectedFilters.country) {
+        query = query.eq('country_of_origin', selectedFilters.country);
+      }
       
       // Apply sorting
       let sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
@@ -295,7 +309,8 @@ export default function Marketplace() {
           page: pagination.page, 
           pageSize: 20,
           orderBy: sortField,
-          ascending
+          ascending,
+          selectOverride: selectString
         }
       );
       
@@ -312,6 +327,16 @@ export default function Marketplace() {
       // Transform products and get images from product_images table
       // NOTE: product_images is the single source of truth. products.images is deprecated.
       const productsWithImages = Array.isArray(data) ? data.map(product => {
+        // Debug: Log product_images data (development only)
+        if (process.env.NODE_ENV === 'development') {
+          if (product.product_images) {
+            const imageCount = Array.isArray(product.product_images) ? product.product_images.length : 1;
+            console.log(`📸 Marketplace: Product ${product.id} (${product.title}) has ${imageCount} image(s):`, product.product_images);
+          } else {
+            console.warn(`⚠️ Marketplace: Product ${product.id} (${product.title}) has NO product_images`);
+          }
+        }
+        
         // Get primary image from product_images (preferred) or legacy products.images
         let primaryImage = getPrimaryImageFromProduct(product);
         let allImages = getAllImagesFromProduct(product);
@@ -319,6 +344,20 @@ export default function Marketplace() {
         // Normalize all image URLs to ensure they're full URLs
         if (primaryImage) {
           primaryImage = normalizeProductImageUrl(primaryImage) || primaryImage;
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`✅ Marketplace: Primary image for ${product.id}:`, primaryImage);
+          }
+        } else {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`⚠️ Marketplace: No primary image found for product ${product.id} (${product.title})`);
+            console.warn(`   Product data:`, { 
+              hasProductImages: !!product.product_images, 
+              productImagesType: typeof product.product_images,
+              productImagesLength: Array.isArray(product.product_images) ? product.product_images.length : 'not array',
+              productImagesContent: product.product_images,
+              hasLegacyImages: !!product.images
+            });
+          }
         }
         allImages = allImages.map(img => normalizeProductImageUrl(img) || img).filter(Boolean);
         

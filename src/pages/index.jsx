@@ -17,6 +17,7 @@ import NewsletterSection from '@/components/home/NewsletterSection';
 import PoweringAfricanTrade from '@/components/home/PoweringAfricanTrade';
 import BusinessModel from '@/components/home/BusinessModel';
 import EarlyUserTestGroup from '@/components/home/EarlyUserTestGroup';
+import TransparencySection from '@/components/home/TransparencySection';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -63,6 +64,7 @@ export default function Home() {
         <RFQCard />
         <AboutAfrikoni />
         <HowItWorks />
+        <TransparencySection />
         <NewsletterSection />
       </div>
     </>
