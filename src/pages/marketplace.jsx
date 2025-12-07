@@ -629,9 +629,9 @@ if (!Array.isArray(productsList)) return [];
             </CardContent>
           </Card>
         </motion.div>
-      </Link>
-    </motion.div>
-  ));
+      </motion.div>
+    );
+  });
 
   return (
     <>
