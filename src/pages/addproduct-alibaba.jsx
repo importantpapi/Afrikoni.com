@@ -523,17 +523,6 @@ Contact us for more details, custom specifications, or to request samples.`;
         }
         
         savedProductId = updatedProduct.id;
-
-        // Delete existing images
-        const { error: deleteImagesError } = await supabase
-          .from('product_images')
-          .delete()
-          .eq('product_id', productId);
-          
-        if (deleteImagesError) {
-          console.error('Delete images error:', deleteImagesError);
-          // Continue even if image deletion fails
-        }
       } else {
         // Create new product
         const { data: newProduct, error: insertError } = await supabase
@@ -575,6 +564,7 @@ Contact us for more details, custom specifications, or to request samples.`;
       console.log('💾 Saving product images:', {
         imageCount: formData.images.length,
         productId: savedProductId,
+        isEditing,
         images: formData.images,
         imagesStructure: formData.images.map((img, idx) => ({
           index: idx,
@@ -588,7 +578,8 @@ Contact us for more details, custom specifications, or to request samples.`;
         }))
       });
       
-      if (formData.images.length > 0 && savedProductId) {
+      // Only process images if we have images to save
+      if (formData.images && formData.images.length > 0 && savedProductId) {
         const imageRecords = formData.images
           .map((img, index) => {
             // Extract URL - handle both string and object formats
@@ -641,6 +632,25 @@ Contact us for more details, custom specifications, or to request samples.`;
         console.log('🔍 Company ID:', companyId);
 
         if (imageRecords.length > 0) {
+          // If editing, delete old images FIRST, then insert new ones
+          if (isEditing && productId) {
+            console.log('🗑️ Deleting old images before inserting new ones...');
+            const { error: deleteImagesError } = await supabase
+              .from('product_images')
+              .delete()
+              .eq('product_id', productId);
+              
+            if (deleteImagesError) {
+              console.error('Delete images error:', deleteImagesError);
+              // Continue anyway - we'll try to insert new images
+            } else {
+              console.log('✅ Old images deleted successfully');
+            }
+            
+            // Small delay to ensure deletion is committed
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+          
           // Insert images one by one to ensure all are saved
           const insertedImages = [];
           const errors = [];
@@ -682,39 +692,50 @@ Contact us for more details, custom specifications, or to request samples.`;
                 url: record.url
               });
             });
-          }
-          
-          // If all failed, try batch insert as last resort
-          if (insertedImages.length === 0 && errors.length === imageRecords.length) {
-            console.log('🔄 All individual inserts failed, trying batch insert...');
-            const { data: batchInserted, error: batchError } = await supabase
-              .from('product_images')
-              .insert(imageRecords)
-              .select();
             
-            if (batchError) {
-              console.error('❌ Batch insert also failed:', batchError);
-            } else if (batchInserted && batchInserted.length > 0) {
-              console.log('✅ Batch insert succeeded:', batchInserted);
-              toast.success(`Product saved with ${batchInserted.length} image(s)`);
+            // If we're editing and some images failed, try batch insert as fallback
+            if (isEditing && insertedImages.length === 0 && errors.length === imageRecords.length) {
+              console.log('🔄 All individual inserts failed, trying batch insert as fallback...');
+              const { data: batchInserted, error: batchError } = await supabase
+                .from('product_images')
+                .insert(imageRecords)
+                .select();
+              
+              if (batchError) {
+                console.error('❌ Batch insert also failed:', batchError);
+                toast.error('Failed to save images. Please try uploading them again.');
+              } else if (batchInserted && batchInserted.length > 0) {
+                console.log('✅ Batch insert succeeded:', batchInserted);
+                toast.success(`Product saved with ${batchInserted.length} image(s)`);
+              }
             }
           }
         } else {
           console.warn('⚠️ No valid image URLs to save after filtering');
-          toast.warning('Product saved but no valid images were found to upload.');
+          if (isEditing) {
+            // If editing and no valid images, don't delete existing ones
+            console.log('ℹ️ No new images to save, keeping existing images');
+            toast.success('Product updated (images unchanged)');
+          } else {
+            toast.warning('Product saved but no valid images were found to upload.');
+          }
         }
       } else {
         console.warn('⚠️ Cannot save images:', {
-          hasImages: formData.images.length > 0,
+          hasImages: formData.images?.length > 0,
           hasProductId: !!savedProductId,
-          imageCount: formData.images.length,
+          imageCount: formData.images?.length || 0,
           savedProductId: savedProductId
         });
         
-        if (formData.images.length > 0 && !savedProductId) {
+        if (formData.images?.length > 0 && !savedProductId) {
           toast.error('Product ID missing - cannot save images');
-        } else if (formData.images.length === 0) {
-          console.log('ℹ️ No images to save (this is OK if user didn\'t upload any)');
+        } else if (!formData.images || formData.images.length === 0) {
+          if (isEditing) {
+            console.log('ℹ️ No images in formData, keeping existing images');
+          } else {
+            console.log('ℹ️ No images to save (this is OK if user didn\'t upload any)');
+          }
         }
       }
 
