@@ -1110,14 +1110,21 @@ Contact us for more details, custom specifications, or to request samples.`;
                         Upload high-quality product images. Drag & drop or click to upload. First image will be your main product photo.
                       </p>
                       
-                      <SmartImageUploader
-                        images={formData.images}
-                        onImagesChange={handleImagesChange}
-                        onFirstImageUpload={handleFirstImageUpload}
-                        userId={user?.id}
-                        maxImages={10}
-                        maxSizeMB={5}
-                      />
+                      {user?.id ? (
+                        <SmartImageUploader
+                          images={formData.images}
+                          onImagesChange={handleImagesChange}
+                          onFirstImageUpload={handleFirstImageUpload}
+                          userId={user.id}
+                          maxImages={10}
+                          maxSizeMB={5}
+                        />
+                      ) : (
+                        <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold mx-auto mb-4" />
+                          <p className="text-gray-600">Loading user information...</p>
+                        </div>
+                      )}
                       
                       {errors.images && (
                         <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
