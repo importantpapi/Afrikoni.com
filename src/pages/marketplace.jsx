@@ -560,13 +560,15 @@ if (!Array.isArray(productsList)) return [];
                 <div className="flex items-center gap-1 flex-wrap">
                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
                   {product?.companies?.id ? (
-                    <Link 
-                      to={`/business/${product.companies.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs sm:text-sm text-afrikoni-deep hover:text-afrikoni-gold truncate font-medium"
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/business/${product.companies.id}`);
+                      }}
+                      className="text-xs sm:text-sm text-afrikoni-deep hover:text-afrikoni-gold truncate font-medium cursor-pointer"
                     >
                       {product?.companies?.company_name || 'Supplier'}
-                    </Link>
+                    </button>
                   ) : (
                     <span className="text-xs sm:text-sm text-afrikoni-deep truncate">{product?.companies?.company_name || 'Supplier'}</span>
                   )}
