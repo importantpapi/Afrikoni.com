@@ -4,6 +4,9 @@ import { createPageUrl } from '@/utils';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { addToViewHistory, getViewHistory } from '@/utils/viewHistory';
 import { getSimilarProducts, getRecommendedProducts } from '@/utils/recommendations';
+import { getProductRecommendations } from '@/lib/supabaseQueries/ai';
+import ProductRecommendations from '@/components/products/ProductRecommendations';
+import { trackProductView } from '@/lib/supabaseQueries/products';
 import AISummaryBox from '@/components/ai/AISummaryBox';
 import AICopilotButton from '@/components/ai/AICopilotButton';
 import { rewriteDescription } from '@/ai/aiRewrite';
@@ -41,6 +44,7 @@ export default function ProductDetail() {
   const [companies, setCompanies] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
   const [aiSummary, setAiSummary] = useState('');
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiDescription, setAiDescription] = useState('');
@@ -208,7 +212,29 @@ export default function ProductDetail() {
         price: foundProduct.price_min || foundProduct.price
       });
 
-      // Load similar and recommended products
+      // Track product view in database
+      if (user?.id) {
+        try {
+          await trackProductView(foundProduct.id, {
+            profile_id: user.id,
+            company_id: user.company_id,
+            source_page: 'product_detail'
+          });
+        } catch (error) {
+          // Silent fail - tracking is non-critical
+        }
+      }
+
+      // Load AI recommendations
+      try {
+        const aiRecs = await getProductRecommendations(foundProduct.id, 12);
+        setAiRecommendations(aiRecs || []);
+      } catch (error) {
+        console.error('Error loading AI recommendations:', error);
+        setAiRecommendations([]);
+      }
+
+      // Load similar and recommended products (fallback)
       const allProductsRes = await supabase
         .from('products')
         .select('*')

@@ -22,9 +22,15 @@ export default function OptimizedImage({
 }) {
   // Use fallbackSrc if provided, otherwise use placeholder
   const finalPlaceholder = fallbackSrc || placeholder;
-  const optimizedSrc = getOptimizedImageUrl(src, { width, height, quality });
-  const [imageSrc, setImageSrc] = useState(priority ? optimizedSrc : placeholder);
-  const [isLoading, setIsLoading] = useState(!priority);
+  
+  // If src is falsy, immediately use placeholder
+  const effectiveSrc = src || finalPlaceholder;
+  const optimizedSrc = effectiveSrc && effectiveSrc !== finalPlaceholder 
+    ? getOptimizedImageUrl(effectiveSrc, { width, height, quality })
+    : finalPlaceholder;
+  
+  const [imageSrc, setImageSrc] = useState(priority && effectiveSrc ? optimizedSrc : finalPlaceholder);
+  const [isLoading, setIsLoading] = useState(!priority && effectiveSrc && effectiveSrc !== finalPlaceholder);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef(null);
@@ -35,7 +41,7 @@ export default function OptimizedImage({
 
   // Intersection Observer for lazy loading
   useEffect(() => {
-    if (priority || !src) return;
+    if (priority || !effectiveSrc || effectiveSrc === finalPlaceholder) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -66,7 +72,7 @@ export default function OptimizedImage({
 
   // Load image when in view
   useEffect(() => {
-    if (!isInView || !optimizedSrc) return;
+    if (!isInView || !optimizedSrc || optimizedSrc === finalPlaceholder) return;
 
     const img = new Image();
     img.src = optimizedSrc;

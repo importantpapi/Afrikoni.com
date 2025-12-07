@@ -34,6 +34,7 @@ import { addSearchToHistory } from '@/components/search/SearchHistory';
 import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
+import { trackProductView } from '@/lib/supabaseQueries/products';
 
 export default function Marketplace() {
   const { t } = useLanguage();
