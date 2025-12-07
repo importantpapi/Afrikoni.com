@@ -841,8 +841,8 @@ export default function ProductDetail() {
         </div>
       )}
 
-      {/* Recommended for You */}
-      {recommendedProducts.length > 0 && (
+      {/* Recommended for You (fallback if no AI recommendations) */}
+      {recommendedProducts.length > 0 && aiRecommendations.length === 0 && (
         <div className="max-w-7xl mx-auto px-4 py-8">
           <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">Recommended for You</h2>
           <div className="grid md:grid-cols-4 gap-6">
