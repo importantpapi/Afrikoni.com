@@ -154,18 +154,13 @@ export default function PopularCategories({ categories = [] }) {
           </Link>
         </motion.div>
         
-        {/* Desktop Carousel - Shows 4 at a time */}
-        <div className="hidden lg:block relative">
-          <div className="overflow-hidden">
-            <motion.div
-              className="flex gap-4 md:gap-6"
-              animate={{ x: `-${currentIndex * (100 / itemsPerView.desktop)}%` }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              {popularCategories.map((category, idx) => {
-                const Icon = category.icon;
-                return (
-                  <div key={idx} className="flex-shrink-0 w-1/4 px-2">
+        {/* Desktop Grid - Shows all 8 categories in 2 rows */}
+        <div className="hidden lg:block">
+          <div className="grid grid-cols-4 gap-4 md:gap-6">
+            {popularCategories.map((category, idx) => {
+              const Icon = category.icon;
+              return (
+                <div key={idx} className="w-full">
                     <Link to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}>
                       <motion.div
                         whileHover={{ y: -8, scale: 1.02 }}
@@ -209,49 +204,6 @@ export default function PopularCategories({ categories = [] }) {
                   </div>
                 );
               })}
-            </motion.div>
-          </div>
-          
-          {/* Desktop Navigation Arrows */}
-          {currentIndex > 0 && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={handlePrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-3 shadow-afrikoni-lg hover:shadow-afrikoni-xl hover:bg-afrikoni-offwhite z-10 transition-all"
-              aria-label="Previous categories"
-            >
-              <ChevronLeft className="w-5 h-5 text-afrikoni-gold" />
-            </motion.button>
-          )}
-          {currentIndex < maxIndex && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={handleNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-3 shadow-afrikoni-lg hover:shadow-afrikoni-xl hover:bg-afrikoni-offwhite z-10 transition-all"
-              aria-label="Next categories"
-            >
-              <ChevronRight className="w-5 h-5 text-afrikoni-gold" />
-            </motion.button>
-          )}
-
-          {/* Desktop Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-6">
-            {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-              <motion.button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-                className={`h-2 rounded-full transition-all ${
-                  idx === currentIndex 
-                    ? 'bg-afrikoni-gold w-8' 
-                    : 'bg-afrikoni-gold/30 w-2 hover:bg-afrikoni-gold/50'
-                }`}
-                aria-label={`Go to slide ${idx + 1}`}
-              />
-            ))}
           </div>
         </div>
 

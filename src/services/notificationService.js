@@ -328,26 +328,104 @@ export async function getUnreadCount(userId = null, companyId = null) {
 
 /**
  * Helper to create notification when RFQ is created
+ * Only notifies sellers who have products in the same category
  */
-export async function notifyRFQCreated(rfqId, buyerCompanyId) {
-  // Notify all sellers about new RFQ
-  const { data: sellers } = await supabase
-    .from('companies')
-    .select('id, owner_email')
-    .in('role', ['seller', 'hybrid']);
+export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null) {
+  try {
+    // Get RFQ details to find category
+    let rfqCategoryId = categoryId;
+    if (!rfqCategoryId) {
+      const { data: rfq } = await supabase
+        .from('rfqs')
+        .select('category_id')
+        .eq('id', rfqId)
+        .single();
+      rfqCategoryId = rfq?.category_id;
+    }
 
-  if (sellers) {
-    for (const seller of sellers) {
+    // If no category, notify all sellers (fallback)
+    if (!rfqCategoryId) {
+      const { data: sellers } = await supabase
+        .from('companies')
+        .select('id, owner_email')
+        .in('role', ['seller', 'hybrid']);
+
+      if (sellers) {
+        for (const seller of sellers) {
+          await createNotification({
+            company_id: seller.id,
+            user_email: seller.owner_email,
+            title: 'New RFQ Available',
+            message: 'A new Request for Quotation has been posted',
+            type: 'rfq',
+            link: `/dashboard/rfqs/${rfqId}`,
+            related_id: rfqId
+          });
+        }
+      }
+      return;
+    }
+
+    // Find sellers who have products in the same category
+    const { data: sellersWithCategory } = await supabase
+      .from('products')
+      .select('company_id, companies!company_id(id, owner_email, role)')
+      .eq('category_id', rfqCategoryId)
+      .eq('status', 'active')
+      .in('companies.role', ['seller', 'hybrid']);
+
+    if (!sellersWithCategory || sellersWithCategory.length === 0) {
+      // Fallback: notify all sellers if no category match found
+      const { data: allSellers } = await supabase
+        .from('companies')
+        .select('id, owner_email')
+        .in('role', ['seller', 'hybrid']);
+
+      if (allSellers) {
+        for (const seller of allSellers) {
+          await createNotification({
+            company_id: seller.id,
+            user_email: seller.owner_email,
+            title: 'New RFQ Available',
+            message: 'A new Request for Quotation has been posted',
+            type: 'rfq',
+            link: `/dashboard/rfqs/${rfqId}`,
+            related_id: rfqId
+          });
+        }
+      }
+      return;
+    }
+
+    // Get unique seller companies
+    const uniqueSellers = new Map();
+    sellersWithCategory.forEach(product => {
+      if (product.companies && product.companies.id) {
+        const company = product.companies;
+        if (!uniqueSellers.has(company.id)) {
+          uniqueSellers.set(company.id, {
+            id: company.id,
+            owner_email: company.owner_email
+          });
+        }
+      }
+    });
+
+    // Notify only relevant sellers
+    for (const seller of uniqueSellers.values()) {
       await createNotification({
         company_id: seller.id,
         user_email: seller.owner_email,
-        title: 'New RFQ Available',
-        message: 'A new Request for Quotation has been posted',
+        title: 'New RFQ in Your Category',
+        message: 'A new Request for Quotation matching your product category has been posted',
         type: 'rfq',
         link: `/dashboard/rfqs/${rfqId}`,
         related_id: rfqId
       });
     }
+  } catch (error) {
+    console.error('Error notifying sellers about RFQ:', error);
+    // Silently fail - notifications are non-critical
   }
 }
 

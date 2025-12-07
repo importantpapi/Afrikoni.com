@@ -322,13 +322,30 @@ Contact us for more details, custom specifications, or to request samples.`;
         return;
       }
 
-      // Try AI generation
-      const result = await generateProductListing(productDraft);
+      // Add unique seed to ensure different descriptions each time
+      const uniqueSeed = Date.now() + Math.random();
+      const enhancedDraft = {
+        ...productDraft,
+        uniqueSeed: uniqueSeed.toString(),
+        timestamp: new Date().toISOString(),
+        // Add more context for uniqueness
+        context: {
+          productTitle: productDraft.title,
+          category: productDraft.category,
+          country: productDraft.country,
+          city: productDraft.city || '',
+          sellerLocation: company?.country || '',
+          uniqueId: uniqueSeed
+        }
+      };
+
+      // Try AI generation with enhanced draft
+      const result = await generateProductListing(enhancedDraft);
 
       if (result.success && result.data) {
         const generatedDescription = result.data.description || result.data?.description || '';
         
-        if (generatedDescription) {
+        if (generatedDescription && generatedDescription.trim().length > 50) {
           setFormData(prev => ({
             ...prev,
             description: generatedDescription
@@ -820,9 +837,13 @@ Contact us for more details, custom specifications, or to request samples.`;
               </p>
             </div>
             {isEditing && (
-              <Button variant="destructive" onClick={handleDelete}>
+              <Button 
+                variant="destructive" 
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete
+                Delete Product
               </Button>
             )}
           </div>
@@ -1033,13 +1054,19 @@ Contact us for more details, custom specifications, or to request samples.`;
                               });
                               
                               if (detection.success && detection.confidence > 0.6) {
-                                // Auto-set category if not already set
+                                // Auto-set category if not already set (but don't override if user manually set it)
                                 if (detection.category && !formData.category_id) {
                                   const matchedCategory = categories.find(c => 
                                     c.name.toLowerCase() === detection.category.toLowerCase()
                                   );
                                   if (matchedCategory) {
-                                    setFormData(prev => ({ ...prev, category_id: matchedCategory.id }));
+                                    setFormData(prev => {
+                                      // Only set if not already set (prevent overwriting user selection)
+                                      if (!prev.category_id) {
+                                        return { ...prev, category_id: matchedCategory.id };
+                                      }
+                                      return prev;
+                                    });
                                     toast.success(`✨ AI detected category: ${matchedCategory.name}`, { duration: 2000 });
                                   }
                                 }

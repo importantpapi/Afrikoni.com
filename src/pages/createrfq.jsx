@@ -189,10 +189,10 @@ export default function CreateRFQ() {
         }
       }
 
-      // Notify all sellers about new RFQ
+      // Notify relevant sellers about new RFQ (filtered by category)
       try {
         const { notifyRFQCreated } = await import('@/services/notificationService');
-        await notifyRFQCreated(newRFQ.id, companyId);
+        await notifyRFQCreated(newRFQ.id, companyId, formData.category_id || null);
       } catch (err) {
         // Notification failed, but RFQ was created
       }

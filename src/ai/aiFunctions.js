@@ -444,22 +444,33 @@ export async function generateProductListing(productDraft) {
 You are KoniAI, the intelligence behind African trade on Afrikoni B2B marketplace.
 Generate an optimized product listing that will help sellers attract serious B2B buyers.
 
+IMPORTANT: Each product description MUST be unique. Never use the same description twice.
+Use the product's specific details, origin, and characteristics to create a distinct description.
+
 Given product information, return a JSON object:
 {
   "title": string - optimized, SEO-friendly product title (max 80 chars),
-  "description": string - professional B2B product description (2-4 paragraphs),
+  "description": string - professional B2B product description (2-4 paragraphs, MUST be unique),
   "tags": string[] - array of 5-8 relevant keywords/tags for search,
   "suggestedCategory": string - best matching B2B category name
 }
 
 Guidelines:
 - Title should be clear, professional, include key attributes (quality, origin, quantity)
+- Description MUST be unique - focus on specific product characteristics, origin details, quality attributes, and use cases
+- Never reuse the same description - vary sentence structure, emphasis, and details
 - Description should highlight: quality, specifications, use cases, certifications, MOQ, pricing flexibility
 - Tags should include product type, materials, applications, certifications
 - Category should match common B2B categories (Agricultural Products, Textiles, Food & Beverages, Raw Materials, Handicrafts, etc.)
 - Language: ${productDraft.language || 'English'}
 - Tone: ${productDraft.tone || 'Professional'}
+- Be creative and specific - no generic templates
 `.trim();
+
+  // Add unique context to ensure different descriptions
+  const uniqueContext = productDraft.uniqueSeed ? `\nUnique Request ID: ${productDraft.uniqueSeed}` : '';
+  const timestampContext = productDraft.timestamp ? `\nGenerated at: ${productDraft.timestamp}` : '';
+  const contextInfo = productDraft.context ? `\nAdditional Context: ${JSON.stringify(productDraft.context)}` : '';
 
   const user = `
 Product Information:
@@ -469,11 +480,15 @@ ${JSON.stringify(
       description: productDraft.description || '',
       category: productDraft.category || '',
       country: productDraft.country || '',
+      city: productDraft.city || '',
       existingTags: productDraft.tags || []
     },
     null,
     2
   )}
+${uniqueContext}${timestampContext}${contextInfo}
+
+IMPORTANT: Generate a completely unique description. Do not use generic templates or repeat previous descriptions.
 `.trim();
 
   const fallback = {

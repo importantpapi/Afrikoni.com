@@ -177,6 +177,12 @@ export default function SmartImageUploader({
   const uploadImage = async (file, isFirstImage = false) => {
     if (!validateFile(file)) return null;
 
+    // Ensure userId is available
+    if (!userId) {
+      toast.error('User ID is required to upload images. Please refresh the page.');
+      return null;
+    }
+
     try {
       // Auto-crop and center first image to 1:1 aspect (main product image)
       let fileToUpload = file;
