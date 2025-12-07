@@ -127,6 +127,8 @@ export default function Marketplace() {
   const [showSaveSearch, setShowSaveSearch] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentCompanyId, setCurrentCompanyId] = useState(null);
 
   // Helper: log search analytics to Supabase (non-blocking)
   const logSearchEvent = async ({ resultCount }) => {
@@ -310,8 +312,14 @@ export default function Marketplace() {
       // NOTE: product_images is the single source of truth. products.images is deprecated.
       const productsWithImages = Array.isArray(data) ? data.map(product => {
         // Get primary image from product_images (preferred) or legacy products.images
-        const primaryImage = getPrimaryImageFromProduct(product);
-        const allImages = getAllImagesFromProduct(product);
+        let primaryImage = getPrimaryImageFromProduct(product);
+        let allImages = getAllImagesFromProduct(product);
+        
+        // Normalize all image URLs to ensure they're full URLs
+        if (primaryImage) {
+          primaryImage = normalizeProductImageUrl(primaryImage) || primaryImage;
+        }
+        allImages = allImages.map(img => normalizeProductImageUrl(img) || img).filter(Boolean);
         
         // Ensure primary image is in allImages
         if (primaryImage && !allImages.includes(primaryImage)) {
@@ -321,7 +329,7 @@ export default function Marketplace() {
         return {
           ...product,
           primaryImage: primaryImage || null,
-          allImages: allImages
+          allImages: allImages.length > 0 ? allImages : []
         };
       }) : [];
       
@@ -431,12 +439,25 @@ if (!Array.isArray(productsList)) return [];
     >
       <Link 
         to={`/product?id=${product.id}`}
-        onClick={(e) => {
+        onClick={async (e) => {
           addToViewHistory(product.id, 'product', {
             title: product.title || product.name,
             category_id: product.category_id,
             country: product.country_of_origin
           });
+          
+          // Track product view in database
+          if (currentUser?.id || currentCompanyId) {
+            try {
+              await trackProductView(product.id, {
+                profile_id: currentUser?.id,
+                company_id: currentCompanyId,
+                source_page: 'marketplace'
+              });
+            } catch (error) {
+              // Silent fail - tracking is non-critical
+            }
+          }
         }}
       >
         <motion.div
