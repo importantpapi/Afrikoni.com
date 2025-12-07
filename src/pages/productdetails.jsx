@@ -807,6 +807,17 @@ export default function ProductDetail() {
         </div>
       </div>
 
+      {/* AI Recommendations */}
+      {aiRecommendations.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8">
+          <ProductRecommendations 
+            productId={product.id}
+            currentUserId={user?.id}
+            currentCompanyId={user?.company_id}
+          />
+        </section>
+      )}
+
       {/* Similar Products */}
       {similarProducts.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 py-8">
