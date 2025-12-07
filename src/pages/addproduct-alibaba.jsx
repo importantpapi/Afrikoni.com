@@ -649,6 +649,43 @@ Contact us for more details, custom specifications, or to request samples.`;
         console.log('🔍 Company ID:', companyId);
 
         if (imageRecords.length > 0) {
+          // Verify product exists and user has access before inserting images
+          if (savedProductId) {
+            const { data: productCheck, error: productCheckError } = await supabase
+              .from('products')
+              .select('id, company_id, status')
+              .eq('id', savedProductId)
+              .single();
+            
+            if (productCheckError || !productCheck) {
+              console.error('❌ Product verification failed:', productCheckError);
+              toast.error('Cannot save images: Product not found or access denied');
+              return;
+            }
+            
+            console.log('✅ Product verified:', {
+              product_id: productCheck.id,
+              company_id: productCheck.company_id,
+              expected_company_id: companyId,
+              match: productCheck.company_id === companyId
+            });
+            
+            // If company_id doesn't match, update it (shouldn't happen, but safety check)
+            if (productCheck.company_id !== companyId) {
+              console.warn('⚠️ Company ID mismatch, updating product...');
+              const { error: updateError } = await supabase
+                .from('products')
+                .update({ company_id: companyId })
+                .eq('id', savedProductId);
+              
+              if (updateError) {
+                console.error('❌ Failed to update product company_id:', updateError);
+                toast.error('Cannot save images: Product ownership issue');
+                return;
+              }
+            }
+          }
+          
           // If editing, delete old images FIRST, then insert new ones
           if (isEditing && productId) {
             console.log('🗑️ Deleting old images before inserting new ones...');
@@ -668,64 +705,82 @@ Contact us for more details, custom specifications, or to request samples.`;
             await new Promise(resolve => setTimeout(resolve, 200));
           }
           
-          // Insert images one by one to ensure all are saved
-          const insertedImages = [];
-          const errors = [];
+          // Try batch insert first (more efficient)
+          console.log('🔄 Attempting batch insert of images...');
+          const { data: batchInserted, error: batchError } = await supabase
+            .from('product_images')
+            .insert(imageRecords)
+            .select();
           
-          for (let i = 0; i < imageRecords.length; i++) {
-            const record = imageRecords[i];
-            console.log(`🔄 Inserting image ${i + 1}/${imageRecords.length}:`, record);
-            
-            const { data: inserted, error: err } = await supabase
-              .from('product_images')
-              .insert(record)
-              .select()
-              .single();
-            
-            if (err) {
-              console.error(`❌ Failed to insert image ${i + 1}:`, err);
-              errors.push({ index: i, error: err, record });
-            } else {
-              console.log(`✅ Successfully inserted image ${i + 1}:`, inserted);
-              insertedImages.push(inserted);
-            }
-          }
-          
-          if (insertedImages.length > 0) {
-            console.log(`✅ Successfully saved ${insertedImages.length}/${imageRecords.length} image(s):`, insertedImages);
-            toast.success(`Product saved with ${insertedImages.length} image(s)`);
-          }
-          
-          if (errors.length > 0) {
-            console.error(`❌ Failed to save ${errors.length} image(s):`, errors);
-            toast.error(`Failed to save ${errors.length} image(s). Check console for details.`);
-            
-            // Log detailed error information
-            errors.forEach(({ index, error, record }) => {
-              console.error(`Image ${index + 1} error:`, {
-                error,
-                record,
-                product_id: record.product_id,
-                url: record.url
-              });
+          if (batchError) {
+            console.warn('⚠️ Batch insert failed, trying individual inserts:', {
+              error: batchError,
+              message: batchError.message,
+              code: batchError.code,
+              details: batchError.details,
+              hint: batchError.hint
             });
             
-            // If we're editing and some images failed, try batch insert as fallback
-            if (isEditing && insertedImages.length === 0 && errors.length === imageRecords.length) {
-              console.log('🔄 All individual inserts failed, trying batch insert as fallback...');
-              const { data: batchInserted, error: batchError } = await supabase
-                .from('product_images')
-                .insert(imageRecords)
-                .select();
+            // Fallback: Insert images one by one
+            const insertedImages = [];
+            const errors = [];
+            
+            for (let i = 0; i < imageRecords.length; i++) {
+              const record = imageRecords[i];
+              console.log(`🔄 Inserting image ${i + 1}/${imageRecords.length}:`, record);
               
-              if (batchError) {
-                console.error('❌ Batch insert also failed:', batchError);
-                toast.error('Failed to save images. Please try uploading them again.');
-              } else if (batchInserted && batchInserted.length > 0) {
-                console.log('✅ Batch insert succeeded:', batchInserted);
-                toast.success(`Product saved with ${batchInserted.length} image(s)`);
+              const { data: inserted, error: err } = await supabase
+                .from('product_images')
+                .insert(record)
+                .select()
+                .single();
+              
+              if (err) {
+                console.error(`❌ Failed to insert image ${i + 1}:`, {
+                  error: err,
+                  message: err.message,
+                  details: err.details,
+                  hint: err.hint,
+                  code: err.code,
+                  record: record,
+                  product_id: savedProductId,
+                  user_id: user?.id,
+                  company_id: companyId
+                });
+                errors.push({ index: i, error: err, record });
+              } else {
+                console.log(`✅ Successfully inserted image ${i + 1}:`, inserted);
+                insertedImages.push(inserted);
               }
             }
+            
+            // Handle results
+            if (insertedImages.length > 0) {
+              console.log(`✅ Successfully saved ${insertedImages.length}/${imageRecords.length} image(s):`, insertedImages);
+              toast.success(`Product saved with ${insertedImages.length} image(s)`);
+            }
+            
+            if (errors.length > 0) {
+              console.error(`❌ Failed to save ${errors.length} image(s):`, errors);
+              const errorMessages = errors.map(e => e.error.message || e.error.code || 'Unknown error').join(', ');
+              toast.error(`Failed to save ${errors.length} image(s): ${errorMessages}`);
+              
+              // Log detailed error information
+              errors.forEach(({ index, error, record }) => {
+                console.error(`Image ${index + 1} error:`, {
+                  error,
+                  record,
+                  product_id: record.product_id,
+                  url: record.url
+                });
+              });
+            }
+          } else if (batchInserted && batchInserted.length > 0) {
+            console.log(`✅ Successfully saved ${batchInserted.length} image(s) via batch insert:`, batchInserted);
+            toast.success(`Product saved with ${batchInserted.length} image(s)`);
+          } else {
+            console.warn('⚠️ Batch insert returned no data');
+            toast.warning('Images may not have been saved. Please check your product.');
           }
         } else {
           console.warn('⚠️ No valid image URLs to save after filtering');
