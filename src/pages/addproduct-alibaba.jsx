@@ -117,10 +117,14 @@ export default function AddProductAlibaba() {
   // Load initial data
   useEffect(() => {
     loadInitialData();
-    if (isEditing && productId) {
+  }, []);
+
+  // Load product for editing after user and company are loaded
+  useEffect(() => {
+    if (isEditing && productId && user?.id && company?.id) {
       loadProductForEdit();
     }
-  }, [productId]);
+  }, [productId, user?.id, company?.id, isEditing]);
 
   const loadInitialData = async () => {
     try {
@@ -162,12 +166,14 @@ export default function AddProductAlibaba() {
   };
 
   const loadProductForEdit = async () => {
-    if (!productId || !user?.id) return;
+    if (!productId || !user?.id || !company?.id) {
+      console.log('loadProductForEdit: Missing required data', { productId, userId: user?.id, companyId: company?.id });
+      return;
+    }
     
     try {
       setIsLoading(true);
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
+      console.log('Loading product for edit:', { productId, companyId: company.id });
       
       const { data: product, error } = await supabase
         .from('products')
@@ -177,11 +183,24 @@ export default function AddProductAlibaba() {
           categories(*)
         `)
         .eq('id', productId)
-        .eq('company_id', companyId)
+        .eq('company_id', company.id)
         .single();
       
-      if (error) throw error;
-      if (!product) throw new Error('Product not found');
+      if (error) {
+        console.error('Error loading product:', error);
+        throw error;
+      }
+      
+      if (!product) {
+        console.error('Product not found:', { productId, companyId: company.id });
+        throw new Error('Product not found or you do not have permission to edit it');
+      }
+
+      console.log('Product loaded successfully:', { 
+        id: product.id, 
+        title: product.title, 
+        imageCount: product.product_images?.length || 0 
+      });
 
       // Load images - ensure format matches SmartImageUploader expectations
       const productImages = (product.product_images || [])
@@ -194,13 +213,29 @@ export default function AddProductAlibaba() {
         }));
 
       // Fallback to legacy images array if no product_images
-      const fallbackImages = (product.images || []).map((url, idx) => ({
-        url,
-        is_primary: idx === 0,
-        sort_order: idx
-      }));
+      const fallbackImages = Array.isArray(product.images) 
+        ? product.images.map((url, idx) => ({
+            url: typeof url === 'string' ? url : url?.url || url,
+            is_primary: idx === 0,
+            sort_order: idx
+          }))
+        : [];
 
-      setFormData({
+      // Parse specifications if it's a string
+      let specs = {};
+      if (product.specifications) {
+        if (typeof product.specifications === 'string') {
+          try {
+            specs = JSON.parse(product.specifications);
+          } catch (e) {
+            specs = {};
+          }
+        } else {
+          specs = product.specifications;
+        }
+      }
+
+      const loadedFormData = {
         title: product.title || '',
         description: product.description || '',
         category_id: product.category_id || '',
@@ -213,16 +248,25 @@ export default function AddProductAlibaba() {
         unit: product.unit || 'pieces',
         delivery_time: product.delivery_time || '',
         packaging: product.packaging || '',
-        weight_kg: product.specifications?.weight_kg || '',
-        dimensions: product.specifications?.dimensions || { length: '', width: '', height: '', unit: 'cm' },
-        shipping_cost: product.specifications?.shipping_cost || null,
+        weight_kg: specs?.weight_kg || '',
+        dimensions: specs?.dimensions || { length: '', width: '', height: '', unit: 'cm' },
+        shipping_cost: specs?.shipping_cost || null,
         status: product.status || 'draft'
-      });
+      };
+
+      console.log('Setting form data:', loadedFormData);
+      setFormData(loadedFormData);
 
       toast.success('Product loaded for editing');
     } catch (error) {
-      toast.error('Failed to load product: ' + (error.message || 'Unknown error'));
-      navigate('/dashboard/products');
+      console.error('Failed to load product for editing:', error);
+      const errorMessage = error?.message || 'Unknown error';
+      toast.error('Failed to load product: ' + errorMessage);
+      
+      // Don't navigate immediately - let user see the error
+      setTimeout(() => {
+        navigate('/dashboard/products');
+      }, 3000);
     } finally {
       setIsLoading(false);
     }
@@ -447,14 +491,13 @@ Contact us for more details, custom specifications, or to request samples.`;
         unit: formData.unit,
         delivery_time: formData.delivery_time || null,
         packaging: formData.packaging || null,
-        company_id: companyId, // Ensure company_id is set
+        company_id: companyId,
         specifications: {
           weight_kg: formData.weight_kg || null,
           dimensions: formData.dimensions,
           shipping_cost: formData.shipping_cost
         },
         status: 'active', // Published immediately to marketplace
-        company_id: companyId,
         published_at: new Date().toISOString()
       };
 
@@ -797,15 +840,21 @@ Contact us for more details, custom specifications, or to request samples.`;
         {/* Step Content */}
         <Card>
           <CardContent className="p-6">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                {/* Step 1: Basic Information */}
-                {currentStep === 1 && (
+            {isLoading && isEditing ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold mr-3" />
+                <span className="text-lg text-afrikoni-deep">Loading product data...</span>
+              </div>
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  {/* Step 1: Basic Information */}
+                  {currentStep === 1 && (
                   <div className="space-y-6">
                     <div>
                       <Label htmlFor="title">Product Title *</Label>
