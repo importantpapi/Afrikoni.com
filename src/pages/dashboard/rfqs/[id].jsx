@@ -344,6 +344,65 @@ export default function RFQDetail() {
         .eq('rfq_id', id)
         .neq('id', quoteId);
 
+      // Create order from awarded quote
+      const { data: newOrder, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          buyer_company_id: rfq.buyer_company_id,
+          seller_company_id: quote.supplier_company_id,
+          rfq_id: id,
+          quote_id: quoteId,
+          product_id: rfq.product_id || null,
+          quantity: rfq.quantity || quote.quantity || 1,
+          unit_price: quote.price_per_unit,
+          total_amount: quote.total_price,
+          currency: quote.currency || 'USD',
+          status: 'pending',
+          payment_status: 'pending',
+          delivery_location: rfq.delivery_location || null
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('Order creation error:', orderError);
+        // Continue even if order creation fails - RFQ was still awarded
+        toast.warning('RFQ awarded but order creation failed. Please create order manually.');
+      } else {
+        // Create escrow payment record
+        try {
+          const { createEscrowPayment } = await import('@/lib/supabaseQueries/payments');
+          await createEscrowPayment({
+            order_id: newOrder.id,
+            buyer_company_id: rfq.buyer_company_id,
+            seller_company_id: quote.supplier_company_id,
+            amount: quote.total_price,
+            currency: quote.currency || 'USD',
+            status: 'pending'
+          });
+        } catch (escrowError) {
+          // Escrow creation is optional, continue
+          console.warn('Escrow creation failed:', escrowError);
+        }
+
+        // Create wallet transaction for escrow hold
+        try {
+          await supabase.from('wallet_transactions').insert({
+            order_id: newOrder.id,
+            rfq_id: id,
+            company_id: rfq.buyer_company_id,
+            type: 'escrow_hold',
+            amount: quote.total_price,
+            currency: quote.currency || 'USD',
+            status: 'pending',
+            description: `Escrow hold for order ${newOrder.id}`
+          });
+        } catch (walletError) {
+          // Wallet transaction is optional
+          console.warn('Wallet transaction creation failed:', walletError);
+        }
+      }
+
       // Create notification for awarded supplier
       if (quote.supplier_company_id) {
         try {
@@ -351,18 +410,26 @@ export default function RFQDetail() {
           await createNotification({
             company_id: quote.supplier_company_id,
             title: 'RFQ Awarded',
-            message: `Your quote for RFQ "${rfq.title}" has been awarded`,
+            message: `Your quote for RFQ "${rfq.title}" has been awarded${newOrder ? ` - Order ${newOrder.id} created` : ''}`,
             type: 'rfq',
-            link: `/dashboard/rfqs/${id}`,
-            related_id: id
+            link: newOrder ? `/dashboard/orders/${newOrder.id}` : `/dashboard/rfqs/${id}`,
+            related_id: newOrder?.id || id
           });
         } catch (err) {
           // Notification creation failed, but quote was submitted
         }
       }
 
-      toast.success('RFQ awarded successfully!');
-      loadRFQData();
+      toast.success(newOrder ? `RFQ awarded! Order ${newOrder.id} created.` : 'RFQ awarded successfully!');
+      
+      // Navigate to order if created
+      if (newOrder) {
+        setTimeout(() => {
+          navigate(`/dashboard/orders/${newOrder.id}`);
+        }, 1500);
+      } else {
+        loadRFQData();
+      }
     } catch (error) {
       toast.error('Failed to award RFQ');
     } finally {
