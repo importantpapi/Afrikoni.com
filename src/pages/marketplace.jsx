@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { buildProductQuery } from '@/utils/queryBuilders';
@@ -39,6 +39,7 @@ import { trackProductView } from '@/lib/supabaseQueries/products';
 export default function Marketplace() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { trackPageView } = useAnalytics();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [products, setProducts] = useState([]);
@@ -578,51 +579,49 @@ if (!Array.isArray(productsList)) return [];
                     variant="ghost" 
                     size="sm" 
                     className="text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2" 
-                    asChild
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/business/${product.companies.id}`);
+                    }}
                   >
-                    <Link to={`/business/${product.companies.id}`}>
-                      <Building2 className="w-4 h-4" />
-                    </Link>
+                    <Building2 className="w-4 h-4" />
                   </Button>
                 )}
                 <Button 
                   variant="secondary" 
                   size="sm" 
                   className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-4" 
-                  asChild
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Store product context for smart message generation
+                    if (product?.id) {
+                      sessionStorage.setItem('contactProductContext', JSON.stringify({
+                        productId: product.id,
+                        productTitle: product.title,
+                        productPrice: product.price || product.price_min,
+                        productCurrency: product.currency,
+                        productMOQ: product.moq || product.min_order_quantity,
+                        supplierName: product?.companies?.company_name || 'Supplier',
+                        supplierCountry: product?.country_of_origin || product?.companies?.country
+                      }));
+                    }
+                    navigate(`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}&product=${product?.id || ''}&productTitle=${encodeURIComponent(product?.title || '')}`);
+                  }}
                 >
-                  <Link 
-                    to={`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}&product=${product?.id || ''}&productTitle=${encodeURIComponent(product?.title || '')}`}
-                    onClick={(e) => {
-                      // Store product context for smart message generation
-                      if (product?.id) {
-                        sessionStorage.setItem('contactProductContext', JSON.stringify({
-                          productId: product.id,
-                          productTitle: product.title,
-                          productPrice: product.price || product.price_min,
-                          productCurrency: product.currency,
-                          productMOQ: product.moq || product.min_order_quantity,
-                          supplierName: product?.companies?.company_name || 'Supplier',
-                          supplierCountry: product?.country_of_origin || product?.companies?.country
-                        }));
-                      }
-                    }}
-                  >
-                    <MessageSquare className="w-4 h-4 mr-1" />
-                    {t('marketplace.contact')}
-                  </Link>
+                  <MessageSquare className="w-4 h-4 mr-1" />
+                  {t('marketplace.contact')}
                 </Button>
                 <Button 
                   variant="primary" 
                   size="sm" 
                   className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-4" 
-                  asChild
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/dashboard/rfqs/new?product=${product.id}`);
+                  }}
                 >
-                  <Link to={`/dashboard/rfqs/new?product=${product.id}`}>
-                    <FileText className="w-4 h-4 mr-1" />
-                    {t('marketplace.quote')}
-                  </Link>
+                  <FileText className="w-4 h-4 mr-1" />
+                  {t('marketplace.quote')}
                 </Button>
               </div>
             </CardContent>
