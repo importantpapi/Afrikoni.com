@@ -430,41 +430,52 @@ if (!Array.isArray(productsList)) return [];
       ? selectedFilters.country
       : urlCountryName || '';
 
-  const ProductCard = React.memo(({ product }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.3 }}
-    >
-      <Link 
-        to={`/product?id=${product.id}`}
-        onClick={async (e) => {
-          addToViewHistory(product.id, 'product', {
-            title: product.title || product.name,
-            category_id: product.category_id,
-            country: product.country_of_origin
+  const ProductCard = React.memo(({ product }) => {
+    const handleCardClick = async (e) => {
+      // Don't navigate if clicking on buttons or links
+      if (e.target.closest('button, a, [role="button"]')) {
+        return;
+      }
+      
+      addToViewHistory(product.id, 'product', {
+        title: product.title || product.name,
+        category_id: product.category_id,
+        country: product.country_of_origin
+      });
+      
+      // Track product view in database
+      if (currentUser?.id || currentCompanyId) {
+        try {
+          await trackProductView(product.id, {
+            profile_id: currentUser?.id,
+            company_id: currentCompanyId,
+            source_page: 'marketplace'
           });
-          
-          // Track product view in database
-          if (currentUser?.id || currentCompanyId) {
-            try {
-              await trackProductView(product.id, {
-                profile_id: currentUser?.id,
-                company_id: currentCompanyId,
-                source_page: 'marketplace'
-              });
-            } catch (error) {
-              // Silent fail - tracking is non-critical
-            }
-          }
-        }}
+        } catch (error) {
+          // Silent fail - tracking is non-critical
+        }
+      }
+      
+      // Navigate to product page
+      navigate(`/product?id=${product.id}`);
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.3 }}
       >
         <motion.div
           whileHover={{ y: -4, scale: 1.01 }}
           transition={{ duration: 0.2 }}
         >
-          <Card hover className="h-full">
+          <Card 
+            hover 
+            className="h-full cursor-pointer"
+            onClick={handleCardClick}
+          >
             <div className="relative h-48 bg-afrikoni-cream rounded-t-xl overflow-hidden">
               {product.primaryImage ? (
                 <OptimizedImage
@@ -506,7 +517,7 @@ if (!Array.isArray(productsList)) return [];
                   </Badge>
                 </div>
               )}
-              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.preventDefault()}>
+              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
                 <SaveButton itemId={product.id} itemType="product" />
               </div>
             </div>
