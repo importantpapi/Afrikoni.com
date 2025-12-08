@@ -246,3 +246,55 @@ html, body {
   margin-left: 0.5rem;
 }
 
+/* Mobile Category Slider Fixes */
+@media (max-width: 600px) {
+  /* Category Card Container - Mobile Only */
+  .category-card {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: auto !important;
+    aspect-ratio: 4 / 5 !important;
+    border-radius: 16px;
+    flex-shrink: 0 !important;
+  }
+
+  /* Image Wrapper */
+  .category-card img,
+  .category-card > div > div:first-child {
+    width: 100% !important;
+    height: 110px !important;
+    object-fit: cover;
+    border-radius: 16px 16px 0 0;
+  }
+
+  /* Content Area */
+  .category-card-content {
+    padding: 6px !important;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+  }
+
+  /* Pagination Bullets */
+  .pagination-bullet {
+    width: 8px !important;
+    height: 8px !important;
+  }
+
+  /* Prevent Swiper from collapsing height */
+  .swiper-container,
+  .swiper-wrapper,
+  .swiper-slide,
+  [class*="swiper"] {
+    height: auto !important;
+  }
+
+  /* Category slider container */
+  [class*="category"] [class*="flex"] {
+    height: auto !important;
+  }
+}
+

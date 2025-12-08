@@ -307,64 +307,111 @@ export default function PopularCategories({ categories = [] }) {
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
+          style={{ height: 'auto' }}
         >
-          <div className="overflow-hidden rounded-lg">
+          <div className="overflow-hidden rounded-lg" style={{ height: 'auto' }}>
             <motion.div 
               ref={scrollContainerRef}
               className="flex"
               animate={{ x: `-${currentIndex * 100}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{ width: `${popularCategories.length * 100}%` }}
+              style={{ 
+                width: `${popularCategories.length * 100}%`,
+                height: 'auto'
+              }}
             >
               {popularCategories.map((category, idx) => {
                 const Icon = category.icon;
                 return (
                   <div 
                     key={idx} 
-                    className="flex-shrink-0"
-                    style={{ width: `${100 / popularCategories.length}%` }}
+                    className="flex-shrink-0 flex justify-center"
+                    style={{ 
+                      width: `${100 / popularCategories.length}%`,
+                      height: 'auto'
+                    }}
                   >
-                    <div className="px-2">
-                      <Link to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}>
-                        <motion.div
-                          whileHover={{ scale: 1.01 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream h-full">
-                            <div className="h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
-                              {category.image && (
-                                <img 
-                                  src={category.image} 
-                                  alt={category.name}
-                                  className="w-full h-full object-cover opacity-90"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
-                                  }}
-                                />
-                              )}
-                              <div className="absolute top-4 left-4 w-12 h-12 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
-                                <Icon className="w-6 h-6 text-afrikoni-chestnut" />
-                              </div>
+                    <Link 
+                      to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
+                      className="block"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        transition={{ duration: 0.2 }}
+                        className="category-card"
+                        style={{
+                          width: '120px',
+                          minWidth: '120px',
+                          maxWidth: '120px',
+                          height: 'auto',
+                          aspectRatio: '4 / 5',
+                          borderRadius: '16px',
+                          flexShrink: 0
+                        }}
+                      >
+                        <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream h-full flex flex-col">
+                          <div 
+                            className="bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden"
+                            style={{
+                              width: '100%',
+                              height: '110px',
+                              borderRadius: '16px 16px 0 0'
+                            }}
+                          >
+                            {category.image && (
+                              <img 
+                                src={category.image} 
+                                alt={category.name}
+                                style={{
+                                  width: '100%',
+                                  height: '110px',
+                                  objectFit: 'cover',
+                                  borderRadius: '16px 16px 0 0'
+                                }}
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            )}
+                            <div className="absolute top-2 left-2 w-8 h-8 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
+                              <Icon className="w-4 h-4 text-afrikoni-chestnut" />
                             </div>
-                            <CardContent className="p-5">
-                              <h3 className="font-bold text-afrikoni-chestnut mb-2 text-base line-clamp-1">
-                                {category.name}
-                              </h3>
-                              <p className="text-sm text-afrikoni-deep mb-4 line-clamp-3 min-h-[3.75rem]">
-                                {category.description}
-                              </p>
-                              <div className="text-sm font-semibold text-afrikoni-gold mb-2">
-                                {category.productCount} products available
-                              </div>
-                              <div className="text-xs text-afrikoni-deep/70 line-clamp-2 min-h-[2rem]">
-                                {category.subCategories.slice(0, 3).join(', ')}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      </Link>
-                    </div>
+                          </div>
+                          <CardContent 
+                            className="category-card-content flex-1 flex flex-col justify-center"
+                            style={{
+                              padding: '6px',
+                              textAlign: 'center'
+                            }}
+                          >
+                            <h3 
+                              className="font-bold text-afrikoni-chestnut mb-1"
+                              style={{
+                                fontSize: '12px',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                lineHeight: '1.2'
+                              }}
+                            >
+                              {category.name}
+                            </h3>
+                            <div 
+                              className="text-afrikoni-gold font-semibold"
+                              style={{
+                                fontSize: '10px',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {category.productCount}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </Link>
                   </div>
                 );
               })}
@@ -400,18 +447,19 @@ export default function PopularCategories({ categories = [] }) {
           </AnimatePresence>
           
           {/* Mobile Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-4">
+          <div className="flex justify-center gap-2 mt-4 pagination-bullet-container">
             {popularCategories.map((_, idx) => (
               <motion.button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
-                className={`h-2 rounded-full transition-all ${
-                  idx === currentIndex 
-                    ? 'bg-afrikoni-gold w-6' 
-                    : 'bg-afrikoni-gold/30 w-2'
-                }`}
+                className="pagination-bullet rounded-full transition-all"
+                style={{
+                  width: idx === currentIndex ? '24px' : '8px',
+                  height: '8px',
+                  backgroundColor: idx === currentIndex ? '#D4A937' : 'rgba(212, 169, 55, 0.3)'
+                }}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
