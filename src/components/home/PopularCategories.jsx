@@ -92,12 +92,14 @@ export default function PopularCategories({ categories = [] }) {
     ...displayCategories.slice(0, CLONE_COUNT) // Clones at end
   ];
 
-  // Calculate card width using clamp
+  // Calculate card width - larger for better visibility, centered
   const getCardWidth = () => {
-    if (typeof window === 'undefined') return '120px';
+    if (typeof window === 'undefined') return '140px';
     const vw = window.innerWidth;
-    const clamped = Math.max(90, Math.min(130, vw * 0.22));
-    return `${clamped}px`;
+    // Use 70% of viewport width minus padding for one card to be fully visible
+    const availableWidth = vw - 64; // 32px padding on each side
+    const cardWidth = Math.min(160, Math.max(140, availableWidth * 0.7));
+    return `${cardWidth}px`;
   };
 
   const [cardWidth, setCardWidth] = useState(getCardWidth());
@@ -114,8 +116,9 @@ export default function PopularCategories({ categories = [] }) {
   useEffect(() => {
     if (carouselTrackRef.current && realCategoryCount > 0) {
       const cardWidthNum = parseFloat(cardWidth);
-      const gap = 12;
-      const startPosition = CLONE_COUNT * (cardWidthNum + gap);
+      const gap = 16;
+      const padding = (window.innerWidth - cardWidthNum) / 2;
+      const startPosition = CLONE_COUNT * (cardWidthNum + gap) + padding - (window.innerWidth - cardWidthNum) / 2;
       carouselTrackRef.current.scrollLeft = startPosition;
       setCurrentIndex(0);
     }
@@ -130,7 +133,7 @@ export default function PopularCategories({ categories = [] }) {
       if (isScrolling) return;
       
       const cardWidthNum = parseFloat(cardWidth);
-      const gap = 12;
+      const gap = 16;
       const cardWithGap = cardWidthNum + gap;
       const scrollLeft = track.scrollLeft;
       const currentCardIndex = Math.round(scrollLeft / cardWithGap);
@@ -169,7 +172,7 @@ export default function PopularCategories({ categories = [] }) {
     if (!track) return;
     
     const cardWidthNum = parseFloat(cardWidth);
-    const gap = 12;
+    const gap = 16;
     const cardWithGap = cardWidthNum + gap;
     const currentScroll = track.scrollLeft;
     const newScroll = currentScroll - cardWithGap;
@@ -185,7 +188,7 @@ export default function PopularCategories({ categories = [] }) {
     if (!track) return;
     
     const cardWidthNum = parseFloat(cardWidth);
-    const gap = 12;
+    const gap = 16;
     const cardWithGap = cardWidthNum + gap;
     const currentScroll = track.scrollLeft;
     const newScroll = currentScroll + cardWithGap;
@@ -201,9 +204,10 @@ export default function PopularCategories({ categories = [] }) {
     if (!track) return;
     
     const cardWidthNum = parseFloat(cardWidth);
-    const gap = 12;
+    const gap = 16;
+    const padding = (window.innerWidth - cardWidthNum) / 2;
     const cardWithGap = cardWidthNum + gap;
-    const targetScroll = (CLONE_COUNT + index) * cardWithGap;
+    const targetScroll = (CLONE_COUNT + index) * cardWithGap + padding - (window.innerWidth - cardWidthNum) / 2;
     
     track.scrollTo({
       left: targetScroll,
@@ -394,11 +398,11 @@ export default function PopularCategories({ categories = [] }) {
             className="carousel-track"
             style={{
               display: 'flex',
-              gap: '12px',
+              gap: '16px',
               overflowX: 'auto',
               scrollSnapType: 'x mandatory',
-              paddingLeft: '16px',
-              paddingRight: '16px',
+              paddingLeft: `calc((100vw - ${cardWidth}) / 2)`,
+              paddingRight: `calc((100vw - ${cardWidth}) / 2)`,
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch'
@@ -484,18 +488,18 @@ export default function PopularCategories({ categories = [] }) {
                       <CardContent 
                         className="category-card-content flex-1 flex flex-col justify-center"
                         style={{
-                          padding: '6px',
+                          padding: '8px 6px',
                           textAlign: 'center'
                         }}
                       >
                         <h3 
                           className="font-bold text-afrikoni-chestnut mb-1"
                           style={{
-                            fontSize: '12px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            lineHeight: '1.2'
+                            fontSize: '13px',
+                            lineHeight: '1.3',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            hyphens: 'auto'
                           }}
                         >
                           {categoryName}
@@ -503,13 +507,11 @@ export default function PopularCategories({ categories = [] }) {
                         <div 
                           className="text-afrikoni-gold font-semibold"
                           style={{
-                            fontSize: '10px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
+                            fontSize: '11px',
+                            lineHeight: '1.2'
                           }}
                         >
-                          {productCount}
+                          {productCount} {productCount !== '0' && 'products'}
                         </div>
                       </CardContent>
                     </Card>
