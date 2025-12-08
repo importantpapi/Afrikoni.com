@@ -135,6 +135,7 @@ export default function NotificationsCenter() {
     else if (filter === 'message') matches = n.type === 'message';
     else if (filter === 'payment') matches = n.type === 'payment';
     else if (filter === 'review') matches = n.type === 'review';
+    else if (filter === 'verification') matches = n.type === 'verification';
     
     // Filter by search query
     if (searchQuery && matches) {

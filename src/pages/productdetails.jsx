@@ -16,7 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, MapPin, Star, Shield, Building2, MessageCircle, FileText, CheckCircle } from 'lucide-react';
+import { Package, MapPin, Star, Shield, Building2, MessageCircle, FileText, CheckCircle, Clock } from 'lucide-react';
+import TrustBadge from '@/components/ui/TrustBadge';
 import { toast } from 'sonner';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import ReviewList from '@/components/reviews/ReviewList';
@@ -32,6 +33,7 @@ import BulkPricingTiers from '@/components/products/BulkPricingTiers';
 import ShareProduct from '@/components/products/ShareProduct';
 import { Share2, GitCompare } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 
 export default function ProductDetail() {
   const { t } = useLanguage();
@@ -554,18 +556,10 @@ export default function ProductDetail() {
                         )}
                         {/* Supplier verification / trust badge */}
                         {supplier?.verification_status === 'verified' && (
-                          <Badge className="text-[10px] sm:text-xs bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                            <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">Verified by Afrikoni Shield™</span>
-                            <span className="sm:hidden">Verified</span>
-                          </Badge>
+                          <TrustBadge type="verified-supplier" size="sm" />
                         )}
-                        {supplier?.verification_status === 'pending' && (
-                          <Badge className="text-[10px] sm:text-xs bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">Supplier Under Review</span>
-                            <span className="sm:hidden">Pending</span>
-                          </Badge>
+                        {supplier?.trust_score && parseFloat(supplier.trust_score) > 0 && (
+                          <TrustBadge type="trust-score" score={parseInt(supplier.trust_score)} size="sm" />
                         )}
                       </div>
                     </div>
@@ -732,6 +726,7 @@ export default function ProductDetail() {
                     className="w-full touch-manipulation min-h-[44px]"
                     size="sm"
                   />
+                  <OffPlatformDisclaimerCompact className="mt-3" />
                 </div>
               </CardContent>
             </Card>
@@ -763,22 +758,19 @@ export default function ProductDetail() {
                       <MapPin className="w-4 h-4" /> {supplier.city}, {supplier.country}
                     </div>
                   </div>
-                  {supplier.verified && (
-                    <Badge className="bg-green-50 text-green-700 border-green-200">
-                      <Shield className="w-3 h-3 mr-1" /> Verified Supplier
-                    </Badge>
-                  )}
-                  {supplier?.trust_score && parseFloat(supplier.trust_score) > 0 && (
-                    <div>
-                      <div className="text-sm text-afrikoni-deep mb-1">Trust Score</div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-afrikoni-cream rounded-full overflow-hidden">
-                          <div className="h-full bg-afrikoni-gold rounded-full" style={{ width: `${Math.min(100, Math.max(0, parseFloat(supplier.trust_score)))}%` }} />
-                        </div>
-                        <span className="text-sm font-semibold text-afrikoni-chestnut">{parseFloat(supplier.trust_score)}</span>
-                      </div>
-                    </div>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {supplier?.verification_status === 'verified' && (
+                      <TrustBadge type="verified-supplier" />
+                    )}
+                    {supplier?.verification_status === 'pending' && (
+                      <Badge className="bg-amber-50 text-amber-700 border-amber-300">
+                        <Clock className="w-3 h-3 mr-1" /> Verification Pending
+                      </Badge>
+                    )}
+                    {supplier?.trust_score && parseFloat(supplier.trust_score) > 0 && (
+                      <TrustBadge type="trust-score" score={parseInt(supplier.trust_score)} />
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <Link to={`/business/${supplier.id}`} className="flex-1">
                       <Button variant="outline" className="w-full">View Business Profile</Button>

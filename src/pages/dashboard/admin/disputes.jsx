@@ -11,6 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
@@ -30,6 +33,9 @@ export default function AdminDisputes() {
   const [disputes, setDisputes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedDispute, setSelectedDispute] = useState(null);
+  const [resolutionNotes, setResolutionNotes] = useState('');
+  const [resolutionAction, setResolutionAction] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -122,6 +128,76 @@ export default function AdminDisputes() {
     } catch (error) {
       console.error('Error processing escrow:', error);
       toast.error('Failed to process escrow');
+    }
+  };
+
+  const handleResolveDispute = (dispute) => {
+    setSelectedDispute(dispute);
+    setResolutionNotes('');
+    setResolutionAction('');
+  };
+
+  const handleSubmitResolution = async () => {
+    if (!selectedDispute || !resolutionAction || !resolutionNotes.trim()) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const { user } = await getCurrentUserAndRole(supabase);
+      
+      const { error } = await supabase
+        .from('disputes')
+        .update({
+          status: 'resolved',
+          resolution: resolutionNotes,
+          admin_notes: resolutionNotes,
+          resolved_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedDispute.id);
+
+      if (error) throw error;
+
+      // Send notification to both parties
+      try {
+        const { createNotification } = await import('@/services/notificationService');
+        
+        // Notify buyer
+        if (selectedDispute.buyer_company_id) {
+          await createNotification({
+            company_id: selectedDispute.buyer_company_id,
+            title: `Dispute Resolved - Order #${selectedDispute.orders?.order_number || selectedDispute.order_id?.slice(0, 8)}`,
+            message: `Your dispute has been resolved: ${resolutionNotes.substring(0, 100)}...`,
+            type: 'dispute',
+            link: `/dashboard/disputes`,
+            sendEmail: true
+          });
+        }
+
+        // Notify seller
+        if (selectedDispute.seller_company_id) {
+          await createNotification({
+            company_id: selectedDispute.seller_company_id,
+            title: `Dispute Resolved - Order #${selectedDispute.orders?.order_number || selectedDispute.order_id?.slice(0, 8)}`,
+            message: `A dispute on your order has been resolved: ${resolutionNotes.substring(0, 100)}...`,
+            type: 'dispute',
+            link: `/dashboard/disputes`,
+            sendEmail: true
+          });
+        }
+      } catch (notifError) {
+        console.error('Failed to send notifications:', notifError);
+      }
+
+      toast.success('Dispute resolved successfully');
+      setSelectedDispute(null);
+      setResolutionNotes('');
+      setResolutionAction('');
+      await loadData();
+    } catch (error) {
+      console.error('Error resolving dispute:', error);
+      toast.error('Failed to resolve dispute');
     }
   };
 
@@ -337,11 +413,13 @@ export default function AdminDisputes() {
                           View Order
                         </Button>
                       </Link>
-                      <Link to={`/disputes/${dispute.id}`}>
-                        <Button size="sm" className="bg-red-600 hover:bg-red-700">
-                          Resolve Dispute
-                        </Button>
-                      </Link>
+                      <Button 
+                        size="sm" 
+                        className="bg-red-600 hover:bg-red-700"
+                        onClick={() => handleResolveDispute(dispute)}
+                      >
+                        Resolve Dispute
+                      </Button>
                     </div>
                   </motion.div>
                 ))}
@@ -349,6 +427,107 @@ export default function AdminDisputes() {
             )}
           </CardContent>
         </Card>
+
+        {/* Resolve Dispute Dialog */}
+        {selectedDispute && (
+          <Dialog open={!!selectedDispute} onOpenChange={() => setSelectedDispute(null)}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold text-afrikoni-chestnut">
+                  Resolve Dispute #{selectedDispute.id.slice(0, 8).toUpperCase()}
+                </DialogTitle>
+                <DialogClose onClose={() => setSelectedDispute(null)} />
+              </DialogHeader>
+
+              <div className="space-y-6 py-4">
+                {/* Dispute Info */}
+                <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-sm text-afrikoni-deep/70">Order</p>
+                        <p className="font-semibold text-afrikoni-chestnut">
+                          #{selectedDispute.orders?.order_number || selectedDispute.order_id?.slice(0, 8)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-afrikoni-deep/70">Reason</p>
+                        <p className="font-semibold text-afrikoni-chestnut">{selectedDispute.reason}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-afrikoni-deep/70">Description</p>
+                        <p className="text-afrikoni-deep">{selectedDispute.description}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Resolution Action */}
+                <div>
+                  <Label htmlFor="resolutionAction" className="font-semibold text-afrikoni-chestnut mb-2 block">
+                    Resolution Action <span className="text-red-600">*</span>
+                  </Label>
+                  <Select
+                    value={resolutionAction}
+                    onValueChange={setResolutionAction}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select resolution action" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="refund_full">Full Refund to Buyer</SelectItem>
+                      <SelectItem value="refund_partial">Partial Refund to Buyer</SelectItem>
+                      <SelectItem value="reship">Reship Product</SelectItem>
+                      <SelectItem value="favor_buyer">Favor Buyer - Issue Resolved</SelectItem>
+                      <SelectItem value="favor_seller">Favor Seller - No Action Needed</SelectItem>
+                      <SelectItem value="compromise">Compromise Solution</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Resolution Notes */}
+                <div>
+                  <Label htmlFor="resolutionNotes" className="font-semibold text-afrikoni-chestnut mb-2 block">
+                    Resolution Notes <span className="text-red-600">*</span>
+                  </Label>
+                  <Textarea
+                    id="resolutionNotes"
+                    value={resolutionNotes}
+                    onChange={(e) => setResolutionNotes(e.target.value)}
+                    placeholder="Explain the resolution decision. This will be shared with both parties..."
+                    rows={6}
+                  />
+                  <p className="text-xs text-afrikoni-deep/60 mt-1">
+                    These notes will be visible to both the buyer and seller.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handleSubmitResolution}
+                    disabled={!resolutionAction || !resolutionNotes.trim()}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Resolve Dispute
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setSelectedDispute(null);
+                      setResolutionNotes('');
+                      setResolutionAction('');
+                    }}
+                    variant="outline"
+                    className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -292,6 +292,14 @@ export default function AdminMarketplace() {
       toast.success('Supplier verified');
       loadSuppliers();
       loadStats();
+      
+      // Send notification to supplier
+      try {
+        const { notifyVerificationStatusChange } = await import('@/services/notificationService');
+        await notifyVerificationStatusChange(supplierId, 'approved');
+      } catch (notifError) {
+        console.error('Failed to send notification:', notifError);
+      }
     } catch (error) {
       toast.error('Failed to verify supplier');
     }
@@ -308,6 +316,14 @@ export default function AdminMarketplace() {
       toast.success('Supplier rejected');
       loadSuppliers();
       loadStats();
+      
+      // Send notification to supplier
+      try {
+        const { notifyVerificationStatusChange } = await import('@/services/notificationService');
+        await notifyVerificationStatusChange(supplierId, 'rejected', 'Your verification request was rejected. Please review your documents and resubmit.');
+      } catch (notifError) {
+        console.error('Failed to send notification:', notifError);
+      }
     } catch (error) {
       toast.error('Failed to reject supplier');
     }

@@ -20,6 +20,7 @@ import NotificationBell from '@/components/notificationbell';
 import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
@@ -190,28 +191,29 @@ export default function Navbar({ user, onLogout }) {
   return (
     <nav className={`w-full bg-afrikoni-chestnut text-afrikoni-cream border-b border-afrikoni-gold/30 sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''} relative`}>
       {/* Top bar */}
-      <div className="max-w-[1440px] mx-auto px-4 flex items-center justify-between gap-6 h-16 lg:h-20 overflow-visible">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6 h-14 sm:h-16 lg:h-20 overflow-visible">
         {/* Left: logo + explore + quick link */}
-        <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 flex-shrink-0 min-w-0">
-          <div className="max-w-[140px] sm:max-w-none flex-shrink-0">
-            <Logo type="full" size="md" link={true} showTagline={false} direction="horizontal" />
+        <div className="flex items-center gap-2 sm:gap-4 lg:gap-8 flex-shrink-0 min-w-0 flex-1">
+          <div className="max-w-[120px] sm:max-w-[140px] lg:max-w-none flex-shrink-0">
+            <Logo type="full" size="sm" link={true} showTagline={false} direction="horizontal" />
           </div>
 
           <button
             type="button"
             onClick={toggleMegaMenu}
-            className="hidden sm:flex items-center gap-1 text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors"
+            className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap"
           >
             {t('nav.explore')} <span className={`transition-transform duration-200 ${megaOpen ? 'rotate-180' : ''}`}>▼</span>
           </button>
 
-          <Link to="/marketplace" className="hidden md:block">
+          <Link to="/marketplace" className="hidden sm:block">
             <Button
               variant="outline"
               size="sm"
-              className="h-9 px-3 md:px-4 border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 rounded-full font-semibold text-xs md:text-sm"
+              className="h-8 sm:h-9 px-2 sm:px-3 md:px-4 border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 rounded-full font-semibold text-xs"
             >
-              {t('nav.browseProducts')}
+              <span className="hidden md:inline">{t('nav.browseProducts')}</span>
+              <span className="md:hidden">Browse</span>
             </Button>
           </Link>
           
@@ -220,11 +222,11 @@ export default function Navbar({ user, onLogout }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 px-2 sm:px-3 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                className="h-8 sm:h-9 px-2 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
               >
                 <GitCompare className="w-4 h-4" />
-                <span className="ml-1 hidden sm:inline">{t('nav.compare')}</span>
-                <span className="ml-1.5 bg-afrikoni-gold text-afrikoni-chestnut text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="ml-1 hidden lg:inline">{t('nav.compare')}</span>
+                <span className="ml-1 bg-afrikoni-gold text-afrikoni-chestnut text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {compareCount}
                 </span>
               </Button>
@@ -233,16 +235,16 @@ export default function Navbar({ user, onLogout }) {
         </div>
 
         {/* Right: language, currency, user */}
-        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-4 flex-shrink-0">
           {/* Language selector */}
           <div className="relative">
             <button
               onClick={openLanguageMenu}
-              className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
             >
-              <Globe className="w-4 h-4 flex-shrink-0" />
+              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="hidden lg:inline">{selectedLanguageCode}</span>
-              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${languageOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 ${languageOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -349,13 +351,13 @@ export default function Navbar({ user, onLogout }) {
               <div className="relative">
                 <button
                   onClick={openUserMenu}
-                  className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-afrikoni-gold/10 transition-colors"
+                  className="flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-md hover:bg-afrikoni-gold/10 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-chestnut font-bold text-sm flex-shrink-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-chestnut font-bold text-xs sm:text-sm flex-shrink-0">
                     {user.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-afrikoni-cream transition-transform duration-200 ${
+                    className={`w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-cream transition-transform duration-200 hidden sm:block ${
                       userMenuOpen ? 'rotate-180' : ''
                     }`}
                   />
@@ -435,6 +437,16 @@ export default function Navbar({ user, onLogout }) {
                           <div className="border-t border-afrikoni-gold/20 my-1"></div>
                           <button
                             onClick={() => {
+                              setUserMenuOpen(false);
+                              openWhatsAppCommunity('profile_sidebar');
+                            }}
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-afrikoni-cream text-sm transition-colors bg-afrikoni-gold/5"
+                          >
+                            <MessageSquare className="w-4 h-4 text-afrikoni-gold" />
+                            <span className="text-afrikoni-gold font-semibold">Join Community 🚀</span>
+                          </button>
+                          <button
+                            onClick={() => {
                               onLogout();
                               setUserMenuOpen(false);
                             }}
@@ -461,11 +473,11 @@ export default function Navbar({ user, onLogout }) {
                 </Button>
               </Link>
 
-              <Link to="/login">
+              <Link to="/login" className="hidden sm:block">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hidden lg:flex items-center h-9 px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full"
+                  className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full text-xs sm:text-sm"
                 >
                   {t('auth.login')}
                 </Button>
@@ -474,9 +486,10 @@ export default function Navbar({ user, onLogout }) {
               <Link to="/become-supplier" className="lg:hidden">
                 <Button
                   size="sm"
-                  className="h-9 px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full"
+                  className="h-8 sm:h-9 px-2 sm:px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full whitespace-nowrap"
                 >
-                  {t('nav.becomeSupplier')}
+                  <span className="hidden xs:inline">{t('nav.becomeSupplier')}</span>
+                  <span className="xs:hidden">Supplier</span>
                 </Button>
               </Link>
             </>

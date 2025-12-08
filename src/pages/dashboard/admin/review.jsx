@@ -111,6 +111,14 @@ export default function AdminReview() {
       if (error) throw error;
       toast.success('Supplier verified');
       setPendingSuppliers((prev) => prev.filter((c) => c.id !== id));
+      
+      // Send notification to supplier
+      try {
+        const { notifyVerificationStatusChange } = await import('@/services/notificationService');
+        await notifyVerificationStatusChange(id, 'approved');
+      } catch (notifError) {
+        console.error('Failed to send notification:', notifError);
+      }
     } catch {
       toast.error('Failed to verify supplier');
     }
@@ -125,6 +133,14 @@ export default function AdminReview() {
       if (error) throw error;
       toast.success('Supplier rejected');
       setPendingSuppliers((prev) => prev.filter((c) => c.id !== id));
+      
+      // Send notification to supplier
+      try {
+        const { notifyVerificationStatusChange } = await import('@/services/notificationService');
+        await notifyVerificationStatusChange(id, 'rejected', 'Your verification request was rejected. Please review your documents and resubmit.');
+      } catch (notifError) {
+        console.error('Failed to send notification:', notifError);
+      }
     } catch {
       toast.error('Failed to reject supplier');
     }

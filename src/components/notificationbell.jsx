@@ -141,22 +141,25 @@ export default function NotificationBell() {
               }
             }}
           />
-          <Card className="absolute right-0 top-12 w-80 z-50 max-h-96 overflow-y-auto">
+          <Card className="absolute right-0 top-12 w-80 md:w-96 z-50 max-h-[500px] overflow-y-auto shadow-lg">
             <CardContent className="p-0">
-              <div className="p-4 border-b">
-                <h3 className="font-semibold">Notifications</h3>
+              <div className="p-4 border-b bg-afrikoni-gold/5">
+                <h3 className="font-semibold text-afrikoni-chestnut">Notifications</h3>
+                {unreadCount > 0 && (
+                  <p className="text-xs text-afrikoni-deep/70 mt-1">{unreadCount} unread</p>
+                )}
               </div>
               {notifications.length === 0 ? (
                 <div className="p-8 text-center text-afrikoni-deep/70">
                   No notifications
                 </div>
               ) : (
-                <div className="divide-y">
+                <div className="divide-y divide-afrikoni-gold/10">
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 hover:bg-afrikoni-offwhite cursor-pointer ${
-                        !notification.read ? 'bg-amber-50' : ''
+                      className={`p-4 hover:bg-afrikoni-offwhite cursor-pointer transition-colors ${
+                        !notification.read ? 'bg-amber-50/50 border-l-2 border-amber-400' : ''
                       }`}
                       onClick={() => {
                         markAsRead(notification.id);
@@ -171,20 +174,50 @@ export default function NotificationBell() {
                           window.location.href = `/dashboard/rfqs/${notification.related_id}`;
                         } else if (notification.type === 'message' && notification.related_id) {
                           window.location.href = `/messages?conversation=${notification.related_id}`;
+                        } else if (notification.type === 'verification' && notification.related_id) {
+                          window.location.href = `/verification-center`;
                         } else if (notification.type === 'product' && notification.related_id) {
                           window.location.href = `/dashboard/products/new?id=${notification.related_id}`;
                         }
                       }}
                     >
-                      <div className="font-medium text-sm">{notification.title}</div>
-                      <div className="text-xs text-afrikoni-deep mt-1">
-                        {notification.message}
-                      </div>
-                      <div className="text-xs text-afrikoni-deep/70 mt-2">
-                        {new Date(notification.created_at).toLocaleDateString()}
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-afrikoni-chestnut mb-1 break-words">
+                            {notification.title}
+                          </div>
+                          <div className="text-xs text-afrikoni-deep mt-1 break-words whitespace-normal leading-relaxed">
+                            {notification.message}
+                          </div>
+                          <div className="text-xs text-afrikoni-deep/70 mt-2 flex items-center gap-2">
+                            <span>{new Date(notification.created_at).toLocaleDateString()}</span>
+                            {notification.type && (
+                              <span className="px-1.5 py-0.5 bg-afrikoni-gold/10 text-afrikoni-gold rounded text-[10px]">
+                                {notification.type}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-afrikoni-gold rounded-full flex-shrink-0 mt-1" />
+                        )}
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+              {notifications.length > 0 && (
+                <div className="p-3 border-t bg-afrikoni-offwhite/50">
+                  <a
+                    href="/dashboard/notifications"
+                    className="text-xs text-afrikoni-gold hover:underline font-medium text-center block"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsOpen(false);
+                    }}
+                  >
+                    View all notifications →
+                  </a>
                 </div>
               )}
             </CardContent>

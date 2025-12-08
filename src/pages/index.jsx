@@ -18,6 +18,7 @@ import PoweringAfricanTrade from '@/components/home/PoweringAfricanTrade';
 import BusinessModel from '@/components/home/BusinessModel';
 import EarlyUserTestGroup from '@/components/home/EarlyUserTestGroup';
 import TransparencySection from '@/components/home/TransparencySection';
+import SocialProof from '@/components/home/SocialProof';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -65,6 +66,7 @@ export default function Home() {
         <AboutAfrikoni />
         <HowItWorks />
         <TransparencySection />
+        <SocialProof />
         <NewsletterSection />
       </div>
     </>

@@ -139,8 +139,8 @@ export default function Contact() {
               <Mail className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="font-bold text-afrikoni-chestnut mb-2">Email Support</h3>
               <p className="text-sm text-afrikoni-deep mb-2">Get detailed help via email</p>
-              <a href="mailto:support@afrikoni.com" className="text-blue-600 hover:underline">
-                support@afrikoni.com
+              <a href="mailto:hello@afrikoni.com" className="text-blue-600 hover:underline">
+                hello@afrikoni.com
               </a>
               <div className="mt-4">
                 <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">

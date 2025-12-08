@@ -61,10 +61,14 @@ const AuditLogs = lazy(() => import('./pages/dashboard/audit'));
 const AdminDashboard = lazy(() => import('./pages/admindashboard'));
 const AdminUsers = lazy(() => import('./pages/dashboard/admin/users'));
 const AdminReview = lazy(() => import('./pages/dashboard/admin/review'));
+const AdminVerificationReview = lazy(() => import('./pages/dashboard/admin/verification-review'));
 const AdminAnalytics = lazy(() => import('./pages/dashboard/admin/analytics'));
 const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'));
 const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
+const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-tickets'));
+const SupportChat = lazy(() => import('./pages/dashboard/support-chat'));
+const UserDisputes = lazy(() => import('./pages/dashboard/disputes'));
 
 // Lazy-loaded heavy routes - Marketplace
 const Products = lazy(() => import('./pages/products'));
@@ -124,6 +128,10 @@ const BuyerProtectionPolicy = lazy(() => import('./pages/buyer-protection'));
 const AntiCorruptionPolicy = lazy(() => import('./pages/anti-corruption-policy'));
 const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
+const TrustCenter = lazy(() => import('./pages/trust'));
+const HowPaymentWorks = lazy(() => import('./pages/how-payment-works'));
+const About = lazy(() => import('./pages/about'));
+const Community = lazy(() => import('./pages/community'));
 
 function App() {
   // Setup session refresh to keep users logged in
@@ -182,6 +190,7 @@ function App() {
             <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/dashboard/admin/review" element={<ProtectedRoute><AdminReview /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/verification-review" element={<ProtectedRoute><AdminVerificationReview /></ProtectedRoute>} />
             <Route path="/dashboard/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
@@ -189,6 +198,7 @@ function App() {
             <Route path="/dashboard/admin/leads" element={<ProtectedRoute><AdminLeads /></ProtectedRoute>} />
             <Route path="/dashboard/admin/kyb" element={<ProtectedRoute><AdminKYB /></ProtectedRoute>} />
             <Route path="/dashboard/admin/disputes" element={<ProtectedRoute><AdminDisputes /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/support-tickets" element={<ProtectedRoute><AdminSupportTickets /></ProtectedRoute>} />
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
@@ -248,6 +258,10 @@ function App() {
             <Route path="/help" element={<Help />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/investors" element={<Investors />} />
+            <Route path="/trust" element={<TrustCenter />} />
+            <Route path="/how-payment-works" element={<HowPaymentWorks />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/community" element={<Community />} />
             {/* Insights / Resources */}
             <Route path="/resources" element={<ResourcesIndex />} />
             <Route path="/resources/how-to-source-verified-african-suppliers" element={<HowToSourceVerifiedAfricanSuppliers />} />

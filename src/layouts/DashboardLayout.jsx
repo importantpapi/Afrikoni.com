@@ -7,7 +7,7 @@ import {
   User, Users, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
   AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp, Sparkles,
   Receipt, RotateCcw, Star as StarIcon, Warehouse, TrendingDown, Users as UsersIcon,
-  FileSearch, Target
+  FileSearch, Target, MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { isAdmin } from '@/utils/permissions';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import { DashboardContextProvider } from '@/contexts/DashboardContext';
+import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useLanguage();
@@ -96,7 +97,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' }
+      { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' },
+      { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
+      { icon: AlertTriangle, label: 'Disputes', path: '/dashboard/disputes' }
     ],
     seller: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/seller' },
@@ -114,6 +117,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
       { icon: Shield, label: t('verification.title'), path: '/verification-center' },
+      { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
+      { icon: AlertTriangle, label: 'Disputes', path: '/dashboard/disputes' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
     ],
     hybrid: [
@@ -128,6 +133,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
       { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' },
+      { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
+      { icon: AlertTriangle, label: 'Disputes', path: '/dashboard/disputes' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
     ],
     logistics: [
@@ -150,10 +157,12 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: DollarSign, label: 'Revenue & Finance', path: '/dashboard/admin/revenue' },
       { icon: Package, label: 'Marketplace', path: '/dashboard/admin/marketplace' },
       { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
+      { icon: Shield, label: 'Verification Review', path: '/dashboard/admin/verification-review' },
       { icon: Star, label: 'Review Moderation', path: '/dashboard/admin/reviews' },
       { icon: Target, label: 'Marketing Leads', path: '/dashboard/admin/leads' },
       { icon: FileSearch, label: 'KYB Verification', path: '/dashboard/admin/kyb' },
       { icon: UsersIcon, label: 'Disputes & Escrow', path: '/dashboard/admin/disputes' },
+      { icon: MessageSquare, label: 'Support Tickets', path: '/dashboard/admin/support-tickets' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true }
     ]
   };
@@ -384,6 +393,16 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         {/* Premium Top Bar */}
         <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
           <div className="flex items-center justify-between px-4 md:px-6 py-4 relative overflow-visible">
+            {/* Community CTA - Mobile */}
+            <div className="md:hidden">
+              <button
+                onClick={() => openWhatsAppCommunity('dashboard_header_mobile')}
+                className="flex items-center gap-2 px-3 py-1.5 bg-afrikoni-gold text-afrikoni-chestnut rounded-full text-xs font-semibold hover:bg-afrikoni-goldLight transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                Community
+              </button>
+            </div>
             {/* Left: Menu + Search */}
             <div className="flex items-center gap-4 flex-1">
               <button
@@ -405,8 +424,16 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               </div>
             </div>
 
-            {/* Right: Role Switcher + Quick Create + Notifications + User */}
+            {/* Right: Community CTA (Desktop) + Role Switcher + Quick Create + Notifications + User */}
             <div className="flex items-center gap-3">
+              {/* Community CTA - Desktop */}
+              <button
+                onClick={() => openWhatsAppCommunity('dashboard_header_desktop')}
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-afrikoni-gold text-afrikoni-chestnut rounded-full text-sm font-semibold hover:bg-afrikoni-goldLight transition-colors shadow-afrikoni"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Join Community 🚀
+              </button>
               {/* Premium Segmented Role Switcher - v2.5 */}
               {isHybrid && (
                 <div className="hidden lg:flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-afrikoni-gold/20 shadow-premium relative">

@@ -26,6 +26,11 @@ const NOTIFICATION_TEMPLATES = {
   payment: {
     received: { title: 'Payment Received', message: 'Payment has been received' },
     released: { title: 'Payment Released', message: 'Escrow payment has been released' }
+  },
+  verification: {
+    approved: { title: 'Verification Approved', message: 'Your supplier verification has been approved' },
+    rejected: { title: 'Verification Rejected', message: 'Your verification request requires attention' },
+    pending: { title: 'Verification Under Review', message: 'Your verification documents are being reviewed' }
   }
 };
 
@@ -530,6 +535,38 @@ export async function notifyNewMessage(messageId, conversationId, receiverCompan
   } catch (error) {
     // Silently fail - notification creation is not critical
     console.error('Failed to create message notification:', error);
+  }
+}
+
+/**
+ * Helper to create notification when verification status changes
+ */
+export async function notifyVerificationStatusChange(companyId, status, reviewNotes = null) {
+  try {
+    const template = NOTIFICATION_TEMPLATES.verification[status] || {
+      title: 'Verification Status Updated',
+      message: `Your verification status has been updated to ${status}`
+    };
+
+    let message = template.message;
+    if (status === 'rejected' && reviewNotes) {
+      message = `${template.message}. Reason: ${reviewNotes}`;
+    } else if (status === 'approved') {
+      message = `${template.message}. You can now enjoy all verified supplier benefits including trust badges and increased visibility.`;
+    }
+
+    await createNotification({
+      company_id: companyId,
+      title: template.title,
+      message: message,
+      type: 'verification',
+      link: '/verification-center',
+      related_id: companyId,
+      sendEmail: true // Verification status changes are important, always send email
+    });
+  } catch (error) {
+    // Silently fail - notification creation is not critical
+    console.error('Failed to create verification notification:', error);
   }
 }
 

@@ -28,6 +28,7 @@ import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import SearchHistory from '@/components/search/SearchHistory';
+import TrustBadge from '@/components/ui/TrustBadge';
 import { toast } from 'sonner';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
@@ -541,20 +542,12 @@ if (!Array.isArray(productsList)) return [];
               {/* Supplier verification / trust badge */}
               {product.companies?.verification_status === 'verified' && (
                 <div className="absolute top-2 right-2">
-                  <Badge className="text-[10px] sm:text-xs bg-emerald-50 text-emerald-700 border-emerald-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                    <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">{t('marketplace.verifiedSupplier')}</span>
-                    <span className="sm:hidden">{t('products.verified')}</span>
-                  </Badge>
+                  <TrustBadge type="verified-supplier" size="sm" />
                 </div>
               )}
-              {product.companies?.verification_status === 'pending' && (
-                <div className="absolute top-2 right-2">
-                  <Badge className="text-[10px] sm:text-xs bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1 px-2 py-1 rounded-full">
-                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">{t('marketplace.pendingReview')}</span>
-                    <span className="sm:hidden">{t('verification.pending')}</span>
-                  </Badge>
+              {product.companies?.trust_score && parseFloat(product.companies.trust_score) > 70 && (
+                <div className="absolute top-2 right-2" style={{ top: product.companies?.verification_status === 'verified' ? '3.5rem' : '0.5rem' }}>
+                  <TrustBadge type="trust-score" score={parseInt(product.companies.trust_score)} size="sm" />
                 </div>
               )}
               <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
@@ -1168,7 +1161,11 @@ if (!Array.isArray(productsList)) return [];
                       )}
                       {selectedFilters.category && selectedFilters.category !== t('categories.all') && (
                         <Badge variant="outline" className="text-xs">
-                          {selectedFilters.category}
+                          {(() => {
+                            // Find category name by ID if it's a UUID, otherwise use the value directly
+                            const category = categories.find(cat => cat.id === selectedFilters.category || cat.name === selectedFilters.category);
+                            return category?.name || selectedFilters.category;
+                          })()}
                           <X 
                             className="w-3 h-3 ml-1 cursor-pointer" 
                             onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })}

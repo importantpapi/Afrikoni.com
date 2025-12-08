@@ -19,6 +19,7 @@ import VirtualList from '@/components/ui/VirtualList';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { generateBuyerInquiry } from '@/ai/aiFunctions';
+import OffPlatformDisclaimer from '@/components/OffPlatformDisclaimer';
 
 export default function MessagesPremium() {
   const { t } = useLanguage();
@@ -871,6 +872,11 @@ export default function MessagesPremium() {
                       <span className="hidden sm:inline text-afrikoni-deep/70">•</span>
                       <span className="text-afrikoni-deep/70">{t('messages.safetyWarning') || 'Do not send money outside the platform'}</span>
                     </div>
+                  </div>
+
+                  {/* Off-Platform Disclaimer */}
+                  <div className="px-4 py-3 border-b border-afrikoni-gold/20">
+                    <OffPlatformDisclaimer variant="compact" />
                   </div>
 
                   {/* Message Search */}

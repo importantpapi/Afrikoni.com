@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
+import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 
 export default function NewMessageDialog({ open, onOpenChange, recipientCompany, relatedTo, relatedType, subject }) {
   const [content, setContent] = useState('');
@@ -127,6 +128,7 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
               rows={6}
             />
           </div>
+          <OffPlatformDisclaimerCompact />
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Cancel

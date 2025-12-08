@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabaseHelpers, supabase } from '@/api/supabaseClient';
 import { createPageUrl } from './utils';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MapPin, Lock, Shield, Award, CheckCircle, Linkedin, Twitter, Facebook, Instagram, Youtube, ChevronDown } from 'lucide-react';
+import { Mail, Phone, MapPin, Lock, Shield, Award, CheckCircle, Linkedin, Twitter, Facebook, Instagram, Youtube, ChevronDown, MessageCircle } from 'lucide-react';
 import Navbar from './components/layout/Navbar';
 import { Logo } from '@/components/ui/Logo';
 
@@ -52,9 +52,13 @@ function Footer() {
   const companyLinks = [
     { to: '/buyer-hub', label: 'How Sourcing Works' },
     { to: '/supplier-hub', label: 'How Selling Works' },
+    { to: '/trust', label: 'Trust Center' },
+    { to: '/about', label: 'About Us' },
+    { to: '/logistics', label: 'Logistics' },
     { to: '/order-protection', label: 'Trust & Safety' },
     { to: '/help', label: 'Help Center' },
-    { to: '/contact', label: 'Contact Us' }
+    { to: '/contact', label: 'Contact Us' },
+    { to: '/community', label: 'Join Community', icon: MessageCircle, highlight: true }
   ];
 
   return (
@@ -209,17 +213,24 @@ function Footer() {
                   transition={{ duration: 0.2 }}
                   className="space-y-1.5 md:space-y-2 text-xs md:text-sm overflow-hidden md:overflow-visible"
                 >
-                  {companyLinks.map((item, idx) => (
-                    <motion.li
-                      key={idx}
-                      whileHover={{ x: 4 }}
-                      className="md:block"
-                    >
-                      <Link to={item.to} className="hover:text-afrikoni-gold transition-colors block text-afrikoni-cream/90 py-1">
-                        {item.label}
-                      </Link>
-                    </motion.li>
-                  ))}
+                  {companyLinks.map((item, idx) => {
+                    const Icon = item.icon;
+                    return (
+                      <motion.li
+                        key={idx}
+                        whileHover={{ x: 4 }}
+                        className="md:block"
+                      >
+                        <Link 
+                          to={item.to} 
+                          className={`hover:text-afrikoni-gold transition-colors block text-afrikoni-cream/90 py-1 flex items-center gap-2 ${item.highlight ? 'text-afrikoni-gold font-semibold' : ''}`}
+                        >
+                          {Icon && <Icon className="w-4 h-4" />}
+                          {item.label}
+                        </Link>
+                      </motion.li>
+                    );
+                  })}
                 </motion.ul>
               )}
             </AnimatePresence>

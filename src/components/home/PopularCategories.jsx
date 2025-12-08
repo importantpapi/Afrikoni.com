@@ -209,11 +209,12 @@ export default function PopularCategories({ categories = [] }) {
 
         {/* Tablet Carousel - Shows 2 at a time */}
         <div className="hidden md:block lg:hidden relative">
-          <div className="overflow-hidden">
+          <div className="overflow-hidden rounded-lg">
             <motion.div
-              className="flex gap-4"
+              className="flex"
               animate={{ x: `-${currentIndex * 50}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{ width: `${Math.ceil(popularCategories.length / 2) * 200}%` }}
             >
               {popularCategories.map((category, idx) => {
                 const Icon = category.icon;
@@ -307,56 +308,63 @@ export default function PopularCategories({ categories = [] }) {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-          <div className="overflow-hidden">
+          <div className="overflow-hidden rounded-lg">
             <motion.div 
               ref={scrollContainerRef}
               className="flex"
               animate={{ x: `-${currentIndex * 100}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{ width: `${popularCategories.length * 100}%` }}
             >
               {popularCategories.map((category, idx) => {
                 const Icon = category.icon;
                 return (
-                  <div key={idx} className="w-full px-2">
-                    <Link to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}>
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream">
-                          <div className="h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
-                            {category.image && (
-                              <img 
-                                src={category.image} 
-                                alt={category.name}
-                                className="w-full h-full object-cover opacity-90"
-                                loading="lazy"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                }}
-                              />
-                            )}
-                            <div className="absolute top-4 left-4 w-12 h-12 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
-                              <Icon className="w-6 h-6 text-afrikoni-chestnut" />
+                  <div 
+                    key={idx} 
+                    className="flex-shrink-0"
+                    style={{ width: `${100 / popularCategories.length}%` }}
+                  >
+                    <div className="px-2">
+                      <Link to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}>
+                        <motion.div
+                          whileHover={{ scale: 1.01 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream h-full">
+                            <div className="h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
+                              {category.image && (
+                                <img 
+                                  src={category.image} 
+                                  alt={category.name}
+                                  className="w-full h-full object-cover opacity-90"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                              )}
+                              <div className="absolute top-4 left-4 w-12 h-12 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
+                                <Icon className="w-6 h-6 text-afrikoni-chestnut" />
+                              </div>
                             </div>
-                          </div>
-                          <CardContent className="p-5">
-                            <h3 className="font-bold text-afrikoni-chestnut mb-2 text-base">
-                              {category.name}
-                            </h3>
-                            <p className="text-sm text-afrikoni-deep mb-4 line-clamp-3">
-                              {category.description}
-                            </p>
-                            <div className="text-sm font-semibold text-afrikoni-gold mb-2">
-                              {category.productCount} products available
-                            </div>
-                            <div className="text-xs text-afrikoni-deep/70 line-clamp-2">
-                              {category.subCategories.slice(0, 3).join(', ')}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    </Link>
+                            <CardContent className="p-5">
+                              <h3 className="font-bold text-afrikoni-chestnut mb-2 text-base line-clamp-1">
+                                {category.name}
+                              </h3>
+                              <p className="text-sm text-afrikoni-deep mb-4 line-clamp-3 min-h-[3.75rem]">
+                                {category.description}
+                              </p>
+                              <div className="text-sm font-semibold text-afrikoni-gold mb-2">
+                                {category.productCount} products available
+                              </div>
+                              <div className="text-xs text-afrikoni-deep/70 line-clamp-2 min-h-[2rem]">
+                                {category.subCategories.slice(0, 3).join(', ')}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      </Link>
+                    </div>
                   </div>
                 );
               })}

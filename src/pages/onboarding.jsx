@@ -184,6 +184,15 @@ export default function Onboarding() {
 
       toast.success('Onboarding completed! Welcome to Afrikoni.');
       
+      // Show community invite modal/dialog
+      setTimeout(async () => {
+        const shouldShowCommunity = window.confirm('🎉 Welcome to Afrikoni! Would you like to join our WhatsApp Community to connect with verified buyers, suppliers & logistics partners?');
+        if (shouldShowCommunity) {
+          const { openWhatsAppCommunity } = await import('@/utils/whatsappCommunity');
+          openWhatsAppCommunity('onboarding_success');
+        }
+      }, 500);
+      
       // Get dashboard path based on selected role - go directly to dashboard
       const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
       const normalizedRole = selectedRole || 'buyer';

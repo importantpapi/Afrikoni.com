@@ -118,7 +118,7 @@ export default function DashboardHelp() {
     },
     {
       title: 'Email Support',
-      description: 'support@afrikoni.com',
+      description: 'hello@afrikoni.com',
       icon: Mail,
       action: 'Send Email',
       available: true

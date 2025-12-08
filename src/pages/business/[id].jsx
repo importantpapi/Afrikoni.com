@@ -23,6 +23,7 @@ import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import { isValidUUID } from '@/utils/security';
 import { motion } from 'framer-motion';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
+import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 
 export default function BusinessProfile() {
   const { id } = useParams();
@@ -262,26 +263,29 @@ export default function BusinessProfile() {
                   </div>
                   
                   {/* Contact Button */}
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      onClick={() => setShowMessageDialog(true)}
-                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Contact Supplier
-                    </Button>
-                    {business.website && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-3">
                       <Button
-                        variant="outline"
-                        asChild
+                        onClick={() => setShowMessageDialog(true)}
+                        className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
                       >
-                        <a href={business.website} target="_blank" rel="noopener noreferrer">
-                          <Globe className="w-4 h-4 mr-2" />
-                          Visit Website
-                          <ExternalLink className="w-3 h-3 ml-2" />
-                        </a>
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Contact Supplier
                       </Button>
-                    )}
+                      {business.website && (
+                        <Button
+                          variant="outline"
+                          asChild
+                        >
+                          <a href={business.website} target="_blank" rel="noopener noreferrer">
+                            <Globe className="w-4 h-4 mr-2" />
+                            Visit Website
+                            <ExternalLink className="w-3 h-3 ml-2" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                    <OffPlatformDisclaimerCompact />
                   </div>
                 </div>
               </div>

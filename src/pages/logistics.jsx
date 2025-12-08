@@ -246,6 +246,169 @@ export default function Logistics() {
             </Card>
           </section>
 
+          {/* Logistics Plans Pricing Table */}
+          <section className="mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
+                Logistics Plans & Pricing
+              </h2>
+              <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+                Choose the shipping option that works best for your business
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Standard Plan */}
+              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold text-afrikoni-chestnut">Standard</CardTitle>
+                  <CardDescription>Buyer arranges shipping</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6">
+                    <div className="text-3xl font-bold text-afrikoni-gold mb-2">Free</div>
+                    <p className="text-sm text-afrikoni-deep">No platform fee</p>
+                  </div>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Buyer handles shipping directly</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Full control over logistics</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">No escrow protection for shipping</span>
+                    </li>
+                  </ul>
+                  <Button className="w-full" variant="outline">Select Standard</Button>
+                </CardContent>
+              </Card>
+
+              {/* Afrikoni Logistics Plan */}
+              <Card className="border-afrikoni-gold hover:border-afrikoni-gold transition-all shadow-lg relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-afrikoni-gold text-afrikoni-charcoal">Recommended</Badge>
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold text-afrikoni-chestnut">Afrikoni Logistics</CardTitle>
+                  <CardDescription>Escrow-protected shipping</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6">
+                    <div className="text-3xl font-bold text-afrikoni-gold mb-2">2-5%</div>
+                    <p className="text-sm text-afrikoni-deep">Of shipping cost</p>
+                  </div>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Escrow protection for shipping</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Verified logistics partners</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Real-time tracking</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Insurance coverage</span>
+                    </li>
+                  </ul>
+                  <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal">Select Afrikoni Logistics</Button>
+                </CardContent>
+              </Card>
+
+              {/* Verified Express Plan */}
+              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold text-afrikoni-chestnut">Verified Express</CardTitle>
+                  <CardDescription>Premium fast shipping</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6">
+                    <div className="text-3xl font-bold text-afrikoni-gold mb-2">5-8%</div>
+                    <p className="text-sm text-afrikoni-deep">Of shipping cost</p>
+                  </div>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Priority shipping lanes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Faster delivery times</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Premium support</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-afrikoni-deep">Enhanced insurance</span>
+                    </li>
+                  </ul>
+                  <Button className="w-full" variant="outline">Select Express</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          {/* Incoterms Selection Guide */}
+          <section className="mb-16">
+            <Card className="border-afrikoni-gold/20">
+              <CardHeader>
+                <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut flex items-center gap-3">
+                  <Package className="w-8 h-8 text-afrikoni-gold" />
+                  Incoterms Selection Guide
+                </CardTitle>
+                <CardDescription>
+                  Choose the right shipping terms for your transaction
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-afrikoni-chestnut mb-3">EXW (Ex Works)</h4>
+                    <p className="text-sm text-afrikoni-deep mb-2">
+                      Buyer collects goods from seller's premises. Buyer responsible for all shipping costs and risks.
+                    </p>
+                    <Badge variant="outline" className="text-xs">Buyer Pays All</Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-afrikoni-chestnut mb-3">FOB (Free On Board)</h4>
+                    <p className="text-sm text-afrikoni-deep mb-2">
+                      Seller delivers goods to port. Buyer pays shipping from port to destination.
+                    </p>
+                    <Badge variant="outline" className="text-xs">Shared Responsibility</Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-afrikoni-chestnut mb-3">CIF (Cost, Insurance, Freight)</h4>
+                    <p className="text-sm text-afrikoni-deep mb-2">
+                      Seller pays shipping and insurance to destination port. Buyer handles customs and final delivery.
+                    </p>
+                    <Badge variant="outline" className="text-xs">Seller Pays Shipping</Badge>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-afrikoni-gold/10 rounded-lg border border-afrikoni-gold/20">
+                  <p className="text-sm text-afrikoni-deep">
+                    <strong>Tip:</strong> Select your preferred Incoterms when creating an RFQ or during checkout. This helps suppliers provide accurate quotes.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
           {/* CTA Section */}
           <section className="text-center">
             <motion.div
