@@ -450,13 +450,14 @@ export default function PopularCategories({ categories = [] }) {
                               height: '110px',
                               objectFit: 'cover',
                               borderRadius: '16px 16px 0 0',
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              zIndex: 1
+                              display: 'block',
+                              position: 'relative',
+                              zIndex: 1,
+                              minHeight: '110px'
                             }}
                             loading="lazy"
                             onError={(e) => {
+                              e.target.style.opacity = '0';
                               e.target.style.display = 'none';
                             }}
                           />
@@ -469,7 +470,7 @@ export default function PopularCategories({ categories = [] }) {
                               position: 'absolute',
                               top: 0,
                               left: 0,
-                              zIndex: 1
+                              zIndex: 0
                             }}
                           />
                         )}
