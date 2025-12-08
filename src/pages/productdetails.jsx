@@ -30,8 +30,7 @@ import ProductImageGallery from '@/components/products/ProductImageGallery';
 import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 import ProductVariants from '@/components/products/ProductVariants';
 import BulkPricingTiers from '@/components/products/BulkPricingTiers';
-import ShareProduct from '@/components/products/ShareProduct';
-import { Share2, GitCompare } from 'lucide-react';
+import { GitCompare } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 
@@ -731,11 +730,6 @@ export default function ProductDetail() {
               </CardContent>
             </Card>
 
-            {/* Share Product */}
-            <ShareProduct 
-              product={product} 
-              productUrl={`${window.location.origin}/product?id=${product.id}`}
-            />
 
             {/* Shipping Calculator */}
             <ShippingCalculator
