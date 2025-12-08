@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
@@ -74,57 +74,185 @@ const popularCategories = [
 ];
 
 export default function PopularCategories({ categories = [] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollContainerRef = useRef(null);
-
-  // Calculate how many items to show per view
-  const itemsPerView = {
-    mobile: 1,
-    tablet: 2,
-    desktop: 4
+  // Normalize categories to handle both database structure and hardcoded structure
+  const normalizeCategory = (cat) => {
+    if (typeof cat === 'object' && cat !== null) {
+      // If it's already in the correct format (from popularCategories)
+      if (cat.icon && cat.productCount) {
+        return cat;
+      }
+      // If it's from database, map it to the expected format
+      const iconMap = {
+        'agriculture': Sprout,
+        'food': Sprout,
+        'textiles': Shirt,
+        'apparel': Shirt,
+        'beauty': Heart,
+        'personal care': Heart,
+        'industrial': HardHat,
+        'construction': HardHat,
+        'home': Home,
+        'living': Home,
+        'electronics': Smartphone,
+        'consumer electronics': Smartphone,
+        'health': Coffee,
+        'wellness': Coffee,
+        'minerals': Gem,
+        'gemstones': Gem
+      };
+      
+      const categoryName = cat.name || cat.title || 'Category';
+      const categoryLower = categoryName.toLowerCase();
+      const matchedIcon = Object.keys(iconMap).find(key => categoryLower.includes(key));
+      
+      return {
+        name: categoryName,
+        description: cat.description || `Products in ${categoryName}`,
+        productCount: cat.product_count || cat.productCount || '0',
+        subCategories: cat.subcategories || cat.subCategories || [],
+        icon: matchedIcon ? iconMap[matchedIcon] : Package,
+        image: cat.image || cat.image_url || null
+      };
+    }
+    return cat;
   };
 
-  const maxIndex = Math.max(0, popularCategories.length - itemsPerView.desktop);
+  // Use provided categories or fallback to popularCategories
+  const rawCategories = categories.length > 0 ? categories : popularCategories;
+  const displayCategories = rawCategories.map(normalizeCategory);
+  
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollContainerRef = useRef(null);
+  const carouselTrackRef = useRef(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const realCategoryCount = displayCategories.length;
+
+  // Infinite loop: Clone slides for seamless looping
+  const CLONE_COUNT = 3;
+  const clonedCategories = [
+    ...displayCategories.slice(-CLONE_COUNT), // Clones at start
+    ...displayCategories, // Original categories
+    ...displayCategories.slice(0, CLONE_COUNT) // Clones at end
+  ];
+
+  // Calculate card width using clamp
+  const getCardWidth = () => {
+    if (typeof window === 'undefined') return '120px';
+    const vw = window.innerWidth;
+    const clamped = Math.max(90, Math.min(130, vw * 0.22));
+    return `${clamped}px`;
+  };
+
+  const [cardWidth, setCardWidth] = useState(getCardWidth());
+
+  useEffect(() => {
+    const updateCardWidth = () => {
+      setCardWidth(getCardWidth());
+    };
+    window.addEventListener('resize', updateCardWidth);
+    return () => window.removeEventListener('resize', updateCardWidth);
+  }, []);
+
+  // Initialize scroll position to first real category
+  useEffect(() => {
+    if (carouselTrackRef.current && realCategoryCount > 0) {
+      const cardWidthNum = parseFloat(cardWidth);
+      const gap = 12;
+      const startPosition = CLONE_COUNT * (cardWidthNum + gap);
+      carouselTrackRef.current.scrollLeft = startPosition;
+      setCurrentIndex(0);
+    }
+  }, [cardWidth, realCategoryCount]);
+
+  // Handle infinite loop scroll
+  useEffect(() => {
+    const track = carouselTrackRef.current;
+    if (!track) return;
+
+    const handleScroll = () => {
+      if (isScrolling) return;
+      
+      const cardWidthNum = parseFloat(cardWidth);
+      const gap = 12;
+      const cardWithGap = cardWidthNum + gap;
+      const scrollLeft = track.scrollLeft;
+      const currentCardIndex = Math.round(scrollLeft / cardWithGap);
+
+      // If at cloned end (last 3), jump to real start
+      if (currentCardIndex >= realCategoryCount + CLONE_COUNT) {
+        setIsScrolling(true);
+        track.scrollLeft = CLONE_COUNT * cardWithGap;
+        setCurrentIndex(0);
+        setTimeout(() => setIsScrolling(false), 50);
+        return;
+      }
+
+      // If at cloned start (first 3), jump to real end
+      if (currentCardIndex < CLONE_COUNT) {
+        setIsScrolling(true);
+        track.scrollLeft = (realCategoryCount + CLONE_COUNT - 1) * cardWithGap;
+        setCurrentIndex(realCategoryCount - 1);
+        setTimeout(() => setIsScrolling(false), 50);
+        return;
+      }
+
+      // Update current index for real categories
+      const realIndex = currentCardIndex - CLONE_COUNT;
+      if (realIndex >= 0 && realIndex < realCategoryCount) {
+        setCurrentIndex(realIndex);
+      }
+    };
+
+    track.addEventListener('scroll', handleScroll, { passive: true });
+    return () => track.removeEventListener('scroll', handleScroll);
+  }, [cardWidth, realCategoryCount, isScrolling]);
 
   const handlePrev = () => {
-    setCurrentIndex(prev => Math.max(0, prev - 1));
+    const track = carouselTrackRef.current;
+    if (!track) return;
+    
+    const cardWidthNum = parseFloat(cardWidth);
+    const gap = 12;
+    const cardWithGap = cardWidthNum + gap;
+    const currentScroll = track.scrollLeft;
+    const newScroll = currentScroll - cardWithGap;
+    
+    track.scrollTo({
+      left: newScroll,
+      behavior: 'smooth'
+    });
   };
 
   const handleNext = () => {
-    setCurrentIndex(prev => Math.min(maxIndex, prev + 1));
-  };
-
-  // Touch/swipe support for mobile
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    const track = carouselTrackRef.current;
+    if (!track) return;
     
-    if (isLeftSwipe && currentIndex < popularCategories.length - 1) {
-      handleNext();
-    }
-    if (isRightSwipe && currentIndex > 0) {
-      handlePrev();
-    }
+    const cardWidthNum = parseFloat(cardWidth);
+    const gap = 12;
+    const cardWithGap = cardWidthNum + gap;
+    const currentScroll = track.scrollLeft;
+    const newScroll = currentScroll + cardWithGap;
+    
+    track.scrollTo({
+      left: newScroll,
+      behavior: 'smooth'
+    });
   };
 
-  // Get visible categories based on current index
-  const getVisibleCategories = () => {
-    return popularCategories.slice(currentIndex, currentIndex + itemsPerView.desktop);
+  const goToSlide = (index) => {
+    const track = carouselTrackRef.current;
+    if (!track) return;
+    
+    const cardWidthNum = parseFloat(cardWidth);
+    const gap = 12;
+    const cardWithGap = cardWidthNum + gap;
+    const targetScroll = (CLONE_COUNT + index) * cardWithGap;
+    
+    track.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth'
+    });
+    setCurrentIndex(index);
   };
 
   return (
@@ -154,10 +282,10 @@ export default function PopularCategories({ categories = [] }) {
           </Link>
         </motion.div>
         
-        {/* Desktop Grid - Shows all 8 categories in 2 rows */}
+        {/* Desktop Grid - Shows all categories in 2 rows */}
         <div className="hidden lg:block">
           <div className="grid grid-cols-4 gap-4 md:gap-6">
-            {popularCategories.map((category, idx) => {
+            {displayCategories.map((category, idx) => {
               const Icon = category.icon;
               return (
                 <div key={idx} className="w-full">
@@ -214,9 +342,9 @@ export default function PopularCategories({ categories = [] }) {
               className="flex"
               animate={{ x: `-${currentIndex * 50}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{ width: `${Math.ceil(popularCategories.length / 2) * 200}%` }}
+              style={{ width: `${Math.ceil(displayCategories.length / 2) * 200}%` }}
             >
-              {popularCategories.map((category, idx) => {
+              {displayCategories.map((category, idx) => {
                 const Icon = category.icon;
                 return (
                   <div key={idx} className="flex-shrink-0 w-1/2 px-2">
@@ -275,7 +403,7 @@ export default function PopularCategories({ categories = [] }) {
               <ChevronLeft className="w-5 h-5 text-afrikoni-gold" />
             </motion.button>
           )}
-          {currentIndex < popularCategories.length - 2 && (
+          {currentIndex < displayCategories.length - 2 && (
             <motion.button
               onClick={handleNext}
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10"
@@ -287,7 +415,7 @@ export default function PopularCategories({ categories = [] }) {
 
           {/* Tablet Dots */}
           <div className="flex justify-center gap-2 mt-4">
-            {Array.from({ length: Math.ceil(popularCategories.length / 2) }).map((_, idx) => (
+            {Array.from({ length: Math.ceil(displayCategories.length / 2) }).map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx * 2)}
@@ -301,157 +429,146 @@ export default function PopularCategories({ categories = [] }) {
           </div>
         </div>
 
-        {/* Mobile Carousel - Shows 1 at a time */}
-        <div 
-          className="md:hidden relative"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          style={{ height: 'auto' }}
-        >
-          <div className="overflow-hidden rounded-lg" style={{ height: 'auto' }}>
-            <motion.div 
-              ref={scrollContainerRef}
-              className="flex"
-              animate={{ x: `-${currentIndex * 100}%` }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{ 
-                width: `${popularCategories.length * 100}%`,
-                height: 'auto'
-              }}
-            >
-              {popularCategories.map((category, idx) => {
-                const Icon = category.icon;
-                return (
-                  <div 
-                    key={idx} 
-                    className="flex-shrink-0 flex justify-center"
-                    style={{ 
-                      width: `${100 / popularCategories.length}%`,
-                      height: 'auto'
-                    }}
+        {/* Mobile Carousel - Infinite Loop with Native Scroll */}
+        <div className="md:hidden relative" style={{ height: 'auto', paddingBottom: '12px' }}>
+          {/* Carousel Track with Native Scroll */}
+          <div 
+            ref={carouselTrackRef}
+            className="carousel-track"
+            style={{
+              display: 'flex',
+              gap: '12px',
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {clonedCategories.map((category, idx) => {
+              const Icon = category.icon || Package;
+              const categoryName = category.name || 'Category';
+              const productCount = category.productCount || '0';
+              const categoryImage = category.image || null;
+              
+              return (
+                <div
+                  key={`category-${idx}`}
+                  className="category-card"
+                  style={{
+                    flex: `0 0 ${cardWidth}`,
+                    scrollSnapAlign: 'center',
+                    height: 'auto',
+                    aspectRatio: '4 / 5',
+                    borderRadius: '16px',
+                    flexShrink: 0
+                  }}
+                >
+                  <Link 
+                    to={`/marketplace?category=${encodeURIComponent(categoryName.toLowerCase())}`}
+                    className="block h-full"
                   >
-                    <Link 
-                      to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
-                      className="block"
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
-                        transition={{ duration: 0.2 }}
-                        className="category-card"
+                    <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream h-full flex flex-col">
+                      <div 
+                        className="bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden"
                         style={{
-                          width: '120px',
-                          minWidth: '120px',
-                          maxWidth: '120px',
-                          height: 'auto',
-                          aspectRatio: '4 / 5',
-                          borderRadius: '16px',
+                          width: '100%',
+                          height: '110px',
+                          borderRadius: '16px 16px 0 0',
                           flexShrink: 0
                         }}
                       >
-                        <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream h-full flex flex-col">
-                          <div 
-                            className="bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden"
+                        {categoryImage && (
+                          <img 
+                            src={categoryImage} 
+                            alt={categoryName}
                             style={{
                               width: '100%',
                               height: '110px',
+                              objectFit: 'cover',
                               borderRadius: '16px 16px 0 0'
                             }}
-                          >
-                            {category.image && (
-                              <img 
-                                src={category.image} 
-                                alt={category.name}
-                                style={{
-                                  width: '100%',
-                                  height: '110px',
-                                  objectFit: 'cover',
-                                  borderRadius: '16px 16px 0 0'
-                                }}
-                                loading="lazy"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                }}
-                              />
-                            )}
-                            <div className="absolute top-2 left-2 w-8 h-8 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
-                              <Icon className="w-4 h-4 text-afrikoni-chestnut" />
-                            </div>
-                          </div>
-                          <CardContent 
-                            className="category-card-content flex-1 flex flex-col justify-center"
-                            style={{
-                              padding: '6px',
-                              textAlign: 'center'
+                            loading="lazy"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
                             }}
-                          >
-                            <h3 
-                              className="font-bold text-afrikoni-chestnut mb-1"
-                              style={{
-                                fontSize: '12px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                lineHeight: '1.2'
-                              }}
-                            >
-                              {category.name}
-                            </h3>
-                            <div 
-                              className="text-afrikoni-gold font-semibold"
-                              style={{
-                                fontSize: '10px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}
-                            >
-                              {category.productCount}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    </Link>
-                  </div>
-                );
-              })}
-            </motion.div>
+                          />
+                        )}
+                        <div className="absolute top-2 left-2 w-8 h-8 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
+                          <Icon className="w-4 h-4 text-afrikoni-chestnut" />
+                        </div>
+                      </div>
+                      <CardContent 
+                        className="category-card-content flex-1 flex flex-col justify-center"
+                        style={{
+                          padding: '6px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <h3 
+                          className="font-bold text-afrikoni-chestnut mb-1"
+                          style={{
+                            fontSize: '12px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            lineHeight: '1.2'
+                          }}
+                        >
+                          {categoryName}
+                        </h3>
+                        <div 
+                          className="text-afrikoni-gold font-semibold"
+                          style={{
+                            fontSize: '10px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {productCount}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
+              );
+            })}
           </div>
+
+          {/* Hide scrollbar */}
+          <style>{`
+            .carousel-track::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           
-          {/* Mobile Navigation */}
-          <AnimatePresence>
-            {currentIndex > 0 && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={handlePrev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg z-10"
-                aria-label="Previous"
-              >
-                <ChevronLeft className="w-5 h-5 text-afrikoni-gold" />
-              </motion.button>
-            )}
-            {currentIndex < popularCategories.length - 1 && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={handleNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg z-10"
-                aria-label="Next"
-              >
-                <ChevronRight className="w-5 h-5 text-afrikoni-gold" />
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {/* Mobile Navigation Arrows - Always visible for infinite loop */}
+          <button
+            onClick={handlePrev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg z-20 hover:bg-afrikoni-offwhite transition-colors"
+            aria-label="Previous"
+            style={{ zIndex: 20 }}
+          >
+            <ChevronLeft className="w-5 h-5 text-afrikoni-gold" />
+          </button>
+          <button
+            onClick={handleNext}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg z-20 hover:bg-afrikoni-offwhite transition-colors"
+            aria-label="Next"
+            style={{ zIndex: 20 }}
+          >
+            <ChevronRight className="w-5 h-5 text-afrikoni-gold" />
+          </button>
           
-          {/* Mobile Dots Indicator */}
+          {/* Mobile Dots Indicator - Only for REAL categories */}
           <div className="flex justify-center gap-2 mt-4 pagination-bullet-container">
-            {popularCategories.map((_, idx) => (
+            {displayCategories.map((_, idx) => (
               <motion.button
                 key={idx}
-                onClick={() => setCurrentIndex(idx)}
+                onClick={() => goToSlide(idx)}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 className="pagination-bullet rounded-full transition-all"
