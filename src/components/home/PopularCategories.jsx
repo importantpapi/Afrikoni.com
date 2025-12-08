@@ -74,52 +74,9 @@ const popularCategories = [
 ];
 
 export default function PopularCategories({ categories = [] }) {
-  // Normalize categories to handle both database structure and hardcoded structure
-  const normalizeCategory = (cat) => {
-    if (typeof cat === 'object' && cat !== null) {
-      // If it's already in the correct format (from popularCategories)
-      if (cat.icon && cat.productCount) {
-        return cat;
-      }
-      // If it's from database, map it to the expected format
-      const iconMap = {
-        'agriculture': Sprout,
-        'food': Sprout,
-        'textiles': Shirt,
-        'apparel': Shirt,
-        'beauty': Heart,
-        'personal care': Heart,
-        'industrial': HardHat,
-        'construction': HardHat,
-        'home': Home,
-        'living': Home,
-        'electronics': Smartphone,
-        'consumer electronics': Smartphone,
-        'health': Coffee,
-        'wellness': Coffee,
-        'minerals': Gem,
-        'gemstones': Gem
-      };
-      
-      const categoryName = cat.name || cat.title || 'Category';
-      const categoryLower = categoryName.toLowerCase();
-      const matchedIcon = Object.keys(iconMap).find(key => categoryLower.includes(key));
-      
-      return {
-        name: categoryName,
-        description: cat.description || `Products in ${categoryName}`,
-        productCount: cat.product_count || cat.productCount || '0',
-        subCategories: cat.subcategories || cat.subCategories || [],
-        icon: matchedIcon ? iconMap[matchedIcon] : Package,
-        image: cat.image || cat.image_url || null
-      };
-    }
-    return cat;
-  };
-
-  // Use provided categories or fallback to popularCategories
-  const rawCategories = categories.length > 0 ? categories : popularCategories;
-  const displayCategories = rawCategories.map(normalizeCategory);
+  // ALWAYS use popularCategories for homepage - they have rich data, images, and proper descriptions
+  // Database categories are used elsewhere but not for this curated homepage section
+  const displayCategories = popularCategories;
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef(null);
