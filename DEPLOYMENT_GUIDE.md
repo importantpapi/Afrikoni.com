@@ -1,116 +1,109 @@
-# Afrikoni Marketplace - Deployment Guide
+# 🚀 Deployment Guide - Afrikoni.com
 
-## ✅ GitHub Repository
-**Status:** ✅ Already connected and pushed
-- **Repository:** https://github.com/importantpapi/Afrikoni.com.git
-- **Branch:** main
-- **Latest commit:** bd2e6e2
+## ✅ GitHub Status
+- **Repository**: https://github.com/importantpapi/Afrikoni.com.git
+- **Branch**: `main`
+- **Latest Commit**: WhatsApp Community integration pushed successfully
 
-## 🚀 Vercel Deployment
+## 📋 Vercel Deployment Steps
 
-### Option 1: Deploy via Vercel Dashboard (Recommended)
+### 1. Connect to Vercel
 
-1. **Go to Vercel Dashboard**
-   - Visit: https://vercel.com
-   - Sign in with your GitHub account
+1. Go to [vercel.com](https://vercel.com) and sign in
+2. Click **"Add New Project"**
+3. Import your GitHub repository: `importantpapi/Afrikoni.com`
+4. Vercel will auto-detect it's a Vite project
 
-2. **Import Project**
-   - Click "Add New..." → "Project"
-   - Select "Import Git Repository"
-   - Choose: `importantpapi/Afrikoni.com`
-   - Click "Import"
+### 2. Configure Build Settings
 
-3. **Configure Project Settings**
-   - **Framework Preset:** Vite
-   - **Root Directory:** `./` (default)
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist`
-   - **Install Command:** `npm install`
+Vercel should auto-detect these, but verify:
+- **Framework Preset**: Vite
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Install Command**: `npm install`
 
-4. **Environment Variables**
-   Add the following environment variables in Vercel dashboard:
-   ```
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   VITE_OPENAI_API_KEY=your_openai_api_key
-   VITE_OPENAI_MODEL=gpt-4o-mini
-   ```
+### 3. Add Environment Variables
 
-5. **Deploy**
-   - Click "Deploy"
-   - Wait for build to complete
-   - Your site will be live at: `https://afrikoni-com.vercel.app` (or custom domain)
+In Vercel project settings → Environment Variables, add:
 
-### Option 2: Deploy via Vercel CLI
+#### Required:
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_WHATSAPP_COMMUNITY_LINK=https://chat.whatsapp.com/KmhNH1jLkPrHg18ktpNa5v
+```
 
-1. **Install Vercel CLI** (if not already installed)
-   ```bash
-   npm i -g vercel
-   ```
+#### Optional (if you use them):
+```
+VITE_GA4_MEASUREMENT_ID=your_ga4_measurement_id
+VITE_SENTRY_DSN=your_sentry_dsn
+```
 
-2. **Login to Vercel**
-   ```bash
-   vercel login
-   ```
+**Important**: 
+- Add these for **Production**, **Preview**, and **Development** environments
+- The WhatsApp link is already set, but you can update it if needed
 
-3. **Deploy**
-   ```bash
-   vercel
-   ```
-   - Follow the prompts
-   - Select your project settings
-   - Add environment variables when prompted
+### 4. Deploy
 
-4. **Deploy to Production**
-   ```bash
-   vercel --prod
-   ```
+1. Click **"Deploy"**
+2. Vercel will automatically:
+   - Install dependencies
+   - Build the project
+   - Deploy to production
 
-### Environment Variables Required
+### 5. Post-Deployment Checklist
 
-Make sure to add these in Vercel dashboard (Settings → Environment Variables):
+- [ ] Verify the site loads: `https://your-project.vercel.app`
+- [ ] Test `/community` page
+- [ ] Test WhatsApp Community CTAs:
+  - Dashboard header (desktop & mobile)
+  - Profile sidebar
+  - Footer link
+- [ ] Verify environment variables are set correctly
+- [ ] Check browser console for errors
+- [ ] Test analytics tracking
 
-- `VITE_SUPABASE_URL` - Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
-- `VITE_OPENAI_API_KEY` - Your OpenAI API key (for KoniAI features)
-- `VITE_OPENAI_MODEL` - OpenAI model (default: `gpt-4o-mini`)
+## 🔄 Continuous Deployment
 
-### Vercel Configuration
+Vercel automatically deploys when you push to `main`:
+- Every push to `main` → Production deployment
+- Pull requests → Preview deployments
 
-The project already has `vercel.json` configured with:
-- ✅ SPA routing (all routes redirect to index.html)
-- ✅ Security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection)
-- ✅ Cache control for static assets
+## 📝 Environment Variables Reference
 
-### Post-Deployment Checklist
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_SUPABASE_URL` | ✅ Yes | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | ✅ Yes | Your Supabase anonymous key |
+| `VITE_WHATSAPP_COMMUNITY_LINK` | ✅ Yes | WhatsApp Community invite link |
+| `VITE_GA4_MEASUREMENT_ID` | ❌ No | Google Analytics 4 ID |
+| `VITE_SENTRY_DSN` | ❌ No | Sentry error tracking DSN |
 
-- [ ] Verify all environment variables are set
-- [ ] Test authentication (login/signup)
-- [ ] Test product creation and marketplace
-- [ ] Test RFQ creation and quotes
-- [ ] Verify Supabase connection
-- [ ] Test AI features (KoniAI)
-- [ ] Check mobile responsiveness
-- [ ] Verify translations work in all languages
-- [ ] Test payment/escrow flows (if applicable)
+## 🐛 Troubleshooting
 
-### Custom Domain (Optional)
+### Build Fails
+- Check environment variables are set
+- Verify `package.json` scripts are correct
+- Check Vercel build logs
 
-1. Go to Vercel Dashboard → Your Project → Settings → Domains
-2. Add your custom domain
-3. Follow DNS configuration instructions
-4. Wait for SSL certificate (automatic)
+### WhatsApp Link Not Working
+- Verify `VITE_WHATSAPP_COMMUNITY_LINK` is set in Vercel
+- Check browser console for errors
+- Ensure the link format is correct: `https://chat.whatsapp.com/...`
 
-### Continuous Deployment
+### Analytics Not Tracking
+- Verify `VITE_GA4_MEASUREMENT_ID` is set (if using GA4)
+- Check browser console for analytics errors
 
-Vercel automatically deploys on every push to `main` branch:
-- ✅ Automatic deployments on git push
-- ✅ Preview deployments for pull requests
-- ✅ Automatic SSL certificates
+## 📞 Support
+
+If you encounter issues:
+1. Check Vercel deployment logs
+2. Check browser console for errors
+3. Verify all environment variables are set
+4. Ensure Supabase is accessible
 
 ---
 
-**Need Help?**
-- Vercel Docs: https://vercel.com/docs
-- Vercel Support: https://vercel.com/support
-
+**Last Updated**: December 2024
+**Repository**: https://github.com/importantpapi/Afrikoni.com.git
