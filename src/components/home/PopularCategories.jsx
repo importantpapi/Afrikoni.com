@@ -410,6 +410,9 @@ export default function PopularCategories({ categories = [] }) {
               const productCount = category.productCount || '0';
               const categoryImage = category.image || null;
               
+              // Ensure we have the image URL
+              const imageUrl = categoryImage || (category.image_url || null);
+              
               return (
                 <div
                   key={`category-${idx}`}
@@ -429,31 +432,51 @@ export default function PopularCategories({ categories = [] }) {
                   >
                     <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream h-full flex flex-col">
                       <div 
-                        className="bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden"
+                        className="relative overflow-hidden"
                         style={{
                           width: '100%',
                           height: '110px',
                           borderRadius: '16px 16px 0 0',
-                          flexShrink: 0
+                          flexShrink: 0,
+                          backgroundColor: '#F3E5C7'
                         }}
                       >
-                        {categoryImage && (
+                        {imageUrl ? (
                           <img 
-                            src={categoryImage} 
+                            src={imageUrl} 
                             alt={categoryName}
                             style={{
                               width: '100%',
                               height: '110px',
                               objectFit: 'cover',
-                              borderRadius: '16px 16px 0 0'
+                              borderRadius: '16px 16px 0 0',
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              zIndex: 1
                             }}
                             loading="lazy"
                             onError={(e) => {
                               e.target.style.display = 'none';
                             }}
                           />
+                        ) : (
+                          <div 
+                            className="bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite"
+                            style={{
+                              width: '100%',
+                              height: '110px',
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              zIndex: 1
+                            }}
+                          />
                         )}
-                        <div className="absolute top-2 left-2 w-8 h-8 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
+                        <div 
+                          className="absolute top-2 left-2 w-8 h-8 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg z-10"
+                          style={{ zIndex: 10 }}
+                        >
                           <Icon className="w-4 h-4 text-afrikoni-chestnut" />
                         </div>
                       </div>
