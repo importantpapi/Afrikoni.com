@@ -16,6 +16,7 @@ import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
+import { logLoginEvent } from '@/utils/auditLogger';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -44,6 +45,14 @@ export default function Login() {
       // Check email verification first
       const { data: { user: authUser } } = await supabase.auth.getUser();
       const emailVerified = authUser?.email_confirmed_at !== null;
+
+      // Log successful login to audit log
+      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      await logLoginEvent({
+        user: userData,
+        profile,
+        success: true
+      });
       
       if (!emailVerified) {
         toast.warning('Please verify your email address before accessing the dashboard.');
@@ -73,7 +82,18 @@ export default function Login() {
         }
       }
     } catch (error) {
-      // Error logged (removed for production)
+      // Log failed login attempt to audit log
+      try {
+        await logLoginEvent({
+          user: { email },
+          profile: null,
+          success: false
+        });
+      } catch (auditError) {
+        // Don't break login flow if audit logging fails
+        console.warn('Failed to log login attempt:', auditError);
+      }
+      
       toast.error(error.message || t('login.error'));
     } finally {
       setIsLoading(false);

@@ -9,6 +9,7 @@ import { CreditCard, DollarSign, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '../utils';
 import { isValidUUID } from '@/utils/security';
+import { logPaymentEvent } from '@/utils/auditLogger';
 
 export default function PaymentGateway() {
   const [order, setOrder] = useState(null);
@@ -48,9 +49,20 @@ export default function PaymentGateway() {
   const loadUser = async () => {
     try {
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
+      const { getOrCreateCompany } = await import('@/utils/companyHelper');
+      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      if (userData) {
+        // Get company_id from profile or create company
+        const cid = await getOrCreateCompany(supabase, profile || userData);
+        setUser({
+          ...userData,
+          ...profile,
+          company_id: cid || profile?.company_id || userData.company_id
+        });
+      }
     } catch (error) {
+      console.error('Error loading user:', error);
       setUser(null);
     }
   };
@@ -210,9 +222,45 @@ export default function PaymentGateway() {
                 related_id: order.id
               });
 
+              // Log payment success to audit log
+              const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+              const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+              await logPaymentEvent({
+                order_id: order.id,
+                amount: order.total_amount,
+                currency: order.currency || 'USD',
+                payment_method: 'flutterwave',
+                status: 'success',
+                user: userData,
+                profile,
+                company_id: user.company_id,
+                metadata: {
+                  transaction_id: response.transaction_id || response.tx_ref || txRef,
+                  payment_method_selected: selectedMethod
+                }
+              });
+
               toast.success('Payment processed successfully via Flutterwave!');
               navigate(createPageUrl('OrderDetail') + '?id=' + order.id);
             } else {
+              // Log payment failure to audit log
+              const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+              const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+              await logPaymentEvent({
+                order_id: order.id,
+                amount: order.total_amount,
+                currency: order.currency || 'USD',
+                payment_method: 'flutterwave',
+                status: 'failed',
+                user: userData,
+                profile,
+                company_id: user.company_id,
+                metadata: {
+                  failure_reason: response.message || 'Payment not completed',
+                  payment_method_selected: selectedMethod
+                }
+              });
+              
               toast.error('Payment was not completed. Please try again.');
             }
           } catch (err) {

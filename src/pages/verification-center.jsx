@@ -15,6 +15,7 @@ import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { toast } from 'sonner';
+import { logVerificationEvent } from '@/utils/auditLogger';
 
 const verificationSteps = [
   {
@@ -456,6 +457,28 @@ export default function VerificationCenter() {
           console.error('Failed to send notification:', notifError);
         }
       }
+
+      // Log verification document upload to audit log
+      const verificationId = verification?.id || (verification ? null : (await supabase
+        .from('verifications')
+        .select('id')
+        .eq('company_id', companyId)
+        .single())?.data?.id);
+      
+      await logVerificationEvent({
+        action: 'document_uploaded',
+        verification_id: verificationId,
+        company_id: companyId,
+        user,
+        profile: user,
+        metadata: {
+          document_type: step.docType,
+          step_id: stepId,
+          file_size: file.size,
+          file_type: file.type,
+          ai_verified: !!verificationResults[step.docType]?.verified
+        }
+      });
     } catch (error) {
       console.error('File upload error:', error);
       const errorMessage = error?.message || 'Failed to upload document. Please try again.';

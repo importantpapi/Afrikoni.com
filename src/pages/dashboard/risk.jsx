@@ -21,10 +21,7 @@ import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
-import {
-  riskKPIs, taxCompliance, antiCorruptionData, logisticsRisk,
-  fraudData, earlyWarningAlerts, riskScoreHistory, complianceByHub
-} from '@/data/riskDemo';
+// Removed mock data imports - using real database queries
 import { isAdmin } from '@/utils/permissions';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
@@ -36,10 +33,39 @@ export default function RiskManagementDashboard() {
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [alertFilter, setAlertFilter] = useState('all'); // all, critical, high, medium, low
+  const [riskKPIs, setRiskKPIs] = useState({
+    platformRiskScore: 0,
+    openIncidents: 0,
+    complianceTasksDue: 0,
+    kycPending: 0,
+    fraudAlerts24h: 0,
+    shipmentsAtRisk: 0
+  });
+  const [earlyWarningAlerts, setEarlyWarningAlerts] = useState([]);
+  const [taxCompliance, setTaxCompliance] = useState([]);
+  const [antiCorruptionData, setAntiCorruptionData] = useState({
+    whistleblowerReports: 0,
+    aiFlaggedAnomalies: 0,
+    attemptedBribeAlerts: 0,
+    suspiciousDocumentEdits: 0,
+    employeeRedFlags: 0,
+    partnerRedFlags: 0,
+    auditTrail: []
+  });
+  const [logisticsRisk, setLogisticsRisk] = useState([]);
+  const [fraudData, setFraudData] = useState([]);
+  const [riskScoreHistory, setRiskScoreHistory] = useState([]);
+  const [complianceByHub, setComplianceByHub] = useState([]);
 
   useEffect(() => {
     checkAccess();
   }, []);
+
+  useEffect(() => {
+    if (hasAccess) {
+      loadRiskData();
+    }
+  }, [hasAccess]);
 
   const checkAccess = async () => {
     try {
@@ -63,6 +89,260 @@ export default function RiskManagementDashboard() {
       setHasAccess(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRiskData = async () => {
+    try {
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // Load disputes (open incidents)
+      const { data: disputes, count: disputesCount } = await supabase
+        .from('disputes')
+        .select('*', { count: 'exact' })
+        .in('status', ['open', 'under_review']);
+
+      // Load pending verifications (KYC/AML pending)
+      const { data: pendingVerifications, count: kycPendingCount } = await supabase
+        .from('companies')
+        .select('*', { count: 'exact' })
+        .eq('verification_status', 'pending');
+
+      // Load high-risk audit logs (fraud alerts 24h)
+      const { data: fraudAlerts } = await supabase
+        .from('audit_log')
+        .select('*')
+        .in('risk_level', ['high', 'critical'])
+        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .in('status', ['failed', 'warning']);
+
+      // Load shipments at risk (delayed or problematic)
+      const { data: shipmentsAtRisk } = await supabase
+        .from('shipments')
+        .select('*')
+        .in('status', ['pending', 'picked_up'])
+        .lt('estimated_delivery', new Date().toISOString());
+
+      // Load all disputes for risk score calculation
+      const { data: allDisputes } = await supabase
+        .from('disputes')
+        .select('*')
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
+      // Load failed orders/payments
+      const { data: failedOrders } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('payment_status', 'refunded')
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
+      // Calculate Platform Risk Score (0-100, lower is better)
+      // Based on: disputes, failed payments, high-risk audit logs
+      const disputeWeight = allDisputes?.length || 0;
+      const failedPaymentWeight = failedOrders?.length || 0;
+      const fraudWeight = fraudAlerts?.length || 0;
+      const riskScore = Math.min(100, Math.round(
+        (disputeWeight * 5) + (failedPaymentWeight * 3) + (fraudWeight * 10)
+      ));
+
+      // Load compliance tasks (verifications pending review)
+      const { data: complianceTasks } = await supabase
+        .from('verifications')
+        .select('*')
+        .eq('status', 'pending');
+
+      // Build early warning alerts from real data
+      const alerts = [];
+      
+      // Add dispute alerts
+      if (disputes && disputes.length > 0) {
+        disputes.forEach(dispute => {
+          alerts.push({
+            id: `dispute-${dispute.id}`,
+            timestamp: dispute.created_at,
+            type: 'Dispute',
+            severity: dispute.status === 'open' ? 'high' : 'medium',
+            message: `Open dispute: ${dispute.reason}`,
+            entity: `Order ${dispute.order_id?.slice(0, 8)}`,
+            action: 'Review Dispute'
+          });
+        });
+      }
+
+      // Add fraud alerts
+      if (fraudAlerts && fraudAlerts.length > 0) {
+        fraudAlerts.forEach(alert => {
+          alerts.push({
+            id: `fraud-${alert.id}`,
+            timestamp: alert.created_at,
+            type: 'Fraud Alert',
+            severity: alert.risk_level,
+            message: `Suspicious activity: ${alert.action}`,
+            entity: alert.entity_type || 'System',
+            action: 'Investigate'
+          });
+        });
+      }
+
+      // Add verification alerts
+      if (pendingVerifications && pendingVerifications.length > 0) {
+        pendingVerifications.slice(0, 5).forEach(company => {
+          alerts.push({
+            id: `verification-${company.id}`,
+            timestamp: company.created_at,
+            type: 'Verification Pending',
+            severity: 'medium',
+            message: `Company verification pending: ${company.company_name}`,
+            entity: company.company_name,
+            action: 'Review Verification'
+          });
+        });
+      }
+
+      setRiskKPIs({
+        platformRiskScore: riskScore,
+        openIncidents: disputesCount || 0,
+        complianceTasksDue: complianceTasks?.length || 0,
+        kycPending: kycPendingCount || 0,
+        fraudAlerts24h: fraudAlerts?.length || 0,
+        shipmentsAtRisk: shipmentsAtRisk?.length || 0
+      });
+
+      setEarlyWarningAlerts(alerts.sort((a, b) => 
+        new Date(b.timestamp) - new Date(a.timestamp)
+      ));
+
+      // Load tax compliance data (placeholder - would need tax_filings table)
+      setTaxCompliance([]);
+
+      // Load anti-corruption data from audit logs
+      const { data: corruptionLogs } = await supabase
+        .from('audit_log')
+        .select('*')
+        .or('action.ilike.%bribe%,action.ilike.%corruption%,action.ilike.%fraud%')
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
+      setAntiCorruptionData({
+        whistleblowerReports: 0, // Would need separate table
+        aiFlaggedAnomalies: corruptionLogs?.filter(log => 
+          log.metadata?.ai_flagged === true
+        ).length || 0,
+        attemptedBribeAlerts: corruptionLogs?.filter(log => 
+          log.action.toLowerCase().includes('bribe')
+        ).length || 0,
+        suspiciousDocumentEdits: corruptionLogs?.filter(log => 
+          log.action.toLowerCase().includes('document')
+        ).length || 0,
+        employeeRedFlags: 0, // Would need separate table
+        partnerRedFlags: 0, // Would need separate table
+        auditTrail: (corruptionLogs || []).slice(0, 10).map(log => ({
+          id: log.id,
+          timestamp: log.created_at,
+          user: log.actor_user?.full_name || log.actor_company?.company_name || 'System',
+          action: log.action,
+          resource: log.entity_type || 'N/A',
+          status: log.status === 'failed' ? 'flagged' : 'normal',
+          reason: log.metadata?.reason || 'Suspicious activity detected',
+          severity: log.risk_level || 'medium'
+        }))
+      });
+
+      // Load logistics risk data
+      const { data: logisticsData } = await supabase
+        .from('shipments')
+        .select('*')
+        .in('status', ['pending', 'picked_up', 'in_transit'])
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      setLogisticsRisk((logisticsData || []).map(shipment => ({
+        id: shipment.id,
+        orderId: shipment.order_id,
+        status: shipment.status,
+        riskLevel: shipment.estimated_delivery && 
+          new Date(shipment.estimated_delivery) < new Date() ? 'high' : 'medium',
+        carrier: shipment.carrier,
+        origin: shipment.origin_address,
+        destination: shipment.destination_address
+      })));
+
+      // Load fraud data from audit logs
+      const { data: fraudLogs } = await supabase
+        .from('audit_log')
+        .select('*')
+        .or('action.ilike.%fraud%,action.ilike.%payment%,action.ilike.%transaction%')
+        .in('risk_level', ['high', 'critical'])
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      setFraudData((fraudLogs || []).map(log => ({
+        id: log.id,
+        timestamp: log.created_at,
+        type: log.action,
+        severity: log.risk_level,
+        actor: log.actor_user?.full_name || log.actor_company?.company_name || 'Unknown',
+        amount: log.metadata?.amount || null,
+        status: log.status
+      })));
+
+      // Risk score history (last 30 days)
+      const dailyScores = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayStart = new Date(date.setHours(0, 0, 0, 0));
+        const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+        
+        // Calculate risk for this day
+        const dayDisputes = allDisputes?.filter(d => 
+          new Date(d.created_at) >= dayStart && new Date(d.created_at) <= dayEnd
+        ).length || 0;
+        const dayScore = Math.min(100, dayDisputes * 10);
+        
+        dailyScores.push({
+          date: dayStart.toISOString().split('T')[0],
+          score: dayScore
+        });
+      }
+      setRiskScoreHistory(dailyScores);
+
+      // Compliance by hub (group by country)
+      const { data: companiesByCountry } = await supabase
+        .from('companies')
+        .select('country, verification_status')
+        .not('country', 'is', null);
+
+      const hubCompliance = {};
+      (companiesByCountry || []).forEach(company => {
+        if (!hubCompliance[company.country]) {
+          hubCompliance[company.country] = {
+            total: 0,
+            verified: 0,
+            pending: 0,
+            rejected: 0
+          };
+        }
+        hubCompliance[company.country].total++;
+        if (company.verification_status === 'verified') hubCompliance[company.country].verified++;
+        else if (company.verification_status === 'pending') hubCompliance[company.country].pending++;
+        else if (company.verification_status === 'rejected') hubCompliance[company.country].rejected++;
+      });
+
+      setComplianceByHub(Object.entries(hubCompliance).map(([country, data]) => ({
+        hub: country,
+        country: country,
+        complianceRate: data.total > 0 ? Math.round((data.verified / data.total) * 100) : 0,
+        totalCompanies: data.total,
+        verified: data.verified,
+        pending: data.pending
+      })));
+
+    } catch (error) {
+      console.error('Error loading risk data:', error);
     }
   };
 

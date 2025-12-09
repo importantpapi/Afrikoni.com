@@ -25,6 +25,7 @@ import { getOrCreateCompany } from '@/utils/companyHelper';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import { logDisputeEvent } from '@/utils/auditLogger';
 
 export default function UserDisputes() {
   const [disputes, setDisputes] = useState([]);
@@ -67,7 +68,6 @@ export default function UserDisputes() {
           *,
           orders (
             id,
-            order_number,
             total_amount,
             currency,
             status
@@ -81,7 +81,7 @@ export default function UserDisputes() {
             company_name
           )
         `)
-        .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid}`)
+        .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid},raised_by_company_id.eq.${cid}`)
         .order('created_at', { ascending: false });
 
       if (disputesError) throw disputesError;
@@ -155,6 +155,20 @@ export default function UserDisputes() {
       } catch (notifError) {
         console.error('Failed to send notification:', notifError);
       }
+
+      // Log dispute creation to audit log
+      await logDisputeEvent({
+        action: 'created',
+        dispute_id: newDispute.id,
+        order_id: selectedOrder.id,
+        user: userData,
+        profile: user,
+        company_id: cid,
+        metadata: {
+          reason: disputeForm.reason,
+          has_evidence: disputeForm.evidence.length > 0
+        }
+      });
 
       toast.success('Dispute created successfully. Our team will review it within 48 hours.');
       setShowCreateDialog(false);
@@ -249,7 +263,7 @@ export default function UserDisputes() {
                           {getStatusBadge(dispute.status)}
                         </div>
                         <p className="text-sm text-afrikoni-deep/70 mb-2">
-                          Order: #{dispute.orders?.order_number || dispute.order_id?.slice(0, 8)}
+                          Order: #{dispute.order_id?.slice(0, 8) || 'N/A'}
                         </p>
                         <p className="text-sm font-semibold text-afrikoni-deep mb-1">
                           Reason: {dispute.reason}

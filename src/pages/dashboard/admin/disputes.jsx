@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
 import { isAdmin } from '@/utils/permissions';
+import { logAdminEvent, logDisputeEvent } from '@/utils/auditLogger';
 
 export default function AdminDisputes() {
   const [escrowPayments, setEscrowPayments] = useState([]);
@@ -189,6 +190,36 @@ export default function AdminDisputes() {
       } catch (notifError) {
         console.error('Failed to send notifications:', notifError);
       }
+
+      // Log admin dispute resolution to audit log
+      const { user: userData, profile } = await getCurrentUserAndRole(supabase);
+      await logAdminEvent({
+        action: 'dispute_resolved',
+        entity_type: 'dispute',
+        entity_id: selectedDispute.id,
+        user: userData,
+        profile,
+        metadata: {
+          resolution_action: resolutionAction,
+          order_id: selectedDispute.order_id,
+          buyer_company_id: selectedDispute.buyer_company_id,
+          seller_company_id: selectedDispute.seller_company_id
+        }
+      });
+
+      // Also log as dispute event
+      await logDisputeEvent({
+        action: 'resolved',
+        dispute_id: selectedDispute.id,
+        order_id: selectedDispute.order_id,
+        user: userData,
+        profile,
+        company_id: null, // Admin action
+        metadata: {
+          resolution_action: resolutionAction,
+          resolved_by: 'admin'
+        }
+      });
 
       toast.success('Dispute resolved successfully');
       setSelectedDispute(null);

@@ -75,6 +75,17 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
   const handleLogout = async () => {
     try {
+      // Log logout to audit log before signing out
+      try {
+        const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+        const { logLogoutEvent } = await import('@/utils/auditLogger');
+        const { user, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        await logLogoutEvent({ user, profile });
+      } catch (auditError) {
+        // Don't break logout if audit logging fails
+        console.warn('Failed to log logout:', auditError);
+      }
+      
       await supabaseHelpers.auth.signOut();
       toast.success('Logged out successfully');
       navigate('/');

@@ -42,7 +42,10 @@ export default function SupportChat() {
   useEffect(() => {
     if (ticketNumber) {
       loadMessages();
-      setupRealtimeSubscription();
+      const cleanup = setupRealtimeSubscription();
+      return () => {
+        if (cleanup) cleanup();
+      };
     }
   }, [ticketNumber]);
 
@@ -154,7 +157,12 @@ export default function SupportChat() {
           filter: `ticket_number=eq.${ticketNumber}`
         },
         (payload) => {
-          setMessages(prev => [...prev, payload.new]);
+          // Check if message already exists to avoid duplicates
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === payload.new.id);
+            if (exists) return prev;
+            return [...prev, payload.new];
+          });
           scrollToBottom();
           
           // Show notification if message is from admin
@@ -163,9 +171,16 @@ export default function SupportChat() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Realtime subscription active for ticket:', ticketNumber);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime subscription error');
+        }
+      });
 
     return () => {
+      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   };
@@ -218,10 +233,14 @@ export default function SupportChat() {
       }
 
       setNewMessage('');
+      
+      // Reload messages to ensure UI is updated
+      await loadMessages();
+      
       toast.success('Message sent! Our team will respond soon.');
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message. Please try again.');
+      toast.error(`Failed to send message: ${error.message || 'Please try again.'}`);
     } finally {
       setIsSending(false);
     }

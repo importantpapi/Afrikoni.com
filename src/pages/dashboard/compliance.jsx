@@ -19,10 +19,7 @@ import { Input } from '@/components/ui/input';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
-import {
-  complianceKPIs, documentCompliance, taxFilings, complianceByHub,
-  verificationSteps, countryRegulatoryMatrix, complianceTasks, certificates
-} from '@/data/complianceDemo';
+// Removed mock data imports - using real database queries
 import { isAdmin } from '@/utils/permissions';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
@@ -37,10 +34,31 @@ export default function ComplianceCenter() {
   const [countryFilter, setCountryFilter] = useState('all');
   const [taskSort, setTaskSort] = useState('dueDate');
   const [expandedCountries, setExpandedCountries] = useState(new Set());
+  const [complianceKPIs, setComplianceKPIs] = useState({
+    overallComplianceScore: 0,
+    documentsSubmitted: 0,
+    documentsMissing: 0,
+    taxFilingsDue: 0,
+    verificationLevel: 0,
+    escrowEligibility: false
+  });
+  const [documentCompliance, setDocumentCompliance] = useState([]);
+  const [taxFilings, setTaxFilings] = useState([]);
+  const [complianceByHub, setComplianceByHub] = useState([]);
+  const [verificationSteps, setVerificationSteps] = useState([]);
+  const [countryRegulatoryMatrix, setCountryRegulatoryMatrix] = useState([]);
+  const [complianceTasks, setComplianceTasks] = useState([]);
+  const [certificates, setCertificates] = useState([]);
 
   useEffect(() => {
     checkAccess();
   }, []);
+
+  useEffect(() => {
+    if (hasAccess) {
+      loadComplianceData();
+    }
+  }, [hasAccess]);
 
   const checkAccess = async () => {
     try {
@@ -51,6 +69,161 @@ export default function ComplianceCenter() {
       setHasAccess(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadComplianceData = async () => {
+    try {
+      // Load all companies with verification data
+      const { data: companies } = await supabase
+        .from('companies')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Load verifications
+      const { data: verifications } = await supabase
+        .from('verifications')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Calculate compliance KPIs
+      const totalCompanies = companies?.length || 0;
+      const verifiedCompanies = companies?.filter(c => c.verification_status === 'verified').length || 0;
+      const pendingCompanies = companies?.filter(c => c.verification_status === 'pending').length || 0;
+      const complianceScore = totalCompanies > 0 
+        ? Math.round((verifiedCompanies / totalCompanies) * 100) 
+        : 0;
+
+      // Count documents from verifications
+      const documentsWithData = verifications?.filter(v => 
+        v.documents && Object.keys(v.documents).length > 0
+      ).length || 0;
+
+      setComplianceKPIs({
+        overallComplianceScore: complianceScore,
+        documentsSubmitted: documentsWithData,
+        documentsMissing: totalCompanies - documentsWithData,
+        taxFilingsDue: 0, // Would need tax_filings table
+        verificationLevel: verifiedCompanies > 0 ? 2 : pendingCompanies > 0 ? 1 : 0,
+        escrowEligibility: verifiedCompanies > 0
+      });
+
+      // Build document compliance list from verifications
+      const docCompliance = (verifications || []).map(verification => {
+        const company = companies?.find(c => c.id === verification.company_id);
+        const docs = verification.documents || {};
+        const docKeys = Object.keys(docs);
+        
+        return docKeys.map((docKey, index) => ({
+          id: `${verification.id}-${index}`,
+          name: docKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          type: docKey.includes('license') ? 'License' : 
+                docKey.includes('tax') ? 'Tax Registration' :
+                docKey.includes('id') ? 'ID' :
+                docKey.includes('address') ? 'Address Proof' :
+                'Certificate',
+          status: verification.status === 'verified' ? 'verified' :
+                  verification.status === 'rejected' ? 'rejected' :
+                  'pending',
+          lastUploaded: verification.updated_at || verification.created_at,
+          expiryDate: null, // Would need to extract from document metadata
+          fileUrl: docs[docKey],
+          companyName: company?.company_name || 'Unknown'
+        }));
+      }).flat();
+
+      setDocumentCompliance(docCompliance);
+
+      // Tax filings (placeholder - would need tax_filings table)
+      setTaxFilings([]);
+
+      // Compliance by hub (group by country)
+      const hubData = {};
+      (companies || []).forEach(company => {
+        if (!company.country) return;
+        if (!hubData[company.country]) {
+          hubData[company.country] = {
+            total: 0,
+            verified: 0,
+            pending: 0,
+            rejected: 0
+          };
+        }
+        hubData[company.country].total++;
+        if (company.verification_status === 'verified') hubData[company.country].verified++;
+        else if (company.verification_status === 'pending') hubData[company.country].pending++;
+        else if (company.verification_status === 'rejected') hubData[company.country].rejected++;
+      });
+
+      setComplianceByHub(Object.entries(hubData).map(([country, data]) => ({
+        hub: country,
+        country: country,
+        complianceRate: data.total > 0 ? Math.round((data.verified / data.total) * 100) : 0,
+        totalCompanies: data.total,
+        verified: data.verified,
+        pending: data.pending
+      })));
+
+      // Verification steps (from verifications table)
+      const steps = (verifications || []).map(v => {
+        const company = companies?.find(c => c.id === v.company_id);
+        return {
+          id: v.id,
+          company: company?.company_name || 'Unknown',
+          step: 'Document Verification',
+          status: v.status,
+          completedAt: v.verified_at || null,
+          createdAt: v.created_at
+        };
+      });
+
+      setVerificationSteps(steps);
+
+      // Country regulatory matrix (based on companies)
+      const countryMatrix = Object.keys(hubData).map(country => ({
+        country: country,
+        countryCode: country.substring(0, 2).toUpperCase(),
+        marketplaceAllowed: hubData[country].verified > 0,
+        riskLevel: hubData[country].rejected > hubData[country].verified ? 'high' : 
+                   hubData[country].pending > hubData[country].verified ? 'medium' : 'low',
+        totalCompanies: hubData[country].total,
+        verifiedCompanies: hubData[country].verified
+      }));
+
+      setCountryRegulatoryMatrix(countryMatrix);
+
+      // Compliance tasks (pending verifications)
+      const tasks = (verifications || []).filter(v => v.status === 'pending').map(v => {
+        const company = companies?.find(c => c.id === v.company_id);
+        return {
+          id: v.id,
+          task: `Review verification for ${company?.company_name || 'Unknown'}`,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+          status: 'open',
+          riskLevel: 'medium',
+          company: company?.company_name || 'Unknown'
+        };
+      });
+
+      setComplianceTasks(tasks);
+
+      // Certificates (from company certificate_uploads)
+      const certs = (companies || []).filter(c => 
+        c.certificate_uploads && c.certificate_uploads.length > 0
+      ).map(company => ({
+        id: company.id,
+        name: `${company.company_name} Certificates`,
+        type: 'Company Certificates',
+        status: company.verification_status === 'verified' ? 'active' : 'pending',
+        issuedBy: 'Company',
+        expiryDate: null,
+        companyName: company.company_name
+      }));
+
+      setCertificates(certs);
+
+    } catch (error) {
+      console.error('Error loading compliance data:', error);
     }
   };
 
