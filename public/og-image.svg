@@ -1,0 +1,45 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#603813"/>
+  
+  <!-- Gold accent circles -->
+  <circle cx="100" cy="100" r="80" fill="#D4A937" opacity="0.3"/>
+  <circle cx="1100" cy="530" r="100" fill="#D4A937" opacity="0.2"/>
+  
+  <!-- Main content area -->
+  <g transform="translate(600, 315)">
+    <!-- Logo placeholder - Afrikoni symbol -->
+    <g transform="translate(-150, -120)">
+      <!-- Simplified Afrikoni logo -->
+      <circle cx="150" cy="120" r="60" fill="#D4A937" opacity="0.9"/>
+      <path d="M150 80 L120 120 L180 120 Z" fill="#603813"/>
+      <ellipse cx="150" cy="160" rx="50" ry="35" fill="none" stroke="#D4A937" stroke-width="4"/>
+    </g>
+    
+    <!-- Main text -->
+    <text x="0" y="80" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#D4A937" text-anchor="middle">
+      AFRIKONI
+    </text>
+    
+    <!-- Tagline -->
+    <text x="0" y="140" font-family="Arial, sans-serif" font-size="48" fill="#F5E6D3" text-anchor="middle">
+      Trade. Trust. Thrive.
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="200" font-family="Arial, sans-serif" font-size="32" fill="#D4A937" text-anchor="middle" opacity="0.9">
+      Africa's Leading B2B Marketplace
+    </text>
+    
+    <!-- 54 Countries badge -->
+    <rect x="-120" y="240" width="240" height="50" rx="25" fill="#D4A937" opacity="0.2"/>
+    <text x="0" y="275" font-family="Arial, sans-serif" font-size="28" fill="#D4A937" text-anchor="middle" font-weight="bold">
+      54 African Countries
+    </text>
+  </g>
+  
+  <!-- Decorative elements -->
+  <path d="M50 400 Q100 350, 150 400 T250 400" fill="none" stroke="#D4A937" stroke-width="3" opacity="0.4"/>
+  <path d="M950 200 Q1000 150, 1050 200 T1150 200" fill="none" stroke="#D4A937" stroke-width="3" opacity="0.4"/>
+</svg>
+

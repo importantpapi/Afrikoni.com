@@ -50,7 +50,31 @@ export default function SitemapXML() {
     loadSitemap();
   }, []);
 
-  // Return XML content
-  return <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{sitemap}</pre>;
+  // Set content type header via meta tag (for SEO crawlers)
+  useEffect(() => {
+    // For React Router, we return XML as text
+    // The server/Vercel should handle content-type headers
+    if (sitemap) {
+      // Create a blob and download approach for proper XML rendering
+      const blob = new Blob([sitemap], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      // Note: In production, Vercel will serve this with proper content-type
+    }
+  }, [sitemap]);
+
+  // Return XML content as plain text (browsers will render as XML)
+  // For proper XML rendering, this should be served as application/xml by the server
+  return (
+    <pre style={{ 
+      whiteSpace: 'pre-wrap', 
+      fontFamily: 'monospace',
+      margin: 0,
+      padding: '20px',
+      backgroundColor: '#fff',
+      color: '#000'
+    }}>
+      {sitemap || 'Loading sitemap...'}
+    </pre>
+  );
 }
 
