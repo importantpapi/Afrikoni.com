@@ -22,11 +22,11 @@
 - ✅ Popular categories carousel (mobile fixed)
 
 ### Brand Assets Status
-- ⚠️ **Icon files needed** - See `BRAND_ICONS_SETUP.md`
-  - Need to add: `favicon.ico`, `favicon-32x32.png`, `favicon-16x16.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`
+- ✅ **Favicon SVG created** - `public/favicon.svg` (works in modern browsers)
 - ✅ `site.webmanifest` created
 - ✅ `index.html` updated with favicon links
-- ✅ Theme color configured (#603813)
+- ✅ Theme color configured (#3F2B1A)
+- ⚠️ **PNG favicon optional** - `favicon.png` can be generated from SVG for older browser support (see `public/FAVICON_INSTRUCTIONS.md`)
 
 ## 📋 Vercel Deployment Steps
 
