@@ -9,6 +9,9 @@
  */
 
 import * as Sentry from "@sentry/react";
+
+// Import browserTracingIntegration from @sentry/browser
+// @sentry/browser is included as a dependency of @sentry/react
 import { browserTracingIntegration } from "@sentry/browser";
 
 export function initSentry() {
@@ -25,10 +28,10 @@ export function initSentry() {
   const integrations = [];
   
   // Add BrowserTracing for performance monitoring
+  // @sentry/browser is included as a dependency of @sentry/react
   try {
     integrations.push(
       browserTracingIntegration({
-        // Trace all navigation routes
         tracePropagationTargets: [
           "localhost",
           /^https:\/\/.*\.supabase\.co/,
