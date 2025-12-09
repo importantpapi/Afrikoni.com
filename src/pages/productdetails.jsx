@@ -375,13 +375,13 @@ export default function ProductDetail() {
             </button>
           </div>
         )}
-        <div className="flex items-center gap-2 text-sm text-afrikoni-deep mb-6">
-          <Link to={createPageUrl('Home')} className="hover:text-amber-600">{t('product.home')}</Link>
-          <span>/</span>
-          <Link to={createPageUrl('Products')} className="hover:text-amber-600">{t('product.products')}</Link>
-          <span>/</span>
-          <span className="text-afrikoni-chestnut">{product.title}</span>
-        </div>
+        <Breadcrumb 
+          items={[
+            { path: '/', label: 'Home' },
+            { path: '/marketplace', label: 'Marketplace' },
+            { path: `/product?id=${product.id}`, label: product.title }
+          ]}
+        />
 
         <div className="grid md:grid-cols-3 gap-4 md:gap-8">
           <div className="md:col-span-2 space-y-4 md:space-y-6">

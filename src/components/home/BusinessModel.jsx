@@ -1,185 +1,427 @@
-import React from 'react';
+/**
+ * Afrikoni Business Model & Reality Check
+ * Transparent presentation of our approach, challenges, and sustainable model
+ */
+
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { 
+  CheckCircle, XCircle, DollarSign, Shield, 
+  TrendingUp, Users, Target, Zap, AlertCircle,
+  Calculator, BarChart3, Lightbulb, Heart
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Shield, Star, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { useNavigate } from 'react-router-dom';
 
 export default function BusinessModel() {
-  const tiers = [
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const successFactors = [
+    { icon: CheckCircle, text: 'You solve a REAL pain point (trust in B2B trade - this exists)' },
+    { icon: CheckCircle, text: 'You execute better than competitors (hard but possible)' },
+    { icon: CheckCircle, text: 'You have enough capital to survive 18-24 months (need $500K-1M)' },
+    { icon: CheckCircle, text: 'You focus on ONE country first, not all of Africa (critical!)' },
+    { icon: CheckCircle, text: 'You build trust before scaling (slow is fast)' },
+    { icon: CheckCircle, text: 'You charge fair prices (value > cost)' },
+    { icon: CheckCircle, text: 'You\'re in it for 5-10 years, not a quick exit' }
+  ];
+
+  const failureFactors = [
+    { icon: XCircle, text: 'You try to do everything at once (scope creep)' },
+    { icon: XCircle, text: 'You scale before product-market fit' },
+    { icon: XCircle, text: 'You prioritize features over trust' },
+    { icon: XCircle, text: 'You run out of money before profitability' },
+    { icon: XCircle, text: 'You charge too much too soon' },
+    { icon: XCircle, text: 'You can\'t deliver on the 48-hour guarantee' },
+    { icon: XCircle, text: 'You compete on price (race to bottom)' }
+  ];
+
+  const challenges = [
     {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      description: 'Perfect for getting started',
-      features: [
-        'Browse products & suppliers',
-        'Basic search & filters',
-        'Send inquiries',
-        'Access to RFQ system',
-        'Community support'
-      ],
-      color: 'border-afrikoni-gold/30',
-      buttonColor: 'bg-zinc-600 hover:bg-zinc-700',
-      icon: Star
+      icon: Users,
+      title: 'The Cold Start Problem',
+      description: 'You need sellers to attract buyers, and buyers to attract sellers.',
+      solution: 'Manual hustle for first 6 months - personally onboard sellers and buyers, facilitate first transactions, document success stories.'
     },
     {
-      name: 'Verified',
-      price: '$99',
-      period: 'per month',
-      description: 'For serious traders',
-      features: [
-        'Everything in Free',
-        'Business verification badge',
-        'Priority customer support',
-        'Advanced analytics',
-        'AI-powered matching',
-        'Trade finance access'
-      ],
-      color: 'border-blue-500',
-      buttonColor: 'bg-afrikoni-gold hover:bg-afrikoni-goldDark',
       icon: Shield,
-      popular: true
+      title: 'The Trust Problem',
+      description: 'Africans have been scammed online repeatedly. Default is distrust.',
+      solution: 'Build trust systematically: physical presence, over-deliver on first transactions, build social proof, leverage trust as brand.'
     },
     {
-      name: 'Premium',
-      price: '$299',
-      period: 'per month',
-      description: 'For enterprise businesses',
-      features: [
-        'Everything in Verified',
-        'Dedicated account manager',
-        'Custom integrations',
-        'White-label options',
-        'Advanced security features',
-        'Priority dispute resolution',
-        'Exclusive supplier access'
-      ],
-      color: 'border-afrikoni-gold',
-      buttonColor: 'bg-afrikoni-gold hover:bg-afrikoni-goldDark',
-      icon: Zap
+      icon: DollarSign,
+      title: 'The Capital Problem',
+      description: 'Marketplaces burn cash before they make money.',
+      solution: 'Lean startup approach: Start with $50K, prove traction, then raise or bootstrap sustainably.'
+    },
+    {
+      icon: Zap,
+      title: 'The Operational Problem',
+      description: 'Managing disputes, verification, payments is HARD.',
+      solution: 'Start manual, learn deeply, then automate intelligently. Never lose the human touch.'
+    }
+  ];
+
+  const revenueStreams = [
+    {
+      icon: DollarSign,
+      title: 'Transaction Fees',
+      description: 'Transparent tiered pricing: 3% (Bronze), 2% (Silver), 1% (Gold)',
+      potential: '$1.7M/year'
+    },
+    {
+      icon: Users,
+      title: 'Buyer Services',
+      description: 'Buyer Pro ($99/month) and Enterprise ($499/month) subscriptions',
+      potential: '$1.07M/year'
+    },
+    {
+      icon: Target,
+      title: 'Value-Added Services',
+      description: 'Logistics, financial services, verification, advertising, academy',
+      potential: '$1.2M/year'
+    },
+    {
+      icon: BarChart3,
+      title: 'Data & Intelligence',
+      description: 'Market reports, API access, research partnerships',
+      potential: '$540K/year'
     }
   ];
 
   return (
-    <div className="py-12 md:py-16 bg-afrikoni-offwhite">
+    <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-b from-white to-afrikoni-offwhite">
       <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-10 md:mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12 md:mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-3 md:mb-4">Choose Your Plan</h2>
-          <p className="text-base md:text-lg text-afrikoni-deep max-w-3xl mx-auto">
-            Flexible pricing options for businesses of all sizes
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
+            AFRIKONI: BRUTAL REALITY CHECK &<br />
+            SUSTAINABLE BUSINESS MODEL
+          </h2>
+          <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
+            Can Afrikoni really work? Here's our honest answer and transparent approach.
           </p>
+          <div className="inline-flex items-center gap-2 bg-green-100 border border-green-300 rounded-full px-6 py-3">
+            <CheckCircle className="w-5 h-5 text-green-700" aria-hidden="true" />
+            <span className="text-green-800 font-semibold">YES, IT CAN WORK - IF DONE RIGHT</span>
+          </div>
         </motion.div>
         
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {tiers.map((tier, idx) => {
-            const Icon = tier.icon;
+        {/* Sticky Tabs */}
+        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-afrikoni-gold/20 mb-8 -mx-4 px-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+            <TabsList className="grid w-full grid-cols-4 bg-afrikoni-offwhite/50">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="challenges">Challenges</TabsTrigger>
+              <TabsTrigger value="revenue">Revenue Model</TabsTrigger>
+              <TabsTrigger value="pricing">Pricing</TabsTrigger>
+            </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-8">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Success Factors */}
+              <Card className="border-green-200 bg-green-50/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-800">
+                    <CheckCircle className="w-6 h-6" />
+                    IT CAN WORK IF:
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {successFactors.map((factor, idx) => {
+                      const Icon = factor.icon;
+                      return (
+                        <motion.li
+                          key={idx}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.4, delay: idx * 0.05 }}
+                          className="flex items-start gap-2"
+                        >
+                          <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            whileInView={{ scale: 1, rotate: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: idx * 0.05, type: "spring" }}
+                          >
+                            <Icon className="w-5 h-5 text-green-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                          </motion.div>
+                          <span className="text-afrikoni-deep text-sm">{factor.text}</span>
+                        </motion.li>
+                      );
+                    })}
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Failure Factors */}
+              <Card className="border-red-200 bg-red-50/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-800">
+                    <XCircle className="w-6 h-6" />
+                    IT WILL FAIL IF:
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {failureFactors.map((factor, idx) => {
+                      const Icon = factor.icon;
+                      return (
+                        <motion.li
+                          key={idx}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.4, delay: idx * 0.05 }}
+                          className="flex items-start gap-2"
+                        >
+                          <motion.div
+                            initial={{ scale: 0, rotate: 180 }}
+                            whileInView={{ scale: 1, rotate: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: idx * 0.05, type: "spring" }}
+                          >
+                            <Icon className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                          </motion.div>
+                          <span className="text-afrikoni-deep text-sm">{factor.text}</span>
+                        </motion.li>
+                      );
+                    })}
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Key Insight */}
+            <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10">
+              <CardContent className="p-8">
+                <div className="flex items-start gap-4">
+                  <Lightbulb className="w-8 h-8 text-afrikoni-gold flex-shrink-0" />
+                  <div>
+                    <h3 className="text-xl font-bold text-afrikoni-chestnut mb-3">
+                      The Honest Truth
+                    </h3>
+                    <p className="text-afrikoni-deep leading-relaxed mb-4">
+                      Afrikoni CAN work. The market is real ($2+ trillion African B2B trade). The problem is real (trust). The opportunity is MASSIVE.
+                    </p>
+                    <p className="text-afrikoni-deep leading-relaxed">
+                      But it requires: Brilliant execution, fair pricing, real value creation, patience, persistence, and a bit of luck.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Challenges Tab */}
+          <TabsContent value="challenges" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              {challenges.map((challenge, idx) => {
+                const Icon = challenge.icon;
             return (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
+                    viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
               >
+                    <Card className="h-full border-afrikoni-gold/20">
+                      <CardHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center">
+                            <Icon className="w-6 h-6 text-afrikoni-gold" />
+                          </div>
+                          <CardTitle className="text-xl">{challenge.title}</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="mb-4">
+                          <p className="text-afrikoni-deep mb-3">
+                            <strong className="text-afrikoni-chestnut">Problem:</strong> {challenge.description}
+                          </p>
+                        </div>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <p className="text-sm text-afrikoni-deep">
+                            <strong className="text-green-800">Solution:</strong> {challenge.solution}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          {/* Revenue Model Tab */}
+          <TabsContent value="revenue" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              {revenueStreams.map((stream, idx) => {
+                const Icon = stream.icon;
+                return (
                 <motion.div
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                  className={`relative ${tier.popular ? 'md:scale-105' : ''}`}
-                >
-                  {tier.popular && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
+                    key={idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      className="absolute -top-4 left-1/2 -translate-x-1/2 bg-afrikoni-gold text-afrikoni-creampx-4 py-1 rounded-full text-sm font-semibold shadow-lg z-10"
-                    >
-                      Most Popular
-                    </motion.div>
-                  )}
-                  <Card 
-                    className={`border-2 ${tier.color} relative hover:shadow-2xl transition-all rounded-xl ${
-                      tier.popular ? 'ring-4 ring-afrikoni-gold/30 shadow-afrikoni-xl' : ''
-                    }`}
+                    transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <CardHeader className="text-center pb-4">
-                      <div className={`w-14 h-14 md:w-16 md:h-16 ${tier.color.replace('border-', 'bg-').replace('-500', '-100')} rounded-xl flex items-center justify-center mx-auto mb-4`}>
-                        <Icon className={`w-7 h-7 md:w-8 md:h-8 ${tier.color.replace('border-', 'text-')}`} />
+                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center">
+                            <Icon className="w-6 h-6 text-afrikoni-gold" />
                       </div>
-                      <CardTitle className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">{tier.name}</CardTitle>
-                      <div className="mt-4">
-                        <span className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut">{tier.price}</span>
-                        <span className="text-afrikoni-deep ml-2 text-sm md:text-base">/{tier.period}</span>
+                          <CardTitle>{stream.title}</CardTitle>
                       </div>
-                      <p className="text-xs md:text-sm text-afrikoni-deep/70 mt-2">{tier.description}</p>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2.5 md:space-y-3 mb-5 md:mb-6">
-                        {tier.features.map((feature, fIdx) => (
-                          <li key={fIdx} className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                            <span className="text-xs md:text-sm text-afrikoni-deep">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Link to={createPageUrl('Signup')}>
-                          <Button className={`w-full ${tier.buttonColor} text-afrikoni-cream shadow-md hover:shadow-lg transition-shadow`}>
-                            Get Started
-                          </Button>
-                        </Link>
-                      </motion.div>
+                        <p className="text-afrikoni-deep mb-4">{stream.description}</p>
+                        <div className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-3">
+                          <p className="text-sm font-semibold text-afrikoni-chestnut">
+                            Revenue Potential: {stream.potential}
+                          </p>
+                        </div>
                     </CardContent>
                   </Card>
-                </motion.div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Verification Badges */}
+            {/* Total Revenue Projection */}
+            <Card className="border-afrikoni-gold bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20">
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                    Year 2-3 Revenue Projection
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <p className="text-afrikoni-deep mb-2">Total Revenue</p>
+                      <p className="text-4xl font-bold text-afrikoni-gold">$4.9M</p>
+                    </div>
+                    <div>
+                      <p className="text-afrikoni-deep mb-2">Profit Margin</p>
+                      <p className="text-4xl font-bold text-green-700">41%</p>
+                    </div>
+                  </div>
+                  <p className="text-afrikoni-deep/80 text-sm">
+                    Based on 1,000 sellers, 5,000 buyers, $10M GMV
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Pricing Tab */}
+          <TabsContent value="pricing" className="space-y-6">
+            <Card className="border-afrikoni-gold/30">
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                    Our Pricing Philosophy
+                  </h3>
+                  <p className="text-lg text-afrikoni-deep max-w-3xl mx-auto">
+                    "We only make money when you succeed. Our fees are designed to be fair, transparent, and aligned with the value we provide."
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-4 gap-4 mb-8">
+                  {[
+                    { tier: 'Bronze', fee: '3%', price: 'Free', color: 'from-amber-600 to-amber-700' },
+                    { tier: 'Silver', fee: '2%', price: '$49/mo', color: 'from-gray-400 to-gray-500' },
+                    { tier: 'Gold', fee: '1%', price: '$199/mo', color: 'from-afrikoni-gold to-afrikoni-goldDark' },
+                    { tier: 'Enterprise', fee: 'Custom', price: 'Custom', color: 'from-purple-600 to-purple-700' }
+                  ].map((tier, idx) => (
+                    <Card key={idx} className={`bg-gradient-to-br ${tier.color} text-white border-0`}>
+                      <CardContent className="p-6 text-center">
+                        <h4 className="text-xl font-bold mb-2">{tier.tier}</h4>
+                        <p className="text-2xl font-bold mb-1">{tier.fee}</p>
+                        <p className="text-sm opacity-90">{tier.price}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="bg-afrikoni-offwhite rounded-lg p-6 mb-6">
+                  <h4 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
+                    <Calculator className="w-5 h-5" />
+                    Cost Calculator Example
+                  </h4>
+                  <p className="text-afrikoni-deep mb-2">
+                    For a <strong>$10,000 order</strong>, you'll pay <strong className="text-afrikoni-gold">$300 (3%)</strong>
+                  </p>
+                  <p className="text-sm text-afrikoni-deep/80">
+                    This includes: Escrow protection, fraud prevention, dispute resolution, payment processing, customer support, and platform maintenance.
+                  </p>
+                  <p className="text-sm text-afrikoni-deep/80 mt-2">
+                    Equivalent services separately would cost $500-800.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    onClick={() => navigate('/pricing')}
+                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                  >
+                    View Full Pricing Details
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/contact')}
+                    className="border-afrikoni-gold text-afrikoni-chestnut"
+                  >
+                    Contact Sales
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Final CTA */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-12 md:mt-16 text-center"
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-12 text-center"
         >
-          <h3 className="text-xl md:text-2xl font-bold font-serif text-afrikoni-chestnut mb-6 md:mb-8">Supplier Verification Badges</h3>
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-            {[
-              { icon: Shield, label: 'Verified Business', color: 'green' },
-              { icon: CheckCircle, label: 'Quality Certified', color: 'blue' },
-              { icon: Star, label: 'Top Rated', color: 'orange' },
-              { icon: Zap, label: 'Premium Partner', color: 'purple' }
-            ].map((badge, idx) => {
-              const Icon = badge.icon;
-              return (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: 0.5 + idx * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                  className={`flex items-center gap-2 px-3 md:px-4 py-2 bg-${badge.color}-50 rounded-lg border border-${badge.color}-200 shadow-sm hover:shadow-md transition-shadow`}
-                >
-                  <Icon className={`w-4 h-4 md:w-5 md:h-5 text-${badge.color}-600`} />
-                  <span className={`font-semibold text-${badge.color}-700 text-sm md:text-base`}>{badge.label}</span>
-                </motion.div>
-              );
-            })}
-          </div>
+          <Card className="border-2 border-afrikoni-gold bg-gradient-to-br from-afrikoni-chestnut/10 to-afrikoni-deep/10">
+            <CardContent className="p-8">
+              <Heart className="w-12 h-12 text-afrikoni-gold mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                Ready to Build Something Meaningful?
+              </h3>
+              <p className="text-afrikoni-deep mb-6 max-w-2xl mx-auto">
+                If you decide to build it, build it RIGHT. Build it with INTEGRITY. Build it to LAST.
+              </p>
+              <Button
+                onClick={() => navigate('/signup')}
+                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-3"
+              >
+                Get Started
+              </Button>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
-    </div>
+    </section>
   );
 }
-

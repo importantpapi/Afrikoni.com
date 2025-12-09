@@ -50,12 +50,27 @@ export default function HeroSection({ categories = [] }) {
 
       <div className="w-full max-w-[1440px] mx-auto px-4 flex flex-col items-center justify-center relative z-10">
         <div className="text-center mb-8 max-w-4xl mx-auto">
+          {/* Value Proposition */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-6"
+          >
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-gold mb-3 leading-tight">
+              Trade. Trust. Thrive.
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream font-medium">
+              The B2B marketplace connecting Africa to global opportunity.
+            </p>
+          </motion.div>
+
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-cream mb-4 leading-tight px-2"
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-cream mb-4 leading-tight px-2"
           >
             {t('hero.title') || 'The AI-powered B2B marketplace connecting Africa and the world'}
           </motion.h1>
@@ -64,32 +79,33 @@ export default function HeroSection({ categories = [] }) {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
             className="text-sm sm:text-base md:text-lg lg:text-xl text-afrikoni-cream/90 mb-6 max-w-3xl mx-auto px-2"
           >
             {t('hero.subtitle') || 'Verified African suppliers. Secure escrow payments. Cross-border logistics across 54 countries.'}
           </motion.p>
 
-          {/* Primary CTAs */}
+          {/* Trust Badges */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="flex flex-wrap justify-center gap-3 mb-4"
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-6 text-sm md:text-base"
           >
-            <Button
-              onClick={() => navigate('/become-supplier')}
-              className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 md:px-8 py-2.5 rounded-full text-sm md:text-base font-semibold shadow-afrikoni"
-            >
-              Become a Supplier
-            </Button>
-            <Button
-              onClick={() => navigate('/marketplace')}
-              variant="outline"
-              className="border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 px-6 md:px-8 py-2.5 rounded-full text-sm md:text-base font-semibold"
-            >
-              Browse Products
-            </Button>
+            <div className="flex items-center gap-2 text-afrikoni-cream/90">
+              <span className="font-semibold text-afrikoni-gold">Trusted by 120+</span>
+              <span>African businesses</span>
+            </div>
+            <span className="text-afrikoni-gold/50">•</span>
+            <div className="flex items-center gap-2 text-afrikoni-cream/90">
+              <span className="font-semibold text-afrikoni-gold">Protected</span>
+              <span>Escrow</span>
+            </div>
+            <span className="text-afrikoni-gold/50">•</span>
+            <div className="flex items-center gap-2 text-afrikoni-cream/90">
+              <span className="font-semibold text-afrikoni-gold">AI-Verified</span>
+              <span>Suppliers</span>
+            </div>
           </motion.div>
 
           {/* Afrikoni Shield trust strip */}
@@ -165,11 +181,44 @@ export default function HeroSection({ categories = [] }) {
             </div>
           </motion.div>
 
+          {/* Segment Choices - Smaller under search bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="flex flex-wrap justify-center gap-2 mb-4"
+          >
+            <motion.button
+              onClick={() => navigate('/services/buyers')}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border-2 border-afrikoni-gold shadow-lg hover:shadow-xl"
+            >
+              Buyer
+            </motion.button>
+            <motion.button
+              onClick={() => navigate('/services/suppliers')}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border-2 border-afrikoni-gold shadow-lg hover:shadow-xl"
+            >
+              Supplier
+            </motion.button>
+            <motion.button
+              onClick={() => navigate('/services/logistics')}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border-2 border-afrikoni-gold shadow-lg hover:shadow-xl"
+            >
+              Logistics
+            </motion.button>
+          </motion.div>
+
           {/* Trending Search Chips */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-wrap justify-center gap-2"
           >
             <span className="text-afrikoni-cream text-sm mr-2 flex items-center gap-1">
@@ -181,7 +230,7 @@ export default function HeroSection({ categories = [] }) {
                 key={idx}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.4 + idx * 0.05 }}
+                transition={{ duration: 0.3, delay: 0.5 + idx * 0.05 }}
                 onClick={() => {
                   setSearchQuery(term);
                   handleSearch();

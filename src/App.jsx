@@ -132,6 +132,13 @@ const TrustCenter = lazy(() => import('./pages/trust'));
 const HowPaymentWorks = lazy(() => import('./pages/how-payment-works'));
 const About = lazy(() => import('./pages/about'));
 const Community = lazy(() => import('./pages/community'));
+const Blog = lazy(() => import('./pages/blog'));
+const Troubleshooting = lazy(() => import('./pages/troubleshooting'));
+const Downloads = lazy(() => import('./pages/resources/downloads'));
+const SuppliersService = lazy(() => import('./pages/services/suppliers'));
+const BuyersService = lazy(() => import('./pages/services/buyers'));
+const LogisticsService = lazy(() => import('./pages/services/logistics'));
+const Enterprise = lazy(() => import('./pages/enterprise'));
 
 function App() {
   // Setup session refresh to keep users logged in
@@ -261,12 +268,20 @@ function App() {
             <Route path="/trust" element={<TrustCenter />} />
             <Route path="/how-payment-works" element={<HowPaymentWorks />} />
             <Route path="/about" element={<About />} />
+            <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/troubleshooting" element={<Troubleshooting />} />
+            {/* Service Pages */}
+            <Route path="/services/suppliers" element={<SuppliersService />} />
+            <Route path="/services/buyers" element={<BuyersService />} />
+            <Route path="/services/logistics" element={<LogisticsService />} />
             {/* Insights / Resources */}
-            <Route path="/resources" element={<ResourcesIndex />} />
-            <Route path="/resources/how-to-source-verified-african-suppliers" element={<HowToSourceVerifiedAfricanSuppliers />} />
-            <Route path="/resources/kyc-kyb-and-aml-for-african-b2b-trade" element={<KycKybAndAmlForAfricanB2BTrade />} />
-            <Route path="/resources/escrow-vs-advance-payments-in-african-trade" element={<EscrowVsAdvancePaymentsInAfricanTrade />} />
+              <Route path="/resources" element={<ResourcesIndex />} />
+              <Route path="/resources/downloads" element={<Downloads />} />
+              <Route path="/resources/how-to-source-verified-african-suppliers" element={<HowToSourceVerifiedAfricanSuppliers />} />
+              <Route path="/resources/kyc-kyb-and-aml-for-african-b2b-trade" element={<KycKybAndAmlForAfricanB2BTrade />} />
+              <Route path="/resources/escrow-vs-advance-payments-in-african-trade" element={<EscrowVsAdvancePaymentsInAfricanTrade />} />
             <Route path="/seller-growth" element={<SellerGrowth />} />
             <Route path="/seller-onboarding" element={<SellerOnboarding />} />
             {/* Legal & Policies */}

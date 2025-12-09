@@ -52,8 +52,18 @@ export default function RiskManagementDashboard() {
     partnerRedFlags: 0,
     auditTrail: []
   });
-  const [logisticsRisk, setLogisticsRisk] = useState([]);
-  const [fraudData, setFraudData] = useState([]);
+  const [logisticsRisk, setLogisticsRisk] = useState({
+    shipmentsDelayed: [],
+    highRiskRoutes: []
+  });
+  const [fraudData, setFraudData] = useState({
+    items: [],
+    dailyFraudScore: [],
+    chargebacks7Days: 0,
+    suspiciousVelocity: 0,
+    stolenCardAttempts: 0,
+    escrowAnomalies: 0
+  });
   const [riskScoreHistory, setRiskScoreHistory] = useState([]);
   const [complianceByHub, setComplianceByHub] = useState([]);
 
@@ -164,10 +174,15 @@ export default function RiskManagementDashboard() {
             id: `dispute-${dispute.id}`,
             timestamp: dispute.created_at,
             type: 'Dispute',
+            category: 'Dispute',
             severity: dispute.status === 'open' ? 'high' : 'medium',
+            title: `Open dispute: ${dispute.reason}`,
             message: `Open dispute: ${dispute.reason}`,
+            description: `Order ${dispute.order_id?.slice(0, 8)} - ${dispute.reason}`,
             entity: `Order ${dispute.order_id?.slice(0, 8)}`,
-            action: 'Review Dispute'
+            action: 'Review Dispute',
+            actionRequired: dispute.status === 'open',
+            acknowledged: false
           });
         });
       }
@@ -179,10 +194,15 @@ export default function RiskManagementDashboard() {
             id: `fraud-${alert.id}`,
             timestamp: alert.created_at,
             type: 'Fraud Alert',
+            category: 'Fraud',
             severity: alert.risk_level,
+            title: `Suspicious activity: ${alert.action}`,
             message: `Suspicious activity: ${alert.action}`,
+            description: `Suspicious activity detected: ${alert.action}`,
             entity: alert.entity_type || 'System',
-            action: 'Investigate'
+            action: 'Investigate',
+            actionRequired: alert.risk_level === 'critical' || alert.risk_level === 'high',
+            acknowledged: false
           });
         });
       }
@@ -194,10 +214,15 @@ export default function RiskManagementDashboard() {
             id: `verification-${company.id}`,
             timestamp: company.created_at,
             type: 'Verification Pending',
+            category: 'KYC',
             severity: 'medium',
+            title: `Company verification pending: ${company.company_name}`,
             message: `Company verification pending: ${company.company_name}`,
+            description: `Company verification pending: ${company.company_name}`,
             entity: company.company_name,
-            action: 'Review Verification'
+            action: 'Review Verification',
+            actionRequired: true,
+            acknowledged: false
           });
         });
       }
@@ -258,7 +283,7 @@ export default function RiskManagementDashboard() {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      setLogisticsRisk((logisticsData || []).map(shipment => ({
+      const logisticsMapped = (logisticsData || []).map(shipment => ({
         id: shipment.id,
         orderId: shipment.order_id,
         status: shipment.status,
@@ -266,8 +291,16 @@ export default function RiskManagementDashboard() {
           new Date(shipment.estimated_delivery) < new Date() ? 'high' : 'medium',
         carrier: shipment.carrier,
         origin: shipment.origin_address,
-        destination: shipment.destination_address
-      })));
+        destination: shipment.destination_address,
+        delayHours: shipment.estimated_delivery ? 
+          Math.floor((new Date() - new Date(shipment.estimated_delivery)) / (1000 * 60 * 60)) : 0,
+        reason: 'Delivery delayed'
+      }));
+
+      setLogisticsRisk({
+        shipmentsDelayed: logisticsMapped.filter(s => s.riskLevel === 'high'),
+        highRiskRoutes: [] // Would need route aggregation logic
+      });
 
       // Load fraud data from audit logs
       const { data: fraudLogs } = await supabase
@@ -279,7 +312,7 @@ export default function RiskManagementDashboard() {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      setFraudData((fraudLogs || []).map(log => ({
+      const fraudMapped = (fraudLogs || []).map(log => ({
         id: log.id,
         timestamp: log.created_at,
         type: log.action,
@@ -287,7 +320,35 @@ export default function RiskManagementDashboard() {
         actor: log.actor_user?.full_name || log.actor_company?.company_name || 'Unknown',
         amount: log.metadata?.amount || null,
         status: log.status
-      })));
+      }));
+
+      // Calculate daily fraud scores for the last 7 days
+      const dailyFraudScore = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayStart = new Date(date.setHours(0, 0, 0, 0));
+        const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+        
+        const dayFraud = fraudMapped.filter(f => {
+          const fraudDate = new Date(f.timestamp);
+          return fraudDate >= dayStart && fraudDate <= dayEnd;
+        }).length;
+        
+        dailyFraudScore.push({
+          date: dayStart.toISOString().split('T')[0],
+          score: dayFraud * 10
+        });
+      }
+
+      setFraudData({
+        items: fraudMapped,
+        dailyFraudScore,
+        chargebacks7Days: fraudMapped.filter(f => f.type?.includes('refund') || f.type?.includes('chargeback')).length,
+        suspiciousVelocity: fraudMapped.filter(f => f.type?.includes('payment') && f.severity === 'high').length,
+        stolenCardAttempts: fraudMapped.filter(f => f.type?.includes('card') || f.type?.includes('payment')).length,
+        escrowAnomalies: fraudMapped.filter(f => f.type?.includes('escrow') || f.type?.includes('order')).length
+      });
 
       // Risk score history (last 30 days)
       const dailyScores = [];
@@ -364,9 +425,11 @@ export default function RiskManagementDashboard() {
 
   // If we get here, user is admin - render the page
 
-  const filteredAlerts = alertFilter === 'all'
-    ? earlyWarningAlerts
-    : earlyWarningAlerts.filter(alert => alert.severity === alertFilter);
+  const filteredAlerts = Array.isArray(earlyWarningAlerts)
+    ? (alertFilter === 'all'
+        ? earlyWarningAlerts
+        : earlyWarningAlerts.filter(alert => alert.severity === alertFilter))
+    : [];
 
   const getSeverityColor = (severity) => {
     switch (severity) {
@@ -714,7 +777,7 @@ export default function RiskManagementDashboard() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  {logisticsRisk.shipmentsDelayed.map((shipment) => (
+                  {Array.isArray(logisticsRisk?.shipmentsDelayed) ? logisticsRisk.shipmentsDelayed.map((shipment) => (
                     <div
                       key={shipment.id}
                       className="p-4 border border-afrikoni-gold/20 rounded-afrikoni"
@@ -732,7 +795,11 @@ export default function RiskManagementDashboard() {
                         Delay: {shipment.delayHours}h • {shipment.reason}
                       </p>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center text-afrikoni-text-dark/70 py-8">
+                      No delayed shipments
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -742,7 +809,7 @@ export default function RiskManagementDashboard() {
               </CardHeader>
               <CardContent className="p-6">
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={logisticsRisk.highRiskRoutes}>
+                  <BarChart data={Array.isArray(logisticsRisk?.highRiskRoutes) ? logisticsRisk.highRiskRoutes : []}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E8D8B5" />
                     <XAxis dataKey="route" stroke="#2E2A1F" fontSize={10} angle={-45} textAnchor="end" height={60} />
                     <YAxis stroke="#2E2A1F" fontSize={10} />
@@ -777,7 +844,7 @@ export default function RiskManagementDashboard() {
               </CardHeader>
               <CardContent className="p-6">
                 <ResponsiveContainer width="100%" height={200}>
-                  <AreaChart data={fraudData.dailyFraudScore}>
+                  <AreaChart data={Array.isArray(fraudData?.dailyFraudScore) ? fraudData.dailyFraudScore : []}>
                     <defs>
                       <linearGradient id="fraudGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#E84855" stopOpacity={0.3} />
@@ -813,19 +880,19 @@ export default function RiskManagementDashboard() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-afrikoni-text-dark/70 mb-1">Chargebacks (7d)</p>
-                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData.chargebacks7Days}</p>
+                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData?.chargebacks7Days || 0}</p>
                   </div>
                   <div>
                     <p className="text-xs text-afrikoni-text-dark/70 mb-1">Suspicious Velocity</p>
-                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData.suspiciousVelocity}</p>
+                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData?.suspiciousVelocity || 0}</p>
                   </div>
                   <div>
                     <p className="text-xs text-afrikoni-text-dark/70 mb-1">Stolen Card Attempts</p>
-                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData.stolenCardAttempts}</p>
+                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData?.stolenCardAttempts || 0}</p>
                   </div>
                   <div>
                     <p className="text-xs text-afrikoni-text-dark/70 mb-1">Escrow Anomalies</p>
-                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData.escrowAnomalies}</p>
+                    <p className="text-2xl font-bold text-afrikoni-text-dark">{fraudData?.escrowAnomalies || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -941,13 +1008,13 @@ export default function RiskManagementDashboard() {
                       borderRadius: '8px'
                     }}
                   />
-                  <Area
+                  <Line
                     type="monotone"
                     dataKey="score"
                     stroke="#D4A937"
                     strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#riskGradient)"
+                    dot={{ fill: '#D4A937', r: 4 }}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>

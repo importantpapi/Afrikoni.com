@@ -1,0 +1,18 @@
+IMPORTANT: CEO Image Setup
+
+To display the CEO image on the About page:
+
+1. Save your CEO portrait image as:
+   youba-simao-thiam.jpg
+
+2. Place it in this folder:
+   public/images/team/
+
+3. The full path should be:
+   public/images/team/youba-simao-thiam.jpg
+
+4. Supported formats: .jpg, .jpeg, .png
+
+5. Recommended size: 400x400px (square)
+
+The image will automatically appear once the file is in place!

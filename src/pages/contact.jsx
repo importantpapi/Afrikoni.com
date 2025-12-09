@@ -80,6 +80,37 @@ export default function Contact() {
 
       if (error) throw error;
 
+      // Send email notification to hello@afrikoni.com
+      try {
+        const { sendEmail } = await import('@/services/emailService');
+        const emailSubject = formData.subject 
+          ? `Contact Form: ${formData.subject}` 
+          : `Contact Form: ${formData.category || 'General Inquiry'}`;
+        
+        const emailMessage = `
+          <p><strong>Name:</strong> ${formData.name}</p>
+          <p><strong>Email:</strong> ${formData.email}</p>
+          <p><strong>Category:</strong> ${formData.category || 'General'}</p>
+          ${formData.subject ? `<p><strong>Subject:</strong> ${formData.subject}</p>` : ''}
+          <p><strong>Message:</strong></p>
+          <p>${formData.message.replace(/\n/g, '<br>')}</p>
+          ${attachments.length > 0 ? `<p><strong>Attachments:</strong> ${attachments.map(a => a.name).join(', ')}</p>` : ''}
+        `;
+
+        await sendEmail({
+          to: 'hello@afrikoni.com',
+          subject: emailSubject,
+          template: 'default',
+          data: {
+            title: 'New Contact Form Submission',
+            message: emailMessage
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending email notification:', emailError);
+        // Don't fail the form submission if email fails
+      }
+
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       setFormData({ name: '', email: '', category: '', subject: '', message: '' });
       setAttachments([]);
@@ -96,19 +127,25 @@ export default function Contact() {
       city: 'Lagos, Nigeria',
       address: 'Victoria Island Business District',
       phone: '+234 1 234 5678',
-      email: 'lagos@afrikoni.com'
+      email: 'hello@afrikoni.com'
     },
     {
       city: 'Nairobi, Kenya',
       address: 'Westlands Business Park',
       phone: '+254 20 123 4567',
-      email: 'nairobi@afrikoni.com'
+      email: 'hello@afrikoni.com'
     },
     {
       city: 'Cairo, Egypt',
       address: 'New Administrative Capital',
       phone: '+20 2 1234 5678',
-      email: 'cairo@afrikoni.com'
+      email: 'hello@afrikoni.com'
+    },
+    {
+      city: 'Brussels, Belgium',
+      address: 'European Quarter',
+      phone: '+32 2 123 4567',
+      email: 'hello@afrikoni.com'
     }
   ];
 
@@ -166,15 +203,20 @@ export default function Contact() {
 
           <Card className="border-afrikoni-gold/20">
             <CardContent className="p-6 text-center">
-              <Phone className="w-12 h-12 text-afrikoni-gold mx-auto mb-4" />
-              <h3 className="font-bold text-afrikoni-chestnut mb-2">Phone Support</h3>
-              <p className="text-sm text-afrikoni-deep mb-2">Speak directly with our team</p>
-              <a href="tel:+234800AFRIKONI" className="text-afrikoni-gold hover:underline">
-                +234 800 AFRIKONI
+              <MessageCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+              <h3 className="font-bold text-afrikoni-chestnut mb-2">WhatsApp Community</h3>
+              <p className="text-sm text-afrikoni-deep mb-2">Join our community for instant support</p>
+              <a 
+                href="https://chat.whatsapp.com/KmhNH1jLkPrHg18ktpNa5v" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-green-600 hover:underline font-semibold"
+              >
+                Join Community
               </a>
               <div className="mt-4">
-                <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                  Business hours
+                <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                  24/7 Available
                 </span>
               </div>
             </CardContent>
@@ -347,8 +389,8 @@ export default function Contact() {
                     <span className="text-green-600 font-semibold">24/7</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-afrikoni-deep">Phone Support</span>
-                    <span className="text-afrikoni-chestnut">Mon-Fri 8AM-6PM WAT</span>
+                    <span className="text-afrikoni-deep">WhatsApp Community</span>
+                    <span className="text-green-600 font-semibold">24/7</span>
                   </div>
                 </div>
               </div>

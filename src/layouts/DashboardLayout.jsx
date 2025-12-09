@@ -174,6 +174,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: FileSearch, label: 'KYB Verification', path: '/dashboard/admin/kyb' },
       { icon: UsersIcon, label: 'Disputes & Escrow', path: '/dashboard/admin/disputes' },
       { icon: MessageSquare, label: 'Support Tickets', path: '/dashboard/admin/support-tickets' },
+      { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true }
     ]
   };

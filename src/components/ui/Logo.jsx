@@ -58,25 +58,27 @@ export function Logo({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Outer Chevron (Roof/Arrow) */}
+      {/* Outer Chevron (Roof/Arrow) - Higher contrast */}
       <path
         d="M50 10 L20 40 L80 40 Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="4"
+        strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="text-afrikoni-gold"
+        opacity="1"
       />
       {/* Inner Chevron */}
       <path
         d="M50 20 L30 40 L70 40 Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="text-afrikoni-gold"
+        opacity="0.9"
       />
       {/* Circular/Oval Structure */}
       <ellipse
@@ -86,25 +88,28 @@ export function Logo({
         ry="25"
         fill="none"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="4"
         className="text-afrikoni-gold"
+        opacity="1"
       />
-      {/* Intertwined W's Pattern (simplified knot pattern) */}
+      {/* Intertwined W's Pattern (simplified knot pattern) - Higher contrast */}
       <path
         d="M35 60 Q40 70, 50 65 Q60 70, 65 60 Q60 75, 50 70 Q40 75, 35 60"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="3"
         strokeLinecap="round"
         className="text-afrikoni-gold"
+        opacity="0.95"
       />
       <path
         d="M35 80 Q40 70, 50 75 Q60 70, 65 80 Q60 65, 50 70 Q40 65, 35 80"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="3"
         strokeLinecap="round"
         className="text-afrikoni-gold"
+        opacity="0.95"
       />
       {/* Geometric Pattern Band (triangles and lines) */}
       <g className="text-afrikoni-gold">
@@ -136,12 +141,13 @@ export function Logo({
           'flex items-center justify-center',
           'bg-gradient-to-br from-afrikoni-gold via-afrikoni-goldDark to-afrikoni-gold-900',
           'rounded-full',
-          'shadow-lg shadow-afrikoni-gold-900/30',
-          'border-2 border-afrikoni-goldLight/40',
+          'shadow-lg shadow-afrikoni-gold-900/50',
+          'border-2 border-afrikoni-goldLight/60',
           'p-2',
-          'flex-shrink-0'
+          'flex-shrink-0',
+          'ring-2 ring-afrikoni-gold/20'
         )}>
-          <div className="text-afrikoni-gold/20">
+          <div className="text-afrikoni-gold drop-shadow-lg">
             <LogoIcon />
           </div>
         </div>

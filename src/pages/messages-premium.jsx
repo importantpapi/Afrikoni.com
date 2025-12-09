@@ -232,7 +232,10 @@ export default function MessagesPremium() {
           
           // If this message is for the currently selected conversation, add it to the UI
           if (newMessage.conversation_id === selectedConversation) {
-            setMessages(prev => [...prev, newMessage]);
+            setMessages(prev => {
+              const prevArray = Array.isArray(prev) ? prev : [];
+              return [...prevArray, newMessage];
+            });
             
             // Mark as read if viewing the conversation
             if (companyId === newMessage.receiver_company_id) {
@@ -338,9 +341,10 @@ export default function MessagesPremium() {
         };
       });
 
-      setConversations(formattedConversations);
+      setConversations(Array.isArray(formattedConversations) ? formattedConversations : []);
     } catch (error) {
-      toast.error(t('messages.loading'));
+      console.error('Error loading conversations:', error);
+      toast.error(error?.message || t('messages.loading') || 'Failed to load conversations');
     } finally {
       setIsLoading(false);
     }
@@ -351,6 +355,11 @@ export default function MessagesPremium() {
   const messagesPageSize = 50;
 
   const loadMessages = async (conversationId, page = 0, append = false) => {
+    if (!conversationId) {
+      console.warn('loadMessages called without conversationId');
+      return;
+    }
+    
     try {
       const { data: messagesData, error } = await supabase
         .from('messages')
@@ -359,7 +368,10 @@ export default function MessagesPremium() {
         .order('created_at', { ascending: false })
         .range(page * messagesPageSize, (page + 1) * messagesPageSize - 1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading messages:', error);
+        throw error;
+      }
 
       const messages = messagesData || [];
       
@@ -370,9 +382,13 @@ export default function MessagesPremium() {
       const sortedMessages = [...messages].reverse();
 
       if (append) {
-        setMessages(prev => [...sortedMessages, ...prev]);
+        setMessages(prev => {
+          const prevArray = Array.isArray(prev) ? prev : [];
+          const sortedArray = Array.isArray(sortedMessages) ? sortedMessages : [];
+          return [...sortedArray, ...prevArray];
+        });
       } else {
-        setMessages(sortedMessages);
+        setMessages(Array.isArray(sortedMessages) ? sortedMessages : []);
       }
 
       // Mark messages as read
@@ -382,17 +398,22 @@ export default function MessagesPremium() {
         ) || [];
 
         if (unreadMessages.length > 0) {
-          await supabase
+          const { error: updateError } = await supabase
             .from('messages')
             .update({ read: true })
             .in('id', unreadMessages.map(m => m.id));
+          
+          if (updateError) {
+            console.error('Error marking messages as read:', updateError);
+          }
         }
 
         // Refresh conversations to update unread counts
         loadUserAndConversations();
       }
     } catch (error) {
-      toast.error(t('messages.loading') || 'Failed to load messages');
+      console.error('Error in loadMessages:', error);
+      toast.error(error?.message || t('messages.loading') || 'Failed to load messages');
     }
   };
 
@@ -593,7 +614,10 @@ export default function MessagesPremium() {
       // Create notification
       await notifyNewMessage(newMsg.id, selectedConversation, receiverCompanyId, companyId);
 
-      setMessages([...messages, newMsg]);
+      setMessages(prev => {
+        const prevArray = Array.isArray(prev) ? prev : [];
+        return [...prevArray, newMsg];
+      });
       setNewMessage('');
       setAttachments([]);
       setIsTyping(false);
@@ -608,7 +632,23 @@ export default function MessagesPremium() {
       setTimeout(() => inputRef.current?.focus(), 100);
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error(t('messages.sendError') || 'Failed to send message. Please try again.');
+      const errorMessage = error?.message || t('messages.sendError') || 'Failed to send message. Please try again.';
+      toast.error(errorMessage);
+      
+      // Log to Sentry in production
+      if (import.meta.env.PROD) {
+        import('@/utils/sentry').then(({ captureException }) => {
+          captureException(error, { 
+            context: { 
+              conversationId: selectedConversation,
+              companyId,
+              hasAttachments: attachments.length > 0
+            }
+          });
+        }).catch(() => {
+          // Silently fail if Sentry is not available
+        });
+      }
     }
   };
 
@@ -628,16 +668,16 @@ export default function MessagesPremium() {
 
   // Filter messages by search query
   const filteredMessages = messageSearchQuery
-    ? messages.filter(msg =>
+    ? (Array.isArray(messages) ? messages.filter(msg =>
         msg.content?.toLowerCase().includes(messageSearchQuery.toLowerCase())
-      )
-    : messages;
+      ) : [])
+    : (Array.isArray(messages) ? messages : []);
 
-  const filteredConversations = conversations.filter(conv =>
+  const filteredConversations = Array.isArray(conversations) ? conversations.filter(conv =>
     conv.otherCompany?.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
 
   if (isLoading) {
     return (
@@ -703,13 +743,14 @@ export default function MessagesPremium() {
                     itemHeight={96}
                     containerHeight={400}
                     className="h-full divide-y divide-afrikoni-gold/10"
+                    getItemKey={(conv) => conv.id}
                     renderItem={(conv) => {
                       const isSelected = selectedConversation === conv.id;
-                      const unreadCount = messages.filter(
+                      const unreadCount = Array.isArray(messages) ? messages.filter(
                         m => m.conversation_id === conv.id && 
                         !m.read && 
                         m.receiver_company_id === companyId
-                      ).length;
+                      ).length : 0;
 
                       return (
                         <button

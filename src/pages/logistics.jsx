@@ -111,11 +111,32 @@ export default function Logistics() {
                 Connect with Afrikoni-approved logistics partners for reliable shipping across Africa
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
-                    Request Shipping Quote
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream"
+                  onClick={() => {
+                    // Check if user is logged in
+                    const checkUser = async () => {
+                      try {
+                        const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+                        const { supabase, supabaseHelpers } = await import('@/api/supabaseClient');
+                        const { user: userData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+                        if (userData && (role === 'logistics_partner' || role === 'logistics')) {
+                          window.location.href = '/dashboard/logistics?tab=quotes';
+                        } else if (userData) {
+                          window.location.href = '/signup?role=logistics';
+                        } else {
+                          window.location.href = '/signup?role=logistics';
+                        }
+                      } catch {
+                        window.location.href = '/signup?role=logistics';
+                      }
+                    };
+                    checkUser();
+                  }}
+                >
+                  Request Shipping Quote
+                </Button>
                 <Link to="/dashboard">
                   <Button size="lg" variant="outline" className="border-white text-afrikoni-creamhover:bg-afrikoni-offwhite/10">
                     Become a Partner

@@ -1,136 +1,255 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+/**
+ * Testimonials Section
+ * Pulls testimonials from Supabase 'testimonials' table
+ * With slider arrows and auto-transition
+ */
 
-// Country flag emojis
-const countryFlags = {
-  'Nigeria': '🇳🇬',
-  'Egypt': '🇪🇬',
-  'Ghana': '🇬🇭',
-  'Senegal': '🇸🇳'
-};
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Star, Quote, ChevronLeft, ChevronRight, MapPin, CheckCircle } from 'lucide-react';
+import { supabase } from '@/api/supabaseClient';
 
 export default function TestimonialsSection() {
-  const testimonials = [
-    {
-      name: 'Ayo Okonkwo',
-      role: 'Import Manager',
-      company: 'West Africa Trading Co.',
-      location: 'Lagos, Nigeria',
-      country: 'Nigeria',
-      text: 'Afrikoni helped me find reliable cocoa suppliers in Ghana. The verification process gave me confidence, and now I have a steady supply chain that\'s boosted our business by 40%.',
-      rating: 5,
-      initials: 'AO',
-      avatar: 'https://ui-avatars.com/api/?name=Ayo+Okonkwo&background=orange&color=fff&size=128'
-    },
-    {
-      name: 'Fatima Al-Rashid',
-      role: 'Procurement Director',
-      company: 'Nile Commerce',
-      location: 'Cairo, Egypt',
-      country: 'Egypt',
-      text: 'The AI-powered matching system connected us with the perfect textile suppliers in Ethiopia. The quality is exceptional and the prices are very competitive.',
-      rating: 5,
-      initials: 'FA',
-      avatar: 'https://ui-avatars.com/api/?name=Fatima+Al-Rashid&background=blue&color=fff&size=128'
-    },
-    {
-      name: 'Kwame Asante',
-      role: 'Export Manager',
-      company: 'Golden Coast Exports',
-      location: 'Accra, Ghana',
-      country: 'Ghana',
-      text: 'As a seller on Afrikoni, I\'ve expanded my reach across 15 African countries. The platform\'s tools help me manage orders efficiently and build trust with international buyers.',
-      rating: 5,
-      initials: 'KA',
-      avatar: 'https://ui-avatars.com/api/?name=Kwame+Asante&background=green&color=fff&size=128'
-    },
-    {
-      name: 'Amara Diallo',
-      role: 'Business Owner',
-      company: 'Sahel Organics',
-      location: 'Dakar, Senegal',
-      country: 'Senegal',
-      text: 'Afrikoni\'s trade finance solutions made it possible for us to fulfill large orders. Their support team understands African business challenges and provides real solutions.',
-      rating: 5,
-      initials: 'AD',
-      avatar: 'https://ui-avatars.com/api/?name=Amara+Diallo&background=purple&color=fff&size=128'
+  const [testimonials, setTestimonials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+
+  useEffect(() => {
+    loadTestimonials();
+  }, []);
+
+  // Auto-transition effect
+  useEffect(() => {
+    if (!autoPlay || testimonials.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % Math.ceil(testimonials.length / 3));
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [autoPlay, testimonials.length]);
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % Math.ceil(testimonials.length / 3));
+    setAutoPlay(false);
+    setTimeout(() => setAutoPlay(true), 10000);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + Math.ceil(testimonials.length / 3)) % Math.ceil(testimonials.length / 3));
+    setAutoPlay(false);
+    setTimeout(() => setAutoPlay(true), 10000);
+  };
+
+  const getDisplayedTestimonials = () => {
+    const start = currentIndex * 3;
+    return testimonials.slice(start, start + 3);
+  };
+
+  const loadTestimonials = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .eq('published', true)
+        .order('display_order', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setTestimonials(data || []);
+    } catch (error) {
+      console.error('Error loading testimonials:', error);
+      // Fallback to empty array
+      setTestimonials([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  if (loading) {
+    return (
+      <section className="py-12 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center">Loading testimonials...</div>
+        </div>
+      </section>
+    );
+  }
+
+  // Create placeholder testimonials if none exist
+  const displayTestimonials = testimonials.length > 0 
+    ? testimonials 
+    : [
+        {
+          id: '1',
+          review: 'Afrikoni has transformed how we source products from Africa. The verified suppliers and escrow protection give us complete confidence.',
+          rating: 5,
+          seller_name: 'Sarah Johnson',
+          company: 'Global Trade Co.',
+          location: 'United States',
+          verified: true,
+          type: 'buyer'
+        },
+        {
+          id: '2',
+          review: 'As a supplier, Afrikoni has opened doors to international buyers we never had access to before. The platform is professional and secure.',
+          rating: 5,
+          seller_name: 'Kwame Mensah',
+          company: 'African Exports Ltd',
+          location: 'Ghana',
+          verified: true,
+          type: 'supplier'
+        },
+        {
+          id: '3',
+          review: 'The logistics support on Afrikoni is exceptional. They handle customs, shipping, and tracking seamlessly across borders.',
+          rating: 5,
+          seller_name: 'Amina Hassan',
+          company: 'East Africa Logistics',
+          location: 'Kenya',
+          verified: true,
+          type: 'logistics'
+        }
+      ];
+
+  const displayed = getDisplayedTestimonials().length > 0 
+    ? getDisplayedTestimonials() 
+    : displayTestimonials.slice(0, 3);
 
   return (
-    <div className="py-12 md:py-16 bg-afrikoni-offwhite">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-white to-afrikoni-offwhite relative">
       <div className="max-w-7xl mx-auto px-4">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-10 md:mb-12"
+          className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3 md:mb-4">
-            Trusted by African Businesses
+          <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
+            What Our Customers Say
           </h2>
-          <p className="text-base md:text-lg text-afrikoni-deep">
-            Join thousands of successful traders who've grown their business with Afrikoni
+          <p className="text-lg text-afrikoni-deep/80">
+            Trusted by businesses across Africa
           </p>
         </motion.div>
-        
-        <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-          {testimonials.map((testimonial, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-            >
-              <motion.div
-                whileHover={{ y: -5, scale: 1.01 }}
-                transition={{ duration: 0.2 }}
+
+        {/* Slider Container */}
+        <div className="relative">
+          {/* Navigation Arrows */}
+          {displayTestimonials.length > 3 && (
+            <>
+              <motion.button
+                onClick={prevSlide}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold shadow-lg flex items-center justify-center text-afrikoni-chestnut hover:bg-afrikoni-gold/10 transition-all"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Previous testimonials"
               >
-                <Card className="border-l-4 border-afrikoni-gold bg-afrikoni-offwhite hover:shadow-2xl transition-all rounded-xl">
-                  <CardContent className="p-6 md:p-8 relative">
-                    <div className="absolute top-4 left-4 text-5xl md:text-6xl font-bold text-afrikoni-gold opacity-10">
-                      "
-                    </div>
-                    <div className="flex gap-1 mb-4 relative z-10">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <Star key={star} className={`w-4 h-4 md:w-5 md:h-5 ${star <= testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-afrikoni-deep/50'}`} />
-                      ))}
-                    </div>
-                    <p className="text-afrikoni-deep mb-5 md:mb-6 leading-relaxed relative z-10 text-sm md:text-base">
-                      "{testimonial.text}"
-                    </p>
-                    <div className="flex items-center gap-3 md:gap-4 relative z-10">
-                      <div className="relative">
-                        <img 
-                          src={testimonial.avatar} 
-                          alt={testimonial.name}
-                          className="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-afrikoni-gold/30 object-cover"
-                        />
-                        <div className="absolute -bottom-1 -right-1 text-xl md:text-2xl bg-afrikoni-offwhite rounded-full p-0.5 md:p-1">
-                          {countryFlags[testimonial.country] || '🇦🇫'}
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+              </motion.button>
+              <motion.button
+                onClick={nextSlide}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold shadow-lg flex items-center justify-center text-afrikoni-chestnut hover:bg-afrikoni-gold/10 transition-all"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Next testimonials"
+              >
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+              </motion.button>
+            </>
+          )}
+
+          {/* Testimonials Grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {displayed.map((testimonial, idx) => (
+                <motion.div
+                  key={testimonial.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                >
+                  <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all shadow-md hover:shadow-xl">
+                    <CardContent className="p-6">
+                      {/* Quote Icon */}
+                      <Quote className="w-8 h-8 text-afrikoni-gold/30 mb-4" />
+
+                      {/* Review Text */}
+                      <p className="text-afrikoni-deep mb-6 leading-relaxed italic">
+                        "{testimonial.review || testimonial.message}"
+                      </p>
+
+                      {/* Rating */}
+                      <div className="flex items-center gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < (testimonial.rating || 5)
+                                ? 'fill-afrikoni-gold text-afrikoni-gold'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Author Info */}
+                      <div className="border-t border-afrikoni-gold/20 pt-4">
+                        <div className="flex items-start gap-3">
+                          {/* Avatar */}
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20 flex items-center justify-center flex-shrink-0">
+                            <span className="text-afrikoni-chestnut font-bold text-lg">
+                              {(testimonial.seller_name || testimonial.name || 'C')[0].toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold text-afrikoni-chestnut truncate">
+                                {testimonial.seller_name || testimonial.name || 'Customer'}
+                              </p>
+                              {testimonial.verified && (
+                                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-xs text-afrikoni-gold font-medium mb-1">
+                              {testimonial.type === 'buyer' ? 'Verified Buyer' : 
+                               testimonial.type === 'supplier' ? 'Verified Supplier' :
+                               testimonial.type === 'logistics' ? 'Logistics Partner' : ''}
+                            </p>
+                            <div className="flex items-center gap-1 text-sm text-afrikoni-deep/70">
+                              <span className="truncate">{testimonial.company || ''}</span>
+                              {testimonial.location && (
+                                <>
+                                  <span>•</span>
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3 flex-shrink-0" />
+                                    <span className="truncate">{testimonial.location}</span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-afrikoni-chestnut text-base md:text-lg">{testimonial.name}</div>
-                        <div className="text-xs md:text-sm text-afrikoni-deep">{testimonial.role}</div>
-                        <div className="text-xs md:text-sm text-afrikoni-gold font-semibold">{testimonial.company}</div>
-                        <div className="flex items-center gap-1 text-xs md:text-sm text-afrikoni-deep/70 mt-1">
-                          <span>{countryFlags[testimonial.country]}</span>
-                          <span>{testimonial.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

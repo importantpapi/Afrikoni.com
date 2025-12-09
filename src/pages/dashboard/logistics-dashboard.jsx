@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
@@ -20,6 +20,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Truck, MapPin, Calendar, DollarSign, Package, TrendingUp, 
@@ -34,11 +36,12 @@ import EmptyState from '@/components/ui/EmptyState';
 
 export default function LogisticsDashboard() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
   // Overview KPIs
   const [kpis, setKpis] = useState({
@@ -331,6 +334,13 @@ export default function LogisticsDashboard() {
               View All Shipments
             </Button>
             <Button
+              variant="outline"
+              onClick={() => setActiveTab('quotes')}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Request Shipping Quote
+            </Button>
+            <Button
               className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
               onClick={() => navigate('/dashboard/shipments')}
             >
@@ -476,9 +486,10 @@ export default function LogisticsDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="shipments">Shipments</TabsTrigger>
+            <TabsTrigger value="quotes">Shipping Quotes</TabsTrigger>
             <TabsTrigger value="routes">Routes</TabsTrigger>
             <TabsTrigger value="partners">Partners</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -700,6 +711,178 @@ export default function LogisticsDashboard() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Shipping Quotes Tab */}
+          <TabsContent value="quotes" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Request Shipping Quote</CardTitle>
+                    <CardDescription>Get quotes for shipping services</CardDescription>
+                  </div>
+                  <Button
+                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                    onClick={() => {
+                      // Open quote request form
+                      const form = document.getElementById('shipping-quote-form');
+                      if (form) {
+                        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Quote Request
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div id="shipping-quote-form" className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="origin">Origin Address</Label>
+                      <Input
+                        id="origin"
+                        placeholder="City, Country"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="destination">Destination Address</Label>
+                      <Input
+                        id="destination"
+                        placeholder="City, Country"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="weight">Weight (kg)</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        placeholder="0.00"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dimensions">Dimensions (L x W x H cm)</Label>
+                      <Input
+                        id="dimensions"
+                        placeholder="e.g., 100 x 50 x 30"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cargo-type">Cargo Type</Label>
+                      <Select>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select cargo type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">General Cargo</SelectItem>
+                          <SelectItem value="fragile">Fragile</SelectItem>
+                          <SelectItem value="perishable">Perishable</SelectItem>
+                          <SelectItem value="hazardous">Hazardous</SelectItem>
+                          <SelectItem value="electronics">Electronics</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="urgency">Urgency</Label>
+                      <Select>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select urgency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard (7-14 days)</SelectItem>
+                          <SelectItem value="express">Express (3-7 days)</SelectItem>
+                          <SelectItem value="urgent">Urgent (1-3 days)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="notes">Additional Notes</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Any special requirements or instructions..."
+                      rows={4}
+                      className="mt-1"
+                    />
+                  </div>
+                  <Button
+                    className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                    onClick={async () => {
+                      // Save quote request to database
+                      try {
+                        const origin = document.getElementById('origin')?.value;
+                        const destination = document.getElementById('destination')?.value;
+                        const weight = document.getElementById('weight')?.value;
+                        const dimensions = document.getElementById('dimensions')?.value;
+                        const notes = document.getElementById('notes')?.value;
+
+                        if (!origin || !destination || !weight) {
+                          toast.error('Please fill in required fields (Origin, Destination, Weight)');
+                          return;
+                        }
+
+                        // Save to contact_submissions table
+                        const { error } = await supabase
+                          .from('contact_submissions')
+                          .insert({
+                            name: user?.email || 'Logistics Quote Request',
+                            email: user?.email || 'quote@request.com',
+                            category: 'logistics_quote',
+                            subject: `Shipping Quote: ${origin} → ${destination}`,
+                            message: `Weight: ${weight}kg\nDimensions: ${dimensions || 'N/A'}\n\n${notes || 'No additional notes'}`,
+                            created_at: new Date().toISOString()
+                          });
+
+                        if (error) throw error;
+
+                        // Send email notification
+                        try {
+                          const { sendEmail } = await import('@/services/emailService');
+                          await sendEmail({
+                            to: 'hello@afrikoni.com',
+                            subject: `New Shipping Quote Request: ${origin} → ${destination}`,
+                            template: 'default',
+                            data: {
+                              title: 'New Shipping Quote Request',
+                              message: `
+                                <p><strong>From:</strong> ${user?.email || 'Guest'}</p>
+                                <p><strong>Origin:</strong> ${origin}</p>
+                                <p><strong>Destination:</strong> ${destination}</p>
+                                <p><strong>Weight:</strong> ${weight}kg</p>
+                                <p><strong>Dimensions:</strong> ${dimensions || 'N/A'}</p>
+                                <p><strong>Notes:</strong> ${notes || 'None'}</p>
+                              `
+                            }
+                          });
+                        } catch (emailError) {
+                          console.error('Email error:', emailError);
+                        }
+
+                        toast.success('Quote request submitted! Our team will contact you soon.');
+                        
+                        // Clear form
+                        document.getElementById('origin').value = '';
+                        document.getElementById('destination').value = '';
+                        document.getElementById('weight').value = '';
+                        document.getElementById('dimensions').value = '';
+                        document.getElementById('notes').value = '';
+                      } catch (error) {
+                        console.error('Error submitting quote:', error);
+                        toast.error('Failed to submit quote request. Please try again.');
+                      }
+                    }}
+                  >
+                    Request Quote
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

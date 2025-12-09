@@ -53,6 +53,20 @@ export default function StructuredData({ type = 'Organization', data = {} }) {
           }
         };
       
+      case 'FAQPage':
+        return {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: Array.isArray(data.items) ? data.items.map(item => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: item.answer
+            }
+          })) : []
+        };
+      
       default:
         return null;
     }

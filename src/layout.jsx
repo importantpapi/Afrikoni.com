@@ -5,8 +5,13 @@ import { supabaseHelpers, supabase } from '@/api/supabaseClient';
 import { createPageUrl } from './utils';
 import { Button } from '@/components/ui/button';
 import { Mail, Phone, MapPin, Lock, Shield, Award, CheckCircle, Linkedin, Twitter, Facebook, Instagram, Youtube, ChevronDown, MessageCircle } from 'lucide-react';
+// Note: TikTok and Pinterest icons may need to be added via custom SVG or icon library
 import Navbar from './components/layout/Navbar';
 import { Logo } from '@/components/ui/Logo';
+import WhatsAppButton from './components/ui/WhatsAppButton';
+import CookieBanner from './components/ui/CookieBanner';
+import NewsletterPopup from './components/ui/NewsletterPopup';
+import MobileTrustBadge from './components/ui/MobileTrustBadge';
 
 function Footer() {
   const [openSections, setOpenSections] = useState({
@@ -71,7 +76,9 @@ function Footer() {
               <Logo type="full" size="sm" link={true} className="text-afrikoni-cream" />
             </div>
             <p className="text-xs md:text-sm text-afrikoni-cream/90 mb-3 md:mb-4 leading-relaxed">
-              Africa's leading B2B marketplace connecting verified suppliers and buyers across 54 countries.
+              Afrikoni — Africa's trusted B2B trade engine.
+              <br />
+              Connecting suppliers, buyers & logistics across 54 countries.
             </p>
             <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm mb-4 md:mb-6">
               <motion.div 
@@ -283,22 +290,31 @@ function Footer() {
           <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 w-full md:w-auto">
             <div className="flex gap-2 md:gap-3">
               {[
-                { icon: Linkedin, href: '#' },
-                { icon: Twitter, href: '#' },
-                { icon: Facebook, href: '#' },
-                { icon: Instagram, href: '#' },
-                { icon: Youtube, href: '#' }
+                { icon: Instagram, href: 'https://instagram.com/afrikoni_official', label: 'Instagram' },
+                { icon: Linkedin, href: 'https://linkedin.com/company/afrikoni', label: 'LinkedIn' },
+                { icon: Facebook, href: '#', label: 'Facebook' },
+                { icon: Twitter, href: '#', label: 'Twitter' },
+                { icon: Youtube, href: '#', label: 'YouTube' },
+                { icon: null, href: '#', label: 'TikTok', customIcon: 'TikTok' },
+                { icon: null, href: '#', label: 'Pinterest', customIcon: 'Pinterest' }
               ].map((social, idx) => {
                 const Icon = social.icon;
                 return (
                   <motion.a
                     key={idx}
                     href={social.href}
+                    target={social.href !== '#' ? '_blank' : undefined}
+                    rel={social.href !== '#' ? 'noopener noreferrer' : undefined}
                     whileHover={{ scale: 1.2, y: -2 }}
                     whileTap={{ scale: 0.9 }}
                     className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors"
+                    aria-label={social.label}
                   >
-                    <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                    {Icon ? (
+                      <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                    ) : (
+                      <span className="text-xs font-semibold">{social.customIcon}</span>
+                    )}
                   </motion.a>
                 );
               })}
@@ -323,7 +339,7 @@ function Footer() {
                 whileHover={{ x: 2 }}
                 className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
               >
-                Cookies
+                Cookie Policy
               </motion.a>
               <span className="text-afrikoni-cream/70 whitespace-nowrap">© 2025 Afrikoni. All rights reserved.</span>
             </div>
@@ -404,6 +420,18 @@ export default function Layout({ children }) {
 
       {/* Footer */}
       <Footer />
+
+      {/* WhatsApp Sticky Button */}
+      <WhatsAppButton />
+
+      {/* Cookie Banner */}
+      <CookieBanner />
+
+      {/* Newsletter Popup */}
+      <NewsletterPopup />
+
+      {/* Mobile Trust Badge */}
+      <MobileTrustBadge />
     </div>
   );
 }

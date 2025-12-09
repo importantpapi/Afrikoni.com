@@ -18,19 +18,19 @@ export default function SourceByCountry() {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-afrikoni-offwhite">
+    <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-afrikoni-offwhite to-white">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-10"
+          className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
             Source by Country
           </h2>
-          <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
             Discover products and suppliers from specific African countries
           </p>
         </motion.div>

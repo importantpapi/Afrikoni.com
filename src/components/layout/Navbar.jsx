@@ -198,24 +198,29 @@ export default function Navbar({ user, onLogout }) {
             <Logo type="full" size="sm" link={true} showTagline={false} direction="horizontal" />
           </div>
 
+          {/* Marketplace Link */}
+          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            Marketplace
+          </Link>
+
+          {/* About Us Link */}
+          <Link to="/about" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            About Us
+          </Link>
+
+          {/* For Enterprise Link */}
+          <Link to="/enterprise" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            For Enterprise
+          </Link>
+
+          {/* Community Link */}
           <button
             type="button"
-            onClick={toggleMegaMenu}
+            onClick={() => openWhatsAppCommunity('navbar')}
             className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap"
           >
-            {t('nav.explore')} <span className={`transition-transform duration-200 ${megaOpen ? 'rotate-180' : ''}`}>▼</span>
+            Community
           </button>
-
-          <Link to="/marketplace" className="hidden sm:block">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 sm:h-9 px-2 sm:px-3 md:px-4 border-afrikoni-gold/70 text-afrikoni-cream hover:bg-afrikoni-gold/10 rounded-full font-semibold text-xs"
-            >
-              <span className="hidden md:inline">{t('nav.browseProducts')}</span>
-              <span className="md:hidden">Browse</span>
-            </Button>
-          </Link>
           
           {compareCount > 0 && (
             <Link to="/compare" className="relative hidden sm:block">
@@ -462,38 +467,43 @@ export default function Navbar({ user, onLogout }) {
                 </AnimatePresence>
               </div>
             </>
-          ) : (
-            <>
-              <Link to="/become-supplier" className="hidden lg:inline-block">
-                <Button
-                  size="sm"
-                  className="h-9 px-4 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight rounded-full font-semibold shadow-afrikoni"
-                >
-                  {t('nav.becomeSupplier')}
-                </Button>
-              </Link>
+              ) : (
+                <>
+                  {/* Login / Signup Group - Updated CTAs */}
+                  <Link to="/login" className="hidden sm:block">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full text-xs sm:text-sm transition-all"
+                    >
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/signup" className="hidden sm:block">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        size="sm"
+                        className="h-9 px-4 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight rounded-full font-semibold shadow-lg hover:shadow-xl transition-all hover:ring-2 hover:ring-afrikoni-gold/50"
+                      >
+                        Sign Up
+                      </Button>
+                    </motion.div>
+                  </Link>
 
-              <Link to="/login" className="hidden sm:block">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full text-xs sm:text-sm"
-                >
-                  {t('auth.login')}
-                </Button>
-              </Link>
-
-              <Link to="/become-supplier" className="lg:hidden">
-                <Button
-                  size="sm"
-                  className="h-8 sm:h-9 px-2 sm:px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full whitespace-nowrap"
-                >
-                  <span className="hidden xs:inline">{t('nav.becomeSupplier')}</span>
-                  <span className="xs:hidden">Supplier</span>
-                </Button>
-              </Link>
-            </>
-          )}
+                  {/* Mobile CTA */}
+                  <Link to="/signup" className="sm:hidden">
+                    <Button
+                      size="sm"
+                      className="h-8 sm:h-9 px-2 sm:px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full whitespace-nowrap"
+                    >
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
         </div>
       </div>
 

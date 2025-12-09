@@ -164,7 +164,30 @@ export default function PopularCategories({ categories = [] }) {
     };
 
     track.addEventListener('scroll', handleScroll, { passive: true });
-    return () => track.removeEventListener('scroll', handleScroll);
+    
+    // Add mouse wheel support for infinite scroll
+    const handleWheel = (e) => {
+      if (isScrolling) return;
+      e.preventDefault();
+      const delta = e.deltaY || e.deltaX;
+      const cardWidthNum = parseFloat(cardWidth);
+      const gap = 16;
+      const cardWithGap = cardWidthNum + gap;
+      const currentScroll = track.scrollLeft;
+      const newScroll = currentScroll + (delta > 0 ? cardWithGap : -cardWithGap);
+      
+      track.scrollTo({
+        left: newScroll,
+        behavior: 'smooth'
+      });
+    };
+    
+    track.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      track.removeEventListener('scroll', handleScroll);
+      track.removeEventListener('wheel', handleWheel);
+    };
   }, [cardWidth, realCategoryCount, isScrolling]);
 
   const handlePrev = () => {

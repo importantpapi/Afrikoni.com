@@ -10,6 +10,7 @@ import { B2B_CATEGORIES, CATEGORY_GROUPS, searchCategories } from '@/constants/b
 import { supabase } from '@/api/supabaseClient';
 import SEO from '@/components/SEO';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import Breadcrumb from '@/components/ui/Breadcrumb';
 
 export default function Categories() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,6 +84,11 @@ export default function Categories() {
         url="/categories"
       />
       <div className="min-h-screen bg-afrikoni-offwhite">
+        {/* Breadcrumb */}
+        <div className="max-w-7xl mx-auto px-4 pt-6">
+          <Breadcrumb />
+        </div>
+        
         {/* Header */}
         <div className="bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-cream to-afrikoni-offwhite border-b border-afrikoni-gold/20">
           <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">

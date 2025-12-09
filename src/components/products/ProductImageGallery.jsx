@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+/**
+ * ProductImageGallery component
+ * @param {Array} images - Array of image URLs or objects with {url, alt_text}
+ * @param {string} productTitle - Product title for fallback alt text
+ */
 export default function ProductImageGallery({ images = [], productTitle = 'Product' }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -17,6 +22,28 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
     );
   }
 
+  // Normalize images array - handle both URL strings and objects
+  const normalizedImages = images.map(img => {
+    if (typeof img === 'string') {
+      return { url: img, alt_text: `${productTitle} image` };
+    }
+    return {
+      url: img.url || img,
+      alt_text: img.alt_text || img.alt || `${productTitle} image`
+    };
+  });
+
+  const getImageUrl = (img) => {
+    return typeof img === 'string' ? img : (img.url || img);
+  };
+
+  const getImageAlt = (img, index) => {
+    if (typeof img === 'string') {
+      return `${productTitle} - Image ${index + 1}`;
+    }
+    return img.alt_text || img.alt || `${productTitle} - Image ${index + 1}`;
+  };
+
   const handleMouseMove = (e) => {
     if (!isZoomed) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -26,11 +53,11 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
   };
 
   const nextImage = () => {
-    setSelectedImage((prev) => (prev + 1) % images.length);
+    setSelectedImage((prev) => (prev + 1) % normalizedImages.length);
   };
 
   const prevImage = () => {
-    setSelectedImage((prev) => (prev - 1 + images.length) % images.length);
+    setSelectedImage((prev) => (prev - 1 + normalizedImages.length) % normalizedImages.length);
   };
 
   return (
@@ -51,8 +78,8 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
           onClick={() => setShowLightbox(true)}
         >
           <img
-            src={images[selectedImage]}
-            alt={`${productTitle} - Image ${selectedImage + 1}`}
+            src={getImageUrl(normalizedImages[selectedImage])}
+            alt={getImageAlt(normalizedImages[selectedImage], selectedImage + 1)}
             className={`w-full h-full object-cover transition-transform duration-300 ${
               isZoomed ? 'scale-150' : 'scale-100'
             }`}
@@ -78,7 +105,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
           </div>
 
           {/* Navigation Arrows - Always visible on mobile, hover on desktop */}
-          {images.length > 1 && (
+          {normalizedImages.length > 1 && (
             <>
               <button
                 onClick={(e) => {
@@ -105,9 +132,9 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
         </div>
 
         {/* Thumbnail Gallery */}
-        {images.length > 1 && (
+        {normalizedImages.length > 1 && (
           <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 gap-2 md:gap-3">
-            {images.map((img, idx) => (
+            {normalizedImages.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setSelectedImage(idx)}
@@ -119,8 +146,8 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
                 aria-label={`View image ${idx + 1}`}
               >
                 <img
-                  src={img}
-                  alt={`${productTitle} thumbnail ${idx + 1}`}
+                  src={getImageUrl(normalizedImages[idx])}
+                  alt={getImageAlt(normalizedImages[idx], idx + 1)}
                   className="w-full h-full object-cover"
                   loading="lazy"
                   decoding="async"
@@ -149,8 +176,8 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={images[selectedImage]}
-                alt={`${productTitle} - Full view`}
+                src={getImageUrl(normalizedImages[selectedImage])}
+                alt={getImageAlt(normalizedImages[selectedImage], selectedImage + 1)}
                 className="max-w-full max-h-[90vh] object-contain rounded-lg"
               />
               
@@ -161,7 +188,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
                 <X className="w-6 h-6" />
               </button>
 
-              {images.length > 1 && (
+              {normalizedImages.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
@@ -177,7 +204,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
                   </button>
                   
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                    {images.map((_, idx) => (
+                    {normalizedImages.map((_, idx) => (
                       <button
                         key={idx}
                         onClick={() => setSelectedImage(idx)}

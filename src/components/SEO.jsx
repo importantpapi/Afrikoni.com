@@ -11,7 +11,10 @@ export default function SEO({
   description = 'Connect with verified African suppliers and buyers. Source products, post RFQs, and grow your business across Africa.',
   image = '/og-image.jpg',
   url = '',
-  type = 'website'
+  type = 'website',
+  ogType = 'website',
+  ogImage = '/og-image.jpg',
+  structuredData = null
 }) {
   const fullTitle = title.includes('AFRIKONI') ? title : `${title} | AFRIKONI`;
   const fullUrl = url ? `https://afrikoni.com${url}` : 'https://afrikoni.com';
@@ -61,7 +64,19 @@ export default function SEO({
       document.head.appendChild(canonical);
     }
     canonical.setAttribute('href', fullUrl);
-  }, [fullTitle, description, fullImage, fullUrl, type]);
+
+    // Structured Data (JSON-LD)
+    if (structuredData) {
+      let script = document.querySelector('script[type="application/ld+json"][data-seo="true"]');
+      if (!script) {
+        script = document.createElement('script');
+        script.setAttribute('type', 'application/ld+json');
+        script.setAttribute('data-seo', 'true');
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify(structuredData);
+    }
+  }, [fullTitle, description, fullImage, fullUrl, type, structuredData]);
 
   return null;
 }
