@@ -11,27 +11,32 @@
  * Usage: node scripts/convert-og-image.js
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const svgPath = path.join(process.cwd(), 'public', 'og-image.svg');
 const pngPath = path.join(process.cwd(), 'public', 'og-image.png');
 
-console.log('🖼️  OG Image Converter\n');
-console.log('=' .repeat(50));
-console.log('');
+async function convertImage() {
+  console.log('🖼️  OG Image Converter\n');
+  console.log('=' .repeat(50));
+  console.log('');
 
-// Check if SVG exists
-if (!fs.existsSync(svgPath)) {
-  console.error('❌ Error: og-image.svg not found at:', svgPath);
-  process.exit(1);
-}
+  // Check if SVG exists
+  if (!fs.existsSync(svgPath)) {
+    console.error('❌ Error: og-image.svg not found at:', svgPath);
+    process.exit(1);
+  }
 
-console.log('✅ Found og-image.svg');
+  console.log('✅ Found og-image.svg');
 
-// Try to use sharp (if available)
-try {
-  const sharp = require('sharp');
+  // Try to use sharp (if available)
+  try {
+    const sharp = (await import('sharp')).default;
   console.log('✅ Sharp library found - Converting...');
   
   sharp(svgPath)
@@ -56,7 +61,7 @@ try {
 } catch (err) {
   // Sharp not available, try puppeteer
   try {
-    const puppeteer = require('puppeteer');
+    const puppeteer = (await import('puppeteer')).default;
     console.log('✅ Puppeteer library found - Converting...');
     
     (async () => {
@@ -102,4 +107,6 @@ try {
     console.log('📖 See: public/OG_IMAGE_INSTRUCTIONS.md for details');
   }
 }
+
+convertImage().catch(console.error);
 

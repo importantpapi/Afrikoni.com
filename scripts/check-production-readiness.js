@@ -6,10 +6,12 @@
  * Usage: node scripts/check-production-readiness.js
  */
 
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const http = require('http');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log('🚀 Afrikoni Marketplace - Production Readiness Check\n');
 console.log('=' .repeat(60));
@@ -39,7 +41,7 @@ function check(name, condition, message, isWarning = false) {
 
 // 1. Check build
 console.log('📦 Build Status:');
-const distPath = path.join(process.cwd(), 'dist');
+const distPath = path.join(process.cwd() || __dirname.replace('/scripts', ''), 'dist');
 check(
   'Build directory exists',
   fs.existsSync(distPath),
