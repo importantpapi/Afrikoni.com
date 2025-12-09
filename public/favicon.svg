@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" fill="none">
+  <!-- Afrikoni Logo Favicon - Simplified version for small sizes -->
+  <!-- Outer Chevron (Roof/Arrow) -->
+  <path
+    d="M50 10 L20 40 L80 40 Z"
+    fill="#D4A937"
+    stroke="#603813"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Inner Chevron -->
+  <path
+    d="M50 20 L30 40 L70 40 Z"
+    fill="none"
+    stroke="#D4A937"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Circular/Oval Structure -->
+  <ellipse
+    cx="50"
+    cy="70"
+    rx="30"
+    ry="25"
+    fill="none"
+    stroke="#D4A937"
+    stroke-width="2.5"
+  />
+  <!-- Intertwined Pattern (simplified) -->
+  <path
+    d="M35 60 Q40 70, 50 65 Q60 70, 65 60"
+    fill="none"
+    stroke="#D4A937"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+  <path
+    d="M35 80 Q40 70, 50 75 Q60 70, 65 80"
+    fill="none"
+    stroke="#D4A937"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+  <!-- Geometric Pattern Band -->
+  <g fill="#D4A937">
+    <path d="M40 90 L42 95 L38 95 Z" />
+    <path d="M50 90 L52 95 L48 95 Z" />
+    <path d="M60 90 L62 95 L58 95 Z" />
+  </g>
+</svg>
+
