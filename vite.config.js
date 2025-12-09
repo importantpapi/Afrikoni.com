@@ -46,7 +46,7 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800, // Increased for dashboard chunk (acceptable for admin features)
     minify: 'esbuild', // Faster than terser, already included
   },
   optimizeDeps: {
