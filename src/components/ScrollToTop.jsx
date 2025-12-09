@@ -36,30 +36,39 @@ export default function ScrollToTop() {
     if (hash) {
       // Skip OAuth callback hashes (they contain access_token, expires_at, etc.)
       // These are not CSS selectors and will cause querySelector errors
-      const isOAuthCallback = hash.includes('access_token') || 
-                             hash.includes('expires_at') || 
-                             hash.includes('provider_token') ||
-                             hash.includes('refresh_token') ||
-                             hash.includes('token_type');
+      // Check for OAuth tokens in hash (can be in format #access_token=... or #/access_token=...)
+      const hashWithoutSlash = hash.replace(/^#\/?/, '');
+      const isOAuthCallback = hashWithoutSlash.includes('access_token') || 
+                             hashWithoutSlash.includes('expires_at') || 
+                             hashWithoutSlash.includes('provider_token') ||
+                             hashWithoutSlash.includes('refresh_token') ||
+                             hashWithoutSlash.includes('token_type') ||
+                             hashWithoutSlash.includes('type=recovery') ||
+                             hashWithoutSlash.includes('type=email');
       
       if (isOAuthCallback) {
-        // This is an OAuth callback, don't try to use it as a selector
+        // This is an OAuth callback or auth-related hash, don't try to use it as a selector
         return;
       }
 
       // Validate that hash looks like a valid CSS selector
       // Should start with # followed by alphanumeric, dash, underscore, or colon
-      const isValidSelector = /^#[a-zA-Z0-9_-]+/.test(hash);
+      // Must NOT contain =, &, or other URL parameter characters
+      const isValidSelector = /^#\/?[a-zA-Z0-9_-]+$/.test(hash) && 
+                             !hash.includes('=') && 
+                             !hash.includes('&');
       
       if (!isValidSelector) {
-        // Not a valid selector, skip
+        // Not a valid selector, skip (likely a URL parameter or OAuth token)
         return;
       }
 
       // Small delay to ensure DOM is ready
       setTimeout(() => {
         try {
-          const element = document.querySelector(hash);
+          // Double-check it's safe before using querySelector
+          const safeHash = hash.startsWith('#') ? hash : `#${hash}`;
+          const element = document.querySelector(safeHash);
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           } else {
@@ -68,7 +77,10 @@ export default function ScrollToTop() {
           }
         } catch (error) {
           // If querySelector fails (invalid selector), just scroll to top
-          console.warn('Invalid hash selector:', hash, error);
+          // Don't log to console in production to avoid Sentry noise
+          if (import.meta.env.DEV) {
+            console.warn('Invalid hash selector:', hash, error);
+          }
           window.scrollTo(0, 0);
         }
       }, 100);
