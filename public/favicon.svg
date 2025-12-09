@@ -1,53 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" fill="none">
-  <!-- Afrikoni Logo Favicon - Simplified version for small sizes -->
-  <!-- Outer Chevron (Roof/Arrow) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Afrikoni Logo Favicon - Gold/Brown Brand Colors -->
+  <!-- Background circle for better visibility -->
+  <circle cx="50" cy="50" r="48" fill="#603813" />
+  
+  <!-- Outer Chevron (Roof/Arrow) - Gold -->
   <path
-    d="M50 10 L20 40 L80 40 Z"
+    d="M50 15 L25 40 L75 40 Z"
     fill="#D4A937"
-    stroke="#603813"
-    stroke-width="3"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <!-- Inner Chevron -->
-  <path
-    d="M50 20 L30 40 L70 40 Z"
-    fill="none"
     stroke="#D4A937"
-    stroke-width="2.5"
+    stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <!-- Circular/Oval Structure -->
+  <!-- Inner Chevron - Lighter gold -->
+  <path
+    d="M50 22 L32 40 L68 40 Z"
+    fill="#E4C27F"
+    stroke="#D4A937"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Circular/Oval Structure - Gold -->
   <ellipse
     cx="50"
-    cy="70"
-    rx="30"
-    ry="25"
+    cy="65"
+    rx="28"
+    ry="22"
+    fill="none"
+    stroke="#D4A937"
+    stroke-width="3"
+  />
+  <!-- Intertwined Pattern - Gold -->
+  <path
+    d="M35 58 Q40 68, 50 63 Q60 68, 65 58"
     fill="none"
     stroke="#D4A937"
     stroke-width="2.5"
-  />
-  <!-- Intertwined Pattern (simplified) -->
-  <path
-    d="M35 60 Q40 70, 50 65 Q60 70, 65 60"
-    fill="none"
-    stroke="#D4A937"
-    stroke-width="2"
     stroke-linecap="round"
   />
   <path
-    d="M35 80 Q40 70, 50 75 Q60 70, 65 80"
+    d="M35 72 Q40 62, 50 67 Q60 62, 65 72"
     fill="none"
     stroke="#D4A937"
-    stroke-width="2"
+    stroke-width="2.5"
     stroke-linecap="round"
   />
-  <!-- Geometric Pattern Band -->
+  <!-- Geometric Pattern Band - Gold -->
   <g fill="#D4A937">
-    <path d="M40 90 L42 95 L38 95 Z" />
-    <path d="M50 90 L52 95 L48 95 Z" />
-    <path d="M60 90 L62 95 L58 95 Z" />
+    <path d="M38 82 L40 87 L36 87 Z" />
+    <path d="M48 82 L50 87 L46 87 Z" />
+    <path d="M58 82 L60 87 L56 87 Z" />
   </g>
 </svg>
 
