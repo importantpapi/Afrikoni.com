@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Favicon Generator</title>
+</head>
+<body>
+  <h1>Favicon Generator from SVG</h1>
+  <p>Open this in a browser and use the canvas to generate favicon.ico</p>
+  <canvas id="faviconCanvas" width="32" height="32"></canvas>
+  <script>
+    const canvas = document.getElementById('faviconCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Brown background
+    ctx.fillStyle = '#603813';
+    ctx.fillRect(0, 0, 32, 32);
+    
+    // Gold circle
+    ctx.fillStyle = '#D4A937';
+    ctx.beginPath();
+    ctx.arc(16, 16, 14, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Brown inner circle
+    ctx.fillStyle = '#603813';
+    ctx.beginPath();
+    ctx.arc(16, 16, 10, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Gold chevron
+    ctx.fillStyle = '#D4A937';
+    ctx.beginPath();
+    ctx.moveTo(16, 6);
+    ctx.lineTo(8, 16);
+    ctx.lineTo(24, 16);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Download
+    canvas.toBlob(function(blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'favicon.ico';
+      a.click();
+    }, 'image/x-icon');
+  </script>
+</body>
+</html>

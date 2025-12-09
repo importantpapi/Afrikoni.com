@@ -1,3 +1,10 @@
-<!-- Placeholder - Generate actual ICO from favicon.svg -->
-<!-- Use online tool: https://realfavicongenerator.net/ -->
-<!-- Upload favicon.svg and generate favicon.ico -->
+<!-- This is a placeholder text file. 
+     To create the actual favicon.ico:
+     1. Go to https://realfavicongenerator.net/
+     2. Upload public/favicon.svg
+     3. Generate favicon.ico
+     4. Download and replace this file
+     
+     OR use ImageMagick:
+     convert -background none -resize 32x32 public/favicon.svg public/favicon.ico
+-->
