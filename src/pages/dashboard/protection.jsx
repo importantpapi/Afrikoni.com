@@ -49,7 +49,7 @@ export default function DashboardProtection() {
             .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`),
           supabase.from('disputes')
             .select('*')
-            .or(`raised_by_company_id.eq.${companyId},raised_against_company_id.eq.${companyId}`),
+            .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId},raised_by_company_id.eq.${companyId},against_company_id.eq.${companyId}`),
           supabase.from('wallet_transactions')
             .select('*')
             .eq('company_id', companyId)

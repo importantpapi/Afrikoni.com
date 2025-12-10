@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { 
   getWalletAccount, 
   getWalletTransactions, 
@@ -42,7 +42,7 @@ export default function PaymentsDashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase);
+      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !userCompanyId) {
         navigate('/login');

@@ -262,6 +262,8 @@ function App() {
             <Route path="/dashboard/subscriptions" element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>} />
             <Route path="/dashboard/verification-marketplace" element={<ProtectedRoute><VerificationMarketplace /></ProtectedRoute>} />
             <Route path="/dashboard/team-members" element={<ProtectedRoute><TeamMembersPage /></ProtectedRoute>} />
+            <Route path="/dashboard/support-chat" element={<ProtectedRoute><SupportChat /></ProtectedRoute>} />
+            <Route path="/dashboard/disputes" element={<ProtectedRoute><UserDisputes /></ProtectedRoute>} />
             <Route path="/supplier-acquisition/:country?" element={<SupplierAcquisitionPage />} />
             <Route path="/supplier-acquisition" element={<SupplierAcquisitionPage />} />
             <Route path="/logistics-partner-onboarding" element={<LogisticsPartnerOnboarding />} />
