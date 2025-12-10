@@ -102,20 +102,32 @@ export default function UserDisputes() {
       }
 
       // Load user's orders for creating new disputes
+      // First, get orders that match the criteria
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, order_number, total_amount, currency, status, created_at, buyer_company_id, seller_company_id')
         .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid}`)
-        .in('status', ['pending', 'processing', 'shipped', 'delivered'])
+        .in('status', ['pending', 'processing', 'shipped', 'delivered', 'confirmed'])
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (ordersError) {
         console.error('Error loading orders:', ordersError);
-        // Don't throw - allow page to load with empty orders
         setOrders([]);
       } else {
-        setOrders(ordersData || []);
+        // Filter out orders that already have disputes
+        const { data: existingDisputes } = await supabase
+          .from('disputes')
+          .select('order_id')
+          .in('status', ['open', 'under_review']);
+
+        const disputedOrderIds = new Set((existingDisputes || []).map(d => d.order_id));
+        const availableOrders = (ordersData || []).filter(order => 
+          order && !disputedOrderIds.has(order.id)
+        );
+        
+        setOrders(availableOrders);
+        console.log('Available orders for disputes:', availableOrders.length);
       }
     } catch (error) {
       console.error('Error loading disputes:', error);
@@ -328,7 +340,20 @@ export default function UserDisputes() {
         )}
 
         {/* Create Dispute Dialog */}
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <Dialog 
+          open={showCreateDialog} 
+          onOpenChange={(open) => {
+            setShowCreateDialog(open);
+            if (open) {
+              // Reload orders when dialog opens
+              loadData();
+            } else {
+              // Reset form when dialog closes
+              setDisputeForm({ reason: '', description: '', evidence: [] });
+              setSelectedOrder(null);
+            }
+          }}
+        >
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-afrikoni-chestnut">
@@ -343,28 +368,51 @@ export default function UserDisputes() {
                 <Label htmlFor="order" className="font-semibold text-afrikoni-chestnut mb-2 block">
                   Select Order <span className="text-red-600">*</span>
                 </Label>
-                <Select
-                  value={selectedOrder?.id || ''}
-                  onValueChange={(value) => {
-                    const order = orders.find(o => o.id === value);
-                    setSelectedOrder(order);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose an order" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {orders.map((order) => (
-                      <SelectItem key={order.id} value={order.id}>
-                        Order #{order.order_number || order.id.slice(0, 8)} - {order.currency} {parseFloat(order.total_amount || 0).toLocaleString()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {orders.length === 0 && (
-                  <p className="text-xs text-afrikoni-deep/60 mt-2">
-                    No eligible orders found. You can only dispute orders that are pending, processing, shipped, or delivered.
-                  </p>
+                {orders.length > 0 ? (
+                  <Select
+                    value={selectedOrder?.id || ''}
+                    onValueChange={(value) => {
+                      const order = orders.find(o => o && o.id === value);
+                      if (order) {
+                        setSelectedOrder(order);
+                        console.log('Selected order:', order);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue 
+                        placeholder="Choose an order"
+                        displayValue={selectedOrder ? `Order #${selectedOrder.order_number || selectedOrder.id?.slice(0, 8)} - ${selectedOrder.currency || 'USD'} ${parseFloat(selectedOrder.total_amount || 0).toLocaleString()}` : undefined}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {orders.map((order) => {
+                        if (!order || !order.id) return null;
+                        const orderNumber = order.order_number || order.id.slice(0, 8).toUpperCase();
+                        const amount = parseFloat(order.total_amount || 0).toLocaleString();
+                        const currency = order.currency || 'USD';
+                        const status = order.status || 'unknown';
+                        return (
+                          <SelectItem key={order.id} value={order.id}>
+                            Order #{orderNumber} - {currency} {amount} ({status})
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-gold/5">
+                      <p className="text-sm text-afrikoni-deep/80">
+                        No eligible orders found. You can only dispute orders that are:
+                      </p>
+                      <ul className="list-disc list-inside text-xs text-afrikoni-deep/60 mt-2 space-y-1">
+                        <li>Pending, Processing, Shipped, Delivered, or Confirmed</li>
+                        <li>Not already under dispute</li>
+                        <li>Associated with your company (as buyer or seller)</li>
+                      </ul>
+                    </div>
+                  </div>
                 )}
               </div>
 
