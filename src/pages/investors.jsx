@@ -119,8 +119,8 @@ export default function Investors() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-afrikoni-deep/70" />
-                    <a href="tel:+2341234567890" className="text-afrikoni-deep">
-                      +234 (0) 123 456 7890
+                    <a href="tel:+32456779368" className="text-afrikoni-deep">
+                      +32 456 77 93 68
                     </a>
                   </div>
                 </div>

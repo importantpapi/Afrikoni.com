@@ -144,7 +144,7 @@ export default function Contact() {
     {
       city: 'Brussels, Belgium',
       address: 'European Quarter',
-      phone: '+32 2 123 4567',
+      phone: '+32 456 77 93 68',
       email: 'hello@afrikoni.com'
     }
   ];

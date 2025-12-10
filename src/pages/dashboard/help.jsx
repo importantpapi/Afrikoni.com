@@ -125,7 +125,7 @@ export default function DashboardHelp() {
     },
     {
       title: 'Phone Support',
-      description: '+234 XXX XXX XXXX',
+      description: '+32 456 77 93 68',
       icon: Phone,
       action: 'Call Now',
       available: true

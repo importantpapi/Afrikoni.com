@@ -272,11 +272,11 @@ export default function Help() {
                 <Phone className="w-12 h-12 text-afrikoni-gold mx-auto mb-4" />
                 <h3 className="font-bold text-afrikoni-chestnut mb-2">Phone Support</h3>
                 <p className="text-sm text-afrikoni-deep mb-2">
-                  <a href="tel:+2341234567890" className="text-afrikoni-gold hover:underline">
-                    +234 (0) 123 456 7890
+                  <a href="tel:+32456779368" className="text-afrikoni-gold hover:underline">
+                    +32 456 77 93 68
                   </a>
                 </p>
-                <p className="text-xs text-afrikoni-deep/70">Mon-Fri 9AM-6PM WAT</p>
+                <p className="text-xs text-afrikoni-deep/70">Mon-Fri 9AM-6PM CET</p>
               </CardContent>
             </Card>
           </div>
