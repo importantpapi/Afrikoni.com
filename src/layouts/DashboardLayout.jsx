@@ -247,7 +247,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         }}
         className="fixed left-0 top-0 bottom-0 z-50 bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:static md:shadow-none md:z-auto transition-all overflow-hidden"
       >
-        <div className="flex flex-col h-full relative">
+        <div className="flex flex-col min-h-screen relative">
           {/* Logo Section */}
           <div className="flex items-center justify-between p-5 border-b border-afrikoni-gold/20">
             <Logo type="full" size="sm" link={true} showTagline={false} className="text-afrikoni-gold" />

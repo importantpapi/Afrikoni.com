@@ -607,7 +607,7 @@ if (!Array.isArray(productsList)) return [];
                   <span className="text-xs sm:text-sm text-afrikoni-deep/70 hidden sm:inline">• {product?.country_of_origin || product?.companies?.country || 'N/A'}</span>
                 </div>
               </div>
-              <div className="flex gap-2 w-full">
+              <div className="flex gap-2 w-full mt-3">
                 {product?.companies?.id && (
                   <Button 
                     variant="ghost" 
@@ -624,7 +624,7 @@ if (!Array.isArray(productsList)) return [];
                 <Button 
                   variant="secondary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-4 min-w-0" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-3 min-w-0 overflow-hidden" 
                   onClick={(e) => {
                     e.stopPropagation();
                     // Store product context for smart message generation
@@ -648,7 +648,7 @@ if (!Array.isArray(productsList)) return [];
                 <Button 
                   variant="primary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-4 min-w-0" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-3 min-w-0 overflow-hidden" 
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/dashboard/rfqs/new?product=${product.id}`);
