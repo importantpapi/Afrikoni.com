@@ -63,10 +63,20 @@ export async function getCompanySubscription(companyId) {
       .limit(1)
       .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') throw error;
+    // Handle "no rows" and "table doesn't exist" errors gracefully
+    if (error) {
+      // PGRST116 = no rows found, 42P01 = relation does not exist
+      if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist')) {
+        return null; // Table doesn't exist or no subscription found - return null silently
+      }
+      throw error;
+    }
     return data || null;
   } catch (error) {
-    console.error('Error getting subscription:', error);
+    // Only log unexpected errors (not missing table or no rows)
+    if (error.code !== 'PGRST116' && error.code !== '42P01' && !error.message?.includes('does not exist')) {
+      console.error('Error getting subscription:', error);
+    }
     return null;
   }
 }
