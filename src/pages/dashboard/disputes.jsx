@@ -69,6 +69,8 @@ export default function UserDisputes() {
       }
 
       // Load user's disputes
+      // Note: RLS policy covers raised_by_company_id and against_company_id
+      // Also check buyer_company_id and seller_company_id for completeness
       const { data: disputesData, error: disputesError } = await supabase
         .from('disputes')
         .select(`
@@ -88,7 +90,7 @@ export default function UserDisputes() {
             company_name
           )
         `)
-        .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid},raised_by_company_id.eq.${cid},against_company_id.eq.${cid}`)
+        .or(`raised_by_company_id.eq.${cid},against_company_id.eq.${cid}${cid ? `,buyer_company_id.eq.${cid},seller_company_id.eq.${cid}` : ''}`)
         .order('created_at', { ascending: false });
 
       if (disputesError) {
