@@ -255,6 +255,8 @@ export default function UserDisputes() {
                 icon={AlertTriangle}
                 title="No disputes"
                 description="You haven't opened any disputes yet. Click 'Open Dispute' to create one."
+                cta="Open Dispute"
+                onCtaClick={() => setShowCreateDialog(true)}
               />
             </CardContent>
           </Card>
