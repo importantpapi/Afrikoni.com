@@ -115,6 +115,22 @@ export default function SupportChat() {
             setTicketNumber(newTicketNumber);
             setTicketStatus('open');
             toast.success(`Support ticket created: ${newTicketNumber}`);
+            
+            // Send notification to admin when new ticket is created
+            try {
+              const { createNotification } = await import('@/services/notificationService');
+              await createNotification({
+                company_id: null, // Admin notification
+                user_email: 'hello@afrikoni.com',
+                title: `New Support Ticket Created - ${newTicketNumber}`,
+                message: `A new support ticket has been created by ${userData.email || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
+                type: 'support',
+                link: `/dashboard/admin/support-tickets?ticket=${newTicketNumber}`,
+                sendEmail: true
+              });
+            } catch (notifError) {
+              console.error('Failed to send admin notification for new ticket:', notifError);
+            }
           }
         }
       }

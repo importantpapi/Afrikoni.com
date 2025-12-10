@@ -171,20 +171,42 @@ export default function UserDisputes() {
 
       if (error) throw error;
 
-      // Send notification to admin
+      // Send comprehensive notification to admin
       try {
         const { createNotification } = await import('@/services/notificationService');
+        
+        // Get company names for better context
+        const { data: buyerCompany } = await supabase
+          .from('companies')
+          .select('company_name')
+          .eq('id', buyerCompanyId)
+          .maybeSingle();
+        
+        const { data: sellerCompany } = await supabase
+          .from('companies')
+          .select('company_name')
+          .eq('id', sellerCompanyId)
+          .maybeSingle();
+        
+        const orderNumber = selectedOrder.order_number || selectedOrder.id.slice(0, 8).toUpperCase();
+        const orderAmount = `${selectedOrder.currency || 'USD'} ${parseFloat(selectedOrder.total_amount || 0).toLocaleString()}`;
+        const buyerName = buyerCompany?.company_name || 'Unknown Buyer';
+        const sellerName = sellerCompany?.company_name || 'Unknown Seller';
+        
         await createNotification({
           company_id: null, // Admin notification
           user_email: 'hello@afrikoni.com',
-          title: `New Dispute - Order #${selectedOrder.order_number || selectedOrder.id.slice(0, 8)}`,
-          message: `A new dispute has been opened: ${disputeForm.reason}`,
+          title: `🚨 New Dispute Opened - Order #${orderNumber}`,
+          message: `A new dispute has been opened for Order #${orderNumber} (${orderAmount}).\n\nReason: ${disputeForm.reason}\nBuyer: ${buyerName}\nSeller: ${sellerName}\n\nDescription: ${disputeForm.description.substring(0, 200)}${disputeForm.description.length > 200 ? '...' : ''}`,
           type: 'dispute',
           link: `/dashboard/admin/disputes?dispute=${newDispute.id}`,
-          sendEmail: true
+          sendEmail: true,
+          emailSubject: `🚨 URGENT: New Dispute - Order #${orderNumber}`
         });
       } catch (notifError) {
-        console.error('Failed to send notification:', notifError);
+        console.error('Failed to send admin notification:', notifError);
+        // Don't fail the dispute creation if notification fails
+        toast.warning('Dispute created, but admin notification failed. Please contact support directly.');
       }
 
       // Log dispute creation to audit log
