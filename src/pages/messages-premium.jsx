@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, Paperclip, Search, MoreVertical, Phone, Video, MapPin,
   Shield, CheckCircle, CheckCircle2, Clock, User, Verified, Star, X, File, Image as ImageIcon,
-  FileText, Download, Eye, Loader2, Sparkles
+  FileText, Download, Eye, Loader2, Sparkles, Globe, ShoppingCart, Receipt, Truck, Languages
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -437,6 +437,9 @@ export default function MessagesPremium() {
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
   const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(true);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translationLanguage, setTranslationLanguage] = useState('en');
+  const [deliveryTimeline, setDeliveryTimeline] = useState(null);
   const [aiDraft, setAiDraft] = useState('');
   const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
 
@@ -1200,8 +1203,66 @@ export default function MessagesPremium() {
                     </div>
                   )}
 
+                  {/* Deal-Closing CTAs */}
+                  {selectedConversation && messages.length > 0 && (
+                    <div className="px-4 py-3 border-t border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-afrikoni-purple/5">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut text-xs"
+                          onClick={() => navigate('/dashboard/orders/new')}
+                        >
+                          <Shield className="w-3 h-3 mr-1" />
+                          Proceed with Protected Order
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs"
+                          onClick={() => navigate('/dashboard/rfqs/new')}
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          Request RFQ Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs"
+                          onClick={() => navigate('/dashboard/invoices/new')}
+                        >
+                          <Receipt className="w-3 h-3 mr-1" />
+                          Send Invoice through Escrow
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Message Input */}
                   <div className="p-2 md:p-3 lg:p-4 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowTranslation(!showTranslation)}
+                        className="text-xs text-afrikoni-deep/70 hover:text-afrikoni-gold"
+                      >
+                        <Languages className="w-3 h-3 mr-1" />
+                        {showTranslation ? 'Hide Translation' : 'Translate'}
+                      </Button>
+                      {showTranslation && (
+                        <Select value={translationLanguage} onValueChange={setTranslationLanguage} className="w-32">
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="en">English</SelectItem>
+                            <SelectItem value="fr">Français</SelectItem>
+                            <SelectItem value="ar">العربية</SelectItem>
+                            <SelectItem value="pt">Português</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
                     <div className="flex items-end gap-2">
                       <input
                         ref={fileInputRef}
@@ -1350,6 +1411,49 @@ export default function MessagesPremium() {
                     </Button>
                   </CardContent>
                 )}
+
+                {/* Delivery Timeline Section */}
+                <div className="p-3 border-t border-afrikoni-gold/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Truck className="w-4 h-4 text-afrikoni-gold" />
+                    <p className="text-sm font-semibold text-afrikoni-chestnut">Delivery Timeline</p>
+                  </div>
+                  <div className="space-y-3">
+                    {deliveryTimeline ? (
+                      <div className="space-y-2">
+                        {[
+                          { step: 'Quote', status: 'completed', date: '2024-01-15' },
+                          { step: 'Paid in Escrow', status: 'completed', date: '2024-01-16' },
+                          { step: 'In Transit', status: 'active', date: '2024-01-18' },
+                          { step: 'Delivered', status: 'pending', date: '2024-01-22' },
+                          { step: 'Released', status: 'pending', date: '2024-01-23' }
+                        ].map((item, idx) => (
+                          <div key={idx} className="flex items-start gap-2">
+                            <div className={`w-2 h-2 rounded-full mt-1.5 ${
+                              item.status === 'completed' ? 'bg-green-500' :
+                              item.status === 'active' ? 'bg-afrikoni-gold' :
+                              'bg-gray-300'
+                            }`} />
+                            <div className="flex-1">
+                              <p className={`text-xs font-medium ${
+                                item.status === 'completed' ? 'text-green-700' :
+                                item.status === 'active' ? 'text-afrikoni-gold' :
+                                'text-gray-500'
+                              }`}>
+                                {item.step}
+                              </p>
+                              <p className="text-[10px] text-afrikoni-deep/60">{item.date}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-afrikoni-deep/70">
+                        No active orders. Timeline will appear when an order is placed.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </Card>
             )}
           </motion.div>

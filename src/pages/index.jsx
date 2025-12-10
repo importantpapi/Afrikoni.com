@@ -17,6 +17,8 @@ import NewsletterSection from '@/components/home/NewsletterSection';
 import TransparencySection from '@/components/home/TransparencySection';
 import SocialProof from '@/components/home/SocialProof';
 import LogisticsPlatform from '@/components/home/LogisticsPlatform';
+import LiveTradeTicker from '@/components/community/LiveTradeTicker';
+import SuccessStories from '@/components/community/SuccessStories';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -60,6 +62,7 @@ export default function Home() {
       <StructuredData type="Organization" />
       <StructuredData type="WebSite" />
       <div className="min-h-screen">
+        <LiveTradeTicker />
         <HeroSection categories={categories} />
         <TrustCounters />
         <TrustCards />
@@ -68,6 +71,25 @@ export default function Home() {
         <SourceByCountry />
         <RFQCard />
         <PartnerLogos />
+        {/* Success Stories Section */}
+        <section className="py-16 md:py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-4">
+                Success Stories
+              </h2>
+              <p className="text-lg text-afrikoni-text-dark/70 max-w-2xl mx-auto">
+                Real trades, real results. See how suppliers and buyers are succeeding on Afrikoni.
+              </p>
+            </motion.div>
+            <SuccessStories limit={3} />
+          </div>
+        </section>
         {/* <TestimonialsSection /> */}
         {/* <CaseStudies /> */}
         <LogisticsPlatform />

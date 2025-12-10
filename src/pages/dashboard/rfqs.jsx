@@ -14,11 +14,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { FileText, Search, Plus, MessageSquare, Calendar, DollarSign, Package, TrendingUp } from 'lucide-react';
+import { FileText, Search, Plus, MessageSquare, Calendar, DollarSign, Package, TrendingUp, Sparkles, Clock, Target, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/i18n/LanguageContext';
+import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
+import VerificationUpsell from '@/components/upsell/VerificationUpsell';
+import { getCompanySubscription } from '@/services/subscriptionService';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -43,6 +46,8 @@ export default function DashboardRFQs() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
   const [pagination, setPagination] = useState(createPaginationState());
+  const [currentPlan, setCurrentPlan] = useState('free');
+  const [isVerified, setIsVerified] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,6 +66,24 @@ export default function DashboardRFQs() {
       const userData = profile || user;
       const normalizedRole = getUserRole(userData);
       setCurrentRole(normalizedRole);
+      
+      // Load subscription and verification status
+      if (companyId) {
+        try {
+          const subscription = await getCompanySubscription(companyId);
+          setCurrentPlan(subscription?.plan_type || 'free');
+          
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('verified, verification_status')
+            .eq('id', companyId)
+            .single();
+          
+          setIsVerified(companyData?.verified || companyData?.verification_status === 'verified');
+        } catch (error) {
+          console.error('Error loading subscription/verification:', error);
+        }
+      }
 
       // Build query based on role and tab
       const query = buildRFQQuery({
@@ -106,6 +129,16 @@ export default function DashboardRFQs() {
         ...result,
         isLoading: false
       }));
+
+      // Calculate match count for suppliers (RFQs matching their products)
+      if (canViewSellerFeatures(normalizedRole)) {
+        const { count } = await supabase
+          .from('rfqs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'open')
+          .gte('deadline', new Date().toISOString());
+        setMatchCount(count || 0);
+      }
 
       // Load categories
       const { data: categoriesData } = await supabase
@@ -244,6 +277,40 @@ export default function DashboardRFQs() {
           </CardContent>
         </Card>
 
+        {/* Match Notifications for Suppliers */}
+        {canViewSellerFeatures(currentRole) && matchCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4"
+          >
+            <Card className="border-2 border-afrikoni-gold/40 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                      <Target className="w-5 h-5 text-afrikoni-gold" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-afrikoni-chestnut">
+                        Your products match {matchCount} RFQ{matchCount !== 1 ? 's' : ''} — respond now!
+                      </p>
+                      <p className="text-sm text-afrikoni-deep/70">
+                        Respond under 24h to boost your ranking
+                      </p>
+                    </div>
+                  </div>
+                  <Link to="/dashboard/rfqs?tab=received">
+                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+                      View Matches
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* v2.5: Premium Tabs with Gold Accents */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium">
@@ -286,8 +353,32 @@ export default function DashboardRFQs() {
               <div className="grid gap-4">
                 {filteredRFQs.length === 0 ? (
                   <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-                    <CardContent className="p-12">
-                      <EmptyState type="rfqs" />
+                    <CardContent className="p-12 text-center">
+                      <FileText className="w-16 h-16 text-afrikoni-text-dark/50 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No RFQs yet</h3>
+                      <p className="text-afrikoni-text-dark/70 mb-6 max-w-md mx-auto">
+                        {activeTab === 'sent' 
+                          ? "Create your first RFQ to find suppliers or contact verified buyers using KoniAI"
+                          : "No RFQs match your filters. Try adjusting your search criteria."}
+                      </p>
+                      <div className="flex gap-3 justify-center">
+                        {activeTab === 'sent' && (
+                          <>
+                            <Link to="/dashboard/rfqs/new">
+                              <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create RFQ
+                              </Button>
+                            </Link>
+                            <Link to="/dashboard/koniai">
+                              <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut">
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Use KoniAI
+                              </Button>
+                            </Link>
+                          </>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 ) : (
@@ -319,6 +410,21 @@ export default function DashboardRFQs() {
                                   <Badge variant="outline" className="bg-afrikoni-purple/10 text-afrikoni-purple border-afrikoni-purple/20">
                                     {rfq.quotesCount} {t('rfq.quotes')}
                                   </Badge>
+                                )}
+                                {/* Fast Response Badge */}
+                                {canViewSellerFeatures(currentRole) && rfq.created_at && (
+                                  (() => {
+                                    const hoursSinceCreated = (new Date() - new Date(rfq.created_at)) / (1000 * 60 * 60);
+                                    if (hoursSinceCreated < 24) {
+                                      return (
+                                        <Badge className="bg-green-500 text-white border-0">
+                                          <Clock className="w-3 h-3 mr-1" />
+                                          Respond under 24h
+                                        </Badge>
+                                      );
+                                    }
+                                    return null;
+                                  })()
                                 )}
                               </div>
                               <p className="text-afrikoni-text-dark/70 mb-4 line-clamp-2">{rfq.description}</p>

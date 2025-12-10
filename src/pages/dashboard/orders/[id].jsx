@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { TimelineItem } from '@/components/ui/reusable/TimelineItem';
 import { StatusBadge } from '@/components/ui/reusable/StatusBadge';
+import BuyerProtectionOption from '@/components/upsell/BuyerProtectionOption';
 
 export default function OrderDetail() {
   const { id } = useParams();
@@ -43,6 +44,7 @@ export default function OrderDetail() {
   const [existingReview, setExistingReview] = useState(null);
   const [templateName, setTemplateName] = useState('');
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [buyerProtectionEnabled, setBuyerProtectionEnabled] = useState(false);
 
   useEffect(() => {
     loadOrderData();
@@ -79,6 +81,7 @@ export default function OrderDetail() {
 
       setOrder(orderData);
       setProduct(orderData.products);
+      setBuyerProtectionEnabled(orderData.buyer_protection_enabled || false);
 
       // Load companies
       const [buyerRes, sellerRes] = await Promise.all([
@@ -577,6 +580,50 @@ export default function OrderDetail() {
 
           {/* Sidebar */}
           <div className="space-y-4">
+            {/* Buyer Protection Option (for buyers, before payment) */}
+            {currentRole === 'buyer' && order.payment_status === 'pending' && !order.buyer_protection_enabled && (
+              <BuyerProtectionOption
+                orderAmount={parseFloat(order.total_amount || 0)}
+                currency={order.currency || 'USD'}
+                onToggle={async (enabled) => {
+                  try {
+                    const protectionFee = enabled ? (parseFloat(order.total_amount) * 0.02) : 0;
+                    const { error } = await supabase
+                      .from('orders')
+                      .update({
+                        buyer_protection_enabled: enabled,
+                        buyer_protection_fee: protectionFee
+                      })
+                      .eq('id', id);
+                    
+                    if (error) throw error;
+                    setBuyerProtectionEnabled(enabled);
+                    
+                    // Create revenue transaction if enabled
+                    if (enabled && protectionFee > 0) {
+                      await supabase.from('revenue_transactions').insert({
+                        transaction_type: 'protection_fee',
+                        amount: protectionFee,
+                        currency: order.currency || 'USD',
+                        order_id: id,
+                        company_id: order.buyer_company_id,
+                        description: 'Buyer protection fee - Trade Inspection',
+                        status: 'completed',
+                        processed_at: new Date().toISOString()
+                      });
+                    }
+                    
+                    toast.success(enabled ? 'Trade Inspection added' : 'Trade Inspection removed');
+                    loadOrderData();
+                  } catch (error) {
+                    console.error('Error updating protection:', error);
+                    toast.error('Failed to update protection option');
+                  }
+                }}
+                isEnabled={buyerProtectionEnabled}
+              />
+            )}
+
             {/* Order Summary */}
             <Card>
               <CardHeader>
@@ -587,13 +634,19 @@ export default function OrderDetail() {
                   <span className="text-afrikoni-deep">Subtotal</span>
                   <span className="font-medium">{order.currency} {parseFloat(order.total_amount).toLocaleString()}</span>
                 </div>
+                {order.buyer_protection_fee > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-afrikoni-deep">Trade Inspection</span>
+                    <span className="font-medium text-afrikoni-gold">{order.currency} {parseFloat(order.buyer_protection_fee).toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-afrikoni-deep">Shipping</span>
                   <span className="font-medium">{order.currency} {parseFloat(order.shipping_cost || 0).toLocaleString()}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-semibold">
                   <span>Total</span>
-                  <span>{order.currency} {parseFloat(order.total_amount + (order.shipping_cost || 0)).toLocaleString()}</span>
+                  <span>{order.currency} {parseFloat((order.total_amount || 0) + (order.buyer_protection_fee || 0) + (order.shipping_cost || 0)).toLocaleString()}</span>
                 </div>
               </CardContent>
             </Card>
@@ -720,6 +773,14 @@ export default function OrderDetail() {
                     Send Message
                   </Button>
                 </Link>
+                {currentRole === 'buyer' && order.payment_status === 'pending' && (
+                  <Link to={`/dashboard/orders/${id}/logistics-quote`}>
+                    <Button variant="outline" className="w-full" size="sm">
+                      <Truck className="w-4 h-4 mr-2" />
+                      Request Shipping Quote
+                    </Button>
+                  </Link>
+                )}
                 
                 {canUpdateStatus && (
                   <>

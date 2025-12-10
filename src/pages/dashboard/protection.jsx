@@ -6,7 +6,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, CheckCircle, AlertTriangle, Lock, FileText, DollarSign, Eye } from 'lucide-react';
+import { Shield, CheckCircle, AlertTriangle, Lock, FileText, DollarSign, Eye, Truck, Package, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -307,6 +307,80 @@ export default function DashboardProtection() {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* Order Timeline Visualization */}
+        {protectedOrders.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mb-6"
+          >
+            <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-afrikoni-gold" />
+                  Order Timeline
+                </CardTitle>
+                <p className="text-sm text-afrikoni-deep/70 mt-2">
+                  Track your order progress from quote to delivery
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 relative">
+                  {[
+                    { step: 'Quote', icon: FileText, status: 'completed', description: 'Quote submitted and accepted' },
+                    { step: 'Paid in Escrow', icon: CreditCard, status: 'completed', description: 'Payment secured in escrow' },
+                    { step: 'In Transit', icon: Truck, status: 'active', description: 'Order shipped and in transit' },
+                    { step: 'Delivered', icon: Package, status: 'pending', description: 'Awaiting delivery confirmation' },
+                    { step: 'Released', icon: CheckCircle, status: 'pending', description: 'Funds released after confirmation' }
+                  ].map((item, idx) => {
+                    const Icon = item.icon;
+                    return (
+                      <div key={idx} className="flex items-start gap-4 relative">
+                        {idx < 4 && (
+                          <div className={`absolute left-5 top-10 w-0.5 h-12 ${
+                            item.status === 'completed' ? 'bg-green-500' : 'bg-gray-200'
+                          }`} />
+                        )}
+                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center z-10 ${
+                          item.status === 'completed' ? 'bg-green-500 text-white' :
+                          item.status === 'active' ? 'bg-afrikoni-gold text-white animate-pulse' :
+                          'bg-gray-200 text-gray-500'
+                        }`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 pt-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className={`font-semibold ${
+                              item.status === 'completed' ? 'text-green-700' :
+                              item.status === 'active' ? 'text-afrikoni-gold' :
+                              'text-gray-500'
+                            }`}>
+                              {item.step}
+                            </p>
+                            {item.status === 'active' && (
+                              <Badge className="bg-afrikoni-gold text-white text-xs">Current</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-afrikoni-deep/70">{item.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-6 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
+                  <p className="text-sm text-afrikoni-chestnut font-semibold mb-1">
+                    🛡️ Buyers trust you when Trade Shield is active
+                  </p>
+                  <p className="text-xs text-afrikoni-deep/70">
+                    Activate verification to accept Protected Orders and increase buyer confidence.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
         {/* v2.5: Premium Protected Orders Table */}

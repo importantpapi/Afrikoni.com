@@ -155,6 +155,8 @@ export default function HeroSection({ categories = [] }) {
 
               {/* Keyword Search */}
               <Input
+                id="hero-search-input"
+                name="search"
                 placeholder={t('hero.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

@@ -345,6 +345,7 @@ export default function RFQDetail() {
         .neq('id', quoteId);
 
       // Create order from awarded quote
+      // Note: buyer_protection_enabled and buyer_protection_fee can be set later by buyer
       const { data: newOrder, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -359,7 +360,9 @@ export default function RFQDetail() {
           currency: quote.currency || 'USD',
           status: 'pending',
           payment_status: 'pending',
-          delivery_location: rfq.delivery_location || null
+          delivery_location: rfq.delivery_location || null,
+          buyer_protection_enabled: false,
+          buyer_protection_fee: 0
         })
         .select()
         .single();

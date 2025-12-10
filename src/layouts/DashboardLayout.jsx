@@ -22,6 +22,7 @@ import { isAdmin } from '@/utils/permissions';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import { DashboardContextProvider } from '@/contexts/DashboardContext';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
+import { useNotificationCounts } from '@/hooks/useNotificationCounts';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useLanguage();
@@ -30,6 +31,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
   const [userRole, setUserRole] = useState(currentRole);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [activeView, setActiveView] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
@@ -37,6 +39,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const userMenuButtonRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Get notification counts for sidebar badges
+  const notificationCounts = useNotificationCounts(user?.id, companyId);
 
   useEffect(() => {
     loadUser();
@@ -60,9 +65,10 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const loadUser = async () => {
     try {
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, profile: profileData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      const { user: userData, profile: profileData, role, companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
       setProfile(profileData);
+      setCompanyId(cid);
       if (role) setUserRole(role);
       const admin = isAdmin(userData);
       setIsUserAdmin(admin);
@@ -127,7 +133,10 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: TrendingUp, label: 'Performance Metrics', path: '/dashboard/performance' },
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
+      { icon: Sparkles, label: 'Subscriptions', path: '/dashboard/subscriptions' },
+      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
       { icon: Shield, label: t('verification.title'), path: '/verification-center' },
+      { icon: Shield, label: 'Get Verified', path: '/dashboard/verification-marketplace' },
       { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
       { icon: AlertTriangle, label: 'Disputes', path: '/dashboard/disputes' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
@@ -142,6 +151,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
       { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
+      { icon: Sparkles, label: 'Subscriptions', path: '/dashboard/subscriptions' },
+      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
       { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
       { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' },
       { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
@@ -166,6 +177,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/admin' },
       { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics' },
       { icon: DollarSign, label: 'Revenue & Finance', path: '/dashboard/admin/revenue' },
+      { icon: TrendingUp, label: 'Growth Metrics', path: '/dashboard/admin/growth-metrics' },
+      { icon: UsersIcon, label: 'Onboarding Tracker', path: '/dashboard/admin/onboarding-tracker' },
       { icon: Package, label: 'Marketplace', path: '/dashboard/admin/marketplace' },
       { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
       { icon: Shield, label: 'Verification Review', path: '/dashboard/admin/verification-review' },
@@ -304,6 +317,22 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                     )}
                     {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />}
                     <span className="flex-1">{item.label || 'Menu Item'}</span>
+                    {/* Notification Badges */}
+                    {item.path === '/messages' && notificationCounts.messages > 0 && (
+                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
+                        {notificationCounts.messages > 9 ? '9+' : notificationCounts.messages}
+                      </Badge>
+                    )}
+                    {item.path === '/dashboard/rfqs' && notificationCounts.rfqs > 0 && (
+                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
+                        {notificationCounts.rfqs > 9 ? '9+' : notificationCounts.rfqs}
+                      </Badge>
+                    )}
+                    {item.path === '/dashboard/admin/review' && notificationCounts.approvals > 0 && (
+                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
+                        {notificationCounts.approvals > 9 ? '9+' : notificationCounts.approvals}
+                      </Badge>
+                    )}
                     {isActive && <ChevronRight className="w-4 h-4 text-white" />}
                   </Link>
                   
@@ -707,6 +736,28 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav userRole={userRole} />
+
+      {/* Social Proof Footer Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="fixed bottom-0 left-0 right-0 z-30 bg-afrikoni-chestnut/95 backdrop-blur-sm border-t border-afrikoni-gold/30 px-4 py-2 hidden md:block"
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-6 text-xs text-afrikoni-sand">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-afrikoni-gold" />
+            <span className="font-semibold text-afrikoni-gold">23</span>
+            <span>suppliers active today</span>
+          </div>
+          <span className="text-afrikoni-gold/50">·</span>
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-afrikoni-gold" />
+            <span className="font-semibold text-afrikoni-gold">8</span>
+            <span>RFQs submitted this week</span>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

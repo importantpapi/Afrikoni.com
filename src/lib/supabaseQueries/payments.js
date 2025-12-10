@@ -128,6 +128,26 @@ export async function updateEscrowStatus(escrowId, status, amount = null) {
   const updateData = { status, updated_at: new Date().toISOString() };
   if (amount !== null) updateData.amount = amount;
   
+  // If releasing escrow, calculate commission (8% default)
+  if (status === 'released') {
+    // Get current escrow data
+    const { data: currentEscrow } = await supabase
+      .from('escrow_payments')
+      .select('amount, commission_rate, currency')
+      .eq('id', escrowId)
+      .single();
+    
+    if (currentEscrow) {
+      const commissionRate = currentEscrow.commission_rate || 8.00;
+      const commissionAmount = (currentEscrow.amount * commissionRate) / 100;
+      const netPayout = currentEscrow.amount - commissionAmount;
+      
+      updateData.commission_amount = commissionAmount;
+      updateData.net_payout_amount = netPayout;
+      updateData.released_at = new Date().toISOString();
+    }
+  }
+  
   const { data, error } = await supabase
     .from('escrow_payments')
     .update(updateData)

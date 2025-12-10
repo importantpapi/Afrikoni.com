@@ -206,11 +206,45 @@ export default function EscrowDetailPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Amount */}
-              <div>
-                <p className="text-sm text-afrikoni-text-dark/70 mb-2">Escrow Amount</p>
-                <p className="text-3xl font-bold text-afrikoni-gold">
-                  {escrow.currency} {parseFloat(escrow.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Escrow Amount</p>
+                  <p className="text-3xl font-bold text-afrikoni-gold">
+                    {escrow.currency} {parseFloat(escrow.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                
+                {/* Commission & Net Payout (shown when released or about to release) */}
+                {(escrow.status === 'released' || escrow.status === 'held') && (
+                  <div className="border-t border-afrikoni-gold/20 pt-4 space-y-3">
+                    {escrow.commission_amount > 0 && (
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-afrikoni-text-dark/70">Afrikoni Fee ({escrow.commission_rate || 8}%)</p>
+                        <p className="text-sm font-semibold text-afrikoni-text-dark">
+                          -{escrow.currency} {parseFloat(escrow.commission_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    )}
+                    {escrow.net_payout_amount && (
+                      <div className="flex justify-between items-center pt-2 border-t border-afrikoni-gold/10">
+                        <p className="text-sm font-semibold text-afrikoni-text-dark">Net Payout to Supplier</p>
+                        <p className="text-lg font-bold text-afrikoni-green">
+                          {escrow.currency} {parseFloat(escrow.net_payout_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    )}
+                    {escrow.status === 'held' && !escrow.commission_amount && (
+                      <div className="bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg p-3">
+                        <p className="text-xs text-afrikoni-text-dark/70">
+                          <strong>Note:</strong> An 8% Afrikoni commission will be deducted when escrow is released.
+                        </p>
+                        <p className="text-xs text-afrikoni-text-dark/70 mt-1">
+                          Estimated fee: {escrow.currency} {((parseFloat(escrow.amount) * 0.08).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Companies */}

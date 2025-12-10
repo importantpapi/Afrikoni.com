@@ -67,8 +67,17 @@ const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'
 const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
 const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-tickets'));
+const AdminGrowthMetrics = lazy(() => import('./pages/dashboard/admin/growth-metrics'));
+const AdminOnboardingTracker = lazy(() => import('./pages/dashboard/admin/onboarding-tracker'));
 const SupportChat = lazy(() => import('./pages/dashboard/support-chat'));
 const UserDisputes = lazy(() => import('./pages/dashboard/disputes'));
+const SubscriptionsPage = lazy(() => import('./pages/dashboard/subscriptions'));
+const LogisticsQuotePage = lazy(() => import('./pages/dashboard/logistics-quote'));
+const VerificationMarketplace = lazy(() => import('./pages/dashboard/verification-marketplace'));
+const TeamMembersPage = lazy(() => import('./pages/dashboard/team-members'));
+const SupplierAcquisitionPage = lazy(() => import('./pages/supplier-acquisition/[country]'));
+const LogisticsPartnerOnboarding = lazy(() => import('./pages/logistics-partner-onboarding'));
+const LogisticsHubPage = lazy(() => import('./pages/logistics-hub/[country]'));
 
 // Lazy-loaded heavy routes - Marketplace
 const Products = lazy(() => import('./pages/products'));
@@ -202,13 +211,17 @@ function App() {
             <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
             <Route path="/dashboard/admin/revenue" element={<ProtectedRoute><AdminRevenue /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/growth-metrics" element={<ProtectedRoute><AdminGrowthMetrics /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute><AdminOnboardingTracker /></ProtectedRoute>} />
             <Route path="/dashboard/admin/leads" element={<ProtectedRoute><AdminLeads /></ProtectedRoute>} />
             <Route path="/dashboard/admin/kyb" element={<ProtectedRoute><AdminKYB /></ProtectedRoute>} />
             <Route path="/dashboard/admin/disputes" element={<ProtectedRoute><AdminDisputes /></ProtectedRoute>} />
             <Route path="/dashboard/admin/support-tickets" element={<ProtectedRoute><AdminSupportTickets /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute><AdminOnboardingTracker /></ProtectedRoute>} />
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+            <Route path="/dashboard/orders/:orderId/logistics-quote" element={<ProtectedRoute><LogisticsQuotePage /></ProtectedRoute>} />
             <Route path="/dashboard/rfqs" element={<ProtectedRoute><DashboardRFQs /></ProtectedRoute>} />
             <Route path="/dashboard/rfqs/new" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
             <Route path="/dashboard/rfqs/:id" element={<ProtectedRoute><RFQDetailPage /></ProtectedRoute>} />
@@ -238,6 +251,14 @@ function App() {
             <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
             <Route path="/dashboard/help" element={<ProtectedRoute><DashboardHelp /></ProtectedRoute>} />
             <Route path="/dashboard/koniai" element={<ProtectedRoute><KoniAIHub /></ProtectedRoute>} />
+            <Route path="/dashboard/subscriptions" element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>} />
+            <Route path="/dashboard/verification-marketplace" element={<ProtectedRoute><VerificationMarketplace /></ProtectedRoute>} />
+            <Route path="/dashboard/team-members" element={<ProtectedRoute><TeamMembersPage /></ProtectedRoute>} />
+            <Route path="/supplier-acquisition/:country?" element={<SupplierAcquisitionPage />} />
+            <Route path="/supplier-acquisition" element={<SupplierAcquisitionPage />} />
+            <Route path="/logistics-partner-onboarding" element={<LogisticsPartnerOnboarding />} />
+            <Route path="/logistics-hub/:country?" element={<LogisticsHubPage />} />
+            <Route path="/logistics-hub" element={<LogisticsHubPage />} />
             <Route path="/dashboard/test-emails" element={<ProtectedRoute><TestEmails /></ProtectedRoute>} />
             {/* Risk & Compliance Routes */}
             <Route path="/dashboard/risk" element={<ProtectedRoute><RiskManagement /></ProtectedRoute>} />

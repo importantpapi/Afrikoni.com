@@ -8,7 +8,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, TrendingUp, DollarSign, ShoppingCart, Package, Users, FileText, MessageSquare, CheckCircle, Clock } from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign, ShoppingCart, Package, Users, FileText, MessageSquare, CheckCircle, Clock, Sparkles, Target, MapPin, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -604,6 +604,68 @@ export default function DashboardAnalytics() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* AI Insights Section - For Suppliers */}
+            {(currentRole === 'seller' || currentRole === 'hybrid') && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="mt-8 pt-8 border-t border-afrikoni-gold/20"
+              >
+                <div className="flex items-center gap-2 mb-6">
+                  <Sparkles className="w-5 h-5 text-afrikoni-gold" />
+                  <h3 className="text-xl font-bold text-afrikoni-chestnut">AI Insights</h3>
+                </div>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-green-50 to-white hover:shadow-lg transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2">
+                        <Target className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-afrikoni-chestnut mb-1">
+                            Price Optimization
+                          </p>
+                          <p className="text-xs text-afrikoni-deep/70">
+                            Increase price by 10% for +18% revenue
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-blue-50 to-white hover:shadow-lg transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-afrikoni-chestnut mb-1">
+                            Market Opportunity
+                          </p>
+                          <p className="text-xs text-afrikoni-deep/70">
+                            Ghana buyers have highest conversion for your shea butter
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-amber-50 to-white hover:shadow-lg transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2">
+                        <ImageIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-afrikoni-chestnut mb-1">
+                            Image Quality
+                          </p>
+                          <p className="text-xs text-afrikoni-deep/70">
+                            Your images are 40% less engaging than top listings
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
             )}
           </CardContent>
         </Card>

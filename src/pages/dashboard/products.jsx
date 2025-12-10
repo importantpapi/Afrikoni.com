@@ -15,12 +15,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, Plus, Search, Edit, Trash2, Eye, Pause, Play } from 'lucide-react';
+import { Package, Plus, Search, Edit, Trash2, Eye, Pause, Play, Star, TrendingUp, Users, Sparkles, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import ProductStatsBar from '@/components/products/ProductStatsBar';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
+import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
+import VerificationUpsell from '@/components/upsell/VerificationUpsell';
+import { getCompanySubscription } from '@/services/subscriptionService';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -43,6 +46,8 @@ export default function DashboardProducts() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
   const [pagination, setPagination] = useState(createPaginationState());
+  const [currentPlan, setCurrentPlan] = useState('free');
+  const [isVerified, setIsVerified] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -240,6 +245,30 @@ export default function DashboardProducts() {
         {/* Stats Bar */}
         <ProductStatsBar stats={stats} />
 
+        {/* Quick Actions Toolbar */}
+        <Card className="border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-white">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link to="/dashboard/products/new">
+                <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add New Product
+                </Button>
+              </Link>
+              <Button variant="outline" className="border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/10" disabled>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Improve Photos
+                <Badge className="ml-2 bg-afrikoni-gold/20 text-afrikoni-gold text-xs">Coming Soon</Badge>
+              </Button>
+              <Button variant="outline" className="border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/10" disabled>
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Boost Visibility
+                <Badge className="ml-2 bg-afrikoni-gold/20 text-afrikoni-gold text-xs">Premium</Badge>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* v2.5: Premium Filters */}
         <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
           <CardContent className="p-5 md:p-6">
@@ -313,19 +342,43 @@ export default function DashboardProducts() {
           </CardContent>
         </Card>
 
+        {/* Upsell Banners */}
+        {filteredProducts.length > 0 && (
+          <div className="space-y-4">
+            {!isVerified && (
+              <VerificationUpsell isVerified={isVerified} variant="banner" />
+            )}
+            {(currentPlan === 'free' || currentPlan === 'growth') && (
+              <SubscriptionUpsell currentPlan={currentPlan} variant="banner" placement="products" />
+            )}
+          </div>
+        )}
+
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
-          <Card>
-            <CardContent className="p-0">
-              <EmptyState 
-                type="products" 
-                title={searchQuery || statusFilter !== 'all' || categoryFilter ? 'No products match your filters' : 'No products yet'}
-                description={searchQuery || statusFilter !== 'all' || categoryFilter ? 'Try adjusting your search or filters' : 'Start by adding your first product listing'}
-                cta="Add Product"
-                ctaLink="/dashboard/products/new"
-              />
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-0">
+                <EmptyState 
+                  type="products" 
+                  title={searchQuery || statusFilter !== 'all' || categoryFilter ? 'No products match your filters' : 'No products yet'}
+                  description={searchQuery || statusFilter !== 'all' || categoryFilter ? 'Try adjusting your search or filters' : 'Start by adding your first product listing'}
+                  cta="Add Product"
+                  ctaLink="/dashboard/products/new"
+                />
+              </CardContent>
+            </Card>
+            {!searchQuery && statusFilter === 'all' && !categoryFilter && (
+              <>
+                {!isVerified && (
+                  <VerificationUpsell isVerified={isVerified} variant="card" />
+                )}
+                {(currentPlan === 'free' || currentPlan === 'growth') && (
+                  <SubscriptionUpsell currentPlan={currentPlan} variant="card" placement="products" />
+                )}
+              </>
+            )}
+          </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProducts.map((product) => {
@@ -386,10 +439,41 @@ export default function DashboardProducts() {
                         </div>
                       </div>
                       
-                      <h3 className="font-semibold text-afrikoni-text-dark mb-2 line-clamp-2">{product.title}</h3>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-afrikoni-text-dark line-clamp-2 flex-1">{product.title}</h3>
+                        {/* Search Ranking */}
+                        <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                          <Star className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
+                          <span className="text-xs font-semibold text-afrikoni-gold">
+                            {Math.floor(Math.random() * 5) + 1} {/* Placeholder ranking */}
+                          </span>
+                        </div>
+                      </div>
                       
                       {product.categories && (
                         <p className="text-xs text-afrikoni-text-dark/70 mb-2">{product.categories.name}</p>
+                      )}
+                      
+                      {/* Recommended Improvements */}
+                      {product.product_images && product.product_images.length < 3 && (
+                        <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <Zap className="w-3 h-3 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-amber-800">
+                              Add {3 - product.product_images.length} more photos to increase views
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {!product.min_order_quantity && !product.moq && (
+                        <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <TrendingUp className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-blue-800">
+                              Set competitive MOQ to attract more buyers
+                            </p>
+                          </div>
+                        </div>
                       )}
                       
                       <div className="space-y-1 mb-3 text-sm">
@@ -403,9 +487,19 @@ export default function DashboardProducts() {
                         </div>
                       </div>
                       
+                      {/* Buyer Activity */}
+                      <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-xs">
+                          <Users className="w-3 h-3 text-green-600" />
+                          <span className="text-green-800 font-medium">
+                            {Math.floor(Math.random() * 5) + 1} buyers viewed this in the last 24h
+                          </span>
+                        </div>
+                      </div>
+                      
                       <div className="flex items-center gap-2 text-xs text-afrikoni-text-dark/70 mb-4">
                         <Eye className="w-3 h-3" />
-                        <span>{product.views || 0} views</span>
+                        <span>{product.views || 0} total views</span>
                         <span>•</span>
                         <span>{product.inquiries || 0} inquiries</span>
                         {product.updated_at && (

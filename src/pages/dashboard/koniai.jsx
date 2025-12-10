@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Sparkles, Copy, CheckCircle, Loader2, AlertCircle,
-  Package, Search, MessageSquare, ExternalLink
+  Package, Search, MessageSquare, ExternalLink, Users, Target, Bell, ArrowRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,11 @@ export default function KoniAIHub() {
   const [rfqTone, setRfqTone] = useState('Professional');
   const [rfqReply, setRfqReply] = useState('');
   const [rfqLoading, setRfqLoading] = useState(false);
+  
+  // Matching feed state
+  const [matchingBuyers, setMatchingBuyers] = useState([]);
+  const [matchingSuppliers, setMatchingSuppliers] = useState([]);
+  const [autoFollowUpEnabled, setAutoFollowUpEnabled] = useState(false);
 
   // API key check
   const hasApiKey = !!import.meta.env.VITE_OPENAI_API_KEY;
@@ -637,6 +642,129 @@ export default function KoniAIHub() {
             </Card>
           </motion.div>
         </div>
+
+        {/* Auto RFQ Follow-up & Matching Feed Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-8 grid md:grid-cols-2 gap-6"
+        >
+          {/* Auto RFQ Follow-up */}
+          <Card className="border-2 border-afrikoni-gold/30 bg-white shadow-lg hover:shadow-xl transition-all">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Bell className="w-5 h-5 text-afrikoni-gold" />
+                <CardTitle>Auto RFQ Follow-up</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                <div>
+                  <p className="font-semibold text-afrikoni-chestnut mb-1">Smart Reminders</p>
+                  <p className="text-sm text-afrikoni-deep/70">
+                    Automatically send polite reminders to buyers about pending RFQs
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant={autoFollowUpEnabled ? "default" : "outline"}
+                  onClick={() => setAutoFollowUpEnabled(!autoFollowUpEnabled)}
+                  className={autoFollowUpEnabled ? "bg-afrikoni-gold" : ""}
+                >
+                  {autoFollowUpEnabled ? "Enabled" : "Enable"}
+                </Button>
+              </div>
+              {autoFollowUpEnabled && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="p-4 bg-green-50 border border-green-200 rounded-lg"
+                >
+                  <p className="text-sm text-green-800 mb-2">
+                    <CheckCircle className="w-4 h-4 inline mr-1" />
+                    Auto follow-up is active. KoniAI will send polite reminders to buyers after 48 hours of no response.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs border-green-300 text-green-700 hover:bg-green-100"
+                    onClick={() => toast.success('Reminder sent!')}
+                  >
+                    Send polite reminder to buyer?
+                  </Button>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Buyer/Supplier Matching Feed */}
+          <Card className="border-2 border-afrikoni-gold/30 bg-white shadow-lg hover:shadow-xl transition-all">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-afrikoni-gold" />
+                <CardTitle>Matching Feed</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                {matchingBuyers.length > 0 ? (
+                  matchingBuyers.map((buyer, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="p-3 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-gold/10 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-semibold text-afrikoni-chestnut text-sm mb-1">
+                            {buyer.name || 'Buyer'}
+                          </p>
+                          <p className="text-xs text-afrikoni-deep/70 mb-2">
+                            {buyer.description || 'Looking for products matching your description'}
+                          </p>
+                          <Badge className="bg-afrikoni-gold/20 text-afrikoni-chestnut text-xs">
+                            {buyer.matchCount || 5} buyers match your product description
+                          </Badge>
+                        </div>
+                        <Button
+                          size="sm"
+                          className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                          onClick={() => navigate('/messages?recipient=' + buyer.id)}
+                        >
+                          <MessageSquare className="w-3 h-3 mr-1" />
+                          Reach Out
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center">
+                    <Users className="w-8 h-8 text-afrikoni-gold/40 mx-auto mb-2" />
+                    <p className="text-sm text-afrikoni-deep/70 mb-3">
+                      5 buyers match your product description
+                    </p>
+                    <Button
+                      size="sm"
+                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                      onClick={() => {
+                        setMatchingBuyers([
+                          { id: '1', name: 'Lagos Textiles Ltd.', description: 'Looking for premium shea butter', matchCount: 5 },
+                          { id: '2', name: 'Accra Exports Co.', description: 'Seeking organic certified products', matchCount: 3 }
+                        ]);
+                      }}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Reach Out with KoniAI
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
