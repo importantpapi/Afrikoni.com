@@ -9,6 +9,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import BushidoManifesto from '@/components/home/BushidoManifesto';
 import BusinessModel from '@/components/home/BusinessModel';
 import SocialProofSection from '@/components/home/SocialProofSection';
+import InteractiveAfricaMap from '@/components/about/InteractiveAfricaMap';
 
 export default function About() {
   const { t } = useLanguage();
@@ -250,15 +251,7 @@ export default function About() {
                 From North to South, East to West, we're building bridges across the continent.
               </p>
             </motion.div>
-            <Card className="border-afrikoni-gold/20 shadow-lg">
-              <div className="aspect-video bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10 flex items-center justify-center rounded-lg">
-                <div className="text-center">
-                  <Globe className="w-24 h-24 text-afrikoni-gold/50 mx-auto mb-4" aria-label="Globe icon representing 54 African countries" />
-                  <p className="text-afrikoni-deep font-semibold">Interactive Africa Map Coming Soon</p>
-                  <p className="text-sm text-afrikoni-deep/70 mt-2">Showing all 54 countries we serve</p>
-                </div>
-              </div>
-            </Card>
+            <InteractiveAfricaMap />
           </div>
         </section>
 
