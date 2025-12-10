@@ -153,23 +153,30 @@ export default function UserDisputes() {
       const buyerCompanyId = isBuyer ? cid : selectedOrder.buyer_company_id;
       const sellerCompanyId = isBuyer ? selectedOrder.seller_company_id : cid;
 
-      // Create dispute
+      // Create dispute with all required fields
+      const disputeData = {
+        order_id: selectedOrder.id,
+        buyer_company_id: buyerCompanyId,
+        seller_company_id: sellerCompanyId,
+        raised_by_company_id: cid, // Company that raised the dispute
+        against_company_id: isBuyer ? sellerCompanyId : buyerCompanyId, // Company the dispute is against
+        reason: disputeForm.reason,
+        description: disputeForm.description,
+        status: 'open',
+        evidence: disputeForm.evidence.length > 0 ? disputeForm.evidence : null,
+        created_by: userData.id
+      };
+
       const { data: newDispute, error } = await supabase
         .from('disputes')
-        .insert({
-          order_id: selectedOrder.id,
-          buyer_company_id: buyerCompanyId,
-          seller_company_id: sellerCompanyId,
-          reason: disputeForm.reason,
-          description: disputeForm.description,
-          status: 'open',
-          evidence: disputeForm.evidence.length > 0 ? disputeForm.evidence : null,
-          created_by: userData.id
-        })
+        .insert(disputeData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating dispute:', error);
+        throw error;
+      }
 
       // Send comprehensive notification to admin
       try {
