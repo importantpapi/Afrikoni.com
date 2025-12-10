@@ -617,6 +617,7 @@ if (!Array.isArray(productsList)) return [];
                       e.stopPropagation();
                       navigate(`/business/${product.companies.id}`);
                     }}
+                    title="View Company Profile"
                   >
                     <Building2 className="w-4 h-4" />
                   </Button>
@@ -624,7 +625,7 @@ if (!Array.isArray(productsList)) return [];
                 <Button 
                   variant="secondary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[40px] md:min-h-[36px] px-2 sm:px-2.5 max-w-full" 
+                  className="text-xs sm:text-sm touch-manipulation min-h-[40px] md:min-h-[36px] px-2.5 sm:px-3 flex-shrink-0 border border-afrikoni-gold/20 hover:border-afrikoni-gold/40" 
                   onClick={(e) => {
                     e.stopPropagation();
                     // Store product context for smart message generation
@@ -641,20 +642,20 @@ if (!Array.isArray(productsList)) return [];
                     }
                     navigate(`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}&product=${product?.id || ''}&productTitle=${encodeURIComponent(product?.title || '')}`);
                   }}
+                  title={t('marketplace.contact') || 'Contact Supplier'}
                 >
-                  <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
-                  <span className="whitespace-nowrap">{t('marketplace.contact') || 'Contact'}</span>
+                  <MessageSquare className="w-4 h-4" />
                 </Button>
                 <Button 
                   variant="primary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[40px] md:min-h-[36px] px-2 sm:px-2.5 max-w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-medium" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[40px] md:min-h-[36px] px-3 sm:px-4 max-w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-medium" 
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/dashboard/rfqs/new?product=${product.id}`);
                   }}
                 >
-                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
                   <span className="whitespace-nowrap">{t('marketplace.quote') || 'Quote'}</span>
                 </Button>
               </div>
