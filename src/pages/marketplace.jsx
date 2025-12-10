@@ -554,7 +554,7 @@ if (!Array.isArray(productsList)) return [];
                 <SaveButton itemId={product.id} itemType="product" />
               </div>
             </div>
-            <CardContent className="p-4">
+            <CardContent className="p-4 overflow-hidden">
               <h3 className="font-bold text-afrikoni-chestnut mb-2 line-clamp-2 text-sm md:text-base">
                 {product.title || product.name}
               </h3>
@@ -607,12 +607,12 @@ if (!Array.isArray(productsList)) return [];
                   <span className="text-xs sm:text-sm text-afrikoni-deep/70 hidden sm:inline">• {product?.country_of_origin || product?.companies?.country || 'N/A'}</span>
                 </div>
               </div>
-              <div className="flex gap-2 w-full mt-3">
+              <div className="flex gap-2 w-full mt-3 max-w-full">
                 {product?.companies?.id && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 flex-shrink-0" 
+                    className="text-xs sm:text-sm touch-manipulation min-h-[40px] md:min-h-[36px] px-2 flex-shrink-0 border border-afrikoni-gold/20 hover:border-afrikoni-gold/40" 
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/business/${product.companies.id}`);
@@ -624,7 +624,7 @@ if (!Array.isArray(productsList)) return [];
                 <Button 
                   variant="secondary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-3 sm:px-4 whitespace-nowrap" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[40px] md:min-h-[36px] px-2 sm:px-3 max-w-full overflow-hidden" 
                   onClick={(e) => {
                     e.stopPropagation();
                     // Store product context for smart message generation
@@ -642,20 +642,20 @@ if (!Array.isArray(productsList)) return [];
                     navigate(`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}&product=${product?.id || ''}&productTitle=${encodeURIComponent(product?.title || '')}`);
                   }}
                 >
-                  <MessageSquare className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                  <span>{t('marketplace.contact') || 'Contact'}</span>
+                  <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 flex-shrink-0" />
+                  <span className="truncate">{t('marketplace.contact') || 'Contact'}</span>
                 </Button>
                 <Button 
                   variant="primary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-3 sm:px-4 whitespace-nowrap" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[40px] md:min-h-[36px] px-2 sm:px-3 max-w-full overflow-hidden bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-medium" 
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/dashboard/rfqs/new?product=${product.id}`);
                   }}
                 >
-                  <FileText className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                  <span>{t('marketplace.quote') || 'Quote'}</span>
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 flex-shrink-0" />
+                  <span className="truncate">{t('marketplace.quote') || 'Quote'}</span>
                 </Button>
               </div>
             </CardContent>
