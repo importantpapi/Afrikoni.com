@@ -41,8 +41,10 @@ export default function Dashboard() {
         // If user hit the base /dashboard route, redirect them to a role-specific dashboard
         if (location.pathname === '/dashboard') {
           const dashboardPath = getDashboardPathForRole(normalizedRole);
-          // For hybrid, use unified dashboard
-          const finalPath = normalizedRole === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
+          // For hybrid and logistics, use unified dashboard
+          const finalPath = (normalizedRole === 'hybrid' || normalizedRole === 'logistics') 
+            ? `/dashboard/${normalizedRole}` 
+            : dashboardPath;
           navigate(finalPath, { replace: true });
           return;
         }

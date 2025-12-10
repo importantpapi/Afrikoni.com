@@ -210,6 +210,7 @@ function App() {
             <Route path="/dashboard/buyer" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/seller" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/hybrid" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/logistics" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/dashboard/admin/review" element={<ProtectedRoute><AdminReview /></ProtectedRoute>} />
@@ -240,7 +241,6 @@ function App() {
             <Route path="/dashboard/shipments" element={<ProtectedRoute><DashboardShipments /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipmentPage /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetailPage /></ProtectedRoute>} />
-            <Route path="/dashboard/logistics" element={<ProtectedRoute><LogisticsDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/analytics" element={<ProtectedRoute><DashboardAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/supplier-analytics" element={<ProtectedRoute><SupplierAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/payments" element={<ProtectedRoute><DashboardPayments /></ProtectedRoute>} />
