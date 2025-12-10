@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { Home, ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function NotFound() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center px-4 py-12">
       <motion.div
