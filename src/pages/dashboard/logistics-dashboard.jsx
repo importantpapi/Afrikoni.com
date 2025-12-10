@@ -29,6 +29,7 @@ import {
   BarChart3, Route, Zap, Shield, Search, Filter, Download,
   Plus, Eye, Edit, ArrowRight, Activity
 } from 'lucide-react';
+import RealTimeTracking from '@/components/logistics/RealTimeTracking';
 import { toast } from 'sonner';
 import { format, subDays, startOfMonth } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -342,7 +343,7 @@ export default function LogisticsDashboard() {
             </Button>
             <Button
               className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
-              onClick={() => navigate('/dashboard/shipments')}
+              onClick={() => navigate('/dashboard/shipments/new')}
             >
               <Plus className="w-4 h-4 mr-2" />
               New Shipment
@@ -490,8 +491,8 @@ export default function LogisticsDashboard() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="shipments">Shipments</TabsTrigger>
             <TabsTrigger value="quotes">Shipping Quotes</TabsTrigger>
-            <TabsTrigger value="routes">Routes</TabsTrigger>
-            <TabsTrigger value="partners">Partners</TabsTrigger>
+            <TabsTrigger value="tracking">Real-Time Tracking</TabsTrigger>
+            <TabsTrigger value="customs">Customs</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 

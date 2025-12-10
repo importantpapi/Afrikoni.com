@@ -71,8 +71,8 @@ export default function Home() {
         <SourceByCountry />
         <RFQCard />
         <PartnerLogos />
-        {/* Success Stories Section */}
-        <section className="py-16 md:py-24 bg-white">
+        {/* Success Stories Section - Hidden until we have real customer data */}
+        {/* <section className="py-16 md:py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -89,7 +89,7 @@ export default function Home() {
             </motion.div>
             <SuccessStories limit={3} />
           </div>
-        </section>
+        </section> */}
         {/* <TestimonialsSection /> */}
         {/* <CaseStudies /> */}
         <LogisticsPlatform />

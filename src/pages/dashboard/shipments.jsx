@@ -167,10 +167,10 @@ export default function DashboardShipments() {
             <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Shipments</h1>
             <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Track and manage all shipments</p>
           </div>
-          <Link to="/dashboard/orders">
+          <Link to="/dashboard/shipments/new">
             <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-6">
               <Plus className="w-4 h-4 mr-2" />
-              Create Shipping Offer
+              New Shipment
             </Button>
           </Link>
         </motion.div>

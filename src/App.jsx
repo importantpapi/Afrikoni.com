@@ -17,6 +17,9 @@ import Onboarding from './pages/onboarding';
 import AuthCallback from './pages/auth-callback';
 import NotFound from './pages/NotFound';
 import SitemapXML from './pages/sitemap.xml';
+import PrivacyPolicy from './pages/privacy-policy';
+import TermsAndConditions from './pages/terms-and-conditions';
+import CookiePolicy from './pages/cookie-policy';
 
 // Lazy-loaded heavy routes - Dashboard
 const Dashboard = lazy(() => import('./pages/dashboard'));
@@ -29,6 +32,7 @@ const ProductForm = lazy(() => import('./pages/dashboard/products/new'));
 const DashboardSales = lazy(() => import('./pages/dashboard/sales'));
 const DashboardShipments = lazy(() => import('./pages/dashboard/shipments'));
 const ShipmentDetailPage = lazy(() => import('./pages/dashboard/shipments/[id]'));
+const NewShipmentPage = lazy(() => import('./pages/dashboard/shipments/new'));
 const LogisticsDashboard = lazy(() => import('./pages/dashboard/logistics-dashboard'));
 const DashboardAnalytics = lazy(() => import('./pages/dashboard/analytics'));
 const SupplierAnalytics = lazy(() => import('./pages/dashboard/supplier-analytics'));
@@ -195,6 +199,9 @@ function App() {
             <Route path="/categories" element={<Categories />} />
             <Route path="/countries" element={<Countries />} />
             <Route path="/sitemap.xml" element={<SitemapXML />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
             <Route path="/order" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><MessagesPremium /></ProtectedRoute>} />
@@ -231,6 +238,7 @@ function App() {
             <Route path="/products/add" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
             <Route path="/dashboard/sales" element={<ProtectedRoute><DashboardSales /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><DashboardShipments /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipmentPage /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/logistics" element={<ProtectedRoute><LogisticsDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/analytics" element={<ProtectedRoute><DashboardAnalytics /></ProtectedRoute>} />

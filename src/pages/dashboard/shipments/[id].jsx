@@ -17,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import EmptyState from '@/components/ui/EmptyState';
 import { TimelineItem } from '@/components/ui/reusable/TimelineItem';
 import { StatusBadge } from '@/components/ui/reusable/StatusBadge';
+import RealTimeTracking from '@/components/logistics/RealTimeTracking';
+import CustomsClearance from '@/components/logistics/CustomsClearance';
 
 export default function ShipmentDetail() {
   const { id } = useParams();
@@ -52,7 +54,8 @@ export default function ShipmentDetail() {
             products(*),
             buyer_company:buyer_company_id(company_name, country, city),
             seller_company:seller_company_id(company_name, country, city)
-          )
+          ),
+          customs_clearance(*)
         `)
         .eq('id', id)
         .single();
@@ -154,7 +157,29 @@ export default function ShipmentDetail() {
         <div className="grid md:grid-cols-3 gap-4">
           {/* Main Content */}
           <div className="md:col-span-2 space-y-4">
-            {/* Timeline */}
+            {/* Real-Time Tracking */}
+            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5 text-afrikoni-gold" />
+                  Real-Time Tracking
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RealTimeTracking shipmentId={id} />
+              </CardContent>
+            </Card>
+
+            {/* Customs Clearance (if cross-border) */}
+            {shipment.is_cross_border && (
+              <CustomsClearance 
+                shipmentId={id} 
+                orderId={order?.id}
+                isLogistics={isLogistics}
+              />
+            )}
+
+            {/* Legacy Timeline (fallback) */}
             <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader>
                 <CardTitle>Shipment Timeline</CardTitle>

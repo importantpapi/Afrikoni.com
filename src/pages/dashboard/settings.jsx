@@ -11,10 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/i18n/LanguageContext';
+import CookieSettingsModal from '@/components/ui/CookieSettingsModal';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -67,6 +68,7 @@ export default function DashboardSettings() {
   });
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showCookieModal, setShowCookieModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -774,6 +776,29 @@ export default function DashboardSettings() {
                   </div>
                 </div>
 
+                <div className="pt-4 border-t border-afrikoni-gold/20">
+                  <h4 className="font-semibold text-afrikoni-text-dark mb-4 flex items-center gap-2">
+                    <Cookie className="w-5 h-5 text-afrikoni-gold" />
+                    Cookie Preferences
+                  </h4>
+                  <div className="space-y-3">
+                    <p className="text-sm text-afrikoni-text-dark/70 mb-4">
+                      Manage your cookie consent preferences. You can control which types of cookies we use to enhance your experience.
+                    </p>
+                    <Button 
+                      onClick={() => setShowCookieModal(true)}
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                    >
+                      <Cookie className="w-4 h-4 mr-2" />
+                      Manage Consent
+                    </Button>
+                    <p className="text-xs text-afrikoni-text-dark/70 mt-2">
+                      Your preferences are saved locally and will be remembered across sessions.
+                    </p>
+                  </div>
+                </div>
+
                 <Button onClick={() => handleSave('security')} disabled={isSaving} className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark">
                   <Save className="w-4 h-4 mr-2" />
                   Save Security Settings
@@ -782,6 +807,16 @@ export default function DashboardSettings() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Cookie Settings Modal */}
+        <CookieSettingsModal
+          isOpen={showCookieModal}
+          onClose={() => setShowCookieModal(false)}
+          onSave={(preferences) => {
+            setShowCookieModal(false);
+            toast.success('Cookie preferences saved successfully');
+          }}
+        />
       </div>
     </DashboardLayout>
   );

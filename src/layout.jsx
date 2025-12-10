@@ -320,27 +320,30 @@ function Footer() {
               })}
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[10px] md:text-xs lg:text-sm">
-              <motion.a 
-                href="/privacy" 
-                whileHover={{ x: 2 }}
-                className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
-              >
-                Privacy Policy
-              </motion.a>
-              <motion.a 
-                href="/terms" 
-                whileHover={{ x: 2 }}
-                className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
-              >
-                Terms & Conditions
-              </motion.a>
-              <motion.a 
-                href="/cookies" 
-                whileHover={{ x: 2 }}
-                className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
-              >
-                Cookie Policy
-              </motion.a>
+              <motion.div whileHover={{ x: 2 }}>
+                <Link 
+                  to="/privacy-policy" 
+                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                >
+                  Privacy Policy
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ x: 2 }}>
+                <Link 
+                  to="/terms-and-conditions" 
+                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                >
+                  Terms & Conditions
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ x: 2 }}>
+                <Link 
+                  to="/cookie-policy" 
+                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                >
+                  Cookie Policy
+                </Link>
+              </motion.div>
               <span className="text-afrikoni-cream/70 whitespace-nowrap">© 2025 Afrikoni. All rights reserved.</span>
             </div>
           </div>

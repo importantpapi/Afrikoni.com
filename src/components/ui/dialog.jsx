@@ -84,3 +84,10 @@ export const DialogClose = ({ onClose }) => {
   );
 };
 
+export const DialogTrigger = ({ children, asChild, ...props }) => {
+  if (asChild) {
+    return React.cloneElement(children, props);
+  }
+  return <button {...props}>{children}</button>;
+};
+
