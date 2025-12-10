@@ -624,7 +624,7 @@ if (!Array.isArray(productsList)) return [];
                 <Button 
                   variant="secondary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-3 min-w-0 overflow-hidden" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-3 sm:px-4 whitespace-nowrap" 
                   onClick={(e) => {
                     e.stopPropagation();
                     // Store product context for smart message generation
@@ -642,20 +642,20 @@ if (!Array.isArray(productsList)) return [];
                     navigate(`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}&product=${product?.id || ''}&productTitle=${encodeURIComponent(product?.title || '')}`);
                   }}
                 >
-                  <MessageSquare className="w-4 h-4 mr-1 flex-shrink-0" />
-                  <span className="truncate">{t('marketplace.contact')}</span>
+                  <MessageSquare className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                  <span>{t('marketplace.contact') || 'Contact'}</span>
                 </Button>
                 <Button 
                   variant="primary" 
                   size="sm" 
-                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-2 sm:px-3 min-w-0 overflow-hidden" 
+                  className="flex-1 text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-0 px-3 sm:px-4 whitespace-nowrap" 
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/dashboard/rfqs/new?product=${product.id}`);
                   }}
                 >
-                  <FileText className="w-4 h-4 mr-1 flex-shrink-0" />
-                  <span className="truncate">{t('marketplace.quote')}</span>
+                  <FileText className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                  <span>{t('marketplace.quote') || 'Quote'}</span>
                 </Button>
               </div>
             </CardContent>
