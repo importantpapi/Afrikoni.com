@@ -70,6 +70,22 @@ const REGIONS = {
   'Southern Africa': 'bg-red-100 text-red-800 border-red-300'
 };
 
+const REGION_POSITIONS = {
+  'North Africa': { baseX: 450, baseY: 200, spread: 150 },
+  'West Africa': { baseX: 300, baseY: 375, spread: 100 },
+  'Central Africa': { baseX: 450, baseY: 400, spread: 80 },
+  'East Africa': { baseX: 650, baseY: 400, spread: 100 },
+  'Southern Africa': { baseX: 400, baseY: 550, spread: 120 }
+};
+
+const REGION_COLORS = {
+  'North Africa': '#3B82F6',
+  'West Africa': '#10B981',
+  'Central Africa': '#FBBF24',
+  'East Africa': '#8B5CF6',
+  'Southern Africa': '#EF4444'
+};
+
 export default function InteractiveAfricaMap() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,15 +182,8 @@ export default function InteractiveAfricaMap() {
                 {filteredCountries.map((country, index) => {
                   // Better positioning based on region
                   let cx, cy;
-                  const regionPositions = {
-                    'North Africa': { baseX: 450, baseY: 200, spread: 150 },
-                    'West Africa': { baseX: 300, baseY: 375, spread: 100 },
-                    'Central Africa': { baseX: 450, baseY: 400, spread: 80 },
-                    'East Africa': { baseX: 650, baseY: 400, spread: 100 },
-                    'Southern Africa': { baseX: 400, baseY: 550, spread: 120 }
-                  };
                   
-                  const pos = regionPositions[country.region] || { baseX: 500, baseY: 400, spread: 200 };
+                  const pos = REGION_POSITIONS[country.region] || { baseX: 500, baseY: 400, spread: 200 };
                   const regionCountries = filteredCountries.filter(c => c.region === country.region);
                   const regionIndex = regionCountries.findIndex(c => c.code === country.code);
                   const angle = (regionIndex / Math.max(regionCountries.length, 1)) * 2 * Math.PI;
@@ -183,13 +192,6 @@ export default function InteractiveAfricaMap() {
                   cy = pos.baseY + (pos.spread * 0.4) * Math.sin(angle);
                   
                   const isSelected = selectedCountry?.code === country.code;
-                  const regionColors = {
-                    'North Africa': '#3B82F6',
-                    'West Africa': '#10B981',
-                    'Central Africa': '#FBBF24',
-                    'East Africa': '#8B5CF6',
-                    'Southern Africa': '#EF4444'
-                  };
                   
                   return (
                     <g key={country.code}>
@@ -208,7 +210,7 @@ export default function InteractiveAfricaMap() {
                         cx={cx}
                         cy={cy}
                         r={isSelected ? 12 : 8}
-                        fill={isSelected ? '#D4A937' : (regionColors[country.region] || '#D4A937')}
+                        fill={isSelected ? '#D4A937' : (REGION_COLORS[country.region] || '#D4A937')}
                         stroke={isSelected ? '#8B4513' : '#fff'}
                         strokeWidth={isSelected ? 3 : 2}
                         className="cursor-pointer transition-all"
@@ -247,9 +249,9 @@ export default function InteractiveAfricaMap() {
                 {/* Legend */}
                 <g transform="translate(50, 700)">
                   <text x="0" y="0" className="fill-afrikoni-chestnut font-semibold text-sm">Regions:</text>
-                  {Object.entries(regionPositions).map(([region, color], idx) => (
+                  {Object.entries(REGION_COLORS).map(([region, color], idx) => (
                     <g key={region} transform={`translate(${idx * 120}, 20)`}>
-                      <circle cx="0" cy="0" r="6" fill={regionColors[region] || '#D4A937'} />
+                      <circle cx="0" cy="0" r="6" fill={color} />
                       <text x="12" y="4" className="fill-afrikoni-deep text-xs">{region}</text>
                     </g>
                   ))}
