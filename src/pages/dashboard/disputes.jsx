@@ -61,6 +61,13 @@ export default function UserDisputes() {
       const cid = await getOrCreateCompany(supabase, profile || userData);
       setCompanyId(cid);
 
+      if (!cid) {
+        console.warn('No company ID found, cannot load disputes');
+        setDisputes([]);
+        setOrders([]);
+        return;
+      }
+
       // Load user's disputes
       const { data: disputesData, error: disputesError } = await supabase
         .from('disputes')
@@ -81,11 +88,16 @@ export default function UserDisputes() {
             company_name
           )
         `)
-        .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid},raised_by_company_id.eq.${cid}`)
+        .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid},raised_by_company_id.eq.${cid},against_company_id.eq.${cid}`)
         .order('created_at', { ascending: false });
 
-      if (disputesError) throw disputesError;
-      setDisputes(disputesData || []);
+      if (disputesError) {
+        console.error('Error loading disputes:', disputesError);
+        // Don't throw - allow page to load with empty disputes
+        setDisputes([]);
+      } else {
+        setDisputes(disputesData || []);
+      }
 
       // Load user's orders for creating new disputes
       const { data: ordersData, error: ordersError } = await supabase
@@ -96,8 +108,13 @@ export default function UserDisputes() {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+      if (ordersError) {
+        console.error('Error loading orders:', ordersError);
+        // Don't throw - allow page to load with empty orders
+        setOrders([]);
+      } else {
+        setOrders(ordersData || []);
+      }
     } catch (error) {
       console.error('Error loading disputes:', error);
       toast.error('Failed to load disputes');
