@@ -33,6 +33,7 @@ import BulkPricingTiers from '@/components/products/BulkPricingTiers';
 import { GitCompare } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
+import Breadcrumb from '@/components/ui/Breadcrumb';
 
 export default function ProductDetail() {
   const { t } = useLanguage();
