@@ -109,56 +109,162 @@ export default function InteractiveAfricaMap() {
 
       {/* Map Visualization */}
       <Card className="border-afrikoni-gold/20 shadow-lg overflow-hidden">
-        <CardContent className="p-0">
-          <div className="relative bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10">
-            {/* Simplified Africa Continent SVG */}
-            <div className="aspect-video relative overflow-hidden">
+        <CardContent className="p-6">
+          <div className="relative bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-cream/5 to-afrikoni-chestnut/10 rounded-lg p-8">
+            {/* Simplified Africa Continent SVG with better visibility */}
+            <div className="aspect-video relative overflow-visible">
               <svg
-                viewBox="0 0 800 600"
+                viewBox="0 0 1000 800"
                 className="w-full h-full"
                 preserveAspectRatio="xMidYMid meet"
               >
-                {/* Simplified Africa outline */}
+                {/* Simplified Africa continent outline - more visible */}
                 <path
-                  d="M 200 50 L 250 80 L 300 100 L 350 120 L 400 130 L 450 140 L 500 150 L 550 160 L 600 170 L 650 180 L 700 200 L 720 250 L 700 300 L 680 350 L 650 400 L 600 450 L 550 480 L 500 500 L 450 510 L 400 520 L 350 530 L 300 540 L 250 550 L 200 560 L 150 550 L 100 540 L 80 500 L 100 450 L 120 400 L 140 350 L 150 300 L 160 250 L 170 200 L 180 150 L 200 50 Z"
-                  fill="none"
+                  d="M 150 100 L 200 120 L 280 140 L 360 150 L 440 160 L 520 170 L 600 180 L 680 200 L 750 240 L 780 300 L 760 360 L 720 420 L 660 480 L 580 520 L 500 540 L 420 550 L 340 560 L 260 570 L 180 580 L 100 570 L 60 520 L 80 460 L 100 400 L 120 340 L 130 280 L 140 220 L 150 100 Z"
+                  fill="#D4A937"
+                  fillOpacity="0.15"
                   stroke="#D4A937"
-                  strokeWidth="3"
-                  className="opacity-30"
+                  strokeWidth="4"
+                  className="opacity-60"
                 />
                 
-                {/* Country markers as dots */}
+                {/* Regional sections with different colors */}
+                <g opacity="0.3">
+                  {/* North Africa */}
+                  <path
+                    d="M 150 100 L 200 120 L 280 140 L 360 150 L 440 160 L 520 170 L 600 180 L 680 200 L 750 240 L 780 300 L 760 300 L 720 300 L 600 300 L 500 300 L 400 300 L 300 300 L 200 300 L 150 300 L 140 220 L 150 100 Z"
+                    fill="#3B82F6"
+                    fillOpacity="0.2"
+                  />
+                  {/* West Africa */}
+                  <path
+                    d="M 200 300 L 300 300 L 400 300 L 500 300 L 600 300 L 650 350 L 600 400 L 500 450 L 400 450 L 300 450 L 200 400 L 200 300 Z"
+                    fill="#10B981"
+                    fillOpacity="0.2"
+                  />
+                  {/* Central Africa */}
+                  <path
+                    d="M 400 300 L 500 300 L 600 300 L 650 350 L 600 400 L 500 450 L 400 450 L 300 450 L 300 500 L 400 500 L 500 500 L 400 500 L 300 500 L 300 450 Z"
+                    fill="#FBBF24"
+                    fillOpacity="0.2"
+                  />
+                  {/* East Africa */}
+                  <path
+                    d="M 600 300 L 720 300 L 760 300 L 720 360 L 660 420 L 580 480 L 500 520 L 400 500 L 500 500 L 580 480 L 600 400 L 600 300 Z"
+                    fill="#8B5CF6"
+                    fillOpacity="0.2"
+                  />
+                  {/* Southern Africa */}
+                  <path
+                    d="M 300 500 L 400 500 L 500 520 L 420 550 L 340 560 L 260 570 L 180 580 L 100 570 L 60 520 L 80 460 L 200 450 L 300 500 Z"
+                    fill="#EF4444"
+                    fillOpacity="0.2"
+                  />
+                </g>
+                
+                {/* Country markers as larger, more visible dots */}
                 {filteredCountries.map((country, index) => {
-                  const angle = (index / AFRICAN_COUNTRIES.length) * 2 * Math.PI;
-                  const radius = 200;
-                  const cx = 400 + radius * Math.cos(angle);
-                  const cy = 300 + radius * Math.sin(angle);
+                  // Better positioning based on region
+                  let cx, cy;
+                  const regionPositions = {
+                    'North Africa': { baseX: 450, baseY: 200, spread: 150 },
+                    'West Africa': { baseX: 300, baseY: 375, spread: 100 },
+                    'Central Africa': { baseX: 450, baseY: 400, spread: 80 },
+                    'East Africa': { baseX: 650, baseY: 400, spread: 100 },
+                    'Southern Africa': { baseX: 400, baseY: 550, spread: 120 }
+                  };
+                  
+                  const pos = regionPositions[country.region] || { baseX: 500, baseY: 400, spread: 200 };
+                  const regionCountries = filteredCountries.filter(c => c.region === country.region);
+                  const regionIndex = regionCountries.findIndex(c => c.code === country.code);
+                  const angle = (regionIndex / Math.max(regionCountries.length, 1)) * 2 * Math.PI;
+                  
+                  cx = pos.baseX + (pos.spread * 0.4) * Math.cos(angle);
+                  cy = pos.baseY + (pos.spread * 0.4) * Math.sin(angle);
+                  
+                  const isSelected = selectedCountry?.code === country.code;
+                  const regionColors = {
+                    'North Africa': '#3B82F6',
+                    'West Africa': '#10B981',
+                    'Central Africa': '#FBBF24',
+                    'East Africa': '#8B5CF6',
+                    'Southern Africa': '#EF4444'
+                  };
                   
                   return (
                     <g key={country.code}>
+                      {/* Hover area - larger invisible circle for easier clicking */}
                       <circle
                         cx={cx}
                         cy={cy}
-                        r={8}
-                        fill="#D4A937"
-                        className="cursor-pointer hover:fill-afrikoni-goldDark transition-all"
+                        r={isSelected ? 20 : 15}
+                        fill="transparent"
+                        className="cursor-pointer"
                         onClick={() => setSelectedCountry(country)}
-                        style={{ opacity: selectedCountry?.code === country.code ? 1 : 0.6 }}
+                        onMouseEnter={() => {}}
                       />
-                      {selectedCountry?.code === country.code && (
-                        <text
-                          x={cx}
-                          y={cy - 15}
-                          textAnchor="middle"
-                          className="fill-afrikoni-chestnut font-semibold text-sm"
-                        >
-                          {country.name}
-                        </text>
+                      {/* Visible country marker */}
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={isSelected ? 12 : 8}
+                        fill={isSelected ? '#D4A937' : (regionColors[country.region] || '#D4A937')}
+                        stroke={isSelected ? '#8B4513' : '#fff'}
+                        strokeWidth={isSelected ? 3 : 2}
+                        className="cursor-pointer transition-all"
+                        onClick={() => setSelectedCountry(country)}
+                        style={{ 
+                          opacity: isSelected ? 1 : 0.8,
+                          filter: isSelected ? 'drop-shadow(0 0 8px rgba(212, 169, 55, 0.6))' : 'none'
+                        }}
+                      />
+                      {/* Country code label */}
+                      {isSelected && (
+                        <g>
+                          <rect
+                            x={cx - 25}
+                            y={cy - 35}
+                            width={50}
+                            height={20}
+                            fill="#8B4513"
+                            fillOpacity="0.9"
+                            rx="4"
+                          />
+                          <text
+                            x={cx}
+                            y={cy - 20}
+                            textAnchor="middle"
+                            className="fill-white font-bold text-xs"
+                          >
+                            {country.code}
+                          </text>
+                        </g>
                       )}
                     </g>
                   );
                 })}
+                
+                {/* Legend */}
+                <g transform="translate(50, 700)">
+                  <text x="0" y="0" className="fill-afrikoni-chestnut font-semibold text-sm">Regions:</text>
+                  {Object.entries(regionPositions).map(([region, color], idx) => (
+                    <g key={region} transform={`translate(${idx * 120}, 20)`}>
+                      <circle cx="0" cy="0" r="6" fill={regionColors[region] || '#D4A937'} />
+                      <text x="12" y="4" className="fill-afrikoni-deep text-xs">{region}</text>
+                    </g>
+                  ))}
+                </g>
               </svg>
+            </div>
+            
+            {/* Info overlay */}
+            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-afrikoni-gold/20">
+              <div className="text-xs text-afrikoni-deep">
+                <div className="font-semibold mb-1">Click countries to explore</div>
+                <div className="text-afrikoni-deep/70">
+                  {filteredCountries.length} of {AFRICAN_COUNTRIES.length} countries shown
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
