@@ -119,8 +119,6 @@ export default function SupportChat() {
             } catch (notifError) {
               console.error('Failed to send admin notification for new ticket:', notifError);
             }
-          } else {
-            toast.error('Failed to create support ticket. Please try again.');
           }
       } else {
         // No company ID - still create ticket with user email
