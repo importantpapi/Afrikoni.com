@@ -43,6 +43,11 @@ export default defineConfig({
           if (id.includes('/marketplace') || id.includes('/products') || id.includes('/productdetails')) {
             return 'marketplace';
           }
+          
+          // Countries page chunk
+          if (id.includes('/pages/countries')) {
+            return 'countries';
+          }
         },
       },
     },

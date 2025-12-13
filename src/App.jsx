@@ -126,7 +126,8 @@ const OrderProtection = lazy(() => import('./pages/order-protection'));
 const BuyerHub = lazy(() => import('./pages/buyer-hub'));
 const SupplierHub = lazy(() => import('./pages/supplier-hub'));
 const Logistics = lazy(() => import('./pages/logistics'));
-const Countries = lazy(() => import('./pages/countries'));
+// Countries page - regular import to avoid chunk loading issues
+import Countries from './pages/countries';
 const Trending = lazy(() => import('./pages/trending'));
 const TradeShield = lazy(() => import('./pages/protection'));
 const InspectionServices = lazy(() => import('./pages/inspection'));
