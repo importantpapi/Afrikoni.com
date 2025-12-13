@@ -35,15 +35,13 @@ export default function PartnerLogos() {
     }
   };
 
-  // Create placeholder logos if none exist
-  const displayPartners = partners.length > 0 
-    ? partners 
-    : Array.from({ length: 8 }, (_, i) => ({
-        id: `placeholder-${i}`,
-        name: `Partner ${i + 1}`,
-        logo_url: null,
-        placeholder: true
-      }));
+  // Only show real partners - no placeholders
+  const displayPartners = partners.length > 0 ? partners : [];
+
+  // Hide section if no real partners
+  if (displayPartners.length === 0) {
+    return null;
+  }
 
   // Duplicate for seamless loop
   const duplicatedPartners = [...displayPartners, ...displayPartners];

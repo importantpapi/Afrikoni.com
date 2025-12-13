@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { useLanguage } from '@/i18n/LanguageContext';
-import BushidoManifesto from '@/components/home/BushidoManifesto';
 import BusinessModel from '@/components/home/BusinessModel';
-import SocialProofSection from '@/components/home/SocialProofSection';
-import InteractiveAfricaMap from '@/components/about/InteractiveAfricaMap';
 
 export default function About() {
   const { t } = useLanguage();
@@ -232,34 +229,6 @@ export default function About() {
           </div>
         </section>
 
-        {/* 54 Countries Map Placeholder */}
-        <section className="py-16 md:py-20 lg:py-24 bg-gradient-to-b from-afrikoni-offwhite to-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <MapPin className="w-10 h-10 text-afrikoni-gold" aria-label="Location icon" />
-                <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut">
-                  Connecting 54 African Countries
-                </h2>
-              </div>
-              <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
-                From North to South, East to West, we're building bridges across the continent.
-              </p>
-            </motion.div>
-            <InteractiveAfricaMap />
-          </div>
-        </section>
-
-        {/* Social Proof Section */}
-        <SocialProofSection />
-
-        {/* Bushido Manifesto */}
-        <BushidoManifesto />
 
         {/* Business Model & Reality Check */}
         <BusinessModel />

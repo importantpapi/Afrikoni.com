@@ -88,10 +88,13 @@ export default function HeroSection({ categories = [] }) {
             className="mb-6"
           >
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-gold mb-3 leading-tight">
-              Africa's Trusted B2B Trade Engine
+              Trade. Trust. Thrive.
             </h2>
-            <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream font-medium">
-              Source products, suppliers, and logistics across Africa — on demand, with verified partners only.
+            <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream font-medium mb-2">
+              The B2B marketplace connecting Africa to global opportunity.
+            </p>
+            <p className="text-base sm:text-lg md:text-xl text-afrikoni-cream/90 font-medium">
+              Africa's leading B2B marketplace for trade across 54 countries
             </p>
           </motion.div>
 
@@ -102,18 +105,8 @@ export default function HeroSection({ categories = [] }) {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-cream mb-4 leading-tight px-2"
           >
-            Post Your Trade Request. Get Matched. Trade with Confidence.
+            What are you looking for?
           </motion.h1>
-
-          {/* Sub-headline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="text-sm sm:text-base md:text-lg lg:text-xl text-afrikoni-cream/90 mb-6 max-w-3xl mx-auto px-2"
-          >
-            Beta live · Demand-driven · No fake listings
-          </motion.p>
 
           {/* Trust Badges */}
           <motion.div
@@ -213,38 +206,64 @@ export default function HeroSection({ categories = [] }) {
             </div>
           </motion.div>
 
-          {/* Primary CTA Buttons - RFQ First */}
+          {/* Role Selection Buttons - Buyer, Supplier, Logistics */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6"
+            className="flex flex-wrap items-center justify-center gap-3 mb-6"
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="flex-shrink-0"
             >
               <Button
-                onClick={handlePostRFQ}
+                onClick={() => navigate('/services/buyers')}
                 size="lg"
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-8 py-6 text-lg font-bold shadow-xl hover:shadow-2xl transition-all border-2 border-afrikoni-gold"
+                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
               >
-                Post a Trade Request (RFQ)
+                Buyer
               </Button>
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="flex-shrink-0"
             >
               <Button
                 onClick={() => navigate('/become-supplier')}
-                variant="outline"
                 size="lg"
-                className="border-2 border-afrikoni-gold/50 text-afrikoni-cream hover:bg-afrikoni-gold/20 px-8 py-6 text-lg font-semibold"
+                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
               >
-                Join as Supplier
+                Supplier
               </Button>
             </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-shrink-0"
+            >
+              <Button
+                onClick={() => navigate('/logistics')}
+                size="lg"
+                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
+              >
+                Logistics
+              </Button>
+            </motion.div>
+          </motion.div>
+
+          {/* Founder Info */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.38 }}
+            className="text-center mb-4"
+          >
+            <p className="text-sm text-afrikoni-cream/80 italic">
+              Founded by Youba Simao Thiam — Europe-based, Africa-focused trade operator.
+            </p>
           </motion.div>
 
           {/* Trending Search Chips */}

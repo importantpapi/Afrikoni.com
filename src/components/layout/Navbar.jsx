@@ -213,27 +213,28 @@ export default function Navbar({ user, onLogout }) {
             </motion.div>
           </Link>
 
-          {/* How It Works Link */}
-          <a 
-            href="#how-it-works" 
-            className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap"
-            onClick={(e) => {
-              e.preventDefault();
-              const element = document.getElementById('how-it-works');
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                window.location.href = '/#how-it-works';
-              }
-            }}
-          >
-            How It Works
-          </a>
-
-          {/* Suppliers Link */}
-          <Link to="/suppliers" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-            Suppliers
+          {/* Marketplace Link */}
+          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            Marketplace
           </Link>
+
+          {/* About Us Link */}
+          <Link to="/about" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            About Us
+          </Link>
+
+          {/* For Enterprise Link */}
+          <Link to="/enterprise" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            For Enterprise
+          </Link>
+
+          {/* Community Link */}
+          <button
+            onClick={() => openWhatsAppCommunity('navbar')}
+            className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+          >
+            Community
+          </button>
           
           {compareCount > 0 && (
             <Link to="/compare" className="relative hidden sm:block">

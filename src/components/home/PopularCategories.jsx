@@ -303,7 +303,7 @@ export default function PopularCategories({ categories = [] }) {
                               {category.description}
                             </p>
                             <div className="text-sm font-semibold text-afrikoni-gold mb-2">
-                              {category.productCount} products available
+                              Products available
                             </div>
                             <div className="text-xs text-afrikoni-deep/70 line-clamp-2">
                               {category.subCategories.slice(0, 2).join(', ')}
@@ -362,7 +362,7 @@ export default function PopularCategories({ categories = [] }) {
                               {category.description}
                             </p>
                             <div className="text-sm font-semibold text-afrikoni-gold mb-2">
-                              {category.productCount} products
+                              Products available
                             </div>
                             <div className="text-xs text-afrikoni-deep/70 line-clamp-1">
                               {category.subCategories[0]}, {category.subCategories[1]}
@@ -434,7 +434,7 @@ export default function PopularCategories({ categories = [] }) {
             {clonedCategories.map((category, idx) => {
               const Icon = category.icon || Package;
               const categoryName = category.name || 'Category';
-              const productCount = category.productCount || '0';
+              // Product counts removed - showing "Products available" instead
               const categoryImage = category.image || null;
               
               // Ensure we have the image URL
@@ -534,7 +534,7 @@ export default function PopularCategories({ categories = [] }) {
                             lineHeight: '1.2'
                           }}
                         >
-                          {productCount} {productCount !== '0' && 'products'}
+                          Products available
                         </div>
                       </CardContent>
                     </Card>

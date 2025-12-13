@@ -39,7 +39,7 @@ export const translations = {
     
     // Hero Section
     'hero.title': 'Africa\'s leading B2B marketplace for trade across 54 countries',
-    'hero.searchPlaceholder': 'Search for products, suppliers, or services...',
+    'hero.searchPlaceholder': 'What are you looking for?',
     'hero.searchButton': 'Search',
     'hero.trendingSearches': 'Trending searches:',
     'hero.trending.cocoa': 'Cocoa beans',

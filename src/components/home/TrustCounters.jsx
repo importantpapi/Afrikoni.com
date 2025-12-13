@@ -1,11 +1,12 @@
 /**
  * Live Trust Counters Component
- * Animated counters showing platform statistics
+ * Animated counters showing REAL platform statistics from Supabase
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Package, Users, Globe, Shield } from 'lucide-react';
+import { supabase } from '@/api/supabaseClient';
 
 export default function TrustCounters() {
   const ref = useRef(null);
@@ -18,15 +19,78 @@ export default function TrustCounters() {
     deliveryRate: 0
   });
 
-  const targets = {
-    products: 12500,
-    suppliers: 850,
-    countries: 24,
-    deliveryRate: 98
-  };
+  const [targets, setTargets] = useState({
+    products: 0,
+    suppliers: 0,
+    countries: 0,
+    deliveryRate: 0
+  });
+
+  // Load real data from Supabase
+  useEffect(() => {
+    const loadRealStats = async () => {
+      try {
+        // Get active products count
+        const { count: productsCount } = await supabase
+          .from('products')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active');
+
+        // Get verified suppliers count
+        const { count: suppliersCount } = await supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .in('role', ['seller', 'hybrid'])
+          .eq('verification_status', 'verified');
+
+        // Get unique countries from products
+        const { data: productsData } = await supabase
+          .from('products')
+          .select('country')
+          .eq('status', 'active');
+        
+        const uniqueCountries = new Set(
+          productsData?.map(p => p.country).filter(Boolean) || []
+        );
+
+        // Get delivery rate (completed orders / total orders)
+        const { count: completedOrders } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'completed');
+        
+        const { count: totalOrders } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['completed', 'cancelled', 'refunded']);
+
+        const deliveryRate = totalOrders > 0 
+          ? Math.round((completedOrders / totalOrders) * 100)
+          : 0;
+
+        setTargets({
+          products: productsCount || 0,
+          suppliers: suppliersCount || 0,
+          countries: uniqueCountries.size || 0,
+          deliveryRate: deliveryRate
+        });
+      } catch (error) {
+        // Silently fail - show zeros if data can't be loaded
+        console.debug('Error loading stats:', error);
+        setTargets({
+          products: 0,
+          suppliers: 0,
+          countries: 0,
+          deliveryRate: 0
+        });
+      }
+    };
+
+    loadRealStats();
+  }, []);
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!isInView || (targets.products === 0 && targets.suppliers === 0)) return;
 
     const duration = 2000; // 2 seconds
     const steps = 60;
@@ -34,6 +98,8 @@ export default function TrustCounters() {
 
     const timers = Object.keys(targets).map((key) => {
       const target = targets[key];
+      if (target === 0) return null;
+      
       let current = 0;
       const increment = target / steps;
 
@@ -49,21 +115,26 @@ export default function TrustCounters() {
       return timer;
     });
 
-    return () => timers.forEach((timer) => clearInterval(timer));
-  }, [isInView]);
+    return () => timers.forEach((timer) => timer && clearInterval(timer));
+  }, [isInView, targets]);
+
+  // Only show if we have real data
+  if (targets.products === 0 && targets.suppliers === 0 && targets.countries === 0) {
+    return null;
+  }
 
   const stats = [
     {
       icon: Package,
       value: counters.products,
-      suffix: '+',
+      suffix: targets.products > 0 ? '+' : '',
       label: 'Products',
       color: 'text-afrikoni-gold'
     },
     {
       icon: Users,
       value: counters.suppliers,
-      suffix: '+',
+      suffix: targets.suppliers > 0 ? '+' : '',
       label: 'Suppliers',
       color: 'text-afrikoni-chestnut'
     },
@@ -92,6 +163,7 @@ export default function TrustCounters() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
+            const key = Object.keys(targets)[idx];
             return (
               <motion.div
                 key={idx}
@@ -113,7 +185,7 @@ export default function TrustCounters() {
                   className="mb-2"
                 >
                   <span className="text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-chestnut">
-                    {counters[Object.keys(targets)[idx]]}
+                    {counters[key]}
                   </span>
                   <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-gold ml-1">
                     {stat.suffix}
@@ -130,4 +202,3 @@ export default function TrustCounters() {
     </section>
   );
 }
-

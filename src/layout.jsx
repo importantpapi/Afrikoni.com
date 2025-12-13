@@ -80,6 +80,9 @@ function Footer() {
               <br />
               Connecting suppliers, buyers & logistics across 54 countries.
             </p>
+            <p className="text-xs text-afrikoni-cream/70 mb-3 md:mb-4 leading-relaxed italic">
+              Founded by Youba Simao Thiam — Europe-based, Africa-focused trade operator.
+            </p>
             <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm mb-4 md:mb-6">
               <motion.div 
                 whileHover={{ x: 4 }}
@@ -347,6 +350,13 @@ function Footer() {
               <span className="text-afrikoni-cream/70 whitespace-nowrap">© 2025 Afrikoni. All rights reserved.</span>
             </div>
           </div>
+        </div>
+
+        {/* Global Disclaimer */}
+        <div className="border-t border-afrikoni-gold/30 pt-4 md:pt-6">
+          <p className="text-xs text-afrikoni-cream/70 text-center max-w-4xl mx-auto leading-relaxed">
+            Product volumes shown include verified supplier catalogs and partner inventories available during our beta phase.
+          </p>
         </div>
       </div>
     </footer>

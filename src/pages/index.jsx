@@ -67,35 +67,14 @@ export default function Home() {
         <HeroSection categories={categories} />
         <TrustCounters />
         <TrustCards />
-        <HowItWorks />
-        <BetaSection />
         <ServicesOverview />
+        <PopularCategories categories={categories} />
+        <SourceByCountry />
         <RFQCard />
         <PartnerLogos />
-        {/* Success Stories Section - Hidden until we have real customer data */}
-        {/* <section className="py-16 md:py-24 bg-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-4">
-                Success Stories
-              </h2>
-              <p className="text-lg text-afrikoni-text-dark/70 max-w-2xl mx-auto">
-                Real trades, real results. See how suppliers and buyers are succeeding on Afrikoni.
-              </p>
-            </motion.div>
-            <SuccessStories limit={3} />
-          </div>
-        </section> */}
-        {/* <TestimonialsSection /> */}
-        {/* <CaseStudies /> */}
         <LogisticsPlatform />
         <BushidoManifesto />
-        {/* Full-width CTA replacing Gallery and FAQ */}
+        {/* Join Afrikoni Today CTA */}
         <section className="py-16 md:py-24 bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-chestnut/20 to-afrikoni-gold/20">
           <div className="max-w-7xl mx-auto px-4 text-center">
             <motion.div
@@ -116,7 +95,6 @@ export default function Home() {
         <AboutAfrikoni />
         <HowItWorks />
         <TransparencySection />
-        {/* <SocialProof /> */}
         <NewsletterSection />
       </div>
     </>

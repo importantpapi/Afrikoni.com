@@ -12,7 +12,7 @@ import { suggestProductsForBuyer } from '@/ai/aiFunctions';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import {
   Search, Filter, SlidersHorizontal, MapPin, Shield, Star, MessageSquare, FileText,
-  X, CheckCircle, Building2, Package, TrendingUp, Clock, Award, Bookmark, BookmarkCheck
+  X, CheckCircle, Building2, Package, TrendingUp, Clock, Award, Bookmark, BookmarkCheck, ChevronDown
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -555,58 +555,91 @@ if (!Array.isArray(productsList)) return [];
               </div>
             </div>
             <CardContent className="p-4 overflow-hidden">
-              <h3 className="font-bold text-afrikoni-chestnut mb-2 line-clamp-2 text-sm md:text-base">
+              {/* Product Name - Highest Priority */}
+              <h3 className="font-bold text-afrikoni-chestnut mb-3 line-clamp-2 text-base md:text-lg">
                 {product.title || product.name}
               </h3>
-              <p className="text-xs sm:text-sm text-afrikoni-deep/70 mb-2 line-clamp-2">
-                {product.short_description || product.description}
-              </p>
               
-              {/* Price Range */}
-              <div className="flex items-center gap-2 mb-2">
+              {/* Country + Seller - Second Priority */}
+              <div className="flex items-center gap-1 flex-wrap mb-3">
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-afrikoni-deep/80 font-medium">
+                  {product?.country_of_origin || product?.companies?.country || 'N/A'}
+                </span>
+                {product?.companies?.id && (
+                  <>
+                    <span className="text-xs text-afrikoni-deep/50">•</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/business/${product.companies.id}`);
+                      }}
+                      className="text-xs sm:text-sm text-afrikoni-deep hover:text-afrikoni-gold truncate font-medium cursor-pointer flex items-center gap-1"
+                      title="Supplier verified by Afrikoni"
+                    >
+                      👤 Supplier verified by Afrikoni
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Trust Micro-signals */}
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                {product.companies?.verification_status === 'verified' && (
+                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Verified Supplier
+                  </Badge>
+                )}
+                {product.companies?.verification_status === 'pending' && (
+                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Verification in progress
+                  </Badge>
+                )}
+                {product.companies?.verification_status !== 'verified' && product.companies?.verification_status !== 'pending' && (
+                  <Badge variant="outline" className="text-xs bg-gray-50 text-gray-500 border-gray-200 opacity-60">
+                    <Shield className="w-3 h-3 mr-1" />
+                    Trade Shield eligible
+                  </Badge>
+                )}
+              </div>
+              
+              {/* MOQ - Third Priority */}
+              {product.min_order_quantity && (
+                <div className="mb-3">
+                  <div className="text-sm text-afrikoni-deep/80 font-medium">
+                    MOQ: <span className="text-afrikoni-chestnut">{product.min_order_quantity} {product.moq_unit || product.unit || 'units'}</span>
+                  </div>
+                  <div className="text-xs text-afrikoni-deep/60 mt-1 flex items-center gap-1">
+                    📋 Trade reviewed before confirmation
+                  </div>
+                </div>
+              )}
+              
+              {/* Price Range - Fourth Priority */}
+              <div className="flex items-center gap-2 mb-3">
                 {product.price_min && product.price_max ? (
-                  <div className="text-base sm:text-lg font-bold text-afrikoni-gold">
-                    {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()} – {parseFloat(product.price_max).toLocaleString()}
+                  <div className="text-lg sm:text-xl font-bold text-afrikoni-gold">
+                    From {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()} / {product.unit || 'kg'} (indicative)
                   </div>
                 ) : product.price_min ? (
-                  <div className="text-base sm:text-lg font-bold text-afrikoni-gold">
-                    {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()}+
+                  <div className="text-lg sm:text-xl font-bold text-afrikoni-gold">
+                    From {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()} / {product.unit || 'kg'} (indicative)
                   </div>
                 ) : product.price ? (
-                  <div className="text-base sm:text-lg font-bold text-afrikoni-gold">
-                    {product.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                  <div className="text-lg sm:text-xl font-bold text-afrikoni-gold">
+                    From {product.currency || 'USD'} {parseFloat(product.price).toLocaleString()} / {product.unit || 'kg'} (indicative)
                   </div>
                 ) : (
                   <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
                 )}
               </div>
               
-              {/* MOQ */}
-              {product.min_order_quantity && (
-                <div className="text-xs sm:text-sm text-afrikoni-deep/70 mb-2">
-                  MOQ: {product.min_order_quantity} {product.moq_unit || product.unit || 'units'}
-                </div>
-              )}
-              
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-1 flex-wrap">
-                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
-                  {product?.companies?.id ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/business/${product.companies.id}`);
-                      }}
-                      className="text-xs sm:text-sm text-afrikoni-deep hover:text-afrikoni-gold truncate font-medium cursor-pointer"
-                    >
-                      {product?.companies?.company_name || 'Supplier'}
-                    </button>
-                  ) : (
-                    <span className="text-xs sm:text-sm text-afrikoni-deep truncate">{product?.companies?.company_name || 'Supplier'}</span>
-                  )}
-                  <span className="text-xs sm:text-sm text-afrikoni-deep/70 hidden sm:inline">• {product?.country_of_origin || product?.companies?.country || 'N/A'}</span>
-                </div>
-              </div>
+              {/* Description - Lower Priority */}
+              <p className="text-xs sm:text-sm text-afrikoni-deep/60 mb-3 line-clamp-2">
+                {product.short_description || product.description}
+              </p>
               <div className="flex gap-2 w-full mt-3 max-w-full">
                 {product?.companies?.id && (
                   <Button 
@@ -656,7 +689,7 @@ if (!Array.isArray(productsList)) return [];
                   }}
                 >
                   <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="whitespace-nowrap">{t('marketplace.quote') || 'Quote'}</span>
+                  <span className="whitespace-nowrap">Request Verified Quote</span>
                 </Button>
               </div>
             </CardContent>
@@ -854,6 +887,25 @@ if (!Array.isArray(productsList)) return [];
           <aside className="hidden md:block w-64 flex-shrink-0">
             <Card>
               <CardContent className="p-4 space-y-6">
+                {/* Trust Anchor - How Afrikoni Works */}
+                <div className="pb-4 border-b border-afrikoni-gold/20">
+                  <h3 className="font-semibold text-afrikoni-chestnut mb-3">How Afrikoni Works</h3>
+                  <div className="space-y-3 text-sm text-afrikoni-deep/80">
+                    <div className="flex items-start gap-2">
+                      <span className="text-afrikoni-gold font-bold">1.</span>
+                      <span>You request a quote</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-afrikoni-gold font-bold">2.</span>
+                      <span>We verify supplier & terms</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-afrikoni-gold font-bold">3.</span>
+                      <span>Trade is coordinated securely</span>
+                    </div>
+                  </div>
+                </div>
+                
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.category')}</h3>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -886,19 +938,59 @@ if (!Array.isArray(productsList)) return [];
                 <div>
                   <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.country')}</h3>
                   <div className="space-y-2">
-                    {Array.isArray(countries) && countries.map((country) => (
-                      <button
-                        key={country}
-                        onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          selectedFilters.country === country
-                            ? 'bg-afrikoni-gold-50 text-afrikoni-gold font-semibold'
-                            : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
-                        }`}
-                      >
-                        {country}
-                      </button>
-                    ))}
+                    {/* Popular Countries - Always visible */}
+                    <div>
+                      <p className="text-xs text-afrikoni-deep/70 mb-2 font-medium">Popular Countries</p>
+                      {POPULAR_COUNTRIES.map((country) => (
+                        <button
+                          key={country}
+                          onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                            selectedFilters.country === country
+                              ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
+                              : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                          }`}
+                        >
+                          {country}
+                        </button>
+                      ))}
+                    </div>
+                    {/* All Countries - Collapsible */}
+                    <details className="group">
+                      <summary className="cursor-pointer text-sm font-medium text-afrikoni-gold hover:text-afrikoni-goldLight mb-2 list-none">
+                        <span className="flex items-center gap-1">
+                          View All Countries
+                          <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
+                        </span>
+                      </summary>
+                      <div className="space-y-2 mt-2 max-h-64 overflow-y-auto">
+                        <button
+                          onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                            !selectedFilters.country
+                              ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
+                              : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                          }`}
+                        >
+                          All Countries
+                        </button>
+                        {Array.isArray(countries) && countries
+                          .filter(c => c !== t('marketplace.allCountries') && !POPULAR_COUNTRIES.includes(c))
+                          .map((country) => (
+                            <button
+                              key={country}
+                              onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                selectedFilters.country === country
+                                  ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
+                                  : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                              }`}
+                            >
+                              {country}
+                            </button>
+                          ))}
+                      </div>
+                    </details>
                   </div>
                 </div>
 
@@ -1135,21 +1227,31 @@ if (!Array.isArray(productsList)) return [];
 
           {/* Products Grid */}
           <main className="flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
-                  {t('marketplace.title')}
-                </h1>
-                <div className="flex items-center gap-3 flex-wrap">
-                <p className="text-sm text-afrikoni-deep">
-                    {filteredProducts.length} {filteredProducts.length === 1 ? t('marketplace.productFound') : t('marketplace.productsFound')}
-                  </p>
-                  {/* Active Filters Display */}
-                  {(selectedFilters.category || selectedFilters.country || selectedFilters.verification || 
-                    priceMin || priceMax || moqMin || selectedFilters.certifications.length > 0 ||
-                    selectedFilters.deliveryTime || selectedFilters.verified || selectedFilters.fastResponse ||
-                    selectedFilters.readyToShip || debouncedSearchQuery) && (
-                    <div className="flex items-center gap-2 flex-wrap">
+            <div className="mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
+                Verified African Suppliers Marketplace
+              </h1>
+              <p className="text-base md:text-lg text-afrikoni-deep mb-2">
+                Source products from vetted suppliers across Africa.
+                Every inquiry is reviewed. Every trade is coordinated.
+              </p>
+              <div className="flex items-center gap-4 flex-wrap text-xs md:text-sm text-afrikoni-deep/80 mb-3">
+                <span className="flex items-center gap-1">
+                  🔒 Manual verification
+                </span>
+                <span className="flex items-center gap-1">
+                  🤝 Human-led trade facilitation
+                </span>
+                <span className="flex items-center gap-1">
+                  🛡 Escrow-protected payments
+                </span>
+              </div>
+              {/* Active Filters Display */}
+              {(selectedFilters.category || selectedFilters.country || selectedFilters.verification || 
+                priceMin || priceMax || moqMin || selectedFilters.certifications.length > 0 ||
+                selectedFilters.deliveryTime || selectedFilters.verified || selectedFilters.fastResponse ||
+                selectedFilters.readyToShip || debouncedSearchQuery) && (
+                <div className="flex items-center gap-2 flex-wrap mt-3">
                       <span className="text-xs text-afrikoni-deep/70">{t('marketplace.activeFilters')}</span>
                       {debouncedSearchQuery && (
                         <Badge variant="outline" className="text-xs">
@@ -1212,11 +1314,10 @@ if (!Array.isArray(productsList)) return [];
                           />
                         </Badge>
                       )}
-                    </div>
-                  )}
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
+              )}
+            </div>
+            <div className="flex items-center gap-3 mt-4">
                 <AICopilotButton
                   label={t('marketplace.bestMatchForYou')}
                   size="xs"
@@ -1260,18 +1361,18 @@ if (!Array.isArray(productsList)) return [];
                     <SelectValue placeholder={t('marketplace.sortBy') + '...'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="relevance">⭐ {t('marketplace.mostPopular') || 'Most Relevant'}</SelectItem>
-                    <SelectItem value="-created_at">🆕 {t('marketplace.newest') || 'Newest First'}</SelectItem>
-                    <SelectItem value="created_at">📅 {t('marketplace.oldest') || 'Oldest First'}</SelectItem>
-                    <SelectItem value="price_min">💰 {t('marketplace.priceLow') || 'Price: Low to High'}</SelectItem>
-                    <SelectItem value="-price_min">💎 {t('marketplace.priceHigh') || 'Price: High to Low'}</SelectItem>
-                    <SelectItem value="-views">👁️ {t('marketplace.mostViewed') || 'Most Viewed'}</SelectItem>
+                    <SelectItem value="-created_at">🆕 Newest Listings</SelectItem>
+                    <SelectItem value="price_min">💰 Lowest Price</SelectItem>
+                    <SelectItem value="-price_min">💎 Highest Price</SelectItem>
+                    <SelectItem value="min_order_quantity">📦 Lowest MOQ</SelectItem>
+                    <SelectItem value="-min_order_quantity">📦 Highest MOQ</SelectItem>
+                    <SelectItem value="relevance">⭐ Best Match</SelectItem>
+                    <SelectItem value="-views">👁️ Most Viewed</SelectItem>
                   </SelectContent>
                 </Select>
               <div className="hidden md:flex items-center gap-2">
                 <Button variant="ghost" size="sm">{t('marketplace.grid')}</Button>
                 <Button variant="ghost" size="sm">{t('marketplace.list')}</Button>
-                </div>
               </div>
             </div>
 
@@ -1312,8 +1413,50 @@ if (!Array.isArray(productsList)) return [];
               <Card className="border-afrikoni-gold/20">
                 <CardContent className="p-12 text-center">
                   <Package className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">{t('marketplace.noProductsFound')}</h3>
-                  <p className="text-afrikoni-deep">{t('marketplace.tryDifferentSearch')}</p>
+                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-3">
+                    No exact matches — but your trade can still happen
+                  </h3>
+                  <p className="text-base text-afrikoni-deep mb-6 max-w-2xl mx-auto">
+                    Afrikoni works through RFQs, not just listings.
+                    Our team will source verified suppliers for you.
+                  </p>
+                  
+                  {/* Primary CTA */}
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                    <Button
+                      size="lg"
+                      className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut font-semibold"
+                      asChild
+                    >
+                      <Link to="/rfq/create">Post a Request (RFQ)</Link>
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold"
+                      asChild
+                    >
+                      <Link to="/contact">Talk to a Trade Advisor</Link>
+                    </Button>
+                  </div>
+                  
+                  {/* Visual Reassurance */}
+                  <div className="flex items-center justify-center gap-6 flex-wrap text-sm text-afrikoni-deep/70 mb-4">
+                    <span className="flex items-center gap-2">
+                      🛡 Verified suppliers only
+                    </span>
+                    <span className="flex items-center gap-2">
+                      🤝 Human-led sourcing
+                    </span>
+                    <span className="flex items-center gap-2">
+                      🔒 Escrow-protected payments
+                    </span>
+                  </div>
+                  
+                  {/* Optional Smart Hint */}
+                  <p className="text-xs text-afrikoni-deep/60 italic max-w-xl mx-auto">
+                    Most successful trades on Afrikoni start with a request, not a search.
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -1321,6 +1464,42 @@ if (!Array.isArray(productsList)) return [];
                 {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
+                {/* Fill empty space when there are few products */}
+                {filteredProducts.length > 0 && filteredProducts.length < 4 && (
+                  <div className="hidden lg:block">
+                    <Card className="border-afrikoni-gold/10 bg-gradient-to-br from-afrikoni-offwhite to-white h-full">
+                      <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full min-h-[400px]">
+                        <Package className="w-12 h-12 text-afrikoni-gold/40 mb-4" />
+                        <h3 className="font-semibold text-afrikoni-chestnut mb-2">More Verified Suppliers</h3>
+                        <p className="text-sm text-afrikoni-deep/70 mb-4">
+                          More verified suppliers are being onboarded daily
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10"
+                          asChild
+                        >
+                          <Link to="/rfq/create">Post an RFQ</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                {/* Show skeleton loaders for remaining grid slots when < 8 products */}
+                {filteredProducts.length > 0 && filteredProducts.length < 8 && (
+                  <>
+                    {[...Array(Math.min(8 - filteredProducts.length, 4))].map((_, i) => (
+                      <Card key={`skeleton-${i}`} className="animate-pulse opacity-30">
+                        <div className="h-48 bg-afrikoni-cream rounded-t-xl" />
+                        <CardContent className="p-4 space-y-2">
+                          <div className="h-4 bg-afrikoni-cream rounded w-3/4" />
+                          <div className="h-4 bg-afrikoni-cream rounded w-1/2" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                )}
               </div>
             )}
 

@@ -44,18 +44,14 @@ export default function LiveTradeTicker() {
       if (suppliersError && suppliersError.code !== 'PGRST116') {
         // PGRST116 = no rows returned (not an error)
         if (suppliersError.status === 401 || suppliersError.message?.includes('JWT')) {
-          // User not authenticated - use default stats
+          // User not authenticated - show no data, not fake data
           setStats({
-            newSuppliers: 5,
-            newOrders: 3,
-            activeListings: 120,
+            newSuppliers: 0,
+            newOrders: 0,
+            activeListings: 0,
             totalGMV: 0
           });
-          setTickerItems([{
-            icon: Users,
-            text: `Join ${country} exporters on Afrikoni — Start trading today!`,
-            color: 'text-blue-600'
-          }]);
+          setTickerItems([]);
           return;
         }
       }
@@ -69,18 +65,14 @@ export default function LiveTradeTicker() {
         .eq('status', 'processing');
 
       if (ordersError && ordersError.status === 401) {
-        // Use defaults for unauthenticated users
+        // No fake data - show real counts or zero
         setStats({
-          newSuppliers: newSuppliers?.length || 5,
-          newOrders: 3,
-          activeListings: 120,
+          newSuppliers: newSuppliers?.length || 0,
+          newOrders: 0,
+          activeListings: 0,
           totalGMV: 0
         });
-        setTickerItems([{
-          icon: Users,
-          text: `Join ${country} exporters on Afrikoni — Start trading today!`,
-          color: 'text-blue-600'
-        }]);
+        setTickerItems([]);
         return;
       }
 
@@ -92,16 +84,12 @@ export default function LiveTradeTicker() {
 
       if (listingsError && listingsError.status === 401) {
         setStats({
-          newSuppliers: newSuppliers?.length || 5,
-          newOrders: newOrders?.length || 3,
-          activeListings: 120,
+          newSuppliers: newSuppliers?.length || 0,
+          newOrders: newOrders?.length || 0,
+          activeListings: 0,
           totalGMV: 0
         });
-        setTickerItems([{
-          icon: Users,
-          text: `Join ${country} exporters on Afrikoni — Start trading today!`,
-          color: 'text-blue-600'
-        }]);
+        setTickerItems([]);
         return;
       }
 
@@ -115,18 +103,14 @@ export default function LiveTradeTicker() {
         .gte('created_at', monthAgo.toISOString());
 
       if (gmvError && gmvError.status === 401) {
-        // Use defaults
+        // No fake data - show real counts or zero
         setStats({
-          newSuppliers: newSuppliers?.length || 5,
-          newOrders: newOrders?.length || 3,
-          activeListings: listings?.length || 120,
+          newSuppliers: newSuppliers?.length || 0,
+          newOrders: newOrders?.length || 0,
+          activeListings: listings?.length || 0,
           totalGMV: 0
         });
-        setTickerItems([{
-          icon: Users,
-          text: `Join ${country} exporters on Afrikoni — Start trading today!`,
-          color: 'text-blue-600'
-        }]);
+        setTickerItems([]);
         return;
       }
 
@@ -162,29 +146,18 @@ export default function LiveTradeTicker() {
           color: 'text-afrikoni-gold'
         });
       }
-      // Fallback if no real data
-      if (items.length === 0) {
-        items.push({
-          icon: Users,
-          text: `Join ${country} exporters on Afrikoni — Start trading today!`,
-          color: 'text-blue-600'
-        });
-      }
+      // Only show real data - no fake fallbacks
       setTickerItems(items);
     } catch (error) {
-      // Silently handle errors - show default ticker
+      // Silently handle errors - show no data, not fake data
       console.debug('Error loading stats (non-critical):', error);
       setStats({
-        newSuppliers: 5,
-        newOrders: 3,
-        activeListings: 120,
+        newSuppliers: 0,
+        newOrders: 0,
+        activeListings: 0,
         totalGMV: 0
       });
-      setTickerItems([{
-        icon: Users,
-        text: `Join ${TARGET_COUNTRY} exporters on Afrikoni — Start trading today!`,
-        color: 'text-blue-600'
-      }]);
+      setTickerItems([]);
     }
   };
 

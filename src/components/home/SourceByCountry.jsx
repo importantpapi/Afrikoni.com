@@ -53,7 +53,7 @@ export default function SourceByCountry() {
                       {country.name}
                     </h3>
                     <p className="text-sm text-afrikoni-deep mb-2">
-                      {country.products} products
+                      Products available
                     </p>
                     <div className="flex items-center justify-center gap-1 text-afrikoni-gold text-sm font-medium">
                       <span>Explore</span>
