@@ -80,9 +80,6 @@ function Footer() {
               <br />
               Connecting suppliers, buyers & logistics across 54 countries.
             </p>
-            <p className="text-xs text-afrikoni-cream/70 mb-3 md:mb-4 leading-relaxed italic">
-              Founded by Youba Simao Thiam — Europe-based, Africa-focused trade operator.
-            </p>
             <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm mb-4 md:mb-6">
               <motion.div 
                 whileHover={{ x: 4 }}
