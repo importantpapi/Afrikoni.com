@@ -50,25 +50,15 @@ export default function SuccessStories({ limit = 3 }) {
       // Handle 401 errors gracefully (user not authenticated)
       if (ordersError) {
         if (ordersError.status === 401 || ordersError.message?.includes('JWT')) {
-          // User not authenticated - show placeholder stories
-          setStories([
-            {
-              id: 'placeholder-1',
-              supplier: 'Cocoa Exports Ltd',
-              buyer: 'Global Chocolate Co',
-              amount: 50000,
-              currency: 'USD',
-              rating: 5,
-              comment: 'Smooth transaction with escrow protection. Quality products delivered on time!',
-              date: new Date().toISOString(),
-              verified: true,
-              placeholder: true
-            }
-          ]);
+          // User not authenticated - show empty state
+          setStories([]);
           setLoading(false);
           return;
         }
-        // For other errors, fall through to placeholder
+        // For other errors, show empty state
+        setStories([]);
+        setLoading(false);
+        return;
       }
 
       if (orders && orders.length > 0) {
@@ -93,38 +83,12 @@ export default function SuccessStories({ limit = 3 }) {
         }
       }
 
-      // If no real stories, show placeholder
-      setStories([
-        {
-          id: 'placeholder-1',
-          supplier: 'Cocoa Exports Ltd',
-          buyer: 'Global Chocolate Co',
-          amount: 50000,
-          currency: 'USD',
-          rating: 5,
-          comment: 'Smooth transaction with escrow protection. Quality products delivered on time!',
-          date: new Date().toISOString(),
-          verified: true,
-          placeholder: true
-        }
-      ]);
+      // If no real stories, show empty state
+      setStories([]);
     } catch (error) {
-      // Silently handle errors - show placeholder
+      // Silently handle errors - show empty state
       console.debug('Error loading stories (non-critical):', error);
-      setStories([
-        {
-          id: 'placeholder-1',
-          supplier: 'Cocoa Exports Ltd',
-          buyer: 'Global Chocolate Co',
-          amount: 50000,
-          currency: 'USD',
-          rating: 5,
-          comment: 'Smooth transaction with escrow protection. Quality products delivered on time!',
-          date: new Date().toISOString(),
-          verified: true,
-          placeholder: true
-        }
-      ]);
+      setStories([]);
     } finally {
       setLoading(false);
     }

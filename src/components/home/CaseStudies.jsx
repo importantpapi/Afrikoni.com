@@ -14,44 +14,13 @@ import {
 } from 'lucide-react';
 
 export default function CaseStudies() {
-  const caseStudies = [
-    {
-      id: 1,
-      title: 'Nigerian Cocoa Exporter Expands to 15 Countries',
-      description: 'A small cocoa supplier from Nigeria increased exports by 300% in 12 months, reaching buyers across Europe, Asia, and the Americas.',
-      metrics: {
-        growth: '+300%',
-        countries: '15',
-        revenue: '$2.5M'
-      },
-      icon: TrendingUp,
-      category: 'Supplier Success'
-    },
-    {
-      id: 2,
-      title: 'International Buyer Sources 50 Verified Suppliers',
-      description: 'A European buyer found 50 verified African suppliers for textiles and raw materials, reducing sourcing time by 60%.',
-      metrics: {
-        suppliers: '50',
-        timeSaved: '60%',
-        orders: '200+'
-      },
-      icon: Globe,
-      category: 'Buyer Success'
-    },
-    {
-      id: 3,
-      title: 'Logistics Partner Handles 10,000+ Cross-Border Shipments',
-      description: 'A logistics company integrated with Afrikoni and now manages shipments across 30 African countries with 98% on-time delivery.',
-      metrics: {
-        shipments: '10,000+',
-        countries: '30',
-        delivery: '98%'
-      },
-      icon: Package,
-      category: 'Logistics Success'
-    }
-  ];
+  // No fake case studies - only show when we have real ones
+  const caseStudies = [];
+
+  // Hide section if no real case studies
+  if (caseStudies.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-afrikoni-offwhite to-white">

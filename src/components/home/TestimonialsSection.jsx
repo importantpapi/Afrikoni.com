@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Star, Quote, ChevronLeft, ChevronRight, MapPin, CheckCircle } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 
@@ -79,45 +80,8 @@ export default function TestimonialsSection() {
     );
   }
 
-  // Create placeholder testimonials if none exist
-  const displayTestimonials = testimonials.length > 0 
-    ? testimonials 
-    : [
-        {
-          id: '1',
-          review: 'Afrikoni has transformed how we source products from Africa. The verified suppliers and escrow protection give us complete confidence.',
-          rating: 5,
-          seller_name: 'Sarah Johnson',
-          company: 'Global Trade Co.',
-          location: 'United States',
-          verified: true,
-          type: 'buyer'
-        },
-        {
-          id: '2',
-          review: 'As a supplier, Afrikoni has opened doors to international buyers we never had access to before. The platform is professional and secure.',
-          rating: 5,
-          seller_name: 'Kwame Mensah',
-          company: 'African Exports Ltd',
-          location: 'Ghana',
-          verified: true,
-          type: 'supplier'
-        },
-        {
-          id: '3',
-          review: 'The logistics support on Afrikoni is exceptional. They handle customs, shipping, and tracking seamlessly across borders.',
-          rating: 5,
-          seller_name: 'Amina Hassan',
-          company: 'East Africa Logistics',
-          location: 'Kenya',
-          verified: true,
-          type: 'logistics'
-        }
-      ];
-
-  const displayed = getDisplayedTestimonials().length > 0 
-    ? getDisplayedTestimonials() 
-    : displayTestimonials.slice(0, 3);
+  // Only show real testimonials - no placeholders
+  const displayed = getDisplayedTestimonials();
 
   return (
     <section className="py-12 md:py-16 bg-gradient-to-b from-white to-afrikoni-offwhite relative">
@@ -137,9 +101,10 @@ export default function TestimonialsSection() {
         </motion.div>
 
         {/* Slider Container */}
-        <div className="relative">
-          {/* Navigation Arrows */}
-          {displayTestimonials.length > 3 && (
+        {displayed.length > 0 ? (
+          <div className="relative">
+            {/* Navigation Arrows */}
+            {testimonials.length > 3 && (
             <>
               <motion.button
                 onClick={prevSlide}
@@ -249,6 +214,25 @@ export default function TestimonialsSection() {
             </motion.div>
           </AnimatePresence>
         </div>
+        ) : (
+          <Card className="border-afrikoni-gold/20 max-w-2xl mx-auto">
+            <CardContent className="p-8 md:p-12 text-center">
+              <Quote className="w-16 h-16 text-afrikoni-gold/30 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-2">
+                Be the First to Share Your Story
+              </h3>
+              <p className="text-afrikoni-deep/70 mb-6">
+                Complete your first trade and become one of our featured testimonials
+              </p>
+              <Button
+                onClick={() => window.location.href = '/signup'}
+                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+              >
+                Get Started
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </section>
   );
