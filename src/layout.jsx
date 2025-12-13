@@ -103,7 +103,7 @@ function Footer() {
                 className="flex items-center gap-2"
               >
                 <MapPin className="w-3 h-3 md:w-4 md:h-4 text-afrikoni-gold flex-shrink-0" />
-                <span className="text-afrikoni-gold font-medium">Lagos, Nigeria HQ</span>
+                <span className="text-afrikoni-gold font-medium">Brussels, Belgium HQ</span>
               </motion.div>
             </div>
             {/* Additional CTAs - Hidden on mobile */}
