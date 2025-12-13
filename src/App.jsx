@@ -8,6 +8,7 @@ import { PageLoader } from './components/ui/skeletons';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
+import { useBrowserNavigation } from './hooks/useBrowserNavigation';
 
 // Lightweight routes - keep as regular imports for faster initial load
 import Home from './pages/index';
@@ -157,10 +158,16 @@ function App() {
   // Setup session refresh to keep users logged in
   useSessionRefresh();
   
+  // Setup browser navigation support (back/forward buttons, keyboard shortcuts)
+  useBrowserNavigation();
+  
   // Setup preloading on mount
   useEffect(() => {
     setupLinkPreloading();
-    useIdlePreloading();
+    // useIdlePreloading is not a hook, call it directly
+    if (typeof window !== 'undefined') {
+      useIdlePreloading();
+    }
   }, []);
 
   return (
@@ -181,7 +188,6 @@ function App() {
             <Route path="/verification-center" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
             <Route path="/products" element={<Products />} />
             <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/product" element={<ProductDetail />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/product" element={<ProductDetail />} />
             <Route path="/compare" element={<CompareProducts />} />

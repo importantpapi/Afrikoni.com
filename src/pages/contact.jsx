@@ -124,26 +124,8 @@ export default function Contact() {
 
   const offices = [
     {
-      city: 'Lagos, Nigeria',
-      address: 'Victoria Island Business District',
-      phone: '+234 1 234 5678',
-      email: 'hello@afrikoni.com'
-    },
-    {
-      city: 'Nairobi, Kenya',
-      address: 'Westlands Business Park',
-      phone: '+254 20 123 4567',
-      email: 'hello@afrikoni.com'
-    },
-    {
-      city: 'Cairo, Egypt',
-      address: 'New Administrative Capital',
-      phone: '+20 2 1234 5678',
-      email: 'hello@afrikoni.com'
-    },
-    {
       city: 'Brussels, Belgium',
-      address: 'European Quarter',
+      address: 'Antwerpselaan 20, 1000 Brussels',
       phone: '+32 456 77 93 68',
       email: 'hello@afrikoni.com'
     }

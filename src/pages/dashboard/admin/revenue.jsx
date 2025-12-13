@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { isAdmin } from '@/utils/permissions';
 import { useNavigate } from 'react-router-dom';
@@ -42,7 +42,7 @@ export default function RevenueDashboard() {
 
   const checkAuthAndLoad = async () => {
     try {
-      const { user } = await getCurrentUserAndRole(supabase);
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!user) {
         navigate('/login');
         return;

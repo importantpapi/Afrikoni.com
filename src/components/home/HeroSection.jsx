@@ -1,19 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, TrendingUp } from 'lucide-react';
+import { Search, TrendingUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { supabase } from '@/api/supabaseClient';
 
 export default function HeroSection({ categories = [] }) {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user && authModalOpen) {
+        setAuthModalOpen(false);
+        navigate('/createrfq');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [authModalOpen, navigate]);
 
   const trendingSearches = [
     t('hero.trending.cocoa'),
@@ -31,6 +53,14 @@ export default function HeroSection({ categories = [] }) {
     if (searchQuery) params.set('q', searchQuery);
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
     navigate(`/marketplace?${params.toString()}`);
+  };
+
+  const handlePostRFQ = () => {
+    if (user) {
+      navigate('/createrfq');
+    } else {
+      setAuthModalOpen(true);
+    }
   };
 
   return (
@@ -58,10 +88,10 @@ export default function HeroSection({ categories = [] }) {
             className="mb-6"
           >
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-gold mb-3 leading-tight">
-              Trade. Trust. Thrive.
+              Africa's Trusted B2B Trade Engine
             </h2>
             <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream font-medium">
-              The B2B marketplace connecting Africa to global opportunity.
+              Source products, suppliers, and logistics across Africa — on demand, with verified partners only.
             </p>
           </motion.div>
 
@@ -72,7 +102,7 @@ export default function HeroSection({ categories = [] }) {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-cream mb-4 leading-tight px-2"
           >
-            {t('hero.title') || 'The AI-powered B2B marketplace connecting Africa and the world'}
+            Post Your Trade Request. Get Matched. Trade with Confidence.
           </motion.h1>
 
           {/* Sub-headline */}
@@ -82,7 +112,7 @@ export default function HeroSection({ categories = [] }) {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="text-sm sm:text-base md:text-lg lg:text-xl text-afrikoni-cream/90 mb-6 max-w-3xl mx-auto px-2"
           >
-            {t('hero.subtitle') || 'Verified African suppliers. Secure escrow payments. Cross-border logistics across 54 countries.'}
+            Beta live · Demand-driven · No fake listings
           </motion.p>
 
           {/* Trust Badges */}
@@ -183,37 +213,38 @@ export default function HeroSection({ categories = [] }) {
             </div>
           </motion.div>
 
-          {/* Segment Choices - Smaller under search bar */}
+          {/* Primary CTA Buttons - RFQ First */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="flex flex-wrap justify-center gap-2 mb-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6"
           >
-            <motion.button
-              onClick={() => navigate('/services/buyers')}
-              whileHover={{ scale: 1.05, y: -2 }}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border-2 border-afrikoni-gold shadow-lg hover:shadow-xl"
             >
-              Buyer
-            </motion.button>
-            <motion.button
-              onClick={() => navigate('/services/suppliers')}
-              whileHover={{ scale: 1.05, y: -2 }}
+              <Button
+                onClick={handlePostRFQ}
+                size="lg"
+                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-8 py-6 text-lg font-bold shadow-xl hover:shadow-2xl transition-all border-2 border-afrikoni-gold"
+              >
+                Post a Trade Request (RFQ)
+              </Button>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border-2 border-afrikoni-gold shadow-lg hover:shadow-xl"
             >
-              Supplier
-            </motion.button>
-            <motion.button
-              onClick={() => navigate('/services/logistics')}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border-2 border-afrikoni-gold shadow-lg hover:shadow-xl"
-            >
-              Logistics
-            </motion.button>
+              <Button
+                onClick={() => navigate('/become-supplier')}
+                variant="outline"
+                size="lg"
+                className="border-2 border-afrikoni-gold/50 text-afrikoni-cream hover:bg-afrikoni-gold/20 px-8 py-6 text-lg font-semibold"
+              >
+                Join as Supplier
+              </Button>
+            </motion.div>
           </motion.div>
 
           {/* Trending Search Chips */}
@@ -247,6 +278,41 @@ export default function HeroSection({ categories = [] }) {
           </motion.div>
         </div>
       </div>
+
+      {/* Auth Modal for RFQ */}
+      <Dialog open={authModalOpen} onOpenChange={setAuthModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-afrikoni-chestnut">
+              Create an Account to Submit Your Request
+            </DialogTitle>
+            <DialogDescription className="text-afrikoni-deep mt-2">
+              Sign up in 30 seconds to post your trade request and get matched with verified suppliers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-6 space-y-4">
+            <Button
+              onClick={() => {
+                setAuthModalOpen(false);
+                navigate('/signup?redirect=/createrfq');
+              }}
+              className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut py-6 text-lg font-bold"
+            >
+              Create Account (30 seconds)
+            </Button>
+            <Button
+              onClick={() => {
+                setAuthModalOpen(false);
+                navigate('/login?redirect=/createrfq');
+              }}
+              variant="outline"
+              className="w-full border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 py-6 text-lg"
+            >
+              Already have an account? Sign in
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

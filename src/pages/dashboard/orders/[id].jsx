@@ -50,7 +50,7 @@ export default function OrderDetail() {
     loadOrderData();
   }, [id]);
 
-      const loadOrderData = async () => {
+  const loadOrderData = async () => {
     try {
       setIsLoading(true);
       const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
@@ -129,8 +129,20 @@ export default function OrderDetail() {
       }
 
     } catch (error) {
-      toast.error('Failed to load order details');
-      navigate('/dashboard/orders');
+      console.error('Error loading order:', error);
+      // Don't navigate away - allow user to retry or edit
+      toast.error('Failed to load some order details. You can still edit the order below.');
+      // Set a minimal order object so the page can still render
+      if (!order) {
+        setOrder({
+          id: id,
+          status: 'pending',
+          payment_status: 'pending',
+          quantity: 0,
+          total_amount: 0,
+          currency: 'USD'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -318,11 +330,38 @@ export default function OrderDetail() {
   if (!order) {
     return (
       <DashboardLayout currentRole={currentRole}>
-        <EmptyState
-          type="orders"
-          title="Order not found"
-          description="The order you're looking for doesn't exist"
-        />
+        <div className="space-y-4">
+          <Card className="border-red-200 bg-red-50/50">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold text-afrikoni-chestnut mb-2">Order Failed to Load</h2>
+              <p className="text-afrikoni-deep/80 mb-4">
+                We couldn't load the order details, but you can still manage it below.
+              </p>
+              <div className="flex gap-3">
+                <Button onClick={loadOrderData} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                  Retry Loading
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/dashboard/orders')}>
+                  Back to Orders
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Allow editing even when order fails to load */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Order {id?.slice(0, 8).toUpperCase()}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-afrikoni-deep/70 mb-4">
+                Enter order details manually or retry loading above.
+              </p>
+              <Button onClick={loadOrderData} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                Retry Loading Order
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </DashboardLayout>
     );
   }

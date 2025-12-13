@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { 
   getEscrowPaymentsByCompany,
   updateEscrowStatus,
@@ -52,7 +52,7 @@ export default function AdminDisputes() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user } = await getCurrentUserAndRole(supabase);
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !isAdmin(user)) {
         navigate('/dashboard');
@@ -101,7 +101,7 @@ export default function AdminDisputes() {
 
   const handleEscrowAction = async (escrowId, action, amount = null) => {
     try {
-      const { user } = await getCurrentUserAndRole(supabase);
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (action === 'release') {
         await updateEscrowStatus(escrowId, 'released', amount);
@@ -145,7 +145,7 @@ export default function AdminDisputes() {
     }
 
     try {
-      const { user } = await getCurrentUserAndRole(supabase);
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       const { error } = await supabase
         .from('disputes')
@@ -192,7 +192,7 @@ export default function AdminDisputes() {
       }
 
       // Log admin dispute resolution to audit log
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase);
+      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       await logAdminEvent({
         action: 'dispute_resolved',
         entity_type: 'dispute',

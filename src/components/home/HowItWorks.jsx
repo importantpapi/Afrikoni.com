@@ -10,26 +10,26 @@ export default function HowItWorks() {
   const buyerSteps = [
     {
       number: '01',
-      icon: Search,
-      title: 'Search & Discover',
-      description: 'Use AI-powered search to find African suppliers and products across 54 countries',
-      features: ['Browse by category', 'Filter by location', 'Compare prices', 'Verify suppliers'],
+      icon: MessageCircle,
+      title: 'Post Your Request',
+      description: 'Post a Trade Request (RFQ) describing what you need - product, quantity, destination, timeline',
+      features: ['Simple RFQ form', 'Specify requirements', 'Set timeline', 'Add notes'],
       color: 'bg-afrikoni-gold'
     },
     {
       number: '02',
-      icon: MessageCircle,
-      title: 'Connect & Negotiate',
-      description: 'Send RFQs, chat with suppliers, and negotiate terms directly on the platform',
-      features: ['Send bulk inquiries', 'Real-time messaging', 'Get quotes', 'Negotiate terms'],
+      icon: Users,
+      title: 'We Match You with Verified Suppliers',
+      description: 'Afrikoni matches your request with verified suppliers who can fulfill your needs',
+      features: ['AI-powered matching', 'Verified suppliers only', 'Multiple quotes', 'Compare offers'],
       color: 'bg-afrikoni-gold'
     },
     {
       number: '03',
       icon: ShoppingCart,
-      title: 'Order & Pay Securely',
-      description: 'Place orders with secure payment protection and track delivery progress',
-      features: ['Escrow protection', 'Multiple payment methods', 'Order tracking', 'Dispute resolution'],
+      title: 'Trade with Confidence',
+      description: 'Place orders with secure escrow protection and track delivery progress',
+      features: ['Escrow protection', 'Secure payments', 'Order tracking', 'Dispute resolution'],
       color: 'bg-afrikoni-gold'
     }
   ];
@@ -62,7 +62,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <div className="py-12 md:py-16 bg-afrikoni-offwhite">
+    <div id="how-it-works" className="py-12 md:py-16 bg-afrikoni-offwhite">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -87,7 +87,7 @@ export default function HowItWorks() {
             className="mb-6 md:mb-8"
           >
             <span className="text-green-600 font-semibold text-base md:text-lg">For Buyers</span>
-            <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mt-2">Source Products in 3 Simple Steps</h3>
+            <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mt-2">How It Works - Request First</h3>
           </motion.div>
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
             {buyerSteps.map((step, idx) => {

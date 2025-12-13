@@ -17,11 +17,8 @@ export default function CookieBanner() {
     // Check if user has already consented using new system
     const consent = localStorage.getItem('afrikoni-cookie-consent');
     if (!consent) {
-      // Show banner after a short delay
-      const timer = setTimeout(() => {
-        setShowBanner(true);
-      }, 1000);
-      return () => clearTimeout(timer);
+      // Show banner immediately - no delay
+      setShowBanner(true);
     }
   }, []);
   
@@ -68,7 +65,7 @@ export default function CookieBanner() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-0 left-0 right-0 z-[100] bg-afrikoni-chestnut border-t-2 border-afrikoni-gold shadow-afrikoni-xl sticky"
+            className="fixed bottom-0 left-0 right-0 z-[9999] bg-afrikoni-chestnut border-t-4 border-afrikoni-gold shadow-afrikoni-xl"
             role="dialog"
             aria-labelledby="cookie-banner-title"
             aria-describedby="cookie-banner-description"
@@ -90,23 +87,25 @@ export default function CookieBanner() {
                   <div className="flex-1">
                     <h3 
                       id="cookie-banner-title"
-                      className="text-lg font-bold text-afrikoni-cream mb-2"
+                      className="text-lg md:text-xl font-bold text-afrikoni-cream mb-2"
                     >
-                      We Use Cookies
+                      Afrikoni respects your privacy
                     </h3>
                     <p 
                       id="cookie-banner-description"
-                      className="text-sm text-afrikoni-cream/90 mb-2"
+                      className="text-sm md:text-base text-afrikoni-cream/90 mb-2"
                     >
-                      We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. 
-                      By clicking "Accept All", you consent to our use of cookies. 
+                      Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni. 
                       <Link 
                         to="/cookie-policy" 
-                        className="text-afrikoni-gold hover:underline ml-1"
+                        className="text-afrikoni-gold hover:underline ml-1 font-semibold"
                         aria-label="Learn more about our cookie policy"
                       >
-                        Learn more
+                        Learn more in our Cookie Policy.
                       </Link>
+                    </p>
+                    <p className="text-xs md:text-sm text-afrikoni-cream/80">
+                      Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
                     </p>
                     <motion.div 
                       className="flex flex-wrap gap-2 text-xs text-afrikoni-cream/80"

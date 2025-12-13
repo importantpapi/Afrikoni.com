@@ -36,13 +36,8 @@ export default function LogisticsService() {
   };
 
   const handleJoinLogistics = () => {
-    if (user) {
-      // User is logged in, go directly to logistics dashboard
-      navigate('/dashboard/logistics');
-    } else {
-      // User not logged in, go to signup
-      navigate('/signup?role=logistics');
-    }
+    // Always go to logistics partner onboarding page, not signup
+    navigate('/logistics-partner-onboarding');
   };
   const benefits = [
     {

@@ -20,20 +20,40 @@ export default function NewsletterPopup() {
     // Check if user has already subscribed or dismissed
     const newsletterDismissed = localStorage.getItem('newsletterPopupDismissed');
     const newsletterSubscribed = localStorage.getItem('newsletterSubscribed');
+    const lastPopupTime = localStorage.getItem('newsletterPopupLastShown');
     
     if (newsletterDismissed || newsletterSubscribed) {
       return;
     }
     
-    // Show popup after 30 seconds
+    // Prevent showing popup if it was shown in the last 24 hours
+    if (lastPopupTime) {
+      const timeSinceLastShow = Date.now() - parseInt(lastPopupTime, 10);
+      const oneDay = 24 * 60 * 60 * 1000;
+      if (timeSinceLastShow < oneDay) {
+        return;
+      }
+    }
+    
+    // Track if popup is already showing to prevent multiple instances
+    let popupShown = false;
+    
+    // Show popup after 30 seconds (only once)
     const timer = setTimeout(() => {
-      setShowPopup(true);
+      if (!popupShown) {
+        popupShown = true;
+        localStorage.setItem('newsletterPopupLastShown', Date.now().toString());
+        setShowPopup(true);
+      }
     }, 30000);
     
-    // Exit intent detection (mouse leaves top of viewport)
+    // Exit intent detection (mouse leaves top of viewport) - only once
     const handleMouseLeave = (e) => {
-      if (e.clientY <= 0) {
+      if (e.clientY <= 0 && !popupShown) {
+        popupShown = true;
+        localStorage.setItem('newsletterPopupLastShown', Date.now().toString());
         setShowPopup(true);
+        document.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
     

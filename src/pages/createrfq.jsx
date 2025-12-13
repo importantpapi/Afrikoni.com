@@ -197,10 +197,10 @@ export default function CreateRFQ() {
         // Notification failed, but RFQ was created
       }
 
-      toast.success(t('rfq.success'));
+      toast.success('Your request is live. Afrikoni is matching you with verified suppliers.');
       setTimeout(() => {
         navigate(`/dashboard/rfqs/${newRFQ.id}`);
-      }, 1000);
+      }, 2000);
     } catch (error) {
       // Surface error details temporarily to help debug RFQ creation issues
       // eslint-disable-next-line no-console

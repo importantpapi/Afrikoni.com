@@ -198,29 +198,42 @@ export default function Navbar({ user, onLogout }) {
             <Logo type="full" size="sm" link={true} showTagline={false} direction="horizontal" />
           </div>
 
-          {/* Marketplace Link */}
-          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-            Marketplace
+          {/* Post Request - Visually Dominant */}
+          <Link to="/createrfq" className="hidden sm:flex items-center gap-1.5">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                size="sm"
+                className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight font-bold text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 shadow-lg hover:shadow-xl transition-all"
+              >
+                Post Request
+              </Button>
+            </motion.div>
           </Link>
 
-          {/* About Us Link */}
-          <Link to="/about" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-            About Us
-          </Link>
-
-          {/* For Enterprise Link */}
-          <Link to="/enterprise" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-            For Enterprise
-          </Link>
-
-          {/* Community Link */}
-          <button
-            type="button"
-            onClick={() => openWhatsAppCommunity('navbar')}
+          {/* How It Works Link */}
+          <a 
+            href="#how-it-works" 
             className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.preventDefault();
+              const element = document.getElementById('how-it-works');
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                window.location.href = '/#how-it-works';
+              }
+            }}
           >
-            Community
-          </button>
+            How It Works
+          </a>
+
+          {/* Suppliers Link */}
+          <Link to="/suppliers" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            Suppliers
+          </Link>
           
           {compareCount > 0 && (
             <Link to="/compare" className="relative hidden sm:block">
@@ -432,7 +445,7 @@ export default function Navbar({ user, onLogout }) {
                             {t('nav.rfq')}
                           </Link>
                           <Link
-                            to={createPageUrl('Settings')}
+                            to="/dashboard/settings"
                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-sm text-afrikoni-deep transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >

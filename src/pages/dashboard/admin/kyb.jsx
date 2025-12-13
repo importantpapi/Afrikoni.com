@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { 
   getAllPendingKYBDocuments,
   updateKYBDocumentStatus
@@ -44,7 +44,7 @@ export default function AdminKYB() {
   const loadDocuments = async () => {
     try {
       setIsLoading(true);
-      const { user } = await getCurrentUserAndRole(supabase);
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !isAdmin(user)) {
         navigate('/dashboard');
@@ -63,7 +63,7 @@ export default function AdminKYB() {
 
   const handleReviewDocument = async (documentId, status) => {
     try {
-      const { user } = await getCurrentUserAndRole(supabase);
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       await updateKYBDocumentStatus(documentId, status, user.id, reviewNotes);
       toast.success(`Document ${status} successfully`);
       setSelectedDoc(null);

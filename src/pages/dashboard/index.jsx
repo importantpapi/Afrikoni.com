@@ -6,6 +6,7 @@ import { getDashboardPathForRole } from '@/utils/roleHelpers';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DashboardHome from './DashboardHome';
+import LogisticsDashboard from './logistics-dashboard';
 
 export default function Dashboard() {
   const [currentRole, setCurrentRole] = useState('buyer');
@@ -66,7 +67,11 @@ export default function Dashboard() {
   }, [navigate, location.pathname]);
 
   const renderDashboardContent = () => {
-    // Use the new enterprise dashboard home
+    // Use LogisticsDashboard for logistics users, DashboardHome for others
+    if (currentRole === 'logistics') {
+      return <LogisticsDashboard />;
+    }
+    // Use the new enterprise dashboard home for other roles
     return <DashboardHome currentRole={currentRole} />;
   };
 

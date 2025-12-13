@@ -730,6 +730,41 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         </motion.div>
       )}
 
+      {/* Primary CTA for Buyers - Post New RFQ */}
+      {(currentRole === 'buyer' || currentRole === 'hybrid') && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="mb-6"
+        >
+          <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-premium-lg">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h2 className="text-xl md:text-2xl font-bold text-afrikoni-text-dark mb-2 flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-afrikoni-gold" />
+                    Post a Trade Request (RFQ)
+                  </h2>
+                  <p className="text-sm md:text-base text-afrikoni-text-dark/70">
+                    Describe what you need and get matched with verified suppliers. Your request is live and suppliers will respond with quotes.
+                  </p>
+                </div>
+                <Link to="/rfq/create">
+                  <Button
+                    size="lg"
+                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold shadow-xl hover:shadow-2xl transition-all"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Post New RFQ
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* KPI Bar - Premium Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {kpis.map((kpi, idx) => {
@@ -899,6 +934,84 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Active Buyer Requests - Supplier Dashboard */}
+      {(currentRole === 'seller' || currentRole === 'hybrid') && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.18 }}
+          className="mb-6"
+        >
+          <Card className="border-2 border-afrikoni-purple bg-gradient-to-r from-afrikoni-purple/10 to-afrikoni-gold/10 rounded-afrikoni-lg shadow-premium-lg">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-afrikoni-gold/15 pb-4">
+              <div>
+                <CardTitle className="text-xl md:text-2xl font-bold text-afrikoni-text-dark flex items-center gap-2">
+                  <FileText className="w-6 h-6 text-afrikoni-purple" />
+                  Active Buyer Requests
+                </CardTitle>
+                <p className="text-sm md:text-base text-afrikoni-text-dark/70 mt-1">
+                  Respond to real buyer demand. Suppliers respond to RFQs, not browse aimlessly.
+                </p>
+              </div>
+              <Link to="/dashboard/rfqs">
+                <Button
+                  size="sm"
+                  className="bg-afrikoni-purple hover:bg-afrikoni-purple/90 text-white"
+                >
+                  View All RFQs
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="p-6">
+              {recentRFQs && recentRFQs.length > 0 ? (
+                <div className="space-y-3">
+                  {recentRFQs.slice(0, 3).map((rfq) => (
+                    <Link
+                      key={rfq.id}
+                      to={`/dashboard/rfqs/${rfq.id}`}
+                      className="block p-4 border border-afrikoni-gold/20 rounded-lg hover:border-afrikoni-gold/40 hover:bg-afrikoni-gold/5 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-afrikoni-text-dark mb-1">{rfq.title}</h3>
+                          <p className="text-sm text-afrikoni-text-dark/70 line-clamp-2 mb-2">
+                            {rfq.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-afrikoni-text-dark/60">
+                            {rfq.quantity && (
+                              <span>Qty: {rfq.quantity} {rfq.unit || 'pieces'}</span>
+                            )}
+                            {rfq.delivery_location && (
+                              <span>📍 {rfq.delivery_location}</span>
+                            )}
+                          </div>
+                        </div>
+                        <Badge
+                          className={
+                            rfq.status === 'open'
+                              ? 'bg-green-50 text-green-700 border-green-300'
+                              : 'bg-amber-50 text-amber-700 border-amber-300'
+                          }
+                        >
+                          {rfq.status === 'open' ? 'Open' : rfq.status}
+                        </Badge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  type="rfqs"
+                  title="No active buyer requests yet"
+                  description="When buyers post RFQs matching your products, they'll appear here. Focus on getting verified to increase your visibility."
+                />
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -1228,7 +1341,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
               <div className="flex items-center justify-between">
                 {/* v2.5: Premium Section Title with Gold Underline */}
                 <CardTitle className="text-base md:text-lg font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-2 inline-block">
-                  {t('dashboard.recentRFQs') || 'Recent RFQs'}
+                  My Trade Requests
                 </CardTitle>
                 <Link to="/dashboard/rfqs">
                   <Button variant="ghost" size="sm" className="text-afrikoni-gold hover:text-afrikoni-gold/80 text-xs">
@@ -1256,10 +1369,16 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                             variant={rfq.status === 'open' ? 'default' : 'outline'} 
                             className={`text-xs capitalize ${
                               rfq.status === 'open' ? 'bg-afrikoni-green/10 text-afrikoni-green border-afrikoni-green/20' :
+                              rfq.status === 'awarded' ? 'bg-afrikoni-purple/10 text-afrikoni-purple border-afrikoni-purple/20' :
+                              rfq.status === 'closed' ? 'bg-afrikoni-deep/10 text-afrikoni-deep border-afrikoni-deep/20' :
                               'bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/20'
                             }`}
                           >
-                            {rfq.status || 'unknown'}
+                            {rfq.status === 'open' ? 'Posted' : 
+                             rfq.status === 'pending' ? 'Matched' :
+                             rfq.status === 'awarded' ? 'In Discussion' :
+                             rfq.status === 'closed' ? 'Closed' :
+                             rfq.status || 'unknown'}
                           </Badge>
                         </div>
                         <div className="text-xs text-afrikoni-text-dark/70">

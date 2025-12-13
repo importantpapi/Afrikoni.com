@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { generateProductListing, autoDetectProductLocation } from '@/ai/aiFunctions';
@@ -134,7 +134,7 @@ export default function AddProductAlibaba() {
   const loadInitialData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData } = await getCurrentUserAndRole(supabase);
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
         navigate('/login');
         return;

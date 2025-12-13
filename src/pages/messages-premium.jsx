@@ -562,12 +562,25 @@ export default function MessagesPremium() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const handleSendMessage = async () => {
-    if ((!newMessage.trim() && attachments.length === 0) || !selectedConversation || !companyId) return;
+  const [isSending, setIsSending] = useState(false);
 
+  const handleSendMessage = async () => {
+    if ((!newMessage.trim() && attachments.length === 0) || !selectedConversation || !companyId) {
+      toast.error('Please enter a message or attach a file');
+      return;
+    }
+
+    if (isSending) {
+      return; // Prevent double-sending
+    }
+
+    setIsSending(true);
     try {
       const selectedConv = conversations.find(c => c.id === selectedConversation);
-      if (!selectedConv) return;
+      if (!selectedConv) {
+        toast.error('Conversation not found');
+        return;
+      }
 
       const receiverCompanyId = companyId === selectedConv.otherCompany?.id 
         ? null 
@@ -652,6 +665,8 @@ export default function MessagesPremium() {
           // Silently fail if Sentry is not available
         });
       }
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -1323,11 +1338,20 @@ export default function MessagesPremium() {
                         variant="primary"
                         size="sm"
                         onClick={handleSendMessage}
-                        disabled={(!newMessage.trim() && attachments.length === 0) || uploadingFile}
+                        disabled={(!newMessage.trim() && attachments.length === 0) || uploadingFile || isSending}
                         className="flex-shrink-0 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 touch-manipulation"
                       >
-                        <Send className="w-4 h-4 md:mr-2" />
-                        <span className="hidden md:inline">{t('messages.send')}</span>
+                        {isSending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 md:mr-2 animate-spin" />
+                            <span className="hidden md:inline">Sending...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 md:mr-2" />
+                            <span className="hidden md:inline">{t('messages.send')}</span>
+                          </>
+                        )}
                       </Button>
                     </div>
                     <p className="text-xs text-afrikoni-deep/70 mt-2 text-center hidden sm:block">

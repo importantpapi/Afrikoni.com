@@ -94,8 +94,20 @@ export default function PaymentGateway() {
 
       setOrder(data);
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to load order');
+      console.error('Error loading order:', error);
+      const errorMessage = error?.message || 'Failed to load order';
+      
+      // Provide more specific error messages
+      if (errorMessage.includes('JWT') || errorMessage.includes('auth')) {
+        toast.error('Authentication error. Please log in again.');
+        navigate('/login');
+      } else if (errorMessage.includes('not found') || errorMessage.includes('PGRST116')) {
+        toast.error('Order not found. Please check the order ID.');
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error(`Failed to load order: ${errorMessage}`);
+      }
     }
   };
 
@@ -274,8 +286,20 @@ export default function PaymentGateway() {
         }
       });
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Payment failed. Please try again.');
+      console.error('Payment error:', error);
+      const errorMessage = error?.message || 'Payment failed';
+      
+      // Provide specific error messages
+      if (errorMessage.includes('Flutterwave') || errorMessage.includes('script')) {
+        toast.error('Payment gateway not available. Please refresh the page and try again.');
+      } else if (errorMessage.includes('amount') || errorMessage.includes('Invalid')) {
+        toast.error('Invalid payment amount. Please contact support.');
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error(`Payment error: ${errorMessage}. Please try again or contact support.`);
+      }
+      
       setIsProcessing(false);
     }
   };

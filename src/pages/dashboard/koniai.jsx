@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { generateProductListing, suggestSuppliers, generateSupplierReply } from '@/ai/aiFunctions';
 import KoniAILogo from '@/components/koni/KoniAILogo';
 import KoniAIBadge from '@/components/koni/KoniAIBadge';
@@ -74,7 +74,7 @@ export default function KoniAIHub() {
   const loadData = async () => {
     try {
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, {});
+      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!userData) {
         navigate('/login');

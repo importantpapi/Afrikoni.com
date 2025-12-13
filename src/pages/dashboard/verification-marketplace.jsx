@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 
 export default function VerificationMarketplace() {
   const [companyId, setCompanyId] = useState(null);
@@ -27,7 +27,7 @@ export default function VerificationMarketplace() {
 
   const loadData = async () => {
     try {
-      const { companyId: cid } = await getCurrentUserAndRole(supabase);
+      const { companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!cid) {
         toast.error('Company not found');
         return;

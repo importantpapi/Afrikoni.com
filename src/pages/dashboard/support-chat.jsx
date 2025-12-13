@@ -78,23 +78,11 @@ export default function SupportChat() {
       const cid = await getOrCreateCompany(supabase, profile || userData);
       setCompanyId(cid);
 
-      // Check for existing open ticket
+      // Always create a new unique ticket for each user session
+      // This ensures each person gets their own ticket, not shared tickets
       if (cid) {
-        const { data: existingTicket } = await supabase
-          .from('support_tickets')
-          .select('*')
-          .eq('company_id', cid)
-          .eq('status', 'open')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (existingTicket) {
-          setTicketNumber(existingTicket.ticket_number);
-          setTicketStatus(existingTicket.status);
-        } else {
-          // Create new ticket
-          const newTicketNumber = generateTicketNumber();
+        // Create new ticket - each user gets their own unique ticket
+        const newTicketNumber = generateTicketNumber();
           const { data: newTicket, error } = await supabase
             .from('support_tickets')
             .insert({
@@ -114,7 +102,7 @@ export default function SupportChat() {
           } else {
             setTicketNumber(newTicketNumber);
             setTicketStatus('open');
-            toast.success(`Support ticket created: ${newTicketNumber}`);
+            toast.success(`Your support ticket: ${newTicketNumber}`);
             
             // Send notification to admin when new ticket is created
             try {
@@ -131,7 +119,32 @@ export default function SupportChat() {
             } catch (notifError) {
               console.error('Failed to send admin notification for new ticket:', notifError);
             }
+          } else {
+            toast.error('Failed to create support ticket. Please try again.');
           }
+      } else {
+        // No company ID - still create ticket with user email
+        const newTicketNumber = generateTicketNumber();
+        const { data: newTicket, error } = await supabase
+          .from('support_tickets')
+          .insert({
+            ticket_number: newTicketNumber,
+            company_id: null,
+            user_email: userData.email,
+            subject: 'Support Request',
+            status: 'open',
+            priority: 'normal'
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating ticket:', error);
+          toast.error('Failed to create support ticket');
+        } else {
+          setTicketNumber(newTicketNumber);
+          setTicketStatus('open');
+          toast.success(`Your support ticket: ${newTicketNumber}`);
         }
       }
     } catch (error) {

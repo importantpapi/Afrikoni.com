@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { 
   getSupplierPerformance,
   calculateSupplierPerformance
@@ -33,7 +33,7 @@ export default function PerformanceDashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, companyId: userCompanyId } = await getCurrentUserAndRole(supabase);
+      const { user, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !userCompanyId) {
         navigate('/login');

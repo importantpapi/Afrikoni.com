@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { 
   getOrderFulfillment,
   updateFulfillmentStatus,
@@ -39,7 +39,7 @@ export default function FulfillmentDashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, companyId: userCompanyId } = await getCurrentUserAndRole(supabase);
+      const { user, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !userCompanyId) {
         navigate('/login');

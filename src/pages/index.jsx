@@ -19,6 +19,7 @@ import SocialProof from '@/components/home/SocialProof';
 import LogisticsPlatform from '@/components/home/LogisticsPlatform';
 import LiveTradeTicker from '@/components/community/LiveTradeTicker';
 import SuccessStories from '@/components/community/SuccessStories';
+import BetaSection from '@/components/home/BetaSection';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -66,9 +67,9 @@ export default function Home() {
         <HeroSection categories={categories} />
         <TrustCounters />
         <TrustCards />
+        <HowItWorks />
+        <BetaSection />
         <ServicesOverview />
-        <PopularCategories categories={categories} />
-        <SourceByCountry />
         <RFQCard />
         <PartnerLogos />
         {/* Success Stories Section - Hidden until we have real customer data */}

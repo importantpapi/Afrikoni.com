@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TARGET_COUNTRY, getCountryConfig, COUNTRY_CONFIG } from '@/config/countryConfig';
 import { getCountryMetrics, updateCountryMetrics, getOnboardingFunnel } from '@/services/acquisitionService';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { isAdmin } from '@/utils/permissions';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
@@ -46,7 +46,7 @@ export default function GrowthMetricsDashboard() {
 
   const checkAccess = async () => {
     try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, {});
+      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
       setHasAccess(isAdmin(userData));
     } catch (error) {

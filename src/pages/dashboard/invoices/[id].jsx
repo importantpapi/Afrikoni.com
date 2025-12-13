@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getInvoice, markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
 import { format } from 'date-fns';
 import { CardSkeleton } from '@/components/ui/skeletons';
@@ -32,7 +32,7 @@ export default function InvoiceDetailPage() {
   const loadInvoice = async () => {
     try {
       setIsLoading(true);
-      const { user, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase);
+      const { user, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !userCompanyId) {
         navigate('/login');

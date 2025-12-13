@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getInvoices, markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
@@ -36,7 +36,7 @@ export default function InvoicesDashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase);
+      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !userCompanyId) {
         navigate('/login');

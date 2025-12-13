@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { 
   getEscrowPayment, 
   getEscrowEvents,
@@ -40,7 +40,7 @@ export default function EscrowDetailPage() {
   const loadEscrow = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, companyId } = await getCurrentUserAndRole(supabase);
+      const { user: userData, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!userData) {
         navigate('/login');

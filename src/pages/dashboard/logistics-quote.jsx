@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { calculateShippingQuote, saveLogisticsQuote, acceptLogisticsQuote, getLogisticsQuotes } from '@/services/logisticsService';
 
 export default function LogisticsQuotePage() {
@@ -46,7 +46,7 @@ export default function LogisticsQuotePage() {
 
   const loadData = async () => {
     try {
-      const { companyId: cid } = await getCurrentUserAndRole(supabase);
+      const { companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!cid) {
         toast.error('Company ID not found. Please ensure you have a company profile.');
         navigate('/dashboard/orders');

@@ -9,8 +9,27 @@ import { trackPageLoad } from './utils/performance';
 import './index.css';
 
 // Initialize error tracking and analytics
-initSentry();
-initGA4();
+try {
+  initSentry();
+} catch (sentryError) {
+  // #region agent log
+  if (typeof window !== 'undefined') {
+    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'main.jsx:12',message:'Sentry init error',data:{error:sentryError?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
+  }
+  // #endregion
+  console.warn('Sentry initialization failed:', sentryError);
+}
+
+try {
+  initGA4();
+} catch (gaError) {
+  // #region agent log
+  if (typeof window !== 'undefined') {
+    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'main.jsx:20',message:'GA4 init error',data:{error:gaError?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
+  }
+  // #endregion
+  console.warn('GA4 initialization failed:', gaError);
+}
 
 // Track initial page load performance
 if (typeof window !== 'undefined') {

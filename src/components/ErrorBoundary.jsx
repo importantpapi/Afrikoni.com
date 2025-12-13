@@ -14,12 +14,19 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     this.setState({ errorInfo });
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ErrorBoundary.jsx:15',message:'ErrorBoundary caught error',data:{error:error?.message,stack:error?.stack?.substring(0,300),componentStack:errorInfo?.componentStack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
+    
     // Log error to error reporting service
     import('@/utils/sentry').then(({ captureException }) => {
       captureException(error, { 
         componentStack: errorInfo.componentStack,
         errorBoundary: true
       });
+    }).catch(() => {
+      // Silently fail if Sentry not available
     });
     
     // Development: Also log to console

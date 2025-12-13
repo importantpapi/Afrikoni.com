@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { 
   getMarketingLeads, 
   updateMarketingLead,
@@ -48,7 +48,7 @@ export default function AdminLeads() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user } = await getCurrentUserAndRole(supabase);
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user || !isAdmin(user)) {
         navigate('/dashboard');

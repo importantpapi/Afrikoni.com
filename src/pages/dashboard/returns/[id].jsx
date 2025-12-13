@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getReturn, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
 import { CardSkeleton } from '@/components/ui/skeletons';
@@ -31,7 +31,7 @@ export default function ReturnDetailPage() {
   const loadReturn = async () => {
     try {
       setIsLoading(true);
-      const { user, role } = await getCurrentUserAndRole(supabase);
+      const { user, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user) {
         navigate('/login');
