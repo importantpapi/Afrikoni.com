@@ -231,9 +231,6 @@ export default function HeroSection({ categories = [] }) {
               <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream font-medium mb-2">
                 The B2B marketplace connecting Africa to global opportunity.
               </p>
-              <p className="text-base sm:text-lg md:text-xl text-afrikoni-cream/90 font-medium">
-                The B2B marketplace connecting Africa to global opportunity.
-              </p>
             </motion.div>
 
             {/* Afrikoni Shield trust strip */}
