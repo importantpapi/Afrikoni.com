@@ -272,23 +272,16 @@ export default function Navbar({ user, onLogout }) {
             <Logo type="full" size="sm" link={true} showTagline={false} direction="horizontal" />
           </div>
 
-          {/* Post Trade Request - Alibaba-inspired Afrikoni Style */}
-          <Link to="/createrfq" className="hidden sm:flex items-center">
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <Button
-                size="sm"
-                className="bg-gradient-to-r from-afrikoni-gold via-afrikoni-goldLight to-afrikoni-gold text-afrikoni-chestnut hover:from-afrikoni-goldLight hover:via-afrikoni-gold hover:to-afrikoni-goldLight font-bold text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-2.5 shadow-xl hover:shadow-2xl transition-all rounded-lg border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 relative overflow-hidden group"
-              >
-                <span className="relative z-10 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  Post Trade Request
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-              </Button>
-            </motion.div>
+          {/* All Categories - Alibaba-style Navigation Link */}
+          <Link 
+            to="/categories" 
+            className={`hidden sm:flex items-center gap-1 text-sm sm:text-base font-bold transition-colors whitespace-nowrap ${
+              location.pathname === '/categories' || location.pathname.startsWith('/categories')
+                ? 'text-afrikoni-gold border-b-2 border-afrikoni-gold pb-1'
+                : 'text-afrikoni-cream hover:text-afrikoni-gold'
+            }`}
+          >
+            All Categories
           </Link>
 
           {/* Marketplace Link */}
