@@ -232,7 +232,7 @@ export default function HeroSection({ categories = [] }) {
                 The B2B marketplace connecting Africa to global opportunity.
               </p>
               <p className="text-base sm:text-lg md:text-xl text-afrikoni-cream/90 font-medium">
-                Africa's leading B2B marketplace for trade across 54 countries
+                The B2B marketplace connecting Africa to global opportunity.
               </p>
             </motion.div>
 
