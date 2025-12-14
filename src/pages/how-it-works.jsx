@@ -28,22 +28,28 @@ export default function HowItWorks() {
   const loadRealStats = async () => {
     try {
       // Get verified suppliers count
-      const { count: verifiedSuppliers } = await supabase
+      const { count: verifiedSuppliers, error: suppliersError } = await supabase
         .from('companies')
         .select('*', { count: 'exact', head: true })
         .eq('verified', true);
 
+      if (suppliersError) throw suppliersError;
+
       // Get active products count
-      const { count: activeProducts } = await supabase
+      const { count: activeProducts, error: productsError } = await supabase
         .from('products')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'active');
 
+      if (productsError) throw productsError;
+
       // Get active buyers (users with RFQs)
-      const { data: buyersData } = await supabase
+      const { data: buyersData, error: buyersError } = await supabase
         .from('rfqs')
         .select('user_id')
         .limit(1000);
+
+      if (buyersError) throw buyersError;
 
       const uniqueBuyers = new Set(buyersData?.map(r => r.user_id).filter(Boolean) || []);
 
@@ -64,6 +70,7 @@ export default function HowItWorks() {
       ]);
     } catch (error) {
       console.error('Error loading stats:', error);
+      // Keep default stats on error
     }
   };
 
@@ -76,7 +83,7 @@ export default function HowItWorks() {
       features: ['Browse by category', 'Filter by location', 'Compare prices', 'Verify suppliers'],
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
+      borderClass: 'border-blue-200',
       duration: '2 min'
     },
     {
@@ -87,7 +94,7 @@ export default function HowItWorks() {
       features: ['Send bulk inquiries', 'Real-time messaging', 'Get quotes', 'Negotiate terms'],
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
+      borderClass: 'border-purple-200',
       duration: '5 min'
     },
     {
@@ -98,7 +105,7 @@ export default function HowItWorks() {
       features: ['Escrow protection', 'Multiple payment methods', 'Order tracking', 'Dispute resolution'],
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
+      borderClass: 'border-green-200',
       duration: '2 min'
     }
   ];
@@ -112,7 +119,7 @@ export default function HowItWorks() {
       features: ['Upload product catalogs', 'Set pricing tiers', 'Add certifications', 'Manage inventory'],
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200',
+      borderClass: 'border-orange-200',
       duration: '15 min'
     },
     {
@@ -123,7 +130,7 @@ export default function HowItWorks() {
       features: ['Business verification', 'Quality certifications', 'Customer reviews', 'Trust badges'],
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
-      borderColor: 'border-indigo-200',
+      borderClass: 'border-indigo-200',
       duration: '24-48h'
     },
     {
@@ -134,7 +141,7 @@ export default function HowItWorks() {
       features: ['Order management', 'Shipping integration', 'Analytics dashboard', 'Growth insights'],
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
+      borderClass: 'border-yellow-200',
       duration: 'Ongoing'
     }
   ];
@@ -295,19 +302,19 @@ export default function HowItWorks() {
                       className="relative flex items-start gap-6"
                     >
                       {/* Step number circle */}
-                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderColor}`}>
+                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
                         <Icon className={`w-8 h-8 ${step.color}`} />
                       </div>
-                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderColor}`}>
+                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
                         <Icon className={`w-6 h-6 ${step.color}`} />
                       </div>
 
                       {/* Content */}
-                      <Card className={`flex-1 border-2 ${step.borderColor} hover:shadow-xl transition-all`}>
+                      <Card className={`flex-1 border-2 ${step.borderClass} hover:shadow-xl transition-all`}>
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <Badge className={`${step.bgColor} ${step.color} border-${step.borderColor} mb-2`}>
+                              <Badge className={`${step.bgColor} ${step.color} border ${step.borderClass} mb-2`}>
                                 {step.number}
                               </Badge>
                               <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
@@ -425,19 +432,19 @@ export default function HowItWorks() {
                       className="relative flex items-start gap-6"
                     >
                       {/* Step number circle */}
-                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderColor}`}>
+                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
                         <Icon className={`w-8 h-8 ${step.color}`} />
                       </div>
-                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderColor}`}>
+                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
                         <Icon className={`w-6 h-6 ${step.color}`} />
                       </div>
 
                       {/* Content */}
-                      <Card className={`flex-1 border-2 ${step.borderColor} hover:shadow-xl transition-all`}>
+                      <Card className={`flex-1 border-2 ${step.borderClass} hover:shadow-xl transition-all`}>
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <Badge className={`${step.bgColor} ${step.color} border-${step.borderColor} mb-2`}>
+                              <Badge className={`${step.bgColor} ${step.color} border ${step.borderClass} mb-2`}>
                                 {step.number}
                               </Badge>
                               <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
