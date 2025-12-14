@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, TrendingUp, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,17 +36,6 @@ export default function HeroSection({ categories = [] }) {
 
     return () => subscription.unsubscribe();
   }, [authModalOpen, navigate]);
-
-  const trendingSearches = [
-    t('hero.trending.cocoa'),
-    t('hero.trending.fabrics'),
-    t('hero.trending.shea'),
-    t('hero.trending.phones'),
-    t('hero.trending.machinery'),
-    t('hero.trending.solar'),
-    t('hero.trending.cashew'),
-    t('hero.trending.leather')
-  ];
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -173,95 +162,6 @@ export default function HeroSection({ categories = [] }) {
             </div>
           </motion.div>
 
-          {/* Role Selection Buttons - Buyer, Supplier, Logistics */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="flex flex-wrap items-center justify-center gap-3 mb-6"
-          >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-shrink-0"
-            >
-              <Button
-                onClick={() => navigate('/services/buyers')}
-                size="lg"
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
-              >
-                Buyer
-              </Button>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-shrink-0"
-            >
-              <Button
-                onClick={() => navigate('/become-supplier')}
-                size="lg"
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
-              >
-                Supplier
-              </Button>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-shrink-0"
-            >
-              <Button
-                onClick={() => navigate('/logistics')}
-                size="lg"
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
-              >
-                Logistics
-              </Button>
-            </motion.div>
-          </motion.div>
-
-          {/* Founder Info */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.38 }}
-            className="text-center mb-4"
-          >
-            <p className="text-sm text-afrikoni-cream/80 italic">
-              Founded by Youba Simao Thiam — Europe-based, Africa-focused trade operator.
-            </p>
-          </motion.div>
-
-          {/* Trending Search Chips */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-wrap justify-center gap-2"
-          >
-            <span className="text-afrikoni-cream text-sm mr-2 flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" />
-              {t('hero.trendingSearches')}:
-            </span>
-            {trendingSearches.map((term, idx) => (
-              <motion.button
-                key={idx}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.5 + idx * 0.05 }}
-                onClick={() => {
-                  setSearchQuery(term);
-                  handleSearch();
-                }}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-afrikoni-gold/20 hover:bg-afrikoni-gold/30 backdrop-blur-sm text-afrikoni-cream px-4 py-2 rounded-full text-sm font-medium transition-all border border-afrikoni-gold/40"
-              >
-                {term}
-              </motion.button>
-            ))}
-          </motion.div>
         </div>
       </div>
 
