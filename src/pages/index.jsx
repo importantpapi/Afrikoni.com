@@ -11,7 +11,6 @@ import PartnerLogos from '@/components/home/PartnerLogos';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import CaseStudies from '@/components/home/CaseStudies';
 import AboutAfrikoni from '@/components/home/AboutAfrikoni';
-import BushidoManifesto from '@/components/home/BushidoManifesto';
 import TransparencySection from '@/components/home/TransparencySection';
 import SocialProof from '@/components/home/SocialProof';
 import LogisticsPlatform from '@/components/home/LogisticsPlatform';
@@ -120,11 +119,6 @@ export default function Home() {
         {/* About Afrikoni */}
         <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-white to-afrikoni-offwhite">
           <AboutAfrikoni />
-        </section>
-
-        {/* Bushido Manifesto */}
-        <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-br from-afrikoni-chestnut/5 via-afrikoni-gold/5 to-afrikoni-chestnut/5">
-          <BushidoManifesto />
         </section>
 
         {/* Transparency Section */}
