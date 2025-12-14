@@ -216,7 +216,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-afrikoni-ivory relative">
+    <div className="flex min-h-screen w-full bg-afrikoni-ivory relative">
       {/* Premium African Geometric Background Pattern - v2.5 */}
       <div 
         className="fixed inset-0 opacity-[0.05] pointer-events-none z-0"
@@ -245,7 +245,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           x: sidebarOpen ? 0 : '-100%',
           width: sidebarOpen ? '16rem' : '0'
         }}
-        className="fixed left-0 top-0 bottom-0 z-50 bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:static md:shadow-none md:z-auto transition-all overflow-hidden"
+        className="fixed left-0 top-0 bottom-0 z-50 bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:static md:shadow-none md:z-auto transition-all overflow-hidden shrink-0"
       >
         <div className="flex flex-col min-h-screen relative">
           {/* Logo Section */}
@@ -430,7 +430,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       </motion.aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 md:ml-[16rem] min-h-screen relative z-10 overflow-visible">
+      <div className="flex flex-col flex-1 w-full md:ml-[16rem] min-h-screen relative z-10 overflow-visible">
         {/* Premium Top Bar */}
         <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
           <div className="flex items-center justify-between px-2 md:px-4 lg:px-6 py-4 relative overflow-visible">
@@ -729,10 +729,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 px-2 md:px-3 lg:px-4 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
-          <div className="w-full py-4 md:py-6">
-            {children}
-          </div>
+        <main className="flex-1 w-full px-4 md:px-6 lg:px-8 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
+          {children}
         </main>
       </div>
 
