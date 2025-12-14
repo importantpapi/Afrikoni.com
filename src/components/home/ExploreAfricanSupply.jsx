@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, MapPin, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Sprout, Shirt, HardHat, Heart, Home, Smartphone } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import Price from '@/components/ui/Price';
 
 // All 54 African countries with flags
 const ALL_AFRICAN_COUNTRIES = [
@@ -76,6 +78,7 @@ const popularCategories = [
 ];
 
 export default function ExploreAfricanSupply() {
+  const { currency, formatPrice } = useCurrency();
   const [countryScrollPosition, setCountryScrollPosition] = useState(0);
   const [categoryProducts, setCategoryProducts] = useState({});
   const [loadingProducts, setLoadingProducts] = useState({});
@@ -339,10 +342,32 @@ export default function ExploreAfricanSupply() {
                                     <h5 className="font-semibold text-afrikoni-chestnut text-sm line-clamp-2 mb-2 min-h-[2.5rem]">
                                       {product.title}
                                     </h5>
-                                    {product.price_min && (
-                                      <p className="text-xs md:text-sm text-afrikoni-gold font-bold mb-1">
-                                        {product.currency || 'USD'} {product.price_min}
-                                        {product.price_max && product.price_max !== product.price_min && ` - ${product.price_max}`}
+                                    {product.price_min ? (
+                                      <div className="text-xs md:text-sm text-afrikoni-gold font-bold mb-1">
+                                        {product.price_max && product.price_max !== product.price_min ? (
+                                          <>
+                                            <Price 
+                                              amount={product.price_min} 
+                                              fromCurrency={product.currency || 'USD'}
+                                              className="inline"
+                                            />
+                                            {' - '}
+                                            <Price 
+                                              amount={product.price_max} 
+                                              fromCurrency={product.currency || 'USD'}
+                                              className="inline"
+                                            />
+                                          </>
+                                        ) : (
+                                          <Price 
+                                            amount={product.price_min} 
+                                            fromCurrency={product.currency || 'USD'}
+                                          />
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-xs md:text-sm text-afrikoni-deep/60 italic">
+                                        Price on request
                                       </p>
                                     )}
                                     {product.moq && (
