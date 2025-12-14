@@ -155,50 +155,41 @@ export default function TrustCounters() {
   ];
 
   return (
-    <section 
+    <div 
       ref={ref}
-      className="py-12 md:py-16 bg-gradient-to-b from-white to-afrikoni-offwhite border-y border-afrikoni-gold/10"
+      className="py-3 md:py-4 bg-afrikoni-offwhite/50 border-b border-afrikoni-gold/10"
     >
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 lg:gap-8">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
             const key = Object.keys(targets)[idx];
             return (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="text-center"
+                transition={{ duration: 0.3, delay: idx * 0.05 }}
+                className="flex items-center gap-2 md:gap-3"
               >
-                <div className="flex items-center justify-center mb-3">
-                  <div className="w-12 h-12 rounded-full bg-afrikoni-gold/10 flex items-center justify-center">
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                </div>
-                <motion.div
-                  initial={{ scale: 0.8 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  className="mb-2"
-                >
-                  <span className="text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-chestnut">
+                <Icon className={`w-4 h-4 md:w-5 md:h-5 ${stat.color} flex-shrink-0`} />
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg md:text-xl font-bold text-afrikoni-chestnut">
                     {counters[key]}
                   </span>
-                  <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-gold ml-1">
+                  <span className="text-base md:text-lg font-bold text-afrikoni-gold">
                     {stat.suffix}
                   </span>
-                </motion.div>
-                <p className="text-sm md:text-base text-afrikoni-deep/70 font-medium">
+                </div>
+                <span className="text-xs md:text-sm text-afrikoni-deep/70 font-medium whitespace-nowrap">
                   {stat.label}
-                </p>
+                </span>
               </motion.div>
             );
           })}
         </div>
       </div>
-    </section>
+    </div>
   );
 }

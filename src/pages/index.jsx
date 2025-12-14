@@ -57,10 +57,8 @@ export default function Home() {
           <HeroSection categories={categories} />
         </section>
 
-        {/* Trust Counters */}
-        <section className="py-8 md:py-12 bg-gradient-to-b from-white to-afrikoni-offwhite">
-          <TrustCounters />
-        </section>
+        {/* Trust Counters - Compact */}
+        <TrustCounters />
 
         {/* Trust Cards */}
         <section className="py-12 md:py-16 lg:py-20">
