@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { useLanguage } from '@/i18n/LanguageContext';
 import BusinessModel from '@/components/home/BusinessModel';
+import BushidoManifesto from '@/components/home/BushidoManifesto';
 
 export default function About() {
   const { t } = useLanguage();
@@ -291,6 +292,11 @@ export default function About() {
 
         {/* Business Model & Reality Check */}
         <BusinessModel />
+
+        {/* Afrikoni Bushido Manifesto */}
+        <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-br from-afrikoni-chestnut/5 via-afrikoni-gold/5 to-afrikoni-chestnut/5">
+          <BushidoManifesto />
+        </section>
 
         {/* Our Values */}
         <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-b from-white to-afrikoni-offwhite">
