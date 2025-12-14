@@ -46,11 +46,11 @@ export default function TrustCounters() {
         // Get unique countries from products
         const { data: productsData } = await supabase
           .from('products')
-          .select('country')
+          .select('country_of_origin')
           .eq('status', 'active');
         
         const uniqueCountries = new Set(
-          productsData?.map(p => p.country).filter(Boolean) || []
+          productsData?.map(p => p.country_of_origin).filter(Boolean) || []
         );
 
         // Get delivery rate (completed orders / total orders)

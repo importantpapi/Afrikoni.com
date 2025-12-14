@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MapPin, Package, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Sprout, Shirt, HardHat, Heart, Home, Smartphone, Coffee, Gem } from 'lucide-react';
+import { Sprout, Shirt, HardHat, Heart, Home, Smartphone } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 
 // All 54 African countries with flags
@@ -65,54 +65,93 @@ const ALL_AFRICAN_COUNTRIES = [
   { name: 'Zimbabwe', flag: '🇿🇼', code: 'zimbabwe' }
 ];
 
-// Popular categories with icons
+// Popular categories with icons and search keywords
 const popularCategories = [
-  { name: 'Agriculture & Food', icon: Sprout, key: 'agriculture' },
-  { name: 'Textiles & Apparel', icon: Shirt, key: 'textiles' },
-  { name: 'Beauty & Personal Care', icon: Heart, key: 'beauty' },
-  { name: 'Industrial & Construction', icon: HardHat, key: 'industrial' },
-  { name: 'Home & Living', icon: Home, key: 'home' },
-  { name: 'Consumer Electronics', icon: Smartphone, key: 'electronics' }
+  { name: 'Agriculture & Food', icon: Sprout, key: 'agriculture', keywords: ['agriculture', 'food', 'cocoa', 'coffee', 'grain', 'produce'] },
+  { name: 'Textiles & Apparel', icon: Shirt, key: 'textiles', keywords: ['textile', 'fabric', 'apparel', 'clothing', 'garment'] },
+  { name: 'Beauty & Personal Care', icon: Heart, key: 'beauty', keywords: ['beauty', 'cosmetic', 'skincare', 'shea', 'soap'] },
+  { name: 'Industrial & Construction', icon: HardHat, key: 'industrial', keywords: ['industrial', 'construction', 'machinery', 'equipment', 'building'] },
+  { name: 'Home & Living', icon: Home, key: 'home', keywords: ['home', 'furniture', 'decor', 'living', 'household'] },
+  { name: 'Consumer Electronics', icon: Smartphone, key: 'electronics', keywords: ['electronics', 'phone', 'mobile', 'smartphone', 'device'] }
 ];
 
 export default function ExploreAfricanSupply() {
   const [countryScrollPosition, setCountryScrollPosition] = useState(0);
   const [categoryProducts, setCategoryProducts] = useState({});
   const [loadingProducts, setLoadingProducts] = useState({});
+  const [hasMore, setHasMore] = useState({});
+  const [page, setPage] = useState({});
   const countryScrollRef = useRef(null);
-  const categoryScrollRefs = useRef({});
+  const observerRefs = useRef({});
 
-  // Load products for each category
-  useEffect(() => {
-    const loadCategoryProducts = async () => {
-      for (const category of popularCategories) {
-        try {
-          setLoadingProducts(prev => ({ ...prev, [category.key]: true }));
-          
-          // Search for products matching category name
-          const { data: products, error } = await supabase
-            .from('products')
-            .select('id, title, price_min, price_max, currency, product_images(url, is_primary)')
-            .eq('status', 'active')
-            .ilike('title', `%${category.name.split(' ')[0]}%`)
-            .limit(10);
+  // Load products for each category with pagination
+  const loadCategoryProducts = useCallback(async (categoryKey, pageNum = 0, append = false) => {
+    const category = popularCategories.find(c => c.key === categoryKey);
+    if (!category) return;
 
-          if (!error && products) {
-            setCategoryProducts(prev => ({
-              ...prev,
-              [category.key]: products.slice(0, 6) // Show max 6 products per category
-            }));
-          }
-        } catch (error) {
-          console.error(`Error loading products for ${category.name}:`, error);
-        } finally {
-          setLoadingProducts(prev => ({ ...prev, [category.key]: false }));
-        }
+    try {
+      setLoadingProducts(prev => ({ ...prev, [categoryKey]: true }));
+      
+      const limit = 12;
+      const offset = pageNum * limit;
+
+      // Build search query with keywords
+      let query = supabase
+        .from('products')
+        .select('id, title, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      // Try to match category keywords
+      const keywordFilters = category.keywords.map(keyword => `title.ilike.%${keyword}%`).join(',');
+      query = query.or(keywordFilters);
+
+      const { data: products, error } = await query;
+
+      if (!error && products) {
+        setCategoryProducts(prev => ({
+          ...prev,
+          [categoryKey]: append ? [...(prev[categoryKey] || []), ...products] : products
+        }));
+        setHasMore(prev => ({ ...prev, [categoryKey]: products.length === limit }));
+        setPage(prev => ({ ...prev, [categoryKey]: pageNum }));
       }
-    };
-
-    loadCategoryProducts();
+    } catch (error) {
+      console.error(`Error loading products for ${category.name}:`, error);
+    } finally {
+      setLoadingProducts(prev => ({ ...prev, [categoryKey]: false }));
+    }
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    popularCategories.forEach(category => {
+      loadCategoryProducts(category.key, 0, false);
+    });
+  }, [loadCategoryProducts]);
+
+  // Infinite scroll observer setup
+  useEffect(() => {
+    popularCategories.forEach(category => {
+      const observerRef = observerRefs.current[category.key];
+      if (!observerRef) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore[category.key] && !loadingProducts[category.key]) {
+            const nextPage = (page[category.key] || 0) + 1;
+            loadCategoryProducts(category.key, nextPage, true);
+          }
+        },
+        { threshold: 0.1 }
+      );
+
+      observer.observe(observerRef);
+
+      return () => observer.disconnect();
+    });
+  }, [hasMore, loadingProducts, page, loadCategoryProducts]);
 
   const scrollCountries = (direction) => {
     if (!countryScrollRef.current) return;
@@ -120,13 +159,6 @@ export default function ExploreAfricanSupply() {
     const newPosition = countryScrollPosition + (direction === 'right' ? scrollAmount : -scrollAmount);
     setCountryScrollPosition(Math.max(0, Math.min(newPosition, countryScrollRef.current.scrollWidth - countryScrollRef.current.clientWidth)));
     countryScrollRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
-  };
-
-  const scrollCategory = (categoryKey, direction) => {
-    const scrollRef = categoryScrollRefs.current[categoryKey];
-    if (!scrollRef) return;
-    const scrollAmount = 300;
-    scrollRef.scrollBy({ left: direction === 'right' ? scrollAmount : -scrollAmount, behavior: 'smooth' });
   };
 
   return (
@@ -227,7 +259,7 @@ export default function ExploreAfricanSupply() {
           `}</style>
         </motion.div>
 
-        {/* Popular Categories with Infinite Scrolling Products */}
+        {/* Popular Categories with Infinite Vertical Scrolling Products */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -241,7 +273,7 @@ export default function ExploreAfricanSupply() {
             </h3>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-12">
             {popularCategories.map((category, categoryIdx) => {
               const Icon = category.icon;
               const products = categoryProducts[category.key] || [];
@@ -265,39 +297,30 @@ export default function ExploreAfricanSupply() {
                     </Link>
                   </div>
 
-                  {/* Products Scrollable Row */}
-                  {isLoading ? (
-                    <div className="flex gap-4">
-                      {[...Array(4)].map((_, i) => (
-                        <div key={i} className="flex-shrink-0 w-48 h-32 bg-afrikoni-cream/50 rounded-lg animate-pulse" />
+                  {/* Products Grid with Infinite Scroll */}
+                  {isLoading && products.length === 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="h-64 bg-afrikoni-cream/50 rounded-lg animate-pulse" />
                       ))}
                     </div>
                   ) : products.length > 0 ? (
-                    <div className="relative">
-                      <div
-                        ref={(el) => { categoryScrollRefs.current[category.key] = el; }}
-                        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                        style={{
-                          scrollbarWidth: 'none',
-                          msOverflowStyle: 'none',
-                          WebkitOverflowScrolling: 'touch'
-                        }}
-                      >
+                    <>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {products.map((product, productIdx) => {
                           const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
                           return (
                             <motion.div
                               key={product.id || productIdx}
-                              initial={{ opacity: 0, x: 20 }}
-                              whileInView={{ opacity: 1, x: 0 }}
+                              initial={{ opacity: 0, y: 20 }}
+                              whileInView={{ opacity: 1, y: 0 }}
                               viewport={{ once: true }}
-                              transition={{ duration: 0.4, delay: productIdx * 0.1 }}
+                              transition={{ duration: 0.4, delay: (productIdx % 8) * 0.05 }}
                               whileHover={{ y: -4, scale: 1.02 }}
-                              className="flex-shrink-0"
                             >
                               <Link to={`/products/${product.id}`}>
-                                <Card className="w-48 md:w-56 h-40 md:h-48 hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-afrikoni-cream overflow-hidden">
-                                  <div className="h-24 md:h-32 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
+                                <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-afrikoni-cream overflow-hidden">
+                                  <div className="h-40 md:h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
                                     {primaryImage?.url ? (
                                       <img
                                         src={primaryImage.url}
@@ -308,16 +331,28 @@ export default function ExploreAfricanSupply() {
                                           e.target.style.display = 'none';
                                         }}
                                       />
-                                    ) : null}
+                                    ) : (
+                                      <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10" />
+                                    )}
                                   </div>
                                   <CardContent className="p-3">
-                                    <h5 className="font-semibold text-afrikoni-chestnut text-sm line-clamp-1 mb-1">
+                                    <h5 className="font-semibold text-afrikoni-chestnut text-sm line-clamp-2 mb-2 min-h-[2.5rem]">
                                       {product.title}
                                     </h5>
                                     {product.price_min && (
-                                      <p className="text-xs text-afrikoni-gold font-medium">
-                                        From {product.currency || 'USD'} {product.price_min}
+                                      <p className="text-xs md:text-sm text-afrikoni-gold font-bold mb-1">
+                                        {product.currency || 'USD'} {product.price_min}
                                         {product.price_max && product.price_max !== product.price_min && ` - ${product.price_max}`}
+                                      </p>
+                                    )}
+                                    {product.moq && (
+                                      <p className="text-xs text-afrikoni-deep/60">
+                                        MOQ: {product.moq}
+                                      </p>
+                                    )}
+                                    {product.country_of_origin && (
+                                      <p className="text-xs text-afrikoni-deep/60 mt-1">
+                                        From {product.country_of_origin}
                                       </p>
                                     )}
                                   </CardContent>
@@ -328,25 +363,25 @@ export default function ExploreAfricanSupply() {
                         })}
                       </div>
                       
-                      {/* Scroll Buttons for Category */}
-                      {products.length > 3 && (
-                        <>
-                          <button
-                            onClick={() => scrollCategory(category.key, 'left')}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center"
-                            aria-label={`Scroll ${category.name} left`}
-                          >
-                            <ChevronLeft className="w-4 h-4 text-afrikoni-gold" />
-                          </button>
-                          <button
-                            onClick={() => scrollCategory(category.key, 'right')}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center"
-                            aria-label={`Scroll ${category.name} right`}
-                          >
-                            <ChevronRight className="w-4 h-4 text-afrikoni-gold" />
-                          </button>
-                        </>
+                      {/* Infinite Scroll Trigger */}
+                      {hasMore[category.key] && (
+                        <div 
+                          ref={(el) => { observerRefs.current[category.key] = el; }}
+                          className="h-20 flex items-center justify-center"
+                        >
+                          {isLoading && (
+                            <div className="flex gap-2">
+                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                            </div>
+                          )}
+                        </div>
                       )}
+                    </>
+                  ) : !isLoading ? (
+                    <div className="text-center py-8 text-afrikoni-deep/60">
+                      <p>No products found in this category yet.</p>
                     </div>
                   ) : null}
                 </div>
