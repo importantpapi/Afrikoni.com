@@ -12,7 +12,9 @@ import {
   Package,
   FileText,
   Settings,
-  GitCompare
+  GitCompare,
+  MapPin,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
@@ -21,6 +23,27 @@ import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
+import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
+
+// Country code to country name mapping
+const COUNTRY_NAMES = {
+  'NG': 'Nigeria', 'GH': 'Ghana', 'KE': 'Kenya', 'ZA': 'South Africa',
+  'EG': 'Egypt', 'MA': 'Morocco', 'SN': 'Senegal', 'TZ': 'Tanzania',
+  'ET': 'Ethiopia', 'AO': 'Angola', 'CM': 'Cameroon', 'CI': 'Côte d\'Ivoire',
+  'UG': 'Uganda', 'DZ': 'Algeria', 'SD': 'Sudan', 'MZ': 'Mozambique',
+  'MG': 'Madagascar', 'ML': 'Mali', 'BF': 'Burkina Faso', 'NE': 'Niger',
+  'RW': 'Rwanda', 'BJ': 'Benin', 'GN': 'Guinea', 'TD': 'Chad',
+  'ZW': 'Zimbabwe', 'ZM': 'Zambia', 'MW': 'Malawi', 'GA': 'Gabon',
+  'BW': 'Botswana', 'GM': 'Gambia', 'GW': 'Guinea-Bissau', 'LR': 'Liberia',
+  'SL': 'Sierra Leone', 'TG': 'Togo', 'MR': 'Mauritania', 'NA': 'Namibia',
+  'LS': 'Lesotho', 'ER': 'Eritrea', 'DJ': 'Djibouti', 'SS': 'South Sudan',
+  'CF': 'Central African Republic', 'CG': 'Republic of the Congo',
+  'CD': 'DR Congo', 'ST': 'São Tomé and Príncipe', 'SC': 'Seychelles',
+  'CV': 'Cape Verde', 'KM': 'Comoros', 'MU': 'Mauritius', 'SO': 'Somalia',
+  'BI': 'Burundi', 'GQ': 'Equatorial Guinea', 'SZ': 'Eswatini', 'LY': 'Libya',
+  'TN': 'Tunisia', 'BE': 'Belgium', 'FR': 'France', 'US': 'United States',
+  'GB': 'United Kingdom', 'DEFAULT': 'International'
+};
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
@@ -28,8 +51,10 @@ export default function Navbar({ user, onLogout }) {
   const [megaOpen, setMegaOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [detectedCountry, setDetectedCountry] = useState(null);
   const [compareCount, setCompareCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -68,6 +93,7 @@ export default function Navbar({ user, onLogout }) {
     setMegaOpen(false);
     setLanguageOpen(false);
     setCurrencyOpen(false);
+    setSettingsOpen(false);
     setUserMenuOpen(false);
   }, [location.pathname]);
 
@@ -84,6 +110,46 @@ export default function Navbar({ user, onLogout }) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [megaOpen]);
+
+  // Auto-detect user's country, language, and currency on mount
+  useEffect(() => {
+    const detectPreferences = async () => {
+      try {
+        // Check if preferences are already saved in localStorage
+        const savedCountry = localStorage.getItem('afrikoni_detected_country');
+        const savedCurrency = localStorage.getItem('afrikoni_selected_currency');
+        const savedLanguage = localStorage.getItem('afrikoni_selected_language');
+        
+        if (savedCountry && savedCurrency && savedLanguage) {
+          setDetectedCountry(savedCountry);
+          setSelectedCurrency(savedCurrency);
+          if (savedLanguage !== language) {
+            setLanguage(savedLanguage);
+          }
+        } else {
+          // Auto-detect
+          const preferences = await autoDetectUserPreferences();
+          setDetectedCountry(preferences.countryCode);
+          setSelectedCurrency(preferences.currency);
+          if (preferences.language !== language) {
+            setLanguage(preferences.language);
+          }
+          
+          // Save to localStorage
+          localStorage.setItem('afrikoni_detected_country', preferences.countryCode);
+          localStorage.setItem('afrikoni_selected_currency', preferences.currency);
+          localStorage.setItem('afrikoni_selected_language', preferences.language);
+        }
+      } catch (error) {
+        console.warn('Failed to auto-detect preferences:', error);
+        // Use defaults
+        setDetectedCountry('DEFAULT');
+        setSelectedCurrency('USD');
+      }
+    };
+    
+    detectPreferences();
+  }, []);
 
   // Load user profile to get company_id for profile link
   useEffect(() => {
@@ -164,21 +230,28 @@ export default function Navbar({ user, onLogout }) {
     setMegaOpen((prev) => !prev);
     setLanguageOpen(false);
     setCurrencyOpen(false);
+    setSettingsOpen(false);
     setUserMenuOpen(false);
   };
 
-  const openLanguageMenu = () => {
-    setLanguageOpen(true);
+  const openSettingsMenu = () => {
+    setSettingsOpen(true);
     setMegaOpen(false);
+    setLanguageOpen(false);
     setCurrencyOpen(false);
     setUserMenuOpen(false);
   };
 
-  const openCurrencyMenu = () => {
-    setCurrencyOpen(true);
-    setMegaOpen(false);
-    setLanguageOpen(false);
-    setUserMenuOpen(false);
+  const handleLanguageChange = (langCode) => {
+    setLanguage(langCode);
+    localStorage.setItem('afrikoni_selected_language', langCode);
+    setSettingsOpen(false);
+  };
+
+  const handleCurrencyChange = (currCode) => {
+    setSelectedCurrency(currCode);
+    localStorage.setItem('afrikoni_selected_currency', currCode);
+    setSettingsOpen(false);
   };
 
   const openUserMenu = () => {
@@ -186,6 +259,7 @@ export default function Navbar({ user, onLogout }) {
     setMegaOpen(false);
     setLanguageOpen(false);
     setCurrencyOpen(false);
+    setSettingsOpen(false);
   };
 
   return (
@@ -198,17 +272,21 @@ export default function Navbar({ user, onLogout }) {
             <Logo type="full" size="sm" link={true} showTagline={false} direction="horizontal" />
           </div>
 
-          {/* Post Request - Visually Dominant */}
-          <Link to="/createrfq" className="hidden sm:flex items-center gap-1.5">
+          {/* Post Trade Request - Alibaba-inspired Afrikoni Style */}
+          <Link to="/createrfq" className="hidden sm:flex items-center">
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               <Button
                 size="sm"
-                className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight font-bold text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 shadow-lg hover:shadow-xl transition-all"
+                className="bg-gradient-to-r from-afrikoni-gold via-afrikoni-goldLight to-afrikoni-gold text-afrikoni-chestnut hover:from-afrikoni-goldLight hover:via-afrikoni-gold hover:to-afrikoni-goldLight font-bold text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-2.5 shadow-xl hover:shadow-2xl transition-all rounded-lg border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 relative overflow-hidden group"
               >
-                Post Request
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Post Trade Request
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               </Button>
             </motion.div>
           </Link>
@@ -218,28 +296,10 @@ export default function Navbar({ user, onLogout }) {
             Marketplace
           </Link>
 
-          {/* About Us Link */}
-          <Link to="/about" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-            About Us
-          </Link>
-
-          {/* For Enterprise Link */}
-          <Link to="/enterprise" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-            For Enterprise
-          </Link>
-
           {/* How It Works Link */}
           <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
             How It Works
           </Link>
-
-          {/* Community Link */}
-          <button
-            onClick={() => openWhatsAppCommunity('navbar')}
-            className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap"
-          >
-            Community
-          </button>
           
           {compareCount > 0 && (
             <Link to="/compare" className="relative hidden sm:block">
@@ -258,97 +318,105 @@ export default function Navbar({ user, onLogout }) {
           )}
         </div>
 
-        {/* Right: language, currency, user */}
+        {/* Right: country, language/currency, user */}
         <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-4 flex-shrink-0">
-          {/* Language selector */}
+          {/* Detected Country Display */}
+          {detectedCountry && detectedCountry !== 'DEFAULT' && (
+            <div className="hidden sm:flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs sm:text-sm text-afrikoni-cream/80">
+              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden lg:inline">Deliver to: {COUNTRY_NAMES[detectedCountry] || 'International'}</span>
+              <span className="lg:hidden">{COUNTRY_NAMES[detectedCountry]?.substring(0, 3) || 'INT'}</span>
+            </div>
+          )}
+
+          {/* Combined Language & Currency Selector (Alibaba-style) */}
           <div className="relative">
             <button
-              onClick={openLanguageMenu}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
+              onClick={openSettingsMenu}
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
             >
               <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden lg:inline">{selectedLanguageCode}</span>
-              <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 ${languageOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            <AnimatePresence>
-              {languageOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-[60]"
-                    onClick={() => setLanguageOpen(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-56 bg-afrikoni-offwhite rounded-lg shadow-afrikoni-lg border border-afrikoni-gold/30 z-[70] py-1"
-                  >
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setLanguageOpen(false);
-                        }}
-                        className={`
-                          w-full text-left px-4 py-2.5 text-sm hover:bg-afrikoni-gold/10 transition-colors flex items-center gap-2.5 whitespace-nowrap
-                          ${language === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold font-medium' : 'text-afrikoni-deep'}
-                        `}
-                      >
-                        <span className="text-lg flex-shrink-0">{lang.flag}</span>
-                        <span className="truncate">{lang.name}</span>
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Currency selector */}
-          <div className="hidden lg:block relative">
-            <button
-              onClick={openCurrencyMenu}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
-            >
-              <span className="hidden xl:inline">{selectedCurrency}</span>
-              <span className="xl:hidden">
-                {currencies.find((c) => c.code === selectedCurrency)?.symbol || '$'}
+              <span className="hidden lg:inline">
+                {languages.find(l => l.code === language)?.display || 'EN'}-{selectedCurrency}
               </span>
-              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${currencyOpen ? 'rotate-180' : ''}`} />
+              <span className="lg:hidden">
+                {languages.find(l => l.code === language)?.display || 'EN'}
+              </span>
+              <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 ${settingsOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
-              {currencyOpen && (
+              {settingsOpen && (
                 <>
                   <div
                     className="fixed inset-0 z-[60]"
-                    onClick={() => setCurrencyOpen(false)}
+                    onClick={() => setSettingsOpen(false)}
                   />
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-48 bg-afrikoni-offwhite rounded-lg shadow-afrikoni-lg border border-afrikoni-gold/30 z-[70] py-1"
+                    className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6"
                   >
-                    {currencies.map((curr) => (
-                      <button
-                        key={curr.code}
-                        onClick={() => {
-                          setSelectedCurrency(curr.code);
-                          setCurrencyOpen(false);
-                        }}
-                        className={`
-                          w-full text-left px-4 py-2 text-sm hover:bg-afrikoni-gold/10 transition-colors
-                          ${selectedCurrency === curr.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold font-medium' : 'text-afrikoni-deep'}
-                        `}
-                      >
-                        {curr.symbol} {curr.name}
-                      </button>
-                    ))}
+                    <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">Set Language & Currency</h3>
+                    <p className="text-sm text-afrikoni-deep/70 mb-6">
+                      Select your preferred language and currency. You can update the settings at any time.
+                    </p>
+                    
+                    {/* Language Section */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-semibold text-afrikoni-deep mb-3">Language</label>
+                      <div className="space-y-2">
+                        {languages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => handleLanguageChange(lang.code)}
+                            className={`
+                              w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3
+                              ${language === lang.code 
+                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium' 
+                                : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
+                              }
+                            `}
+                          >
+                            <span className="text-xl flex-shrink-0">{lang.flag}</span>
+                            <span className="flex-1">{lang.name}</span>
+                            {language === lang.code && (
+                              <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Currency Section */}
+                    <div>
+                      <label className="block text-sm font-semibold text-afrikoni-deep mb-3">Currency</label>
+                      <div className="space-y-2">
+                        {currencies.map((curr) => (
+                          <button
+                            key={curr.code}
+                            onClick={() => handleCurrencyChange(curr.code)}
+                            className={`
+                              w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center justify-between
+                              ${selectedCurrency === curr.code 
+                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium' 
+                                : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
+                              }
+                            `}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="text-lg">{curr.symbol}</span>
+                              <span>{curr.name}</span>
+                            </span>
+                            {selectedCurrency === curr.code && (
+                              <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </motion.div>
                 </>
               )}
