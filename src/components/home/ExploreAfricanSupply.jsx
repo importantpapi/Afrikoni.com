@@ -198,32 +198,6 @@ export default function ExploreAfricanSupply() {
             </motion.div>
           </motion.div>
         </div>
-
-        {/* RFQ CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-12 md:mt-16 pt-12 border-t-2 border-afrikoni-gold/20"
-        >
-          <div className="bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-chestnut/5 to-afrikoni-gold/10 rounded-2xl p-8 md:p-12 text-center">
-            <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
-              Didn't find what you need?
-            </h3>
-            <p className="text-base md:text-lg text-afrikoni-deep/80 mb-6 max-w-2xl mx-auto">
-              Get matched with verified African suppliers within 24–48 hours.
-            </p>
-            <Link to="/rfq/create">
-              <Button 
-                size="lg" 
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut font-semibold px-8 py-6 text-lg shadow-afrikoni-lg hover:shadow-afrikoni-xl transition-all"
-              >
-                Post a Trade Request (RFQ)
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
       </div>
     </section>
   );

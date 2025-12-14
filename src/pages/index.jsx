@@ -7,14 +7,7 @@ import ServicesOverview from '@/components/home/ServicesOverview';
 import ExploreAfricanSupply from '@/components/home/ExploreAfricanSupply';
 import RFQCard from '@/components/home/RFQCard';
 import PartnerLogos from '@/components/home/PartnerLogos';
-import TestimonialsSection from '@/components/home/TestimonialsSection';
-import CaseStudies from '@/components/home/CaseStudies';
-import AboutAfrikoni from '@/components/home/AboutAfrikoni';
-import TransparencySection from '@/components/home/TransparencySection';
-import SocialProof from '@/components/home/SocialProof';
-import LogisticsPlatform from '@/components/home/LogisticsPlatform';
 import LiveTradeTicker from '@/components/community/LiveTradeTicker';
-import SuccessStories from '@/components/community/SuccessStories';
 import BetaSection from '@/components/home/BetaSection';
 import { motion } from 'framer-motion';
 import SEO from '@/components/SEO';
@@ -94,33 +87,6 @@ export default function Home() {
           <PartnerLogos />
         </section>
 
-        {/* Success Stories & Testimonials */}
-        <section className="py-12 md:py-16 lg:py-20">
-          <div className="max-w-7xl mx-auto px-4 space-y-12 md:space-y-16">
-            <SuccessStories />
-            <TestimonialsSection />
-          </div>
-        </section>
-
-        {/* Case Studies */}
-        <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-afrikoni-offwhite to-white">
-          <CaseStudies />
-        </section>
-
-        {/* Logistics Platform */}
-        <section className="py-12 md:py-16 lg:py-20">
-          <LogisticsPlatform />
-        </section>
-
-        {/* About Afrikoni */}
-        <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-white to-afrikoni-offwhite">
-          <AboutAfrikoni />
-        </section>
-
-        {/* Transparency Section */}
-        <section className="py-12 md:py-16 lg:py-20 bg-white">
-          <TransparencySection />
-        </section>
 
       </div>
     </>
