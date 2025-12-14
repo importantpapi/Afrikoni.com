@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -10,8 +10,55 @@ import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/api/supabaseClient';
 
 export default function BecomeSupplier() {
+  const [stats, setStats] = useState([
+    { value: '...', label: 'Verified Suppliers' },
+    { value: '54', label: 'African Countries' },
+    { value: '24-48h', label: 'Verification Time' },
+    { value: '...', label: 'Approval Rate' }
+  ]);
+
+  useEffect(() => {
+    loadRealStats();
+  }, []);
+
+  const loadRealStats = async () => {
+    try {
+      // Get verified suppliers count
+      const { count: verifiedCount } = await supabase
+        .from('companies')
+        .select('*', { count: 'exact', head: true })
+        .eq('verified', true);
+
+      // Get total suppliers
+      const { count: totalCount } = await supabase
+        .from('companies')
+        .select('*', { count: 'exact', head: true });
+
+      // Get approved verifications
+      const { count: approvedCount } = await supabase
+        .from('companies')
+        .select('*', { count: 'exact', head: true })
+        .eq('verification_status', 'verified');
+
+      // Calculate approval rate
+      const approvalRate = totalCount > 0 
+        ? Math.round((approvedCount / totalCount) * 100)
+        : 0;
+
+      setStats([
+        { value: verifiedCount > 0 ? `${verifiedCount}+` : 'Growing', label: 'Verified Suppliers' },
+        { value: '54', label: 'African Countries' },
+        { value: '24-48h', label: 'Verification Time' },
+        { value: approvalRate > 0 ? `${approvalRate}%` : 'High', label: 'Approval Rate' }
+      ]);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      // Keep default values on error
+    }
+  };
   const benefits = [
     {
       icon: Shield,
@@ -115,13 +162,6 @@ export default function BecomeSupplier() {
     'Sanctions and compliance screening via Afrikoni Shield™',
     'Business license and tax registration',
     'Quality certifications (if applicable)'
-  ];
-
-  const stats = [
-    { value: '850+', label: 'Verified Suppliers' },
-    { value: '54', label: 'African Countries' },
-    { value: '24-48h', label: 'Verification Time' },
-    { value: '98%', label: 'Approval Rate' }
   ];
 
   return (
