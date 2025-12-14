@@ -176,41 +176,45 @@ export default function HeroSection({ categories = [] }) {
                 <h3 className="text-sm font-semibold text-afrikoni-gold mb-3 uppercase tracking-wide">
                   Quick Access
                 </h3>
+                {/* Dominant CTA: Post RFQ */}
+                <motion.button
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handlePostRFQ}
+                  className="w-full flex items-center gap-3 p-4 rounded-lg bg-afrikoni-gold hover:bg-afrikoni-goldDark transition-all text-left group border-2 border-afrikoni-gold shadow-afrikoni-lg"
+                >
+                  <FileText className="w-6 h-6 text-afrikoni-chestnut group-hover:scale-110 transition-transform" />
+                  <div className="flex-1">
+                    <p className="text-base font-bold text-afrikoni-chestnut">Post a Trade Request (RFQ)</p>
+                    <p className="text-xs text-afrikoni-chestnut/80">Get matched with verified suppliers</p>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-afrikoni-chestnut group-hover:translate-x-1 transition-transform" />
+                </motion.button>
+                
+                {/* Secondary CTAs */}
                 <motion.button
                   whileHover={{ x: 4 }}
                   onClick={() => navigate('/services/buyers')}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 transition-all text-left group"
+                  className="w-full flex items-center gap-3 p-3 rounded-lg bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 transition-all text-left group opacity-80"
                 >
                   <ShoppingBag className="w-5 h-5 text-afrikoni-gold group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-afrikoni-cream">Join as Buyer</p>
-                    <p className="text-xs text-afrikoni-cream/70">Source products</p>
+                    <p className="text-sm font-medium text-afrikoni-cream">Join as Buyer</p>
+                    <p className="text-xs text-afrikoni-cream/60">Source products</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-afrikoni-gold/70 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
                 <motion.button
                   whileHover={{ x: 4 }}
                   onClick={() => navigate('/become-supplier')}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 transition-all text-left group"
+                  className="w-full flex items-center gap-3 p-3 rounded-lg bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 transition-all text-left group opacity-80"
                 >
                   <Store className="w-5 h-5 text-afrikoni-gold group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-afrikoni-cream">Become Supplier</p>
-                    <p className="text-xs text-afrikoni-cream/70">Get verified</p>
+                    <p className="text-sm font-medium text-afrikoni-cream">Become Supplier</p>
+                    <p className="text-xs text-afrikoni-cream/60">Get verified</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-afrikoni-gold/70 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ x: 4 }}
-                  onClick={handlePostRFQ}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg bg-afrikoni-gold/20 hover:bg-afrikoni-gold/30 transition-all text-left group border border-afrikoni-gold/40"
-                >
-                  <FileText className="w-5 h-5 text-afrikoni-gold group-hover:scale-110 transition-transform" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-afrikoni-cream">Post RFQ</p>
-                    <p className="text-xs text-afrikoni-cream/70">Request quote</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-afrikoni-gold group-hover:translate-x-1 transition-transform" />
                 </motion.button>
               </CardContent>
             </Card>

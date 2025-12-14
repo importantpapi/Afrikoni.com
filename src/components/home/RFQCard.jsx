@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FileText, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import RFQProcessPanel from './RFQProcessPanel';
 
 export default function RFQCard() {
   return (
@@ -14,46 +15,37 @@ export default function RFQCard() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
+          className="space-y-6"
         >
-          <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-white to-afrikoni-cream-100/30">
+          {/* Dominant RFQ CTA */}
+          <Card className="border-2 border-afrikoni-gold/40 bg-gradient-to-br from-afrikoni-gold/20 via-white to-afrikoni-cream shadow-afrikoni-lg">
             <CardContent className="p-8 md:p-12">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-16 h-16 bg-afrikoni-gold/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-8 h-8 text-afrikoni-gold" />
+                  <div className="w-16 h-16 bg-afrikoni-gold rounded-xl flex items-center justify-center flex-shrink-0 shadow-afrikoni-lg">
+                    <FileText className="w-8 h-8 text-afrikoni-chestnut" />
                   </div>
                   <div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
-                      Didn't find what you need?
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-chestnut mb-3">
+                      Post a Trade Request (RFQ)
                     </h3>
-                    <p className="text-lg text-afrikoni-deep mb-4">
-                      Post a Request for Quotation (RFQ) and get competitive quotes from multiple verified suppliers across Africa.
+                    <p className="text-lg md:text-xl text-afrikoni-deep/80 mb-4">
+                      Get matched with verified African suppliers. Reviewed by our team within 24–48 hours.
                     </p>
-                    <ul className="space-y-2 text-afrikoni-deep">
-                      <li className="flex items-center gap-2">
-                        <span className="text-afrikoni-gold">✓</span>
-                        <span>Get multiple quotes in 24-48 hours</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-afrikoni-gold">✓</span>
-                        <span>Compare prices and terms easily</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-afrikoni-gold">✓</span>
-                        <span>Connect directly with suppliers</span>
-                      </li>
-                    </ul>
                   </div>
                 </div>
-                <div className="flex-shrink-0">
-                  <Link to="/rfq/create">
+                <div className="flex-shrink-0 w-full md:w-auto">
+                  <Link to="/rfq/create" className="block">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-creampx-8">
-                        Post an RFQ
-                        <ArrowRight className="w-5 h-5 ml-2" />
+                      <Button 
+                        size="lg" 
+                        className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-bold px-8 py-6 text-lg md:text-xl shadow-afrikoni-xl hover:shadow-afrikoni-2xl transition-all"
+                      >
+                        Post a Trade Request (RFQ)
+                        <ArrowRight className="w-5 h-5 md:w-6 md:h-6 ml-2" />
                       </Button>
                     </motion.div>
                   </Link>
@@ -61,6 +53,9 @@ export default function RFQCard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* RFQ Process Panel */}
+          <RFQProcessPanel />
         </motion.div>
       </div>
     </section>
