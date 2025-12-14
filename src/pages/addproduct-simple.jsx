@@ -118,13 +118,31 @@ export default function AddProductSimple() {
         return;
       }
 
-      // Auto-assign "No Category" if no category selected
+      // Auto-assign category using intelligence
       let categoryId = null;
-      const noCategory = categories.find(c => c.name === 'No Category');
-      if (noCategory) {
-        categoryId = noCategory.id;
-      } else if (categories.length > 0) {
-        categoryId = categories[0].id;
+      try {
+        const { autoAssignCategory } = await import('@/utils/productCategoryIntelligence');
+        categoryId = await autoAssignCategory(
+          supabase,
+          formData.title,
+          description,
+          null
+        );
+        if (categoryId) {
+          toast.success('✨ Category automatically assigned');
+        }
+      } catch (error) {
+        console.error('Auto-category assignment error:', error);
+      }
+      
+      // Fallback to "No Category" if intelligence didn't find a match
+      if (!categoryId) {
+        const noCategory = categories.find(c => c.name === 'No Category');
+        if (noCategory) {
+          categoryId = noCategory.id;
+        } else if (categories.length > 0) {
+          categoryId = categories[0].id;
+        }
       }
 
       // Smart defaults

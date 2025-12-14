@@ -8,6 +8,7 @@ import { Sprout, Shirt, HardHat, Heart, Home, Smartphone } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import Price from '@/components/ui/Price';
+import { matchProductToPopularCategory } from '@/utils/productCategoryIntelligence';
 
 // All 54 African countries with flags
 const ALL_AFRICAN_COUNTRIES = [
@@ -101,14 +102,24 @@ export default function ExploreAfricanSupply() {
       // Build search query with keywords
       let query = supabase
         .from('products')
-        .select('id, title, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary)')
+        .select('id, title, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories(name)')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      // Try to match category keywords
+      // Try to match category using intelligence - check both keywords and category name
+      const matchedCategory = matchProductToPopularCategory(category.name, '');
       const keywordFilters = category.keywords.map(keyword => `title.ilike.%${keyword}%`).join(',');
-      query = query.or(keywordFilters);
+      
+      // Also match by category name in database
+      const categoryNameFilter = `categories.name.ilike.%${category.name}%`;
+      
+      // Combine filters: keywords OR category name match
+      if (keywordFilters) {
+        query = query.or(`${keywordFilters},${categoryNameFilter}`);
+      } else {
+        query = query.or(categoryNameFilter);
+      }
 
       const { data: products, error } = await query;
 

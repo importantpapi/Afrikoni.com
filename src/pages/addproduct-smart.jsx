@@ -709,10 +709,27 @@ export default function AddProductSmart() {
         return;
       }
 
-      // Handle category - use "No Category" as fallback if not selected
+      // Auto-assign category using intelligence if not already selected
       let finalCategoryId = formData.category_id || null;
       
-      // If no category selected, try to find "No Category" fallback
+      if (!finalCategoryId && formData.title) {
+        try {
+          const { autoAssignCategory } = await import('@/utils/productCategoryIntelligence');
+          finalCategoryId = await autoAssignCategory(
+            supabase,
+            formData.title,
+            formData.description || '',
+            formData.category_id
+          );
+          if (finalCategoryId) {
+            toast.success('✨ Category automatically assigned based on product details');
+          }
+        } catch (error) {
+          console.error('Auto-category assignment error:', error);
+        }
+      }
+      
+      // If still no category, try fallback options
       if (!finalCategoryId) {
         // Try to find "No Category" category
         const { data: noCategory } = await supabase

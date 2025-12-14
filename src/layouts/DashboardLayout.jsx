@@ -730,7 +730,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
         {/* Page Content */}
         <main className="flex-1 px-4 md:px-6 lg:px-8 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
-          <div className="max-w-[1600px] mx-auto w-full">
+          <div className="max-w-[1600px] mx-auto w-full py-4 md:py-6">
             {children}
           </div>
         </main>

@@ -565,7 +565,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
   }
 
   return (
-    <div className="space-y-6 pb-8 min-h-full">
+    <div className="space-y-6 pb-8">
       {/* Welcome Header - v2.5 Improved Spacing */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

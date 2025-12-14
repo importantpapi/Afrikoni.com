@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import ProductImageUploader from '@/components/products/ProductImageUploader';
 import { sanitizeString } from '@/utils/security';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
+import { autoAssignCategory } from '@/utils/productCategoryIntelligence';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -471,13 +472,33 @@ export default function ProductForm() {
       // Calculate price field - use price_min if available, otherwise price_max, or 0 as fallback
       const price = priceMin || priceMax || 0;
 
+      // Auto-assign category using intelligence if not already assigned
+      let finalCategoryId = formData.category_id;
+      if (!finalCategoryId && formData.title) {
+        try {
+          const autoCategoryId = await autoAssignCategory(
+            supabase,
+            formData.title,
+            formData.description || formData.short_description || '',
+            formData.category_id
+          );
+          if (autoCategoryId) {
+            finalCategoryId = autoCategoryId;
+            toast.success('✨ Category automatically assigned based on product details');
+          }
+        } catch (error) {
+          console.error('Auto-category assignment error:', error);
+          // Continue without auto-assignment
+        }
+      }
+
       // Prepare product data
       const productData = {
         company_id: companyId,
         title: sanitizeString(formData.title),
         short_description: sanitizeString(formData.short_description),
         description: sanitizeString(formData.description),
-        category_id: formData.category_id || null,
+        category_id: finalCategoryId || null,
         subcategory_id: formData.subcategory_id || null,
         country_of_origin: formData.country_of_origin || null,
         min_order_quantity: formData.min_order_quantity ? parseFloat(formData.min_order_quantity) : null,
