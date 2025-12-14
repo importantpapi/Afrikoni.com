@@ -98,39 +98,6 @@ export default function HeroSection({ categories = [] }) {
             </p>
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-cream mb-4 leading-tight px-2"
-          >
-            What are you looking for?
-          </motion.h1>
-
-          {/* Trust Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-6 text-sm md:text-base"
-          >
-            <div className="flex items-center gap-2 text-afrikoni-cream/90">
-              <span className="font-semibold text-afrikoni-gold">Trusted by 120+</span>
-              <span>African businesses</span>
-            </div>
-            <span className="text-afrikoni-gold/50">•</span>
-            <div className="flex items-center gap-2 text-afrikoni-cream/90">
-              <span className="font-semibold text-afrikoni-gold">Protected</span>
-              <span>Escrow</span>
-            </div>
-            <span className="text-afrikoni-gold/50">•</span>
-            <div className="flex items-center gap-2 text-afrikoni-cream/90">
-              <span className="font-semibold text-afrikoni-gold">AI-Verified</span>
-              <span>Suppliers</span>
-            </div>
-          </motion.div>
-
           {/* Afrikoni Shield trust strip */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
