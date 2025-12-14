@@ -389,7 +389,7 @@ export default function HowItWorks() {
             >
               <Link to={createPageUrl('BuyerCentral')}>
                 <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-bold shadow-xl">
-                  <ShoppingBag className="w-5 h-5 mr-2" />
+                  <ShoppingCart className="w-5 h-5 mr-2" />
                   Start Sourcing Now
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
