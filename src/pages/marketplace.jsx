@@ -28,6 +28,7 @@ import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import SearchHistory from '@/components/search/SearchHistory';
+import Price from '@/components/ui/Price';
 import TrustBadge from '@/components/ui/TrustBadge';
 import { toast } from 'sonner';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
@@ -620,17 +621,32 @@ if (!Array.isArray(productsList)) return [];
               {/* Price Range - Fourth Priority */}
               <div className="flex items-center gap-2 mb-3">
                 {product.price_min && product.price_max ? (
-                  <div className="text-lg sm:text-xl font-bold text-afrikoni-gold">
-                    From {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()} / {product.unit || 'kg'} (indicative)
-                  </div>
+                  <Price
+                    amount={product.price_min}
+                    fromCurrency={product.currency || 'USD'}
+                    unit={product.unit || 'kg'}
+                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
+                    prefix="From "
+                    suffix=" (indicative)"
+                  />
                 ) : product.price_min ? (
-                  <div className="text-lg sm:text-xl font-bold text-afrikoni-gold">
-                    From {product.currency || 'USD'} {parseFloat(product.price_min).toLocaleString()} / {product.unit || 'kg'} (indicative)
-                  </div>
+                  <Price
+                    amount={product.price_min}
+                    fromCurrency={product.currency || 'USD'}
+                    unit={product.unit || 'kg'}
+                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
+                    prefix="From "
+                    suffix=" (indicative)"
+                  />
                 ) : product.price ? (
-                  <div className="text-lg sm:text-xl font-bold text-afrikoni-gold">
-                    From {product.currency || 'USD'} {parseFloat(product.price).toLocaleString()} / {product.unit || 'kg'} (indicative)
-                  </div>
+                  <Price
+                    amount={product.price}
+                    fromCurrency={product.currency || 'USD'}
+                    unit={product.unit || 'kg'}
+                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
+                    prefix="From "
+                    suffix=" (indicative)"
+                  />
                 ) : (
                   <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
                 )}

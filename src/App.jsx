@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import { PageLoader } from './components/ui/skeletons';
 import { LanguageProvider } from './i18n/LanguageContext';
+import { CurrencyProvider } from './contexts/CurrencyContext';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
 import { useBrowserNavigation } from './hooks/useBrowserNavigation';
@@ -174,9 +175,10 @@ function App() {
 
   return (
     <LanguageProvider>
-      <ScrollToTop />
-      <Toaster position="top-right" />
-      <Layout>
+      <CurrencyProvider>
+        <ScrollToTop />
+        <Toaster position="top-right" />
+        <Layout>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -337,6 +339,7 @@ function App() {
           </Routes>
         </Suspense>
       </Layout>
+      </CurrencyProvider>
     </LanguageProvider>
   );
 }

@@ -34,6 +34,7 @@ import { GitCompare } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 import Breadcrumb from '@/components/ui/Breadcrumb';
+import Price, { PriceRange } from '@/components/ui/Price';
 
 export default function ProductDetail() {
   const { t } = useLanguage();
@@ -592,31 +593,46 @@ export default function ProductDetail() {
                       {/* Price Range Display - Use selected variant price if available */}
                       {selectedVariant?.price ? (
                         <>
-                          <div className="text-3xl font-bold text-afrikoni-gold mb-1">
-                            {product.currency || 'USD'} {selectedVariant.price}
-                          </div>
-                          <div className="text-sm text-afrikoni-deep">per {product.unit || 'unit'}</div>
+                          <Price
+                            amount={selectedVariant.price}
+                            fromCurrency={product.currency || 'USD'}
+                            unit={product.unit || 'unit'}
+                            className="text-3xl font-bold text-afrikoni-gold mb-1"
+                            showUnit={true}
+                          />
                         </>
                       ) : product.price_min && product.price_max ? (
                         <>
-                          <div className="text-3xl font-bold text-afrikoni-gold mb-1">
-                            {product.currency || 'USD'} {product.price_min} – {product.price_max}
-                          </div>
+                          <PriceRange
+                            min={product.price_min}
+                            max={product.price_max}
+                            fromCurrency={product.currency || 'USD'}
+                            unit={product.moq_unit || product.unit || 'unit'}
+                            className="text-3xl font-bold text-afrikoni-gold mb-1"
+                          />
                           <div className="text-sm text-afrikoni-deep">Price range per {product.moq_unit || product.unit || 'unit'}</div>
                         </>
                       ) : product.price_min ? (
                         <>
-                          <div className="text-3xl font-bold text-afrikoni-gold mb-1">
-                            {product.currency || 'USD'} {product.price_min}+
-                          </div>
+                          <Price
+                            amount={product.price_min}
+                            fromCurrency={product.currency || 'USD'}
+                            unit={product.unit || 'unit'}
+                            className="text-3xl font-bold text-afrikoni-gold mb-1"
+                            suffix="+"
+                            showUnit={true}
+                          />
                           <div className="text-sm text-afrikoni-deep">Starting from</div>
                         </>
                       ) : product.price ? (
                         <>
-                          <div className="text-3xl font-bold text-afrikoni-gold mb-1">
-                            {product.currency || 'USD'} {product.price}
-                          </div>
-                          <div className="text-sm text-afrikoni-deep">per {product.unit || 'unit'}</div>
+                          <Price
+                            amount={product.price}
+                            fromCurrency={product.currency || 'USD'}
+                            unit={product.unit || 'unit'}
+                            className="text-3xl font-bold text-afrikoni-gold mb-1"
+                            showUnit={true}
+                          />
                         </>
                       ) : (
                         <div className="text-lg font-semibold text-afrikoni-deep">Price on request</div>

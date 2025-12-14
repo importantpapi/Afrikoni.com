@@ -24,6 +24,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 // Country code to country name mapping
 const COUNTRY_NAMES = {
@@ -72,13 +73,14 @@ const ALL_COUNTRIES = Object.keys(COUNTRY_NAMES).filter(key => key !== 'DEFAULT'
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
   const [megaOpen, setMegaOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [countryOpen, setCountryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [selectedCurrency, setSelectedCurrency] = useState(contextCurrency || 'USD');
   const [detectedCountry, setDetectedCountry] = useState(null);
   const [compareCount, setCompareCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -138,18 +140,26 @@ export default function Navbar({ user, onLogout }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [megaOpen]);
 
+  // Sync selectedCurrency with contextCurrency
+  useEffect(() => {
+    if (contextCurrency && contextCurrency !== selectedCurrency) {
+      setSelectedCurrency(contextCurrency);
+    }
+  }, [contextCurrency]);
+
   // Auto-detect user's country, language, and currency on mount
   useEffect(() => {
     const detectPreferences = async () => {
       try {
         // Check if preferences are already saved in localStorage
         const savedCountry = localStorage.getItem('afrikoni_detected_country');
-        const savedCurrency = localStorage.getItem('afrikoni_selected_currency');
+        const savedCurrency = localStorage.getItem('afrikoni_selected_currency') || contextCurrency || 'USD';
         const savedLanguage = localStorage.getItem('afrikoni_selected_language');
         
         if (savedCountry && savedCurrency && savedLanguage) {
           setDetectedCountry(savedCountry);
           setSelectedCurrency(savedCurrency);
+          setContextCurrency(savedCurrency); // Sync with context
           if (savedLanguage !== language) {
             setLanguage(savedLanguage);
           }
@@ -158,6 +168,7 @@ export default function Navbar({ user, onLogout }) {
           const preferences = await autoDetectUserPreferences();
           setDetectedCountry(preferences.countryCode);
           setSelectedCurrency(preferences.currency);
+          setContextCurrency(preferences.currency); // Sync with context
           if (preferences.language !== language) {
             setLanguage(preferences.language);
           }
@@ -171,7 +182,9 @@ export default function Navbar({ user, onLogout }) {
         console.warn('Failed to auto-detect preferences:', error);
         // Use defaults
         setDetectedCountry('DEFAULT');
-        setSelectedCurrency('USD');
+        const defaultCurrency = contextCurrency || 'USD';
+        setSelectedCurrency(defaultCurrency);
+        setContextCurrency(defaultCurrency);
       }
     };
     
@@ -278,6 +291,7 @@ export default function Navbar({ user, onLogout }) {
 
   const handleCurrencyChange = (currCode) => {
     setSelectedCurrency(currCode);
+    setContextCurrency(currCode); // Update global currency context
     localStorage.setItem('afrikoni_selected_currency', currCode);
     setSettingsOpen(false);
   };
@@ -299,6 +313,7 @@ export default function Navbar({ user, onLogout }) {
     // Auto-update currency based on country
     const newCurrency = getCurrencyForCountry(countryCode);
     setSelectedCurrency(newCurrency);
+    setContextCurrency(newCurrency); // Update global currency context
     localStorage.setItem('afrikoni_selected_currency', newCurrency);
     
     // Auto-update language based on country (optional)
