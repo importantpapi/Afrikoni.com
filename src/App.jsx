@@ -70,6 +70,7 @@ const AdminReview = lazy(() => import('./pages/dashboard/admin/review'));
 const AdminVerificationReview = lazy(() => import('./pages/dashboard/admin/verification-review'));
 const AdminAnalytics = lazy(() => import('./pages/dashboard/admin/analytics'));
 const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'));
+const AdminSupplierManagement = lazy(() => import('./pages/dashboard/admin/supplier-management'));
 const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
 const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-tickets'));
@@ -227,6 +228,7 @@ function App() {
             <Route path="/dashboard/admin/verification-review" element={<ProtectedRoute><AdminVerificationReview /></ProtectedRoute>} />
             <Route path="/dashboard/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/supplier-management" element={<ProtectedRoute><AdminSupplierManagement /></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
             <Route path="/dashboard/admin/revenue" element={<ProtectedRoute><AdminRevenue /></ProtectedRoute>} />
             <Route path="/dashboard/admin/growth-metrics" element={<ProtectedRoute><AdminGrowthMetrics /></ProtectedRoute>} />

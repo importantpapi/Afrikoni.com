@@ -180,6 +180,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: TrendingUp, label: 'Growth Metrics', path: '/dashboard/admin/growth-metrics' },
       { icon: UsersIcon, label: 'Onboarding Tracker', path: '/dashboard/admin/onboarding-tracker' },
       { icon: Package, label: 'Marketplace', path: '/dashboard/admin/marketplace' },
+      { icon: UsersIcon, label: 'Supplier Management', path: '/dashboard/admin/supplier-management' },
       { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
       { icon: Shield, label: 'Verification Review', path: '/dashboard/admin/verification-review' },
       { icon: Star, label: 'Review Moderation', path: '/dashboard/admin/reviews' },
