@@ -449,8 +449,7 @@ export default function PopularCategories({ categories = [] }) {
                     scrollSnapAlign: 'center',
                     height: 'auto',
                     aspectRatio: '4 / 5',
-                    borderRadius: '16px',
-                    flexShrink: 0
+                    borderRadius: '16px'
                   }}
                 >
                   <Link 

@@ -9,6 +9,7 @@ const Button = React.forwardRef(({
   leftIcon: LeftIcon,
   rightIcon: RightIcon,
   children,
+  asChild = false,
   ...props 
 }, ref) => {
   const variants = {
@@ -33,16 +34,27 @@ const Button = React.forwardRef(({
     </>
   );
 
+  const buttonClasses = cn(
+    'inline-flex items-center justify-center font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-afrikoni-gold focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+    variants[variant],
+    sizes[size],
+    className
+  );
+
+  // If asChild is true, clone the child and apply props to it
+  if (asChild) {
+    return React.cloneElement(React.Children.only(children), {
+      className: cn(buttonClasses, children.props.className),
+      ref,
+      ...props
+    });
+  }
+
   return (
     <motion.button
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={cn(
-        'inline-flex items-center justify-center font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-afrikoni-gold focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        variants[variant],
-        sizes[size],
-        className
-      )}
+      className={buttonClasses}
       ref={ref}
       {...props}
     >
