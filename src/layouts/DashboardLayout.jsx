@@ -430,10 +430,10 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       </motion.aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 md:ml-64 min-h-screen relative z-10 overflow-visible">
+      <div className="flex flex-col flex-1 md:ml-[16rem] min-h-screen relative z-10 overflow-visible">
         {/* Premium Top Bar */}
         <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
-          <div className="flex items-center justify-between px-4 md:px-6 py-4 relative overflow-visible">
+          <div className="flex items-center justify-between px-2 md:px-4 lg:px-6 py-4 relative overflow-visible">
             {/* Community CTA - Mobile */}
             <div className="md:hidden">
               <button
@@ -729,8 +729,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 px-4 md:px-6 lg:px-8 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
-          <div className="max-w-[1600px] mx-auto w-full py-4 md:py-6">
+        <main className="flex-1 px-2 md:px-3 lg:px-4 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
+          <div className="w-full py-4 md:py-6">
             {children}
           </div>
         </main>
