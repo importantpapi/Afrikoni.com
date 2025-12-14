@@ -272,17 +272,17 @@ export default function Navbar({ user, onLogout }) {
             <Logo type="full" size="sm" link={true} showTagline={false} direction="horizontal" />
           </div>
 
-          {/* All Categories - Alibaba-style Navigation Link */}
-          <Link 
-            to="/categories" 
+          {/* All Categories - Opens Mega Menu (Alibaba-style) */}
+          <button
+            onClick={toggleMegaMenu}
             className={`hidden sm:flex items-center gap-1 text-sm sm:text-base font-bold transition-colors whitespace-nowrap ${
-              location.pathname === '/categories' || location.pathname.startsWith('/categories')
+              megaOpen
                 ? 'text-afrikoni-gold border-b-2 border-afrikoni-gold pb-1'
                 : 'text-afrikoni-cream hover:text-afrikoni-gold'
             }`}
           >
             All Categories
-          </Link>
+          </button>
 
           {/* Marketplace Link */}
           <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
@@ -602,32 +602,50 @@ export default function Navbar({ user, onLogout }) {
               transition={{ duration: 0.2, ease: 'easeOut' }}
               className="absolute left-0 top-full w-full bg-white shadow-xl border-t border-gray-200 z-[50] max-h-[calc(100vh-4rem)] overflow-y-auto"
             >
-              <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 overflow-y-auto overscroll-contain" style={{ maxHeight: 'min(500px, calc(100vh - 4rem))' }}>
-          {/* Categories */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">{t('nav.browseByCategory')}</h3>
-            <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/categories" onClick={() => setMegaOpen(false)} className="font-medium text-afrikoni-gold hover:text-afrikoni-chestnut">
-                {t('nav.allCategories')} →
-              </Link>
-              {categoriesLoading ? (
-                <div className="text-gray-500 text-xs">{t('nav.loadingCategories')}</div>
-              ) : categories.length > 0 ? (
-                categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    to={`/marketplace?category=${encodeURIComponent(category.id)}`}
-                    onClick={() => setMegaOpen(false)}
-                    className="hover:text-afrikoni-gold transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                ))
-              ) : (
-                <div className="text-gray-500 text-xs">{t('nav.noCategories')}</div>
-              )}
-            </nav>
-          </div>
+              <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                {/* Main Categories Section - Alibaba Style */}
+                <div className="mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-afrikoni-chestnut mb-4">Browse All Categories</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                    {categoriesLoading ? (
+                      <div className="col-span-full text-gray-500 text-sm py-4">{t('nav.loadingCategories')}</div>
+                    ) : categories.length > 0 ? (
+                      categories.map((category) => (
+                        <Link
+                          key={category.id}
+                          to={`/marketplace?category=${encodeURIComponent(category.id)}`}
+                          onClick={() => setMegaOpen(false)}
+                          className="flex flex-col items-center p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 transition-all group"
+                        >
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 mb-2 flex items-center justify-center bg-afrikoni-offwhite rounded-lg group-hover:bg-afrikoni-gold/10 transition-colors">
+                            <Package className="w-6 h-6 sm:w-7 sm:h-7 text-afrikoni-gold" />
+                          </div>
+                          <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-afrikoni-gold text-center line-clamp-2">
+                            {category.name}
+                          </span>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="col-span-full text-gray-500 text-sm py-4">{t('nav.noCategories')}</div>
+                    )}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <Link 
+                      to="/categories" 
+                      onClick={() => setMegaOpen(false)} 
+                      className="inline-flex items-center gap-2 text-afrikoni-gold hover:text-afrikoni-chestnut font-semibold text-sm sm:text-base transition-colors"
+                    >
+                      View All Categories
+                      <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-gray-200 my-6"></div>
+
+                {/* Additional Navigation Sections */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
           {/* Marketplace */}
           <div>
@@ -675,7 +693,8 @@ export default function Navbar({ user, onLogout }) {
               <Link to="/disputes" onClick={() => setMegaOpen(false)}>{t('nav.disputeResolution')}</Link>
             </nav>
           </div>
-        </div>
+                </div>
+              </div>
       </motion.div>
           </>
         )}
