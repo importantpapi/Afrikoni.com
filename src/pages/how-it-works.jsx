@@ -27,50 +27,55 @@ export default function HowItWorks() {
 
   const loadRealStats = async () => {
     try {
-      // Get verified suppliers count
+      // Get verified suppliers count (public query - no auth required)
       const { count: verifiedSuppliers, error: suppliersError } = await supabase
         .from('companies')
         .select('*', { count: 'exact', head: true })
         .eq('verified', true);
 
-      if (suppliersError) throw suppliersError;
-
-      // Get active products count
+      // Get active products count (public query - no auth required)
       const { count: activeProducts, error: productsError } = await supabase
         .from('products')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'active');
 
-      if (productsError) throw productsError;
-
-      // Get active buyers (users with RFQs)
-      const { data: buyersData, error: buyersError } = await supabase
-        .from('rfqs')
-        .select('user_id')
-        .limit(1000);
-
-      if (buyersError) throw buyersError;
-
-      const uniqueBuyers = new Set(buyersData?.map(r => r.user_id).filter(Boolean) || []);
-
-      setStats([
-        { 
-          value: verifiedSuppliers > 0 ? `${verifiedSuppliers}+` : 'Growing', 
-          label: 'Verified Suppliers' 
-        },
-        { 
-          value: activeProducts > 0 ? `${activeProducts}+` : 'Available', 
-          label: 'Products Available' 
-        },
-        { value: '54', label: 'African Countries' },
-        { 
-          value: uniqueBuyers.size > 0 ? `${uniqueBuyers.size}+` : 'Active', 
-          label: 'Active Buyers' 
+      // Get active buyers (users with RFQs) - this may require auth, so handle gracefully
+      let uniqueBuyers = new Set();
+      try {
+        const { data: buyersData, error: buyersError } = await supabase
+          .from('rfqs')
+          .select('user_id')
+          .limit(1000);
+        
+        if (!buyersError && buyersData) {
+          uniqueBuyers = new Set(buyersData.map(r => r.user_id).filter(Boolean));
         }
-      ]);
+      } catch (rfqError) {
+        // Silently fail if RFQ query fails (likely due to RLS)
+        console.debug('RFQ stats not available:', rfqError);
+      }
+
+      // Only update stats if we got valid data (ignore auth errors)
+      if (!suppliersError && !productsError) {
+        setStats([
+          { 
+            value: verifiedSuppliers > 0 ? `${verifiedSuppliers}+` : 'Growing', 
+            label: 'Verified Suppliers' 
+          },
+          { 
+            value: activeProducts > 0 ? `${activeProducts}+` : 'Available', 
+            label: 'Products Available' 
+          },
+          { value: '54', label: 'African Countries' },
+          { 
+            value: uniqueBuyers.size > 0 ? `${uniqueBuyers.size}+` : 'Active', 
+            label: 'Active Buyers' 
+          }
+        ]);
+      }
     } catch (error) {
-      console.error('Error loading stats:', error);
-      // Keep default stats on error
+      // Silently fail - keep default stats
+      console.debug('Stats loading error (non-critical):', error);
     }
   };
 
