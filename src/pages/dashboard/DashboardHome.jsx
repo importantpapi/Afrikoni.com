@@ -659,7 +659,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                     Guided learning
                   </Badge>
                 </div>
-                <p className="text-xs md:text-sm text-afrikoni-text-dark/80 max-w-3xl">
+                <p className="text-xs md:text-sm text-afrikoni-text-dark/80">
                   Short, practical lessons to help you trade safely and confidently on Afrikoni. Start with the steps
                   below — each one is designed for busy African businesses, not lawyers.
                 </p>
