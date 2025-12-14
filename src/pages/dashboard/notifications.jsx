@@ -25,26 +25,66 @@ export default function NotificationsCenter() {
   useEffect(() => {
     loadNotifications();
     
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('notifications-updates')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications'
-      }, () => {
-        loadNotifications();
-      })
-      .subscribe();
+    // Subscribe to real-time updates only after user context is available
+    let channel = null;
+    const setupSubscription = async () => {
+      try {
+        const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+        const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        if (!userData) return;
+
+        const { getOrCreateCompany } = await import('@/utils/companyHelper');
+        const companyId = await getOrCreateCompany(supabase, userData);
+        
+        // Only subscribe if we have a filter (company_id, user_id, or user_email)
+        if (!companyId && !userData.id && !userData.email) return;
+
+        // Build filter for realtime subscription
+        let filter = '';
+        if (companyId) {
+          filter = `company_id=eq.${companyId}`;
+        } else if (userData.id) {
+          filter = `user_id=eq.${userData.id}`;
+        } else if (userData.email) {
+          filter = `user_email=eq.${userData.email}`;
+        }
+
+        channel = supabase
+          .channel('notifications-updates')
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: filter
+          }, () => {
+            loadNotifications();
+          })
+          .subscribe();
+      } catch (error) {
+        // Silently fail - subscription is optional
+      }
+    };
+
+    setupSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
   const loadNotifications = async () => {
     try {
       setIsLoading(true);
+      
+      // Ensure session is ready before querying (RLS requires auth.uid())
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        navigate('/login');
+        return;
+      }
+      
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
       const { user: userData, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       if (!userData) {
@@ -58,22 +98,71 @@ export default function NotificationsCenter() {
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
       const companyId = await getOrCreateCompany(supabase, userData);
 
+      // If company_id was created, verify profile has it set (RLS requires this)
+      if (companyId && userData.id) {
+        try {
+          const { data: profileCheck } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('id', userData.id)
+            .maybeSingle();
+
+          // If profile doesn't have company_id, update it (RLS requires this match)
+          if (profileCheck?.company_id !== companyId) {
+            await supabase
+              .from('profiles')
+              .upsert({ id: userData.id, company_id: companyId }, { onConflict: 'id' });
+          }
+        } catch (err) {
+          console.debug('Error updating profile company_id:', err);
+        }
+      }
+
+      // Ensure session is ready before querying (RLS requires auth.uid())
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        console.debug('No active session for notifications query');
+        setNotifications([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Always require at least one filter to pass RLS
+      // Prefer user_id over company_id for RLS matching (more reliable)
+      if (!userData.id && !userData.email && !companyId) {
+        setNotifications([]);
+        setIsLoading(false);
+        return;
+      }
+
       let query = supabase
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (companyId) {
-        query = query.eq('company_id', companyId);
-      } else if (userData.id) {
+      // Prefer user_id first (most reliable for RLS), then company_id, then user_email
+      if (userData.id) {
         query = query.eq('user_id', userData.id);
-      } else {
+      } else if (companyId) {
+        query = query.eq('company_id', companyId);
+      } else if (userData.email) {
         query = query.eq('user_email', userData.email);
       }
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific error codes gracefully
+        if (error.code === '42501') {
+          console.debug('RLS policy violation - user may not have access:', error.message);
+        } else if (error.code === 'PGRST116') {
+          // No rows found - this is OK
+          setNotifications([]);
+          return;
+        } else {
+          throw error;
+        }
+      }
       setNotifications(data || []);
     } catch (error) {
       toast.error('Failed to load notifications');

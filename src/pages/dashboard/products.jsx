@@ -66,10 +66,14 @@ export default function DashboardProducts() {
       setCompanyId(userCompanyId);
 
       // Load categories
-      const { data: categoriesData } = await supabase
+      const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('*')
         .order('name');
+      
+      if (categoriesError) {
+        console.error('Error loading categories:', categoriesError);
+      }
       setCategories(categoriesData || []);
 
       // Build product query with explicit product_images select
@@ -111,6 +115,10 @@ export default function DashboardProducts() {
         pageSize: pagination.pageSize,
         selectOverride: selectString
       });
+      
+      if (result.error) {
+        console.error('Error loading products:', result.error);
+      }
 
       // Transform products to include primary image from product_images table
       const productsWithImages = Array.isArray(result.data) ? result.data.map(product => {
@@ -144,6 +152,7 @@ export default function DashboardProducts() {
         isLoading: false
       }));
     } catch (error) {
+      console.error('Error loading products:', error);
       // Fail gracefully - treat as no data instead of error
       setProducts([]);
       setCategories([]);

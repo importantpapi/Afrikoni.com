@@ -207,22 +207,26 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         }
       }
       
-      // RFQs: only for buyers
-      if (loadBuyerData) {
+      // RFQs: only for buyers (with null check)
+      if (loadBuyerData && cid) {
         queries.push(supabase.from('rfqs').select('*', { count: 'exact' }).eq('buyer_company_id', cid));
       } else {
         queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
       }
       
-      // Products: only for sellers
-      if (loadSellerData) {
+      // Products: only for sellers (with null check)
+      if (loadSellerData && cid) {
         queries.push(supabase.from('products').select('*', { count: 'exact' }).eq('company_id', cid));
       } else {
         queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
       }
       
-      // Messages: always load
-      queries.push(supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', cid).eq('read', false));
+      // Messages: always load (with null check)
+      if (cid) {
+        queries.push(supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_company_id', cid).eq('read', false));
+      } else {
+        queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
+      }
       
       // Suppliers: only for buyers
       if (loadBuyerData) {

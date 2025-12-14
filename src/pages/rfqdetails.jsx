@@ -60,9 +60,18 @@ export default function RFQDetail() {
         supabase.from('quotes').select('*')
       ]);
 
-      if (rfqsRes.error) throw rfqsRes.error;
-      if (companiesRes.error) throw companiesRes.error;
-      if (quotesRes.error) throw quotesRes.error;
+      if (rfqsRes.error) {
+        console.error('Error loading RFQs:', rfqsRes.error);
+        throw rfqsRes.error;
+      }
+      if (companiesRes.error) {
+        console.error('Error loading companies:', companiesRes.error);
+        throw companiesRes.error;
+      }
+      if (quotesRes.error) {
+        console.error('Error loading quotes:', quotesRes.error);
+        throw quotesRes.error;
+      }
 
       const foundRFQ = rfqsRes.data?.find(r => r.id === rfqId);
       if (!foundRFQ) {

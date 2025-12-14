@@ -21,9 +21,6 @@ import { getUserRole } from './roleHelpers';
  * @returns {Promise<{user: Object|null, profile: Object|null, role: string, companyId: string|null, onboardingCompleted: boolean}>}
  */
 export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:23',message:'getCurrentUserAndRole entry',data:{hasSupabaseHelpers:!!supabaseHelpers},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-  // #endregion
   
   // Defensive check: if supabaseHelpers is missing, import it
   let helpers = supabaseHelpers;
@@ -31,21 +28,10 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
     try {
       const { supabaseHelpers: importedHelpers } = await import('@/api/supabaseClient');
       helpers = importedHelpers;
-      // #region agent log
-      try {
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:32',message:'supabaseHelpers auto-imported',data:{hasHelpers:!!helpers},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      } catch (logErr) {
-        console.debug('[DEBUG] supabaseHelpers auto-imported');
-      }
-      // #endregion
     } catch (importError) {
-      // #region agent log
-      try {
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:40',message:'Failed to import supabaseHelpers',data:{error:importError?.message,stack:importError?.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      } catch (logErr) {
+      if (import.meta.env.DEV) {
         console.error('[DEBUG] Failed to import supabaseHelpers:', importError);
       }
-      // #endregion
       // Return safe defaults if we can't import helpers
       return {
         user: null,
@@ -60,14 +46,9 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
   // Validate helpers structure
   if (!helpers || !helpers.auth || typeof helpers.auth.me !== 'function') {
     const errorMsg = `Invalid supabaseHelpers structure: helpers=${!!helpers}, auth=${!!helpers?.auth}, me=${typeof helpers?.auth?.me}`;
-    console.error('[DEBUG]', errorMsg, helpers);
-    // #region agent log
-    try {
-      fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:52',message:'Invalid helpers structure',data:{error:errorMsg,helpersKeys:helpers ? Object.keys(helpers) : null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-    } catch (logErr) {
-      console.error('[DEBUG] Invalid helpers structure:', errorMsg);
+    if (import.meta.env.DEV) {
+      console.error('[DEBUG]', errorMsg, helpers);
     }
-    // #endregion
     return {
       user: null,
       profile: null,
@@ -80,9 +61,6 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
   try {
     // 1. Check session first
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:28',message:'Session check',data:{hasSession:!!session,hasError:!!sessionError},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
     
     if (sessionError || !session) {
       return {
@@ -96,9 +74,6 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
 
     // 2. Get auth user
     const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:42',message:'getUser result',data:{hasUser:!!authUser,hasError:!!userError},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
     if (userError || !authUser) {
       return {
         user: null,
@@ -112,36 +87,16 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
     // 3. Fetch user profile using existing helper (handles profiles/users fallback)
     let profile = null;
     try {
-      // #region agent log
-      try {
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:87',message:'Fetching profile',data:{hasHelpers:!!helpers,helpersType:typeof helpers},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      } catch (logErr) {
-        console.debug('[DEBUG] Log fetch failed:', logErr);
-      }
-      // #endregion
-      
       // Defensive check: ensure helpers and helpers.auth exist
       if (!helpers || !helpers.auth || typeof helpers.auth.me !== 'function') {
         throw new Error(`Invalid supabaseHelpers: helpers=${!!helpers}, helpers.auth=${!!helpers?.auth}, helpers.auth.me=${typeof helpers?.auth?.me}`);
       }
       
       profile = await helpers.auth.me();
-      
-      // #region agent log
-      try {
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:97',message:'Profile fetched',data:{hasProfile:!!profile,onboardingCompleted:profile?.onboarding_completed},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      } catch (logErr) {
-        console.debug('[DEBUG] Log fetch failed:', logErr);
-      }
-      // #endregion
     } catch (profileError) {
-      // #region agent log
-      try {
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'authHelpers.jsx:105',message:'Profile fetch error',data:{error:profileError?.message,code:profileError?.code,stack:profileError?.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      } catch (logErr) {
-        console.error('[DEBUG] Profile fetch error (log failed):', profileError);
+      if (import.meta.env.DEV) {
+        console.error('[DEBUG] Profile fetch error:', profileError);
       }
-      // #endregion
       // If profile doesn't exist, create minimal one
       if (profileError.code === 'PGRST116' || profileError.code === '42P01') {
         const { error: upsertError } = await supabase

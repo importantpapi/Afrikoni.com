@@ -7,7 +7,185 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create singleton Supabase client to avoid multiple GoTrueClient instances
+let supabaseInstance = null;
+
+export const supabase = (() => {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storageKey: 'afrikoni-auth'
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10
+        }
+      }
+    });
+  }
+  return supabaseInstance;
+})();
+
+// ============================================================================
+// CHROME EXTENSION ERROR SUPPRESSION
+// ============================================================================
+// Suppress "Unchecked runtime.lastError" and "message channel closed" errors
+// from Chrome extensions (e.g., Hybr.id, password managers, etc.)
+if (typeof window !== 'undefined') {
+  // Suppress console errors from extensions
+  const originalError = console.error;
+  console.error = function(...args) {
+    const message = args[0]?.toString() || '';
+    // Filter out extension-related errors
+    if (
+      message.includes('runtime.lastError') ||
+      message.includes('message channel closed') ||
+      message.includes('Extension context invalidated') ||
+      message.includes('chrome-extension://') ||
+      message.includes('moz-extension://') ||
+      message.includes('safari-extension://')
+    ) {
+      // Silently ignore extension errors
+      return;
+    }
+    // Log all other errors normally
+    originalError.apply(console, args);
+  };
+
+  // Suppress unhandled promise rejections from extensions
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason?.toString() || '';
+    if (
+      reason.includes('runtime.lastError') ||
+      reason.includes('message channel closed') ||
+      reason.includes('Extension context invalidated') ||
+      reason.includes('chrome-extension://')
+    ) {
+      event.preventDefault(); // Suppress the error
+      return;
+    }
+  });
+
+  // Suppress runtime.lastError warnings
+  if (window.chrome?.runtime) {
+    const originalSendMessage = window.chrome.runtime.sendMessage;
+    if (originalSendMessage) {
+      window.chrome.runtime.sendMessage = function(...args) {
+        try {
+          return originalSendMessage.apply(this, args);
+        } catch (error) {
+          // Silently catch extension errors
+          if (error?.message?.includes('lastError') || error?.message?.includes('channel closed')) {
+            return;
+          }
+          throw error;
+        }
+      };
+    }
+  }
+}
+
+// ============================================================================
+// SUPABASE ERROR INTERCEPTOR
+// ============================================================================
+// Global error interceptor for debugging
+// This catches ALL Supabase errors that might not be handled in individual queries
+if (import.meta.env.DEV) {
+  // Intercept fetch requests to Supabase
+  const originalFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const url = args[0];
+    if (typeof url === 'string' && url.includes('supabase.co')) {
+      try {
+        const response = await originalFetch.apply(this, args);
+        // Log errors in dev mode only
+        if (!response.ok && import.meta.env.DEV) {
+          console.debug('Supabase request failed:', { url, status: response.status, statusText: response.statusText });
+        }
+        return response;
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.debug('Supabase fetch error:', { url, error: error?.message });
+        }
+        throw error;
+      }
+    }
+    return originalFetch.apply(this, args);
+  };
+}
+
+// ============================================================================
+// AUTH READY HELPER
+// ============================================================================
+/**
+ * Ensure Supabase auth session is ready before making queries
+ * Returns true if session is ready, false otherwise
+ */
+export async function ensureAuthReady() {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.debug('Auth session error:', error);
+      return false;
+    }
+    return !!session;
+  } catch (error) {
+    console.debug('Auth check failed:', error);
+    return false;
+  }
+}
+
+// ============================================================================
+// SAFE QUERY HELPER
+// ============================================================================
+/**
+ * Execute a Supabase query with proper error handling and null checks
+ * @param {Function} queryFn - Function that returns a Supabase query
+ * @param {Object} options - Options: { requireAuth, defaultValue, onError }
+ */
+export async function safeQuery(queryFn, options = {}) {
+  const { requireAuth = true, defaultValue = null, onError = null } = options;
+  
+  try {
+    // Check auth if required
+    if (requireAuth) {
+      const authReady = await ensureAuthReady();
+      if (!authReady) {
+        if (onError) onError(new Error('Authentication required'));
+        return defaultValue;
+      }
+    }
+    
+    // Execute query
+    const result = await queryFn();
+    
+    // Check for Supabase errors
+    if (result.error) {
+      // Handle specific error codes
+      if (result.error.code === '42501') {
+        console.debug('RLS policy violation:', result.error.message);
+      } else if (result.error.code === '42P01') {
+        console.debug('Table does not exist:', result.error.message);
+      } else if (result.error.code === 'PGRST116') {
+        // No rows found - this is OK
+        return defaultValue || [];
+      }
+      
+      if (onError) onError(result.error);
+      return defaultValue;
+    }
+    
+    return result.data ?? defaultValue;
+  } catch (error) {
+    console.error('Query execution error:', error);
+    if (onError) onError(error);
+    return defaultValue;
+  }
+}
 
 // Helper functions to match Base44 API patterns for easier migration
 export const supabaseHelpers = {

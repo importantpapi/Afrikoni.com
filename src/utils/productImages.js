@@ -20,15 +20,30 @@ const BUCKET_NAME = 'product-images';
 export function normalizeProductImageUrl(rawUrl) {
   if (!rawUrl) return null;
   
-  // If already a full URL, return as-is
-  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+  // Filter out localhost/127.0.0.1 URLs (these are invalid in production)
+  if (typeof rawUrl === 'string') {
+    const lowerUrl = rawUrl.toLowerCase();
+    if (lowerUrl.includes('localhost:') || lowerUrl.includes('127.0.0.1:')) {
+      console.warn('Invalid image URL detected (localhost):', rawUrl);
+      return null; // Return null to trigger fallback/placeholder
+    }
+  }
+  
+  // If already a full URL, return as-is (but only if it's a valid HTTPS URL)
+  if (rawUrl.startsWith('https://')) {
     return rawUrl;
+  }
+  
+  // Reject HTTP URLs (insecure)
+  if (rawUrl.startsWith('http://')) {
+    console.warn('Insecure HTTP image URL detected:', rawUrl);
+    return null;
   }
   
   // If it's a filename or relative path, construct full URL
   if (!SUPABASE_URL) {
     console.warn('VITE_SUPABASE_URL not set, cannot normalize image URL');
-    return rawUrl; // Return as-is if no base URL
+    return null; // Return null instead of rawUrl to trigger fallback
   }
   
   // Remove leading slash if present

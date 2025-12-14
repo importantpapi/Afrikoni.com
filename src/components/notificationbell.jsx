@@ -19,26 +19,53 @@ export default function NotificationBell() {
     if (user) {
       loadNotifications();
       
-      // Subscribe to real-time notifications
+      // Subscribe to real-time notifications only if we have proper filters
       const setupSubscription = async () => {
-        const { getOrCreateCompany } = await import('@/utils/companyHelper');
-        const companyId = await getOrCreateCompany(supabase, user);
-        
-        const channel = supabase
-          .channel('notifications')
-          .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: companyId ? `company_id=eq.${companyId}` : `user_email=eq.${user.email}`
-          }, () => {
-            loadNotifications();
-          })
-          .subscribe();
+        try {
+          const { getOrCreateCompany } = await import('@/utils/companyHelper');
+          const companyId = await getOrCreateCompany(supabase, user);
+          
+          // Only subscribe if we have a valid filter
+          if (!companyId && !user.id && !user.email) {
+            return null;
+          }
+          
+          // Build filter for realtime subscription
+          let filter = '';
+          if (companyId) {
+            filter = `company_id=eq.${companyId}`;
+          } else if (user.id) {
+            filter = `user_id=eq.${user.id}`;
+          } else if (user.email) {
+            filter = `user_email=eq.${user.email}`;
+          }
+          
+          const channel = supabase
+            .channel(`notifications-${user.id || user.email}`)
+            .on('postgres_changes', {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'notifications',
+              filter: filter
+            }, () => {
+              loadNotifications();
+            })
+            .subscribe((status) => {
+              if (status === 'CHANNEL_ERROR') {
+                // Silently handle subscription errors
+                console.debug('Notification subscription error');
+              }
+            });
 
-        return () => {
-          supabase.removeChannel(channel);
-        };
+          return () => {
+            if (channel) {
+              supabase.removeChannel(channel);
+            }
+          };
+        } catch (error) {
+          // Silently fail - subscription is optional
+          return null;
+        }
       };
 
       let cleanup;
@@ -58,17 +85,59 @@ export default function NotificationBell() {
       const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
     } catch (error) {
-      // Error logged (removed for production)
+      console.debug('Error loading user for notifications:', error);
     }
   };
 
   const loadNotifications = async () => {
     if (!user) return;
     
+    // Ensure session is ready before querying (RLS requires auth.uid())
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
+    } catch (error) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+    
     try {
       // Get company_id if available
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
       const companyId = await getOrCreateCompany(supabase, user);
+
+      // If company_id was created, verify profile has it set (RLS requires this)
+      if (companyId && user.id) {
+        try {
+          const { data: profileCheck } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          // If profile doesn't have company_id, update it (RLS requires this match)
+          if (profileCheck?.company_id !== companyId) {
+            await supabase
+              .from('profiles')
+              .upsert({ id: user.id, company_id: companyId }, { onConflict: 'id' });
+          }
+        } catch (err) {
+          console.debug('Error updating profile company_id:', err);
+        }
+      }
+
+      // Always require at least one filter to pass RLS
+      // Prefer user_id over company_id for RLS matching (more reliable)
+      if (!user.id && !user.email) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
 
       let query = supabase
         .from('notifications')
@@ -76,21 +145,31 @@ export default function NotificationBell() {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Try company_id first, then fallback to user_email
-      if (companyId) {
+      // Prefer user_id first (most reliable for RLS), then company_id, then user_email
+      if (user.id) {
+        query = query.eq('user_id', user.id);
+      } else if (companyId) {
         query = query.eq('company_id', companyId);
-      } else {
+      } else if (user.email) {
         query = query.eq('user_email', user.email);
       }
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        // Log but don't throw - gracefully handle errors
+        console.debug('Notification bell query error:', error);
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
       
       setNotifications(data || []);
       setUnreadCount(data?.filter(n => !n.read).length || 0);
     } catch (error) {
-      // Error logged (removed for production)
+      console.debug('Error loading notifications:', error);
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 

@@ -189,7 +189,12 @@ export default function AddProductAlibaba() {
         `)
         .eq('id', productId)
         .eq('company_id', company.id)
-        .single();
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error loading product:', error);
+        throw error;
+      }
       
       if (error) {
         console.error('Error loading product:', error);

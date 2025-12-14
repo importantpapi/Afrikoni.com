@@ -16,9 +16,6 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-callback.jsx:18',message:'handleAuthCallback entry',data:{hash:window.location.hash?.substring(0,50)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       try {
         // Get the URL hash which contains the OAuth tokens
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -26,18 +23,12 @@ export default function AuthCallback() {
         const refreshToken = hashParams.get('refresh_token');
         const errorParam = hashParams.get('error');
         const errorDescription = hashParams.get('error_description');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-callback.jsx:25',message:'OAuth params parsed',data:{hasAccessToken:!!accessToken,hasError:!!errorParam},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
 
         if (errorParam) {
           throw new Error(errorDescription || errorParam);
         }
 
         if (!accessToken) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-callback.jsx:33',message:'No accessToken, checking session',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-          // #endregion
           // Try to get session from Supabase
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           if (sessionError || !session) {
@@ -50,9 +41,6 @@ export default function AuthCallback() {
 
         // Get the current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-callback.jsx:45',message:'getUser result',data:{hasUser:!!user,hasError:!!userError},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         if (userError) throw userError;
         if (!user) throw new Error('User not found');
 
@@ -100,17 +88,11 @@ export default function AuthCallback() {
         // Check onboarding status and redirect
         const userRoleData = await getCurrentUserAndRole(supabase, supabaseHelpers);
         const { onboardingCompleted, role } = userRoleData;
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-callback.jsx:90',message:'getCurrentUserAndRole result',data:{onboardingCompleted,role,hasProfile:!!userRoleData.profile},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
         
         // Get redirect URL from query params or use default
         const redirectUrl = searchParams.get('redirect_to') || searchParams.get('redirect');
 
         if (!onboardingCompleted) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-callback.jsx:96',message:'Redirecting to onboarding',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-          // #endregion
           navigate('/onboarding?step=1', { replace: true });
         } else {
           const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
@@ -118,9 +100,6 @@ export default function AuthCallback() {
           
           // For hybrid users, use unified dashboard
           const finalPath = role === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth-callback.jsx:103',message:'Redirecting to dashboard',data:{role,finalPath,redirectUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-          // #endregion
           if (redirectUrl && redirectUrl !== window.location.origin && !redirectUrl.includes('/dashboard')) {
             navigate(redirectUrl);
           } else {

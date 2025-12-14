@@ -11,16 +11,10 @@ import { getCurrentUserAndRole } from '@/utils/authHelpers';
  * Called when user hovers over dashboard link or when app is idle
  */
 export async function preloadDashboardData(role = 'buyer') {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'preloadData.js:13',message:'preloadDashboardData entry',data:{role},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-  // #endregion
   try {
     // Import supabaseHelpers dynamically to avoid circular dependencies
     const { supabaseHelpers } = await import('@/api/supabaseClient');
     const { companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'preloadData.js:17',message:'getCurrentUserAndRole result',data:{hasCompanyId:!!companyId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-    // #endregion
     if (!companyId) return;
 
     // Preload critical dashboard data in parallel
@@ -70,13 +64,7 @@ export async function preloadDashboardData(role = 'buyer') {
 
     // Use Promise.allSettled to not block on errors
     await Promise.allSettled(preloadPromises);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'preloadData.js:64',message:'Preload completed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-    // #endregion
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'preloadData.js:67',message:'Preload error',data:{error:error?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-    // #endregion
     // Silently fail - preloading is optional
     if (import.meta.env.DEV) {
       console.debug('Preload failed:', error);
