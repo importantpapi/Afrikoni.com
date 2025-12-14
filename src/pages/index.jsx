@@ -4,8 +4,7 @@ import HeroSection from '@/components/home/HeroSection';
 import TrustCounters from '@/components/home/TrustCounters';
 import TrustCards from '@/components/home/TrustCards';
 import ServicesOverview from '@/components/home/ServicesOverview';
-import PopularCategories from '@/components/home/PopularCategories';
-import SourceByCountry from '@/components/home/SourceByCountry';
+import ExploreAfricanSupply from '@/components/home/ExploreAfricanSupply';
 import RFQCard from '@/components/home/RFQCard';
 import PartnerLogos from '@/components/home/PartnerLogos';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
@@ -80,12 +79,9 @@ export default function Home() {
           <ServicesOverview />
         </section>
 
-        {/* Popular Categories & Source By Country */}
-        <section className="py-12 md:py-16 lg:py-20">
-          <div className="max-w-7xl mx-auto px-4 space-y-12 md:space-y-16">
-            <PopularCategories categories={categories} />
-            <SourceByCountry />
-          </div>
+        {/* Explore African Supply - Merged Categories & Countries */}
+        <section>
+          <ExploreAfricanSupply />
         </section>
 
         {/* RFQ Card - Prominent Placement */}
