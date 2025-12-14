@@ -99,29 +99,47 @@ export default function ExploreAfricanSupply() {
       const limit = 12;
       const offset = pageNum * limit;
 
-      // Build search query with keywords
-      let query = supabase
+      // Build two queries: one for category match, one for keyword match
+      // Then combine and deduplicate results
+      
+      // Query 1: Products with matching category name in database
+      const { data: categoryProducts } = await supabase
+        .from('products')
+        .select('id, title, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories!inner(name)')
+        .eq('status', 'active')
+        .ilike('categories.name', `%${category.name}%`)
+        .order('created_at', { ascending: false })
+        .limit(limit * 2);
+
+      // Query 2: Products with keywords in title (using OR for multiple keywords)
+      const keywordFilters = category.keywords.map(keyword => `title.ilike.%${keyword}%`);
+      
+      let keywordQuery = supabase
         .from('products')
         .select('id, title, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories(name)')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+        .limit(limit * 2);
 
-      // Try to match category using intelligence - check both keywords and category name
-      const matchedCategory = matchProductToPopularCategory(category.name, '');
-      const keywordFilters = category.keywords.map(keyword => `title.ilike.%${keyword}%`).join(',');
-      
-      // Also match by category name in database
-      const categoryNameFilter = `categories.name.ilike.%${category.name}%`;
-      
-      // Combine filters: keywords OR category name match
-      if (keywordFilters) {
-        query = query.or(`${keywordFilters},${categoryNameFilter}`);
-      } else {
-        query = query.or(categoryNameFilter);
+      if (keywordFilters.length > 0) {
+        keywordQuery = keywordQuery.or(keywordFilters.join(','));
       }
 
-      const { data: products, error } = await query;
+      const { data: keywordProducts } = await keywordQuery;
+
+      // Combine results and remove duplicates
+      const allProducts = [...(categoryProducts || []), ...(keywordProducts || [])];
+      const productMap = new Map();
+      allProducts.forEach(p => {
+        if (!productMap.has(p.id)) {
+          productMap.set(p.id, p);
+        }
+      });
+      
+      // Get unique products and apply pagination
+      const uniqueProducts = Array.from(productMap.values());
+      const products = uniqueProducts.slice(offset, offset + limit);
+      const error = null;
 
       if (!error && products) {
         setCategoryProducts(prev => ({

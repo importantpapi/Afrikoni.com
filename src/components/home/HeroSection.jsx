@@ -125,7 +125,7 @@ export default function HeroSection({ categories = [] }) {
       setUser(session?.user || null);
       if (session?.user && authModalOpen) {
         setAuthModalOpen(false);
-        navigate('/createrfq');
+        navigate('/rfq/create');
       }
     });
 
@@ -141,7 +141,7 @@ export default function HeroSection({ categories = [] }) {
 
   const handlePostRFQ = () => {
     if (user) {
-      navigate('/createrfq');
+      navigate('/rfq/create');
     } else {
       setAuthModalOpen(true);
     }
@@ -379,7 +379,7 @@ export default function HeroSection({ categories = [] }) {
             <Button
               onClick={() => {
                 setAuthModalOpen(false);
-                navigate('/signup?redirect=/createrfq');
+                navigate('/signup?redirect=/rfq/create');
               }}
               className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-chestnut py-6 text-lg font-bold"
             >
@@ -388,7 +388,7 @@ export default function HeroSection({ categories = [] }) {
             <Button
               onClick={() => {
                 setAuthModalOpen(false);
-                navigate('/login?redirect=/createrfq');
+                navigate('/login?redirect=/rfq/create');
               }}
               variant="outline"
               className="w-full border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 py-6 text-lg"
