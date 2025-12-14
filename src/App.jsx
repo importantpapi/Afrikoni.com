@@ -145,6 +145,7 @@ const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 const TrustCenter = lazy(() => import('./pages/trust'));
 const HowPaymentWorks = lazy(() => import('./pages/how-payment-works'));
+const HowItWorks = lazy(() => import('./pages/how-it-works'));
 const About = lazy(() => import('./pages/about'));
 const Community = lazy(() => import('./pages/community'));
 const Blog = lazy(() => import('./pages/blog'));
@@ -305,6 +306,7 @@ function App() {
             <Route path="/investors" element={<Investors />} />
             <Route path="/trust" element={<TrustCenter />} />
             <Route path="/how-payment-works" element={<HowPaymentWorks />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/about" element={<About />} />
             <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/community" element={<Community />} />

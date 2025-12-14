@@ -12,7 +12,6 @@ import TestimonialsSection from '@/components/home/TestimonialsSection';
 import CaseStudies from '@/components/home/CaseStudies';
 import AboutAfrikoni from '@/components/home/AboutAfrikoni';
 import BushidoManifesto from '@/components/home/BushidoManifesto';
-import HowItWorks from '@/components/home/HowItWorks';
 import NewsletterSection from '@/components/home/NewsletterSection';
 import TransparencySection from '@/components/home/TransparencySection';
 import SocialProof from '@/components/home/SocialProof';
@@ -99,11 +98,6 @@ export default function Home() {
         {/* RFQ Card - Prominent Placement */}
         <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-chestnut/10 to-afrikoni-gold/5">
           <RFQCard />
-        </section>
-
-        {/* How It Works */}
-        <section className="py-12 md:py-16 lg:py-20 bg-white">
-          <HowItWorks />
         </section>
 
         {/* Partner Logos */}

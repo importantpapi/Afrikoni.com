@@ -228,6 +228,11 @@ export default function Navbar({ user, onLogout }) {
             For Enterprise
           </Link>
 
+          {/* How It Works Link */}
+          <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+            How It Works
+          </Link>
+
           {/* Community Link */}
           <button
             onClick={() => openWhatsAppCommunity('navbar')}
