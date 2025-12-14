@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,20 +22,24 @@ import { useLanguage } from '@/i18n/LanguageContext';
 export default function CreateRFQ() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
+    title: searchParams.get('product') || '',
     description: '',
     category_id: '',
-    quantity: '',
+    quantity: searchParams.get('quantity') || '',
     unit: 'pieces',
     target_price: '',
-    delivery_location: '',
+    delivery_location: searchParams.get('country') || '',
     delivery_deadline: null,
+    urgency: 'flexible',
+    verified_only: true,
+    afrikoni_managed: true,
     attachments: [],
     status: 'open'
   });
@@ -147,7 +151,7 @@ export default function CreateRFQ() {
         delivery_deadline: formData.delivery_deadline ? format(formData.delivery_deadline, 'yyyy-MM-dd') : null,
         expires_at: formData.delivery_deadline ? format(formData.delivery_deadline, 'yyyy-MM-dd') : null,
         attachments: formData.attachments || [],
-        status: 'open',
+        status: 'in_review', // Start in review for manual matching
         buyer_company_id: companyId || null // Optional - can be null
       };
 
@@ -197,10 +201,8 @@ export default function CreateRFQ() {
         // Notification failed, but RFQ was created
       }
 
-      toast.success('Your request is live. Afrikoni is matching you with verified suppliers.');
-      setTimeout(() => {
-        navigate(`/dashboard/rfqs/${newRFQ.id}`);
-      }, 2000);
+      // Navigate to success confirmation page
+      navigate(`/rfq/success?id=${newRFQ.id}`);
     } catch (error) {
       // Surface error details temporarily to help debug RFQ creation issues
       // eslint-disable-next-line no-console
@@ -252,8 +254,12 @@ export default function CreateRFQ() {
             </div>
           </CardContent>
         </Card>
+        {/* Section 1 - Product Details */}
         <Card className="border-afrikoni-gold/20">
           <CardContent className="p-6 space-y-6">
+            <div className="border-b border-afrikoni-gold/20 pb-3 mb-4">
+              <h2 className="text-xl font-bold text-afrikoni-chestnut">Section 1 — Product Details</h2>
+            </div>
             <div>
               <Label htmlFor="title" className="text-sm sm:text-base">{t('rfq.whatLookingFor')}</Label>
               <Input
@@ -264,9 +270,22 @@ export default function CreateRFQ() {
                 className="text-sm sm:text-base min-h-[44px] mt-1"
               />
             </div>
+            <div>
+              <Label htmlFor="category" className="text-sm sm:text-base">{t('rfq.category')}</Label>
+              <Select value={formData.category_id} onValueChange={(v) => handleChange('category_id', v)}>
+                <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base">
+                  <SelectValue placeholder={t('rfq.selectCategory')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Label htmlFor="description" className="text-sm sm:text-base">{t('rfq.detailedRequirements')}</Label>
+                <Label htmlFor="description" className="text-sm sm:text-base">Specifications <span className="text-afrikoni-deep/70 font-normal">(optional)</span></Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -283,33 +302,26 @@ export default function CreateRFQ() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
-                placeholder={t('rfq.descriptionPlaceholder')}
-                rows={6}
-                className={`text-sm sm:text-base min-h-[120px] ${errors.description ? 'border-red-500' : ''}`}
+                placeholder="Add any specific requirements, quality standards, or technical specifications..."
+                rows={4}
+                className={`text-sm sm:text-base min-h-[100px] ${errors.description ? 'border-red-500' : ''}`}
               />
-              {errors.description && (
-                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
-              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 2 - Order Details */}
+        <Card className="border-afrikoni-gold/20">
+          <CardContent className="p-6 space-y-6">
+            <div className="border-b border-afrikoni-gold/20 pb-3 mb-4">
+              <h2 className="text-xl font-bold text-afrikoni-chestnut">Section 2 — Order Details</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="category" className="text-sm sm:text-base">{t('rfq.category')}</Label>
-                <Select value={formData.category_id} onValueChange={(v) => handleChange('category_id', v)}>
-                  <SelectTrigger className="min-h-[44px] sm:min-h-0 text-sm sm:text-base">
-                    <SelectValue placeholder={t('rfq.selectCategory')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <div>
                 <Label htmlFor="quantity" className="text-sm sm:text-base">{t('rfq.quantity')}</Label>
                 <Input
                   id="quantity"
-                  type="number"
+                  type="text"
                   value={formData.quantity}
                   onChange={(e) => handleChange('quantity', e.target.value)}
                   placeholder={t('rfq.quantityPlaceholder')}
@@ -322,7 +334,7 @@ export default function CreateRFQ() {
               <div>
                 <Label htmlFor="unit">{t('rfq.unit')}</Label>
                 <Select value={formData.unit} onValueChange={(v) => handleChange('unit', v)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -336,94 +348,148 @@ export default function CreateRFQ() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="target_price">{t('rfq.targetPrice')}</Label>
+                <Label htmlFor="target_price">Target price range <span className="text-afrikoni-deep/70 font-normal">(optional)</span></Label>
                 <Input
                   id="target_price"
-                  type="number"
-                  step="0.01"
+                  type="text"
                   value={formData.target_price}
                   onChange={(e) => handleChange('target_price', e.target.value)}
-                  placeholder={t('rfq.targetPricePlaceholder')}
+                  placeholder="e.g., $10,000 - $15,000"
                   className={errors.target_price ? 'border-red-500' : ''}
                 />
-                {errors.target_price && (
-                  <p className="text-red-500 text-sm mt-1">{errors.target_price}</p>
-                )}
               </div>
               <div>
-                <Label htmlFor="delivery_location">{t('rfq.deliveryLocation')}</Label>
+                <Label htmlFor="delivery_location">Delivery country</Label>
                 <Input
                   id="delivery_location"
                   value={formData.delivery_location}
                   onChange={(e) => handleChange('delivery_location', e.target.value)}
-                  placeholder={t('rfq.deliveryLocationPlaceholder')}
+                  placeholder="e.g., United States, Nigeria, Belgium..."
                 />
               </div>
-              <div>
-                <Label>{t('rfq.deliveryDeadline')}</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.delivery_deadline ? format(formData.delivery_deadline, 'PPP') : t('rfq.selectDate')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={formData.delivery_deadline}
-                      onSelect={(date) => handleChange('delivery_deadline', date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              {/* Shipping Calculator */}
-              <div className="pt-4 border-t border-afrikoni-gold/20">
-                <ShippingCalculator
-                  compact={true}
-                  defaultWeight={formData.quantity || ''}
-                  onCalculate={(result) => {
-                    // Store shipping estimate in form data if needed
-                    if (result?.results?.[0]) {
-                      toast.success(`Estimated shipping: $${result.results[0].cost} via ${result.results[0].name}`);
-                    }
-                  }}
-                />
-              </div>
-            </div>
-            <div>
-              <Label>{t('rfq.attachments')}</Label>
-              <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-6 text-center hover:border-afrikoni-gold transition">
-                <input type="file" onChange={handleFileUpload} className="hidden" id="file-upload" />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload className="w-10 h-10 text-afrikoni-deep/70 mx-auto mb-2" />
-                  <div className="text-sm text-afrikoni-deep">{t('rfq.uploadSpecs')}</div>
-                </label>
-              </div>
-              {formData.attachments.length > 0 && (
-                <div className="mt-2 text-sm text-afrikoni-deep">{t('rfq.filesUploaded').replace('{count}', formData.attachments.length)}</div>
-              )}
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate(createPageUrl('BuyerDashboard'))}
-                className="flex-1 min-h-[44px] sm:min-h-0 text-sm sm:text-base"
-              >
-                {t('rfq.cancel')}
-              </Button>
-              <Button 
-                onClick={handleSubmit} 
-                disabled={isLoading} 
-                className="flex-1 bg-afrikoni-gold hover:bg-amber-700 min-h-[44px] sm:min-h-0 text-sm sm:text-base touch-manipulation"
-              >
-                {isLoading ? t('rfq.creating') : t('rfq.publish')}
-              </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Section 3 - Timing */}
+        <Card className="border-afrikoni-gold/20">
+          <CardContent className="p-6 space-y-6">
+            <div className="border-b border-afrikoni-gold/20 pb-3 mb-4">
+              <h2 className="text-xl font-bold text-afrikoni-chestnut">Section 3 — Timing</h2>
+            </div>
+            <div>
+              <Label>Urgency</Label>
+              <Select value={formData.urgency} onValueChange={(v) => handleChange('urgency', v)}>
+                <SelectTrigger className="min-h-[44px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asap">ASAP</SelectItem>
+                  <SelectItem value="30days">30 days</SelectItem>
+                  <SelectItem value="flexible">Flexible</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>{t('rfq.deliveryDeadline')} <span className="text-afrikoni-deep/70 font-normal">(optional)</span></Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal min-h-[44px]">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.delivery_deadline ? format(formData.delivery_deadline, 'PPP') : t('rfq.selectDate')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.delivery_deadline}
+                    onSelect={(date) => handleChange('delivery_deadline', date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 4 - Privacy & Control */}
+        <Card className="border-afrikoni-gold/20">
+          <CardContent className="p-6 space-y-6">
+            <div className="border-b border-afrikoni-gold/20 pb-3 mb-4">
+              <h2 className="text-xl font-bold text-afrikoni-chestnut">Section 4 — Privacy & Control</h2>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="verified_only"
+                  checked={formData.verified_only}
+                  onChange={(e) => handleChange('verified_only', e.target.checked)}
+                  className="mt-1 w-5 h-5 text-afrikoni-gold border-afrikoni-gold/30 rounded focus:ring-afrikoni-gold"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="verified_only" className="text-base font-semibold text-afrikoni-chestnut cursor-pointer">
+                    Only verified suppliers can respond
+                  </Label>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="afrikoni_managed"
+                  checked={formData.afrikoni_managed}
+                  onChange={(e) => handleChange('afrikoni_managed', e.target.checked)}
+                  className="mt-1 w-5 h-5 text-afrikoni-gold border-afrikoni-gold/30 rounded focus:ring-afrikoni-gold"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="afrikoni_managed" className="text-base font-semibold text-afrikoni-chestnut cursor-pointer">
+                    Afrikoni manages introductions
+                  </Label>
+                </div>
+              </div>
+              <div className="bg-afrikoni-cream/30 border border-afrikoni-gold/20 rounded-lg p-4 mt-4">
+                <p className="text-sm text-afrikoni-deep">
+                  <strong className="text-afrikoni-chestnut">Your contact details are never shared without your approval.</strong> Afrikoni facilitates introductions and coordinates communication between you and verified suppliers.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Attachments (Optional) */}
+        <Card className="border-afrikoni-gold/20">
+          <CardContent className="p-6">
+            <Label>{t('rfq.attachments')} <span className="text-afrikoni-deep/70 font-normal">(optional)</span></Label>
+            <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-6 text-center hover:border-afrikoni-gold transition mt-2">
+              <input type="file" onChange={handleFileUpload} className="hidden" id="file-upload" />
+              <label htmlFor="file-upload" className="cursor-pointer">
+                <Upload className="w-10 h-10 text-afrikoni-deep/70 mx-auto mb-2" />
+                <div className="text-sm text-afrikoni-deep">{t('rfq.uploadSpecs')}</div>
+              </label>
+            </div>
+            {formData.attachments.length > 0 && (
+              <div className="mt-2 text-sm text-afrikoni-deep">{t('rfq.filesUploaded').replace('{count}', formData.attachments.length)}</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Submit Buttons */}
+        <div className="flex gap-3 pt-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate(createPageUrl('BuyerDashboard'))}
+            className="flex-1 min-h-[44px] sm:min-h-0 text-sm sm:text-base"
+          >
+            {t('rfq.cancel')}
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isLoading} 
+            className="flex-1 bg-afrikoni-gold hover:bg-amber-700 min-h-[44px] sm:min-h-0 text-sm sm:text-base touch-manipulation"
+          >
+            {isLoading ? t('rfq.creating') : t('rfq.publish')}
+          </Button>
+        </div>
       </div>
     </div>
   );

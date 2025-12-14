@@ -311,7 +311,7 @@ export async function getUnreadCount(userId = null, companyId = null) {
   try {
     let query = supabase
       .from('notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' }).limit(0)
       .eq('read', false);
 
     if (userId) {

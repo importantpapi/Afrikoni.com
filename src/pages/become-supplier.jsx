@@ -188,11 +188,11 @@ export default function BecomeSupplier() {
             >
               <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 mb-4">
                 <Sparkles className="w-3 h-3 mr-1" />
-                Supplier Onboarding
+              Supplier Onboarding
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-cream mb-6">
                 Become a Verified<br />Afrikoni Supplier
-              </h1>
+            </h1>
               <p className="text-xl md:text-2xl text-afrikoni-cream/90 mb-8 max-w-3xl mx-auto">
                 Join Africa's trusted B2B marketplace. Get verified, reach serious buyers, and grow your export business with secure payments and logistics support.
               </p>
@@ -292,7 +292,7 @@ export default function BecomeSupplier() {
             >
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 How Verification Works
-              </h2>
+                </h2>
               <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
                 Simple 6-step process. Most suppliers complete verification in under 30 minutes.
               </p>
@@ -427,7 +427,7 @@ export default function BecomeSupplier() {
                   <CardTitle className="text-xl">Transaction Fee</CardTitle>
                   <div className="text-3xl font-bold text-afrikoni-gold mt-2">
                     8%
-                  </div>
+              </div>
                   <p className="text-sm text-afrikoni-deep/70 mt-1">
                     Only on successful transactions
                   </p>
@@ -455,7 +455,7 @@ export default function BecomeSupplier() {
                   <CardTitle className="text-xl">Premium Features</CardTitle>
                   <div className="text-3xl font-bold text-afrikoni-gold mt-2">
                     Optional
-                  </div>
+              </div>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm text-afrikoni-deep/70">
@@ -500,15 +500,15 @@ export default function BecomeSupplier() {
                     <Users className="w-5 h-5 mr-2" />
                     Start Free Signup
                     <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
+                </Button>
+              </Link>
                 <Link to="/contact">
                   <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/50 text-afrikoni-cream hover:bg-afrikoni-cream/10 px-8 py-6 text-lg">
                     <MessageSquare className="w-5 h-5 mr-2" />
                     Talk to Sales
-                  </Button>
-                </Link>
-              </div>
+                </Button>
+              </Link>
+            </div>
               <p className="text-sm text-afrikoni-cream/70 mt-6">
                 No credit card required • Free verification • 24-48 hour approval
               </p>

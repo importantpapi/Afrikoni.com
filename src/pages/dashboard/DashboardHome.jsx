@@ -20,6 +20,7 @@ import { StatCardSkeleton, CardSkeleton } from '@/components/ui/skeletons';
 import OnboardingProgressTracker from '@/components/dashboard/OnboardingProgressTracker';
 import { getActivityMetrics, getSearchAppearanceCount } from '@/services/activityTracking';
 import { toast } from 'sonner';
+import { getUserDisplayName } from '@/utils/userHelpers';
 
 export default function DashboardHome({ currentRole = 'buyer', activeView = 'all' }) {
   const { t } = useLanguage();
@@ -116,7 +117,31 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
 
         setIsUserAdmin(isAdmin(authUser));
 
-        setUser(profile || authUser);
+        // Merge profile and authUser to ensure we have all available data
+        // Debug: Log what we're getting
+        if (import.meta.env.DEV) {
+          console.log('[Dashboard] authUser:', authUser);
+          console.log('[Dashboard] profile:', profile);
+        }
+        
+        // Use centralized utility for name extraction
+        let userName = null;
+        try {
+          const { extractUserName } = await import('@/utils/userHelpers');
+          userName = extractUserName(authUser || null, profile || null);
+        } catch (nameError) {
+          console.warn('Error extracting user name:', nameError);
+        }
+        
+        // Merge user data with extracted name - with null safety
+        const mergedUser = {
+          ...(authUser || {}),
+          ...(profile || {}),
+          full_name: userName || authUser?.full_name || profile?.full_name || null,
+          name: userName || authUser?.name || profile?.name || null,
+        };
+        
+        setUser(mergedUser);
         setCompanyId(cid || null);
         
         // Initialize activity metrics with defaults
@@ -402,9 +427,11 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
       const company = companyRes.status === 'fulfilled' ? companyRes.value?.data : null;
       const productsData = productsRes.status === 'fulfilled' ? (productsRes.value?.data || []) : [];
 
-      const statusCounts = productsData.reduce(
+      const statusCounts = (Array.isArray(productsData) ? productsData : []).reduce(
         (acc, p) => {
-          acc[p.status] = (acc[p.status] || 0) + 1;
+          if (p && p.status) {
+            acc[p.status] = (acc[p.status] || 0) + 1;
+          }
           return acc;
         },
         {}
@@ -459,18 +486,26 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         setSearchAppearances(3); // Default
       }
       
-      // Get buyers looking for similar products (placeholder for now)
+      // Get buyers looking for similar products - count all open RFQs
       try {
-        const { data: rfqs, error: rfqError } = await supabase
+        const now = new Date().toISOString();
+        const { data: rfqs, error: rfqError, count } = await supabase
           .from('rfqs')
-          .select('id')
+          .select('id', { count: 'exact' })
           .eq('status', 'open')
-          .limit(10);
+          .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
         
-        if (!rfqError && rfqs) {
-          setBuyersLooking(rfqs.length || 5);
+        if (rfqError) {
+          console.warn('Error loading RFQs for buyer interest:', rfqError);
+          setBuyersLooking(5); // Default
+        } else if (count !== null && count !== undefined) {
+          // Use the count from the query (more accurate)
+          setBuyersLooking(count > 0 ? count : 5);
+        } else if (rfqs && rfqs.length > 0) {
+          // Fallback to array length if count not available
+          setBuyersLooking(rfqs.length);
         } else {
-          setBuyersLooking(5); // Default to 5 if no data or error
+          setBuyersLooking(5); // Default to 5 if no data
         }
       } catch (error) {
         console.warn('Error loading RFQs for buyer interest:', error);
@@ -579,7 +614,37 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
       >
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">
-            {t('dashboard.welcome') || 'Welcome back'}{user?.full_name || user?.name ? `, ${(user.full_name || user.name).split(' ')[0]}` : ''}!
+            {(() => {
+              try {
+                // Use centralized utility for display name
+                const displayName = getUserDisplayName(user || null, null);
+                
+                if (displayName && displayName !== 'User' && displayName.length > 1) {
+                  // Get first name (first word) from full name
+                  const firstName = displayName.trim().split(/\s+/)[0];
+                  if (firstName.length > 1) {
+                    // Capitalize first letter, lowercase rest
+                    const formattedName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                    return `${t('dashboard.welcome') || 'Welcome back'}, ${formattedName}!`;
+                  }
+                }
+              } catch (error) {
+                console.warn('Error getting display name:', error);
+              }
+              
+              // Fallback: extract name from email if available
+              const email = user?.email || user?.user_email;
+              if (email && typeof email === 'string') {
+                const emailName = email.split('@')[0];
+                if (emailName && emailName.length > 1) {
+                  const capitalizedName = emailName.charAt(0).toUpperCase() + emailName.slice(1).toLowerCase();
+                  return `${t('dashboard.welcome') || 'Welcome back'}, ${capitalizedName}!`;
+                }
+              }
+              
+              // Final fallback
+              return `${t('dashboard.welcome') || 'Welcome back'}!`;
+            })()}
           </h1>
           <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
             {currentRole === 'buyer' && (t('dashboard.buyerSubtitle') || 'Source products and connect with verified suppliers across Africa.')}
@@ -975,7 +1040,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
             <CardContent className="p-6">
               {recentRFQs && recentRFQs.length > 0 ? (
                 <div className="space-y-3">
-                  {recentRFQs.slice(0, 3).map((rfq) => (
+                  {(Array.isArray(recentRFQs) ? recentRFQs.slice(0, 3) : []).map((rfq) => (
                     <Link
                       key={rfq.id}
                       to={`/dashboard/rfqs/${rfq.id}`}
@@ -1298,7 +1363,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                 <EmptyState type="orders" title={t('empty.noOrders') || 'No orders yet'} description={t('empty.noOrdersDesc') || 'Your recent orders will appear here.'} />
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {recentOrders.map((order) => (
+                  {(Array.isArray(recentOrders) ? recentOrders : []).map((order) => (
                     <Link key={order.id} to={`/dashboard/orders/${order.id}`}>
                       <motion.div
                         whileHover={{ x: 4 }}
@@ -1359,7 +1424,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                 <EmptyState type="rfqs" title={t('empty.noRFQs') || 'No RFQs yet'} description={t('empty.noRFQsDesc') || 'Your recent RFQs will appear here.'} />
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {recentRFQs.map((rfq) => (
+                  {(Array.isArray(recentRFQs) ? recentRFQs : []).map((rfq) => (
                     <Link key={rfq.id} to={`/dashboard/rfqs/${rfq.id}`}>
                       <motion.div
                         whileHover={{ x: 4 }}
@@ -1422,7 +1487,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                 <EmptyState type="messages" title={t('empty.noMessages') || 'No messages yet'} description={t('empty.noMessagesDesc') || 'Your recent messages will appear here.'} />
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {recentMessages.map((message) => (
+                  {(Array.isArray(recentMessages) ? recentMessages : []).map((message) => (
                     <Link
                       key={message.id}
                       to={message.conversation_id ? `/messages?conversation=${message.conversation_id}` : '/messages'}

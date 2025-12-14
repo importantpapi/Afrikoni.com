@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -25,6 +25,7 @@ import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import PricingMegaMenu from './PricingMegaMenu';
 
 // Country code to country name mapping
 const COUNTRY_NAMES = {
@@ -75,11 +76,24 @@ export default function Navbar({ user, onLogout }) {
   const { language, setLanguage, t } = useLanguage();
   const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
   const [megaOpen, setMegaOpen] = useState(false);
+  const [pricingMenuOpen, setPricingMenuOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [countryOpen, setCountryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const pricingMenuRef = useRef(null);
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [selectedCurrency, setSelectedCurrency] = useState(contextCurrency || 'USD');
   const [detectedCountry, setDetectedCountry] = useState(null);
   const [compareCount, setCompareCount] = useState(0);
@@ -268,11 +282,26 @@ export default function Navbar({ user, onLogout }) {
 
   const toggleMegaMenu = () => {
     setMegaOpen((prev) => !prev);
+    setPricingMenuOpen(false);
     setLanguageOpen(false);
     setCurrencyOpen(false);
     setSettingsOpen(false);
     setCountryOpen(false);
     setUserMenuOpen(false);
+  };
+
+  const togglePricingMenu = () => {
+    setPricingMenuOpen((prev) => !prev);
+    setMegaOpen(false);
+    setLanguageOpen(false);
+    setCurrencyOpen(false);
+    setSettingsOpen(false);
+    setCountryOpen(false);
+    setUserMenuOpen(false);
+  };
+
+  const closePricingMenu = () => {
+    setPricingMenuOpen(false);
   };
 
   const openSettingsMenu = () => {
@@ -336,9 +365,9 @@ export default function Navbar({ user, onLogout }) {
   };
 
   return (
-    <nav className={`w-full bg-afrikoni-chestnut text-afrikoni-cream border-b border-afrikoni-gold/30 sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''} relative`}>
+    <nav className={`fixed top-0 left-0 right-0 w-full bg-afrikoni-chestnut text-afrikoni-cream border-b border-afrikoni-gold/30 z-[10000] transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''} overflow-visible`} style={{ height: '80px' }}>
       {/* Top bar */}
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6 h-14 sm:h-16 lg:h-20 overflow-visible">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6 h-full overflow-visible">
         {/* Left: logo + explore + quick link */}
         <div className="flex items-center gap-2 sm:gap-4 lg:gap-8 flex-shrink-0 min-w-0 flex-1">
           <div className="max-w-[120px] sm:max-w-[140px] lg:max-w-none flex-shrink-0">
@@ -366,6 +395,33 @@ export default function Navbar({ user, onLogout }) {
           <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
             How It Works
           </Link>
+
+          {/* Pricing Link with Mega Menu - Visible on all screens */}
+          <div className="relative group" ref={pricingMenuRef}>
+            <button
+              onClick={togglePricingMenu}
+              onMouseEnter={() => {
+                if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+                  setPricingMenuOpen(true);
+                }
+              }}
+              className={`
+                flex items-center gap-1 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap
+                ${pricingMenuOpen
+                  ? 'text-afrikoni-gold border-b-2 border-afrikoni-gold pb-1'
+                  : 'text-afrikoni-cream hover:text-afrikoni-gold'
+                }
+              `}
+            >
+              Pricing
+              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${pricingMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <PricingMegaMenu
+              isOpen={pricingMenuOpen}
+              onClose={closePricingMenu}
+              triggerRef={pricingMenuRef}
+            />
+          </div>
           
           {compareCount > 0 && (
             <Link to="/compare" className="relative hidden sm:block">
@@ -595,7 +651,14 @@ export default function Navbar({ user, onLogout }) {
                   className="flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-md hover:bg-afrikoni-gold/10 transition-colors"
                 >
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-chestnut font-bold text-xs sm:text-sm flex-shrink-0">
-                    {user.email?.charAt(0).toUpperCase() || 'U'}
+                    {(() => {
+                      try {
+                        return getUserInitial(user || null, null);
+                      } catch (error) {
+                        console.warn('Error getting user initial:', error);
+                        return user?.email?.charAt(0)?.toUpperCase() || 'U';
+                      }
+                    })()}
                   </div>
                   <ChevronDown
                     className={`w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-cream transition-transform duration-200 hidden sm:block ${

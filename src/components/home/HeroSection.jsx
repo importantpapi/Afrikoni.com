@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, CheckCircle, Users, Globe, Shield, Lock, TrendingUp, ArrowRight, FileText, Store, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/api/supabaseClient';
+import SearchSuggestions from '@/components/search/SearchSuggestions';
+import { addSearchToHistory } from '@/components/search/SearchHistory';
 
 // Compact Social Proof Component
 function SocialProofSection() {
@@ -112,7 +114,35 @@ export default function HeroSection({ categories = [] }) {
   const [searchFocused, setSearchFocused] = useState(false);
   const [user, setUser] = useState(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef(null);
   const navigate = useNavigate();
+
+  // Limit categories to top 12 most popular + search functionality
+  const popularCategoryNames = [
+    'Agriculture', 'Food & Beverages', 'Textiles & Apparel', 
+    'Beauty & Personal Care', 'Consumer Electronics', 'Industrial Machinery',
+    'Home & Living', 'Automotive', 'Energy & Power', 'Healthcare',
+    'Packaging', 'Chemicals'
+  ];
+  
+  const displayedCategories = useMemo(() => {
+    if (categorySearchQuery.trim()) {
+      // Filter by search query
+      return categories.filter(cat => 
+        cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())
+      ).slice(0, 15);
+    }
+    // Show popular categories first, then others
+    const popular = categories.filter(cat => 
+      popularCategoryNames.includes(cat.name)
+    ).slice(0, 12);
+    const others = categories.filter(cat => 
+      !popularCategoryNames.includes(cat.name)
+    ).slice(0, 3);
+    return [...popular, ...others];
+  }, [categories, categorySearchQuery]);
 
   useEffect(() => {
     // Check if user is logged in
@@ -133,22 +163,68 @@ export default function HeroSection({ categories = [] }) {
   }, [authModalOpen, navigate]);
 
   const handleSearch = () => {
+    if (searchQuery.trim()) {
+      addSearchToHistory(searchQuery);
+    }
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
     navigate(`/marketplace?${params.toString()}`);
+    setShowSuggestions(false);
   };
 
-  const handlePostRFQ = () => {
-    if (user) {
-      navigate('/rfq/create');
-    } else {
-      setAuthModalOpen(true);
+  const handleSelectSuggestion = (text, type, id) => {
+    setSearchQuery(text);
+    setShowSuggestions(false);
+    if (text.trim()) {
+      addSearchToHistory(text);
     }
+    const params = new URLSearchParams();
+    params.set('q', text);
+    if (type === 'category' && id) {
+      params.set('category', id);
+    }
+    navigate(`/marketplace?${params.toString()}`);
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Cmd/Ctrl + K to focus search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('hero-search-input')?.focus();
+      }
+      // Escape to close suggestions
+      if (e.key === 'Escape') {
+        setShowSuggestions(false);
+        setSearchFocused(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    if (showSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSuggestions]);
+
+  const handlePostRFQ = () => {
+    // Always start with intent check - no signup gate before intent
+    navigate('/rfq/start');
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-14 md:py-20">
+    <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-14 md:py-20 overflow-visible">
       {/* Faint Afrikoni Logo Watermark */}
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.06]">
         <Logo type="icon" size="xl" link={false} className="scale-150 text-afrikoni-gold" />
@@ -223,94 +299,165 @@ export default function HeroSection({ categories = [] }) {
           {/* Center Content */}
           <div className="lg:col-span-6 text-center">
             {/* Value Proposition */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="mb-6"
-            >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-gold mb-3 leading-tight">
-                Trade. Trust. Thrive.
-              </h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-6"
+          >
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-gold mb-3 leading-tight">
+              Trade. Trust. Thrive.
+            </h2>
               <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream font-medium mb-2">
-                The B2B marketplace connecting Africa to global opportunity.
-              </p>
-            </motion.div>
+              The B2B marketplace connecting Africa to global opportunity.
+            </p>
+          </motion.div>
 
-            {/* Afrikoni Shield trust strip */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.22 }}
-              className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-[11px] md:text-xs text-afrikoni-cream mb-5 mx-2"
-            >
-              <span className="font-semibold uppercase tracking-wide text-afrikoni-gold">
-                Afrikoni&nbsp;Shield™
-              </span>
-              <span className="opacity-80">Verified suppliers</span>
-              <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
-              <span className="opacity-80">KYC / AML &amp; anti-corruption</span>
-              <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
-              <span className="opacity-80">Escrow-protected payments</span>
-              <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
-              <span className="opacity-80">Cross-border logistics support</span>
-            </motion.div>
+          {/* Afrikoni Shield trust strip */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.22 }}
+            className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-[11px] md:text-xs text-afrikoni-cream mb-5 mx-2"
+          >
+            <span className="font-semibold uppercase tracking-wide text-afrikoni-gold">
+              Afrikoni&nbsp;Shield™
+            </span>
+            <span className="opacity-80">Verified suppliers</span>
+            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="opacity-80">KYC / AML &amp; anti-corruption</span>
+            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="opacity-80">Escrow-protected payments</span>
+            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="opacity-80">Cross-border logistics support</span>
+          </motion.div>
 
-            {/* Universal Search Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="max-w-4xl mx-auto mb-6"
-            >
-              <div
-                className={`
-                  w-full flex flex-col sm:flex-row gap-2 bg-afrikoni-offwhite rounded-xl p-2 shadow-afrikoni-xl transition-all border-[1.5px] border-afrikoni-gold
-                  ${searchFocused ? 'ring-4 ring-afrikoni-gold/50 shadow-afrikoni-xl' : ''}
-                `}
-              >
-                {/* Category Dropdown */}
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-full sm:w-56 border-0 focus:ring-0 bg-transparent text-afrikoni-earth min-h-[44px]">
-                    <SelectValue placeholder={t('categories.all')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('categories.all')}</SelectItem>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Keyword Search */}
-                <Input
-                  id="hero-search-input"
-                  name="search"
-                  placeholder={t('hero.searchPlaceholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                  className="flex-1 w-full border-0 focus:ring-0 text-base sm:text-lg bg-transparent text-afrikoni-earth placeholder:text-afrikoni-earth/60 min-h-[44px]"
-                />
-
-                {/* Search Button */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-full sm:w-auto"
+            {/* Enterprise-Grade Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+              className="max-w-3xl mx-auto mb-6"
+          >
+              <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
+            <div
+              className={`
+                    flex items-center gap-3
+                    bg-white
+                    rounded-full
+                    shadow-xl
+                    px-4 py-2
+                    transition-all duration-300
+                    focus-within:ring-2 focus-within:ring-[#D4AF37]/40
+                    ${searchFocused ? 'shadow-2xl' : ''}
+                  `}
                 >
-                  <Button
-                    onClick={handleSearch}
-                    className="w-full sm:w-auto bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 sm:px-8 min-h-[44px] touch-manipulation"
+                  {/* Category Dropdown - Subtle, Embedded */}
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="bg-transparent text-sm text-afrikoni-deep/70 px-3 focus:outline-none border-0 focus:ring-0 h-auto py-1.5 min-w-[80px] sm:min-w-[100px]">
+                      <SelectValue placeholder="All" />
+                </SelectTrigger>
+                    <SelectContent className="max-h-[60vh] sm:max-h-[400px] bg-white shadow-xl border-afrikoni-gold/20">
+                      <div className="sticky top-0 bg-white z-10 p-3 border-b border-afrikoni-gold/20">
+                        <Input
+                          type="text"
+                          placeholder="Search categories..."
+                          value={categorySearchQuery}
+                          onChange={(e) => setCategorySearchQuery(e.target.value)}
+                          className="w-full h-9 text-sm border-afrikoni-gold/30 focus:border-afrikoni-gold"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="max-h-[50vh] sm:max-h-[350px] overflow-y-auto">
+                        <SelectItem value="all" className="font-semibold">{t('categories.all') || 'All'}</SelectItem>
+                        {displayedCategories.length > 0 ? (
+                          displayedCategories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.id} className="text-sm">{cat.name}</SelectItem>
+                          ))
+                        ) : (
+                          <div className="px-4 py-6 text-sm text-afrikoni-deep/60 text-center">
+                            No categories found
+                          </div>
+                        )}
+                      </div>
+                </SelectContent>
+              </Select>
+
+                  {/* Main Search Input - Dominant */}
+                  <input
+                id="hero-search-input"
+                    type="text"
+                    placeholder="Search verified products, suppliers, or post an RFQ…"
+                value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && searchQuery.trim()) {
+                        handleSearch();
+                      }
+                    }}
+                    onFocus={() => {
+                      setSearchFocused(true);
+                      setShowSuggestions(true);
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setSearchFocused(false);
+                      }, 200);
+                    }}
+                    className="flex-1 text-base px-2 focus:outline-none placeholder:text-afrikoni-deep/50 bg-transparent text-afrikoni-chestnut min-h-[44px]"
+                  />
+
+                  {/* Clear button */}
+                  {searchQuery && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      onClick={() => {
+                        setSearchQuery('');
+                        setShowSuggestions(false);
+                      }}
+                      className="p-1.5 rounded-full hover:bg-afrikoni-gold/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </motion.button>
+                  )}
+
+                  {/* Primary Search Button - Decisive */}
+                  <button
+                  onClick={handleSearch}
+                    className="flex items-center gap-2 bg-[#D4AF37] text-black font-medium px-6 py-2 rounded-full hover:brightness-110 transition-all duration-200 min-h-[44px] touch-manipulation"
                   >
-                    <Search className="w-5 h-5 sm:mr-2" />
-                    <span className="hidden sm:inline">{t('hero.searchButton')}</span>
-                  </Button>
-                </motion.div>
-              </div>
-            </motion.div>
+                    <Search className="w-4 h-4" />
+                    <span className="hidden sm:inline">Search</span>
+                  </button>
+                </div>
+
+                {/* Premium Search Suggestions Dropdown */}
+                <AnimatePresence>
+                  {showSuggestions && (searchFocused || searchQuery) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 right-0 mt-2"
+                      style={{ position: 'absolute', zIndex: 9000 }}
+                    >
+                      <SearchSuggestions
+                        query={searchQuery}
+                        onSelectSuggestion={handleSelectSuggestion}
+                        showHistory={!searchQuery}
+                        showTrending={!searchQuery}
+                      />
+              </motion.div>
+                  )}
+                </AnimatePresence>
+            </div>
+          </motion.div>
 
             {/* Social Proof */}
             <SocialProofSection />

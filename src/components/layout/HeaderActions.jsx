@@ -81,7 +81,14 @@ export default function HeaderActions({ user, onLogout }) {
               whileHover={{ scale: 1.05 }}
             >
               <div className="w-8 h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-chestnut font-bold text-sm">
-                {user.email?.charAt(0).toUpperCase() || 'U'}
+                {(() => {
+                  try {
+                    return getUserInitial(user || null, null);
+                  } catch (error) {
+                    console.warn('Error getting user initial:', error);
+                    return user?.email?.charAt(0)?.toUpperCase() || 'U';
+                  }
+                })()}
               </div>
               <motion.div
                 animate={{ rotate: userMenuOpen ? 180 : 0 }}

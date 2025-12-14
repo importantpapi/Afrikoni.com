@@ -20,6 +20,8 @@ import ProductImageUploader from '@/components/products/ProductImageUploader';
 import { sanitizeString } from '@/utils/security';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { autoAssignCategory } from '@/utils/productCategoryIntelligence';
+import { checkProductLimit } from '@/utils/subscriptionLimits';
+import ProductLimitGuard from '@/components/subscription/ProductLimitGuard';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -93,6 +95,8 @@ export default function ProductForm() {
   const [specFields, setSpecFields] = useState([
     { key: '', value: '' }
   ]);
+  const [productLimitInfo, setProductLimitInfo] = useState(null);
+  const [showLimitGuard, setShowLimitGuard] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -105,6 +109,29 @@ export default function ProductForm() {
       setSubcategories([]);
     }
   }, [formData.category_id]);
+
+  useEffect(() => {
+    if (companyId && !productId) {
+      // Only check limit when creating new products, not editing
+      checkLimit();
+    }
+  }, [companyId, productId]);
+
+  const checkLimit = async (cid = companyId) => {
+    if (!cid) return;
+    
+    try {
+      const limitInfo = await checkProductLimit(cid);
+      setProductLimitInfo(limitInfo);
+      
+      // Show guard if limit reached
+      if (!limitInfo.canAdd && limitInfo.needsUpgrade) {
+        setShowLimitGuard(true);
+      }
+    } catch (error) {
+      console.error('Error checking product limit:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -413,6 +440,22 @@ export default function ProductForm() {
 
   const handleSave = async (publish = false) => {
     try {
+      // Check product limit before creating new product
+      if (!productId && companyId) {
+        const limitInfo = await checkProductLimit(companyId);
+        
+        if (!limitInfo.canAdd) {
+          if (limitInfo.needsUpgrade) {
+            setShowLimitGuard(true);
+            toast.error(limitInfo.message || 'Product limit reached. Please upgrade your plan.');
+            return;
+          } else {
+            toast.error(limitInfo.message || 'Cannot add more products');
+            return;
+          }
+        }
+      }
+
       // Validate required fields
       if (!formData.title || !formData.title.trim()) {
         toast.error('Product title is required');
@@ -1183,6 +1226,17 @@ export default function ProductForm() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Product Limit Guard */}
+      {showLimitGuard && companyId && (
+        <ProductLimitGuard
+          companyId={companyId}
+          onUpgrade={() => {
+            setShowLimitGuard(false);
+            navigate('/dashboard/subscriptions');
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 }

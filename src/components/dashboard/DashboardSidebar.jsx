@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Package, ShoppingBag, FileText, MessageCircle, BarChart3, CreditCard, Truck, Users, Settings } from 'lucide-react';
+import { Package, ShoppingBag, FileText, MessageCircle, BarChart3, CreditCard, Truck, Users, Settings, Link2, TrendingUp } from 'lucide-react';
 
 export default function DashboardSidebar({ activeRole }) {
   const location = useLocation();
@@ -16,6 +16,7 @@ export default function DashboardSidebar({ activeRole }) {
   const sellerMenu = [
     { icon: Package, label: 'My Products', link: createPageUrl('SellerDashboard') },
     { icon: Package, label: 'Add Product', link: createPageUrl('AddProduct') },
+    { icon: FileText, label: 'Matched RFQs', link: '/dashboard/supplier-rfqs' },
     { icon: FileText, label: 'My Orders', link: createPageUrl('Orders') },
     { icon: MessageCircle, label: 'Messages', link: createPageUrl('Messages') },
     { icon: BarChart3, label: 'Analytics', link: createPageUrl('Analytics') }
@@ -25,6 +26,8 @@ export default function DashboardSidebar({ activeRole }) {
     { icon: Users, label: 'Users', link: createPageUrl('AdminDashboard') },
     { icon: Package, label: 'Products', link: createPageUrl('Products') },
     { icon: FileText, label: 'Orders', link: createPageUrl('Orders') },
+    { icon: Link2, label: 'RFQ Matching', link: '/dashboard/admin/rfq-matching' },
+    { icon: TrendingUp, label: 'RFQ Analytics', link: '/dashboard/admin/rfq-analytics' },
     { icon: BarChart3, label: 'Analytics', link: createPageUrl('Analytics') },
     { icon: Settings, label: 'Settings', link: '#' }
   ];

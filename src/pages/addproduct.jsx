@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { checkProductLimit } from '@/utils/subscriptionLimits';
+import ProductLimitGuard from '@/components/subscription/ProductLimitGuard';
 
 export default function AddProduct() {
   const { t } = useLanguage();
@@ -24,6 +26,8 @@ export default function AddProduct() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showLimitGuard, setShowLimitGuard] = useState(false);
+  const [companyId, setCompanyId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -58,13 +62,14 @@ export default function AddProduct() {
 
       // Get or create company (non-blocking)
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const cid = await getOrCreateCompany(supabase, userData);
+      setCompanyId(cid);
       
-      if (companyId) {
+      if (cid) {
         const { data: companyData, error } = await supabase
           .from('companies')
           .select('*')
-          .eq('id', companyId)
+          .eq('id', cid)
           .maybeSingle();
         if (!error && companyData) {
           setCompany(companyData);
@@ -139,10 +144,23 @@ export default function AddProduct() {
     try {
       // Get or create company (always from authenticated user)
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
+      const cid = companyId || await getOrCreateCompany(supabase, user);
       
-      if (!companyId) {
+      if (!cid) {
         toast.error(t('addProduct.noCompany'));
+        setIsLoading(false);
+        return;
+      }
+
+      // Check product limit before creating
+      const limitInfo = await checkProductLimit(cid);
+      if (!limitInfo.canAdd) {
+        if (limitInfo.needsUpgrade) {
+          setShowLimitGuard(true);
+          toast.error(limitInfo.message || 'Product limit reached. Please upgrade your plan.');
+        } else {
+          toast.error(limitInfo.message || 'Cannot add more products');
+        }
         setIsLoading(false);
         return;
       }
@@ -162,7 +180,7 @@ export default function AddProduct() {
         packaging: sanitizeString(formData.packaging || ''),
         currency: formData.currency || 'USD',
         status: 'draft', // New products start as draft, admin can activate later
-        company_id: companyId, // Always from authenticated user, never from input
+        company_id: cid, // Always from authenticated user, never from input
         views: 0,
         inquiries: 0
       }).select('id').single();
@@ -461,6 +479,17 @@ export default function AddProduct() {
           </div>
         </div>
       </div>
+      
+      {/* Product Limit Guard */}
+      {showLimitGuard && companyId && (
+        <ProductLimitGuard
+          companyId={companyId}
+          onUpgrade={() => {
+            setShowLimitGuard(false);
+            navigate('/dashboard/subscriptions');
+          }}
+        />
+      )}
     </div>
   );
 }

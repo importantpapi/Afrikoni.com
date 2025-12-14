@@ -82,7 +82,7 @@ export default function DashboardOrders() {
       // Remove duplicates for hybrid users viewing 'all'
       const ordersData = Array.isArray(result.data) ? result.data : [];
       if (isHybrid(normalizedRole) && viewMode === 'all') {
-        const uniqueOrders = ordersData.filter((order, index, self) =>
+        const uniqueOrders = (Array.isArray(ordersData) ? ordersData : []).filter((order, index, self) =>
           order && index === self.findIndex((o) => o && order && o.id === order.id)
         );
         setOrders(uniqueOrders);
@@ -96,11 +96,14 @@ export default function DashboardOrders() {
         isLoading: false
       }));
     } catch (error) {
+      console.error('Error loading orders:', error);
+      toast.error(error?.message || 'Failed to load orders. Please try again.');
       setOrders([]);
       setPagination(prev => ({
         ...prev,
         totalCount: 0,
-        totalPages: 1
+        totalPages: 1,
+        isLoading: false
       }));
     } finally {
       setIsLoading(false);
@@ -335,21 +338,21 @@ export default function DashboardOrders() {
     {
       icon: Package,
       label: t('dashboard.pending') || 'Pending',
-      value: orders.filter(o => o.status === ORDER_STATUS.PENDING).length,
+      value: (Array.isArray(orders) ? orders : []).filter(o => o && o.status === ORDER_STATUS.PENDING).length,
       color: 'bg-afrikoni-gold/10 text-afrikoni-gold',
       iconBg: 'bg-afrikoni-gold/20'
     },
     {
       icon: Truck,
       label: t('dashboard.inTransit') || 'In Transit',
-      value: orders.filter(o => o.status === ORDER_STATUS.SHIPPED).length,
+      value: (Array.isArray(orders) ? orders : []).filter(o => o && o.status === ORDER_STATUS.SHIPPED).length,
       color: 'bg-afrikoni-green/10 text-afrikoni-green',
       iconBg: 'bg-afrikoni-green/20'
     },
     {
       icon: DollarSign,
       label: t('dashboard.totalValue') || 'Total Value',
-      value: `$${orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0).toLocaleString()}`,
+      value: `$${(Array.isArray(orders) ? orders : []).reduce((sum, o) => sum + (parseFloat(o?.total_amount) || 0), 0).toLocaleString()}`,
       color: 'bg-afrikoni-clay/10 text-afrikoni-clay',
       iconBg: 'bg-afrikoni-clay/20',
       isAmount: true

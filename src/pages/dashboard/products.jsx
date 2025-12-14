@@ -97,7 +97,7 @@ export default function DashboardProducts() {
       
       // Apply filters
       if (userCompanyId) {
-        productsQuery = productsQuery.or(`supplier_id.eq.${userCompanyId},company_id.eq.${userCompanyId}`);
+        productsQuery = productsQuery.eq('company_id', userCompanyId);
       }
       if (statusFilter !== 'all') {
         productsQuery = productsQuery.eq('status', statusFilter);

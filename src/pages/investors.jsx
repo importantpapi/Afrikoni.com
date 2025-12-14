@@ -175,8 +175,8 @@ export default function Investors() {
                             </h3>
                             <p className="text-afrikoni-deep/80 leading-relaxed">
                               {reality.description}
-                            </p>
-                          </div>
+          </p>
+        </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -184,7 +184,7 @@ export default function Investors() {
                 );
               })}
             </div>
-          </div>
+                  </div>
         </section>
 
         {/* Sustainable Business Model */}
@@ -217,7 +217,7 @@ export default function Investors() {
                     <CardContent className="p-6">
                       <div className="text-4xl font-bold text-afrikoni-gold mb-2">
                         {item.value}
-                      </div>
+                </div>
                       <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">
                         {item.metric}
                       </h3>
@@ -341,9 +341,9 @@ export default function Investors() {
                         We don't fill the marketplace with fake listings. We start with demand (RFQs), then match suppliers. Quality over quantity.
                       </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+            </div>
+          </CardContent>
+        </Card>
 
               <Card className="border-red-200 bg-red-50/50">
                 <CardContent className="p-6">
@@ -376,22 +376,22 @@ export default function Investors() {
                     Ready to Invest in Real Trust?
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-8">
+          <CardContent className="p-8">
                   <div className="grid md:grid-cols-2 gap-8 mb-8">
-                    <div>
+              <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
                         <Mail className="w-5 h-5 text-afrikoni-gold" />
                         Investor Relations
                       </h3>
-                      <div className="space-y-3">
+                <div className="space-y-3">
                         <a href="mailto:investors@afrikoni.com" className="text-afrikoni-deep hover:text-afrikoni-gold block">
-                          investors@afrikoni.com
-                        </a>
+                      investors@afrikoni.com
+                    </a>
                         <a href="tel:+32456779368" className="text-afrikoni-deep hover:text-afrikoni-gold block">
-                          +32 456 77 93 68
-                        </a>
-                      </div>
-                    </div>
+                      +32 456 77 93 68
+                    </a>
+                  </div>
+                </div>
                     <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-afrikoni-gold" />
@@ -405,34 +405,34 @@ export default function Investors() {
                     </div>
                   </div>
 
-                  {/* Investor Updates Subscribe */}
+        {/* Investor Updates Subscribe */}
                   <div className="border-t border-afrikoni-gold/20 pt-8">
                     <h3 className="text-xl font-bold text-afrikoni-chestnut mb-4 text-center">
                       Receive Investor Updates
-                    </h3>
+              </h3>
                     <p className="text-sm text-afrikoni-deep/70 mb-6 text-center max-w-2xl mx-auto">
                       Get periodic updates on traction, product roadmap, and fundraising. No spam. Just honest updates.
-                    </p>
+              </p>
                     <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                      <Input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                         placeholder="Your work email"
                         className="flex-1"
                         required
-                      />
+              />
                       <Button type="submit" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
-                        Subscribe
-                      </Button>
-                    </form>
+                Subscribe
+              </Button>
+            </form>
                   </div>
-                </CardContent>
-              </Card>
+          </CardContent>
+        </Card>
             </motion.div>
           </div>
         </section>
-      </div>
+    </div>
     </>
   );
 }

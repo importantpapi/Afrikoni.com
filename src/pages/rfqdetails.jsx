@@ -73,7 +73,7 @@ export default function RFQDetail() {
         throw quotesRes.error;
       }
 
-      const foundRFQ = rfqsRes.data?.find(r => r.id === rfqId);
+      const foundRFQ = Array.isArray(rfqsRes.data) && rfqsRes.data.length > 0 ? rfqsRes.data[0] : null;
       if (!foundRFQ) {
         toast.error('RFQ not found');
         navigate(createPageUrl('BuyerDashboard'));
@@ -81,9 +81,9 @@ export default function RFQDetail() {
       }
 
       setRfq(foundRFQ);
-      const buyerCompany = companiesRes.data?.find(c => c.id === foundRFQ.buyer_company_id);
+      const buyerCompany = Array.isArray(companiesRes.data) ? companiesRes.data.find(c => c.id === foundRFQ.buyer_company_id) : null;
       setBuyer(buyerCompany);
-      setQuotes(quotesRes.data?.filter(q => q.rfq_id === rfqId) || []);
+      setQuotes(Array.isArray(quotesRes.data) ? quotesRes.data : []);
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to load RFQ');
@@ -381,7 +381,7 @@ export default function RFQDetail() {
               </div>
             ) : (
               <div className="space-y-4">
-                {quotes.map(quote => {
+                {(Array.isArray(quotes) ? quotes : []).map(quote => {
                   const supplierCompany = buyer; // You'd fetch this from companies table
                   return (
                     <Card key={quote.id} className="border-afrikoni-gold/20">

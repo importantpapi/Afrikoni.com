@@ -110,9 +110,10 @@ export default function SearchSuggestions({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="absolute top-full left-0 right-0 z-50 mt-2"
+          className="w-full"
+          style={{ position: 'relative', zIndex: 9000 }}
         >
-          <Card className="border-afrikoni-gold/20 bg-white shadow-premium-lg">
+          <Card className="border-afrikoni-gold/20 bg-white shadow-premium-lg rounded-2xl" style={{ position: 'relative', zIndex: 9000 }}>
             <CardContent className="p-4">
               {/* Search Suggestions */}
               {suggestions.length > 0 && (

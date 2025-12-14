@@ -88,6 +88,42 @@ export const emailTemplates = {
   },
 
   /**
+   * Newsletter Welcome Email - What Afrikoni is trying to do
+   */
+  newsletterWelcome: (data) => {
+    const { email } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Welcome to the Afrikoni Community!</h2>
+      <p style="font-size: 16px; line-height: 1.8;">Thank you for subscribing to Afrikoni updates. We're excited to have you join us on this journey.</p>
+      
+      <div class="divider"></div>
+      
+      <h3 style="color: #8B4513; margin-top: 30px;">What We're Building at Afrikoni</h3>
+      <p style="font-size: 15px; line-height: 1.8;">Afrikoni is more than a marketplace—we're building Africa's trusted B2B trade engine. Our mission is to connect verified African suppliers with global buyers through a platform that prioritizes trust, security, and real business outcomes.</p>
+      
+      <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #D4A574;">
+        <h4 style="color: #8B4513; margin-top: 0;">Our Vision:</h4>
+        <p style="margin: 0; font-size: 15px; line-height: 1.8;">To make African trade accessible, secure, and profitable for businesses worldwide. We believe every African supplier deserves access to global markets, and every buyer deserves verified, reliable partners.</p>
+      </div>
+      
+      <h3 style="color: #8B4513; margin-top: 30px;">What You'll Get</h3>
+      <ul style="font-size: 15px; line-height: 1.8;">
+        <li><strong>B2B Trade Insights</strong> - Weekly updates on African trade trends, market opportunities, and industry news</li>
+        <li><strong>Supplier Spotlights</strong> - Discover new verified suppliers and their products</li>
+        <li><strong>Exclusive Offers</strong> - Special deals and early access to new features</li>
+        <li><strong>Platform Updates</strong> - Be the first to know about new tools, features, and improvements</li>
+      </ul>
+      
+      <div class="divider"></div>
+      
+      <p style="font-size: 15px; line-height: 1.8; margin-top: 25px;"><strong>Ready to start trading?</strong> Visit our marketplace to browse verified suppliers or post a trade request (RFQ) to get matched with the right partners.</p>
+      
+      <p style="font-size: 14px; color: #666; margin-top: 20px;">Questions? Reply to this email anytime. We're here to help you succeed in African trade.</p>
+    `;
+    return baseTemplate(content, 'Explore Marketplace', 'https://afrikoni.com/marketplace');
+  },
+
+  /**
    * Order Confirmation
    */
   orderConfirmation: (data) => {

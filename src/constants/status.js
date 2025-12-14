@@ -67,6 +67,7 @@ export const RFQ_STATUS = {
   OPEN: 'open',
   PENDING: 'pending',
   IN_REVIEW: 'in_review',
+  MATCHED: 'matched', // New: Manually matched by admin
   AWARDED: 'awarded',
   CLOSED: 'closed',
   CANCELLED: 'cancelled'
@@ -77,6 +78,7 @@ export const RFQ_STATUS_LABELS = {
   [RFQ_STATUS.OPEN]: 'Open',
   [RFQ_STATUS.PENDING]: 'Pending',
   [RFQ_STATUS.IN_REVIEW]: 'In Review',
+  [RFQ_STATUS.MATCHED]: 'Matched', // New: Manually matched
   [RFQ_STATUS.AWARDED]: 'Awarded',
   [RFQ_STATUS.CLOSED]: 'Closed',
   [RFQ_STATUS.CANCELLED]: 'Cancelled'
@@ -87,10 +89,43 @@ export const RFQ_STATUS_VARIANTS = {
   [RFQ_STATUS.OPEN]: 'info',
   [RFQ_STATUS.PENDING]: 'warning',
   [RFQ_STATUS.IN_REVIEW]: 'info',
+  [RFQ_STATUS.MATCHED]: 'success', // New: Matched status
   [RFQ_STATUS.AWARDED]: 'success',
   [RFQ_STATUS.CLOSED]: 'neutral',
   [RFQ_STATUS.CANCELLED]: 'danger'
 };
+
+// Valid status transitions for RFQs (STRICT - no skipping)
+export const RFQ_STATUS_TRANSITIONS = {
+  [RFQ_STATUS.DRAFT]: [RFQ_STATUS.OPEN, RFQ_STATUS.CANCELLED],
+  [RFQ_STATUS.OPEN]: [RFQ_STATUS.IN_REVIEW, RFQ_STATUS.CANCELLED],
+  [RFQ_STATUS.PENDING]: [RFQ_STATUS.MATCHED, RFQ_STATUS.CANCELLED],
+  [RFQ_STATUS.IN_REVIEW]: [RFQ_STATUS.MATCHED, RFQ_STATUS.CANCELLED], // Must go through matched
+  [RFQ_STATUS.MATCHED]: [RFQ_STATUS.AWARDED, RFQ_STATUS.CLOSED, RFQ_STATUS.CANCELLED], // Must be matched before awarded
+  [RFQ_STATUS.AWARDED]: [RFQ_STATUS.CLOSED],
+  [RFQ_STATUS.CLOSED]: [],
+  [RFQ_STATUS.CANCELLED]: []
+};
+
+/**
+ * Check if RFQ can transition from current status to new status
+ * @param {string} currentStatus - Current RFQ status
+ * @param {string} newStatus - Desired new status
+ * @returns {boolean} - True if transition is valid
+ */
+export function canTransitionRFQStatus(currentStatus, newStatus) {
+  const validTransitions = RFQ_STATUS_TRANSITIONS[currentStatus] || [];
+  return validTransitions.includes(newStatus);
+}
+
+/**
+ * Get valid next statuses for an RFQ
+ * @param {string} currentStatus - Current RFQ status
+ * @returns {string[]} - Array of valid next statuses
+ */
+export function getValidRFQNextStatuses(currentStatus) {
+  return RFQ_STATUS_TRANSITIONS[currentStatus] || [];
+}
 
 // ============================================
 // SHIPMENT STATUS

@@ -119,8 +119,8 @@ export default function About() {
                 className="inline-block mb-6"
               >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-chestnut mb-6 leading-tight">
-                  About Afrikoni
-                </h1>
+                About Afrikoni
+              </h1>
               </motion.div>
               
               <motion.p
@@ -185,20 +185,20 @@ export default function About() {
                     <Sparkles className="w-6 h-6 text-afrikoni-gold" />
                   </div>
                   <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut">
-                    Our Story
-                  </h2>
+                  Our Story
+                </h2>
                 </div>
                 
                 <div className="space-y-5 text-afrikoni-deep leading-relaxed text-base md:text-lg">
-                  <p>
+                      <p>
                     Afrikoni was born from a simple vision: <span className="font-semibold text-afrikoni-chestnut">to make African businesses accessible to the world and the world accessible to African businesses.</span>
-                  </p>
-                  <p>
+                      </p>
+                      <p>
                     As entrepreneurs ourselves, we have firsthand experience with the challenges of cross-border trade in Africa — payment risks, trust issues, and fragmented markets. We knew there had to be a better way.
-                  </p>
-                  <p>
-                    Today, Afrikoni connects thousands of businesses across 54 African countries, facilitating millions in trade volume through our secure escrow system and verified supplier network.
-                  </p>
+                      </p>
+                      <p>
+                        Today, Afrikoni connects thousands of businesses across 54 African countries, facilitating millions in trade volume through our secure escrow system and verified supplier network.
+                      </p>
                 </div>
               </motion.div>
 
@@ -234,7 +234,7 @@ export default function About() {
                 </Card>
               </motion.div>
             </div>
-
+            
             {/* Our Mission */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -273,17 +273,17 @@ export default function About() {
                     </div>
                   </div>
 
-                  <Link to="/services/suppliers">
+              <Link to="/services/suppliers">
                     <Button 
                       size="lg" 
                       variant="outline"
                       className="w-full md:w-auto border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold group"
                     >
                       <Store className="w-5 h-5 mr-2" />
-                      Join as a Supplier
+                  Join as a Supplier
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
+                </Button>
+              </Link>
                 </CardContent>
               </Card>
             </motion.div>
@@ -481,30 +481,30 @@ export default function About() {
                 <CardContent className="p-10 md:p-14">
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-6">
                     Ready to Build Something Meaningful?
-                  </h2>
+              </h2>
                   <p className="text-lg md:text-xl text-afrikoni-deep mb-8 max-w-2xl mx-auto leading-relaxed">
                     If you decide to build it, build it RIGHT. Build it with INTEGRITY. Build it to LAST.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/signup">
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/signup">
                       <Button 
                         size="lg" 
                         className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-semibold group"
                       >
-                        Get Started
+                    Get Started
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Link>
-                    <Link to="/contact">
+                  </Button>
+                </Link>
+                <Link to="/contact">
                       <Button 
                         size="lg" 
                         variant="outline" 
                         className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-8 py-6 text-lg font-semibold"
                       >
-                        Contact Us
-                      </Button>
-                    </Link>
-                  </div>
+                    Contact Us
+                  </Button>
+                </Link>
+              </div>
                 </CardContent>
               </Card>
             </motion.div>

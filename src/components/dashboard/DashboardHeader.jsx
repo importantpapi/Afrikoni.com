@@ -54,7 +54,14 @@ export default function DashboardHeader({ user, company, activeRole, onRoleSwitc
               )}
             </div>
             <div className="w-10 h-10 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-creamfont-semibold">
-              {user?.email?.charAt(0).toUpperCase()}
+              {(() => {
+                try {
+                  return getUserInitial(user || null, null);
+                } catch (error) {
+                  console.warn('Error getting user initial:', error);
+                  return user?.email?.charAt(0)?.toUpperCase() || 'U';
+                }
+              })()}
             </div>
           </div>
         </div>

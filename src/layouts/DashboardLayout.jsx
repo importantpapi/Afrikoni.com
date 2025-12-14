@@ -23,6 +23,8 @@ import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import { DashboardContextProvider } from '@/contexts/DashboardContext';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { useNotificationCounts } from '@/hooks/useNotificationCounts';
+import { useLiveStats } from '@/hooks/useLiveStats';
+import { getUserInitial, extractUserName } from '@/utils/userHelpers';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useLanguage();
@@ -42,6 +44,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   
   // Get notification counts for sidebar badges
   const notificationCounts = useNotificationCounts(user?.id, companyId);
+  
+  // Get live marketplace statistics
+  const liveStats = useLiveStats();
 
   useEffect(() => {
     loadUser();
@@ -65,16 +70,44 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const loadUser = async () => {
     try {
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { extractUserName } = await import('@/utils/userHelpers');
       const { user: userData, profile: profileData, role, companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setProfile(profileData);
-      setCompanyId(cid);
+      
+      // Extract name using centralized utility - with null safety
+      let userName = null;
+      try {
+        userName = extractUserName(userData || null, profileData || null);
+      } catch (nameError) {
+        console.warn('Error extracting user name:', nameError);
+      }
+      
+      // Merge user data with extracted name - with comprehensive null checks
+      const mergedUser = {
+        ...(userData || {}),
+        ...(profileData || {}),
+        full_name: userName || userData?.full_name || profileData?.full_name || null,
+        name: userName || userData?.name || profileData?.name || null,
+      };
+      
+      setUser(mergedUser);
+      setProfile(profileData || null);
+      setCompanyId(cid || null);
       if (role) setUserRole(role);
-      const admin = isAdmin(userData);
-      setIsUserAdmin(admin);
-      // Admin access verified silently
+      
+      // Safe admin check
+      try {
+        const admin = isAdmin(userData);
+        setIsUserAdmin(admin || false);
+      } catch (adminError) {
+        console.warn('Error checking admin status:', adminError);
+        setIsUserAdmin(false);
+      }
     } catch (error) {
       console.error('Error loading user:', error);
+      // Set safe defaults on error
+      setUser(null);
+      setProfile(null);
+      setCompanyId(null);
       setIsUserAdmin(false);
     }
   };
@@ -576,8 +609,12 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 >
                   <div className="w-8 h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-charcoal font-bold text-sm shadow-afrikoni">
                     {(() => {
-                      const email = user?.email || profile?.email || user?.user_email;
-                      return email?.charAt(0)?.toUpperCase() || 'U';
+                      try {
+                        return getUserInitial(user || null, profile || null);
+                      } catch (error) {
+                        console.warn('Error getting user initial:', error);
+                        return 'U';
+                      }
                     })()}
                   </div>
                   <ChevronDown className={`w-4 h-4 text-afrikoni-text-dark transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
@@ -748,14 +785,26 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         <div className="w-full px-4 md:px-6 lg:px-8 flex items-center gap-6 text-xs text-afrikoni-sand">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-afrikoni-gold" />
-            <span className="font-semibold text-afrikoni-gold">23</span>
-            <span>suppliers active today</span>
+            {liveStats.isLoading ? (
+              <span className="font-semibold text-afrikoni-gold animate-pulse">...</span>
+            ) : (
+              <>
+                <span className="font-semibold text-afrikoni-gold">{liveStats.suppliersActiveToday}</span>
+                <span>suppliers active today</span>
+              </>
+            )}
           </div>
           <span className="text-afrikoni-gold/50">·</span>
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-afrikoni-gold" />
-            <span className="font-semibold text-afrikoni-gold">8</span>
-            <span>RFQs submitted this week</span>
+            {liveStats.isLoading ? (
+              <span className="font-semibold text-afrikoni-gold animate-pulse">...</span>
+            ) : (
+              <>
+                <span className="font-semibold text-afrikoni-gold">{liveStats.rfqsSubmittedThisWeek}</span>
+                <span>RFQs submitted this week</span>
+              </>
+            )}
           </div>
         </div>
       </motion.div>

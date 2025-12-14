@@ -78,12 +78,15 @@ export const SelectContent = ({ children, className }) => {
       <div 
         ref={contentRef}
         className={cn(
-          'absolute z-50 min-w-[8rem] max-h-[300px] overflow-y-auto rounded-md border border-afrikoni-gold/20 bg-afrikoni-offwhite text-afrikoni-chestnut shadow-afrikoni',
+          'absolute z-50 min-w-[8rem] w-full sm:w-auto max-h-[300px] sm:max-h-[400px] overflow-y-auto rounded-md border border-afrikoni-gold/20 bg-afrikoni-offwhite text-afrikoni-chestnut shadow-afrikoni',
           className
         )}
         onClick={(e) => {
           // Prevent clicks inside content from closing dropdown
           e.stopPropagation();
+        }}
+        style={{
+          maxWidth: 'calc(100vw - 2rem)',
         }}
       >
         <div className="p-1">{children}</div>

@@ -65,8 +65,9 @@ export async function getCompanySubscription(companyId) {
     
     // Handle "no rows" and "table doesn't exist" errors gracefully
     if (error) {
-      // PGRST116 = no rows found, 42P01 = relation does not exist
-      if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist')) {
+      // PGRST116 = no rows found, 42P01 = relation does not exist, PGRST205 = table not found in schema cache
+      if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST205' || 
+          error.message?.includes('does not exist') || error.message?.includes('Could not find the table')) {
         return null; // Table doesn't exist or no subscription found - return null silently
       }
       throw error;
@@ -74,7 +75,8 @@ export async function getCompanySubscription(companyId) {
     return data || null;
   } catch (error) {
     // Only log unexpected errors (not missing table or no rows)
-    if (error.code !== 'PGRST116' && error.code !== '42P01' && !error.message?.includes('does not exist')) {
+    if (error.code !== 'PGRST116' && error.code !== '42P01' && error.code !== 'PGRST205' && 
+        !error.message?.includes('does not exist') && !error.message?.includes('Could not find the table')) {
       console.error('Error getting subscription:', error);
     }
     return null;

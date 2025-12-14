@@ -13,13 +13,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
   FileText, DollarSign, Calendar, MapPin, MessageSquare, 
-  CheckCircle, Clock, Send, User, Package, Sparkles
+  CheckCircle, Clock, Send, User, Package, Sparkles,
+  List, Columns, Award
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateSupplierReply } from '@/ai/aiFunctions';
 import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
+import { getRFQStatusExplanation } from '@/utils/rfqStatusExplanations';
+import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
 
 export default function RFQDetail() {
   const { id } = useParams();
@@ -33,6 +36,7 @@ export default function RFQDetail() {
   const [companyId, setCompanyId] = useState(null);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [quoteViewMode, setQuoteViewMode] = useState('list'); // 'list' or 'compare'
   const [editForm, setEditForm] = useState({
     title: '',
     description: '',
@@ -95,14 +99,19 @@ export default function RFQDetail() {
         delivery_location: rfqData.delivery_location || ''
       });
 
-      // Load buyer company
-      if (rfqData.buyer_company_id) {
-        const { data: buyerData } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', rfqData.buyer_company_id)
-          .single();
-        setBuyerCompany(buyerData);
+      // Load buyer company - ONLY if user is the buyer or admin
+      // Suppliers should NOT see buyer identity
+      const isBuyer = normalizedRole === 'buyer' || normalizedRole === 'hybrid';
+      const isAdmin = normalizedRole === 'admin';
+      if (rfqData.buyer_company_id && (isBuyer || isAdmin)) {
+        if (userCompanyId === rfqData.buyer_company_id || isAdmin) {
+          const { data: buyerData } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('id', rfqData.buyer_company_id)
+            .single();
+          setBuyerCompany(buyerData);
+        }
       }
 
       // Load quotes for this RFQ
@@ -312,6 +321,8 @@ export default function RFQDetail() {
 
     setIsSubmitting(true);
     try {
+      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
       // Update RFQ status and awarded_to (awarded_to should be company_id, not quote_id)
       const quote = quotes.find(q => q.id === quoteId);
       if (!quote) {
@@ -319,10 +330,26 @@ export default function RFQDetail() {
         return;
       }
 
+      // Use safe status transition with validation
+      const { transitionRFQStatus } = await import('@/utils/rfqStatusTransitions');
+      const transitionResult = await transitionRFQStatus(
+        id,
+        'awarded',
+        user.id,
+        `Awarded to supplier: ${quote.supplier_company_id}`,
+        { quote_id: quoteId, supplier_company_id: quote.supplier_company_id }
+      );
+
+      if (!transitionResult.success) {
+        toast.error(transitionResult.error || 'Invalid status transition');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Update awarded_to separately
       const { error: rfqError } = await supabase
         .from('rfqs')
         .update({
-          status: 'awarded',
           awarded_to: quote.supplier_company_id
         })
         .eq('id', id);
@@ -344,6 +371,15 @@ export default function RFQDetail() {
         .eq('rfq_id', id)
         .neq('id', quoteId);
 
+      // Mark RFQ as commission eligible (soft trigger - no payment yet)
+      await supabase
+        .from('rfqs')
+        .update({
+          commission_eligible: true,
+          commission_eligible_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
       // Create order from awarded quote
       // Note: buyer_protection_enabled and buyer_protection_fee can be set later by buyer
       const { data: newOrder, error: orderError } = await supabase
@@ -362,7 +398,8 @@ export default function RFQDetail() {
           payment_status: 'pending',
           delivery_location: rfq.delivery_location || null,
           buyer_protection_enabled: false,
-          buyer_protection_fee: 0
+          buyer_protection_fee: 0,
+          commission_eligible: true // Mark order as commission eligible
         })
         .select()
         .single();
@@ -606,9 +643,10 @@ export default function RFQDetail() {
 
   const isOwner = (currentRole === 'buyer' || currentRole === 'hybrid') && 
                  rfq.buyer_company_id === companyId;
-  const canSubmitQuote = (currentRole === 'seller' || currentRole === 'hybrid') && 
-                         rfq.status === 'open' && 
-                         rfq.buyer_company_id !== companyId;
+  const isSupplier = (currentRole === 'seller' || currentRole === 'hybrid') && 
+                     rfq.buyer_company_id !== companyId;
+  const canSubmitQuote = isSupplier && 
+                         (rfq.status === 'matched' || rfq.status === 'open');
 
   return (
     <DashboardLayout currentRole={currentRole}>
@@ -625,6 +663,33 @@ export default function RFQDetail() {
             {rfq.status}
           </Badge>
         </div>
+
+        {/* RFQ Lifecycle Visibility (Buyer Only) */}
+        {isOwner && (() => {
+          const explanation = getRFQStatusExplanation(rfq.status);
+          return (
+            <Card className="border-afrikoni-gold/30 bg-afrikoni-cream/20">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  <div className="text-2xl">{explanation.icon}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-afrikoni-chestnut">Status: {explanation.title}</h3>
+                      <Badge variant={rfq.status === 'matched' ? 'success' : rfq.status === 'awarded' ? 'success' : 'info'}>
+                        {RFQ_STATUS_LABELS[rfq.status] || rfq.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-afrikoni-deep mb-2">{explanation.description}</p>
+                    <div className="bg-white/50 rounded-lg p-3 border border-afrikoni-gold/20">
+                      <p className="text-xs font-semibold text-afrikoni-chestnut mb-1">What's Next:</p>
+                      <p className="text-xs text-afrikoni-deep">{explanation.whatNext}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         <div className="grid md:grid-cols-3 gap-4">
           {/* Main Content */}
@@ -765,11 +830,33 @@ export default function RFQDetail() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Quote Responses ({quotes.length})</span>
-                  {canSubmitQuote && !showQuoteForm && (
-                    <Button onClick={() => setShowQuoteForm(true)} size="sm">
-                      Submit Quote
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {isOwner && quotes.length > 1 && (
+                      <div className="flex items-center gap-1 border border-afrikoni-gold/30 rounded-lg p-1">
+                        <Button
+                          variant={quoteViewMode === 'list' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setQuoteViewMode('list')}
+                          className="h-8"
+                        >
+                          <List className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant={quoteViewMode === 'compare' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setQuoteViewMode('compare')}
+                          className="h-8"
+                        >
+                          <Columns className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {canSubmitQuote && !showQuoteForm && (
+                      <Button onClick={() => setShowQuoteForm(true)} size="sm">
+                        Submit Quote
+                      </Button>
+                    )}
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -864,7 +951,78 @@ export default function RFQDetail() {
 
                 {quotes.length === 0 ? (
                   <EmptyState type="quotes" title="No quotes yet" description="Be the first to submit a quote" />
+                ) : quoteViewMode === 'compare' && isOwner ? (
+                  // Comparison View (Buyer only)
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-afrikoni-gold/30">
+                          <th className="text-left p-3 font-semibold text-afrikoni-chestnut">Supplier</th>
+                          <th className="text-right p-3 font-semibold text-afrikoni-chestnut">Total Price</th>
+                          <th className="text-right p-3 font-semibold text-afrikoni-chestnut">Price/Unit</th>
+                          <th className="text-center p-3 font-semibold text-afrikoni-chestnut">Delivery Time</th>
+                          <th className="text-center p-3 font-semibold text-afrikoni-chestnut">Payment Terms</th>
+                          <th className="text-center p-3 font-semibold text-afrikoni-chestnut">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.isArray(quotes) && quotes
+                          .sort((a, b) => parseFloat(a.total_price) - parseFloat(b.total_price))
+                          .map((quote) => (
+                            <tr key={quote.id} className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-cream/20">
+                              <td className="p-3">
+                                <div>
+                                  <p className="font-medium text-afrikoni-chestnut">
+                                    {quote.companies?.company_name || 'Supplier'}
+                                  </p>
+                                  <p className="text-xs text-afrikoni-deep/70">
+                                    {quote.companies?.country || ''}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="p-3 text-right">
+                                <p className="font-bold text-afrikoni-chestnut">
+                                  {quote.currency} {parseFloat(quote.total_price).toLocaleString()}
+                                </p>
+                              </td>
+                              <td className="p-3 text-right">
+                                <p className="text-sm text-afrikoni-deep">
+                                  {quote.currency} {parseFloat(quote.price_per_unit).toLocaleString()}
+                                </p>
+                              </td>
+                              <td className="p-3 text-center">
+                                <p className="text-sm text-afrikoni-deep">
+                                  {quote.delivery_time || 'N/A'}
+                                </p>
+                              </td>
+                              <td className="p-3 text-center">
+                                <p className="text-sm text-afrikoni-deep">
+                                  {quote.payment_terms || 'N/A'}
+                                </p>
+                              </td>
+                              <td className="p-3 text-center">
+                                {rfq.status === 'matched' || rfq.status === 'open' ? (
+                                  <Button
+                                    onClick={() => handleAwardRFQ(quote.id)}
+                                    size="sm"
+                                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                                  >
+                                    <Award className="w-4 h-4 mr-1" />
+                                    Award
+                                  </Button>
+                                ) : (
+                                  <Badge variant={quote.status === 'accepted' ? 'success' : 'outline'}>
+                                    {quote.status}
+                                  </Badge>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
+                  // List View (Default)
                   <div className="space-y-4">
                     {Array.isArray(quotes) && quotes.map((quote) => (
                       <div key={quote.id} className="p-4 border border-afrikoni-gold/20 rounded-lg">
@@ -943,8 +1101,8 @@ export default function RFQDetail() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Buyer Info */}
-            {buyerCompany && (
+            {/* Buyer Info - Only shown to buyer or admin */}
+            {buyerCompany && (isOwner || currentRole === 'admin') && (
               <Card>
                 <CardHeader>
                   <CardTitle>Buyer Information</CardTitle>
@@ -955,6 +1113,20 @@ export default function RFQDetail() {
                   {buyerCompany.verified && (
                     <Badge variant="verified" className="mt-2">Verified</Badge>
                   )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Privacy Note for Suppliers */}
+            {isSupplier && !buyerCompany && (
+              <Card className="border-afrikoni-gold/30 bg-afrikoni-cream/30">
+                <CardHeader>
+                  <CardTitle className="text-sm">Privacy Notice</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-afrikoni-deep/70">
+                    Buyer identity is protected. You'll see buyer contact information only after they accept your offer.
+                  </p>
                 </CardContent>
               </Card>
             )}

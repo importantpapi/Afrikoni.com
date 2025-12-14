@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Building2, MapPin, Star, Shield, Phone, Mail, Globe, 
   CheckCircle, Package, Calendar, Users, Award, 
-  MessageSquare, ExternalLink, ArrowLeft
+  MessageSquare, ExternalLink, ArrowLeft, Image as ImageIcon,
+  Camera, X, Edit, Factory, Briefcase, TrendingUp, Heart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
@@ -34,6 +35,9 @@ export default function BusinessProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
   const productsPerPage = 12;
 
   useEffect(() => {
@@ -43,45 +47,80 @@ export default function BusinessProfile() {
       return;
     }
     loadBusinessData();
+    // Check ownership separately - don't block page load
+    checkOwnership().catch(() => {
+      // Silent fail - ownership check is optional
+    });
   }, [id]);
+
+  const checkOwnership = async () => {
+    try {
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { user, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      setCurrentUser(user);
+      if (companyId === id) {
+        setIsOwner(true);
+      }
+    } catch (error) {
+      // Silent fail - not critical
+    }
+  };
 
   const loadBusinessData = async () => {
     try {
       setIsLoading(true);
       
-      const [businessRes, productsRes, reviewsRes] = await Promise.all([
-        supabase
-          .from('companies')
-          .select('*')
-          .eq('id', id)
-          .single(),
-        supabase
-          .from('products')
-          .select('*, categories(name)')
-          .eq('company_id', id)
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(productsPerPage * 3), // Load more for pagination
-        supabase
-          .from('reviews')
-          .select('*, reviewer_company_id, reviewed_company_id')
-          .eq('reviewed_company_id', id)
-          .order('created_at', { ascending: false })
-          .limit(10)
-      ]);
+      // Load business data - simplified query without foreign key join
+      const { data: businessData, error: businessError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-      if (businessRes.error) throw businessRes.error;
-      if (!businessRes.data) {
+      if (businessError) {
+        console.error('Error loading business:', businessError);
+        throw businessError;
+      }
+
+      if (!businessData) {
         toast.error('Business not found');
         navigate('/marketplace');
         return;
       }
 
-      setBusiness(businessRes.data);
-      setProducts(productsRes.data || []);
-      setReviews(reviewsRes.data || []);
+      // Load products
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .eq('company_id', id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(productsPerPage * 3);
+
+      if (productsError) {
+        console.error('Error loading products:', productsError);
+        // Don't throw - products are optional
+      }
+
+      // Load reviews
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from('reviews')
+        .select('*, reviewer_company_id, reviewed_company_id')
+        .eq('reviewed_company_id', id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (reviewsError) {
+        console.error('Error loading reviews:', reviewsError);
+        // Don't throw - reviews are optional
+      }
+
+      setBusiness(businessData);
+      setProducts(productsData || []);
+      setReviews(reviewsData || []);
     } catch (error) {
-      toast.error('Failed to load business profile');
+      console.error('Failed to load business profile:', error);
+      toast.error(error.message || 'Failed to load business profile');
       navigate('/marketplace');
     } finally {
       setIsLoading(false);
@@ -98,12 +137,13 @@ export default function BusinessProfile() {
       };
     }
 
-    const total = reviews.length;
-    const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    const average = sum / total;
+    const safeReviews = Array.isArray(reviews) ? reviews : [];
+    const total = safeReviews.length;
+    const sum = safeReviews.reduce((acc, r) => acc + (r?.rating || 0), 0);
+    const average = total > 0 ? sum / total : 0;
 
     const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach(r => {
+    safeReviews.forEach(r => {
       const rating = r.rating || 0;
       if (rating >= 1 && rating <= 5) {
         breakdown[rating]++;
@@ -172,16 +212,36 @@ export default function BusinessProfile() {
       />
       
       <div className="min-h-screen bg-afrikoni-offwhite">
-        {/* Hero Banner */}
-        <div className="h-64 bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700 relative">
-          {business.cover_image_url && (
-            <OptimizedImage 
-              src={business.cover_image_url} 
-              alt="" 
-              className="w-full h-full object-cover opacity-30" 
-            />
+        {/* Enhanced Hero Banner */}
+        <div className="h-80 md:h-96 bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700 relative overflow-hidden">
+          {business.cover_image_url ? (
+            <>
+              <OptimizedImage 
+                src={business.cover_image_url} 
+                alt={`${business.company_name} cover`} 
+                className="w-full h-full object-cover" 
+                width={1920}
+                height={600}
+                quality={90}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-afrikoni-chestnut/90 via-afrikoni-chestnut/60 to-transparent" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-afrikoni-chestnut/80 to-transparent" />
+          {isOwner && (
+            <div className="absolute top-4 right-4 z-20">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/dashboard/company-info`)}
+                className="bg-white/90 hover:bg-white text-afrikoni-chestnut shadow-lg"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
+          )}
         </div>
         
         <div className="max-w-7xl mx-auto px-4 -mt-20 relative z-10 pb-12">
@@ -195,69 +255,104 @@ export default function BusinessProfile() {
             Back
           </Button>
 
-          {/* Business Header Card */}
-          <Card className="border-2 border-afrikoni-gold/30 shadow-2xl mb-8 bg-white">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Logo */}
-                <div className="w-40 h-40 bg-afrikoni-offwhite rounded-2xl border-4 border-afrikoni-gold/30 shadow-xl flex items-center justify-center flex-shrink-0">
-                  {business.logo_url ? (
-                    <OptimizedImage 
-                      src={business.logo_url} 
-                      alt={business.company_name} 
-                      className="w-full h-full object-cover rounded-xl" 
-                    />
-                  ) : (
-                    <Building2 className="w-20 h-20 text-afrikoni-gold" />
+          {/* Enhanced Business Header Card */}
+          <Card className="border-2 border-afrikoni-gold/30 shadow-2xl mb-8 bg-white overflow-hidden">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+                {/* Enhanced Logo */}
+                <div className="relative group">
+                  <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-purple/10 rounded-2xl border-4 border-afrikoni-gold/40 shadow-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {business.logo_url ? (
+                      <OptimizedImage 
+                        src={business.logo_url} 
+                        alt={`${business.company_name} logo`} 
+                        className="w-full h-full object-contain p-2" 
+                        width={160}
+                        height={160}
+                        quality={95}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-purple/20">
+                        <Building2 className="w-16 h-16 md:w-20 md:h-20 text-afrikoni-gold" />
+                      </div>
+                    )}
+                  </div>
+                  {isOwner && !business.logo_url && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => navigate(`/dashboard/company-info`)}
+                        className="bg-white/90 text-afrikoni-chestnut"
+                      >
+                        <Camera className="w-4 h-4 mr-1" />
+                        Add Logo
+                      </Button>
+                    </div>
                   )}
                 </div>
                 
-                {/* Company Info */}
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <h1 className="text-3xl font-bold text-afrikoni-chestnut">
+                {/* Enhanced Company Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut leading-tight">
                           {business.company_name}
                         </h1>
                         {(business.verified || business.verification_status === 'verified') && (
-                          <Badge className="bg-afrikoni-gold text-white flex items-center gap-1">
-                            <CheckCircle className="w-3 h-3" />
-                            Verified Supplier
+                          <Badge className="bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/90 text-white flex items-center gap-1.5 px-3 py-1.5 shadow-lg">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="font-semibold">Verified Supplier</span>
                           </Badge>
                         )}
                       </div>
                       
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-afrikoni-deep/70">
+                      <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm md:text-base text-afrikoni-deep/80 mb-4">
                         {business.country && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            {business.country}
-                            {business.city && `, ${business.city}`}
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-afrikoni-gold/10 rounded-lg border border-afrikoni-gold/20">
+                            <MapPin className="w-4 h-4 text-afrikoni-gold" />
+                            <span className="font-medium">{business.country}{business.city && `, ${business.city}`}</span>
                           </div>
                         )}
                         {business.year_established && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            Est. {business.year_established}
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-afrikoni-purple/10 rounded-lg border border-afrikoni-purple/20">
+                            <Calendar className="w-4 h-4 text-afrikoni-purple" />
+                            <span className="font-medium">Est. {business.year_established}</span>
+                          </div>
+                        )}
+                        {business.employee_count && (
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-afrikoni-green/10 rounded-lg border border-afrikoni-green/20">
+                            <Users className="w-4 h-4 text-afrikoni-green" />
+                            <span className="font-medium">{business.employee_count} employees</span>
                           </div>
                         )}
                       </div>
+
+                      {/* Short Description */}
+                      {business.description && (
+                        <p className="text-base text-afrikoni-deep/80 mb-4 line-clamp-2 leading-relaxed">
+                          {business.description}
+                        </p>
+                      )}
                     </div>
                     
-                    {/* Ratings & Reliability */}
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 mb-1">
-                        <Star className="w-5 h-5 text-afrikoni-gold fill-afrikoni-gold" />
-                        <span className="text-2xl font-bold text-afrikoni-chestnut">
-                          {ratings.average}
-                        </span>
-                        <span className="text-sm text-afrikoni-deep/70">
-                          ({ratings.total} reviews)
+                    {/* Enhanced Ratings & Reliability */}
+                    <div className="text-right bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-purple/10 rounded-xl p-4 border border-afrikoni-gold/20">
+                      <div className="flex items-center gap-2 mb-2 justify-end">
+                        <Star className="w-6 h-6 text-afrikoni-gold fill-afrikoni-gold" />
+                        <span className="text-3xl font-bold text-afrikoni-chestnut">
+                          {ratings.average || '0.0'}
                         </span>
                       </div>
-                      <div className="text-xs text-afrikoni-deep/70">
-                        Reliability: {reliabilityScore}%
+                      <div className="text-sm text-afrikoni-deep/70 mb-3">
+                        {ratings.total} {ratings.total === 1 ? 'review' : 'reviews'}
+                      </div>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Award className="w-4 h-4 text-afrikoni-gold" />
+                        <span className="text-sm font-semibold text-afrikoni-chestnut">
+                          {reliabilityScore}% Reliability
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -391,80 +486,153 @@ export default function BusinessProfile() {
               )}
             </TabsContent>
 
-            {/* About Tab */}
+            {/* Gallery Tab */}
+            <TabsContent value="gallery">
+              {business.gallery_images && Array.isArray(business.gallery_images) && business.gallery_images.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {(Array.isArray(business?.gallery_images) ? business.gallery_images : []).map((imageUrl, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="relative group cursor-pointer"
+                      onClick={() => setSelectedGalleryImage(imageUrl)}
+                    >
+                      <div className="aspect-square rounded-xl overflow-hidden border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all shadow-md hover:shadow-xl">
+                        <OptimizedImage
+                          src={imageUrl}
+                          alt={`${business.company_name} gallery image ${index + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          width={400}
+                          height={400}
+                          quality={85}
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-xl flex items-center justify-center">
+                        <Camera className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <ImageIcon className="w-16 h-16 mx-auto text-afrikoni-deep/30 mb-4" />
+                    <p className="text-afrikoni-deep/70 mb-4">No gallery images yet</p>
+                    {isOwner && (
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate(`/dashboard/company-info`)}
+                        className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Add Gallery Images
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Enhanced About Tab */}
             <TabsContent value="about">
               <div className="grid md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Company Information</CardTitle>
+                <Card className="border-2 border-afrikoni-gold/20 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border-b border-afrikoni-gold/20">
+                    <CardTitle className="flex items-center gap-2 text-afrikoni-chestnut">
+                      <Factory className="w-5 h-5 text-afrikoni-gold" />
+                      Company Information
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="p-6 space-y-6">
                     {business.description && (
                       <div>
-                        <h4 className="font-semibold text-afrikoni-chestnut mb-2">About</h4>
-                        <p className="text-afrikoni-deep/70">{business.description}</p>
+                        <h4 className="font-bold text-lg text-afrikoni-chestnut mb-3 flex items-center gap-2">
+                          <Heart className="w-5 h-5 text-afrikoni-gold" />
+                          Our Story
+                        </h4>
+                        <p className="text-afrikoni-deep/80 leading-relaxed text-base">{business.description}</p>
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-afrikoni-gold/20">
                       {business.business_type && (
-                        <div>
-                          <p className="text-sm text-afrikoni-deep/60">Business Type</p>
-                          <p className="font-medium">{business.business_type}</p>
+                        <div className="p-4 bg-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
+                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium">Business Type</p>
+                          <p className="font-bold text-afrikoni-chestnut">{business.business_type}</p>
                         </div>
                       )}
                       {business.employee_count && (
-                        <div>
-                          <p className="text-sm text-afrikoni-deep/60">Company Size</p>
-                          <p className="font-medium">{business.employee_count}</p>
+                        <div className="p-4 bg-afrikoni-purple/5 rounded-xl border border-afrikoni-purple/20">
+                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium">Company Size</p>
+                          <p className="font-bold text-afrikoni-chestnut">{business.employee_count}</p>
                         </div>
                       )}
                       {business.phone && (
-                        <div>
-                          <p className="text-sm text-afrikoni-deep/60">Phone</p>
-                          <p className="font-medium">{business.phone}</p>
+                        <div className="p-4 bg-afrikoni-green/5 rounded-xl border border-afrikoni-green/20">
+                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            Phone
+                          </p>
+                          <p className="font-bold text-afrikoni-chestnut">{business.phone}</p>
                         </div>
                       )}
                       {business.email && (
-                        <div>
-                          <p className="text-sm text-afrikoni-deep/60">Email</p>
-                          <p className="font-medium">{business.email}</p>
+                        <div className="p-4 bg-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
+                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
+                            <Mail className="w-3 h-3" />
+                            Email
+                          </p>
+                          <p className="font-bold text-afrikoni-chestnut break-all">{business.email}</p>
                         </div>
                       )}
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Certifications & Trust</CardTitle>
+                <Card className="border-2 border-afrikoni-gold/20 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-afrikoni-purple/10 to-afrikoni-gold/10 border-b border-afrikoni-gold/20">
+                    <CardTitle className="flex items-center gap-2 text-afrikoni-chestnut">
+                      <Award className="w-5 h-5 text-afrikoni-purple" />
+                      Certifications & Trust
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-6">
                     {business.certifications && business.certifications.length > 0 ? (
-                      <div className="space-y-2">
-                        {business.certifications.map((cert, idx) => (
-                          <Badge key={idx} variant="outline" className="mr-2 mb-2">
-                            <Award className="w-3 h-3 mr-1" />
-                            {cert}
+                      <div className="space-y-3 mb-6">
+                        {(Array.isArray(business?.certifications) ? business.certifications : []).map((cert, idx) => (
+                          <Badge key={idx} variant="outline" className="mr-2 mb-2 px-4 py-2 text-sm bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border-afrikoni-gold/30">
+                            <Award className="w-4 h-4 mr-2 text-afrikoni-gold" />
+                            <span className="font-semibold">{cert}</span>
                           </Badge>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-afrikoni-deep/70 text-sm">No certifications listed</p>
+                      <p className="text-afrikoni-deep/70 text-sm mb-6">No certifications listed</p>
                     )}
                     
-                    <div className="mt-6 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-afrikoni-deep/70">Reliability Score</span>
-                        <span className="font-bold text-afrikoni-gold">{reliabilityScore}%</span>
+                    <div className="space-y-4 pt-4 border-t border-afrikoni-gold/20">
+                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
+                          <span className="text-sm font-medium text-afrikoni-deep/80">Reliability Score</span>
+                        </div>
+                        <span className="text-2xl font-bold text-afrikoni-gold">{reliabilityScore}%</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-afrikoni-deep/70">Response Rate</span>
-                        <span className="font-medium">{business.response_rate || 0}%</span>
+                      <div className="flex items-center justify-between p-4 bg-afrikoni-purple/5 rounded-xl border border-afrikoni-purple/20">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="w-5 h-5 text-afrikoni-purple" />
+                          <span className="text-sm font-medium text-afrikoni-deep/80">Response Rate</span>
+                        </div>
+                        <span className="text-xl font-bold text-afrikoni-purple">{business.response_rate || 0}%</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-afrikoni-deep/70">Total Orders</span>
-                        <span className="font-medium">{business.total_orders || 0}</span>
+                      <div className="flex items-center justify-between p-4 bg-afrikoni-green/5 rounded-xl border border-afrikoni-green/20">
+                        <div className="flex items-center gap-2">
+                          <Package className="w-5 h-5 text-afrikoni-green" />
+                          <span className="text-sm font-medium text-afrikoni-deep/80">Total Orders</span>
+                        </div>
+                        <span className="text-xl font-bold text-afrikoni-green">{business.total_orders || 0}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -476,7 +644,7 @@ export default function BusinessProfile() {
             <TabsContent value="reviews">
               {reviews.length > 0 ? (
                 <div className="space-y-4">
-                  {reviews.map((review) => (
+                  {(Array.isArray(reviews) ? reviews : []).map((review) => (
                     <Card key={review.id}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-2">

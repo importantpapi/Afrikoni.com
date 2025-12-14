@@ -71,6 +71,9 @@ const AdminVerificationReview = lazy(() => import('./pages/dashboard/admin/verif
 const AdminAnalytics = lazy(() => import('./pages/dashboard/admin/analytics'));
 const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'));
 const AdminSupplierManagement = lazy(() => import('./pages/dashboard/admin/supplier-management'));
+const AdminRFQMatching = lazy(() => import('./pages/dashboard/admin/rfq-matching'));
+const AdminRFQAnalytics = lazy(() => import('./pages/dashboard/admin/rfq-analytics'));
+const SupplierRFQs = lazy(() => import('./pages/dashboard/supplier-rfqs'));
 const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
 const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-tickets'));
@@ -103,6 +106,8 @@ const AddProductSmart = lazy(() => import('./pages/addproduct-smart'));
 const AddProductSimple = lazy(() => import('./pages/addproduct-simple'));
 const AddProductAlibaba = lazy(() => import('./pages/addproduct-alibaba'));
 const CreateRFQ = lazy(() => import('./pages/createrfq'));
+const RFQStart = lazy(() => import('./pages/rfq-start'));
+const RFQSuccess = lazy(() => import('./pages/rfq-success'));
 const Categories = lazy(() => import('./pages/categories'));
 const Orders = lazy(() => import('./pages/orders'));
 const OrderDetail = lazy(() => import('./pages/orderdetails'));
@@ -199,7 +204,9 @@ function App() {
             <Route path="/products/add" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
             <Route path="/products/add-smart" element={<ProtectedRoute><AddProductSmart /></ProtectedRoute>} />
             <Route path="/products/add-old" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
+            <Route path="/rfq/start" element={<RFQStart />} />
             <Route path="/rfq/create" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
+            <Route path="/rfq/success" element={<ProtectedRoute><RFQSuccess /></ProtectedRoute>} />
             <Route path="/rfq" element={<RFQMarketplace />} />
             <Route path="/rfq/detail" element={<ProtectedRoute><RFQDetail /></ProtectedRoute>} />
             <Route path="/rfq-management" element={<ProtectedRoute><RFQManagement /></ProtectedRoute>} />
@@ -229,6 +236,9 @@ function App() {
             <Route path="/dashboard/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
             <Route path="/dashboard/admin/supplier-management" element={<ProtectedRoute><AdminSupplierManagement /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-matching" element={<ProtectedRoute><AdminRFQMatching /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-analytics" element={<ProtectedRoute><AdminRFQAnalytics /></ProtectedRoute>} />
+            <Route path="/dashboard/supplier-rfqs" element={<ProtectedRoute><SupplierRFQs /></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
             <Route path="/dashboard/admin/revenue" element={<ProtectedRoute><AdminRevenue /></ProtectedRoute>} />
             <Route path="/dashboard/admin/growth-metrics" element={<ProtectedRoute><AdminGrowthMetrics /></ProtectedRoute>} />

@@ -421,12 +421,12 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite">
+    <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
       {/* Navbar */}
       <Navbar user={user} onLogout={handleLogout} />
 
-      {/* Main Content */}
-      <main className="bg-afrikoni-offwhite">{children}</main>
+      {/* Main Content - Add padding-top to account for fixed navbar (80px) */}
+      <main className="bg-afrikoni-offwhite pt-20 relative overflow-visible">{children}</main>
 
       {/* Footer */}
       <Footer />

@@ -362,7 +362,7 @@ export default function ProductDetail() {
         />
       )}
       <div className="min-h-screen bg-stone-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
         {fromSellerCreate && supplier && user && user.company_id === supplier.id && (
           <div className="mb-4 rounded-lg border border-afrikoni-gold/30 bg-afrikoni-cream px-4 py-3 text-xs sm:text-sm text-afrikoni-deep flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <span className="font-semibold text-afrikoni-chestnut">
@@ -385,10 +385,10 @@ export default function ProductDetail() {
           ]}
         />
 
-        <div className="grid md:grid-cols-3 gap-4 md:gap-8">
-          <div className="md:col-span-2 space-y-4 md:space-y-6">
-            <Card className="border-afrikoni-gold/20">
-              <CardContent className="p-3 md:p-6">
+        <div className="grid md:grid-cols-3 gap-3 sm:gap-4 md:gap-8">
+          <div className="md:col-span-2 space-y-3 sm:space-y-4 md:space-y-6">
+            <Card className="border-afrikoni-gold/20 overflow-hidden">
+              <CardContent className="p-2 sm:p-3 md:p-6">
                 <ProductImageGallery 
                   images={product.allImages || []} 
                   productTitle={product.title}
@@ -542,9 +542,9 @@ export default function ProductDetail() {
             </Card>
           </div>
 
-          <div className="space-y-4 md:space-y-6">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6">
             <Card className="border-afrikoni-gold/20 md:sticky md:top-24">
-              <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
+              <CardContent className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="space-y-1">

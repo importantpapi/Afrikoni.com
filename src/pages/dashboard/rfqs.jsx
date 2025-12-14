@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { getUserRole, canViewBuyerFeatures, canViewSellerFeatures, isHybrid, isLogistics } from '@/utils/roleHelpers';
-import { RFQ_STATUS, getStatusLabel } from '@/constants/status';
+import { RFQ_STATUS, RFQ_STATUS_LABELS, getStatusLabel } from '@/constants/status';
 import { buildRFQQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { CardSkeleton } from '@/components/ui/skeletons';
@@ -48,6 +48,7 @@ export default function DashboardRFQs() {
   const [pagination, setPagination] = useState(createPaginationState());
   const [currentPlan, setCurrentPlan] = useState('free');
   const [isVerified, setIsVerified] = useState(false);
+  const [matchCount, setMatchCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -132,12 +133,20 @@ export default function DashboardRFQs() {
 
       // Calculate match count for suppliers (RFQs matching their products)
       if (canViewSellerFeatures(normalizedRole)) {
-        const { count } = await supabase
+        // Fix: Use proper .or() syntax with URL-encoded date
+        const now = new Date().toISOString();
+        const { count, error: rfqCountError } = await supabase
           .from('rfqs')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
+          .limit(0)
           .eq('status', 'open')
-          .gte('deadline', new Date().toISOString());
-        setMatchCount(count || 0);
+          .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
+        
+        if (rfqCountError) {
+          console.error('Error counting RFQs:', rfqCountError);
+        } else {
+          setMatchCount(count || 0);
+        }
       }
 
       // Load categories
@@ -157,6 +166,8 @@ export default function DashboardRFQs() {
         setQuotes(myQuotes || []);
       }
     } catch (error) {
+      console.error('Error loading RFQs:', error);
+      toast.error(error?.message || 'Failed to load RFQs. Please try again.');
       setRfqs([]);
       setQuotes([]);
       setCategories([]);
@@ -171,7 +182,8 @@ export default function DashboardRFQs() {
     }
   };
 
-  const filteredRFQs = rfqs.filter(rfq => {
+  const filteredRFQs = (Array.isArray(rfqs) ? rfqs : []).filter(rfq => {
+    if (!rfq) return false;
     const matchesSearch = !searchQuery || 
       rfq.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rfq.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -191,117 +203,135 @@ export default function DashboardRFQs() {
 
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-6">
-        {/* v2.5: Premium Header with Improved Spacing */}
+      <div className="space-y-6 pb-8">
+        {/* Professional Header with Gradient Background */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center justify-between mb-8"
+          className="relative overflow-hidden bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-purple/5 to-afrikoni-cream/20 rounded-2xl p-6 md:p-8 mb-8 border border-afrikoni-gold/20"
         >
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">
-              {currentRole === 'buyer' ? t('rfq.myRFQs') || 'My RFQs' : 
-               currentRole === 'seller' ? t('rfq.receivedRFQs') || 'RFQs Received' : 
-               t('dashboard.rfqs')}
-            </h1>
-            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
-              {currentRole === 'buyer' && (t('rfq.manageRFQs') || 'Manage your requests for quotations')}
-              {currentRole === 'seller' && (t('rfq.respondRFQs') || 'Respond to buyer requests')}
-              {currentRole === 'hybrid' && (t('rfq.viewAllRFQs') || 'View all RFQs')}
-              {currentRole === 'logistics' && (t('rfq.viewLogisticsRFQs') || 'View logistics RFQs')}
-            </p>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-xl flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-afrikoni-gold" />
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-1">
+                    {currentRole === 'buyer' ? 'My RFQs' : 
+                     currentRole === 'seller' ? 'RFQs Received' : 
+                     currentRole === 'hybrid' ? 'All RFQs' :
+                     'RFQs'}
+                  </h1>
+                  <p className="text-afrikoni-text-dark/70 text-sm md:text-base">
+                    {currentRole === 'buyer' && 'Manage your requests for quotations and track responses'}
+                    {currentRole === 'seller' && 'Browse and respond to buyer requests matching your products'}
+                    {currentRole === 'hybrid' && 'View all RFQs across your buyer and seller activities'}
+                    {currentRole === 'logistics' && 'View logistics-related RFQs'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {(currentRole === 'buyer' || currentRole === 'hybrid') && (
+              <Link to="/dashboard/rfqs/new">
+                <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create New RFQ
+                </Button>
+              </Link>
+            )}
           </div>
-          {(currentRole === 'buyer' || currentRole === 'hybrid') && (
-            <Link to="/dashboard/rfqs/new">
-              <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-6">
-                <Plus className="w-4 h-4 mr-2" />
-                {t('rfq.create')}
-              </Button>
-            </Link>
-          )}
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-afrikoni-purple/5 rounded-full blur-3xl -ml-24 -mb-24"></div>
         </motion.div>
 
-        {/* Premium Filters */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardContent className="p-5 md:p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        {/* Professional Filters Section */}
+        <Card className="border-afrikoni-gold/20 bg-white rounded-xl shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold/60" />
                 <Input
-                  placeholder={t('common.searchRFQs') || 'Search RFQs...'}
+                  placeholder="Search RFQs by title, description, or keywords..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
+                  className="pl-12 h-12 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-xl text-base"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-48 border-afrikoni-gold/30 rounded-afrikoni">
-                  <SelectValue placeholder={t('common.allStatus') || 'All Status'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('common.all')} Status</SelectItem>
-                  <SelectItem value="open">{t('rfq.open')}</SelectItem>
-                  <SelectItem value="in_review">In Review</SelectItem>
-                  <SelectItem value="closed">{t('rfq.closed')}</SelectItem>
-                  <SelectItem value="awarded">Awarded</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-48 border-afrikoni-gold/30 rounded-afrikoni">
-                  <SelectValue placeholder={t('categories.all')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">{t('categories.all')}</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={countryFilter} onValueChange={setCountryFilter}>
-                <SelectTrigger className="w-full md:w-48 border-afrikoni-gold/30 rounded-afrikoni">
-                  <SelectValue placeholder={t('common.allCountries') || 'All Countries'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">{t('common.allCountries') || 'All Countries'}</SelectItem>
-                  {AFRICAN_COUNTRIES.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-48 h-12 border-afrikoni-gold/30 rounded-xl">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="in_review">In Review</SelectItem>
+                    <SelectItem value="matched">Matched</SelectItem>
+                    <SelectItem value="awarded">Awarded</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-48 h-12 border-afrikoni-gold/30 rounded-xl">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Categories</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={countryFilter} onValueChange={setCountryFilter}>
+                  <SelectTrigger className="w-full sm:w-48 h-12 border-afrikoni-gold/30 rounded-xl">
+                    <SelectValue placeholder="All Countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Countries</SelectItem>
+                    {AFRICAN_COUNTRIES.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Match Notifications for Suppliers */}
+        {/* Professional Match Notification for Suppliers */}
         {canViewSellerFeatures(currentRole) && matchCount > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4"
+            className="mb-6"
           >
-            <Card className="border-2 border-afrikoni-gold/40 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                      <Target className="w-5 h-5 text-afrikoni-gold" />
+            <Card className="border-2 border-afrikoni-gold/40 bg-gradient-to-r from-afrikoni-gold/10 via-afrikoni-purple/5 to-afrikoni-gold/10 rounded-xl shadow-lg overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-afrikoni-gold/10 rounded-full blur-2xl -mr-16 -mt-16"></div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-afrikoni-gold to-afrikoni-purple rounded-xl flex items-center justify-center shadow-lg">
+                      <Target className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-afrikoni-chestnut">
-                        Your products match {matchCount} RFQ{matchCount !== 1 ? 's' : ''} — respond now!
+                      <p className="font-bold text-lg text-afrikoni-chestnut mb-1">
+                        🎯 {matchCount} RFQ{matchCount !== 1 ? 's' : ''} Match Your Products!
                       </p>
-                      <p className="text-sm text-afrikoni-deep/70">
-                        Respond under 24h to boost your ranking
+                      <p className="text-sm text-afrikoni-deep/80">
+                        Respond within 24 hours to improve your supplier ranking and win more business
                       </p>
                     </div>
                   </div>
                   <Link to="/dashboard/rfqs?tab=received">
-                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl font-semibold whitespace-nowrap">
+                      <Zap className="w-5 h-5 mr-2" />
                       View Matches
                     </Button>
                   </Link>
@@ -311,39 +341,39 @@ export default function DashboardRFQs() {
           </motion.div>
         )}
 
-        {/* v2.5: Premium Tabs with Gold Accents */}
+        {/* Professional Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium">
+          <TabsList className="bg-white border border-afrikoni-gold/20 rounded-xl p-1.5 shadow-md inline-flex h-auto">
             {(currentRole === 'buyer' || currentRole === 'hybrid') && (
               <TabsTrigger 
                 value="sent" 
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200"
+                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
               >
-                {t('rfq.sentRFQs') || 'Sent RFQs'}
+                Sent RFQs
               </TabsTrigger>
             )}
             {canViewSellerFeatures(currentRole) && (
               <TabsTrigger 
                 value="received"
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200"
+                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
               >
-                {t('rfq.receivedRFQs') || 'Received RFQs'}
+                Received RFQs
               </TabsTrigger>
             )}
             {canViewSellerFeatures(currentRole) && (
               <TabsTrigger 
                 value="quotes"
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200"
+                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
               >
-                {t('rfq.myQuotes') || 'My Quotes'}
+                My Quotes
               </TabsTrigger>
             )}
             {currentRole === 'logistics' && (
               <TabsTrigger 
                 value="all"
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200"
+                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
               >
-                {t('common.all')} RFQs
+                All RFQs
               </TabsTrigger>
             )}
           </TabsList>
@@ -352,118 +382,168 @@ export default function DashboardRFQs() {
             {activeTab === 'sent' || activeTab === 'all' ? (
               <div className="grid gap-4">
                 {filteredRFQs.length === 0 ? (
-                  <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-                    <CardContent className="p-12 text-center">
-                      <FileText className="w-16 h-16 text-afrikoni-text-dark/50 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No RFQs yet</h3>
-                      <p className="text-afrikoni-text-dark/70 mb-6 max-w-md mx-auto">
-                        {activeTab === 'sent' 
-                          ? "Create your first RFQ to find suppliers or contact verified buyers using KoniAI"
-                          : "No RFQs match your filters. Try adjusting your search criteria."}
-                      </p>
-                      <div className="flex gap-3 justify-center">
-                        {activeTab === 'sent' && (
-                          <>
-                            <Link to="/dashboard/rfqs/new">
-                              <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Create RFQ
-                              </Button>
-                            </Link>
-                            <Link to="/dashboard/koniai">
-                              <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut">
-                                <Sparkles className="w-4 h-4 mr-2" />
-                                Use KoniAI
-                              </Button>
-                            </Link>
-                          </>
-                        )}
+                  <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-white to-afrikoni-cream/30 rounded-2xl shadow-xl overflow-hidden">
+                    <CardContent className="p-12 md:p-16 text-center relative">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                      <div className="relative z-10">
+                        <div className="w-20 h-20 bg-afrikoni-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                          <FileText className="w-10 h-10 text-afrikoni-gold" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-3">
+                          {activeTab === 'sent' ? 'No RFQs Created Yet' : 'No RFQs Found'}
+                        </h3>
+                        <p className="text-afrikoni-text-dark/70 mb-8 max-w-md mx-auto text-base leading-relaxed">
+                          {activeTab === 'sent' 
+                            ? "Start connecting with verified suppliers by creating your first Request for Quotation. Use KoniAI for AI-powered RFQ creation."
+                            : "No RFQs match your current filters. Try adjusting your search criteria or clear filters to see more results."}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          {activeTab === 'sent' && (
+                            <>
+                              <Link to="/dashboard/rfqs/new">
+                                <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl">
+                                  <Plus className="w-5 h-5 mr-2" />
+                                  Create Your First RFQ
+                                </Button>
+                              </Link>
+                              <Link to="/dashboard/koniai">
+                                <Button variant="outline" className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-6 h-auto rounded-xl">
+                                  <Sparkles className="w-5 h-5 mr-2" />
+                                  Use KoniAI Assistant
+                                </Button>
+                              </Link>
+                            </>
+                          )}
+                          {activeTab !== 'sent' && (
+                            <Button 
+                              variant="outline" 
+                              onClick={() => {
+                                setSearchQuery('');
+                                setStatusFilter('all');
+                                setCategoryFilter('');
+                                setCountryFilter('');
+                              }}
+                              className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-6 h-auto rounded-xl"
+                            >
+                              Clear All Filters
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
                 ) : (
-                  filteredRFQs.map((rfq, idx) => (
+                  <div className="space-y-4">
+                    {(Array.isArray(filteredRFQs) ? filteredRFQs : []).map((rfq, idx) => (
                     <motion.div
                       key={rfq.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: idx * 0.05 }}
                     >
-                      {/* v2.5: Premium RFQ Cards */}
-                      <Card className="border border-afrikoni-gold/30 hover:border-afrikoni-gold hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                      {/* Professional RFQ Card */}
+                      <Card className="group border border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-xl transition-all duration-300 bg-white rounded-xl overflow-hidden">
                         <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-3">
-                                <h3 className="text-lg md:text-xl font-bold text-afrikoni-text-dark">{rfq.title}</h3>
-                                <Badge 
-                                  variant={rfq.status === 'open' ? 'default' : 'outline'}
-                                  className={`${
-                                    rfq.status === 'open' 
-                                      ? 'bg-afrikoni-green/10 text-afrikoni-green border-afrikoni-green/20' 
-                                      : 'bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/20'
-                                  }`}
-                                >
-                                  {rfq.status}
-                                </Badge>
-                                {rfq.quotesCount > 0 && (
-                                  <Badge variant="outline" className="bg-afrikoni-purple/10 text-afrikoni-purple border-afrikoni-purple/20">
-                                    {rfq.quotesCount} {t('rfq.quotes')}
+                          <div className="flex flex-col md:flex-row md:items-start gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-start gap-3 mb-4">
+                                <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut leading-tight flex-1 min-w-0">
+                                  {rfq.title}
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                  <Badge 
+                                    variant={rfq.status === 'open' ? 'default' : 'outline'}
+                                    className={`text-xs font-semibold px-3 py-1 ${
+                                      rfq.status === 'open' 
+                                        ? 'bg-green-50 text-green-700 border-green-200' 
+                                        : rfq.status === 'awarded'
+                                        ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                                    }`}
+                                  >
+                                    {RFQ_STATUS_LABELS[rfq.status] || rfq.status}
                                   </Badge>
-                                )}
-                                {/* Fast Response Badge */}
-                                {canViewSellerFeatures(currentRole) && rfq.created_at && (
-                                  (() => {
-                                    const hoursSinceCreated = (new Date() - new Date(rfq.created_at)) / (1000 * 60 * 60);
-                                    if (hoursSinceCreated < 24) {
-                                      return (
-                                        <Badge className="bg-green-500 text-white border-0">
-                                          <Clock className="w-3 h-3 mr-1" />
-                                          Respond under 24h
-                                        </Badge>
-                                      );
-                                    }
-                                    return null;
-                                  })()
-                                )}
+                                  {rfq.quotesCount > 0 && (
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-semibold px-3 py-1">
+                                      <MessageSquare className="w-3 h-3 mr-1" />
+                                      {rfq.quotesCount} Quote{rfq.quotesCount !== 1 ? 's' : ''}
+                                    </Badge>
+                                  )}
+                                  {/* Fast Response Badge */}
+                                  {canViewSellerFeatures(currentRole) && rfq.created_at && (
+                                    (() => {
+                                      const hoursSinceCreated = (new Date() - new Date(rfq.created_at)) / (1000 * 60 * 60);
+                                      if (hoursSinceCreated < 24) {
+                                        return (
+                                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 text-xs font-semibold px-3 py-1 shadow-md">
+                                            <Clock className="w-3 h-3 mr-1" />
+                                            Respond Now
+                                          </Badge>
+                                        );
+                                      }
+                                      return null;
+                                    })()
+                                  )}
+                                </div>
                               </div>
-                              <p className="text-afrikoni-text-dark/70 mb-4 line-clamp-2">{rfq.description}</p>
-                              <div className="flex flex-wrap gap-4 text-sm text-afrikoni-text-dark/70">
-                                <span className="flex items-center gap-1.5">
-                                  <Package className="w-4 h-4 text-afrikoni-gold" />
-                                  Qty: {rfq.quantity} {rfq.unit}
-                                </span>
+                              <p className="text-afrikoni-text-dark/80 mb-5 line-clamp-2 text-base leading-relaxed">
+                                {rfq.description}
+                              </p>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-afrikoni-cream/30 rounded-xl">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
+                                    <Package className="w-5 h-5 text-afrikoni-gold" />
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-afrikoni-text-dark/60 font-medium">Quantity</p>
+                                    <p className="text-sm font-semibold text-afrikoni-chestnut">
+                                      {rfq.quantity} {rfq.unit}
+                                    </p>
+                                  </div>
+                                </div>
                                 {rfq.target_price && (
-                                  <span className="flex items-center gap-1.5">
-                                    <DollarSign className="w-4 h-4 text-afrikoni-gold" />
-                                    Target: ${rfq.target_price}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-10 h-10 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
+                                      <DollarSign className="w-5 h-5 text-afrikoni-gold" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-afrikoni-text-dark/60 font-medium">Budget</p>
+                                      <p className="text-sm font-semibold text-afrikoni-chestnut">
+                                        ${parseFloat(rfq.target_price).toLocaleString()}
+                                      </p>
+                                    </div>
+                                  </div>
                                 )}
                                 {rfq.delivery_deadline && (
-                                  <span className="flex items-center gap-1.5">
-                                    <Calendar className="w-4 h-4 text-afrikoni-gold" />
-                                    Deadline: {new Date(rfq.delivery_deadline).toLocaleDateString()}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-10 h-10 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
+                                      <Calendar className="w-5 h-5 text-afrikoni-gold" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-afrikoni-text-dark/60 font-medium">Deadline</p>
+                                      <p className="text-sm font-semibold text-afrikoni-chestnut">
+                                        {new Date(rfq.delivery_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                      </p>
+                                    </div>
+                                  </div>
                                 )}
                               </div>
                             </div>
-                            <div className="flex flex-col gap-2 ml-4">
-                              <Link to={`/dashboard/rfqs/${rfq.id}`}>
+                            <div className="flex flex-row md:flex-col gap-2 md:ml-4">
+                              <Link to={`/dashboard/rfqs/${rfq.id}`} className="flex-1 md:flex-none">
                                 <Button 
                                   variant="outline" 
-                                  size="sm"
-                                  className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-text-dark rounded-afrikoni"
+                                  className="w-full md:w-auto border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-chestnut font-semibold rounded-xl px-6"
                                 >
-                                  {t('common.view')}
+                                  View Details
                                 </Button>
                               </Link>
                               {currentRole === 'seller' && (
-                                <Link to={`/dashboard/rfqs/${rfq.id}`}>
+                                <Link to={`/dashboard/rfqs/${rfq.id}`} className="flex-1 md:flex-none">
                                   <Button 
-                                    size="sm"
-                                    className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal shadow-afrikoni rounded-afrikoni"
+                                    className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all rounded-xl px-6 font-semibold"
                                   >
-                                    {t('rfq.quote') || 'Quote'}
+                                    Submit Quote
                                   </Button>
                                 </Link>
                               )}
@@ -472,54 +552,95 @@ export default function DashboardRFQs() {
                         </CardContent>
                       </Card>
                     </motion.div>
-                  ))
+                  ))}
+                  </div>
                 )}
               </div>
             ) : activeTab === 'quotes' ? (
               <div className="grid gap-4">
                 {quotes.length === 0 ? (
-                  <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-                    <CardContent className="p-12 text-center">
-                      <FileText className="w-16 h-16 text-afrikoni-text-dark/50 mx-auto mb-4" />
-                      <p className="text-afrikoni-text-dark/70">{t('empty.noQuotes') || 'No quotes submitted yet'}</p>
+                  <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-white to-afrikoni-cream/30 rounded-2xl shadow-xl overflow-hidden">
+                    <CardContent className="p-12 md:p-16 text-center relative">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                      <div className="relative z-10">
+                        <div className="w-20 h-20 bg-afrikoni-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                          <Award className="w-10 h-10 text-afrikoni-gold" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-3">No Quotes Submitted Yet</h3>
+                        <p className="text-afrikoni-text-dark/70 mb-8 max-w-md mx-auto text-base leading-relaxed">
+                          Start responding to RFQs to showcase your products and win new business opportunities.
+                        </p>
+                        <Link to="/dashboard/rfqs?tab=received">
+                          <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl">
+                            Browse RFQs
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
                 ) : (
-                  quotes.map((quote, idx) => (
+                  <div className="space-y-4">
+                    {(Array.isArray(quotes) ? quotes : []).map((quote, idx) => (
                     <motion.div
                       key={quote.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: idx * 0.05 }}
                     >
-                      <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                      <Card className="group border border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-xl transition-all duration-300 bg-white rounded-xl overflow-hidden">
                         <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="text-lg font-bold text-afrikoni-text-dark mb-2">
-                                {t('rfq.quoteFor') || 'Quote for'}: {quote.rfqs?.title}
-                              </h3>
-                              <div className="flex flex-wrap gap-4 text-sm text-afrikoni-text-dark/70 mb-4">
-                                <span className="font-semibold text-afrikoni-gold">Price: ${quote.total_price}</span>
-                                <Badge variant="outline" className="bg-afrikoni-green/10 text-afrikoni-green border-afrikoni-green/20">
-                                  {quote.status}
-                                </Badge>
+                          <div className="flex flex-col md:flex-row md:items-start gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start gap-3 mb-4">
+                                <div className="w-12 h-12 bg-afrikoni-purple/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                  <Award className="w-6 h-6 text-afrikoni-purple" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2 leading-tight">
+                                    Quote for: {quote.rfqs?.title || 'RFQ'}
+                                  </h3>
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-afrikoni-gold/10 rounded-lg">
+                                      <DollarSign className="w-5 h-5 text-afrikoni-gold" />
+                                      <span className="font-bold text-lg text-afrikoni-chestnut">
+                                        ${parseFloat(quote.total_price || 0).toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-xs font-semibold px-3 py-1 ${
+                                        quote.status === 'pending' 
+                                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                          : quote.status === 'accepted'
+                                          ? 'bg-green-50 text-green-700 border-green-200'
+                                          : 'bg-gray-50 text-gray-700 border-gray-200'
+                                      }`}
+                                    >
+                                      {quote.status}
+                                    </Badge>
+                                    {quote.created_at && (
+                                      <span className="text-sm text-afrikoni-text-dark/60">
+                                        Submitted {new Date(quote.created_at).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                             <Link to={`/dashboard/rfqs/${quote.rfq_id}`}>
                               <Button 
                                 variant="outline" 
-                                size="sm"
-                                className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-text-dark rounded-afrikoni"
+                                className="w-full md:w-auto border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-chestnut font-semibold rounded-xl px-6"
                               >
-                                {t('common.view')} RFQ
+                                View RFQ
                               </Button>
                             </Link>
                           </div>
                         </CardContent>
                       </Card>
                     </motion.div>
-                  ))
+                  ))}
+                  </div>
                 )}
               </div>
             ) : null}

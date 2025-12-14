@@ -64,7 +64,10 @@ export default function AdminSupportTickets() {
   useEffect(() => {
     if (selectedTicket) {
       loadMessages(selectedTicket.ticket_number);
-      setupRealtimeSubscription(selectedTicket.ticket_number);
+      const cleanup = setupRealtimeSubscription(selectedTicket.ticket_number);
+      return () => {
+        if (cleanup) cleanup();
+      };
     }
   }, [selectedTicket]);
 
@@ -140,35 +143,77 @@ export default function AdminSupportTickets() {
         .eq('ticket_number', ticketNumber)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setMessages(data || []);
+      if (error) {
+        console.error('Error loading admin support messages:', error);
+        toast.error('Failed to load messages. Please refresh.');
+        setMessages([]);
+        return;
+      }
+      
+      setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      toast.error('Failed to load messages');
+      toast.error('Failed to load messages. Please try again.');
+      setMessages([]);
     }
   };
 
   const setupRealtimeSubscription = (ticketNumber) => {
-    if (!ticketNumber) return;
+    if (!ticketNumber) return null;
 
-    const channel = supabase
-      .channel(`admin-support-${ticketNumber}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'support_messages',
-          filter: `ticket_number=eq.${ticketNumber}`
-        },
-        (payload) => {
-          setMessages(prev => [...prev, payload.new]);
-        }
-      )
-      .subscribe();
+    let channel = null;
+
+    try {
+      channel = supabase
+        .channel(`admin-support-${ticketNumber}-${Date.now()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'support_messages',
+            filter: `ticket_number=eq.${ticketNumber}`
+          },
+          (payload) => {
+            try {
+              if (!payload || !payload.new) {
+                console.warn('Invalid payload received:', payload);
+                return;
+              }
+
+              const newMessage = payload.new;
+              
+              // Check for duplicates
+              setMessages(prev => {
+                const prevArray = Array.isArray(prev) ? prev : [];
+                const exists = prevArray.some(m => m && m.id === newMessage.id);
+                if (exists) return prevArray;
+                return [...prevArray, newMessage];
+              });
+            } catch (error) {
+              console.error('Error processing realtime admin message:', error);
+            }
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Admin realtime subscription active for ticket:', ticketNumber);
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            console.error('❌ Admin realtime subscription error:', status);
+          }
+        });
+    } catch (error) {
+      console.error('Error setting up admin realtime subscription:', error);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.error('Error removing admin realtime channel:', error);
+        }
+      }
     };
   };
 

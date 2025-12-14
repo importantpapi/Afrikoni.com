@@ -118,9 +118,9 @@ export default function NotificationsCenter() {
         }
       }
 
-      // Ensure session is ready before querying (RLS requires auth.uid())
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
+      // Verify session is still valid (already checked above, but double-check for RLS)
+      const { data: { session: currentSession }, error: currentSessionError } = await supabase.auth.getSession();
+      if (currentSessionError || !currentSession) {
         console.debug('No active session for notifications query');
         setNotifications([]);
         setIsLoading(false);

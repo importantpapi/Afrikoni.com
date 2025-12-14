@@ -19,9 +19,12 @@ export default function Home() {
   const { trackPageView } = useAnalytics();
 
   useEffect(() => {
-    loadData();
+    // Only load data if we don't have categories yet
+    if (categories.length === 0) {
+      loadData();
+    }
     trackPageView('Home');
-  }, []);
+  }, [categories.length]);
 
   const loadData = async () => {
     try {
@@ -53,7 +56,7 @@ export default function Home() {
         <LiveTradeTicker />
         
         {/* Hero Section */}
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-visible">
           <HeroSection categories={categories} />
         </section>
 

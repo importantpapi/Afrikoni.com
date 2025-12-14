@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
+import { sendEmail } from '@/services/emailService';
 
 /**
  * Newsletter popup component
@@ -96,15 +97,41 @@ export default function NewsletterPopup() {
         throw error;
       }
       
+      // Send welcome email
+      try {
+        await sendEmail({
+          to: email,
+          subject: 'Welcome to Afrikoni - Africa\'s B2B Trade Engine',
+          template: 'newsletterWelcome',
+          data: { email }
+        });
+      } catch (emailError) {
+        // Email sending is non-critical, log but don't fail
+        console.log('Welcome email not sent (email service may not be configured):', emailError);
+      }
+      
       localStorage.setItem('newsletterSubscribed', 'true');
       localStorage.setItem('newsletterEmail', email);
-      toast.success('Thank you for subscribing!');
+      toast.success('Thank you for subscribing! Check your inbox for a welcome email.');
       setShowPopup(false);
     } catch (error) {
       // Fallback: store in localStorage if Supabase fails
       localStorage.setItem('newsletterSubscribed', 'true');
       localStorage.setItem('newsletterEmail', email);
-      toast.success('Thank you for subscribing!');
+      
+      // Still try to send welcome email
+      try {
+        await sendEmail({
+          to: email,
+          subject: 'Welcome to Afrikoni - Africa\'s B2B Trade Engine',
+          template: 'newsletterWelcome',
+          data: { email }
+        });
+      } catch (emailError) {
+        console.log('Welcome email not sent:', emailError);
+      }
+      
+      toast.success('Thank you for subscribing! Check your inbox for a welcome email.');
       setShowPopup(false);
     } finally {
       setIsSubmitting(false);
