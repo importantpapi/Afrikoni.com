@@ -245,7 +245,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           x: sidebarOpen ? 0 : '-100%',
           width: sidebarOpen ? '16rem' : '0'
         }}
-        className="fixed left-0 top-0 bottom-0 z-50 bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:static md:shadow-none md:z-auto transition-all overflow-hidden shrink-0"
+        className="fixed left-0 top-0 h-screen z-50 bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:w-[260px] md:shadow-none md:z-auto transition-all overflow-hidden shrink-0"
       >
         <div className="flex flex-col min-h-screen relative">
           {/* Logo Section */}
@@ -430,7 +430,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       </motion.aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 w-full md:ml-[16rem] min-h-screen relative z-10 overflow-visible">
+      <div className="flex flex-col flex-1 w-full md:ml-[260px] min-h-screen relative z-10 overflow-visible">
         {/* Premium Top Bar */}
         <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
           <div className="flex items-center justify-between px-2 md:px-4 lg:px-6 py-4 relative overflow-visible">
@@ -729,7 +729,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 w-full px-3 md:px-4 lg:px-5 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
+        <main className="flex-1 w-full px-4 md:px-6 lg:px-8 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
           {children}
         </main>
       </div>
@@ -744,7 +744,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         transition={{ duration: 0.6, delay: 0.5 }}
         className="fixed bottom-0 left-0 right-0 z-30 bg-afrikoni-chestnut/95 backdrop-blur-sm border-t border-afrikoni-gold/30 px-4 py-2 hidden md:block"
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-6 text-xs text-afrikoni-sand">
+        <div className="w-full px-4 md:px-6 lg:px-8 flex items-center gap-6 text-xs text-afrikoni-sand">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-afrikoni-gold" />
             <span className="font-semibold text-afrikoni-gold">23</span>
