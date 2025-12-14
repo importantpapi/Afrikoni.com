@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, X } from 'lucide-react';
+import { Search, X, CheckCircle, Users, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,6 +9,100 @@ import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/api/supabaseClient';
+
+// Compact Social Proof Component
+function SocialProofSection() {
+  const [stats, setStats] = useState({
+    verifiedSuppliers: 0,
+    countries: 0,
+    activeBusinesses: 0
+  });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        // Get verified suppliers count
+        const { count: suppliersCount } = await supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .in('role', ['seller', 'hybrid'])
+          .eq('verification_status', 'verified');
+
+        // Get unique countries from products
+        const { data: productsData } = await supabase
+          .from('products')
+          .select('country_of_origin')
+          .eq('status', 'active');
+        
+        const uniqueCountries = new Set(
+          productsData?.map(p => p.country_of_origin).filter(Boolean) || []
+        );
+
+        // Get active businesses (companies)
+        const { count: businessesCount } = await supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .in('verification_status', ['verified', 'pending']);
+
+        setStats({
+          verifiedSuppliers: suppliersCount || 0,
+          countries: uniqueCountries.size || 0,
+          activeBusinesses: businessesCount || 0
+        });
+      } catch (error) {
+        // Silently fail - show zeros if data can't be loaded
+        console.debug('Error loading social proof stats:', error);
+      }
+    };
+
+    loadStats();
+  }, []);
+
+  // Only show if we have some data
+  if (stats.verifiedSuppliers === 0 && stats.countries === 0 && stats.activeBusinesses === 0) {
+    return null;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.3 }}
+      className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-6 text-sm md:text-base"
+    >
+      {stats.verifiedSuppliers > 0 && (
+        <div className="flex items-center gap-2 text-afrikoni-cream/90">
+          <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold flex-shrink-0" />
+          <span>
+            <span className="font-semibold text-afrikoni-gold">{stats.verifiedSuppliers}+</span> Verified Suppliers
+          </span>
+        </div>
+      )}
+      {stats.countries > 0 && (
+        <>
+          <span className="text-afrikoni-gold/50 hidden sm:inline">•</span>
+          <div className="flex items-center gap-2 text-afrikoni-cream/90">
+            <Globe className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold flex-shrink-0" />
+            <span>
+              <span className="font-semibold text-afrikoni-gold">{stats.countries}</span> Countries
+            </span>
+          </div>
+        </>
+      )}
+      {stats.activeBusinesses > 0 && (
+        <>
+          <span className="text-afrikoni-gold/50 hidden sm:inline">•</span>
+          <div className="flex items-center gap-2 text-afrikoni-cream/90">
+            <Users className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold flex-shrink-0" />
+            <span>
+              <span className="font-semibold text-afrikoni-gold">{stats.activeBusinesses}+</span> Active Businesses
+            </span>
+          </div>
+        </>
+      )}
+    </motion.div>
+  );
+}
 
 export default function HeroSection({ categories = [] }) {
   const { t } = useLanguage();
@@ -162,6 +256,8 @@ export default function HeroSection({ categories = [] }) {
             </div>
           </motion.div>
 
+          {/* Social Proof */}
+          <SocialProofSection />
         </div>
       </div>
 
