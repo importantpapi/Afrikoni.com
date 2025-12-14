@@ -350,7 +350,7 @@ export default function ExploreAfricanSupply() {
                               transition={{ duration: 0.4, delay: (productIdx % 8) * 0.05 }}
                               whileHover={{ y: -4, scale: 1.02 }}
                             >
-                              <Link to={`/products/${product.id}`}>
+                              <Link to={`/product/${product.id}`}>
                                 <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-afrikoni-cream overflow-hidden">
                                   <div className="h-40 md:h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
                                     {primaryImage?.url ? (
