@@ -414,7 +414,7 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
+                    className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
                   >
                     <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">Select Delivery Country</h3>
                     <p className="text-sm text-afrikoni-deep/70 mb-4">
@@ -430,6 +430,7 @@ export default function Navbar({ user, onLogout }) {
                         onChange={(e) => setCountrySearchQuery(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-afrikoni-gold text-sm"
                         id="country-search"
+                        autoFocus
                       />
                     </div>
 
@@ -484,13 +485,13 @@ export default function Navbar({ user, onLogout }) {
               className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
             >
               <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden lg:inline">
-                {languages.find(l => l.code === language)?.display || 'EN'}-{selectedCurrency}
+              <span className="hidden lg:inline whitespace-nowrap">
+                {languages.find(l => l.code === language)?.display || 'EN'}-{selectedCurrency || 'USD'}
               </span>
               <span className="lg:hidden">
                 {languages.find(l => l.code === language)?.display || 'EN'}
               </span>
-              <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 ${settingsOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 flex-shrink-0 ${settingsOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -505,7 +506,7 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6"
+                    className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6 max-h-[80vh] overflow-y-auto"
                   >
                     <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">Set Language & Currency</h3>
                     <p className="text-sm text-afrikoni-deep/70 mb-6">
