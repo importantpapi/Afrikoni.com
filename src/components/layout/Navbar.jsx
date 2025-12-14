@@ -25,6 +25,30 @@ import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
 
+// Country flags mapping (using emoji flags)
+const COUNTRY_FLAGS = {
+  'NG': '🇳🇬', 'GH': '🇬🇭', 'KE': '🇰🇪', 'ZA': '🇿🇦', 'EG': '🇪🇬', 'MA': '🇲🇦',
+  'SN': '🇸🇳', 'TZ': '🇹🇿', 'ET': '🇪🇹', 'AO': '🇦🇴', 'CM': '🇨🇲', 'CI': '🇨🇮',
+  'UG': '🇺🇬', 'DZ': '🇩🇿', 'SD': '🇸🇩', 'MZ': '🇲🇿', 'MG': '🇲🇬', 'ML': '🇲🇱',
+  'BF': '🇧🇫', 'NE': '🇳🇪', 'RW': '🇷🇼', 'BJ': '🇧🇯', 'GN': '🇬🇳', 'TD': '🇹🇩',
+  'ZW': '🇿🇼', 'ZM': '🇿🇲', 'MW': '🇲🇼', 'GA': '🇬🇦', 'BW': '🇧🇼', 'GM': '🇬🇲',
+  'GW': '🇬🇼', 'LR': '🇱🇷', 'SL': '🇸🇱', 'TG': '🇹🇬', 'MR': '🇲🇷', 'NA': '🇳🇦',
+  'LS': '🇱🇸', 'ER': '🇪🇷', 'DJ': '🇩🇯', 'SS': '🇸🇸', 'CF': '🇨🇫', 'CG': '🇨🇬',
+  'CD': '🇨🇩', 'ST': '🇸🇹', 'SC': '🇸🇨', 'CV': '🇨🇻', 'KM': '🇰🇲', 'MU': '🇲🇺',
+  'SO': '🇸🇴', 'BI': '🇧🇮', 'GQ': '🇬🇶', 'SZ': '🇸🇿', 'LY': '🇱🇾', 'TN': '🇹🇳',
+  'BE': '🇧🇪', 'FR': '🇫🇷', 'DE': '🇩🇪', 'IT': '🇮🇹', 'ES': '🇪🇸', 'NL': '🇳🇱',
+  'PT': '🇵🇹', 'GB': '🇬🇧', 'US': '🇺🇸', 'CA': '🇨🇦', 'BR': '🇧🇷', 'CN': '🇨🇳',
+  'IN': '🇮🇳', 'AE': '🇦🇪', 'SA': '🇸🇦', 'DEFAULT': '🌍'
+};
+
+// All available countries for selection
+const ALL_COUNTRIES = Object.keys(COUNTRY_NAMES).filter(key => key !== 'DEFAULT').map(code => ({
+  code,
+  name: COUNTRY_NAMES[code],
+  flag: COUNTRY_FLAGS[code] || '🌍',
+  currency: getCurrencyForCountry(code)
+}));
+
 // Country code to country name mapping
 const COUNTRY_NAMES = {
   'NG': 'Nigeria', 'GH': 'Ghana', 'KE': 'Kenya', 'ZA': 'South Africa',
@@ -52,6 +76,7 @@ export default function Navbar({ user, onLogout }) {
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [detectedCountry, setDetectedCountry] = useState(null);
@@ -60,6 +85,7 @@ export default function Navbar({ user, onLogout }) {
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [countrySearchQuery, setCountrySearchQuery] = useState('');
 
   // Load compare count from localStorage
   useEffect(() => {
@@ -94,6 +120,7 @@ export default function Navbar({ user, onLogout }) {
     setLanguageOpen(false);
     setCurrencyOpen(false);
     setSettingsOpen(false);
+    setCountryOpen(false);
     setUserMenuOpen(false);
   }, [location.pathname]);
 
@@ -231,6 +258,7 @@ export default function Navbar({ user, onLogout }) {
     setLanguageOpen(false);
     setCurrencyOpen(false);
     setSettingsOpen(false);
+    setCountryOpen(false);
     setUserMenuOpen(false);
   };
 
@@ -254,12 +282,42 @@ export default function Navbar({ user, onLogout }) {
     setSettingsOpen(false);
   };
 
+  const openCountryMenu = () => {
+    setCountryOpen(true);
+    setCountrySearchQuery(''); // Reset search when opening
+    setMegaOpen(false);
+    setLanguageOpen(false);
+    setCurrencyOpen(false);
+    setSettingsOpen(false);
+    setUserMenuOpen(false);
+  };
+
+  const handleCountryChange = (countryCode) => {
+    setDetectedCountry(countryCode);
+    localStorage.setItem('afrikoni_detected_country', countryCode);
+    
+    // Auto-update currency based on country
+    const newCurrency = getCurrencyForCountry(countryCode);
+    setSelectedCurrency(newCurrency);
+    localStorage.setItem('afrikoni_selected_currency', newCurrency);
+    
+    // Auto-update language based on country (optional)
+    const newLanguage = getLanguageForCountry(countryCode);
+    if (newLanguage && newLanguage !== language) {
+      setLanguage(newLanguage);
+      localStorage.setItem('afrikoni_selected_language', newLanguage);
+    }
+    
+    setCountryOpen(false);
+  };
+
   const openUserMenu = () => {
     setUserMenuOpen(true);
     setMegaOpen(false);
     setLanguageOpen(false);
     setCurrencyOpen(false);
     setSettingsOpen(false);
+    setCountryOpen(false);
   };
 
   return (
@@ -313,14 +371,96 @@ export default function Navbar({ user, onLogout }) {
 
         {/* Right: country, language/currency, user */}
         <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-4 flex-shrink-0">
-          {/* Detected Country Display */}
-          {detectedCountry && detectedCountry !== 'DEFAULT' && (
-            <div className="hidden sm:flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs sm:text-sm text-afrikoni-cream/80">
-              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span className="hidden lg:inline">Deliver to: {COUNTRY_NAMES[detectedCountry] || 'International'}</span>
-              <span className="lg:hidden">{COUNTRY_NAMES[detectedCountry]?.substring(0, 3) || 'INT'}</span>
-            </div>
-          )}
+          {/* Deliver to Country Selector - Clickable */}
+          <div className="relative hidden sm:block">
+            <button
+              onClick={openCountryMenu}
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
+            >
+              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+              <span className="hidden lg:inline">
+                Deliver to: {detectedCountry && detectedCountry !== 'DEFAULT' ? COUNTRY_NAMES[detectedCountry] : 'Select'}
+              </span>
+              <span className="lg:hidden">
+                {detectedCountry && detectedCountry !== 'DEFAULT' ? COUNTRY_FLAGS[detectedCountry] || '🌍' : '🌍'}
+              </span>
+              <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 ${countryOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {countryOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-[60]"
+                    onClick={() => setCountryOpen(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
+                  >
+                    <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">Select Delivery Country</h3>
+                    <p className="text-sm text-afrikoni-deep/70 mb-4">
+                      Shipping options and costs vary based on your location. Your currency will update automatically.
+                    </p>
+                    
+                    {/* Search input */}
+                    <div className="mb-4">
+                      <input
+                        type="text"
+                        placeholder="Search country..."
+                        value={countrySearchQuery}
+                        onChange={(e) => setCountrySearchQuery(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-afrikoni-gold text-sm"
+                        id="country-search"
+                      />
+                    </div>
+
+                    {/* Countries list */}
+                    <div className="space-y-1 max-h-[400px] overflow-y-auto">
+                      {ALL_COUNTRIES
+                        .filter(country => 
+                          country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
+                          country.code.toLowerCase().includes(countrySearchQuery.toLowerCase())
+                        )
+                        .map((country) => (
+                        <button
+                          key={country.code}
+                          onClick={() => handleCountryChange(country.code)}
+                          className={`
+                            w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3
+                            ${detectedCountry === country.code 
+                              ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium' 
+                              : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
+                            }
+                          `}
+                        >
+                          <span className="text-xl flex-shrink-0">{country.flag}</span>
+                          <div className="flex-1">
+                            <div className="font-medium">{country.name}</div>
+                            <div className="text-xs text-afrikoni-deep/60">{country.currency}</div>
+                          </div>
+                          {detectedCountry === country.code && (
+                            <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                      {ALL_COUNTRIES.filter(country => 
+                        country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
+                        country.code.toLowerCase().includes(countrySearchQuery.toLowerCase())
+                      ).length === 0 && (
+                        <div className="text-center py-8 text-afrikoni-deep/60 text-sm">
+                          No countries found matching "{countrySearchQuery}"
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Combined Language & Currency Selector (Alibaba-style) */}
           <div className="relative">
