@@ -506,6 +506,7 @@ export default function Marketplace() {
 
   const ProductCard = React.memo(({ product }) => {
     const [quickViewOpen, setQuickViewOpen] = useState(false);
+    const [activeImage, setActiveImage] = useState(product.primaryImage || null);
     const handleCardClick = async (e) => {
       // Don't navigate if clicking on buttons or links
       if (e.target.closest('button, a, [role="button"]')) {
@@ -552,9 +553,9 @@ export default function Marketplace() {
             onClick={handleCardClick}
           >
             <div className="relative h-56 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10 rounded-t-xl overflow-hidden">
-              {product.primaryImage ? (
+              {activeImage ? (
                 <OptimizedImage
-                  src={product.primaryImage}
+                  src={activeImage}
                   alt={product.title || product.name || 'Product'}
                   className="w-full h-full object-cover"
                   width={400}
@@ -687,9 +688,9 @@ export default function Marketplace() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <div className="aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
-                      {product.primaryImage ? (
+                      {activeImage ? (
                         <OptimizedImage
-                          src={product.primaryImage}
+                          src={activeImage}
                           alt={product.title || product.name || 'Product'}
                           className="w-full h-full object-cover"
                           width={600}
@@ -710,11 +711,7 @@ export default function Marketplace() {
                             key={idx}
                             type="button"
                             className="w-16 h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0"
-                            onClick={() => {
-                              // Swap primary image with clicked thumbnail
-                              const nextPrimary = img;
-                              product.primaryImage = nextPrimary;
-                            }}
+                            onClick={() => setActiveImage(img)}
                           >
                             <img src={img} alt="" className="w-full h-full object-cover" />
                           </button>
