@@ -639,10 +639,23 @@ export default function Marketplace() {
               )}
             </div>
             <CardContent className="p-5 bg-white" style={{ overflow: 'visible' }}>
-              {/* Product Name - Highest Priority */}
-              <h3 className="font-bold text-afrikoni-chestnut mb-3 line-clamp-2 text-lg md:text-xl leading-tight group-hover:text-afrikoni-gold transition-colors">
-                {product.title || product.name}
-              </h3>
+              {/* Product Name + Quick View */}
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <h3 className="font-bold text-afrikoni-chestnut line-clamp-2 text-lg md:text-xl leading-tight group-hover:text-afrikoni-gold transition-colors">
+                  {product.title || product.name}
+                </h3>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQuickViewOpen(true);
+                  }}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </div>
               
               {/* Price - compact */}
               <div className="flex items-center gap-2 mb-3">
@@ -670,19 +683,6 @@ export default function Marketplace() {
                 ) : (
                   <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
                 )}
-              </div>
-              <div className="flex items-center justify-end mt-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setQuickViewOpen(true);
-                  }}
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
               </div>
             </CardContent>
             {/* Quick View Dialog */}
