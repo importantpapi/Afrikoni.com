@@ -506,9 +506,41 @@ export default function Marketplace() {
       ? selectedFilters.country
       : urlCountryName || '';
 
+  const countryToFlag = (country) => {
+    if (!country) return '🌍';
+    const normalized = country.toLowerCase();
+    if (normalized.includes('ghana')) return '🇬🇭';
+    if (normalized.includes('nigeria')) return '🇳🇬';
+    if (normalized.includes('kenya')) return '🇰🇪';
+    if (normalized.includes('south africa')) return '🇿🇦';
+    if (normalized.includes('angola')) return '🇦🇴';
+    if (normalized.includes('morocco')) return '🇲🇦';
+    if (normalized.includes('egypt')) return '🇪🇬';
+    return '🌍';
+  };
+
   const ProductCard = React.memo(({ product }) => {
     const [quickViewOpen, setQuickViewOpen] = useState(false);
-    const [activeImage, setActiveImage] = useState(product.primaryImage || null);
+    const images = Array.isArray(product.allImages) && product.allImages.length
+      ? product.allImages
+      : (product.primaryImage ? [product.primaryImage] : []);
+    const [imageIndex, setImageIndex] = useState(0);
+    const activeImage = images[imageIndex] || null;
+    const country = product?.country_of_origin || product?.companies?.country || '';
+    const flag = countryToFlag(country);
+    const hasMultipleImages = images.length > 1;
+
+    const goPrevImage = (e) => {
+      if (!hasMultipleImages) return;
+      if (e) e.stopPropagation();
+      setImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const goNextImage = (e) => {
+      if (!hasMultipleImages) return;
+      if (e) e.stopPropagation();
+      setImageIndex((prev) => (prev + 1) % images.length);
+    };
     const handleCardClick = async (e) => {
       // Don't navigate if clicking on buttons or links
       if (e.target.closest('button, a, [role="button"]')) {
@@ -561,10 +593,15 @@ export default function Marketplace() {
                   <Package className="w-12 h-12 text-afrikoni-gold/50" />
                 </div>
               )}
-              {product.featured && (
-                <div className="absolute top-2 left-2">
-                  <Badge variant="primary" className="text-xs">⭐ {t('marketplace.featured')}</Badge>
-                </div>
+              {country && (
+                <button
+                  type="button"
+                  className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                  title={country ? `Origin: ${country}` : ''}
+                >
+                  <span>{flag}</span>
+                </button>
               )}
               {/* Supplier verification / trust badge */}
               {product.companies?.verification_status === 'verified' && (
@@ -573,13 +610,31 @@ export default function Marketplace() {
                   <Smile className="w-3 h-3 text-afrikoni-gold" />
                 </div>
               )}
-              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+              <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
                 <SaveButton itemId={product.id} itemType="product" />
               </div>
               {Array.isArray(product.allImages) && product.allImages.length > 1 && (
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
                   {product.allImages.length} photos
                 </div>
+              )}
+              {hasMultipleImages && (
+                <>
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 left-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
+                    onClick={goPrevImage}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
+                    onClick={goNextImage}
+                  >
+                    ›
+                  </button>
+                </>
               )}
             </div>
             <CardContent className="p-5 bg-white" style={{ overflow: 'visible' }}>
@@ -588,14 +643,6 @@ export default function Marketplace() {
                 {product.title || product.name}
               </h3>
               
-              {/* Country + Seller - Second Priority */}
-              <div className="flex items-center gap-1 flex-wrap mb-3">
-                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-afrikoni-deep/80 font-medium">
-                  {product?.country_of_origin || product?.companies?.country || 'N/A'}
-                </span>
-              </div>
-
               {/* Price Range - Core info */}
               <div className="flex items-center gap-2 mb-3">
                 {product.price_min && product.price_max ? (
@@ -626,18 +673,17 @@ export default function Marketplace() {
                   <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
                 )}
               </div>
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center justify-end mt-4">
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="text-xs sm:text-sm"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
                   onClick={(e) => {
                     e.stopPropagation();
                     setQuickViewOpen(true);
                   }}
                 >
-                  <Eye className="w-4 h-4 mr-1" />
-                  Quick view
+                  <Eye className="w-4 h-4" />
                 </Button>
               </div>
             </CardContent>
@@ -657,7 +703,7 @@ export default function Marketplace() {
                 </DialogHeader>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
                       {activeImage ? (
                         <OptimizedImage
                           src={activeImage}
@@ -673,15 +719,35 @@ export default function Marketplace() {
                           <Package className="w-12 h-12 text-afrikoni-gold/60" />
                         </div>
                       )}
+                      {hasMultipleImages && (
+                        <>
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 left-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
+                            onClick={goPrevImage}
+                          >
+                            ‹
+                          </button>
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
+                            onClick={goNextImage}
+                          >
+                            ›
+                          </button>
+                        </>
+                      )}
                     </div>
-                    {Array.isArray(product.allImages) && product.allImages.length > 1 && (
+                    {hasMultipleImages && (
                       <div className="flex gap-2 overflow-x-auto">
-                        {product.allImages.map((img, idx) => (
+                        {images.map((img, idx) => (
                           <button
                             key={idx}
                             type="button"
-                            className="w-16 h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0"
-                            onClick={() => setActiveImage(img)}
+                            className={`w-16 h-16 rounded-md overflow-hidden border flex-shrink-0 ${
+                              idx === imageIndex ? 'border-afrikoni-gold' : 'border-afrikoni-gold/30'
+                            }`}
+                            onClick={() => setImageIndex(idx)}
                           >
                             <img src={img} alt="" className="w-full h-full object-cover" />
                           </button>
