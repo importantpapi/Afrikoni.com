@@ -140,6 +140,7 @@ const SupplierHub = lazy(() => import('./pages/supplier-hub'));
 const Logistics = lazy(() => import('./pages/logistics'));
 // Countries page - regular import to avoid chunk loading issues
 import Countries from './pages/countries';
+import HowItWorks from './pages/how-it-works';
 const Trending = lazy(() => import('./pages/trending'));
 const TradeShield = lazy(() => import('./pages/protection'));
 const InspectionServices = lazy(() => import('./pages/inspection'));
@@ -157,7 +158,6 @@ const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 const TrustCenter = lazy(() => import('./pages/trust'));
 const HowPaymentWorks = lazy(() => import('./pages/how-payment-works'));
-const HowItWorks = lazy(() => import('./pages/how-it-works'));
 const About = lazy(() => import('./pages/about'));
 const Community = lazy(() => import('./pages/community'));
 const Blog = lazy(() => import('./pages/blog'));
