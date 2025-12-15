@@ -605,7 +605,6 @@ export default function Marketplace() {
                     unit={product.unit || 'kg'}
                     className="text-lg sm:text-xl font-bold text-afrikoni-gold"
                     prefix="From "
-                    suffix=" (indicative)"
                   />
                 ) : product.price_min ? (
                   <Price
@@ -614,7 +613,6 @@ export default function Marketplace() {
                     unit={product.unit || 'kg'}
                     className="text-lg sm:text-xl font-bold text-afrikoni-gold"
                     prefix="From "
-                    suffix=" (indicative)"
                   />
                 ) : product.price ? (
                   <Price
@@ -623,7 +621,6 @@ export default function Marketplace() {
                     unit={product.unit || 'kg'}
                     className="text-lg sm:text-xl font-bold text-afrikoni-gold"
                     prefix="From "
-                    suffix=" (indicative)"
                   />
                 ) : (
                   <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
@@ -696,13 +693,12 @@ export default function Marketplace() {
                     <div className="text-lg font-semibold text-afrikoni-chestnut">
                       {product.price_min || product.price || product.price_max ? (
                         <>
-                          <Price
+                    <Price
                             amount={product.price_min || product.price}
                             fromCurrency={product.currency || 'USD'}
                             unit={product.unit || 'kg'}
                             className="text-xl font-bold text-afrikoni-gold"
                             prefix="From "
-                            suffix=" (indicative)"
                           />
                         </>
                       ) : (
