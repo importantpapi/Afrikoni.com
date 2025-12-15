@@ -19,8 +19,9 @@ import { getReturns, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function ReturnsDashboard() {
+function ReturnsDashboardInner() {
   const [returns, setReturns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -94,8 +95,12 @@ export default function ReturnsDashboard() {
     );
   }
 
+  const totalRefunded = returns
+    .filter(r => r.status === 'refunded')
+    .reduce((sum, r) => sum + (Number(r.refund_amount) || 0), 0);
+
   return (
-    <DashboardLayout>
+    <DashboardLayout currentRole={userRole === 'seller' ? 'seller' : 'buyer'}>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -135,9 +140,12 @@ export default function ReturnsDashboard() {
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Rejected</p>
-              <p className="text-2xl font-bold text-red-600">
-                {returns.filter(r => r.status === 'rejected').length}
+              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Refunded Value</p>
+              <p className="text-xl font-bold text-afrikoni-gold">
+                {totalRefunded.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </CardContent>
           </Card>
@@ -253,6 +261,14 @@ export default function ReturnsDashboard() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function ReturnsDashboard() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid']}>
+      <ReturnsDashboardInner />
+    </RequireDashboardRole>
   );
 }
 

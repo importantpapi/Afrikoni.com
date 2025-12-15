@@ -17,6 +17,7 @@ function DashboardSavedInner() {
   const [savedSuppliers, setSavedSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('products');
+  const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,6 +75,24 @@ function DashboardSavedInner() {
     }
   };
 
+  const filteredProducts = savedProducts.filter((p) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      p.title?.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredSuppliers = savedSuppliers.filter((s) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      s.company_name?.toLowerCase().includes(q) ||
+      s.country?.toLowerCase().includes(q)
+    );
+  });
+
   const handleUnsave = async (itemId, itemType) => {
     try {
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
@@ -119,15 +138,66 @@ function DashboardSavedInner() {
           <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Your saved products and suppliers</p>
         </motion.div>
 
+        {/* Summary */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                Total saved
+              </p>
+              <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
+                {savedProducts.length + savedSuppliers.length}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                Products
+              </p>
+              <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
+                {savedProducts.length}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                Suppliers
+              </p>
+              <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
+                {savedSuppliers.length}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search + Tabs */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="relative w-full md:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-text-dark/50" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search saved items…"
+              className="w-full pl-9 pr-3 py-2 rounded-full border border-afrikoni-gold/30 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/60"
+            />
+          </div>
+
         {/* v2.5: Premium Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium">
             <TabsTrigger value="products" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Saved Products</TabsTrigger>
             <TabsTrigger value="suppliers" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Saved Suppliers</TabsTrigger>
           </TabsList>
+        </Tabs>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="hidden" /> 
 
           <TabsContent value="products" className="space-y-4">
-            {savedProducts.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <Card>
                 <CardContent className="p-0">
                   <EmptyState 
@@ -141,7 +211,7 @@ function DashboardSavedInner() {
               </Card>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {savedProducts.map((product) => (
+                {filteredProducts.map((product) => (
                   <Card key={product.id} className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
                     <CardContent className="p-5 md:p-6">
                       <div className="aspect-video bg-afrikoni-sand rounded-afrikoni mb-4 flex items-center justify-center">
@@ -175,7 +245,7 @@ function DashboardSavedInner() {
           </TabsContent>
 
           <TabsContent value="suppliers" className="space-y-4">
-            {savedSuppliers.length === 0 ? (
+            {filteredSuppliers.length === 0 ? (
               <Card>
                 <CardContent className="p-0">
                   <EmptyState 
@@ -189,7 +259,7 @@ function DashboardSavedInner() {
               </Card>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {savedSuppliers.map((supplier) => (
+                {filteredSuppliers.map((supplier) => (
                   <Card key={supplier.id} className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
                     <CardContent className="p-5 md:p-6">
                       <div className="flex items-center gap-4 mb-4">

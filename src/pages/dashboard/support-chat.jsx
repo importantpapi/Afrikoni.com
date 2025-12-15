@@ -21,8 +21,9 @@ import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { format } from 'date-fns';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function SupportChat() {
+function SupportChatInner() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [ticketNumber, setTicketNumber] = useState(null);
@@ -529,6 +530,14 @@ export default function SupportChat() {
         </Dialog>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function SupportChat() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid', 'logistics']}>
+      <SupportChatInner />
+    </RequireDashboardRole>
   );
 }
 

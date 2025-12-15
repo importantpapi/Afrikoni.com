@@ -15,17 +15,18 @@ import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { 
-  getWalletAccount, 
-  getWalletTransactions, 
+import {
+  getWalletAccount,
+  getWalletTransactions,
   getEscrowPaymentsByCompany,
-  getEscrowEvents
+  getEscrowEvents,
 } from '@/lib/supabaseQueries/payments';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function PaymentsDashboard() {
+function PaymentsDashboardInner() {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [escrowPayments, setEscrowPayments] = useState([]);
@@ -103,8 +104,24 @@ export default function PaymentsDashboard() {
     );
   }
 
+  const totalInflow = transactions
+    .filter((tx) => tx.type === 'deposit' || tx.type === 'refund')
+    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
+
+  const totalOutflow = transactions
+    .filter((tx) => tx.type !== 'deposit' && tx.type !== 'refund')
+    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
+
+  const escrowHeld = escrowPayments
+    .filter((e) => e.status === 'held' || e.status === 'pending')
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+  const escrowReleased = escrowPayments
+    .filter((e) => e.status === 'released' || e.status === 'completed')
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
   return (
-    <DashboardLayout>
+    <DashboardLayout currentRole={userRole === 'seller' ? 'seller' : 'buyer'}>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -117,6 +134,68 @@ export default function PaymentsDashboard() {
             <p className="text-afrikoni-text-dark/70">Manage your wallet, transactions, and escrow payments</p>
           </div>
         </motion.div>
+
+        {/* Wallet & Escrow KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {wallet && (
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                  Wallet balance
+                </p>
+                <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
+                  {wallet.currency}{' '}
+                  {parseFloat(wallet.available_balance || 0).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                Inflows
+              </p>
+              <p className="text-2xl font-bold text-green-600 mt-1">
+                {wallet?.currency || 'USD'}{' '}
+                {totalInflow.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                Outflows
+              </p>
+              <p className="text-2xl font-bold text-red-600 mt-1">
+                {wallet?.currency || 'USD'}{' '}
+                {totalOutflow.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                Escrow held
+              </p>
+              <p className="text-2xl font-bold text-afrikoni-gold mt-1">
+                {wallet?.currency || 'USD'}{' '}
+                {escrowHeld.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Wallet Balance Card */}
         {wallet && (
@@ -280,5 +359,13 @@ export default function PaymentsDashboard() {
         </Tabs>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function PaymentsDashboard() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid']}>
+      <PaymentsDashboardInner />
+    </RequireDashboardRole>
   );
 }
