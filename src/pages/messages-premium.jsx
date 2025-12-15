@@ -724,8 +724,8 @@ export default function MessagesPremium() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6">
-        <div className="grid lg:grid-cols-12 gap-3 md:gap-4 lg:gap-6 h-[calc(100vh-150px)] md:h-[calc(100vh-170px)] lg:h-[calc(100vh-190px)]">
+      <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-10">
+        <div className="grid lg:grid-cols-12 gap-3 md:gap-4 lg:gap-6">
           {/* Conversations List */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
