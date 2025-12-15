@@ -572,11 +572,13 @@ export default function Marketplace() {
 
     return (
       <div className="h-full">
-          <Card 
-            className="h-full cursor-pointer border border-afrikoni-gold/20 shadow-md overflow-hidden"
-            onClick={handleCardClick}
-          >
-            <div className="relative h-56 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10 rounded-t-xl overflow-hidden">
+        <Card
+          className="h-full cursor-pointer border border-afrikoni-gold/20 shadow-md overflow-hidden"
+          onClick={handleCardClick}
+        >
+          <div className="flex flex-col md:flex-row">
+            {/* LEFT: Image carousel */}
+            <div className="relative w-full md:w-56 lg:w-64 h-52 md:h-44 lg:h-52 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10 overflow-hidden">
               {activeImage ? (
                 <OptimizedImage
                   src={activeImage}
@@ -593,32 +595,42 @@ export default function Marketplace() {
                   <Package className="w-12 h-12 text-afrikoni-gold/50" />
                 </div>
               )}
+              {/* Country flag overlay with tooltip + click action */}
               {country && (
                 <Tooltip content={country}>
                   <button
                     type="button"
-                    className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1"
-                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-2 left-2 z-20 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast.info(country);
+                    }}
                   >
                     <span>{flag}</span>
                   </button>
                 </Tooltip>
               )}
-              {/* Supplier verification / trust badge */}
+              {/* Supplier verification badge */}
               {product.companies?.verification_status === 'verified' && (
                 <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/65 text-white px-2 py-1 rounded-full shadow-sm">
                   <Logo type="icon" size="sm" link={false} className="w-5 h-5" />
                   <Smile className="w-3 h-3 text-afrikoni-gold" />
                 </div>
               )}
-              <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
+              {/* Save button */}
+              <div
+                className="absolute top-2 right-2 z-30 translate-y-8"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <SaveButton itemId={product.id} itemType="product" />
               </div>
-              {Array.isArray(product.allImages) && product.allImages.length > 1 && (
+              {/* Photo count */}
+              {images.length > 1 && (
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-                  {product.allImages.length} photos
+                  {images.length} photos
                 </div>
               )}
+              {/* Carousel arrows */}
               {hasMultipleImages && (
                 <>
                   <button
@@ -638,53 +650,63 @@ export default function Marketplace() {
                 </>
               )}
             </div>
-            <CardContent className="p-5 bg-white" style={{ overflow: 'visible' }}>
-              {/* Product Name + Quick View */}
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <h3 className="font-bold text-afrikoni-chestnut line-clamp-2 text-lg md:text-xl leading-tight group-hover:text-afrikoni-gold transition-colors">
+
+            {/* RIGHT: Details */}
+            <CardContent className="flex-1 p-4 md:p-5 bg-white" style={{ overflow: 'visible' }}>
+              {/* Title, price, quick view horizontally aligned */}
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h3
+                  className="font-semibold text-afrikoni-chestnut text-sm md:text-base leading-snug"
+                  title={product.title || product.name}
+                >
                   {product.title || product.name}
                 </h3>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setQuickViewOpen(true);
-                  }}
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <div className="text-right">
+                    {product.price_min && product.price_max ? (
+                      <Price
+                        amount={product.price_min}
+                        fromCurrency={product.currency || 'USD'}
+                        unit={product.unit || 'kg'}
+                        className="text-base md:text-lg font-bold text-afrikoni-gold"
+                      />
+                    ) : product.price_min ? (
+                      <Price
+                        amount={product.price_min}
+                        fromCurrency={product.currency || 'USD'}
+                        unit={product.unit || 'kg'}
+                        className="text-base md:text-lg font-bold text-afrikoni-gold"
+                      />
+                    ) : product.price ? (
+                      <Price
+                        amount={product.price}
+                        fromCurrency={product.currency || 'USD'}
+                        unit={product.unit || 'kg'}
+                        className="text-base md:text-lg font-bold text-afrikoni-gold"
+                      />
+                    ) : (
+                      <div className="text-xs text-afrikoni-deep/70">
+                        {t('marketplace.priceOnRequest')}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuickViewOpen(true);
+                    }}
+                  >
+                    <Eye className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
-              
-              {/* Price - compact */}
-              <div className="flex items-center gap-2 mb-3">
-                {product.price_min && product.price_max ? (
-                  <Price
-                    amount={product.price_min}
-                    fromCurrency={product.currency || 'USD'}
-                    unit={product.unit || 'kg'}
-                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                  />
-                ) : product.price_min ? (
-                  <Price
-                    amount={product.price_min}
-                    fromCurrency={product.currency || 'USD'}
-                    unit={product.unit || 'kg'}
-                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                  />
-                ) : product.price ? (
-                  <Price
-                    amount={product.price}
-                    fromCurrency={product.currency || 'USD'}
-                    unit={product.unit || 'kg'}
-                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                  />
-                ) : (
-                  <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
-                )}
-              </div>
+
+              {/* Optional: brief snippet for MOQ or origin under title if desired later */}
             </CardContent>
+          </div>
             {/* Quick View Dialog */}
             <Dialog open={quickViewOpen} onOpenChange={(open) => setQuickViewOpen(open)}>
               <DialogContent
@@ -859,7 +881,7 @@ export default function Marketplace() {
                 </div>
               </DialogContent>
             </Dialog>
-          </Card>
+        </Card>
       </div>
     );
   });
