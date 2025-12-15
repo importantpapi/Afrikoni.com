@@ -537,16 +537,7 @@ export default function Marketplace() {
     };
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.3 }}
-      >
-        <motion.div
-          whileHover={{ y: -4, scale: 1.01 }}
-          transition={{ duration: 0.2 }}
-        >
+      <div>
           <Card 
             hover 
             className="h-full cursor-pointer border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all shadow-md hover:shadow-xl overflow-hidden group"
@@ -826,8 +817,7 @@ export default function Marketplace() {
               </DialogContent>
             </Dialog>
           </Card>
-        </motion.div>
-      </motion.div>
+      </div>
     );
   });
 
