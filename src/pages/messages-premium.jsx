@@ -725,13 +725,13 @@ export default function MessagesPremium() {
       </div>
 
       <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6">
-        <div className="grid lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 h-[calc(100vh-140px)] sm:h-[calc(100vh-160px)] md:h-[calc(100vh-180px)] lg:h-[calc(100vh-200px)]">
+        <div className="grid lg:grid-cols-12 gap-3 md:gap-4 lg:gap-6 h-[calc(100vh-150px)] md:h-[calc(100vh-170px)] lg:h-[calc(100vh-190px)]">
           {/* Conversations List */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className={`${selectedConversation ? 'hidden lg:block' : 'lg:col-span-1'} lg:col-span-1`}
+            className={`${selectedConversation ? 'hidden lg:block' : 'lg:col-span-4'} lg:col-span-4`}
           >
             <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md">
               {/* Search */}
@@ -849,7 +849,7 @@ export default function MessagesPremium() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className={`${selectedConversation ? 'lg:col-span-2' : 'hidden lg:block lg:col-span-2'} lg:col-span-2 flex flex-col xl:flex-row gap-3`}
+            className={`${selectedConversation ? 'lg:col-span-8' : 'hidden lg:block lg:col-span-8'} lg:col-span-8 flex flex-col xl:flex-row gap-3`}
           >
             <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md flex-1">
               {selectedConversation && selectedConv ? (
