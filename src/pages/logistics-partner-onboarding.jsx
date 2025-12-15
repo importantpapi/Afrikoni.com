@@ -228,7 +228,12 @@ export default function LogisticsPartnerOnboarding() {
           }).catch(console.error);
 
           toast.success('Application submitted! Please sign up to complete your profile.');
-          navigate(`/signup?role=logistics&email=${encodeURIComponent(formData.email)}&country=${formData.country}`);
+          const redirect = encodeURIComponent('/logistics-partner-onboarding');
+          navigate(
+            `/signup?role=logistics&redirect=${redirect}&email=${encodeURIComponent(
+              formData.email
+            )}&country=${formData.country}`
+          );
         } catch (publicErr) {
           console.error('Error in public logistics application flow:', publicErr);
           toast.error('Failed to submit application. Please try again.');

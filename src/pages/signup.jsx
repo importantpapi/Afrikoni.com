@@ -78,8 +78,12 @@ export default function Signup() {
         }
 
         toast.success(t('signup.success'));
-        // Always redirect to onboarding step 1 (role selection)
-        navigate('/onboarding?step=1');
+        // Redirect to explicit target if provided (e.g. logistics partner onboarding), otherwise onboarding
+        const target =
+          redirectUrl && redirectUrl !== createPageUrl('Home')
+            ? redirectUrl
+            : '/onboarding?step=1';
+        navigate(target);
       } else {
         // Email confirmation required
         toast.success(t('signup.checkEmail'));
