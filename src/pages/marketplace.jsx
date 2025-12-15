@@ -30,6 +30,7 @@ import {
   BookmarkCheck,
   ChevronDown,
   Eye,
+  Smile,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries'
 import { useLanguage } from '@/i18n/LanguageContext';
 import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 import { trackProductView } from '@/lib/supabaseQueries/products';
+import { Logo } from '@/components/ui/Logo';
 
 export default function Marketplace() {
   const { t } = useLanguage();
@@ -566,13 +568,9 @@ export default function Marketplace() {
               )}
               {/* Supplier verification / trust badge */}
               {product.companies?.verification_status === 'verified' && (
-                <div className="absolute top-2 right-2">
-                  <TrustBadge type="verified-supplier" size="sm" />
-                </div>
-              )}
-              {product.companies?.trust_score && parseFloat(product.companies.trust_score) > 70 && (
-                <div className="absolute top-2 right-2" style={{ top: product.companies?.verification_status === 'verified' ? '3.5rem' : '0.5rem' }}>
-                  <TrustBadge type="trust-score" score={parseInt(product.companies.trust_score)} size="sm" />
+                <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/65 text-white px-2 py-1 rounded-full shadow-sm">
+                  <Logo type="icon" size="sm" link={false} className="w-5 h-5" />
+                  <Smile className="w-3 h-3 text-afrikoni-gold" />
                 </div>
               )}
               <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
@@ -596,21 +594,6 @@ export default function Marketplace() {
                 <span className="text-xs sm:text-sm text-afrikoni-deep/80 font-medium">
                   {product?.country_of_origin || product?.companies?.country || 'N/A'}
                 </span>
-                {product?.companies?.id && (
-                  <>
-                    <span className="text-xs text-afrikoni-deep/50">•</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/business/${product.companies.id}`);
-                      }}
-                      className="text-xs sm:text-sm text-afrikoni-deep hover:text-afrikoni-gold truncate font-medium cursor-pointer flex items-center gap-1"
-                      title="Supplier verified by Afrikoni"
-                    >
-                      👤 Supplier verified by Afrikoni
-                    </button>
-                  </>
-                )}
               </div>
 
               {/* Price Range - Core info */}
