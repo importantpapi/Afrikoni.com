@@ -10,6 +10,7 @@ export default function ProtectedRoute({ children, requireOnboarding: needsOnboa
 
   useEffect(() => {
     checkAuth();
+    // We intentionally only depend on needsOnboarding here; Supabase clients are stable singletons.
   }, [needsOnboarding]);
 
   const checkAuth = async () => {
@@ -18,13 +19,20 @@ export default function ProtectedRoute({ children, requireOnboarding: needsOnboa
         // Require both auth and onboarding
         const result = await requireOnboarding(supabase, supabaseHelpers);
         if (!result) {
-          // Redirected to login or onboarding
+          // Not authenticated - let requireOnboarding / callers redirect as needed
           return;
         }
+
         if (result.needsOnboarding) {
-          navigate('/onboarding');
+          // Route users to the correct onboarding experience based on their role
+          if (result.role === 'logistics') {
+            navigate('/logistics-partner-onboarding');
+          } else {
+            navigate('/onboarding');
+          }
           return;
         }
+
         setIsAuthorized(true);
       } else {
         // Only require auth

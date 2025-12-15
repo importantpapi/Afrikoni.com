@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole, hasCompletedOnboarding } from '@/utils/authHelpers';
@@ -28,6 +28,7 @@ const AFRICAN_COUNTRIES = [
 ];
 
 export default function Onboarding() {
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,17 +43,24 @@ export default function Onboarding() {
   });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     checkOnboardingStatus();
     
     // Check for step query param
-    const params = new URLSearchParams(window.location.search);
-    const stepParam = params.get('step');
+    const stepParam = searchParams.get('step');
     if (stepParam && parseInt(stepParam) === 1) {
       setCurrentStep(1);
     }
-  }, []);
+    
+    // Check for role query param (from logistics partner onboarding)
+    const roleParam = searchParams.get('role');
+    if (roleParam && ['buyer', 'seller', 'hybrid', 'logistics', 'logistics_partner'].includes(roleParam)) {
+      const normalizedRole = roleParam === 'logistics_partner' ? 'logistics' : roleParam;
+      setSelectedRole(normalizedRole);
+    }
+  }, [searchParams]);
 
   const checkOnboardingStatus = async () => {
     try {
@@ -94,6 +102,15 @@ export default function Onboarding() {
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
+    // Auto-align business type with role to avoid confusing options
+    setFormData(prev => {
+      // For logistics partners, default to service/logistics provider
+      if (role === 'logistics' || role === 'logistics_partner') {
+        return { ...prev, business_type: 'service_provider' };
+      }
+      // For other roles, let the user choose explicitly
+      return { ...prev, business_type: prev.business_type || '' };
+    });
   };
 
   const handleChange = (field, value) => {
@@ -204,7 +221,7 @@ export default function Onboarding() {
       // Navigate directly to dashboard - no more "Join Afrikoni" screen
       navigate(finalPath, { replace: true });
     } catch (error) {
-      // Error logged (removed for production)
+      console.error('Onboarding error:', error);
       toast.error('Failed to complete onboarding. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -440,21 +457,28 @@ export default function Onboarding() {
 
                   <div>
                     <Label htmlFor="business_type" className="mb-2 block font-semibold">{t('onboarding.businessType')}</Label>
-                    <select
-                      id="business_type"
-                      value={formData.business_type}
-                      onChange={(e) => handleChange('business_type', e.target.value)}
-                      className="w-full px-3 py-2 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut focus:outline-none focus:ring-2 focus:ring-afrikoni-gold"
-                    >
-                      <option value="">{t('onboarding.selectBusinessType')}</option>
-                      <option value="manufacturer">{t('onboarding.businessType.manufacturer')}</option>
-                      <option value="wholesaler">{t('onboarding.businessType.wholesaler')}</option>
-                      <option value="retailer">{t('onboarding.businessType.retailer')}</option>
-                      <option value="distributor">{t('onboarding.businessType.distributor')}</option>
-                      <option value="trader">{t('onboarding.businessType.trader')}</option>
-                      <option value="service_provider">{t('onboarding.businessType.serviceProvider')}</option>
-                      <option value="other">{t('onboarding.businessType.other')}</option>
-                    </select>
+                    {selectedRole === 'logistics' ? (
+                      // For logistics partners, lock business type to service/logistics provider
+                      <div className="w-full px-3 py-2 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut text-sm">
+                        {t('onboarding.businessType.serviceProvider')}
+                      </div>
+                    ) : (
+                      <select
+                        id="business_type"
+                        value={formData.business_type}
+                        onChange={(e) => handleChange('business_type', e.target.value)}
+                        className="w-full px-3 py-2 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut focus:outline-none focus:ring-2 focus:ring-afrikoni-gold"
+                      >
+                        <option value="">{t('onboarding.selectBusinessType')}</option>
+                        <option value="manufacturer">{t('onboarding.businessType.manufacturer')}</option>
+                        <option value="wholesaler">{t('onboarding.businessType.wholesaler')}</option>
+                        <option value="retailer">{t('onboarding.businessType.retailer')}</option>
+                        <option value="distributor">{t('onboarding.businessType.distributor')}</option>
+                        <option value="trader">{t('onboarding.businessType.trader')}</option>
+                        <option value="service_provider">{t('onboarding.businessType.serviceProvider')}</option>
+                        <option value="other">{t('onboarding.businessType.other')}</option>
+                      </select>
+                    )}
                   </div>
 
                   <div className="flex gap-3 pt-4">

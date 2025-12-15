@@ -11,8 +11,9 @@ import { DataTable, StatusChip } from '@/components/ui/data-table';
 import { ShoppingCart, DollarSign, TrendingUp, Package, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function DashboardSales() {
+function DashboardSalesInner() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentRole, setCurrentRole] = useState('seller');
@@ -264,6 +265,14 @@ export default function DashboardSales() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardSales() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <DashboardSalesInner />
+    </RequireDashboardRole>
   );
 }
 

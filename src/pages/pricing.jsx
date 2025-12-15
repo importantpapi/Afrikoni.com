@@ -272,26 +272,27 @@ export default function Pricing() {
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-afrikoni-deep mb-2">
+                  <label className="block text-base font-semibold text-afrikoni-chestnut mb-3">
                     Order Value (USD)
                   </label>
                   <input
                     type="number"
                     value={orderValue}
                     onChange={(e) => setOrderValue(Number(e.target.value))}
-                    className="w-full px-4 py-2 border border-afrikoni-gold/30 rounded-md focus:ring-2 focus:ring-afrikoni-gold focus:border-afrikoni-gold"
+                    className="w-full px-4 py-3 bg-white border-2 border-afrikoni-gold/50 rounded-lg text-afrikoni-deep font-medium text-lg focus:ring-2 focus:ring-afrikoni-gold focus:border-afrikoni-gold shadow-sm"
                     min="0"
                     step="100"
+                    placeholder="Enter order value"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-afrikoni-deep mb-2">
+                  <label className="block text-base font-semibold text-afrikoni-chestnut mb-3">
                     Seller Tier
                   </label>
                   <select
                     value={selectedTier}
                     onChange={(e) => setSelectedTier(e.target.value)}
-                    className="w-full px-4 py-2 border border-afrikoni-gold/30 rounded-md focus:ring-2 focus:ring-afrikoni-gold focus:border-afrikoni-gold"
+                    className="w-full px-4 py-3 bg-white border-2 border-afrikoni-gold/50 rounded-lg text-afrikoni-deep font-medium text-lg focus:ring-2 focus:ring-afrikoni-gold focus:border-afrikoni-gold shadow-sm"
                   >
                     {sellerTiers.map(tier => (
                       <option key={tier.id} value={tier.id}>
@@ -302,21 +303,21 @@ export default function Pricing() {
                 </div>
               </div>
               {selectedTierData && selectedTierData.transactionFee && (
-                <div className="mt-6 p-4 bg-afrikoni-cream/50 rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-afrikoni-deep">Transaction Fee ({selectedTierData.transactionFee}%):</span>
-                    <span className="text-2xl font-bold text-afrikoni-chestnut">
+                <div className="mt-6 p-6 bg-gradient-to-br from-afrikoni-cream/80 to-afrikoni-gold/20 rounded-lg border-2 border-afrikoni-gold/30 shadow-md">
+                  <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-afrikoni-gold/20">
+                    <span className="text-lg font-semibold text-afrikoni-chestnut">Transaction Fee ({selectedTierData.transactionFee}%):</span>
+                    <span className="text-3xl font-bold text-afrikoni-chestnut">
                       ${feeAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-afrikoni-deep">Estimated Supplier Payout:</span>
-                    <span className="text-xl font-semibold text-green-600">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-lg font-semibold text-afrikoni-deep">Estimated Supplier Payout:</span>
+                    <span className="text-2xl font-bold text-green-700">
                       ${(orderValue - feeAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
-                  <p className="text-sm text-afrikoni-deep/70 mt-3">
-                    This includes: Escrow protection, fraud prevention, dispute resolution, payment processing, customer support, and platform maintenance.
+                  <p className="text-sm text-afrikoni-deep/80 mt-4 pt-4 border-t border-afrikoni-gold/20">
+                    <strong className="text-afrikoni-chestnut">This includes:</strong> Escrow protection, fraud prevention, dispute resolution, payment processing, customer support, and platform maintenance.
                   </p>
                 </div>
               )}

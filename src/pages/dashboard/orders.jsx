@@ -26,8 +26,9 @@ import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { format } from 'date-fns';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function DashboardOrders() {
+function DashboardOrdersInner() {
   const { t } = useLanguage();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -618,5 +619,13 @@ export default function DashboardOrders() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardOrders() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+      <DashboardOrdersInner />
+    </RequireDashboardRole>
   );
 }

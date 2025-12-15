@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { isLogistics } from '@/utils/roleHelpers';
 
 export default function ServicesOverview() {
   const navigate = useNavigate();
@@ -37,12 +38,12 @@ export default function ServicesOverview() {
 
   const handleLogisticsClick = (e) => {
     e.preventDefault();
-    if (user) {
-      // User is logged in, go directly to logistics dashboard
+    if (user && isLogistics(userRole)) {
+      // User is logged in and is a logistics partner, go to dashboard
       navigate('/dashboard/logistics');
     } else {
-      // User not logged in, go to signup
-      navigate('/signup?role=logistics');
+      // User not logged in or not a logistics partner, go to onboarding
+      navigate('/logistics-partner-onboarding');
     }
   };
   const services = [
@@ -161,7 +162,7 @@ export default function ServicesOverview() {
                         onClick={handleLogisticsClick}
                         className={`w-full ${service.colorClass} text-white group-hover:shadow-lg transition-all`}
                       >
-                        {user ? 'Go to Dashboard' : service.cta}
+                        {user && isLogistics(userRole) ? 'Go to Dashboard' : 'Join as Logistics Partner'}
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     ) : (

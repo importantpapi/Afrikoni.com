@@ -13,8 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function VerificationMarketplace() {
+function VerificationMarketplaceInner() {
   const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -353,6 +354,14 @@ export default function VerificationMarketplace() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function VerificationMarketplace() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <VerificationMarketplaceInner />
+    </RequireDashboardRole>
   );
 }
 

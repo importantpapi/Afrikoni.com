@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { Logo } from '@/components/ui/Logo';
-import NotificationBell from '@/components/notificationbell';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { isAdmin } from '@/utils/permissions';
@@ -25,22 +24,33 @@ import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { useNotificationCounts } from '@/hooks/useNotificationCounts';
 import { useLiveStats } from '@/hooks/useLiveStats';
 import { getUserInitial, extractUserName } from '@/utils/userHelpers';
+import { buyerNav } from '@/config/navigation/buyerNav';
+import { sellerNav } from '@/config/navigation/sellerNav';
+import { logisticsNav } from '@/config/navigation/logisticsNav';
+import { useRole, getDashboardHomePath } from '@/context/RoleContext';
+import { useDashboardRole } from '@/context/DashboardRoleContext';
+import BuyerHeader from '@/components/headers/BuyerHeader';
+import SellerHeader from '@/components/headers/SellerHeader';
+import LogisticsHeader from '@/components/headers/LogisticsHeader';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useLanguage();
+  const { refreshRole } = useRole();
+  const { role: dashboardRole } = useDashboardRole();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [companyId, setCompanyId] = useState(null);
-  const [userRole, setUserRole] = useState(currentRole);
+  const [userRole, setUserRole] = useState(dashboardRole || currentRole);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [activeView, setActiveView] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const userMenuButtonRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [devSelectedRole, setDevSelectedRole] = useState(currentRole);
   
   // Get notification counts for sidebar badges
   const notificationCounts = useNotificationCounts(user?.id, companyId);
@@ -53,8 +63,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   }, []);
 
   useEffect(() => {
-    setUserRole(currentRole);
-  }, [currentRole]);
+    // URL-derived dashboardRole is the primary source of truth.
+    if (dashboardRole && dashboardRole !== userRole) {
+      setUserRole(dashboardRole);
+    }
+  }, [dashboardRole]);
 
   // Calculate menu position when it opens
   useEffect(() => {
@@ -134,78 +147,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   };
 
   const sidebarItems = {
-    buyer: [
-      { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/buyer' },
-      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
-      { icon: ShoppingCart, label: t('dashboard.orders'), path: '/dashboard/orders' },
-      { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
-      { icon: Package, label: t('dashboard.saved') || 'Saved Products', path: '/dashboard/saved' },
-      { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
-      { icon: Wallet, label: 'Payments & Escrow', path: '/dashboard/payments' },
-      { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
-      { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
-      { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews' },
-      { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
-      { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' },
-      { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
-      { icon: AlertTriangle, label: 'Disputes', path: '/dashboard/disputes' }
-    ],
-    seller: [
-      { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/seller' },
-      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
-      { icon: ShoppingCart, label: t('dashboard.sales') || 'Sales', path: '/dashboard/sales' },
-      { icon: Package, label: t('dashboard.products'), path: '/dashboard/products' },
-      { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
-      { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
-      { icon: Truck, label: 'Fulfillment', path: '/dashboard/fulfillment' },
-      { icon: Wallet, label: 'Payments & Escrow', path: '/dashboard/payments' },
-      { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
-      { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
-      { icon: StarIcon, label: 'Reviews & Performance', path: '/dashboard/reviews' },
-      { icon: TrendingUp, label: 'Performance Metrics', path: '/dashboard/performance' },
-      { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
-      { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: Sparkles, label: 'Subscriptions', path: '/dashboard/subscriptions' },
-      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
-      { icon: Shield, label: t('verification.title'), path: '/verification-center' },
-      { icon: Shield, label: 'Get Verified', path: '/dashboard/verification-marketplace' },
-      { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
-      { icon: AlertTriangle, label: 'Disputes', path: '/dashboard/disputes' },
-      { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
-    ],
-    hybrid: [
-      { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/hybrid' },
-      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
-      { icon: ShoppingCart, label: t('dashboard.orders') + ' & Sales', path: '/dashboard/orders' },
-      { icon: Package, label: t('dashboard.products'), path: '/dashboard/products' },
-      { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
-      { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
-      { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
-      { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
-      { icon: Sparkles, label: 'Subscriptions', path: '/dashboard/subscriptions' },
-      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
-      { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
-      { icon: Shield, label: t('dashboard.protection') || 'Protection', path: '/dashboard/protection' },
-      { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
-      { icon: AlertTriangle, label: 'Disputes', path: '/dashboard/disputes' },
-      { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
-    ],
-    logistics: [
-      { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/logistics' },
-      { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
-      { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics' },
-      { icon: Truck, label: t('dashboard.shipments') || 'Shipments', path: '/dashboard/shipments' },
-      { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment' },
-      { icon: FileText, label: t('dashboard.rfqs'), path: '/dashboard/rfqs' },
-      { icon: MessageSquare, label: t('dashboard.messages'), path: '/messages' },
-      { icon: Building2, label: t('dashboard.companyInfo') || 'Company Info', path: '/dashboard/company-info' },
-      { icon: BarChart3, label: t('dashboard.analytics'), path: '/dashboard/analytics' },
-      { icon: Wallet, label: t('dashboard.payments'), path: '/dashboard/payments' },
-      { icon: Settings, label: t('dashboard.settings'), path: '/dashboard/settings' },
-      { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
-    ],
+    buyer: buyerNav,
+    seller: sellerNav,
+    // Hybrid users share the buyer navigation shell
+    hybrid: buyerNav,
+    logistics: logisticsNav,
     admin: [
       { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/admin' },
       { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics' },
@@ -247,6 +193,51 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     const dashboardPath = `/dashboard/${newRole}`;
     navigate(dashboardPath, { replace: true });
     setUserRole(newRole);
+  };
+
+  const handleDevRoleApply = async () => {
+    try {
+      const targetRole = devSelectedRole || 'buyer';
+
+      // Use authenticated user ID to avoid relying on merged local user state
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !authUser) {
+        console.error('Dev role switch auth error:', authError);
+        toast.error('Could not load current user');
+        return;
+      }
+
+      if (import.meta.env.DEV) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            role: targetRole,
+            user_role: targetRole,
+            onboarding_completed: true,
+          })
+          .eq('id', authUser.id);
+
+        if (error) {
+          console.error('Dev role switch profile update error:', error);
+          // Still allow local switch so you can test layouts even if profile write fails
+          toast.warning('Profile role not updated in DB (check RLS), using local switch only');
+        }
+      }
+
+      await refreshRole();
+      setUserRole(targetRole);
+
+      const targetPath = getDashboardHomePath(targetRole);
+      navigate(targetPath, { replace: true });
+      toast.success(`Switched role to ${targetRole} (dev only)`);
+    } catch (err) {
+      console.error('Dev role switch error:', err);
+      toast.error('Error switching role');
+    }
   };
 
   return (
@@ -467,134 +458,44 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       <div className="flex flex-col flex-1 w-full md:ml-[260px] min-h-screen relative z-10 overflow-visible">
         {/* Premium Top Bar */}
         <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
-          <div className="flex items-center justify-between px-2 md:px-4 lg:px-6 py-4 relative overflow-visible">
-            {/* Community CTA - Mobile */}
-            <div className="md:hidden">
-              <button
-                onClick={() => openWhatsAppCommunity('dashboard_header_mobile')}
-                className="flex items-center gap-2 px-3 py-1.5 bg-afrikoni-gold text-afrikoni-chestnut rounded-full text-xs font-semibold hover:bg-afrikoni-goldLight transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                Community
-              </button>
-            </div>
-            {/* Left: Menu + Search */}
-            <div className="flex items-center gap-4 flex-1">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-colors"
-              >
-                <Menu className="w-5 h-5 text-afrikoni-text-dark" />
-              </button>
-              
-              {/* Search Bar with Gold Glow */}
-              <div className="hidden md:flex items-center gap-2 flex-1 max-w-md relative">
-                <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 z-10" />
-                <Input
-                  placeholder={t('common.search') || 'Search orders, products, suppliers...'}
-                  className="pl-10 pr-4 h-10 w-full border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 shadow-afrikoni transition-all text-sm bg-white rounded-afrikoni"
-                  onFocus={() => setSearchOpen(true)}
-                  onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-                />
-              </div>
-            </div>
+          <div className="relative overflow-visible">
+            {(() => {
+              switch (dashboardRole) {
+                case 'seller':
+                  return (
+                    <SellerHeader
+                      t={t}
+                      openWhatsAppCommunity={openWhatsAppCommunity}
+                      setSidebarOpen={setSidebarOpen}
+                      setSearchOpen={setSearchOpen}
+                      navigate={navigate}
+                    />
+                  );
+                case 'logistics':
+                  return (
+                    <LogisticsHeader
+                      t={t}
+                      setSidebarOpen={setSidebarOpen}
+                      setSearchOpen={setSearchOpen}
+                    />
+                  );
+                case 'buyer':
+                case 'hybrid':
+                default:
+                  return (
+                    <BuyerHeader
+                      t={t}
+                      openWhatsAppCommunity={openWhatsAppCommunity}
+                      setSidebarOpen={setSidebarOpen}
+                      setSearchOpen={setSearchOpen}
+                      navigate={navigate}
+                    />
+                  );
+              }
+            })()}
 
-            {/* Right: Community CTA (Desktop) + Role Switcher + Quick Create + Notifications + User */}
-            <div className="flex items-center gap-3">
-              {/* Community CTA - Desktop */}
-              <button
-                onClick={() => openWhatsAppCommunity('dashboard_header_desktop')}
-                className="hidden md:flex items-center gap-2 px-4 py-2 bg-afrikoni-gold text-afrikoni-chestnut rounded-full text-sm font-semibold hover:bg-afrikoni-goldLight transition-colors shadow-afrikoni"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Join Community 🚀
-              </button>
-              {/* Premium Segmented Role Switcher - v2.5 */}
-              {isHybrid && (
-                <div className="hidden lg:flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-afrikoni-gold/20 shadow-premium relative">
-                  {['all', 'buyer', 'seller'].map((view, idx) => (
-                    <button
-                      key={view}
-                      onClick={() => setActiveView(view)}
-                      className={`
-                        relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px]
-                        ${activeView === view
-                          ? 'text-afrikoni-charcoal'
-                          : 'text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
-                        }
-                      `}
-                    >
-                      {view === 'all' ? 'All' : view}
-                    </button>
-                  ))}
-                  {/* Sliding highlight */}
-                  <motion.div
-                    layoutId="activeRoleView"
-                    className="absolute top-1 bottom-1 rounded-full bg-afrikoni-gold shadow-afrikoni z-0"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    animate={{
-                      x: activeView === 'all' ? 0 : activeView === 'buyer' ? 'calc(33.333% + 0.125rem)' : 'calc(66.666% + 0.25rem)',
-                      width: 'calc(33.333% - 0.25rem)',
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Quick Create Button */}
-              <Button
-                onClick={() => {
-                  if (userRole === 'buyer' || (userRole === 'hybrid' && activeView === 'buyer')) {
-                    navigate('/dashboard/rfqs/new');
-                  } else {
-                    navigate('/dashboard/products/new');
-                  }
-                }}
-                className="hidden lg:flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-4 py-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm">
-                  {userRole === 'buyer' || (userRole === 'hybrid' && activeView === 'buyer') ? 'Create RFQ' : 'Add Product'}
-                </span>
-              </Button>
-
-              {/* Date Range Selector */}
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-white border border-afrikoni-gold/20 rounded-afrikoni hover:border-afrikoni-gold/40 transition-colors">
-                <Calendar className="w-4 h-4 text-afrikoni-gold" />
-                <select className="bg-transparent text-sm font-medium text-afrikoni-text-dark border-0 focus:outline-none cursor-pointer">
-                  <option>Last 7 days</option>
-                  <option>Last 30 days</option>
-                  <option>Last 90 days</option>
-                  <option>This year</option>
-                </select>
-              </div>
-
-              {/* Admin Mode Badge */}
-              {isUserAdmin && (
-                <Link
-                  to="/dashboard/risk"
-                  className="hidden md:flex items-center gap-2 px-3 py-2 bg-afrikoni-gold/20 hover:bg-afrikoni-gold/30 border border-afrikoni-gold/30 rounded-afrikoni transition-all group"
-                  title="You have elevated privileges"
-                >
-                  <Shield className="w-4 h-4 text-afrikoni-gold" />
-                  <span className="text-xs font-semibold text-afrikoni-gold">Admin Mode</span>
-                </Link>
-              )}
-
-              {/* Notifications */}
-              <NotificationBell />
-
-              {/* Messages */}
-              <Link
-                to="/messages"
-                className="p-2 rounded-afrikoni hover:bg-afrikoni-sand/20 relative transition-all hover:scale-105"
-              >
-                <MessageSquare className="w-5 h-5 text-afrikoni-text-dark" />
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-afrikoni-gold rounded-full border-2 border-afrikoni-ivory"></span>
-              </Link>
-
-              {/* User Menu */}
-              <div className="relative">
+            {/* User Menu Trigger (shared across roles) */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3">
                 <button
                   ref={userMenuButtonRef}
                   onClick={(e) => {
@@ -621,7 +522,6 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 </button>
               </div>
             </div>
-          </div>
         </header>
 
         {/* User Menu Dropdown - Fixed position for visibility */}
@@ -774,6 +674,42 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav userRole={userRole} />
+
+      {/* Dev-only Admin Role Switcher Panel */}
+      {import.meta.env.DEV && isUserAdmin && (
+        <div className="fixed bottom-20 right-4 z-40">
+          <div className="bg-white border border-afrikoni-gold/40 rounded-afrikoni shadow-premium-lg px-3 py-2 text-xs w-64">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-afrikoni-text-dark">Dev Role Switcher</span>
+              <Badge className="bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/40 text-[10px]">
+                Admin · Local only
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <select
+                value={devSelectedRole}
+                onChange={(e) => setDevSelectedRole(e.target.value)}
+                className="flex-1 border border-afrikoni-gold/30 rounded-afrikoni px-2 py-1 text-xs bg-afrikoni-offwhite focus:outline-none focus:ring-1 focus:ring-afrikoni-gold"
+              >
+                <option value="buyer">Buyer</option>
+                <option value="seller">Seller</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="logistics">Logistics</option>
+              </select>
+              <Button
+                size="sm"
+                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal px-2 py-1 text-[11px]"
+                onClick={handleDevRoleApply}
+              >
+                Apply
+              </Button>
+            </div>
+            <p className="text-[10px] text-afrikoni-text-dark/60">
+              Changes your profile role and reloads the matching dashboard. Use only on test accounts.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Social Proof Footer Widget */}
       <motion.div

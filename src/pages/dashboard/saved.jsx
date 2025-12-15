@@ -10,8 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Heart, Package, Users, Search, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function DashboardSaved() {
+function DashboardSavedInner() {
   const [savedProducts, setSavedProducts] = useState([]);
   const [savedSuppliers, setSavedSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -219,6 +220,14 @@ export default function DashboardSaved() {
         </Tabs>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardSaved() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+      <DashboardSavedInner />
+    </RequireDashboardRole>
   );
 }
 

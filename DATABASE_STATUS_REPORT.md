@@ -138,3 +138,6 @@ The guide you provided suggests missing tables, but the actual database has all 
 All tables are properly set up with RLS and foreign keys.
 
 
+
+
+

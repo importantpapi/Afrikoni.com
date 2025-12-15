@@ -12,8 +12,9 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { DataTable, StatusChip } from '@/components/ui/data-table';
 import EmptyState from '@/components/ui/EmptyState';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function DashboardProtection() {
+function DashboardProtectionInner() {
   const [currentRole, setCurrentRole] = useState('buyer');
   const [protectionData, setProtectionData] = useState(null);
   const [protectedOrders, setProtectedOrders] = useState([]);
@@ -506,6 +507,14 @@ export default function DashboardProtection() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardProtection() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+      <DashboardProtectionInner />
+    </RequireDashboardRole>
   );
 }
 

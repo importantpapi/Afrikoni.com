@@ -606,12 +606,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
   return (
     <div className="space-y-6 pb-8">
       {/* Welcome Header - v2.5 Improved Spacing */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex items-center justify-between mb-8"
-      >
+      <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">
             {(() => {
@@ -656,7 +651,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         <Badge variant="outline" className="capitalize text-sm px-4 py-2 border-afrikoni-gold/30 text-afrikoni-text-dark">
           {currentRole}
         </Badge>
-      </motion.div>
+      </div>
 
       {/* Onboarding Progress Tracker - For Suppliers */}
       {(currentRole === 'seller' || currentRole === 'hybrid') && companyId && (
@@ -665,12 +660,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
 
       {/* Activity Metrics - For Suppliers */}
       {(currentRole === 'seller' || currentRole === 'hybrid') && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="grid md:grid-cols-2 gap-4 mb-6"
-        >
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
           <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-afrikoni-gold/5 to-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -704,11 +694,11 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
-      {/* Afrikoni Academy: Guided learning for buyers & sellers */}
-      {(currentRole === 'buyer' || currentRole === 'seller' || currentRole === 'hybrid') && (
+      {/* Afrikoni Academy: Guided learning for buyers & sellers - Hidden for now */}
+      {false && (currentRole === 'buyer' || currentRole === 'seller' || currentRole === 'hybrid') && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -878,11 +868,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
 
       {/* Verification & Approvals (Seller / Hybrid) */}
       {(currentRole === 'seller' || currentRole === 'hybrid') && approvalSummary && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.22 }}
-        >
+        <div>
           <Card className="border-afrikoni-gold/30 bg-white rounded-afrikoni-lg shadow-premium-lg">
             <CardHeader className="flex flex-row items-center justify-between border-b border-afrikoni-gold/15 pb-4">
               <div>
@@ -1005,17 +991,12 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Active Buyer Requests - Supplier Dashboard */}
       {(currentRole === 'seller' || currentRole === 'hybrid') && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.18 }}
-          className="mb-6"
-        >
+        <div className="mb-6">
           <Card className="border-2 border-afrikoni-purple bg-gradient-to-r from-afrikoni-purple/10 to-afrikoni-gold/10 rounded-afrikoni-lg shadow-premium-lg">
             <CardHeader className="flex flex-row items-center justify-between border-b border-afrikoni-gold/15 pb-4">
               <div>
@@ -1083,15 +1064,11 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
+      <div>
         {/* v2.5: Premium Section Title with Gold Underline */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3">
@@ -1124,15 +1101,11 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
             );
           })}
         </div>
-      </motion.div>
+      </div>
 
       {/* Risk & Compliance Center Card - Admin Only */}
       {isUserAdmin && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
+        <div>
           <Link to="/dashboard/risk">
             <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg cursor-pointer">
               <CardContent className="p-6">
@@ -1153,7 +1126,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
               </CardContent>
             </Card>
           </Link>
-        </motion.div>
+        </div>
       )}
 
       {/* Charts Section */}

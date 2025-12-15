@@ -3,7 +3,7 @@
  * For freight forwarders, shipping companies, and logistics providers
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -18,13 +18,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { TARGET_COUNTRY, getCountryConfig } from '@/config/countryConfig';
+import { AFRICAN_COUNTRIES } from '@/constants/countries';
 import Layout from '@/layout';
 
 export default function LogisticsPartnerOnboarding() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [formData, setFormData] = useState({
     company_name: '',
     contact_name: '',
@@ -42,6 +46,31 @@ export default function LogisticsPartnerOnboarding() {
 
   const config = getCountryConfig();
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const { user: userData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      setUser(userData);
+      setUserRole(role);
+      
+      // If user is already a logistics partner, redirect to dashboard
+      if (userData && (role === 'logistics' || role === 'logistics_partner')) {
+        navigate('/dashboard/logistics');
+        return;
+      }
+      
+      // Pre-fill email if user is logged in
+      if (userData?.email) {
+        setFormData(prev => ({ ...prev, email: userData.email }));
+      }
+    } catch (error) {
+      // User not logged in, continue with form
+    }
+  };
+
   const services = [
     'Sea Freight',
     'Air Freight',
@@ -56,13 +85,87 @@ export default function LogisticsPartnerOnboarding() {
     setIsSubmitting(true);
 
     try {
-      // Create logistics partner application
-      const { data, error } = await supabase
-        .from('supplier_applications')
-        .insert({
+      // If user is logged in, create/update their company profile
+      if (user) {
+        // Check if company already exists
+        const { data: existingCompany } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        const companyData = {
+          company_name: formData.company_name,
+          country: formData.country,
+          city: formData.city,
+          phone: formData.phone,
+          role: 'logistics',
+          verified: false, // Will be verified by admin
+          metadata: {
+            services: formData.services,
+            coverage_areas: formData.coverage_areas,
+            fleet_size: formData.fleet_size,
+            years_experience: formData.years_experience,
+            certifications: formData.certifications,
+            contact_name: formData.contact_name
+          }
+        };
+
+        try {
+          if (existingCompany) {
+            // Update existing company
+            const { error: updateError } = await supabase
+              .from('companies')
+              .update(companyData)
+              .eq('id', existingCompany.id);
+
+            if (updateError) {
+              console.error('Error updating logistics company:', updateError);
+            }
+          } else {
+            // Create new company
+            const { error: createError } = await supabase
+              .from('companies')
+              .insert({
+                ...companyData,
+                user_id: user.id
+              });
+
+            if (createError) {
+              console.error('Error creating logistics company:', createError);
+            }
+          }
+        } catch (companyError) {
+          console.error('Company upsert error (non-blocking):', companyError);
+        }
+
+        // Update user profile to logistics and mark onboarding as completed
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ 
+              role: 'logistics',
+              user_role: 'logistics',
+              onboarding_completed: true,
+              company_name: formData.company_name,
+              country: formData.country,
+              city: formData.city,
+              phone: formData.phone
+            })
+            .eq('id', user.id);
+
+          if (profileError) {
+            console.error('Profile update error:', profileError);
+          }
+        } catch (profileErr) {
+          console.error('Profile update exception:', profileErr);
+        }
+
+        // Also create application for admin review
+        await supabase.from('supplier_applications').insert({
           company_name: formData.company_name,
           contact_name: formData.contact_name,
-          email: formData.email,
+          email: formData.email || user.email,
           phone: formData.phone,
           country: formData.country,
           city: formData.city,
@@ -78,27 +181,62 @@ export default function LogisticsPartnerOnboarding() {
             certifications: formData.certifications,
             revenue_share_interest: formData.revenue_share_interest
           }
-        })
-        .select()
-        .single();
+        }).catch(console.error);
 
-      if (error) throw error;
+        toast.success('Profile created! Redirecting to logistics dashboard...');
+        setTimeout(() => {
+          navigate('/dashboard/logistics');
+        }, 1500);
+      } else {
+        try {
+          // User not logged in - create application and redirect to signup
+          const { error } = await supabase
+            .from('supplier_applications')
+            .insert({
+              company_name: formData.company_name,
+              contact_name: formData.contact_name,
+              email: formData.email,
+              phone: formData.phone,
+              country: formData.country,
+              city: formData.city,
+              business_type: 'logistics',
+              company_description: `Services: ${formData.services.join(', ')}\nCoverage: ${formData.coverage_areas}\nFleet: ${formData.fleet_size}\nExperience: ${formData.years_experience} years`,
+              status: 'pending',
+              source: 'logistics_partner_onboarding',
+              metadata: {
+                services: formData.services,
+                coverage_areas: formData.coverage_areas,
+                fleet_size: formData.fleet_size,
+                years_experience: formData.years_experience,
+                certifications: formData.certifications,
+                revenue_share_interest: formData.revenue_share_interest
+              }
+            });
 
-      // Track acquisition event
-      await supabase.from('acquisition_events').insert({
-        type: 'supplier_signup',
-        country: formData.country,
-        email: formData.email,
-        phone: formData.phone,
-        source: 'logistics_partner_onboarding',
-        metadata: { type: 'logistics_partner' }
-      }).catch(console.error);
+          if (error) {
+            console.error('Public logistics application error:', error);
+          }
 
-      toast.success('Application submitted! We\'ll contact you within 24 hours.');
-      navigate('/signup?type=logistics&country=' + formData.country);
+          // Track acquisition event (non-blocking)
+          await supabase.from('acquisition_events').insert({
+            type: 'supplier_signup',
+            country: formData.country,
+            email: formData.email,
+            phone: formData.phone,
+            source: 'logistics_partner_onboarding',
+            metadata: { type: 'logistics_partner' }
+          }).catch(console.error);
+
+          toast.success('Application submitted! Please sign up to complete your profile.');
+          navigate(`/signup?role=logistics&email=${encodeURIComponent(formData.email)}&country=${formData.country}`);
+        } catch (publicErr) {
+          console.error('Error in public logistics application flow:', publicErr);
+          toast.error('Failed to submit application. Please try again.');
+        }
+      }
     } catch (error) {
-      console.error('Error submitting application:', error);
-      toast.error('Failed to submit application. Please try again.');
+      console.error('Unexpected error submitting application:', error);
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -236,15 +374,19 @@ export default function LogisticsPartnerOnboarding() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <Label>Country *</Label>
-                        <Select value={formData.country} onValueChange={(value) => setFormData({ ...formData, country: value })}>
+                        <Select
+                          value={formData.country}
+                          onValueChange={(value) => setFormData({ ...formData, country: value })}
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Ghana">Ghana</SelectItem>
-                            <SelectItem value="Nigeria">Nigeria</SelectItem>
-                            <SelectItem value="Kenya">Kenya</SelectItem>
-                            <SelectItem value="South Africa">South Africa</SelectItem>
+                            {AFRICAN_COUNTRIES.map((country) => (
+                              <SelectItem key={country} value={country}>
+                                {country}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>

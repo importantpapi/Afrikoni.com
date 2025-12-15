@@ -19,8 +19,9 @@ import {
   SUBSCRIPTION_PLANS,
   getPlanDetails 
 } from '@/services/subscriptionService';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function SubscriptionsPage() {
+function SubscriptionsPageInner() {
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -244,6 +245,14 @@ export default function SubscriptionsPage() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function SubscriptionsPage() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <SubscriptionsPageInner />
+    </RequireDashboardRole>
   );
 }
 

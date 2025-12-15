@@ -7,6 +7,8 @@ import ScrollToTop from './components/ScrollToTop';
 import { PageLoader } from './components/ui/skeletons';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
+import { RoleProvider } from './context/RoleContext';
+import { DashboardRoleProvider } from './context/DashboardRoleContext';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
 import { useBrowserNavigation } from './hooks/useBrowserNavigation';
@@ -21,10 +23,13 @@ import NotFound from './pages/NotFound';
 import SitemapXML from './pages/sitemap.xml';
 import PrivacyPolicy from './pages/privacy-policy';
 import TermsAndConditions from './pages/terms-and-conditions';
+import TermsEnforcement from './pages/terms-enforcement';
 import CookiePolicy from './pages/cookie-policy';
 
-// Lazy-loaded heavy routes - Dashboard
-const Dashboard = lazy(() => import('./pages/dashboard'));
+// Dashboard shell is imported eagerly to avoid dynamic import failures in critical layout
+import Dashboard from './pages/dashboard';
+
+// Lazy-loaded heavy routes - Dashboard sub-pages
 const DashboardOrders = lazy(() => import('./pages/dashboard/orders'));
 const OrderDetailPage = lazy(() => import('./pages/dashboard/orders/[id]'));
 const DashboardRFQs = lazy(() => import('./pages/dashboard/rfqs'));
@@ -182,10 +187,11 @@ function App() {
   return (
     <LanguageProvider>
       <CurrencyProvider>
-        <ScrollToTop />
-        <Toaster position="top-right" />
-        <Layout>
-        <Suspense fallback={<PageLoader />}>
+        <RoleProvider>
+          <ScrollToTop />
+          <Toaster position="top-right" />
+          <Layout>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -219,16 +225,62 @@ function App() {
             <Route path="/sitemap.xml" element={<SitemapXML />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/terms-enforcement" element={<TermsEnforcement />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
             <Route path="/order" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><MessagesPremium /></ProtectedRoute>} />
-            {/* Unified Dashboard - handles all roles */}
-            <Route path="/dashboard" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/buyer" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/seller" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/hybrid" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/logistics" element={<ProtectedRoute requireOnboarding={true}><Dashboard /></ProtectedRoute>} />
+            {/* Unified Dashboard entry points guarded by role and URL-derived DashboardRoleContext */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute requireOnboarding={true}>
+                  <DashboardRoleProvider>
+                    <Dashboard />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/buyer"
+              element={
+                <ProtectedRoute requireOnboarding={true}>
+                  <DashboardRoleProvider>
+                    <Dashboard />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/seller"
+              element={
+                <ProtectedRoute requireOnboarding={true}>
+                  <DashboardRoleProvider>
+                    <Dashboard />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/hybrid"
+              element={
+                <ProtectedRoute requireOnboarding={true}>
+                  <DashboardRoleProvider>
+                    <Dashboard />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/logistics"
+              element={
+                <ProtectedRoute requireOnboarding={true}>
+                  <DashboardRoleProvider>
+                    <Dashboard />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
             <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/dashboard/admin/review" element={<ProtectedRoute><AdminReview /></ProtectedRoute>} />
@@ -251,6 +303,7 @@ function App() {
             {/* Dashboard sub-pages */}
             <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+            <Route path="/dashboard/logistics-quote" element={<ProtectedRoute><LogisticsQuotePage /></ProtectedRoute>} />
             <Route path="/dashboard/orders/:orderId/logistics-quote" element={<ProtectedRoute><LogisticsQuotePage /></ProtectedRoute>} />
             <Route path="/dashboard/rfqs" element={<ProtectedRoute><DashboardRFQs /></ProtectedRoute>} />
             <Route path="/dashboard/rfqs/new" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
@@ -351,6 +404,7 @@ function App() {
           </Routes>
         </Suspense>
       </Layout>
+      </RoleProvider>
       </CurrencyProvider>
     </LanguageProvider>
   );

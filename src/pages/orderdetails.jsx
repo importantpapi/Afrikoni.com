@@ -182,20 +182,20 @@ export default function OrderDetail() {
                     <div className="font-semibold text-afrikoni-chestnut">{order.currency}</div>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-afrikoni-gold/20 space-y-1">
-                  <div className="flex items-center justify-between text-sm text-afrikoni-deep/80">
-                    <span>Afrikoni fee (8%)</span>
-                    <span className="font-semibold text-afrikoni-chestnut">
+                <div className="mt-4 pt-4 border-t-2 border-afrikoni-gold/30 space-y-3 bg-afrikoni-cream/30 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-semibold text-afrikoni-chestnut">Afrikoni Fee (8%):</span>
+                    <span className="text-xl font-bold text-afrikoni-chestnut">
                       ${platformFeeAmount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-afrikoni-deep/80">
-                    <span>Estimated supplier payout</span>
-                    <span className="font-semibold text-afrikoni-chestnut">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-semibold text-afrikoni-deep">Estimated Supplier Payout:</span>
+                    <span className="text-xl font-bold text-green-700">
                       ${supplierPayoutEstimate.toFixed(2)}
                     </span>
                   </div>
-                  <p className="text-[11px] text-afrikoni-deep/60 mt-1">
+                  <p className="text-xs text-afrikoni-deep/70 mt-2 pt-2 border-t border-afrikoni-gold/20">
                     This breakdown is indicative. Final payouts may differ slightly after payment
                     processor fees or special agreements.
                   </p>

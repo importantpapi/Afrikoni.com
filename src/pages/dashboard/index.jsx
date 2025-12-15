@@ -5,8 +5,9 @@ import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { getDashboardPathForRole } from '@/utils/roleHelpers';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import DashboardHome from './DashboardHome';
-import LogisticsDashboard from './logistics-dashboard';
+import BuyerHome from './buyer/BuyerHome';
+import SellerHome from './seller/SellerHome';
+import LogisticsHome from './logistics/LogisticsHome';
 
 export default function Dashboard() {
   const [currentRole, setCurrentRole] = useState('buyer');
@@ -35,17 +36,32 @@ export default function Dashboard() {
         }
         
         // Email verification status checked (not blocking access)
-          
+
         const normalizedRole = role || 'buyer';
-        setCurrentRole(normalizedRole);
+
+        // If user is explicitly on a role-specific dashboard path, respect the URL hint.
+        // This is especially important for logistics where we want a fully isolated view.
+        let effectiveRole = normalizedRole;
+        if (location.pathname.startsWith('/dashboard/logistics')) {
+          effectiveRole = 'logistics';
+        } else if (location.pathname.startsWith('/dashboard/buyer')) {
+          effectiveRole = 'buyer';
+        } else if (location.pathname.startsWith('/dashboard/seller')) {
+          effectiveRole = 'seller';
+        } else if (location.pathname.startsWith('/dashboard/hybrid')) {
+          effectiveRole = 'hybrid';
+        }
+
+        setCurrentRole(effectiveRole);
 
         // If user hit the base /dashboard route, redirect them to a role-specific dashboard
         if (location.pathname === '/dashboard') {
           const dashboardPath = getDashboardPathForRole(normalizedRole);
           // For hybrid and logistics, use unified dashboard
-          const finalPath = (normalizedRole === 'hybrid' || normalizedRole === 'logistics') 
-            ? `/dashboard/${normalizedRole}` 
-            : dashboardPath;
+          const finalPath =
+            normalizedRole === 'hybrid' || normalizedRole === 'logistics'
+              ? `/dashboard/${normalizedRole}`
+              : dashboardPath;
           navigate(finalPath, { replace: true });
           return;
         }
@@ -67,12 +83,17 @@ export default function Dashboard() {
   }, [navigate, location.pathname]);
 
   const renderDashboardContent = () => {
-    // Use LogisticsDashboard for logistics users, DashboardHome for others
-    if (currentRole === 'logistics') {
-      return <LogisticsDashboard />;
+    switch (currentRole) {
+      case 'buyer':
+      case 'hybrid':
+        return <BuyerHome />;
+      case 'seller':
+        return <SellerHome />;
+      case 'logistics':
+        return <LogisticsHome />;
+      default:
+        return <BuyerHome />;
     }
-    // Use the new enterprise dashboard home for other roles
-    return <DashboardHome currentRole={currentRole} />;
   };
 
   if (isLoading) {

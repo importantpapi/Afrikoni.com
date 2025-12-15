@@ -18,10 +18,11 @@ import { getOrCreateCompany } from '@/utils/companyHelper';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import { toast } from 'sonner';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 const COLORS = ['#D4A937', '#8140FF', '#3AB795', '#E85D5D', '#C9A961', '#5A5A5A'];
 
-export default function SupplierAnalytics() {
+function SupplierAnalyticsInner() {
   const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -889,6 +890,14 @@ export default function SupplierAnalytics() {
         </motion.div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function SupplierAnalytics() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <SupplierAnalyticsInner />
+    </RequireDashboardRole>
   );
 }
 

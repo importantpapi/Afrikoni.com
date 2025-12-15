@@ -16,8 +16,9 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
 import EmptyState from '@/components/ui/EmptyState';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function SupplierRFQs() {
+function SupplierRFQsInner() {
   const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -238,6 +239,14 @@ export default function SupplierRFQs() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function SupplierRFQs() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <SupplierRFQsInner />
+    </RequireDashboardRole>
   );
 }
 

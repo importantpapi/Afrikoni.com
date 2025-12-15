@@ -25,7 +25,7 @@ import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import PricingMegaMenu from './PricingMegaMenu';
+import { getUserInitial } from '@/utils/userHelpers';
 
 // Country code to country name mapping
 const COUNTRY_NAMES = {
@@ -76,14 +76,12 @@ export default function Navbar({ user, onLogout }) {
   const { language, setLanguage, t } = useLanguage();
   const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
   const [megaOpen, setMegaOpen] = useState(false);
-  const [pricingMenuOpen, setPricingMenuOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [countryOpen, setCountryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const pricingMenuRef = useRef(null);
 
   // Detect mobile
   useEffect(() => {
@@ -282,7 +280,6 @@ export default function Navbar({ user, onLogout }) {
 
   const toggleMegaMenu = () => {
     setMegaOpen((prev) => !prev);
-    setPricingMenuOpen(false);
     setLanguageOpen(false);
     setCurrencyOpen(false);
     setSettingsOpen(false);
@@ -290,19 +287,6 @@ export default function Navbar({ user, onLogout }) {
     setUserMenuOpen(false);
   };
 
-  const togglePricingMenu = () => {
-    setPricingMenuOpen((prev) => !prev);
-    setMegaOpen(false);
-    setLanguageOpen(false);
-    setCurrencyOpen(false);
-    setSettingsOpen(false);
-    setCountryOpen(false);
-    setUserMenuOpen(false);
-  };
-
-  const closePricingMenu = () => {
-    setPricingMenuOpen(false);
-  };
 
   const openSettingsMenu = () => {
     setSettingsOpen(true);
@@ -393,35 +377,8 @@ export default function Navbar({ user, onLogout }) {
 
           {/* How It Works Link */}
           <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-            How It Works
+How It Works
           </Link>
-
-          {/* Pricing Link with Mega Menu - Visible on all screens */}
-          <div className="relative group" ref={pricingMenuRef}>
-            <button
-              onClick={togglePricingMenu}
-              onMouseEnter={() => {
-                if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-                  setPricingMenuOpen(true);
-                }
-              }}
-              className={`
-                flex items-center gap-1 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap
-                ${pricingMenuOpen
-                  ? 'text-afrikoni-gold border-b-2 border-afrikoni-gold pb-1'
-                  : 'text-afrikoni-cream hover:text-afrikoni-gold'
-                }
-              `}
-            >
-              Pricing
-              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${pricingMenuOpen ? 'rotate-180' : ''}`} />
-            </button>
-            <PricingMegaMenu
-              isOpen={pricingMenuOpen}
-              onClose={closePricingMenu}
-              triggerRef={pricingMenuRef}
-            />
-          </div>
           
           {compareCount > 0 && (
             <Link to="/compare" className="relative hidden sm:block">
@@ -896,7 +853,6 @@ export default function Navbar({ user, onLogout }) {
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
               <Link to="/suppliers" onClick={() => setMegaOpen(false)}>{t('nav.sellOnAfrikoni')}</Link>
               <Link to="/dashboard" onClick={() => setMegaOpen(false)}>{t('nav.supplierDashboard')}</Link>
-              <Link to="/pricing" onClick={() => setMegaOpen(false)}>{t('common.pricing') || 'Pricing'}</Link>
               <Link to="/verification-center" onClick={() => setMegaOpen(false)}>{t('nav.kycVerification')}</Link>
               <Link to="/resources" onClick={() => setMegaOpen(false)}>{t('nav.supplierResources')}</Link>
             </nav>

@@ -19,8 +19,9 @@ import {
 import { toast } from 'sonner';
 import { CardSkeleton } from '@/components/ui/skeletons';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function PerformanceDashboard() {
+function PerformanceDashboardInner() {
   const [performance, setPerformance] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [companyId, setCompanyId] = useState(null);
@@ -187,6 +188,14 @@ export default function PerformanceDashboard() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function PerformanceDashboard() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <PerformanceDashboardInner />
+    </RequireDashboardRole>
   );
 }
 

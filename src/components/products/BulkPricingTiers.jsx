@@ -2,14 +2,17 @@ import React from 'react';
 import { TrendingDown, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export default function BulkPricingTiers({ product }) {
+  const { formatPrice } = useCurrency();
+  
   // Generate mock pricing tiers based on product data
   // In production, this would come from product_variants or a pricing_tiers table
   const generatePricingTiers = () => {
     const basePrice = parseFloat(product.price_min || product.price || 0);
     const moq = parseFloat(product.min_order_quantity || product.moq || 1);
-    const currency = product.currency || 'USD';
+    const productCurrency = product.currency || 'USD';
     
     if (!basePrice) return [];
     
@@ -20,11 +23,17 @@ export default function BulkPricingTiers({ product }) {
       { minQty: moq * 100 + 1, maxQty: null, discount: 15, label: 'Volume' }
     ];
     
-    return tiers.map(tier => ({
-      ...tier,
-      price: basePrice * (1 - tier.discount / 100),
-      savings: basePrice * (tier.discount / 100)
-    })).filter(tier => tier.minQty >= moq);
+    return tiers.map(tier => {
+      const priceInProductCurrency = basePrice * (1 - tier.discount / 100);
+      const savingsInProductCurrency = basePrice * (tier.discount / 100);
+      
+      return {
+        ...tier,
+        price: priceInProductCurrency,
+        savings: savingsInProductCurrency,
+        productCurrency
+      };
+    }).filter(tier => tier.minQty >= moq);
   };
 
   const pricingTiers = generatePricingTiers();
@@ -69,11 +78,11 @@ export default function BulkPricingTiers({ product }) {
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-afrikoni-gold">
-                  {product.currency || 'USD'} {tier.price.toFixed(2)}
+                  {formatPrice(tier.price, tier.productCurrency, true)}
                 </div>
                 {tier.savings > 0 && (
                   <p className="text-xs text-green-600">
-                    Save {product.currency || 'USD'} {tier.savings.toFixed(2)}/unit
+                    Save {formatPrice(tier.savings, tier.productCurrency, true)}/unit
                   </p>
                 )}
               </div>

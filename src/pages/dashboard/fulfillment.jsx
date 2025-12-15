@@ -23,8 +23,9 @@ import {
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function FulfillmentDashboard() {
+function FulfillmentDashboardInner() {
   const [fulfillments, setFulfillments] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,12 +72,21 @@ export default function FulfillmentDashboard() {
         setFulfillments(fulfillmentsList);
       }
 
-      // Load warehouses
-      const warehousesList = await getWarehouseLocations(userCompanyId);
-      setWarehouses(warehousesList);
+      // Load warehouses (non-blocking, fail-safe)
+      const warehousesList = await getWarehouseLocations(userCompanyId).catch((err) => {
+        if (import.meta.env.DEV) {
+          console.warn('getWarehouseLocations failed (non-blocking):', err);
+        }
+        return [];
+      });
+      setWarehouses(Array.isArray(warehousesList) ? warehousesList : []);
     } catch (error) {
-      console.error('Error loading fulfillment data:', error);
-      toast.error('Failed to load fulfillment data');
+      if (import.meta.env.DEV) {
+        console.error('Error loading fulfillment data:', error);
+      }
+      // In production, quietly show empty states instead of an error toast
+      setFulfillments([]);
+      setWarehouses([]);
     } finally {
       setIsLoading(false);
     }
@@ -303,6 +313,14 @@ export default function FulfillmentDashboard() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function FulfillmentDashboard() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <FulfillmentDashboardInner />
+    </RequireDashboardRole>
   );
 }
 

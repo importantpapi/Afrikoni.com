@@ -57,10 +57,11 @@ function Footer() {
   const companyLinks = [
     { to: '/buyer-hub', label: 'How Sourcing Works' },
     { to: '/supplier-hub', label: 'How Selling Works' },
-    { to: '/trust', label: 'Trust Center' },
+    { to: '/trust', label: 'Trust & Fair Use' },
     { to: '/about', label: 'About Us' },
     { to: '/logistics', label: 'Logistics' },
     { to: '/order-protection', label: 'Trust & Safety' },
+    { to: '/pricing', label: 'Pricing' },
     { to: '/help', label: 'Help Center' },
     { to: '/contact', label: 'Contact Us' },
     { to: '/community', label: 'Join Community', icon: MessageCircle, highlight: true }
@@ -322,6 +323,14 @@ function Footer() {
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[10px] md:text-xs lg:text-sm">
               <motion.div whileHover={{ x: 2 }}>
                 <Link 
+                  to="/trust" 
+                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                >
+                  Trust & Fair Use
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ x: 2 }}>
+                <Link 
                   to="/privacy-policy" 
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
                 >
@@ -330,10 +339,10 @@ function Footer() {
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>
                 <Link 
-                  to="/terms-and-conditions" 
+                  to="/terms-enforcement" 
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
                 >
-                  Terms & Conditions
+                  Terms of Use
                 </Link>
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>

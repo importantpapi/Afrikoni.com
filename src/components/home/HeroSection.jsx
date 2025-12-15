@@ -309,7 +309,7 @@ export default function HeroSection({ categories = [] }) {
               Trade. Trust. Thrive.
             </h2>
               <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream font-medium mb-2">
-              The B2B marketplace connecting Africa to global opportunity.
+              A Pan-African B2B marketplace empowering African entrepreneurs and enterprises to build, trade, and scale globally.
             </p>
           </motion.div>
 

@@ -33,7 +33,9 @@ const TEAM_ROLES = [
   { value: 'member', label: 'Team Member', icon: Users, description: 'General team access' }
 ];
 
-export default function TeamMembers() {
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
+
+function TeamMembersInner() {
   const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [currentRole, setCurrentRole] = useState('buyer');
@@ -574,5 +576,13 @@ export default function TeamMembers() {
         </Dialog>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function TeamMembers() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <TeamMembersInner />
+    </RequireDashboardRole>
   );
 }

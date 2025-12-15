@@ -13,8 +13,9 @@ import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfDay } from 'date-fns';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-export default function DashboardAnalytics() {
+function DashboardAnalyticsInner() {
   const [currentRole, setCurrentRole] = useState('buyer');
   const [analytics, setAnalytics] = useState(null);
   const [chartData, setChartData] = useState([]);
@@ -671,6 +672,14 @@ export default function DashboardAnalytics() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardAnalytics() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+      <DashboardAnalyticsInner />
+    </RequireDashboardRole>
   );
 }
 

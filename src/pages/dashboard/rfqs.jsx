@@ -22,6 +22,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 import VerificationUpsell from '@/components/upsell/VerificationUpsell';
 import { getCompanySubscription } from '@/services/subscriptionService';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -33,7 +34,7 @@ const AFRICAN_COUNTRIES = [
   'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
 ];
 
-export default function DashboardRFQs() {
+function DashboardRFQsInner() {
   const { t } = useLanguage();
   const [rfqs, setRfqs] = useState([]);
   const [quotes, setQuotes] = useState([]);
@@ -648,5 +649,13 @@ export default function DashboardRFQs() {
         </Tabs>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardRFQs() {
+  return (
+    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+      <DashboardRFQsInner />
+    </RequireDashboardRole>
   );
 }

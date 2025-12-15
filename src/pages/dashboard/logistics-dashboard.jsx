@@ -1,21 +1,15 @@
 /**
  * Logistics Dashboard - Comprehensive dashboard for logistics partners and 3PL providers
- * 
- * Features:
- * - Overview with KPIs and metrics
- * - Active shipments management
- * - Route optimization
- * - Partner management
- * - Analytics and reporting
- * - Documentation management
  */
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
+
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import DashboardLayout from '@/layouts/DashboardLayout';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,28 +17,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Truck, MapPin, Calendar, DollarSign, Package, TrendingUp, 
-  Clock, CheckCircle, AlertCircle, Globe, Users, FileText,
-  BarChart3, Route, Zap, Shield, Search, Filter, Download,
-  Plus, Eye, Edit, ArrowRight, Activity
-} from 'lucide-react';
-import RealTimeTracking from '@/components/logistics/RealTimeTracking';
-import { toast } from 'sonner';
-import { format, subDays, startOfMonth } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EmptyState from '@/components/ui/EmptyState';
+import RealTimeTracking from '@/components/logistics/RealTimeTracking';
 
-export default function LogisticsDashboard() {
+import { 
+  Truck,
+  MapPin,
+  DollarSign,
+  Package,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Users,
+  FileText,
+  BarChart3,
+  Plus,
+  Eye,
+  ArrowRight,
+  Activity
+} from 'lucide-react';
+
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+
+function LogisticsDashboardInner() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const [user, setUser] = useState(null);
-  const [company, setCompany] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
-  // Overview KPIs
   const [kpis, setKpis] = useState({
     activeShipments: 0,
     inTransit: 0,
@@ -56,12 +61,9 @@ export default function LogisticsDashboard() {
     activePartners: 0
   });
 
-  // Shipments data
   const [shipments, setShipments] = useState([]);
   const [recentShipments, setRecentShipments] = useState([]);
   const [shipmentStatusFilter, setShipmentStatusFilter] = useState('all');
-
-  // Partners data
   const [partners, setPartners] = useState([]);
 
   useEffect(() => {
@@ -71,7 +73,9 @@ export default function LogisticsDashboard() {
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, profile, companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+
+      const { user: userData, companyId: cid } =
+        await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!userData) {
         navigate('/login');
@@ -81,110 +85,77 @@ export default function LogisticsDashboard() {
       setUser(userData);
       setCompanyId(cid);
 
-      if (cid) {
-        // Load company
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', cid)
-          .single();
-        setCompany(companyData);
-
-        // Load KPIs
-        await loadKPIs(cid);
-
-        // Load recent shipments
-        await loadRecentShipments(cid);
-
-        // Load partners
-        await loadPartners(cid);
+      if (!cid) {
+        toast.info('Complete your company profile to access logistics features.');
+        return;
       }
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-      toast.error('Failed to load dashboard data');
+
+        await loadKPIs(cid);
+        await loadRecentShipments(cid);
+        await loadPartners(cid);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load logistics dashboard');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadKPIs = async (logisticsCompanyId) => {
-    try {
-      // Get all shipments for this logistics company
-      const { data: allShipments } = await supabase
+  const loadKPIs = async (cid) => {
+    const { data } = await supabase
         .from('shipments')
         .select('*, orders(*)')
-        .eq('logistics_partner_id', logisticsCompanyId);
+      .eq('logistics_partner_id', cid);
 
-      if (!allShipments) return;
+    if (!data) return;
 
-      const total = allShipments.length;
-      const active = allShipments.filter(s => 
+    const delivered = data.filter(s => s.status === 'delivered');
+    const active = data.filter(s =>
         ['pending_pickup', 'picked_up', 'in_transit', 'customs', 'out_for_delivery'].includes(s.status)
-      ).length;
-      const inTransit = allShipments.filter(s => s.status === 'in_transit').length;
-      const delivered = allShipments.filter(s => s.status === 'delivered').length;
-      const pendingPickup = allShipments.filter(s => s.status === 'pending_pickup').length;
+    );
 
-      // Calculate revenue (from orders)
-      const totalRevenue = allShipments.reduce((sum, s) => {
-        return sum + (parseFloat(s.orders?.total_amount) || 0);
-      }, 0);
-
-      // Calculate on-time delivery rate
-      const deliveredShipments = allShipments.filter(s => s.status === 'delivered');
-      const onTime = deliveredShipments.filter(s => {
-        if (!s.estimated_delivery || !s.updated_at) return false;
-        const estimated = new Date(s.estimated_delivery);
-        const actual = new Date(s.updated_at);
-        return actual <= estimated;
-      }).length;
-      const onTimeRate = deliveredShipments.length > 0 ? (onTime / deliveredShipments.length) * 100 : 0;
-
-      // Calculate average delivery time (days)
-      const avgDeliveryTime = deliveredShipments.length > 0
-        ? deliveredShipments.reduce((sum, s) => {
-            if (!s.created_at || !s.updated_at) return sum;
-            const days = (new Date(s.updated_at) - new Date(s.created_at)) / (1000 * 60 * 60 * 24);
-            return sum + days;
-          }, 0) / deliveredShipments.length
-        : 0;
-
-      // Count unique partners (buyers + sellers from orders)
-      const uniquePartners = new Set();
-      allShipments.forEach(s => {
-        if (s.orders?.buyer_company_id) uniquePartners.add(s.orders.buyer_company_id);
-        if (s.orders?.seller_company_id) uniquePartners.add(s.orders.seller_company_id);
-      });
+    const revenue = data.reduce(
+      (sum, s) => sum + (parseFloat(s.orders?.total_amount) || 0),
+      0
+    );
 
       setKpis({
-        activeShipments: active,
-        inTransit,
-        delivered,
-        pendingPickup,
-        totalRevenue,
-        onTimeDelivery: Math.round(onTimeRate),
-        avgDeliveryTime: Math.round(avgDeliveryTime * 10) / 10,
-        activePartners: uniquePartners.size
-      });
-    } catch (error) {
-      console.error('Error loading KPIs:', error);
-    }
+      activeShipments: active.length,
+      inTransit: data.filter(s => s.status === 'in_transit').length,
+      delivered: delivered.length,
+      pendingPickup: data.filter(s => s.status === 'pending_pickup').length,
+      totalRevenue: revenue,
+      onTimeDelivery: delivered.length
+        ? Math.round(
+            (delivered.filter(s =>
+              new Date(s.updated_at) <= new Date(s.estimated_delivery)
+            ).length /
+              delivered.length) *
+              100
+          )
+        : 0,
+      avgDeliveryTime: delivered.length
+        ? Math.round(
+            delivered.reduce((sum, s) => {
+              return (
+                sum +
+                (new Date(s.updated_at) - new Date(s.created_at)) /
+                  (1000 * 60 * 60 * 24)
+              );
+            }, 0) / delivered.length
+          )
+        : 0,
+      activePartners: new Set(
+        data.flatMap(s => [s.orders?.buyer_company_id, s.orders?.seller_company_id])
+      ).size
+    });
   };
 
-  const loadRecentShipments = async (logisticsCompanyId) => {
-    try {
+  const loadRecentShipments = async (cid) => {
       let query = supabase
         .from('shipments')
-        .select(`
-          *,
-          orders(
-            id,
-            total_amount,
-            quantity,
-            products(title)
-          )
-        `)
-        .eq('logistics_partner_id', logisticsCompanyId)
+      .select('*, orders(products(title), total_amount)')
+      .eq('logistics_partner_id', cid)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -192,814 +163,669 @@ export default function LogisticsDashboard() {
         query = query.eq('status', shipmentStatusFilter);
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setRecentShipments(data || []);
+    const { data } = await query;
       setShipments(data || []);
-    } catch (error) {
-      console.error('Error loading shipments:', error);
-      setRecentShipments([]);
-    }
+    setRecentShipments(data || []);
   };
 
-  const loadPartners = async (logisticsCompanyId) => {
-    try {
-      // Get unique companies from orders
+  const loadPartners = async (cid) => {
       const { data: orders } = await supabase
         .from('orders')
-        .select('buyer_company_id, seller_company_id')
-        .or(`buyer_company_id.eq.${logisticsCompanyId},seller_company_id.eq.${logisticsCompanyId}`);
+      .select('buyer_company_id, seller_company_id');
 
-      if (!orders) {
-        setPartners([]);
-        return;
-      }
+    if (!orders) return;
 
-      const companyIds = new Set();
-      orders.forEach(o => {
-        if (o.buyer_company_id) companyIds.add(o.buyer_company_id);
-        if (o.seller_company_id) companyIds.add(o.seller_company_id);
-      });
+    const ids = Array.from(
+      new Set(
+        orders.flatMap(o => [o.buyer_company_id, o.seller_company_id]).filter(Boolean)
+      )
+    );
 
-      // Load company details
-      const { data: companies } = await supabase
+    const { data } = await supabase
         .from('companies')
         .select('id, company_name, country, city, verified')
-        .in('id', Array.from(companyIds));
+      .in('id', ids);
 
-      setPartners(companies || []);
-    } catch (error) {
-      console.error('Error loading partners:', error);
-      setPartners([]);
+    setPartners(data || []);
+  };
+
+  const handleFilterChange = (value) => {
+    setShipmentStatusFilter(value);
+  };
+
+  const formatRoute = (s) => {
+    const origin = s.origin_city || s.origin_port || s.origin_country || 'Unknown';
+    const dest = s.destination_city || s.destination_port || s.destination_country || 'Unknown';
+    return `${origin} → ${dest}`;
+  };
+
+  const statusBadge = (status) => {
+    const normalized = (status || '').toLowerCase();
+    if (normalized === 'pending_pickup') {
+      return (
+        <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50">
+          Pending pickup
+        </Badge>
+      );
     }
-  };
-
-  const handleAcceptShipment = async (shipmentId) => {
-    try {
-      const { error } = await supabase
-        .from('shipments')
-        .update({ 
-          status: 'picked_up',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', shipmentId);
-
-      if (error) throw error;
-      toast.success('Shipment accepted and marked as picked up');
-      loadDashboardData();
-    } catch (error) {
-      console.error('Error accepting shipment:', error);
-      toast.error('Failed to accept shipment');
+    if (['in_transit', 'picked_up', 'out_for_delivery'].includes(normalized)) {
+      return (
+        <Badge variant="outline" className="border-sky-400 text-sky-700 bg-sky-50">
+          In transit
+        </Badge>
+      );
     }
-  };
-
-  const handleUpdateStatus = async (shipmentId, newStatus) => {
-    try {
-      const { error } = await supabase
-        .from('shipments')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', shipmentId);
-
-      if (error) throw error;
-      toast.success('Shipment status updated');
-      loadDashboardData();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Failed to update status');
+    if (normalized === 'delayed') {
+      return (
+        <Badge variant="outline" className="border-red-400 text-red-700 bg-red-50">
+          Delayed
+        </Badge>
+      );
     }
+    if (normalized === 'delivered') {
+      return (
+        <Badge variant="outline" className="border-emerald-400 text-emerald-700 bg-emerald-50">
+          Delivered
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="border-slate-300 text-slate-700 bg-slate-50 capitalize">
+        {status || 'Unknown'}
+      </Badge>
+    );
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending_pickup: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      picked_up: 'bg-blue-100 text-blue-800 border-blue-300',
-      in_transit: 'bg-purple-100 text-purple-800 border-purple-300',
-      customs: 'bg-orange-100 text-orange-800 border-orange-300',
-      out_for_delivery: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-      delivered: 'bg-green-100 text-green-800 border-green-300',
-      cancelled: 'bg-red-100 text-red-800 border-red-300'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-300';
+  const riskBadge = (shipment) => {
+    if (!shipment) return null;
+    const status = (shipment.status || '').toLowerCase();
+
+    if (status === 'delayed') {
+      return (
+        <Badge className="bg-red-50 text-red-700 border border-red-200 gap-1">
+          <AlertCircle className="h-3 w-3" />
+          At risk
+        </Badge>
+      );
+    }
+
+    if (['in_transit', 'picked_up', 'out_for_delivery'].includes(status)) {
+      return (
+        <Badge className="bg-amber-50 text-amber-700 border border-amber-200 gap-1">
+          <Clock className="h-3 w-3" />
+          Monitor
+        </Badge>
+      );
+    }
+
+    if (status === 'delivered') {
+      return (
+        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 gap-1">
+          <CheckCircle className="h-3 w-3" />
+          On time
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge className="bg-slate-50 text-slate-700 border border-slate-200">
+        Normal
+      </Badge>
+    );
   };
 
-  const getStatusLabel = (status) => {
-    const labels = {
-      pending_pickup: 'Pending Pickup',
-      picked_up: 'Picked Up',
-      in_transit: 'In Transit',
-      customs: 'In Customs',
-      out_for_delivery: 'Out for Delivery',
-      delivered: 'Delivered',
-      cancelled: 'Cancelled'
-    };
-    return labels[status] || status;
-  };
+  const pendingPickupShipments = recentShipments.filter(
+    s => (s.status || '').toLowerCase() === 'pending_pickup'
+  );
+  const delayedShipments = recentShipments.filter(
+    s => (s.status || '').toLowerCase() === 'delayed'
+  );
+  const inMotionShipments = shipments.filter(s =>
+    ['in_transit', 'picked_up', 'out_for_delivery'].includes(
+      (s.status || '').toLowerCase()
+    )
+  );
+
+  const quotesAwaitingCount = 0; // placeholder until wired to real data
+  const commissionMTD = kpis.totalRevenue || 0; // placeholder using existing metric
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole="logistics">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      <div className="flex justify-center py-20">
+        <div className="animate-spin h-12 w-12 border-b-2 border-afrikoni-gold rounded-full" />
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout currentRole="logistics">
       <div className="space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">
-              Logistics Dashboard
+      {/* Page header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl font-semibold text-afrikoni-deep">
+            Logistics Control Tower
             </h1>
-            <p className="text-afrikoni-deep/70">
-              Manage shipments, routes, and partnerships
+          <p className="text-sm text-afrikoni-deep/70">
+            Shipments, risk, and Afrikoni commission at a glance.
             </p>
           </div>
-          <div className="flex gap-3">
+        <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              onClick={() => navigate('/dashboard/shipments')}
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              View All Shipments
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setActiveTab('quotes')}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Request Shipping Quote
-            </Button>
-            <Button
-              className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
-              onClick={() => navigate('/dashboard/shipments/new')}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Shipment
+            variant="default"
+            className="bg-afrikoni-deep text-white hover:bg-afrikoni-deep/90"
+            onClick={() => setActiveTab('shipments')}
+          >
+            View Shipments
             </Button>
           </div>
-        </motion.div>
+      </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:shadow-lg transition-all">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Truck className="w-6 h-6 text-blue-600" />
+      {/* KPI row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <Card className="bg-afrikoni-sand/70 border-slate-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+                Active Shipments
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    Active
-                  </Badge>
-                </div>
-                <div className="text-3xl font-bold text-afrikoni-chestnut mb-1">
+              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
                   {kpis.activeShipments}
                 </div>
-                <div className="text-sm text-afrikoni-deep/70">Active Shipments</div>
+            </div>
+            <Truck className="h-5 w-5 text-afrikoni-deep/70" />
               </CardContent>
             </Card>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:shadow-lg transition-all">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+        <Card className="bg-afrikoni-sand/70 border-slate-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+                At Risk
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {kpis.onTimeDelivery}%
-                  </Badge>
+              <div className="mt-1 text-2xl font-semibold text-red-600">
+                {delayedShipments.length}
                 </div>
-                <div className="text-3xl font-bold text-afrikoni-chestnut mb-1">
-                  {kpis.delivered}
                 </div>
-                <div className="text-sm text-afrikoni-deep/70">Delivered</div>
+            <AlertCircle className="h-5 w-5 text-red-500" />
               </CardContent>
             </Card>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:shadow-lg transition-all">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-afrikoni-gold" />
+        <Card className="bg-afrikoni-sand/70 border-slate-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+                Pending Pickup
                   </div>
+              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
+                {pendingPickupShipments.length}
                 </div>
-                <div className="text-3xl font-bold text-afrikoni-chestnut mb-1">
-                  ${kpis.totalRevenue.toLocaleString()}
                 </div>
-                <div className="text-sm text-afrikoni-deep/70">Total Revenue</div>
+            <Package className="h-5 w-5 text-amber-600" />
               </CardContent>
             </Card>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:shadow-lg transition-all">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Users className="w-6 h-6 text-purple-600" />
+        <Card className="bg-afrikoni-sand/70 border-slate-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+                Quotes Awaiting Action
                   </div>
+              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
+                {quotesAwaitingCount}
                 </div>
-                <div className="text-3xl font-bold text-afrikoni-chestnut mb-1">
-                  {kpis.activePartners}
                 </div>
-                <div className="text-sm text-afrikoni-deep/70">Active Partners</div>
+            <FileText className="h-5 w-5 text-afrikoni-deep/70" />
               </CardContent>
             </Card>
-          </motion.div>
-        </div>
 
-        {/* Secondary KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-afrikoni-gold/20">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <Clock className="w-8 h-8 text-afrikoni-gold" />
+        <Card className="bg-afrikoni-sand/70 border-slate-200">
+          <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold text-afrikoni-chestnut">
-                    {kpis.avgDeliveryTime} days
+              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+                Afrikoni Commission (MTD)
                   </div>
-                  <div className="text-sm text-afrikoni-deep/70">Avg. Delivery Time</div>
+              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
+                ${commissionMTD.toLocaleString()}
+                </div>
+              </div>
+            <DollarSign className="h-5 w-5 text-afrikoni-deep/70" />
+            </CardContent>
+          </Card>
+      </div>
+
+      {/* Revenue snapshot */}
+      <Card className="border-slate-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-afrikoni-deep">
+            Revenue Snapshot
+          </CardTitle>
+          <CardDescription className="text-xs text-afrikoni-deep/70">
+            Afrikoni commission from logistics activity (placeholders until fully wired).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-0">
+          <div className="space-y-1">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Today
+                  </div>
+            <div className="text-xl font-semibold text-afrikoni-deep">
+              $0
+                </div>
+              </div>
+          <div className="space-y-1">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Last 7 Days
+                  </div>
+            <div className="text-xl font-semibold text-afrikoni-deep">
+              $0
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Month to Date
+            </div>
+            <div className="text-xl font-semibold text-afrikoni-deep">
+              ${commissionMTD.toLocaleString()}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-afrikoni-gold/20">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <Activity className="w-8 h-8 text-green-600" />
-                <div>
-                  <div className="text-2xl font-bold text-afrikoni-chestnut">
-                    {kpis.inTransit}
-                  </div>
-                  <div className="text-sm text-afrikoni-deep/70">In Transit</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-afrikoni-gold/20">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="w-8 h-8 text-yellow-600" />
-                <div>
-                  <div className="text-2xl font-bold text-afrikoni-chestnut">
-                    {kpis.pendingPickup}
-                  </div>
-                  <div className="text-sm text-afrikoni-deep/70">Pending Pickup</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+      {/* Main content tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="shipments">Shipments</TabsTrigger>
-            <TabsTrigger value="quotes">Shipping Quotes</TabsTrigger>
-            <TabsTrigger value="tracking">Real-Time Tracking</TabsTrigger>
-            <TabsTrigger value="customs">Customs</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="quotes">Quotes</TabsTrigger>
+          <TabsTrigger value="tracking">Tracking</TabsTrigger>
+          <TabsTrigger value="revenue">Revenue</TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Recent Shipments */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Shipments</CardTitle>
-                  <CardDescription>Latest shipment activity</CardDescription>
+        {/* OVERVIEW */}
+        <TabsContent value="overview" className="mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Needs Action */}
+            <Card className="border-slate-200 max-h-[420px] flex flex-col">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                  Needs Action
+                </CardTitle>
+                <CardDescription className="text-xs text-afrikoni-deep/70">
+                  Shipments and quotes that require attention.
+                </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {recentShipments.length === 0 ? (
-                    <EmptyState
-                      type="default"
-                      title="No shipments yet"
-                      description="Shipments will appear here once orders are assigned"
-                    />
+              <CardContent className="pt-0 space-y-4 overflow-y-auto">
+                {/* Pending pickups */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-afrikoni-deep flex items-center gap-1">
+                      <Package className="h-3 w-3 text-amber-600" />
+                      Pending pickups
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {pendingPickupShipments.length}
+                    </span>
+                  </div>
+                  {pendingPickupShipments.length === 0 ? (
+                    <p className="text-xs text-slate-500">
+                      No shipments need pickup right now.
+                    </p>
                   ) : (
-                    <div className="space-y-3">
-                      {recentShipments.slice(0, 5).map((shipment) => (
-                        <div
-                          key={shipment.id}
-                          className="flex items-center justify-between p-3 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-gold/5 transition-colors"
+                    <ul className="space-y-1">
+                      {pendingPickupShipments.slice(0, 5).map(s => (
+                        <li
+                          key={s.id}
+                          className="flex items-center justify-between rounded-md border border-amber-100 bg-amber-50/60 px-2 py-1.5"
                         >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-semibold text-sm">
-                                #{shipment.tracking_number || shipment.id.slice(0, 8).toUpperCase()}
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-afrikoni-deep">
+                              {s.orders?.products?.title || 'Shipment'}
                               </span>
-                              <Badge className={`text-xs ${getStatusColor(shipment.status)}`}>
-                                {getStatusLabel(shipment.status)}
-                              </Badge>
+                            <span className="text-[11px] text-slate-500">
+                              {formatRoute(s)}
+                            </span>
                             </div>
-                            <div className="text-xs text-afrikoni-deep/70">
-                              {shipment.orders?.products?.title || 'Product'}
-                            </div>
-                            <div className="text-xs text-afrikoni-deep/70 flex items-center gap-1 mt-1">
-                              <MapPin className="w-3 h-3" />
-                              {shipment.origin_address || 'Origin'} → {shipment.destination_address || 'Destination'}
-                            </div>
-                          </div>
-                          <Link to={`/dashboard/shipments/${shipment.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="w-4 h-4" />
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            onClick={() => navigate(`/dashboard/shipments/${s.id}`)}
+                          >
+                            View
                             </Button>
-                          </Link>
-                        </div>
+                        </li>
                       ))}
-                      <Link to="/dashboard/shipments">
-                        <Button variant="outline" className="w-full">
-                          View All Shipments <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
-                    </div>
+                    </ul>
                   )}
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Active Partners */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Active Partners</CardTitle>
-                  <CardDescription>Companies you work with</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {partners.length === 0 ? (
-                    <EmptyState
-                      type="default"
-                      title="No partners yet"
-                      description="Partners will appear here once you handle their shipments"
-                    />
+                {/* Delayed */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-afrikoni-deep flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3 text-red-600" />
+                      Delayed shipments
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {delayedShipments.length}
+                    </span>
+                  </div>
+                  {delayedShipments.length === 0 ? (
+                    <p className="text-xs text-slate-500">
+                      No shipments are delayed at the moment.
+                    </p>
                   ) : (
-                    <div className="space-y-3">
-                      {partners.slice(0, 5).map((partner) => (
-                        <div
-                          key={partner.id}
-                          className="flex items-center justify-between p-3 border border-afrikoni-gold/20 rounded-lg"
+                    <ul className="space-y-1">
+                      {delayedShipments.slice(0, 5).map(s => (
+                        <li
+                          key={s.id}
+                          className="flex items-center justify-between rounded-md border border-red-100 bg-red-50/70 px-2 py-1.5"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                              <Package className="w-5 h-5 text-afrikoni-gold" />
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-afrikoni-deep">
+                              {s.orders?.products?.title || 'Shipment'}
+                            </span>
+                            <span className="text-[11px] text-slate-500">
+                              {formatRoute(s)}
+                            </span>
                             </div>
-                            <div>
-                              <div className="font-semibold text-sm">{partner.company_name}</div>
-                              <div className="text-xs text-afrikoni-deep/70">
-                                {partner.city}, {partner.country}
-                              </div>
-                            </div>
-                          </div>
-                          {partner.verified && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300">
-                              Verified
-                            </Badge>
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            onClick={() => navigate(`/dashboard/shipments/${s.id}`)}
+                          >
+                            Investigate
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
                           )}
                         </div>
-                      ))}
+
+                {/* Quotes placeholder */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-afrikoni-deep flex items-center gap-1">
+                      <FileText className="h-3 w-3 text-afrikoni-deep" />
+                      Quotes awaiting acceptance
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {quotesAwaitingCount}
+                    </span>
                     </div>
-                  )}
+                  <p className="text-xs text-slate-500">
+                    No logistics quotes need action right now.
+                  </p>
+                </div>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
 
-          {/* Shipments Tab */}
-          <TabsContent value="shipments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+            {/* Moving Now */}
+            <Card className="border-slate-200 max-h-[420px] flex flex-col">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle>Shipment Management</CardTitle>
-                    <CardDescription>Manage and track all shipments</CardDescription>
+                  <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                    Moving Now
+                  </CardTitle>
+                  <CardDescription className="text-xs text-afrikoni-deep/70">
+                    Shipments currently in motion.
+                  </CardDescription>
                   </div>
-                  <Select value={shipmentStatusFilter} onValueChange={setShipmentStatusFilter}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
+                <Select value={shipmentStatusFilter} onValueChange={handleFilterChange}>
+                  <SelectTrigger className="h-8 w-[160px]">
+                    <SelectValue placeholder="Filter status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending_pickup">Pending Pickup</SelectItem>
-                      <SelectItem value="picked_up">Picked Up</SelectItem>
-                      <SelectItem value="in_transit">In Transit</SelectItem>
-                      <SelectItem value="customs">In Customs</SelectItem>
-                      <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="pending_pickup">Pending pickup</SelectItem>
+                    <SelectItem value="in_transit">In transit</SelectItem>
+                    <SelectItem value="delayed">Delayed</SelectItem>
                       <SelectItem value="delivered">Delivered</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
               </CardHeader>
-              <CardContent>
-                {shipments.length === 0 ? (
-                  <EmptyState
-                    type="default"
-                    title="No shipments found"
-                    description="Shipments will appear here once orders are assigned to you"
-                  />
+              <CardContent className="pt-0 overflow-x-auto overflow-y-auto">
+                {inMotionShipments.length === 0 ? (
+                  <p className="text-xs text-slate-500">
+                    No shipments are moving right now.
+                  </p>
                 ) : (
-                  <div className="space-y-4">
-                    {shipments.map((shipment) => (
-                      <div
-                        key={shipment.id}
-                        className="border border-afrikoni-gold/20 rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="font-bold text-lg">
-                                #{shipment.tracking_number || shipment.id.slice(0, 8).toUpperCase()}
+                  <table className="min-w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-[11px] uppercase text-slate-500">
+                        <th className="py-2 pr-3 text-left">Tracking</th>
+                        <th className="py-2 pr-3 text-left">Route</th>
+                        <th className="py-2 pr-3 text-left">Status</th>
+                        <th className="py-2 pr-3 text-left">ETA</th>
+                        <th className="py-2 pr-3 text-left">Risk</th>
+                        <th className="py-2 pl-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inMotionShipments.slice(0, 10).map(s => (
+                        <tr
+                          key={s.id}
+                          className="border-b border-slate-100 last:border-0 odd:bg-slate-50/40"
+                        >
+                          <td className="py-2 pr-3 align-middle">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-medium text-afrikoni-deep">
+                                {s.tracking_id || s.id}
                               </span>
-                              <Badge className={getStatusColor(shipment.status)}>
-                                {getStatusLabel(shipment.status)}
-                              </Badge>
+                              <span className="text-[11px] text-slate-500">
+                                {s.orders?.products?.title || 'Shipment'}
+                              </span>
                             </div>
-                            <div className="grid md:grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <div className="text-afrikoni-deep/70 mb-1">Product</div>
-                                <div className="font-medium">{shipment.orders?.products?.title || 'N/A'}</div>
-                              </div>
-                              <div>
-                                <div className="text-afrikoni-deep/70 mb-1">Route</div>
-                                <div className="font-medium flex items-center gap-1">
-                                  <MapPin className="w-4 h-4" />
-                                  {shipment.origin_address || 'Origin'} → {shipment.destination_address || 'Destination'}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-afrikoni-deep/70 mb-1">Order Value</div>
-                                <div className="font-medium">
-                                  ${parseFloat(shipment.orders?.total_amount || 0).toLocaleString()}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-afrikoni-deep/70 mb-1">Created</div>
-                                <div className="font-medium">
-                                  {format(new Date(shipment.created_at), 'MMM d, yyyy')}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 pt-3 border-t border-afrikoni-gold/10">
-                          {shipment.status === 'pending_pickup' && (
+                          </td>
+                          <td className="py-2 pr-3 align-middle text-slate-700">
+                            {formatRoute(s)}
+                          </td>
+                          <td className="py-2 pr-3 align-middle">
+                            {statusBadge(s.status)}
+                          </td>
+                          <td className="py-2 pr-3 align-middle text-slate-700">
+                            {s.estimated_delivery
+                              ? format(new Date(s.estimated_delivery), 'dd MMM, HH:mm')
+                              : '—'}
+                          </td>
+                          <td className="py-2 pr-3 align-middle">
+                            {riskBadge(s)}
+                          </td>
+                          <td className="py-2 pl-3 align-middle text-right">
                             <Button
-                              size="sm"
-                              onClick={() => handleAcceptShipment(shipment.id)}
-                              className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                              size="xs"
+                              variant="outline"
+                              onClick={() => navigate(`/dashboard/shipments/${s.id}`)}
                             >
-                              Accept & Pick Up
+                              View
                             </Button>
-                          )}
-                          {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && (
-                            <Select
-                              value={shipment.status}
-                              onValueChange={(value) => handleUpdateStatus(shipment.id, value)}
-                            >
-                              <SelectTrigger className="w-48">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="picked_up">Picked Up</SelectItem>
-                                <SelectItem value="in_transit">In Transit</SelectItem>
-                                <SelectItem value="customs">In Customs</SelectItem>
-                                <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                          <Link to={`/dashboard/shipments/${shipment.id}`}>
-                            <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Details
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )}
               </CardContent>
             </Card>
+          </div>
           </TabsContent>
 
-          {/* Shipping Quotes Tab */}
-          <TabsContent value="quotes" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+        {/* SHIPMENTS */}
+        <TabsContent value="shipments" className="mt-4">
+          <Card className="border-slate-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
                   <div>
-                    <CardTitle>Request Shipping Quote</CardTitle>
-                    <CardDescription>Get quotes for shipping services</CardDescription>
+                <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                  Shipments
+                </CardTitle>
+                <CardDescription className="text-xs text-afrikoni-deep/70">
+                  Operational view of all shipments.
+                </CardDescription>
                   </div>
-                  <Button
-                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
-                    onClick={() => {
-                      // Open quote request form
-                      const form = document.getElementById('shipping-quote-form');
-                      if (form) {
-                        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Quote Request
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div id="shipping-quote-form" className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="origin">Origin Address</Label>
-                      <Input
-                        id="origin"
-                        placeholder="City, Country"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="destination">Destination Address</Label>
-                      <Input
-                        id="destination"
-                        placeholder="City, Country"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="weight">Weight (kg)</Label>
-                      <Input
-                        id="weight"
-                        type="number"
-                        placeholder="0.00"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="dimensions">Dimensions (L x W x H cm)</Label>
-                      <Input
-                        id="dimensions"
-                        placeholder="e.g., 100 x 50 x 30"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="cargo-type">Cargo Type</Label>
-                      <Select>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select cargo type" />
+              <Select value={shipmentStatusFilter} onValueChange={handleFilterChange}>
+                <SelectTrigger className="h-8 w-[180px]">
+                  <SelectValue placeholder="Filter status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="general">General Cargo</SelectItem>
-                          <SelectItem value="fragile">Fragile</SelectItem>
-                          <SelectItem value="perishable">Perishable</SelectItem>
-                          <SelectItem value="hazardous">Hazardous</SelectItem>
-                          <SelectItem value="electronics">Electronics</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="pending_pickup">Pending pickup</SelectItem>
+                  <SelectItem value="in_transit">In transit</SelectItem>
+                  <SelectItem value="delayed">Delayed</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="urgency">Urgency</Label>
-                      <Select>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select urgency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="standard">Standard (7-14 days)</SelectItem>
-                          <SelectItem value="express">Express (3-7 days)</SelectItem>
-                          <SelectItem value="urgent">Urgent (1-3 days)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="notes">Additional Notes</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Any special requirements or instructions..."
-                      rows={4}
-                      className="mt-1"
-                    />
-                  </div>
-                  <Button
-                    className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark"
-                    onClick={async () => {
-                      // Save quote request to database
-                      try {
-                        const origin = document.getElementById('origin')?.value;
-                        const destination = document.getElementById('destination')?.value;
-                        const weight = document.getElementById('weight')?.value;
-                        const dimensions = document.getElementById('dimensions')?.value;
-                        const notes = document.getElementById('notes')?.value;
-
-                        if (!origin || !destination || !weight) {
-                          toast.error('Please fill in required fields (Origin, Destination, Weight)');
-                          return;
-                        }
-
-                        // Save to contact_submissions table
-                        const { error } = await supabase
-                          .from('contact_submissions')
-                          .insert({
-                            name: user?.email || 'Logistics Quote Request',
-                            email: user?.email || 'quote@request.com',
-                            category: 'logistics_quote',
-                            subject: `Shipping Quote: ${origin} → ${destination}`,
-                            message: `Weight: ${weight}kg\nDimensions: ${dimensions || 'N/A'}\n\n${notes || 'No additional notes'}`,
-                            created_at: new Date().toISOString()
-                          });
-
-                        if (error) throw error;
-
-                        // Send email notification
-                        try {
-                          const { sendEmail } = await import('@/services/emailService');
-                          await sendEmail({
-                            to: 'hello@afrikoni.com',
-                            subject: `New Shipping Quote Request: ${origin} → ${destination}`,
-                            template: 'default',
-                            data: {
-                              title: 'New Shipping Quote Request',
-                              message: `
-                                <p><strong>From:</strong> ${user?.email || 'Guest'}</p>
-                                <p><strong>Origin:</strong> ${origin}</p>
-                                <p><strong>Destination:</strong> ${destination}</p>
-                                <p><strong>Weight:</strong> ${weight}kg</p>
-                                <p><strong>Dimensions:</strong> ${dimensions || 'N/A'}</p>
-                                <p><strong>Notes:</strong> ${notes || 'None'}</p>
-                              `
-                            }
-                          });
-                        } catch (emailError) {
-                          console.error('Email error:', emailError);
-                        }
-
-                        toast.success('Quote request submitted! Our team will contact you soon.');
-                        
-                        // Clear form
-                        document.getElementById('origin').value = '';
-                        document.getElementById('destination').value = '';
-                        document.getElementById('weight').value = '';
-                        document.getElementById('dimensions').value = '';
-                        document.getElementById('notes').value = '';
-                      } catch (error) {
-                        console.error('Error submitting quote:', error);
-                        toast.error('Failed to submit quote request. Please try again.');
-                      }
-                    }}
-                  >
-                    Request Quote
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Routes Tab */}
-          <TabsContent value="routes" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Route Optimization</CardTitle>
-                <CardDescription>Plan and optimize delivery routes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Route className="w-16 h-16 text-afrikoni-gold/50 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Route Optimization Coming Soon</h3>
-                  <p className="text-afrikoni-deep/70 text-sm mb-4">
-                    Advanced route planning and optimization tools will be available here
-                  </p>
-                  <Button variant="outline" disabled>
-                    Coming Soon
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Partners Tab */}
-          <TabsContent value="partners" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Partner Management</CardTitle>
-                <CardDescription>Manage relationships with buyers and sellers</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {partners.length === 0 ? (
-                  <EmptyState
-                    type="default"
-                    title="No partners yet"
-                    description="Partners will appear here once you handle their shipments"
-                  />
-                ) : (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {partners.map((partner) => (
-                      <div
-                        key={partner.id}
-                        className="border border-afrikoni-gold/20 rounded-lg p-4 hover:shadow-md transition-shadow"
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              {shipments.length === 0 ? (
+                <EmptyState
+                  title="No shipments yet"
+                  description="When shipments are created, they will appear in this table."
+                />
+              ) : (
+                <table className="min-w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-[11px] uppercase text-slate-500">
+                      <th className="py-2 pr-3 text-left">Tracking</th>
+                      <th className="py-2 pr-3 text-left">Route</th>
+                      <th className="py-2 pr-3 text-left">Status</th>
+                      <th className="py-2 pr-3 text-left">ETA</th>
+                      <th className="py-2 pl-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shipments.map(s => (
+                      <tr
+                        key={s.id}
+                        className="border-b border-slate-100 last:border-0 odd:bg-slate-50/40"
                       >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                              <Package className="w-6 h-6 text-afrikoni-gold" />
+                        <td className="py-2 pr-3 align-middle">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-afrikoni-deep">
+                              {s.tracking_id || s.id}
+                            </span>
+                            <span className="text-[11px] text-slate-500">
+                              {s.orders?.products?.title || 'Shipment'}
+                            </span>
+                  </div>
+                        </td>
+                        <td className="py-2 pr-3 align-middle text-slate-700">
+                          {formatRoute(s)}
+                        </td>
+                        <td className="py-2 pr-3 align-middle">
+                          {statusBadge(s.status)}
+                        </td>
+                        <td className="py-2 pr-3 align-middle text-slate-700">
+                          {s.estimated_delivery
+                            ? format(new Date(s.estimated_delivery), 'dd MMM, HH:mm')
+                            : '—'}
+                        </td>
+                        <td className="py-2 pl-3 align-middle text-right">
+                  <Button
+                            size="xs"
+                            variant="outline"
+                            onClick={() => navigate(`/dashboard/shipments/${s.id}`)}
+                          >
+                            View details
+                  </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+        {/* QUOTES */}
+        <TabsContent value="quotes" className="mt-4">
+          <Card className="border-slate-200">
+              <CardHeader>
+              <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                Quotes
+              </CardTitle>
+              <CardDescription className="text-xs text-afrikoni-deep/70">
+                Logistics quotes will appear here once connected to quote data.
+              </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <EmptyState
+                title="No logistics quotes to manage"
+                description="When buyers request logistics quotes, they will be listed here for follow-up."
+              />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+        {/* TRACKING */}
+        <TabsContent value="tracking" className="mt-4">
+          <Card className="border-slate-200">
+              <CardHeader>
+              <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                Tracking
+              </CardTitle>
+              <CardDescription className="text-xs text-afrikoni-deep/70">
+                Geographic view of active shipments.
+              </CardDescription>
+              </CardHeader>
+              <CardContent>
+              <RealTimeTracking shipments={shipments} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* REVENUE */}
+        <TabsContent value="revenue" className="mt-4">
+          <Card className="border-slate-200">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                Revenue
+              </CardTitle>
+              <CardDescription className="text-xs text-afrikoni-deep/70">
+                High-level view of Afrikoni commission from logistics.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                    Today
                             </div>
-                            <div>
-                              <div className="font-semibold">{partner.company_name}</div>
-                              <div className="text-sm text-afrikoni-deep/70">
-                                {partner.city}, {partner.country}
+                  <div className="text-xl font-semibold text-afrikoni-deep">
+                    $0
+                                </div>
+                              </div>
+                <div className="space-y-1">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                    Last 7 Days
+                                </div>
+                  <div className="text-xl font-semibold text-afrikoni-deep">
+                    $0
                               </div>
                             </div>
+                <div className="space-y-1">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                    Month to Date
                           </div>
-                          {partner.verified && (
-                            <Badge className="bg-green-100 text-green-800 border-green-300">
-                              Verified
-                            </Badge>
-                          )}
+                  <div className="text-xl font-semibold text-afrikoni-deep">
+                    ${commissionMTD.toLocaleString()}
                         </div>
-                        <div className="flex items-center gap-2 pt-3 border-t border-afrikoni-gold/10">
-                          <Link to={`/business/${partner.id}`}>
-                            <Button variant="outline" size="sm" className="flex-1">
-                              View Business Profile
-                            </Button>
-                          </Link>
-                          <Link to="/messages">
-                            <Button variant="outline" size="sm" className="flex-1">
-                              Message
-                            </Button>
-                          </Link>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics & Reporting</CardTitle>
-                <CardDescription>Performance metrics and insights</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <BarChart3 className="w-16 h-16 text-afrikoni-gold/50 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Analytics Coming Soon</h3>
-                  <p className="text-afrikoni-deep/70 text-sm mb-4">
-                    Detailed analytics and reporting features will be available here
-                  </p>
-                  <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-                    <div className="p-4 border border-afrikoni-gold/20 rounded-lg">
-                      <div className="text-2xl font-bold text-afrikoni-gold">{kpis.onTimeDelivery}%</div>
-                      <div className="text-sm text-afrikoni-deep/70">On-Time Delivery</div>
-                    </div>
-                    <div className="p-4 border border-afrikoni-gold/20 rounded-lg">
-                      <div className="text-2xl font-bold text-afrikoni-gold">{kpis.avgDeliveryTime}</div>
-                      <div className="text-sm text-afrikoni-deep/70">Avg. Days</div>
-                    </div>
-                  </div>
-                </div>
+              <p className="text-xs text-slate-500">
+                Detailed revenue analytics will be connected to live shipment and quote data.
+              </p>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 }
 
+export default function LogisticsDashboard() {
+  return (
+    <RequireDashboardRole allow={['logistics']}>
+      <LogisticsDashboardInner />
+    </RequireDashboardRole>
+  );
+}

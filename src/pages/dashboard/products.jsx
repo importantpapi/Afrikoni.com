@@ -24,6 +24,7 @@ import OptimizedImage from '@/components/OptimizedImage';
 import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 import VerificationUpsell from '@/components/upsell/VerificationUpsell';
 import { getCompanySubscription } from '@/services/subscriptionService';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -35,7 +36,7 @@ const AFRICAN_COUNTRIES = [
   'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
 ];
 
-export default function DashboardProducts() {
+function DashboardProductsInner() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -567,6 +568,14 @@ export default function DashboardProducts() {
       </div>
         </ErrorBoundary>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardProducts() {
+  return (
+    <RequireDashboardRole allow={['seller', 'hybrid']}>
+      <DashboardProductsInner />
+    </RequireDashboardRole>
   );
 }
 
