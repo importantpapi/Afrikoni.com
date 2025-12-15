@@ -300,45 +300,385 @@ function App() {
             <Route path="/dashboard/admin/disputes" element={<ProtectedRoute><AdminDisputes /></ProtectedRoute>} />
             <Route path="/dashboard/admin/support-tickets" element={<ProtectedRoute><AdminSupportTickets /></ProtectedRoute>} />
             <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute><AdminOnboardingTracker /></ProtectedRoute>} />
-            {/* Dashboard sub-pages */}
-            <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardOrders /></ProtectedRoute>} />
-            <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
-            <Route path="/dashboard/logistics-quote" element={<ProtectedRoute><LogisticsQuotePage /></ProtectedRoute>} />
-            <Route path="/dashboard/orders/:orderId/logistics-quote" element={<ProtectedRoute><LogisticsQuotePage /></ProtectedRoute>} />
-            <Route path="/dashboard/rfqs" element={<ProtectedRoute><DashboardRFQs /></ProtectedRoute>} />
-            <Route path="/dashboard/rfqs/new" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
-            <Route path="/dashboard/rfqs/:id" element={<ProtectedRoute><RFQDetailPage /></ProtectedRoute>} />
-            <Route path="/dashboard/products" element={<ProtectedRoute><DashboardProducts /></ProtectedRoute>} />
-            <Route path="/dashboard/products/new" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
-            <Route path="/dashboard/products/:id/edit" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
-            <Route path="/products/add" element={<ProtectedRoute><AddProductAlibaba /></ProtectedRoute>} />
-            <Route path="/dashboard/sales" element={<ProtectedRoute><DashboardSales /></ProtectedRoute>} />
-            <Route path="/dashboard/shipments" element={<ProtectedRoute><DashboardShipments /></ProtectedRoute>} />
-            <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipmentPage /></ProtectedRoute>} />
-            <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetailPage /></ProtectedRoute>} />
-            <Route path="/dashboard/analytics" element={<ProtectedRoute><DashboardAnalytics /></ProtectedRoute>} />
-            <Route path="/dashboard/supplier-analytics" element={<ProtectedRoute><SupplierAnalytics /></ProtectedRoute>} />
-            <Route path="/dashboard/payments" element={<ProtectedRoute><DashboardPayments /></ProtectedRoute>} />
-            <Route path="/dashboard/invoices" element={<ProtectedRoute><DashboardInvoices /></ProtectedRoute>} />
-            <Route path="/dashboard/invoices/:id" element={<ProtectedRoute><InvoiceDetailPage /></ProtectedRoute>} />
-            <Route path="/dashboard/returns" element={<ProtectedRoute><DashboardReturns /></ProtectedRoute>} />
-            <Route path="/dashboard/returns/:id" element={<ProtectedRoute><ReturnDetailPage /></ProtectedRoute>} />
-            <Route path="/dashboard/reviews" element={<ProtectedRoute><DashboardReviews /></ProtectedRoute>} />
-            <Route path="/dashboard/fulfillment" element={<ProtectedRoute><DashboardFulfillment /></ProtectedRoute>} />
-            <Route path="/dashboard/performance" element={<ProtectedRoute><DashboardPerformance /></ProtectedRoute>} />
-            <Route path="/dashboard/escrow/:orderId" element={<ProtectedRoute><EscrowDetail /></ProtectedRoute>} />
-            <Route path="/dashboard/protection" element={<ProtectedRoute><DashboardProtection /></ProtectedRoute>} />
-            <Route path="/dashboard/saved" element={<ProtectedRoute><DashboardSaved /></ProtectedRoute>} />
-            <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettings /></ProtectedRoute>} />
-            <Route path="/dashboard/company-info" element={<ProtectedRoute><CompanyInfo /></ProtectedRoute>} />
-            <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
-            <Route path="/dashboard/help" element={<ProtectedRoute><DashboardHelp /></ProtectedRoute>} />
-            <Route path="/dashboard/koniai" element={<ProtectedRoute><KoniAIHub /></ProtectedRoute>} />
-            <Route path="/dashboard/subscriptions" element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>} />
-            <Route path="/dashboard/verification-marketplace" element={<ProtectedRoute><VerificationMarketplace /></ProtectedRoute>} />
-            <Route path="/dashboard/team-members" element={<ProtectedRoute><TeamMembersPage /></ProtectedRoute>} />
-            <Route path="/dashboard/support-chat" element={<ProtectedRoute><SupportChat /></ProtectedRoute>} />
-            <Route path="/dashboard/disputes" element={<ProtectedRoute><UserDisputes /></ProtectedRoute>} />
+            {/* Dashboard sub-pages (wrapped in DashboardRoleProvider so RequireDashboardRole can use the context) */}
+            <Route
+              path="/dashboard/orders"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardOrders />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/orders/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <OrderDetailPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/logistics-quote"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <LogisticsQuotePage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/orders/:orderId/logistics-quote"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <LogisticsQuotePage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/rfqs"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardRFQs />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/rfqs/new"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <CreateRFQ />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/rfqs/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <RFQDetailPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/products"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardProducts />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/products/new"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <AddProductAlibaba />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/products/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <AddProductAlibaba />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/products/add"
+              element={
+                <ProtectedRoute>
+                  <AddProductAlibaba />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/sales"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardSales />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/shipments"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardShipments />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/shipments/new"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <NewShipmentPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/shipments/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <ShipmentDetailPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/analytics"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardAnalytics />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/supplier-analytics"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <SupplierAnalytics />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/payments"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardPayments />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/invoices"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardInvoices />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/invoices/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <InvoiceDetailPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/returns"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardReturns />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/returns/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <ReturnDetailPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/reviews"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardReviews />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/fulfillment"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardFulfillment />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/performance"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardPerformance />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/escrow/:orderId"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <EscrowDetail />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/protection"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardProtection />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/saved"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardSaved />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardSettings />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/company-info"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <CompanyInfo />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/notifications"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <NotificationsCenter />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/help"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <DashboardHelp />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/koniai"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <KoniAIHub />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/subscriptions"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <SubscriptionsPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/verification-marketplace"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <VerificationMarketplace />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/team-members"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <TeamMembersPage />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/support-chat"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <SupportChat />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/disputes"
+              element={
+                <ProtectedRoute>
+                  <DashboardRoleProvider>
+                    <UserDisputes />
+                  </DashboardRoleProvider>
+                </ProtectedRoute>
+              }
+            />
             <Route path="/supplier-acquisition/:country?" element={<SupplierAcquisitionPage />} />
             <Route path="/supplier-acquisition" element={<SupplierAcquisitionPage />} />
             <Route path="/logistics-partner-onboarding" element={<LogisticsPartnerOnboarding />} />
