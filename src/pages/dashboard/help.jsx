@@ -1,21 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import DashboardLayout from '@/layouts/DashboardLayout';
+import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import { useDashboardRole } from '@/context/DashboardRoleContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  MessageCircle, Mail, Phone, ChevronDown, ChevronUp, Search, FileText,
-  HelpCircle, BookOpen, Video, Download, ExternalLink, CheckCircle
+  MessageCircle,
+  Mail,
+  Phone,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  HelpCircle,
+  BookOpen,
+  Video,
+  Download,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function DashboardHelp() {
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState(null);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const navigate = useNavigate();
+  const { role: currentRole } = useDashboardRole();
 
   const buyerFaqs = [
     {
@@ -142,14 +153,29 @@ export default function DashboardHelp() {
     );
   };
 
-  const getFaqsForRole = () => {
-    if (currentRole === 'seller') return sellerFaqs;
-    if (currentRole === 'logistics') return logisticsFaqs;
-    return buyerFaqs;
+  const handleSupportAction = (title) => {
+    if (title === 'Live Chat') {
+      navigate('/dashboard/support-chat');
+      return;
+    }
+
+    if (title === 'Email Support') {
+      if (typeof window !== 'undefined') {
+        window.location.href =
+          'mailto:hello@afrikoni.com?subject=Afrikoni%20Support&body=Hi%20Afrikoni%20team,%0D%0A%0D%0A';
+      }
+      return;
+    }
+
+    if (title === 'Phone Support') {
+      if (typeof window !== 'undefined') {
+        window.location.href = 'tel:+32456779368';
+      }
+    }
   };
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid', 'logistics']}>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -207,6 +233,7 @@ export default function DashboardHelp() {
                     size="sm"
                     className="w-full"
                     disabled={!option.available}
+                    onClick={() => handleSupportAction(option.title)}
                   >
                     {option.action}
                   </Button>
@@ -448,7 +475,7 @@ export default function DashboardHelp() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </RequireDashboardRole>
   );
 }
 
