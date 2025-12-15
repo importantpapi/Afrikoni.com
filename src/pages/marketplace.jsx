@@ -537,10 +537,9 @@ export default function Marketplace() {
     };
 
     return (
-      <div>
+      <div className="h-full">
           <Card 
-            hover 
-            className="h-full cursor-pointer border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all shadow-md hover:shadow-xl overflow-hidden group"
+            className="h-full cursor-pointer border border-afrikoni-gold/20 shadow-md overflow-hidden"
             onClick={handleCardClick}
           >
             <div className="relative h-56 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10 rounded-t-xl overflow-hidden">
