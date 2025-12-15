@@ -594,14 +594,15 @@ export default function Marketplace() {
                 </div>
               )}
               {country && (
-                <button
-                  type="button"
-                  className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1"
-                  onClick={(e) => e.stopPropagation()}
-                  title={country ? `Origin: ${country}` : ''}
-                >
-                  <span>{flag}</span>
-                </button>
+                <Tooltip content={country}>
+                  <button
+                    type="button"
+                    className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span>{flag}</span>
+                  </button>
+                </Tooltip>
               )}
               {/* Supplier verification / trust badge */}
               {product.companies?.verification_status === 'verified' && (
@@ -643,7 +644,7 @@ export default function Marketplace() {
                 {product.title || product.name}
               </h3>
               
-              {/* Price Range - Core info */}
+              {/* Price - compact */}
               <div className="flex items-center gap-2 mb-3">
                 {product.price_min && product.price_max ? (
                   <Price
@@ -651,7 +652,6 @@ export default function Marketplace() {
                     fromCurrency={product.currency || 'USD'}
                     unit={product.unit || 'kg'}
                     className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                    prefix="From "
                   />
                 ) : product.price_min ? (
                   <Price
@@ -659,7 +659,6 @@ export default function Marketplace() {
                     fromCurrency={product.currency || 'USD'}
                     unit={product.unit || 'kg'}
                     className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                    prefix="From "
                   />
                 ) : product.price ? (
                   <Price
@@ -667,7 +666,6 @@ export default function Marketplace() {
                     fromCurrency={product.currency || 'USD'}
                     unit={product.unit || 'kg'}
                     className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                    prefix="From "
                   />
                 ) : (
                   <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
@@ -696,8 +694,9 @@ export default function Marketplace() {
                 <DialogHeader>
                   <DialogTitle className="flex items-center justify-between gap-4">
                     <span>{product.title || product.name}</span>
-                    <span className="text-sm text-afrikoni-deep/70">
-                      {product?.country_of_origin || product?.companies?.country || 'N/A'}
+                    <span className="text-sm text-afrikoni-deep/70 flex items-center gap-1">
+                      <span>{flag}</span>
+                      <span>{country || 'N/A'}</span>
                     </span>
                   </DialogTitle>
                 </DialogHeader>
