@@ -11,14 +11,32 @@ import AISuggestionCard from '@/components/ai/AISuggestionCard';
 import { suggestProductsForBuyer } from '@/ai/aiFunctions';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import {
-  Search, Filter, SlidersHorizontal, MapPin, Shield, Star, MessageSquare, FileText,
-  X, CheckCircle, Building2, Package, TrendingUp, Clock, Award, Bookmark, BookmarkCheck, ChevronDown
+  Search,
+  Filter,
+  SlidersHorizontal,
+  MapPin,
+  Shield,
+  Star,
+  MessageSquare,
+  FileText,
+  X,
+  CheckCircle,
+  Building2,
+  Package,
+  TrendingUp,
+  Clock,
+  Award,
+  Bookmark,
+  BookmarkCheck,
+  ChevronDown,
+  Eye,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Drawer } from '@/components/ui/drawer';
 import FilterChip from '@/components/ui/FilterChip';
@@ -487,6 +505,7 @@ export default function Marketplace() {
       : urlCountryName || '';
 
   const ProductCard = React.memo(({ product }) => {
+    const [quickViewOpen, setQuickViewOpen] = useState(false);
     const handleCardClick = async (e) => {
       // Don't navigate if clicking on buttons or links
       if (e.target.closest('button, a, [role="button"]')) {
@@ -568,6 +587,11 @@ export default function Marketplace() {
               <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
                 <SaveButton itemId={product.id} itemType="product" />
               </div>
+              {Array.isArray(product.allImages) && product.allImages.length > 1 && (
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                  {product.allImages.length} photos
+                </div>
+              )}
             </div>
             <CardContent className="p-5 bg-white" style={{ overflow: 'visible' }}>
               {/* Product Name - Highest Priority */}
@@ -598,41 +622,7 @@ export default function Marketplace() {
                 )}
               </div>
 
-              {/* Trust Micro-signals */}
-              <div className="flex items-center gap-2 mb-3 flex-wrap">
-                {product.companies?.verification_status === 'verified' && (
-                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Verified Supplier
-                  </Badge>
-                )}
-                {product.companies?.verification_status === 'pending' && (
-                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                    <Clock className="w-3 h-3 mr-1" />
-                    Verification in progress
-                  </Badge>
-                )}
-                {product.companies?.verification_status !== 'verified' && product.companies?.verification_status !== 'pending' && (
-                  <Badge variant="outline" className="text-xs bg-gray-50 text-gray-500 border-gray-200 opacity-60">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Trade Shield eligible
-                  </Badge>
-                )}
-              </div>
-              
-              {/* MOQ - Third Priority */}
-              {product.min_order_quantity && (
-                <div className="mb-3">
-                  <div className="text-sm text-afrikoni-deep/80 font-medium">
-                    MOQ: <span className="text-afrikoni-chestnut">{product.min_order_quantity} {product.moq_unit || product.unit || 'units'}</span>
-                  </div>
-                  <div className="text-xs text-afrikoni-deep/60 mt-1 flex items-center gap-1">
-                    📋 Trade reviewed before confirmation
-                  </div>
-                </div>
-              )}
-              
-              {/* Price Range - Fourth Priority */}
+              {/* Price Range - Core info */}
               <div className="flex items-center gap-2 mb-3">
                 {product.price_min && product.price_max ? (
                   <Price
@@ -665,70 +655,179 @@ export default function Marketplace() {
                   <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
                 )}
               </div>
-              
-              {/* Description - Lower Priority */}
-              <p className="text-xs sm:text-sm text-afrikoni-deep/60 mb-3 line-clamp-2">
-                {product.short_description || product.description}
-              </p>
-              <div className="flex gap-2 w-full mt-4 max-w-full">
-                {product?.companies?.id && (
-                  <Tooltip content="View Company Profile - See supplier details and verification status" position="top">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-[40px] w-[44px] md:w-[48px] p-0 flex-shrink-0 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 hover:bg-afrikoni-gold/5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/business/${product.companies.id}`);
-                      }}
-                    >
-                      <Building2 className="w-5 h-5 md:w-6 md:h-6" />
-                    </Button>
-                  </Tooltip>
-                )}
-                <Tooltip content={t('marketplace.contact') || 'Contact Supplier - Send a message to the supplier'} position="top">
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="text-xs sm:text-sm touch-manipulation min-h-[44px] md:min-h-[40px] w-[44px] md:w-[48px] p-0 flex-shrink-0 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 hover:bg-afrikoni-gold/5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Store product context for smart message generation
-                      if (product?.id) {
-                        sessionStorage.setItem('contactProductContext', JSON.stringify({
-                          productId: product.id,
-                          productTitle: product.title,
-                          productPrice: product.price || product.price_min,
-                          productCurrency: product.currency,
-                          productMOQ: product.moq || product.min_order_quantity,
-                          supplierName: product?.companies?.company_name || 'Supplier',
-                          supplierCountry: product?.country_of_origin || product?.companies?.country
-                        }));
-                      }
-                      navigate(`/messages?recipient=${product?.companies?.id || product?.supplier_id || product?.company_id || ''}&product=${product?.id || ''}&productTitle=${encodeURIComponent(product?.title || '')}`);
-                    }}
-                  >
-                    <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
-                  </Button>
-                </Tooltip>
-                <Tooltip content="Request Verified Quote - Get a verified quote for this product" position="top">
-                  <Button 
-                    variant="primary" 
-                    size="sm" 
-                    className="flex-shrink-0 touch-manipulation min-h-[44px] md:min-h-[40px] w-[44px] md:w-[48px] p-0 bg-gradient-to-r from-afrikoni-gold via-afrikoni-gold/95 to-afrikoni-gold hover:from-afrikoni-gold/95 hover:via-afrikoni-gold hover:to-afrikoni-gold/90 text-white font-bold shadow-lg hover:shadow-xl transition-all rounded-xl group relative overflow-hidden flex items-center justify-center" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/dashboard/rfqs/new?product=${product.id}`);
-                    }}
-                  >
-                    <span className="relative z-10 flex items-center justify-center">
-                      <FileText className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    </span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-                  </Button>
-                </Tooltip>
+              <div className="flex items-center justify-between mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs sm:text-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQuickViewOpen(true);
+                  }}
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  Quick view
+                </Button>
               </div>
             </CardContent>
+            {/* Quick View Dialog */}
+            <Dialog open={quickViewOpen} onOpenChange={(open) => setQuickViewOpen(open)}>
+              <DialogContent
+                className="max-w-3xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DialogHeader>
+                  <DialogTitle className="flex items-center justify-between gap-4">
+                    <span>{product.title || product.name}</span>
+                    <span className="text-sm text-afrikoni-deep/70">
+                      {product?.country_of_origin || product?.companies?.country || 'N/A'}
+                    </span>
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
+                      {product.primaryImage ? (
+                        <OptimizedImage
+                          src={product.primaryImage}
+                          alt={product.title || product.name || 'Product'}
+                          className="w-full h-full object-cover"
+                          width={600}
+                          height={400}
+                          quality={85}
+                          placeholder="/product-placeholder.svg"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-12 h-12 text-afrikoni-gold/60" />
+                        </div>
+                      )}
+                    </div>
+                    {Array.isArray(product.allImages) && product.allImages.length > 1 && (
+                      <div className="flex gap-2 overflow-x-auto">
+                        {product.allImages.map((img, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            className="w-16 h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0"
+                            onClick={() => {
+                              // Swap primary image with clicked thumbnail
+                              const nextPrimary = img;
+                              product.primaryImage = nextPrimary;
+                            }}
+                          >
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <div className="text-lg font-semibold text-afrikoni-chestnut">
+                      {product.price_min || product.price || product.price_max ? (
+                        <>
+                          <Price
+                            amount={product.price_min || product.price}
+                            fromCurrency={product.currency || 'USD'}
+                            unit={product.unit || 'kg'}
+                            className="text-xl font-bold text-afrikoni-gold"
+                            prefix="From "
+                            suffix=" (indicative)"
+                          />
+                        </>
+                      ) : (
+                        <span className="text-sm text-afrikoni-deep/70">
+                          {t('marketplace.priceOnRequest')}
+                        </span>
+                      )}
+                    </div>
+                    {product.min_order_quantity && (
+                      <div className="text-sm text-afrikoni-deep/80">
+                        MOQ:{' '}
+                        <span className="font-medium">
+                          {product.min_order_quantity} {product.moq_unit || product.unit || 'units'}
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-sm text-afrikoni-deep/70">
+                      {product.short_description || product.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {product.companies?.verification_status === 'verified' && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Verified Supplier
+                        </Badge>
+                      )}
+                      {product.companies?.verification_status === 'pending' && (
+                        <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Verification in progress
+                        </Badge>
+                      )}
+                      {product.companies?.verification_status !== 'verified' &&
+                        product.companies?.verification_status !== 'pending' && (
+                          <Badge className="text-xs bg-gray-50 text-gray-600 border-gray-200">
+                            <Shield className="w-3 h-3 mr-1" />
+                            Trade Shield eligible
+                          </Badge>
+                        )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {product?.companies?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/business/${product.companies.id}`)}
+                        >
+                          <Building2 className="w-4 h-4 mr-1" />
+                          View supplier
+                        </Button>
+                      )}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          if (product?.id) {
+                            sessionStorage.setItem(
+                              'contactProductContext',
+                              JSON.stringify({
+                                productId: product.id,
+                                productTitle: product.title,
+                                productPrice: product.price || product.price_min,
+                                productCurrency: product.currency,
+                                productMOQ: product.moq || product.min_order_quantity,
+                                supplierName: product?.companies?.company_name || 'Supplier',
+                                supplierCountry:
+                                  product?.country_of_origin || product?.companies?.country,
+                              }),
+                            );
+                          }
+                          navigate(
+                            `/messages?recipient=${
+                              product?.companies?.id || product?.supplier_id || product?.company_id || ''
+                            }&product=${product?.id || ''}&productTitle=${encodeURIComponent(
+                              product?.title || '',
+                            )}`,
+                          );
+                        }}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        Message supplier
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => navigate(`/dashboard/rfqs/new?product=${product.id}`)}
+                      >
+                        <FileText className="w-4 h-4 mr-1" />
+                        Request quote
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </Card>
         </motion.div>
       </motion.div>
