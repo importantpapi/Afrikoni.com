@@ -83,6 +83,25 @@
     "moreVerifiedSuppliers": "More Verified Suppliers",
     "moreSuppliersOnboardedDaily": "More verified suppliers are being onboarded daily",
     "postAnRFQ": "Post an RFQ",
-    "viewAllCountries": "View All Countries"
+    "viewAllCountries": "View All Countries",
+    "moq": "MOQ",
+    "units": "units",
+    "priceOnRequest": "Price on request"
+  },
+  "rfq": {
+    "postTradeRequest": "Post a Trade Request (RFQ)",
+    "getMatchedDescription": "Get matched with verified African suppliers. Reviewed within 24–48 hours.",
+    "whatHappensAfter": "What happens after I post an RFQ?",
+    "step1Title": "Submit request",
+    "step1Description": "2–3 minutes",
+    "step2Title": "Afrikoni verifies suppliers & terms",
+    "step2Description": "Manual review",
+    "step3Title": "You receive curated quotes",
+    "step3Description": "24–48 hours",
+    "step4Title": "Trade coordinated securely",
+    "step4Description": "Protected transaction"
+  },
+  "home": {
+    "trustedByBusinesses": "Trusted by leading businesses across Africa"
   }
 }
