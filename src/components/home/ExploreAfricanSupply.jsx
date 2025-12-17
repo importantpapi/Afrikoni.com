@@ -278,17 +278,17 @@ export default function ExploreAfricanSupply() {
             {/* Scroll Buttons */}
             <button
               onClick={() => scrollCountries('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center"
+              className="absolute left-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full w-10 h-10 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center p-0"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="w-5 h-5 text-afrikoni-gold" />
+              <ChevronLeft className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
             </button>
             <button
               onClick={() => scrollCountries('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center"
+              className="absolute right-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full w-10 h-10 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center p-0"
               aria-label="Scroll right"
             >
-              <ChevronRight className="w-5 h-5 text-afrikoni-gold" />
+              <ChevronRight className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
             </button>
           </div>
           
