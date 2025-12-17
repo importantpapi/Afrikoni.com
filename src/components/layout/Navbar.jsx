@@ -24,6 +24,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
+import { setLanguageWithOverride, hasLanguageOverride } from '@/i18n/languageDetection';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
 
@@ -296,10 +297,34 @@ export default function Navbar({ user, onLogout }) {
     setUserMenuOpen(false);
   };
 
-  const handleLanguageChange = (langCode) => {
-    setLanguage(langCode);
-    localStorage.setItem('afrikoni_selected_language', langCode);
-    setSettingsOpen(false);
+  const handleLanguageChange = async (langCode) => {
+    // Use the new override function to set language with override flag
+    try {
+      // Get user profile if available
+      let userProfile = null;
+      if (user?.id) {
+        try {
+          const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+          const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+          userProfile = profile;
+        } catch (error) {
+          // Silently fail
+        }
+      }
+      
+      // Set language with override (disables auto-detection)
+      await setLanguageWithOverride(langCode, { userProfile });
+      
+      // Update UI
+      setLanguage(langCode);
+      setSettingsOpen(false);
+    } catch (error) {
+      console.warn('Failed to set language override:', error);
+      // Fallback to regular setLanguage
+      setLanguage(langCode);
+      localStorage.setItem('afrikoni_selected_language', langCode);
+      setSettingsOpen(false);
+    }
   };
 
   const handleCurrencyChange = (currCode) => {
@@ -329,11 +354,14 @@ export default function Navbar({ user, onLogout }) {
     setContextCurrency(newCurrency); // Update global currency context
     localStorage.setItem('afrikoni_selected_currency', newCurrency);
     
-    // Auto-update language based on country (optional)
-    const newLanguage = getLanguageForCountry(countryCode);
-    if (newLanguage && newLanguage !== language) {
-      setLanguage(newLanguage);
-      localStorage.setItem('afrikoni_selected_language', newLanguage);
+    // Auto-update language based on country (only if user hasn't manually overridden)
+    if (!hasLanguageOverride()) {
+      const newLanguage = getLanguageForCountry(countryCode);
+      if (newLanguage && newLanguage !== language) {
+        setLanguage(newLanguage);
+        localStorage.setItem('afrikoni_selected_language', newLanguage);
+        // Don't set override flag - this is automatic based on country
+      }
     }
     
     setCountryOpen(false);

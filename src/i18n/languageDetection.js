@@ -9,7 +9,7 @@
  * 5. Fallback: English
  */
 
-import { getLanguageForCountry } from './countryLanguageMap';
+import { getLanguageForCountry } from './countryLanguageMap.js';
 
 const LANGUAGE_STORAGE_KEY = 'afrikoni_language';
 const LANGUAGE_OVERRIDE_KEY = 'afrikoni_language_override'; // Flag to disable auto-detection
