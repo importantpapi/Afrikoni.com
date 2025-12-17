@@ -36,6 +36,12 @@ import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import Price, { PriceRange } from '@/components/ui/Price';
 
+/**
+ * ⚠️ INSTITUTIONAL PRODUCT PAGE
+ * This page is intentionally conservative and trust-first.
+ * Do NOT expose internal metrics or experimental features publicly.
+ * Changes require founder approval.
+ */
 export default function ProductDetail() {
   const { t } = useLanguage();
   const [product, setProduct] = useState(null);
@@ -53,6 +59,7 @@ export default function ProductDetail() {
   const [aiDescription, setAiDescription] = useState('');
   const [aiDescriptionLoading, setAiDescriptionLoading] = useState(false);
   const [aiRFQLoading, setAiRFQLoading] = useState(false);
+  const MIN_COMPLETENESS_FOR_RFQ = 40; // below this, we nudge improvement before RFQs
   const [variants, setVariants] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const navigate = useNavigate();
@@ -263,6 +270,11 @@ export default function ProductDetail() {
 
   const handleCreateRFQ = () => {
     const targetUrl = createPageUrl('CreateRFQ') + '?product=' + product.id;
+    // Governance: if listing is clearly incomplete, keep it visible but block RFQs until improved
+    if (typeof product?.completeness_score === 'number' && product.completeness_score < MIN_COMPLETENESS_FOR_RFQ) {
+      toast.error('This listing needs more details before RFQs can be created. Please improve your product information in the seller dashboard.');
+      return;
+    }
     if (!user) {
       navigate(`/login?redirect=${encodeURIComponent(targetUrl)}&intent=rfq`);
       return;
@@ -388,11 +400,49 @@ export default function ProductDetail() {
         <div className="grid md:grid-cols-3 gap-3 sm:gap-4 md:gap-8">
           <div className="md:col-span-2 space-y-3 sm:space-y-4 md:space-y-6">
             <Card className="border-afrikoni-gold/20 overflow-hidden">
-              <CardContent className="p-2 sm:p-3 md:p-6">
-                <ProductImageGallery 
-                  images={product.allImages || []} 
-                  productTitle={product.title}
-                />
+              <CardContent className="p-2 sm:p-2 md:p-3">
+                <div className="max-h-[400px] md:max-h-[450px] overflow-hidden">
+                  <ProductImageGallery 
+                    images={product.allImages || []} 
+                    productTitle={product.title}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Trust & Verification Status - Elevated prominence */}
+            <Card className="border-afrikoni-gold/30 bg-gradient-to-r from-afrikoni-cream/40 to-afrikoni-cream/20">
+              <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-afrikoni-gold/20 border-2 border-afrikoni-gold/40">
+                    <Shield className="w-5 h-5 text-afrikoni-gold" />
+                  </div>
+                  <div>
+                    <p className="text-sm sm:text-base font-bold text-afrikoni-chestnut flex items-center gap-2">
+                      {product.is_standardized ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          Reviewed Listing
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="w-4 h-4 text-amber-600" />
+                          Verification in Progress
+                        </>
+                      )}
+                    </p>
+                    <p className="text-xs sm:text-sm text-afrikoni-deep/80 mt-1">
+                      {product.is_standardized
+                        ? "This listing follows Afrikoni's standardized B2B format. Trade Shield protection applies."
+                        : 'Supplier onboarding in progress. Additional details available upon request. Trade Shield protection applies.'}
+                    </p>
+                  </div>
+                </div>
+                {supplier?.verification_status === 'verified' && (
+                  <div className="flex-shrink-0">
+                    <TrustBadge type="verified-supplier" size="default" />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -409,8 +459,10 @@ export default function ProductDetail() {
               </Card>
             )}
 
-            {/* Bulk Pricing Tiers */}
-            <BulkPricingTiers product={selectedVariant || product} />
+            {/* Bulk Pricing Tiers - Helper information */}
+            <div className="opacity-90">
+              <BulkPricingTiers product={selectedVariant || product} />
+            </div>
 
             <Card className="border-afrikoni-gold/20">
               <Tabs defaultValue="description">
@@ -425,12 +477,14 @@ export default function ProductDetail() {
                 <CardContent className="p-6">
                   <TabsContent value="description">
                     <div className="space-y-4">
-                      <div className="flex flex-wrap gap-2 justify-between items-center">
+                      <div className="flex flex-wrap gap-2 justify-end items-center opacity-60">
                         <AICopilotButton
                           label={t('product.generateAISummary')}
                           loading={aiSummaryLoading}
                           onClick={handleGenerateAISummary}
                           size="xs"
+                          variant="ghost"
+                          className="text-afrikoni-deep/60 text-xs"
                         />
                         <AICopilotButton
                           label={t('product.rewriteDescription')}
@@ -438,17 +492,19 @@ export default function ProductDetail() {
                           onClick={handleRewriteDescription}
                           size="xs"
                           variant="ghost"
-                          className="text-afrikoni-deep"
+                          className="text-afrikoni-deep/60 text-xs"
                         />
                       </div>
                       {aiSummary && (
-                        <AISummaryBox title={t('product.aiSummary')}>
-                          {aiSummary}
-                        </AISummaryBox>
+                        <div className="bg-afrikoni-cream/30 border border-afrikoni-gold/20 rounded-lg p-3">
+                          <AISummaryBox title={t('product.aiSummary')}>
+                            {aiSummary}
+                          </AISummaryBox>
+                        </div>
                       )}
                       <div className="prose prose-zinc max-w-none">
-                        <p className="text-afrikoni-deep leading-relaxed whitespace-pre-wrap">
-                          {aiDescription || product.description}
+                        <p className="text-afrikoni-deep leading-relaxed text-base md:text-lg whitespace-pre-wrap">
+                          {aiDescription || product.description || product.short_description || 'No description available.'}
                         </p>
                       </div>
                     </div>
@@ -543,15 +599,35 @@ export default function ProductDetail() {
           </div>
 
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
-            <Card className="border-afrikoni-gold/20 md:sticky md:top-24">
-              <CardContent className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
+            <Card className="border-afrikoni-gold/20 md:sticky md:top-24 bg-[#FFF6E1]">
+              <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="space-y-1">
-                      <h1 className="text-2xl font-bold text-afrikoni-chestnut">{product.title}</h1>
-                      <div className="flex flex-wrap gap-2 items-center">
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut leading-tight">
+                        {product.title}
+                      </h1>
+                      <div className="flex flex-wrap gap-2 items-center text-xs sm:text-sm">
+                        {supplier && (
+                          <div className="flex items-center gap-1 text-afrikoni-deep/80">
+                            <MapPin className="w-3 h-3" />
+                            <span>
+                              {supplier.city && supplier.country
+                                ? `${supplier.city}, ${supplier.country}`
+                                : supplier.country || 'Origin not specified'}
+                            </span>
+                            <span>
+                              {/* Basic flag support for key markets */}
+                              {supplier.country === 'Angola' && '🇦🇴'}
+                              {supplier.country === 'Nigeria' && '🇳🇬'}
+                              {supplier.country === 'Ghana' && '🇬🇭'}
+                              {supplier.country === 'Kenya' && '🇰🇪'}
+                              {supplier.country === 'South Africa' && '🇿🇦'}
+                            </span>
+                          </div>
+                        )}
                         {product.categories && (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="bg-white/70 border-afrikoni-gold/40">
                             {product.categories.name}
                           </Badge>
                         )}
@@ -559,8 +635,10 @@ export default function ProductDetail() {
                         {supplier?.verification_status === 'verified' && (
                           <TrustBadge type="verified-supplier" size="sm" />
                         )}
-                        {supplier?.trust_score && parseFloat(supplier.trust_score) > 0 && (
-                          <TrustBadge type="trust-score" score={parseInt(supplier.trust_score)} size="sm" />
+                        {supplier?.verification_status === 'pending' && (
+                          <Badge className="bg-amber-50 text-amber-700 border-amber-300 text-xs">
+                            <Clock className="w-3 h-3 mr-1" /> Verification in Progress
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -716,44 +794,62 @@ export default function ProductDetail() {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2 md:space-y-3">
-                  <Button 
-                    onClick={handleContactSupplier} 
-                    className="w-full bg-afrikoni-gold hover:bg-amber-700 touch-manipulation min-h-[44px]" 
-                    size="lg"
-                  >
-                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">{t('product.contactSupplier')}</span>
-                  </Button>
+                <div className="space-y-3 md:space-y-4">
+                  {/* PRIMARY CTA: Request Quote - Dominates the section */}
                   <Button 
                     onClick={handleCreateRFQ} 
-                    variant="outline" 
-                    className="w-full touch-manipulation min-h-[44px]" 
+                    className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation min-h-[52px] text-base md:text-lg" 
                     size="lg"
                   >
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> <span className="text-sm sm:text-base">{t('product.requestQuote')}</span>
+                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> 
+                    <span>{t('product.requestQuote') || 'Request Quote'}</span>
                   </Button>
-                  <p className="text-xs sm:text-sm text-afrikoni-deep/70 text-center pt-1">
-                    {t('product.actionsHelp')}
+                  
+                  <p className="text-xs text-afrikoni-deep/60 text-center -mt-2 mb-1">
+                    All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
                   </p>
-                  <AICopilotButton
-                    label="Generate RFQ with AI"
-                    onClick={handleGenerateRFQWithAI}
-                    loading={aiRFQLoading}
-                    className="w-full touch-manipulation min-h-[44px]"
-                    size="sm"
-                  />
-                  <OffPlatformDisclaimerCompact className="mt-3" />
+                  
+                  {/* SECONDARY CTA: Contact Supplier - Less prominent */}
+                  <Button 
+                    onClick={handleContactSupplier} 
+                    variant="outline"
+                    className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation min-h-[44px] text-sm md:text-base" 
+                    size="lg"
+                  >
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> 
+                    <span>{t('product.contactSupplier') || 'Contact Supplier'}</span>
+                  </Button>
+                  
+                  {/* TERTIARY CTA: AI RFQ - Subtle, optional */}
+                  <div className="pt-1">
+                    <AICopilotButton
+                      label="Generate RFQ with AI"
+                      onClick={handleGenerateRFQWithAI}
+                      loading={aiRFQLoading}
+                      variant="ghost"
+                      className="w-full text-xs md:text-sm text-afrikoni-deep/70 hover:text-afrikoni-chestnut hover:bg-afrikoni-cream/50"
+                      size="sm"
+                    />
+                  </div>
+                  
+                  <p className="text-xs sm:text-sm text-afrikoni-deep/60 text-center pt-1 italic">
+                    {t('product.actionsHelp') || 'Request Quote for formal offers. Contact for quick questions.'}
+                  </p>
+                  
+                  <OffPlatformDisclaimerCompact className="mt-2" />
                 </div>
               </CardContent>
             </Card>
 
 
-            {/* Shipping Calculator */}
-            <ShippingCalculator
-              compact={true}
-              defaultOrigin={product.country_of_origin || supplier?.country || ''}
-              defaultWeight={product.supply_ability_qty ? `${product.supply_ability_qty}` : ''}
-            />
+            {/* Shipping Calculator - De-emphasized helper tool */}
+            <div className="bg-afrikoni-cream/20 border border-afrikoni-gold/10 rounded-lg p-3">
+              <ShippingCalculator
+                compact={true}
+                defaultOrigin={product.country_of_origin || supplier?.country || ''}
+                defaultWeight={product.supply_ability_qty ? `${product.supply_ability_qty}` : ''}
+              />
+            </div>
 
             {supplier && (
               <Card className="border-afrikoni-gold/20">
@@ -775,11 +871,8 @@ export default function ProductDetail() {
                     )}
                     {supplier?.verification_status === 'pending' && (
                       <Badge className="bg-amber-50 text-amber-700 border-amber-300">
-                        <Clock className="w-3 h-3 mr-1" /> Verification Pending
+                        <Clock className="w-3 h-3 mr-1" /> Verification in Progress
                       </Badge>
-                    )}
-                    {supplier?.trust_score && parseFloat(supplier.trust_score) > 0 && (
-                      <TrustBadge type="trust-score" score={parseInt(supplier.trust_score)} />
                     )}
                   </div>
                   <div className="flex gap-2">

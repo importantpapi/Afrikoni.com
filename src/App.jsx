@@ -78,6 +78,7 @@ const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'
 const AdminSupplierManagement = lazy(() => import('./pages/dashboard/admin/supplier-management'));
 const AdminRFQMatching = lazy(() => import('./pages/dashboard/admin/rfq-matching'));
 const AdminRFQAnalytics = lazy(() => import('./pages/dashboard/admin/rfq-analytics'));
+const AdminRFQReview = lazy(() => import('./pages/dashboard/admin/rfq-review'));
 const SupplierRFQs = lazy(() => import('./pages/dashboard/supplier-rfqs'));
 const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
@@ -110,7 +111,8 @@ const AddProduct = lazy(() => import('./pages/addproduct'));
 const AddProductSmart = lazy(() => import('./pages/addproduct-smart'));
 const AddProductSimple = lazy(() => import('./pages/addproduct-simple'));
 const AddProductAlibaba = lazy(() => import('./pages/addproduct-alibaba'));
-const CreateRFQ = lazy(() => import('./pages/createrfq'));
+const CreateRFQ = lazy(() => import('./pages/rfq/create'));
+const CreateRFQLegacy = lazy(() => import('./pages/createrfq'));
 const RFQStart = lazy(() => import('./pages/rfq-start'));
 const RFQSuccess = lazy(() => import('./pages/rfq-success'));
 const Categories = lazy(() => import('./pages/categories'));
@@ -290,6 +292,8 @@ function App() {
             <Route path="/dashboard/admin/supplier-management" element={<ProtectedRoute><AdminSupplierManagement /></ProtectedRoute>} />
             <Route path="/dashboard/admin/rfq-matching" element={<ProtectedRoute><AdminRFQMatching /></ProtectedRoute>} />
             <Route path="/dashboard/admin/rfq-analytics" element={<ProtectedRoute><AdminRFQAnalytics /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-review" element={<ProtectedRoute><AdminRFQReview /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-review/:id" element={<ProtectedRoute><AdminRFQReview /></ProtectedRoute>} />
             <Route path="/dashboard/supplier-rfqs" element={<ProtectedRoute><SupplierRFQs /></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><AdminReviews /></ProtectedRoute>} />
             <Route path="/dashboard/admin/revenue" element={<ProtectedRoute><AdminRevenue /></ProtectedRoute>} />

@@ -30,7 +30,7 @@ export default function RFQCard() {
                       Post a Trade Request (RFQ)
                     </h3>
                     <p className="text-lg md:text-xl text-afrikoni-deep/80 mb-4">
-                      Get matched with verified African suppliers. Reviewed by our team within 24–48 hours.
+                      Get matched with verified African suppliers. Reviewed within 24–48 hours.
                     </p>
                   </div>
                 </div>

@@ -12,11 +12,13 @@ import { Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
+import TrustCards from '@/components/home/TrustCards';
+import ServicesOverview from '@/components/home/ServicesOverview';
 
 export default function HowItWorks() {
   const [stats, setStats] = useState([
     { value: '...', label: 'Verified Suppliers' },
-    { value: '...', label: 'Products Available' },
+    { value: '...', label: 'Verified Listings' },
     { value: '54', label: 'African Countries' },
     { value: '...', label: 'Active Buyers' }
   ]);
@@ -63,8 +65,8 @@ export default function HowItWorks() {
             label: 'Verified Suppliers' 
           },
           { 
-            value: activeProducts > 0 ? `${activeProducts}+` : 'Available', 
-            label: 'Products Available' 
+            value: activeProducts > 0 && activeProducts >= 10 ? `${activeProducts}+` : 'Curated', 
+            label: activeProducts > 0 && activeProducts >= 10 ? 'Products Available' : 'Verified Listings' 
           },
           { value: '54', label: 'African Countries' },
           { 
@@ -125,7 +127,7 @@ export default function HowItWorks() {
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
       borderClass: 'border-orange-200',
-      duration: '15 min'
+      duration: 'Reviewed before going live'
     },
     {
       number: '02',
@@ -270,6 +272,10 @@ export default function HowItWorks() {
         </section>
 
         <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
+          {/* Trust & Services Overview (moved from homepage) */}
+          <TrustCards />
+          <ServicesOverview />
+
           {/* For Buyers Section */}
           <section className="mb-16 md:mb-20">
             <motion.div
@@ -287,6 +293,9 @@ export default function HowItWorks() {
               </h2>
               <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
                 Find verified suppliers, request quotes, and trade with confidence through our protected platform.
+              </p>
+              <p className="text-base text-afrikoni-deep/60 max-w-2xl mx-auto mt-4">
+                Every trade request is reviewed by our team to ensure quality, seriousness, and supplier fit.
               </p>
             </motion.div>
 
@@ -518,7 +527,7 @@ export default function HowItWorks() {
               className="text-center"
             >
               <Link to={createPageUrl('SellerOnboarding')}>
-                <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg font-bold shadow-xl">
+                <Button size="lg" variant="outline" className="border-2 border-afrikoni-gold/40 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-8 py-6 text-lg">
                   <TrendingUp className="w-5 h-5 mr-2" />
                   Start Selling Now
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -553,7 +562,7 @@ export default function HowItWorks() {
                   </Button>
                 </Link>
                 <Link to="/become-supplier">
-                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/50 text-afrikoni-cream hover:bg-afrikoni-cream/10 px-8 py-6 text-lg">
+                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/30 text-afrikoni-cream/80 hover:bg-afrikoni-cream/5 px-8 py-6 text-lg opacity-75">
                     <Building2 className="w-5 h-5 mr-2" />
                     Become a Supplier
                     <ArrowRight className="w-5 h-5 ml-2" />

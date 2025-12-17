@@ -16,9 +16,9 @@ import {
 
 export const buyerNav = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/buyer' },
-  { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
+  { icon: FileText, label: 'RFQs & Deals', path: '/dashboard/rfqs' },
   { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders' },
-  { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs' },
+  { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
   { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: Wallet, label: 'Payments & Escrow', path: '/dashboard/payments' },
@@ -31,6 +31,7 @@ export const buyerNav = [
   { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
   { icon: Shield, label: 'Disputes', path: '/dashboard/disputes' },
 ];
+
 
 
 

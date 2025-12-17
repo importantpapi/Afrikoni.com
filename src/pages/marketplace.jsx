@@ -31,6 +31,7 @@ import {
   ChevronDown,
   Eye,
   Smile,
+  Sparkles,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -506,40 +507,82 @@ export default function Marketplace() {
       ? selectedFilters.country
       : urlCountryName || '';
 
-  const countryToFlag = (country) => {
-    if (!country) return '🌍';
-    const normalized = country.toLowerCase();
-    if (normalized.includes('ghana')) return '🇬🇭';
-    if (normalized.includes('nigeria')) return '🇳🇬';
-    if (normalized.includes('kenya')) return '🇰🇪';
-    if (normalized.includes('south africa')) return '🇿🇦';
-    if (normalized.includes('angola')) return '🇦🇴';
-    if (normalized.includes('morocco')) return '🇲🇦';
-    if (normalized.includes('egypt')) return '🇪🇬';
-    return '🌍';
+  // Country name to ISO code mapping for flags
+  const COUNTRY_NAME_TO_ISO = {
+    'Nigeria': 'NG', 'Ghana': 'GH', 'Kenya': 'KE', 'South Africa': 'ZA',
+    'Egypt': 'EG', 'Morocco': 'MA', 'Senegal': 'SN', 'Tanzania': 'TZ',
+    'Ethiopia': 'ET', 'Angola': 'AO', 'Cameroon': 'CM', "Côte d'Ivoire": 'CI',
+    'Ivory Coast': 'CI', 'Uganda': 'UG', 'Algeria': 'DZ', 'Sudan': 'SD',
+    'Mozambique': 'MZ', 'Madagascar': 'MG', 'Mali': 'ML', 'Burkina Faso': 'BF',
+    'Niger': 'NE', 'Rwanda': 'RW', 'Benin': 'BJ', 'Guinea': 'GN', 'Chad': 'TD',
+    'Zimbabwe': 'ZW', 'Zambia': 'ZM', 'Malawi': 'MW', 'Gabon': 'GA',
+    'Botswana': 'BW', 'Gambia': 'GM', 'Guinea-Bissau': 'GW', 'Liberia': 'LR',
+    'Sierra Leone': 'SL', 'Togo': 'TG', 'Mauritania': 'MR', 'Namibia': 'NA',
+    'Lesotho': 'LS', 'Eritrea': 'ER', 'Djibouti': 'DJ', 'South Sudan': 'SS',
+    'Central African Republic': 'CF', 'Republic of the Congo': 'CG', 'Congo': 'CG',
+    'DR Congo': 'CD', 'São Tomé and Príncipe': 'ST', 'Seychelles': 'SC',
+    'Cape Verde': 'CV', 'Comoros': 'KM', 'Mauritius': 'MU', 'Somalia': 'SO',
+    'Burundi': 'BI', 'Equatorial Guinea': 'GQ', 'Eswatini': 'SZ', 'Libya': 'LY',
+    'Tunisia': 'TN'
+  };
+
+  const COUNTRY_FLAGS = {
+    'NG': '🇳🇬', 'GH': '🇬🇭', 'KE': '🇰🇪', 'ZA': '🇿🇦', 'EG': '🇪🇬', 'MA': '🇲🇦',
+    'SN': '🇸🇳', 'TZ': '🇹🇿', 'ET': '🇪🇹', 'AO': '🇦🇴', 'CM': '🇨🇲', 'CI': '🇨🇮',
+    'UG': '🇺🇬', 'DZ': '🇩🇿', 'SD': '🇸🇩', 'MZ': '🇲🇿', 'MG': '🇲🇬', 'ML': '🇲🇱',
+    'BF': '🇧🇫', 'NE': '🇳🇪', 'RW': '🇷🇼', 'BJ': '🇧🇯', 'GN': '🇬🇳', 'TD': '🇹🇩',
+    'ZW': '🇿🇼', 'ZM': '🇿🇲', 'MW': '🇲🇼', 'GA': '🇬🇦', 'BW': '🇧🇼', 'GM': '🇬🇲',
+    'GW': '🇬🇼', 'LR': '🇱🇷', 'SL': '🇸🇱', 'TG': '🇹🇬', 'MR': '🇲🇷', 'NA': '🇳🇦',
+    'LS': '🇱🇸', 'ER': '🇪🇷', 'DJ': '🇩🇯', 'SS': '🇸🇸', 'CF': '🇨🇫', 'CG': '🇨🇬',
+    'CD': '🇨🇩', 'ST': '🇸🇹', 'SC': '🇸🇨', 'CV': '🇨🇻', 'KM': '🇰🇲', 'MU': '🇲🇺',
+    'SO': '🇸🇴', 'BI': '🇧🇮', 'GQ': '🇬🇶', 'SZ': '🇸🇿', 'LY': '🇱🇾', 'TN': '🇹🇳'
+  };
+
+  const getCountryFlagEmoji = (countryName) => {
+    if (!countryName) return '';
+    const normalizedName = countryName.trim();
+    // Try direct match first
+    const isoCode = COUNTRY_NAME_TO_ISO[normalizedName];
+    if (isoCode && COUNTRY_FLAGS[isoCode]) {
+      return COUNTRY_FLAGS[isoCode];
+    }
+    // Try case-insensitive match
+    const matchedKey = Object.keys(COUNTRY_NAME_TO_ISO).find(
+      key => key.toLowerCase() === normalizedName.toLowerCase()
+    );
+    if (matchedKey) {
+      const code = COUNTRY_NAME_TO_ISO[matchedKey];
+      return COUNTRY_FLAGS[code] || '';
+    }
+    return '';
   };
 
   const ProductCard = React.memo(({ product }) => {
     const [quickViewOpen, setQuickViewOpen] = useState(false);
-    const images = Array.isArray(product.allImages) && product.allImages.length
-      ? product.allImages
-      : (product.primaryImage ? [product.primaryImage] : []);
-    const [imageIndex, setImageIndex] = useState(0);
-    const activeImage = images[imageIndex] || null;
-    const country = product?.country_of_origin || product?.companies?.country || '';
-    const flag = countryToFlag(country);
-    const hasMultipleImages = images.length > 1;
+    const [activeImage, setActiveImage] = useState(product.primaryImage || null);
 
-    const goPrevImage = (e) => {
-      if (!hasMultipleImages) return;
-      if (e) e.stopPropagation();
-      setImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    const allImages = Array.isArray(product.allImages) ? product.allImages.filter(Boolean) : [];
+
+    const goToPrevImage = (e) => {
+      e.stopPropagation();
+      if (!allImages.length) return;
+      setActiveImage((current) => {
+        if (!current) return allImages[0];
+        const currentIndex = allImages.indexOf(current);
+        const prevIndex = currentIndex <= 0 ? allImages.length - 1 : currentIndex - 1;
+        return allImages[prevIndex];
+      });
     };
 
-    const goNextImage = (e) => {
-      if (!hasMultipleImages) return;
-      if (e) e.stopPropagation();
-      setImageIndex((prev) => (prev + 1) % images.length);
+    const goToNextImage = (e) => {
+      e.stopPropagation();
+      if (!allImages.length) return;
+      setActiveImage((current) => {
+        if (!current) return allImages[0];
+        const currentIndex = allImages.indexOf(current);
+        const nextIndex = currentIndex === -1 || currentIndex >= allImages.length - 1 ? 0 : currentIndex + 1;
+        return allImages[nextIndex];
+      });
     };
     const handleCardClick = async (e) => {
       // Don't navigate if clicking on buttons or links
@@ -572,13 +615,11 @@ export default function Marketplace() {
 
     return (
       <div className="h-full">
-        <Card
-          className="h-full cursor-pointer border border-afrikoni-gold/20 shadow-md overflow-hidden"
-          onClick={handleCardClick}
-        >
-          <div className="flex flex-col md:flex-row">
-            {/* LEFT: Image carousel */}
-            <div className="relative w-full md:w-56 lg:w-64 h-52 md:h-44 lg:h-52 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10 overflow-hidden">
+          <Card 
+            className="h-full cursor-pointer border border-afrikoni-gold/20 shadow-md overflow-hidden"
+            onClick={handleCardClick}
+          >
+            <div className="relative h-56 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10 rounded-t-xl overflow-hidden">
               {activeImage ? (
                 <OptimizedImage
                   src={activeImage}
@@ -595,118 +636,123 @@ export default function Marketplace() {
                   <Package className="w-12 h-12 text-afrikoni-gold/50" />
                 </div>
               )}
-              {/* Country flag overlay with tooltip + click action */}
-              {country && (
-                <Tooltip content={country}>
+              {allImages.length > 1 && (
+                <>
                   <button
                     type="button"
-                    className="absolute top-2 left-2 z-20 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast.info(country);
-                    }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center"
+                    onClick={goToPrevImage}
                   >
-                    <span>{flag}</span>
+                    ‹
                   </button>
-                </Tooltip>
+                  <button
+                    type="button"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center"
+                    onClick={goToNextImage}
+                  >
+                    ›
+                  </button>
+                </>
               )}
-              {/* Supplier verification badge */}
+              {product.featured && (
+                <div className="absolute top-2 left-2">
+                  <Badge variant="primary" className="text-xs">⭐ {t('marketplace.featured')}</Badge>
+                </div>
+              )}
+              {/* Supplier verification / trust badge */}
               {product.companies?.verification_status === 'verified' && (
                 <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/65 text-white px-2 py-1 rounded-full shadow-sm">
                   <Logo type="icon" size="sm" link={false} className="w-5 h-5" />
                   <Smile className="w-3 h-3 text-afrikoni-gold" />
                 </div>
               )}
-              {/* Save button */}
-              <div
-                className="absolute top-2 right-2 z-30 translate-y-8"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
                 <SaveButton itemId={product.id} itemType="product" />
               </div>
-              {/* Photo count */}
-              {images.length > 1 && (
+              {Array.isArray(product.allImages) && product.allImages.length > 1 && (
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-                  {images.length} photos
+                  {product.allImages.length} photos
                 </div>
-              )}
-              {/* Carousel arrows */}
-              {hasMultipleImages && (
-                <>
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 left-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
-                    onClick={goPrevImage}
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
-                    onClick={goNextImage}
-                  >
-                    ›
-                  </button>
-                </>
               )}
             </div>
-
-            {/* RIGHT: Details */}
-            <CardContent className="flex-1 p-4 md:p-5 bg-white" style={{ overflow: 'visible' }}>
-              {/* Title, price, quick view horizontally aligned */}
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h3
-                  className="font-semibold text-afrikoni-chestnut text-sm md:text-base leading-snug"
-                  title={product.title || product.name}
-                >
-                  {product.title || product.name}
-                </h3>
-                <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <div className="text-right">
-                    {product.price_min && product.price_max ? (
-                      <Price
-                        amount={product.price_min}
-                        fromCurrency={product.currency || 'USD'}
-                        unit={product.unit || 'kg'}
-                        className="text-base md:text-lg font-bold text-afrikoni-gold"
-                      />
-                    ) : product.price_min ? (
-                      <Price
-                        amount={product.price_min}
-                        fromCurrency={product.currency || 'USD'}
-                        unit={product.unit || 'kg'}
-                        className="text-base md:text-lg font-bold text-afrikoni-gold"
-                      />
-                    ) : product.price ? (
-                      <Price
-                        amount={product.price}
-                        fromCurrency={product.currency || 'USD'}
-                        unit={product.unit || 'kg'}
-                        className="text-base md:text-lg font-bold text-afrikoni-gold"
-                      />
-                    ) : (
-                      <div className="text-xs text-afrikoni-deep/70">
-                        {t('marketplace.priceOnRequest')}
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7 rounded-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setQuickViewOpen(true);
-                    }}
-                  >
-                    <Eye className="w-3 h-3" />
-                  </Button>
-                </div>
+            <CardContent className="p-5 bg-white" style={{ overflow: 'visible' }}>
+              {/* Product Name - Highest Priority */}
+              <h3 className="font-bold text-afrikoni-chestnut mb-3 line-clamp-2 text-lg md:text-xl leading-tight group-hover:text-afrikoni-gold transition-colors">
+                {product.title || product.name}
+              </h3>
+              
+              {/* City + Country - Second Priority */}
+              <div className="flex items-center gap-1 flex-wrap mb-3">
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-afrikoni-deep/80 font-medium flex items-center gap-1">
+                  {(() => {
+                    const city =
+                      product?.city ||
+                      product?.companies?.city ||
+                      product?.companies?.town ||
+                      '';
+                    const country =
+                      product?.country_of_origin ||
+                      product?.companies?.country ||
+                      '';
+                    const flag = getCountryFlagEmoji(country);
+                    if (city && country) return `${city}, ${country}`;
+                    if (country) return country;
+                    return 'N/A';
+                  })()}
+                  {(() => {
+                    const country =
+                      product?.country_of_origin ||
+                      product?.companies?.country ||
+                      '';
+                    const flag = getCountryFlagEmoji(country);
+                    return flag ? <span className="ml-0.5">{flag}</span> : null;
+                  })()}
+                </span>
               </div>
 
-              {/* Optional: brief snippet for MOQ or origin under title if desired later */}
+              {/* Price Range - Core info */}
+              <div className="flex items-center gap-2 mb-3">
+                {product.price_min && product.price_max ? (
+                  <Price
+                    amount={product.price_min}
+                    fromCurrency={product.currency || 'USD'}
+                    unit={product.unit || 'kg'}
+                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
+                  />
+                ) : product.price_min ? (
+                  <Price
+                    amount={product.price_min}
+                    fromCurrency={product.currency || 'USD'}
+                    unit={product.unit || 'kg'}
+                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
+                  />
+                ) : product.price ? (
+                  <Price
+                    amount={product.price}
+                    fromCurrency={product.currency || 'USD'}
+                    unit={product.unit || 'kg'}
+                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
+                  />
+                ) : (
+                  <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
+                )}
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs sm:text-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQuickViewOpen(true);
+                  }}
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  Quick view
+                </Button>
+              </div>
             </CardContent>
-          </div>
             {/* Quick View Dialog */}
             <Dialog open={quickViewOpen} onOpenChange={(open) => setQuickViewOpen(open)}>
               <DialogContent
@@ -714,17 +760,40 @@ export default function Marketplace() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <DialogHeader>
-                  <DialogTitle className="flex items-center justify-between gap-4">
-                    <span>{product.title || product.name}</span>
-                    <span className="text-sm text-afrikoni-deep/70 flex items-center gap-1">
-                      <span>{flag}</span>
-                      <span>{country || 'N/A'}</span>
+                  <DialogTitle className="flex flex-col gap-1">
+                    <span className="text-xl md:text-2xl font-bold text-afrikoni-chestnut leading-snug">
+                      {product.title || product.name}
+                    </span>
+                    <span className="text-xs md:text-sm text-afrikoni-deep/80 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-afrikoni-gold flex-shrink-0" />
+                      {(() => {
+                        const city =
+                          product?.city ||
+                          product?.companies?.city ||
+                          product?.companies?.town ||
+                          '';
+                        const country =
+                          product?.country_of_origin ||
+                          product?.companies?.country ||
+                          '';
+                        if (city && country) return `${city}, ${country}`;
+                        if (country) return country;
+                        return 'Location not specified';
+                      })()}
+                      {(() => {
+                        const country =
+                          product?.country_of_origin ||
+                          product?.companies?.country ||
+                          '';
+                        const flag = getCountryFlagEmoji(country);
+                        return flag ? <span className="ml-0.5">{flag}</span> : null;
+                      })()}
                     </span>
                   </DialogTitle>
                 </DialogHeader>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <div className="relative aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
+                    <div className="aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
                       {activeImage ? (
                         <OptimizedImage
                           src={activeImage}
@@ -740,35 +809,15 @@ export default function Marketplace() {
                           <Package className="w-12 h-12 text-afrikoni-gold/60" />
                         </div>
                       )}
-                      {hasMultipleImages && (
-                        <>
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 left-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
-                            onClick={goPrevImage}
-                          >
-                            ‹
-                          </button>
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 w-8 flex items-center justify-center text-white/80 bg-black/20 hover:bg-black/30 text-xs"
-                            onClick={goNextImage}
-                          >
-                            ›
-                          </button>
-                        </>
-                      )}
                     </div>
-                    {hasMultipleImages && (
+                    {Array.isArray(product.allImages) && product.allImages.length > 1 && (
                       <div className="flex gap-2 overflow-x-auto">
-                        {images.map((img, idx) => (
+                        {product.allImages.map((img, idx) => (
                           <button
                             key={idx}
                             type="button"
-                            className={`w-16 h-16 rounded-md overflow-hidden border flex-shrink-0 ${
-                              idx === imageIndex ? 'border-afrikoni-gold' : 'border-afrikoni-gold/30'
-                            }`}
-                            onClick={() => setImageIndex(idx)}
+                            className="w-16 h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0"
+                            onClick={() => setActiveImage(img)}
                           >
                             <img src={img} alt="" className="w-full h-full object-cover" />
                           </button>
@@ -777,15 +826,15 @@ export default function Marketplace() {
                     )}
                   </div>
                   <div className="space-y-3">
+                    {/* Pricing & MOQ */}
                     <div className="text-lg font-semibold text-afrikoni-chestnut">
                       {product.price_min || product.price || product.price_max ? (
                         <>
-                    <Price
+                          <Price
                             amount={product.price_min || product.price}
                             fromCurrency={product.currency || 'USD'}
                             unit={product.unit || 'kg'}
                             className="text-xl font-bold text-afrikoni-gold"
-                            prefix="From "
                           />
                         </>
                       ) : (
@@ -802,10 +851,19 @@ export default function Marketplace() {
                         </span>
                       </div>
                     )}
-                    <p className="text-sm text-afrikoni-deep/70">
-                      {product.short_description || product.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    {/* Product overview */}
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
+                        Product overview
+                      </p>
+                      <p className="text-sm md:text-[0.95rem] leading-relaxed text-afrikoni-deep/80">
+                        {product.short_description ||
+                          product.description ||
+                          'Supplier has not added a detailed description yet.'}
+                      </p>
+                    </div>
+                    {/* Trust & compliance badges */}
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {product.companies?.verification_status === 'verified' && (
                         <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                           <CheckCircle className="w-3 h-3 mr-1" />
@@ -826,62 +884,155 @@ export default function Marketplace() {
                           </Badge>
                         )}
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {product?.companies?.id && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/business/${product.companies.id}`)}
-                        >
-                          <Building2 className="w-4 h-4 mr-1" />
-                          View supplier
-                        </Button>
-                      )}
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          if (product?.id) {
-                            sessionStorage.setItem(
-                              'contactProductContext',
-                              JSON.stringify({
-                                productId: product.id,
-                                productTitle: product.title,
-                                productPrice: product.price || product.price_min,
-                                productCurrency: product.currency,
-                                productMOQ: product.moq || product.min_order_quantity,
-                                supplierName: product?.companies?.company_name || 'Supplier',
-                                supplierCountry:
-                                  product?.country_of_origin || product?.companies?.country,
-                              }),
-                            );
-                          }
-                          navigate(
-                            `/messages?recipient=${
-                              product?.companies?.id || product?.supplier_id || product?.company_id || ''
-                            }&product=${product?.id || ''}&productTitle=${encodeURIComponent(
-                              product?.title || '',
-                            )}`,
-                          );
-                        }}
-                      >
-                        <MessageSquare className="w-4 h-4 mr-1" />
-                        Message supplier
-                      </Button>
+                    {/* Why buyers trust this supplier */}
+                    {(product?.companies ||
+                      (Array.isArray(product?.certifications) && product.certifications.length > 0)) && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
+                          Why buyers trust this supplier
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {product.companies?.verification_status === 'verified' && (
+                            <Badge
+                              variant="outline"
+                              className="text-[0.7rem] bg-white text-afrikoni-deep border-green-200"
+                            >
+                              <Shield className="w-3 h-3 mr-1 text-green-600" />
+                              Afrikoni verified
+                            </Badge>
+                          )}
+                          {hasFastResponse(product?.companies) && (
+                            <Badge
+                              variant="outline"
+                              className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
+                            >
+                              <Clock className="w-3 h-3 mr-1 text-afrikoni-gold" />
+                              Fast response
+                            </Badge>
+                          )}
+                          {isReadyToShip(product) && (
+                            <Badge
+                              variant="outline"
+                              className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
+                            >
+                              <Package className="w-3 h-3 mr-1 text-afrikoni-gold" />
+                              Ready to ship
+                            </Badge>
+                          )}
+                          {Array.isArray(product?.certifications) &&
+                            product.certifications.slice(0, 4).map((cert) => (
+                              <Badge
+                                key={cert}
+                                variant="outline"
+                                className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
+                              >
+                                <Award className="w-3 h-3 mr-1 text-afrikoni-gold" />
+                                {cert}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* Typical use cases */}
+                    {(Array.isArray(product?.use_cases) && product.use_cases.length > 0) ||
+                    (Array.isArray(product?.tags) && product.tags.length > 0) ? (
+                      <div className="mt-3 space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
+                          Typical use cases
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(Array.isArray(product?.use_cases) && product.use_cases.length > 0
+                            ? product.use_cases
+                            : product.tags
+                          )
+                            .slice(0, 6)
+                            .map((useCase) => (
+                              <span
+                                key={useCase}
+                                className="text-[0.7rem] px-2 py-1 rounded-full bg-afrikoni-offwhite text-afrikoni-deep/80"
+                              >
+                                {useCase}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {/* CTA hierarchy */}
+                    <div className="mt-5 space-y-3">
                       <Button
                         variant="primary"
                         size="sm"
+                        className="w-full md:w-auto md:min-w-[220px] h-11 text-sm font-semibold shadow-lg bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/90 hover:from-afrikoni-gold/90 hover:to-afrikoni-gold"
                         onClick={() => navigate(`/dashboard/rfqs/new?product=${product.id}`)}
                       >
-                        <FileText className="w-4 h-4 mr-1" />
-                        Request quote
+                        <FileText className="w-4 h-4 mr-2" />
+                        Request detailed quote
                       </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs md:text-sm"
+                          onClick={() => {
+                            if (product?.id) {
+                              sessionStorage.setItem(
+                                'contactProductContext',
+                                JSON.stringify({
+                                  productId: product.id,
+                                  productTitle: product.title,
+                                  productPrice: product.price || product.price_min,
+                                  productCurrency: product.currency,
+                                  productMOQ: product.moq || product.min_order_quantity,
+                                  supplierName: product?.companies?.company_name || 'Supplier',
+                                  supplierCountry:
+                                    product?.country_of_origin || product?.companies?.country,
+                                }),
+                              );
+                            }
+                            navigate(
+                              `/messages?recipient=${
+                                product?.companies?.id ||
+                                product?.supplier_id ||
+                                product?.company_id ||
+                                ''
+                              }&product=${product?.id || ''}&productTitle=${encodeURIComponent(
+                                product?.title || '',
+                              )}`,
+                            );
+                          }}
+                        >
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          Contact supplier
+                        </Button>
+                        {product?.companies?.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs md:text-sm"
+                            onClick={() => navigate(`/business/${product.companies.id}`)}
+                          >
+                            <Building2 className="w-4 h-4 mr-1" />
+                            View supplier profile
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs md:text-sm text-afrikoni-chestnut"
+                          onClick={() =>
+                            navigate(`/dashboard/rfqs/new?product=${product.id}&mode=ai`)
+                          }
+                        >
+                          <Sparkles className="w-4 h-4 mr-1 text-afrikoni-gold" />
+                          Generate RFQ with AI
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </DialogContent>
             </Dialog>
-        </Card>
+          </Card>
       </div>
     );
   });
@@ -1078,28 +1229,6 @@ export default function Marketplace() {
             <div className="sticky top-24 space-y-4">
               <Card className="border-2 border-afrikoni-gold/20 shadow-lg">
               <CardContent className="p-5 space-y-6">
-                {/* Enhanced Trust Anchor - How Afrikoni Works */}
-                <div className="pb-5 border-b-2 border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-afrikoni-purple/5 rounded-xl p-4 -m-2">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Shield className="w-5 h-5 text-afrikoni-gold" />
-                    <h3 className="font-bold text-lg text-afrikoni-chestnut">How Afrikoni Works</h3>
-                  </div>
-                  <div className="space-y-3 text-sm text-afrikoni-deep/90">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">1</div>
-                      <span className="font-medium">You request a verified quote</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">2</div>
-                      <span className="font-medium">We verify supplier & trade terms</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">3</div>
-                      <span className="font-medium">Trade is coordinated securely</span>
-                    </div>
-                  </div>
-                </div>
-                
                 <div>
                   <h3 className="font-bold text-base text-afrikoni-chestnut mb-3 flex items-center gap-2">
                     <Package className="w-4 h-4 text-afrikoni-gold" />
@@ -1426,29 +1555,6 @@ export default function Marketplace() {
           {/* Enhanced Products Grid */}
           <main className="flex-1 min-w-0">
             <div className="mb-6 md:mb-8">
-              <div className="bg-gradient-to-r from-afrikoni-gold/10 via-afrikoni-purple/5 to-afrikoni-gold/10 rounded-2xl p-6 md:p-8 mb-6 border border-afrikoni-gold/20">
-                <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3 leading-tight">
-                  Verified African Suppliers Marketplace
-                </h1>
-                <p className="text-base md:text-lg text-afrikoni-deep/90 mb-4 max-w-3xl leading-relaxed">
-                  Source products from vetted suppliers across Africa.
-                  Every inquiry is reviewed. Every trade is coordinated.
-                </p>
-                <div className="flex items-center gap-4 md:gap-6 flex-wrap">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
-                    <Shield className="w-5 h-5 text-afrikoni-gold" />
-                    <span className="text-sm font-medium text-afrikoni-chestnut">Manual verification</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
-                    <MessageSquare className="w-5 h-5 text-afrikoni-purple" />
-                    <span className="text-sm font-medium text-afrikoni-chestnut">Human-led facilitation</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
-                    <Award className="w-5 h-5 text-afrikoni-gold" />
-                    <span className="text-sm font-medium text-afrikoni-chestnut">Escrow-protected</span>
-                  </div>
-                </div>
-              </div>
               {/* Active Filters Display */}
               {(selectedFilters.category || selectedFilters.country || selectedFilters.verification || 
                 priceMin || priceMax || moqMin || selectedFilters.certifications.length > 0 ||
@@ -1520,12 +1626,25 @@ export default function Marketplace() {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-3 mb-6 flex-wrap">
+            {/* Top toolbar: AI best match, sort, and view toggle */}
+            <div className="flex items-center justify-between gap-3 mb-6 flex-wrap bg-white/50 rounded-xl p-4 border border-afrikoni-gold/20">
+              <div className="flex flex-col gap-1">
+                <span className="text-sm md:text-base font-semibold text-afrikoni-chestnut">
+                  {t('marketplace.bestMatchForYou') || 'Best match for you'}
+                </span>
+                <span className="text-xs md:text-sm text-afrikoni-deep/70">
+                  Let AI highlight the single best product for your company.
+                </span>
+              </div>
+              <div className="flex items-center gap-3 flex-wrap">
                 <AICopilotButton
-                  label={t('marketplace.bestMatchForYou') || 'Find Best Match'}
+                  label={t('marketplace.bestMatchForYou') || 'Best match for you'}
                   size="sm"
-                  loading={aiBestMatchLoading}
-                  onClick={async () => {
+                  variant="secondary"
+                  className="bg-white border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold"
+                    loading={aiBestMatchLoading}
+                    variant="secondary"
+                    onClick={async () => {
                     setAiBestMatch(null);
                     if (!Array.isArray(filteredProducts) || filteredProducts.length === 0) return;
                     setAiBestMatchLoading(true);
@@ -1560,22 +1679,35 @@ export default function Marketplace() {
                   }}
                 />
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-44 md:w-56 h-10 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 rounded-xl shadow-sm font-medium">
+                  <SelectTrigger className="w-40 md:w-52 h-10 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 rounded-xl shadow-sm font-medium bg-white">
                     <SelectValue placeholder={t('marketplace.sortBy') || 'Sort by...'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="-created_at">🆕 Newest Listings</SelectItem>
-                    <SelectItem value="price_min">💰 Lowest Price</SelectItem>
-                    <SelectItem value="-price_min">💎 Highest Price</SelectItem>
+                    <SelectItem value="-created_at">🆕 Newest listings</SelectItem>
+                    <SelectItem value="price_min">💰 Lowest price</SelectItem>
+                    <SelectItem value="-price_min">💎 Highest price</SelectItem>
                     <SelectItem value="min_order_quantity">📦 Lowest MOQ</SelectItem>
                     <SelectItem value="-min_order_quantity">📦 Highest MOQ</SelectItem>
-                    <SelectItem value="relevance">⭐ Best Match</SelectItem>
-                    <SelectItem value="-views">👁️ Most Viewed</SelectItem>
+                    <SelectItem value="relevance">⭐ Best match</SelectItem>
+                    <SelectItem value="-views">👁️ Most viewed</SelectItem>
                   </SelectContent>
                 </Select>
-              <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" size="sm">{t('marketplace.grid')}</Button>
-                <Button variant="ghost" size="sm">{t('marketplace.list')}</Button>
+                <div className="hidden md:flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-medium"
+                  >
+                    {t('marketplace.grid') || 'Grid'}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-medium"
+                  >
+                    {t('marketplace.list') || 'List'}
+                  </Button>
+                </div>
               </div>
             </div>
 

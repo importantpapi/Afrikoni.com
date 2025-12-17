@@ -49,7 +49,7 @@ function SupplierRFQsInner() {
 
       setCompanyId(userCompanyId);
 
-      // Load RFQs that are matched (visible to suppliers)
+      // Load RFQs that are matched AND supplier is in shortlist
       // Note: Buyer identity is NOT shown - only RFQ details
       const { data: rfqsData, error: rfqsError } = await supabase
         .from('rfqs')
@@ -57,11 +57,20 @@ function SupplierRFQsInner() {
           *,
           categories(*)
         `)
-        .eq('status', statusFilter === 'all' ? RFQ_STATUS.MATCHED : statusFilter)
+        .eq('status', 'matched')
         .order('created_at', { ascending: false });
 
       if (rfqsError) throw rfqsError;
-      setRfqs(rfqsData || []);
+      
+      // Filter to only RFQs where this supplier is in matched_supplier_ids
+      const matchedRFQs = (rfqsData || []).filter(rfq => {
+        if (!rfq.matched_supplier_ids || !Array.isArray(rfq.matched_supplier_ids)) {
+          return false;
+        }
+        return rfq.matched_supplier_ids.includes(userCompanyId);
+      });
+      
+      setRfqs(matchedRFQs);
     } catch (error) {
       console.error('Error loading RFQs:', error);
       toast.error('Failed to load RFQs');

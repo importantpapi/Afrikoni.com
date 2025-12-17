@@ -192,7 +192,7 @@ export default function Countries() {
                     <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-[1.5px] border-afrikoni-gold/30 bg-afrikoni-cream hover:border-afrikoni-gold">
                       <CardContent className="p-3 md:p-4 text-center">
                         <div className="text-3xl md:text-4xl mb-2">{country.flag}</div>
-                        <h3 className="font-bold text-afrikoni-chestnut mb-1 text-sm md:text-base line-clamp-2">
+                        <h3 className="font-bold text-afrikoni-chestnut mb-1 text-sm md:text-base leading-tight whitespace-normal break-words">
                           {country.name}
                         </h3>
                         <p className={`text-xs md:text-sm mb-2 ${hasProducts ? 'text-afrikoni-deep' : 'text-afrikoni-deep/60'}`}>

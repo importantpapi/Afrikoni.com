@@ -259,6 +259,7 @@ function Footer() {
                 <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Secure Payments</div>
                 <div className="text-xs md:text-sm text-afrikoni-cream/80">Bank-grade security with escrow protection</div>
               </div>
+
             </div>
             <div className="flex items-start gap-2 md:gap-3">
               <Shield className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
@@ -266,6 +267,7 @@ function Footer() {
                 <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Verified Suppliers</div>
                 <div className="text-xs md:text-sm text-afrikoni-cream/80">Every supplier thoroughly vetted and verified</div>
               </div>
+
             </div>
             <div className="flex items-start gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
               <Award className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
@@ -454,3 +456,4 @@ export default function Layout({ children }) {
     </div>
   );
 }
+

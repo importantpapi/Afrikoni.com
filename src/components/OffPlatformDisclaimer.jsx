@@ -80,12 +80,12 @@ export default function OffPlatformDisclaimer({ variant = 'default', className =
  */
 export function OffPlatformDisclaimerCompact({ className = '' }) {
   return (
-    <div className={`text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 ${className}`}>
+    <div className={`text-xs text-afrikoni-deep/70 bg-afrikoni-cream/30 border border-afrikoni-gold/20 rounded p-2 ${className}`}>
       <div className="flex items-start gap-2">
-        <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+        <Shield className="w-3 h-3 flex-shrink-0 mt-0.5 text-afrikoni-deep/60" />
         <div>
-          <strong>Off-Platform Warning:</strong> Transactions outside Afrikoni are not protected. 
-          Use our platform for escrow, messaging, and order tracking to stay protected.
+          <strong className="text-afrikoni-deep">Platform Protection:</strong> Afrikoni's escrow and protection services apply only to transactions completed through our platform. 
+          Use our messaging system and order management tools to ensure full protection.
         </div>
       </div>
     </div>

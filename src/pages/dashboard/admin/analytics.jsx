@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import {
   DollarSign, TrendingUp, AlertTriangle, Truck, Package, Users,
   ArrowLeft, Calendar, BarChart3, PieChart, Activity, Download,
-  FileSpreadsheet, FileJson, FileCheck
+  FileSpreadsheet, FileJson, FileCheck, FileText, CheckCircle, ShoppingCart, Globe
 } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -101,6 +101,7 @@ export default function AdminAnalytics() {
       // Load all metrics in parallel
       const [
         ordersRes,
+        rfqsRes,
         escrowRes,
         disputesRes,
         shipmentsRes,
@@ -112,6 +113,13 @@ export default function AdminAnalytics() {
         supabase
           .from('orders')
           .select('total_amount, status, created_at, currency')
+          .gte('created_at', startISO)
+          .lte('created_at', endISO),
+        
+        // RFQs (Trade execution core metric)
+        supabase
+          .from('rfqs')
+          .select('id, status, created_at, buyer_company_id')
           .gte('created_at', startISO)
           .lte('created_at', endISO),
         
@@ -197,6 +205,7 @@ export default function AdminAnalytics() {
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 10);
+      const countriesActive = Object.keys(countryCounts).length;
 
       // Process Search Events
       const searchEvents = searchEventsRes.status === 'fulfilled' ? (searchEventsRes.value?.data || []) : [];
@@ -207,12 +216,16 @@ export default function AdminAnalytics() {
         escrowVolume,
         totalOrders: orders.length,
         completedOrders,
+        totalRFQs: rfqs.length,
+        fulfilledRFQs,
+        activeBuyers: uniqueBuyers.size,
         disputes: disputes.length,
         resolvedDisputes,
         totalShipments: shipments.length,
         deliveredShipments,
         activeUsers: users.length,
-        activeSuppliers: suppliers.length
+        activeSuppliers: suppliers.length,
+        countriesActive
       });
 
       // Build chart data
@@ -459,6 +472,26 @@ export default function AdminAnalytics() {
             Metric: 'Active Suppliers',
             Value: metrics.activeSuppliers,
             'Time Range': timeRange
+          },
+          {
+            Metric: 'Total RFQs',
+            Value: metrics.totalRFQs || 0,
+            'Time Range': timeRange
+          },
+          {
+            Metric: 'Fulfilled RFQs',
+            Value: metrics.fulfilledRFQs || 0,
+            'Time Range': timeRange
+          },
+          {
+            Metric: 'Active Buyers',
+            Value: metrics.activeBuyers || 0,
+            'Time Range': timeRange
+          },
+          {
+            Metric: 'Countries Active',
+            Value: metrics.countriesActive || 0,
+            'Time Range': timeRange
           }
         ],
         gmvTrend: gmvChartData.map(item => ({
@@ -543,7 +576,11 @@ export default function AdminAnalytics() {
           deliveredShipments: metrics.deliveredShipments,
           deliveryRate: `${deliveryRate}%`,
           activeUsers: metrics.activeUsers,
-          activeSuppliers: metrics.activeSuppliers
+          activeSuppliers: metrics.activeSuppliers,
+          totalRFQs: metrics.totalRFQs || 0,
+          fulfilledRFQs: metrics.fulfilledRFQs || 0,
+          activeBuyers: metrics.activeBuyers || 0,
+          countriesActive: metrics.countriesActive || 0
         },
         charts: {
           gmvTrend: gmvChartData,
@@ -621,7 +658,7 @@ export default function AdminAnalytics() {
                   Admin Analytics
                 </h1>
                 <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
-                  CEO-level insights: GMV, escrow volume, disputes, and delivery metrics
+                  Founder Control Tower: Marketplace health, RFQs, deals, countries, and trade execution metrics
                 </p>
               </div>
             </div>
@@ -640,7 +677,7 @@ export default function AdminAnalytics() {
         </motion.div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -746,6 +783,95 @@ export default function AdminAnalytics() {
                 </div>
                 <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
                   Active Suppliers
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* RFQ Metrics - Trade Execution Core */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <Card className="border-afrikoni-gold/30 hover:border-afrikoni-gold/50 hover:shadow-premium-lg transition-all bg-gradient-to-br from-afrikoni-gold/5 to-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-afrikoni-gold/30 rounded-full flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-afrikoni-gold" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-gold mb-2">
+                  {metrics.totalRFQs || 0}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  RFQs Created
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+          >
+            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  {metrics.fulfilledRFQs || 0}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  RFQs Fulfilled
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+          >
+            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <ShoppingCart className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  {metrics.activeBuyers || 0}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  Active Buyers
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.45 }}
+          >
+            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Globe className="w-6 h-6 text-purple-600" />
+                  </div>
+                </div>
+                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  {metrics.countriesActive || 0}
+                </div>
+                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  Countries Active
                 </div>
               </CardContent>
             </Card>

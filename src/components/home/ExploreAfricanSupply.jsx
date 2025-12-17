@@ -68,6 +68,14 @@ const ALL_AFRICAN_COUNTRIES = [
   { name: 'Zimbabwe', flag: '🇿🇼', code: 'zimbabwe' }
 ];
 
+const getFlagForCountryName = (countryName) => {
+  if (!countryName) return '';
+  const match = ALL_AFRICAN_COUNTRIES.find(
+    (c) => c.name.toLowerCase() === countryName.toLowerCase()
+  );
+  return match?.flag || '';
+};
+
 // Popular categories with icons and search keywords
 const popularCategories = [
   { name: 'Agriculture & Food', icon: Sprout, key: 'agriculture', keywords: ['agriculture', 'food', 'cocoa', 'coffee', 'grain', 'produce'] },
@@ -208,7 +216,7 @@ export default function ExploreAfricanSupply() {
             Explore African Supply
           </h2>
           <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto mb-8">
-            Browse products by category and country — or post a trade request to source faster.
+            Browse verified products by category and country, or fast‑track sourcing with a protected RFQ when you need suppliers to come to you.
           </p>
         </motion.div>
 
@@ -254,10 +262,10 @@ export default function ExploreAfricanSupply() {
                   className="flex-shrink-0"
                 >
                   <Link to={`/marketplace?country=${country.code}`}>
-                    <Card className="w-24 md:w-28 h-24 md:h-28 hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-afrikoni-offwhite flex items-center justify-center">
-                      <CardContent className="p-2 text-center">
-                        <div className="text-3xl md:text-4xl mb-1">{country.flag}</div>
-                        <h4 className="font-bold text-afrikoni-chestnut text-xs md:text-sm line-clamp-2">
+                    <Card className="w-32 md:w-36 h-auto min-h-[100px] md:min-h-[110px] hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-afrikoni-offwhite flex items-center justify-center">
+                      <CardContent className="p-3 text-center">
+                        <div className="text-3xl md:text-4xl mb-2">{country.flag}</div>
+                        <h4 className="font-bold text-afrikoni-chestnut text-xs md:text-sm leading-tight whitespace-normal break-words">
                           {country.name}
                         </h4>
                       </CardContent>
@@ -351,7 +359,7 @@ export default function ExploreAfricanSupply() {
                               whileHover={{ y: -4, scale: 1.02 }}
                             >
                               <Link to={`/product/${product.id}`}>
-                                <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-afrikoni-cream overflow-hidden">
+                                <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/30 hover:border-afrikoni-gold/60 bg-[#FFF6E1] overflow-hidden rounded-xl">
                                   <div className="h-40 md:h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
                                     {primaryImage?.url ? (
                                       <img
@@ -367,12 +375,12 @@ export default function ExploreAfricanSupply() {
                                       <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10" />
                                     )}
                                   </div>
-                                  <CardContent className="p-3">
-                                    <h5 className="font-semibold text-afrikoni-chestnut text-sm line-clamp-2 mb-2 min-h-[2.5rem]">
+                                  <CardContent className="p-3 space-y-1.5">
+                                    <h5 className="font-semibold text-afrikoni-chestnut text-base md:text-lg leading-snug line-clamp-2">
                                       {product.title}
                                     </h5>
                                     {product.price_min ? (
-                                      <div className="text-xs md:text-sm text-afrikoni-gold font-bold mb-1">
+                                      <div className="text-sm md:text-base text-afrikoni-gold font-bold">
                                         {product.price_max && product.price_max !== product.price_min ? (
                                           <>
                                             <Price 
@@ -399,16 +407,33 @@ export default function ExploreAfricanSupply() {
                                         Price on request
                                       </p>
                                     )}
-                                    {product.moq && (
-                                      <p className="text-xs text-afrikoni-deep/60">
-                                        MOQ: {product.moq}
-                                      </p>
-                                    )}
-                                    {product.country_of_origin && (
-                                      <p className="text-xs text-afrikoni-deep/60 mt-1">
-                                        From {product.country_of_origin}
-                                      </p>
-                                    )}
+                                    <div className="flex items-center justify-between pt-1">
+                                      {product.moq && (
+                                        <p className="text-[11px] md:text-xs text-afrikoni-deep/70">
+                                          MOQ: {product.moq}
+                                        </p>
+                                      )}
+                                      {product.country_of_origin && (
+                                        <div className="flex items-center gap-1 text-[11px] md:text-xs text-afrikoni-deep/80">
+                                          <MapPin className="w-3 h-3 text-afrikoni-deep/70" />
+                                          <span>
+                                            {(() => {
+                                              const city =
+                                                product?.city ||
+                                                product?.companies?.city ||
+                                                product?.companies?.town ||
+                                                '';
+                                              const country = product.country_of_origin;
+                                              if (city && country) return `${city}, ${country}`;
+                                              return country;
+                                            })()}
+                                          </span>
+                                          <span>
+                                            {getFlagForCountryName(product.country_of_origin)}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </CardContent>
                                 </Card>
                               </Link>

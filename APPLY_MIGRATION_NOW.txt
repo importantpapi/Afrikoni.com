@@ -1,0 +1,25 @@
+🚀 APPLY MIGRATION NOW - QUICK STEPS
+
+I've prepared everything for you:
+
+✅ SQL Editor opened in your browser
+✅ Migration SQL copied to your clipboard
+
+NEXT STEPS (30 seconds):
+
+1. In the SQL Editor that just opened:
+   - Paste the SQL (Cmd+V / Ctrl+V)
+   - Click "Run" button
+   - Wait for: "Success. No rows returned."
+
+2. Then verify:
+   npm run check-all
+
+That's it! Migration will be applied and system will be ready.
+
+If SQL Editor didn't open, go to:
+https://supabase.com/dashboard/project/qkeeufeiaphqylsnfhza/sql/new
+
+Migration file location:
+supabase/migrations/20250116000000_extend_quotes_table.sql
+

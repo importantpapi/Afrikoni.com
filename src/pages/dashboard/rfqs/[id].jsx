@@ -49,9 +49,11 @@ export default function RFQDetail() {
     price_per_unit: '',
     total_price: '',
     currency: 'USD',
-    delivery_time: '',
-    payment_terms: '',
-    notes: ''
+    incoterms: '',
+    lead_time: '',
+    moq: '',
+    notes: '',
+    confirmed: false
   });
   const [koniaiLoading, setKoniaiLoading] = useState(false);
 
@@ -142,9 +144,27 @@ export default function RFQDetail() {
       return;
     }
 
+    if (!quoteForm.confirmed) {
+      toast.error('Please confirm that your quote is accurate and executable');
+      return;
+    }
+
+    if (!quoteForm.price_per_unit) {
+      toast.error('Unit price is required');
+      return;
+    }
+
+    if (quoteForm.notes && quoteForm.notes.length > 500) {
+      toast.error('Notes must be 500 characters or less');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const totalPrice = parseFloat(quoteForm.total_price || quoteForm.price_per_unit) * parseFloat(rfq.quantity);
+      // Auto-calculate total if not provided
+      const totalPrice = quoteForm.total_price 
+        ? parseFloat(quoteForm.total_price)
+        : parseFloat(quoteForm.price_per_unit) * parseFloat(rfq.quantity);
 
       const { data: newQuote, error: quoteError } = await supabase
         .from('quotes')
@@ -154,10 +174,11 @@ export default function RFQDetail() {
           price_per_unit: parseFloat(quoteForm.price_per_unit),
           total_price: totalPrice,
           currency: quoteForm.currency,
-          delivery_time: quoteForm.delivery_time,
-          payment_terms: quoteForm.payment_terms,
-          notes: quoteForm.notes,
-          status: 'pending'
+          delivery_time: quoteForm.lead_time,
+          incoterms: quoteForm.incoterms,
+          moq: quoteForm.moq || null,
+          notes: quoteForm.notes || null,
+          status: 'quote_submitted'
         })
         .select()
         .single();
@@ -254,15 +275,17 @@ export default function RFQDetail() {
         }
       }
 
-      toast.success('Quote submitted successfully!');
+      toast.success('Quote submitted successfully! Your quote is now locked and cannot be edited.');
       setShowQuoteForm(false);
       setQuoteForm({
         price_per_unit: '',
         total_price: '',
         currency: 'USD',
-        delivery_time: '',
-        payment_terms: '',
-        notes: ''
+        incoterms: '',
+        lead_time: '',
+        moq: '',
+        notes: '',
+        confirmed: false
       });
       loadRFQData();
     } catch (error) {
@@ -645,8 +668,14 @@ export default function RFQDetail() {
                  rfq.buyer_company_id === companyId;
   const isSupplier = (currentRole === 'seller' || currentRole === 'hybrid') && 
                      rfq.buyer_company_id !== companyId;
-  const canSubmitQuote = isSupplier && 
-                         (rfq.status === 'matched' || rfq.status === 'open');
+  // Supplier can only submit if: RFQ is matched AND supplier is in matched_supplier_ids
+  const isMatchedSupplier = isSupplier && 
+    rfq?.status === 'matched' && 
+    rfq?.matched_supplier_ids && 
+    Array.isArray(rfq.matched_supplier_ids) &&
+    rfq.matched_supplier_ids.includes(companyId);
+  const canSubmitQuote = isMatchedSupplier && 
+    !quotes.some(q => q.supplier_company_id === companyId && q.status === 'quote_submitted');
 
   return (
     <DashboardLayout currentRole={currentRole}>
@@ -870,13 +899,21 @@ export default function RFQDetail() {
                     <form onSubmit={handleSubmitQuote} className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <Label>Price per Unit *</Label>
+                          <Label>Unit Price *</Label>
                           <Input
                             type="number"
                             step="0.01"
                             value={quoteForm.price_per_unit}
-                            onChange={(e) => setQuoteForm({ ...quoteForm, price_per_unit: e.target.value })}
+                            onChange={(e) => {
+                              const unitPrice = e.target.value;
+                              setQuoteForm({ 
+                                ...quoteForm, 
+                                price_per_unit: unitPrice,
+                                total_price: unitPrice && rfq.quantity ? (parseFloat(unitPrice) * parseFloat(rfq.quantity)).toFixed(2) : ''
+                              });
+                            }}
                             required
+                            placeholder="0.00"
                           />
                         </div>
                         <div>
@@ -884,61 +921,98 @@ export default function RFQDetail() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={quoteForm.total_price || (quoteForm.price_per_unit * rfq.quantity)}
+                            value={quoteForm.total_price || (quoteForm.price_per_unit && rfq.quantity ? (parseFloat(quoteForm.price_per_unit) * parseFloat(rfq.quantity)).toFixed(2) : '')}
                             onChange={(e) => setQuoteForm({ ...quoteForm, total_price: e.target.value })}
                             readOnly={!!quoteForm.price_per_unit}
+                            placeholder="Auto-calculated"
                           />
                         </div>
                         <div>
-                          <Label>Currency</Label>
+                          <Label>Currency *</Label>
                           <select
                             value={quoteForm.currency}
                             onChange={(e) => setQuoteForm({ ...quoteForm, currency: e.target.value })}
                             className="w-full px-3 py-2 border border-afrikoni-gold/30 rounded-md"
+                            required
                           >
                             <option value="USD">USD</option>
                             <option value="NGN">NGN</option>
                             <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="XOF">XOF</option>
+                            <option value="XAF">XAF</option>
                           </select>
                         </div>
                         <div>
-                          <Label>Delivery Time</Label>
+                          <Label>Incoterms *</Label>
+                          <select
+                            value={quoteForm.incoterms}
+                            onChange={(e) => setQuoteForm({ ...quoteForm, incoterms: e.target.value })}
+                            className="w-full px-3 py-2 border border-afrikoni-gold/30 rounded-md"
+                            required
+                          >
+                            <option value="">Select Incoterms</option>
+                            <option value="EXW">EXW - Ex Works</option>
+                            <option value="FOB">FOB - Free On Board</option>
+                            <option value="CIF">CIF - Cost, Insurance and Freight</option>
+                            <option value="CFR">CFR - Cost and Freight</option>
+                            <option value="DDP">DDP - Delivered Duty Paid</option>
+                            <option value="DAP">DAP - Delivered At Place</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label>Lead Time *</Label>
                           <Input
-                            value={quoteForm.delivery_time}
-                            onChange={(e) => setQuoteForm({ ...quoteForm, delivery_time: e.target.value })}
-                            placeholder="e.g., 2-3 weeks"
+                            value={quoteForm.lead_time}
+                            onChange={(e) => setQuoteForm({ ...quoteForm, lead_time: e.target.value })}
+                            placeholder="e.g., 2-3 weeks, 30 days"
+                            required
                           />
                         </div>
-                      </div>
-                      <div>
-                        <Label>Payment Terms</Label>
-                        <Input
-                          value={quoteForm.payment_terms}
-                          onChange={(e) => setQuoteForm({ ...quoteForm, payment_terms: e.target.value })}
-                          placeholder="e.g., 30% advance, 70% on delivery"
-                        />
+                        <div>
+                          <Label>MOQ (if different from RFQ quantity)</Label>
+                          <Input
+                            type="number"
+                            value={quoteForm.moq}
+                            onChange={(e) => setQuoteForm({ ...quoteForm, moq: e.target.value })}
+                            placeholder="Optional"
+                          />
+                        </div>
                       </div>
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Label>Additional Notes</Label>
-                          <KoniAIActionButton
-                            label="KoniAI Draft Reply"
-                            onClick={handleKoniaiDraftReply}
-                            loading={koniaiLoading}
-                            variant="ghost"
-                            size="sm"
-                            icon={Sparkles}
-                          />
+                          <Label>Notes (optional, max 500 characters)</Label>
+                          <span className="text-xs text-afrikoni-deep/70">
+                            {quoteForm.notes?.length || 0}/500
+                          </span>
                         </div>
                         <Textarea
                           value={quoteForm.notes}
-                          onChange={(e) => setQuoteForm({ ...quoteForm, notes: e.target.value })}
+                          onChange={(e) => {
+                            if (e.target.value.length <= 500) {
+                              setQuoteForm({ ...quoteForm, notes: e.target.value });
+                            }
+                          }}
                           rows={3}
                           placeholder="Any additional information..."
+                          maxLength={500}
                         />
                       </div>
+                      <div className="flex items-start gap-2 p-3 bg-afrikoni-cream/30 rounded-lg border border-afrikoni-gold/20">
+                        <input
+                          type="checkbox"
+                          id="quote-confirmation"
+                          checked={quoteForm.confirmed}
+                          onChange={(e) => setQuoteForm({ ...quoteForm, confirmed: e.target.checked })}
+                          className="mt-1 w-4 h-4 text-afrikoni-gold border-afrikoni-gold/30 rounded"
+                          required
+                        />
+                        <Label htmlFor="quote-confirmation" className="text-sm cursor-pointer">
+                          I confirm this quote is accurate and executable *
+                        </Label>
+                      </div>
                       <div className="flex gap-2">
-                        <Button type="submit" disabled={isSubmitting} className="flex-1">
+                        <Button type="submit" disabled={isSubmitting || !quoteForm.confirmed} className="flex-1">
                           {isSubmitting ? 'Submitting...' : 'Submit Quote'}
                         </Button>
                         <Button type="button" variant="outline" onClick={() => setShowQuoteForm(false)}>

@@ -132,16 +132,17 @@ function PaymentsDashboardInner() {
           <div>
             <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Payments & Escrow</h1>
             <p className="text-afrikoni-text-dark/70">Manage your wallet, transactions, and escrow payments</p>
+            <p className="text-sm text-afrikoni-text-dark/60 mt-1">All transactions are protected through Afrikoni's Trade Shield</p>
           </div>
         </motion.div>
 
-        {/* Wallet & Escrow KPIs */}
+        {/* Wallet & Escrow KPIs - Trust-focused */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {wallet && (
-            <Card>
+            <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
               <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
-                  Wallet balance
+                <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60 font-semibold">
+                  Available Balance
                 </p>
                 <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
                   {wallet.currency}{' '}
@@ -150,15 +151,31 @@ function PaymentsDashboardInner() {
                     maximumFractionDigits: 2,
                   })}
                 </p>
+                <p className="text-xs text-afrikoni-text-dark/50 mt-1">Ready for trade</p>
               </CardContent>
             </Card>
           )}
-          <Card>
+          <Card className="border-afrikoni-gold/20">
             <CardContent className="p-4">
               <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
-                Inflows
+                Escrow Protected
               </p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
+              <p className="text-2xl font-bold text-afrikoni-gold mt-1">
+                {wallet?.currency || 'USD'}{' '}
+                {escrowHeld.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+              <p className="text-xs text-afrikoni-text-dark/50 mt-1">In secure escrow</p>
+            </CardContent>
+          </Card>
+          <Card className="opacity-80">
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+                Total Inflows
+              </p>
+              <p className="text-xl font-semibold text-green-600 mt-1">
                 {wallet?.currency || 'USD'}{' '}
                 {totalInflow.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
@@ -167,28 +184,14 @@ function PaymentsDashboardInner() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="opacity-80">
             <CardContent className="p-4">
               <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
-                Outflows
+                Total Outflows
               </p>
-              <p className="text-2xl font-bold text-red-600 mt-1">
+              <p className="text-xl font-semibold text-red-600 mt-1">
                 {wallet?.currency || 'USD'}{' '}
                 {totalOutflow.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
-                Escrow held
-              </p>
-              <p className="text-2xl font-bold text-afrikoni-gold mt-1">
-                {wallet?.currency || 'USD'}{' '}
-                {escrowHeld.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}

@@ -6,7 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify-migration": "node scripts/automated-verification.js",
+    "verify": "node scripts/automated-verification.js",
+    "check-all": "node scripts/complete-all-automation.js",
+    "test": "node scripts/test-rfq-comprehensive.js",
+    "test-rfq": "node scripts/test-rfq-comprehensive.js",
+    "test-all": "node scripts/test-rfq-comprehensive.js",
+    "smoke-tests": "node scripts/smoke-tests-automated.js",
+    "check-deploy": "node scripts/prepare-deployment.js",
+    "verify-metadata": "node scripts/verify-metadata-migration.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
@@ -32,6 +41,7 @@
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
+    "dotenv": "^16.6.1",
     "postcss": "^8.4.32",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.3.6",
