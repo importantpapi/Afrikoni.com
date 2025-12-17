@@ -294,19 +294,34 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
 
       const results = await Promise.allSettled(queries);
       
-      // Extract results (first query is orders, then rfqs, products, messages, suppliers, payouts)
+      // Extract results (first query is orders, then rfqs, products, messages, supplierInteractions, verifiedSuppliers, payouts)
       const ordersRes = results[0];
       const rfqsRes = results[1];
       const productsRes = results[2];
       const messagesRes = results[3];
-      const suppliersRes = results[4];
-      const payoutsRes = results[5];
+      const supplierInteractionsRes = results[4];
+      const verifiedSuppliersRes = results[5];
+      const payoutsRes = results[6];
 
       const totalOrders = ordersRes.status === 'fulfilled' ? (ordersRes.value?.count || 0) : 0;
       const totalRFQs = rfqsRes.status === 'fulfilled' ? (rfqsRes.value?.count || 0) : 0;
       const totalProducts = productsRes.status === 'fulfilled' ? (productsRes.value?.count || 0) : 0;
       const unreadMessages = messagesRes.status === 'fulfilled' ? (messagesRes.value?.count || 0) : 0;
-      const supplierCount = suppliersRes.status === 'fulfilled' ? (suppliersRes.value?.count || 0) : 0;
+      
+      // Calculate real supplier count: unique suppliers from orders, or verified suppliers count
+      let supplierCount = 0;
+      if (loadBuyerData && supplierInteractionsRes.status === 'fulfilled') {
+        const interactions = supplierInteractionsRes.value?.data || [];
+        const uniqueSuppliers = new Set(interactions.map(o => o.seller_company_id).filter(Boolean));
+        supplierCount = uniqueSuppliers.size;
+        
+        // If no interactions yet, fall back to verified suppliers count
+        if (supplierCount === 0 && verifiedSuppliersRes.status === 'fulfilled') {
+          supplierCount = verifiedSuppliersRes.value?.count || 0;
+        }
+      } else if (loadBuyerData && verifiedSuppliersRes.status === 'fulfilled') {
+        supplierCount = verifiedSuppliersRes.value?.count || 0;
+      }
       const payoutBalance = payoutsRes.status === 'fulfilled' && Array.isArray(payoutsRes.value?.data)
         ? payoutsRes.value.data.reduce((sum, tx) => sum + (parseFloat(tx?.amount) || 0), 0)
         : 0;
