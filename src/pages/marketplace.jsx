@@ -55,13 +55,13 @@ import { toast } from 'sonner';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 import { trackProductView } from '@/lib/supabaseQueries/products';
 import { Logo } from '@/components/ui/Logo';
 
 export default function Marketplace() {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { trackPageView } = useAnalytics();
@@ -845,9 +845,9 @@ export default function Marketplace() {
                     </div>
                     {product.min_order_quantity && (
                       <div className="text-sm text-afrikoni-deep/80">
-                        MOQ:{' '}
+                        {t('marketplace.moq')}:{' '}
                         <span className="font-medium">
-                          {product.min_order_quantity} {product.moq_unit || product.unit || 'units'}
+                          {product.min_order_quantity} {product.moq_unit || product.unit || t('marketplace.units')}
                         </span>
                       </div>
                     )}
@@ -867,20 +867,20 @@ export default function Marketplace() {
                       {product.companies?.verification_status === 'verified' && (
                         <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                           <CheckCircle className="w-3 h-3 mr-1" />
-                          Verified Supplier
+                          {t('marketplace.verifiedSupplier')}
                         </Badge>
                       )}
                       {product.companies?.verification_status === 'pending' && (
                         <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
                           <Clock className="w-3 h-3 mr-1" />
-                          Verification in progress
+                          {t('marketplace.verificationInProgress')}
                         </Badge>
                       )}
                       {product.companies?.verification_status !== 'verified' &&
                         product.companies?.verification_status !== 'pending' && (
                           <Badge className="text-xs bg-gray-50 text-gray-600 border-gray-200">
                             <Shield className="w-3 h-3 mr-1" />
-                            Trade Shield eligible
+                            {t('marketplace.tradeShieldEligible')}
                           </Badge>
                         )}
                     </div>
@@ -889,7 +889,7 @@ export default function Marketplace() {
                       (Array.isArray(product?.certifications) && product.certifications.length > 0)) && (
                       <div className="mt-4 space-y-2">
                         <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
-                          Why buyers trust this supplier
+                          {t('marketplace.whyBuyersTrust')}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {product.companies?.verification_status === 'verified' && (
@@ -898,7 +898,7 @@ export default function Marketplace() {
                               className="text-[0.7rem] bg-white text-afrikoni-deep border-green-200"
                             >
                               <Shield className="w-3 h-3 mr-1 text-green-600" />
-                              Afrikoni verified
+                              {t('marketplace.afrikoniVerified')}
                             </Badge>
                           )}
                           {hasFastResponse(product?.companies) && (
@@ -907,7 +907,7 @@ export default function Marketplace() {
                               className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
                             >
                               <Clock className="w-3 h-3 mr-1 text-afrikoni-gold" />
-                              Fast response
+                              {t('marketplace.fastResponse')}
                             </Badge>
                           )}
                           {isReadyToShip(product) && (
@@ -916,7 +916,7 @@ export default function Marketplace() {
                               className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
                             >
                               <Package className="w-3 h-3 mr-1 text-afrikoni-gold" />
-                              Ready to ship
+                              {t('marketplace.readyToShip')}
                             </Badge>
                           )}
                           {Array.isArray(product?.certifications) &&
@@ -938,7 +938,7 @@ export default function Marketplace() {
                     (Array.isArray(product?.tags) && product.tags.length > 0) ? (
                       <div className="mt-3 space-y-1">
                         <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
-                          Typical use cases
+                          {t('marketplace.typicalUseCases')}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {(Array.isArray(product?.use_cases) && product.use_cases.length > 0
@@ -966,7 +966,7 @@ export default function Marketplace() {
                         onClick={() => navigate(`/dashboard/rfqs/new?product=${product.id}`)}
                       >
                         <FileText className="w-4 h-4 mr-2" />
-                        Request detailed quote
+                        {t('marketplace.requestDetailedQuote')}
                       </Button>
                       <div className="flex flex-wrap gap-2">
                         <Button
@@ -983,7 +983,7 @@ export default function Marketplace() {
                                   productPrice: product.price || product.price_min,
                                   productCurrency: product.currency,
                                   productMOQ: product.moq || product.min_order_quantity,
-                                  supplierName: product?.companies?.company_name || 'Supplier',
+                                  supplierName: product?.companies?.company_name || t('marketplace.supplier'),
                                   supplierCountry:
                                     product?.country_of_origin || product?.companies?.country,
                                 }),
@@ -1002,7 +1002,7 @@ export default function Marketplace() {
                           }}
                         >
                           <MessageSquare className="w-4 h-4 mr-1" />
-                          Contact supplier
+                          {t('marketplace.contactSupplier')}
                         </Button>
                         {product?.companies?.id && (
                           <Button
@@ -1012,7 +1012,7 @@ export default function Marketplace() {
                             onClick={() => navigate(`/business/${product.companies.id}`)}
                           >
                             <Building2 className="w-4 h-4 mr-1" />
-                            View supplier profile
+                            {t('marketplace.viewSupplierProfile')}
                           </Button>
                         )}
                         <Button
@@ -1024,7 +1024,7 @@ export default function Marketplace() {
                           }
                         >
                           <Sparkles className="w-4 h-4 mr-1 text-afrikoni-gold" />
-                          Generate RFQ with AI
+                          {t('marketplace.generateRFQWithAI')}
                         </Button>
                       </div>
                     </div>
@@ -1128,8 +1128,8 @@ export default function Marketplace() {
                 onRemove={() => setSelectedFilters({ ...selectedFilters, readyToShip: !selectedFilters.readyToShip })}
               />
               {priceMin || priceMax ? null : (
-                <FilterChip
-                  label="Under $100"
+                  <FilterChip
+                  label={t('marketplace.under100')}
                   active={false}
                   onRemove={() => {
                     setPriceMin('');
@@ -1138,8 +1138,8 @@ export default function Marketplace() {
                 />
               )}
               {moqMin ? null : (
-                <FilterChip
-                  label="Low MOQ"
+                  <FilterChip
+                  label={t('marketplace.lowMOQ')}
                   active={false}
                   onRemove={() => setMoqMin('1')}
                 />
@@ -1163,8 +1163,8 @@ export default function Marketplace() {
                 <MapPin className="w-4 h-4 text-afrikoni-gold" />
                 <span className="text-sm md:text-base font-medium text-afrikoni-chestnut">
                   {selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries')
-                    ? `Products from ${selectedFilters.country}`
-                    : 'All African Markets'}
+                    ? t('marketplace.productsFrom', { country: selectedFilters.country })
+                    : t('marketplace.allAfricanMarkets')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1243,7 +1243,7 @@ export default function Marketplace() {
                           : 'text-afrikoni-deep hover:bg-afrikoni-gold/5 hover:border hover:border-afrikoni-gold/20 rounded-xl'
                       }`}
                     >
-                      All Categories
+                      {t('marketplace.allCategories')}
                     </button>
                     {Array.isArray(categories) && categories.map((cat) => (
                       <button
@@ -1285,7 +1285,7 @@ export default function Marketplace() {
                     <details className="group">
                       <summary className="cursor-pointer text-sm font-medium text-afrikoni-gold hover:text-afrikoni-goldLight mb-2 list-none">
                         <span className="flex items-center gap-1">
-                          View All Countries
+                          {t('marketplace.viewAllCountries')}
                           <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
                         </span>
                       </summary>
@@ -1298,7 +1298,7 @@ export default function Marketplace() {
                               : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
                           }`}
                         >
-                          All Countries
+                          {t('marketplace.allCountries')}
                         </button>
                         {Array.isArray(countries) && countries
                           .filter(c => c !== t('marketplace.allCountries') && !POPULAR_COUNTRIES.includes(c))
@@ -1683,13 +1683,13 @@ export default function Marketplace() {
                     <SelectValue placeholder={t('marketplace.sortBy') || 'Sort by...'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="-created_at">🆕 Newest listings</SelectItem>
-                    <SelectItem value="price_min">💰 Lowest price</SelectItem>
-                    <SelectItem value="-price_min">💎 Highest price</SelectItem>
-                    <SelectItem value="min_order_quantity">📦 Lowest MOQ</SelectItem>
-                    <SelectItem value="-min_order_quantity">📦 Highest MOQ</SelectItem>
-                    <SelectItem value="relevance">⭐ Best match</SelectItem>
-                    <SelectItem value="-views">👁️ Most viewed</SelectItem>
+                    <SelectItem value="-created_at">🆕 {t('marketplace.newestListings')}</SelectItem>
+                    <SelectItem value="price_min">💰 {t('marketplace.lowestPrice')}</SelectItem>
+                    <SelectItem value="-price_min">💎 {t('marketplace.highestPrice')}</SelectItem>
+                    <SelectItem value="min_order_quantity">📦 {t('marketplace.lowestMOQ')}</SelectItem>
+                    <SelectItem value="-min_order_quantity">📦 {t('marketplace.highestMOQ')}</SelectItem>
+                    <SelectItem value="relevance">⭐ {t('marketplace.bestMatch')}</SelectItem>
+                    <SelectItem value="-views">👁️ {t('marketplace.mostViewed')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="hidden md:flex items-center gap-2">
@@ -1752,11 +1752,10 @@ export default function Marketplace() {
                     <Package className="w-10 h-10 text-afrikoni-gold" />
                   </div>
                   <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
-                    No exact matches — but your trade can still happen
+                    {t('marketplace.noExactMatches')}
                   </h3>
                   <p className="text-base md:text-lg text-afrikoni-deep/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-                    Afrikoni works through RFQs, not just listings.
-                    Our team will source verified suppliers for you.
+                    {t('marketplace.afrikoniWorksThroughRFQs')}
                   </p>
                   
                   {/* Enhanced Primary CTA */}
@@ -1768,7 +1767,7 @@ export default function Marketplace() {
                     >
                       <Link to="/rfq/create">
                         <FileText className="w-5 h-5 mr-2" />
-                        Post a Request (RFQ)
+                        {t('marketplace.postRequestRFQ')}
                       </Link>
                     </Button>
                     <Button
@@ -1779,7 +1778,7 @@ export default function Marketplace() {
                     >
                       <Link to="/contact">
                         <MessageSquare className="w-5 h-5 mr-2" />
-                        Talk to a Trade Advisor
+                        {t('marketplace.talkToTradeAdvisor')}
                       </Link>
                     </Button>
                   </div>
@@ -1788,21 +1787,21 @@ export default function Marketplace() {
                   <div className="flex items-center justify-center gap-4 md:gap-6 flex-wrap">
                     <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
                       <Shield className="w-4 h-4 text-afrikoni-gold" />
-                      <span className="text-sm font-medium text-afrikoni-chestnut">Verified suppliers only</span>
+                      <span className="text-sm font-medium text-afrikoni-chestnut">{t('marketplace.verifiedSuppliersOnly')}</span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
                       <MessageSquare className="w-4 h-4 text-afrikoni-purple" />
-                      <span className="text-sm font-medium text-afrikoni-chestnut">Human-led sourcing</span>
+                      <span className="text-sm font-medium text-afrikoni-chestnut">{t('marketplace.humanLedSourcing')}</span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
                       <Award className="w-4 h-4 text-afrikoni-gold" />
-                      <span className="text-sm font-medium text-afrikoni-chestnut">Escrow-protected</span>
+                      <span className="text-sm font-medium text-afrikoni-chestnut">{t('marketplace.escrowProtected')}</span>
                     </div>
                   </div>
                   
                   {/* Optional Smart Hint */}
                   <p className="text-xs text-afrikoni-deep/60 italic max-w-xl mx-auto">
-                    Most successful trades on Afrikoni start with a request, not a search.
+                    {t('marketplace.mostSuccessfulTradesHint')}
                   </p>
                 </CardContent>
               </Card>
@@ -1817,9 +1816,9 @@ export default function Marketplace() {
                     <Card className="border-afrikoni-gold/10 bg-gradient-to-br from-afrikoni-offwhite to-white h-full">
                       <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full min-h-[400px]">
                         <Package className="w-12 h-12 text-afrikoni-gold/40 mb-4" />
-                        <h3 className="font-semibold text-afrikoni-chestnut mb-2">More Verified Suppliers</h3>
+                        <h3 className="font-semibold text-afrikoni-chestnut mb-2">{t('marketplace.moreVerifiedSuppliers')}</h3>
                         <p className="text-sm text-afrikoni-deep/70 mb-4">
-                          More verified suppliers are being onboarded daily
+                          {t('marketplace.moreSuppliersOnboardedDaily')}
                         </p>
                         <Button
                           variant="outline"
@@ -1827,7 +1826,7 @@ export default function Marketplace() {
                           className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10"
                           asChild
                         >
-                          <Link to="/rfq/create">Post an RFQ</Link>
+                          <Link to="/rfq/create">{t('marketplace.postAnRFQ')}</Link>
                         </Button>
                       </CardContent>
                     </Card>
