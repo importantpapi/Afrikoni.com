@@ -259,10 +259,10 @@ export default function Navbar({ user, onLogout }) {
   const selectedLanguageCode = languageMap[language] || 'EN';
 
   const languages = [
-    { code: 'en', display: 'EN', name: 'English', flag: '🇬🇧' },
-    { code: 'fr', display: 'FR', name: 'Français', flag: '🇫🇷' },
-    { code: 'ar', display: 'AR', name: 'العربية', flag: '🇸🇦' },
-    { code: 'pt', display: 'PT', name: 'Português', flag: '🇵🇹' }
+    { code: 'en', display: 'EN', name: 'English', flag: '🇬🇧', label: 'English' },
+    { code: 'fr', display: 'FR', name: 'Français', flag: '🇫🇷', label: 'Français (public pages)' },
+    { code: 'ar', display: 'AR', name: 'العربية', flag: '🇸🇦', label: 'العربية (الصفحات العامة)' },
+    { code: 'pt', display: 'PT', name: 'Português', flag: '🇵🇹', label: 'Português (páginas públicas)' }
   ];
 
   const currencies = [
@@ -527,7 +527,15 @@ How It Works
                     
                     {/* Language Section */}
                     <div className="mb-6">
-                      <label className="block text-sm font-semibold text-afrikoni-deep mb-3">Language</label>
+                      <div className="flex items-center gap-2 mb-3">
+                        <label className="block text-sm font-semibold text-afrikoni-deep">Language</label>
+                        <span 
+                          className="text-xs text-afrikoni-deep/60 cursor-help"
+                          title="Public pages are translated. Dashboards and internal tools are currently available in English."
+                        >
+                          ℹ️
+                        </span>
+                      </div>
                       <div className="space-y-2">
                         {languages.map((lang) => (
                           <button
@@ -542,7 +550,7 @@ How It Works
                             `}
                           >
                             <span className="text-xl flex-shrink-0">{lang.flag}</span>
-                            <span className="flex-1">{lang.name}</span>
+                            <span className="flex-1">{lang.label || lang.name}</span>
                             {language === lang.code && (
                               <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
                             )}
