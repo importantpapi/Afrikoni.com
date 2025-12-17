@@ -8,7 +8,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, TrendingUp, DollarSign, ShoppingCart, Package, Users, FileText, MessageSquare, CheckCircle, Clock, Sparkles, Target, MapPin, Image as ImageIcon } from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign, ShoppingCart, Package, Users, FileText, MessageSquare, CheckCircle, Clock, Sparkles, Target, MapPin, Image as ImageIcon, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
