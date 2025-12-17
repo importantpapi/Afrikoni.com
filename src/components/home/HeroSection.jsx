@@ -13,6 +13,7 @@ import { addSearchToHistory } from '@/components/search/SearchHistory';
 
 // Compact Social Proof Component
 function SocialProofSection() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     verifiedSuppliers: 0,
     countries: 0,
