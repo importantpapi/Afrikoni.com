@@ -23,8 +23,7 @@ import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
-import { autoDetectUserPreferences, getCurrencyForCountry } from '@/utils/geoDetection';
-import { hasManualOverride } from '@/i18n/resolveLanguage.js';
+import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
 
@@ -160,34 +159,36 @@ export default function Navbar({ user, onLogout }) {
     }
   }, [contextCurrency]);
 
-  // Auto-detect user's country and currency on mount
-  // NOTE: Language is handled by LanguageContext, not here
+  // Auto-detect user's country, language, and currency on mount
   useEffect(() => {
     const detectPreferences = async () => {
       try {
         // Check if preferences are already saved in localStorage
         const savedCountry = localStorage.getItem('afrikoni_detected_country');
         const savedCurrency = localStorage.getItem('afrikoni_selected_currency') || contextCurrency || 'USD';
+        const savedLanguage = localStorage.getItem('afrikoni_selected_language');
         
-        if (savedCountry && savedCurrency) {
+        if (savedCountry && savedCurrency && savedLanguage) {
           setDetectedCountry(savedCountry);
           setSelectedCurrency(savedCurrency);
           setContextCurrency(savedCurrency); // Sync with context
+          if (savedLanguage !== language) {
+            setLanguage(savedLanguage);
+          }
         } else {
-          // Auto-detect country and currency only
+          // Auto-detect
           const preferences = await autoDetectUserPreferences();
           setDetectedCountry(preferences.countryCode);
           setSelectedCurrency(preferences.currency);
           setContextCurrency(preferences.currency); // Sync with context
+          if (preferences.language !== language) {
+            setLanguage(preferences.language);
+          }
           
           // Save to localStorage
           localStorage.setItem('afrikoni_detected_country', preferences.countryCode);
           localStorage.setItem('afrikoni_selected_currency', preferences.currency);
-          
-          // Trigger language update via event (LanguageContext will handle it)
-          window.dispatchEvent(new CustomEvent('afrikoni:countryChanged', {
-            detail: { countryCode: preferences.countryCode }
-          }));
+          localStorage.setItem('afrikoni_selected_language', preferences.language);
         }
       } catch (error) {
         console.warn('Failed to auto-detect preferences:', error);
@@ -296,8 +297,8 @@ export default function Navbar({ user, onLogout }) {
   };
 
   const handleLanguageChange = (langCode) => {
-    // User manually selected language - this sets override flag
     setLanguage(langCode);
+    localStorage.setItem('afrikoni_selected_language', langCode);
     setSettingsOpen(false);
   };
 
@@ -328,11 +329,12 @@ export default function Navbar({ user, onLogout }) {
     setContextCurrency(newCurrency); // Update global currency context
     localStorage.setItem('afrikoni_selected_currency', newCurrency);
     
-    // Dispatch custom event to notify LanguageContext of country change
-    // LanguageContext will handle language update (unless manual override)
-    window.dispatchEvent(new CustomEvent('afrikoni:countryChanged', {
-      detail: { countryCode }
-    }));
+    // Auto-update language based on country (optional)
+    const newLanguage = getLanguageForCountry(countryCode);
+    if (newLanguage && newLanguage !== language) {
+      setLanguage(newLanguage);
+      localStorage.setItem('afrikoni_selected_language', newLanguage);
+    }
     
     setCountryOpen(false);
   };
