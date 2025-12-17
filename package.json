@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run check-translations && vite build",
     "preview": "vite preview",
+    "check-translations": "node scripts/checkTranslations.js",
     "verify-migration": "node scripts/automated-verification.js",
     "verify": "node scripts/automated-verification.js",
     "check-all": "node scripts/complete-all-automation.js",
