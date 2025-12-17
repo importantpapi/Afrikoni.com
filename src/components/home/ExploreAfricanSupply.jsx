@@ -275,20 +275,20 @@ export default function ExploreAfricanSupply() {
               ))}
             </div>
             
-            {/* Scroll Buttons */}
+            {/* Scroll Buttons - Perfectly centered */}
             <button
               onClick={() => scrollCountries('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full w-10 h-10 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center p-0"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full w-10 h-10 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center transition-all"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+              <ChevronLeft className="w-5 h-5 text-afrikoni-gold" strokeWidth={2.5} />
             </button>
             <button
               onClick={() => scrollCountries('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full w-10 h-10 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center p-0"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full w-10 h-10 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center transition-all"
               aria-label="Scroll right"
             >
-              <ChevronRight className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-afrikoni-gold" strokeWidth={2.5} />
             </button>
           </div>
           
