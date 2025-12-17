@@ -252,14 +252,7 @@ export function getCurrencyForCountry(countryCode) {
  * Get language based on country code
  */
 export function getLanguageForCountry(countryCode) {
-  // Use the centralized country language map
-  try {
-    const { getLanguageForCountry: getLangFromMap } = require('../i18n/countryLanguageMap');
-    return getLangFromMap(countryCode);
-  } catch (error) {
-    // Fallback to local map if import fails
-    return COUNTRY_LANGUAGE_MAP[countryCode] || COUNTRY_LANGUAGE_MAP['DEFAULT'];
-  }
+  return COUNTRY_LANGUAGE_MAP[countryCode] || COUNTRY_LANGUAGE_MAP['DEFAULT'];
 }
 
 /**
