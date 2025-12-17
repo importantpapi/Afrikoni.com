@@ -358,28 +358,146 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         return;
       }
 
-      // Generate last 30 days of data
+      // Load real data from last 30 days
       const days = 30;
-      const salesData = [];
-      const rfqData = [];
+      const startDate = subDays(new Date(), days).toISOString();
 
-      for (let i = days - 1; i >= 0; i--) {
-        const date = subDays(new Date(), i);
-        salesData.push({
-          date: format(date, 'MMM dd'),
-          orders: Math.floor(Math.random() * 20) + 5,
-          revenue: Math.floor(Math.random() * 5000) + 1000
-        });
-        rfqData.push({
-          date: format(date, 'MMM dd'),
-          sent: Math.floor(Math.random() * 10) + 2,
-          received: Math.floor(Math.random() * 8) + 1
-        });
+      // Determine which data to load based on role
+      const loadBuyerData = shouldLoadBuyerData(role, activeView);
+      const loadSellerData = shouldLoadSellerData(role, activeView);
+
+      const queries = [];
+
+      // Load orders (buyer or seller)
+      if (loadBuyerData || loadSellerData) {
+        if (role === 'hybrid' && activeView === 'all') {
+          queries.push(
+            supabase
+              .from('orders')
+              .select('created_at, total_amount, status')
+              .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid}`)
+              .gte('created_at', startDate)
+          );
+        } else if (loadBuyerData) {
+          queries.push(
+            supabase
+              .from('orders')
+              .select('created_at, total_amount, status')
+              .eq('buyer_company_id', cid)
+              .gte('created_at', startDate)
+          );
+        } else if (loadSellerData) {
+          queries.push(
+            supabase
+              .from('orders')
+              .select('created_at, total_amount, status')
+              .eq('seller_company_id', cid)
+              .gte('created_at', startDate)
+          );
+        } else {
+          queries.push(Promise.resolve({ data: [] }));
+        }
+      } else {
+        queries.push(Promise.resolve({ data: [] }));
       }
+
+      // Load RFQs (buyer only)
+      if (loadBuyerData && cid) {
+        queries.push(
+          supabase
+            .from('rfqs')
+            .select('created_at, status')
+            .eq('buyer_company_id', cid)
+            .gte('created_at', startDate)
+        );
+      } else {
+        queries.push(Promise.resolve({ data: [] }));
+      }
+
+      // Load received RFQs (for suppliers - RFQs matched to them)
+      if (loadSellerData && cid) {
+        queries.push(
+          supabase
+            .from('rfqs')
+            .select('created_at, matched_supplier_ids, status')
+            .gte('created_at', startDate)
+        );
+      } else {
+        queries.push(Promise.resolve({ data: [] }));
+      }
+
+      const results = await Promise.allSettled(queries);
+      const ordersRes = results[0];
+      const sentRfqsRes = results[1];
+      const receivedRfqsRes = results[2];
+
+      const orders = ordersRes.status === 'fulfilled' ? (ordersRes.value?.data || []) : [];
+      const sentRfqs = sentRfqsRes.status === 'fulfilled' ? (sentRfqsRes.value?.data || []) : [];
+      const allRfqs = receivedRfqsRes.status === 'fulfilled' ? (receivedRfqsRes.value?.data || []) : [];
+      
+      // Filter received RFQs to only those matched to this supplier
+      const receivedRfqs = allRfqs.filter(rfq => 
+        rfq.matched_supplier_ids && 
+        Array.isArray(rfq.matched_supplier_ids) && 
+        rfq.matched_supplier_ids.includes(cid)
+      );
+
+      // Build sales chart data from real orders
+      const salesByDate = {};
+      const ordersByDate = {};
+      
+      orders.forEach(order => {
+        if (order && order.created_at) {
+          const date = format(new Date(order.created_at), 'MMM dd');
+          if (!salesByDate[date]) {
+            salesByDate[date] = 0;
+            ordersByDate[date] = 0;
+          }
+          salesByDate[date] += parseFloat(order.total_amount) || 0;
+          ordersByDate[date] += 1;
+        }
+      });
+
+      // Build RFQ chart data from real RFQs
+      const sentRfqsByDate = {};
+      const receivedRfqsByDate = {};
+
+      sentRfqs.forEach(rfq => {
+        if (rfq && rfq.created_at) {
+          const date = format(new Date(rfq.created_at), 'MMM dd');
+          sentRfqsByDate[date] = (sentRfqsByDate[date] || 0) + 1;
+        }
+      });
+
+      receivedRfqs.forEach(rfq => {
+        if (rfq && rfq.created_at) {
+          const date = format(new Date(rfq.created_at), 'MMM dd');
+          receivedRfqsByDate[date] = (receivedRfqsByDate[date] || 0) + 1;
+        }
+      });
+
+      // Create arrays with all dates from last 30 days, filling missing dates with 0
+      const allDates = [];
+      for (let i = days - 1; i >= 0; i--) {
+        allDates.push(format(subDays(new Date(), i), 'MMM dd'));
+      }
+
+      const salesData = allDates.map(date => ({
+        date,
+        orders: ordersByDate[date] || 0,
+        revenue: Math.round(salesByDate[date] || 0)
+      }));
+
+      const rfqData = allDates.map(date => ({
+        date,
+        sent: sentRfqsByDate[date] || 0,
+        received: receivedRfqsByDate[date] || 0
+      }));
 
       setSalesChartData(salesData);
       setRfqChartData(rfqData);
-    } catch {
+    } catch (error) {
+      console.error('Error loading chart data:', error);
       setSalesChartData([]);
       setRfqChartData([]);
     }
