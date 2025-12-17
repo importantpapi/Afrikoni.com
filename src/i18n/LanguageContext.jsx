@@ -168,7 +168,7 @@ export function LanguageProvider({ children }) {
     
     // Update user profile if available
     try {
-      const { supabase } = await import('@/api/supabaseClient');
+      const { supabase, supabaseHelpers } = await import('@/api/supabaseClient');
       const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
       const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
