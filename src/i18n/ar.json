@@ -86,5 +86,21 @@
     "viewAllCountries": "عرض جميع البلدان",
     "moq": "الحد الأدنى للطلب",
     "units": "وحدات"
+  },
+  "rfq": {
+    "postTradeRequest": "نشر طلب تجاري (طلب عرض سعر)",
+    "getMatchedDescription": "احصل على مطابقة مع موردين أفارقة موثوقين. يتم المراجعة خلال 24–48 ساعة.",
+    "whatHappensAfter": "ماذا يحدث بعد نشر طلب عرض سعر؟",
+    "step1Title": "إرسال الطلب",
+    "step1Description": "2–3 دقائق",
+    "step2Title": "أفريكوني يتحقق من الموردين والشروط",
+    "step2Description": "مراجعة يدوية",
+    "step3Title": "تتلقى عروض أسعار مختارة",
+    "step3Description": "24–48 ساعة",
+    "step4Title": "التجارة منسقة بأمان",
+    "step4Description": "معاملة محمية"
+  },
+  "home": {
+    "trustedByBusinesses": "موثوق به من قبل الشركات الرائدة في أفريقيا"
   }
 }

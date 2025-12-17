@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { FileText, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import RFQProcessPanel from './RFQProcessPanel';
 
 export default function RFQCard() {
+  const { t } = useTranslation();
   return (
     <section className="py-12 md:py-16 bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-goldDark/10 to-afrikoni-chestnut/10">
       <div className="max-w-7xl mx-auto px-4">
@@ -27,10 +29,10 @@ export default function RFQCard() {
                   </div>
                   <div>
                     <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-chestnut mb-3">
-                      Post a Trade Request (RFQ)
+                      {t('rfq.postTradeRequest')}
                     </h3>
                     <p className="text-lg md:text-xl text-afrikoni-deep/80 mb-4">
-                      Get matched with verified African suppliers. Reviewed within 24–48 hours.
+                      {t('rfq.getMatchedDescription')}
                     </p>
                   </div>
                 </div>
@@ -44,7 +46,7 @@ export default function RFQCard() {
                         size="lg" 
                         className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-bold px-8 py-6 text-lg md:text-xl shadow-afrikoni-xl hover:shadow-afrikoni-2xl transition-all"
                       >
-                        Post a Trade Request (RFQ)
+                        {t('rfq.postTradeRequest')}
                         <ArrowRight className="w-5 h-5 md:w-6 md:h-6 ml-2" />
                       </Button>
                     </motion.div>

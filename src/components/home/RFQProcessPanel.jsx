@@ -1,34 +1,36 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, CheckCircle2, Clock, FileText, ShieldCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function RFQProcessPanel() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const steps = [
     {
       icon: FileText,
-      title: 'Submit request',
-      description: '2–3 minutes',
+      title: t('rfq.step1Title'),
+      description: t('rfq.step1Description'),
       color: 'text-afrikoni-gold'
     },
     {
       icon: ShieldCheck,
-      title: 'Afrikoni verifies suppliers & terms',
-      description: 'Manual review',
+      title: t('rfq.step2Title'),
+      description: t('rfq.step2Description'),
       color: 'text-afrikoni-chestnut'
     },
     {
       icon: Clock,
-      title: 'You receive curated quotes',
-      description: '24–48 hours',
+      title: t('rfq.step3Title'),
+      description: t('rfq.step3Description'),
       color: 'text-afrikoni-gold'
     },
     {
       icon: CheckCircle2,
-      title: 'Trade coordinated securely',
-      description: 'Protected transaction',
+      title: t('rfq.step4Title'),
+      description: t('rfq.step4Description'),
       color: 'text-green-600'
     }
   ];
@@ -41,7 +43,7 @@ export default function RFQProcessPanel() {
           className="w-full flex items-center justify-between text-left"
         >
           <span className="text-sm md:text-base font-semibold text-afrikoni-chestnut">
-            What happens after I post an RFQ?
+            {t('rfq.whatHappensAfter')}
           </span>
           <ChevronDown 
             className={`w-4 h-4 text-afrikoni-gold transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}

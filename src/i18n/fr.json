@@ -86,5 +86,21 @@
     "viewAllCountries": "Voir tous les pays",
     "moq": "CMD",
     "units": "unités"
+  },
+  "rfq": {
+    "postTradeRequest": "Publier une demande commerciale (RFQ)",
+    "getMatchedDescription": "Soyez mis en relation avec des fournisseurs africains vérifiés. Examen dans les 24 à 48 heures.",
+    "whatHappensAfter": "Que se passe-t-il après avoir publié une RFQ ?",
+    "step1Title": "Soumettre la demande",
+    "step1Description": "2–3 minutes",
+    "step2Title": "Afrikoni vérifie les fournisseurs et les conditions",
+    "step2Description": "Examen manuel",
+    "step3Title": "Vous recevez des devis sélectionnés",
+    "step3Description": "24–48 heures",
+    "step4Title": "Commerce coordonné en toute sécurité",
+    "step4Description": "Transaction protégée"
+  },
+  "home": {
+    "trustedByBusinesses": "Fait confiance par les entreprises leaders en Afrique"
   }
 }

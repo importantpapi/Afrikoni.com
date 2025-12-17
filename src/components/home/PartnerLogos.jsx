@@ -5,9 +5,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/api/supabaseClient';
 
 export default function PartnerLogos() {
+  const { t } = useTranslation();
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +58,7 @@ export default function PartnerLogos() {
           className="text-center mb-8"
         >
           <p className="text-sm md:text-base text-afrikoni-deep/60 mb-6">
-            Trusted by leading businesses across Africa
+            {t('home.trustedByBusinesses')}
           </p>
         </motion.div>
 
