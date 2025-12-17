@@ -262,10 +262,26 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
       }
       
-      // Suppliers: only for buyers
-      if (loadBuyerData) {
-        queries.push(supabase.from('companies').select('id', { count: 'exact' }));
+      // Suppliers: only for buyers - count verified suppliers or suppliers buyer has interacted with
+      if (loadBuyerData && cid) {
+        // Count unique suppliers from orders and RFQs the buyer has interacted with
+        // This shows real, relevant suppliers, not all companies
+        queries.push(
+          supabase
+            .from('orders')
+            .select('seller_company_id')
+            .eq('buyer_company_id', cid)
+            .not('seller_company_id', 'is', null)
+        );
+        // Also get verified suppliers count as fallback
+        queries.push(
+          supabase
+            .from('companies')
+            .select('id', { count: 'exact' })
+            .or('verified.eq.true,verification_status.eq.verified')
+        );
       } else {
+        queries.push(Promise.resolve({ status: 'fulfilled', value: { data: [] } }));
         queries.push(Promise.resolve({ status: 'fulfilled', value: { count: 0 } }));
       }
       
