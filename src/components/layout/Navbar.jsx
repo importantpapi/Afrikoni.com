@@ -23,8 +23,8 @@ import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
-import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
-import { setLanguageWithOverride, hasLanguageOverride } from '@/i18n/languageDetection';
+import { autoDetectUserPreferences, getCurrencyForCountry } from '@/utils/geoDetection';
+import { hasManualOverride } from '@/i18n/resolveLanguage.js';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
 
@@ -297,34 +297,10 @@ export default function Navbar({ user, onLogout }) {
     setUserMenuOpen(false);
   };
 
-  const handleLanguageChange = async (langCode) => {
-    // Use the new override function to set language with override flag
-    try {
-      // Get user profile if available
-      let userProfile = null;
-      if (user?.id) {
-        try {
-          const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-          const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-          userProfile = profile;
-        } catch (error) {
-          // Silently fail
-        }
-      }
-      
-      // Set language with override (disables auto-detection)
-      await setLanguageWithOverride(langCode, { userProfile });
-      
-      // Update UI
-      setLanguage(langCode);
-      setSettingsOpen(false);
-    } catch (error) {
-      console.warn('Failed to set language override:', error);
-      // Fallback to regular setLanguage
-      setLanguage(langCode);
-      localStorage.setItem('afrikoni_selected_language', langCode);
-      setSettingsOpen(false);
-    }
+  const handleLanguageChange = (langCode) => {
+    // User manually selected language - this sets override flag
+    setLanguage(langCode);
+    setSettingsOpen(false);
   };
 
   const handleCurrencyChange = (currCode) => {
@@ -354,17 +330,8 @@ export default function Navbar({ user, onLogout }) {
     setContextCurrency(newCurrency); // Update global currency context
     localStorage.setItem('afrikoni_selected_currency', newCurrency);
     
-    // Auto-update language based on country (only if user hasn't manually overridden)
-    if (!hasLanguageOverride()) {
-      const newLanguage = getLanguageForCountry(countryCode);
-      if (newLanguage && newLanguage !== language) {
-        setLanguage(newLanguage);
-        localStorage.setItem('afrikoni_selected_language', newLanguage);
-        // Don't set override flag - this is automatic based on country
-      }
-    }
-    
     // Dispatch custom event to notify LanguageContext of country change
+    // LanguageContext will handle language update (unless manual override)
     window.dispatchEvent(new CustomEvent('afrikoni:countryChanged', {
       detail: { countryCode }
     }));

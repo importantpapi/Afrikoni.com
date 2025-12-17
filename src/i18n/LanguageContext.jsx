@@ -1,15 +1,21 @@
+/**
+ * Language Context - Single Source of Truth
+ * 
+ * Architecture:
+ * - Uses resolveLanguage() as the ONLY resolver
+ * - Runs on mount and when country changes
+ * - NEVER falls back to stored language during init
+ * - Country changes trigger immediate language update (unless manual override)
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentLanguage, setCurrentLanguage as saveLanguage, t } from './translations';
-import { initializeLanguage, setLanguageWithOverride, hasLanguageOverride } from './languageDetection';
-import { getLanguageForCountry } from './countryLanguageMap.js';
+import { setCurrentLanguage as saveLanguage, t } from './translations';
+import { resolveLanguage, hasManualOverride, setManualLanguage, clearManualOverride } from './resolveLanguage.js';
 
 const LanguageContext = createContext();
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguageState] = useState(() => {
-    // Initialize with saved language or default
-    return getCurrentLanguage();
-  });
+  const [language, setLanguageState] = useState('en'); // Start with default, will resolve immediately
   const [isInitialized, setIsInitialized] = useState(false);
 
   const updateHTMLAttributes = (lang) => {
@@ -23,12 +29,35 @@ export function LanguageProvider({ children }) {
     }
   };
 
-  // Initialize language on mount and react to country changes
+  /**
+   * Set resolved language and update all systems
+   */
+  const setResolvedLanguage = (lang) => {
+    if (!['en', 'fr', 'ar', 'pt'].includes(lang)) {
+      console.warn(`Invalid language code: ${lang}`);
+      return;
+    }
+    
+    setLanguageState(lang);
+    saveLanguage(lang);
+    updateHTMLAttributes(lang);
+  };
+
+  /**
+   * Initialize language on mount - SINGLE EFFECT
+   */
   useEffect(() => {
-    // Initialize language on mount with auto-detection
     const initLanguage = async () => {
       try {
-        // Try to get user profile if available
+        // Get manual override
+        const manualOverride = hasManualOverride() ? localStorage.getItem('afrikoni_language_manual') : null;
+        
+        // Get country code
+        const countryCode = typeof window !== 'undefined' 
+          ? localStorage.getItem('afrikoni_detected_country') 
+          : null;
+        
+        // Get user profile if available
         let userProfile = null;
         try {
           const { supabase, supabaseHelpers } = await import('@/api/supabaseClient');
@@ -39,27 +68,19 @@ export function LanguageProvider({ children }) {
           // Silently fail - user might not be logged in
         }
         
-        // Get delivery country from localStorage
-        const deliveryCountry = typeof window !== 'undefined' 
-          ? localStorage.getItem('afrikoni_detected_country') 
-          : null;
-        
-        // Initialize language with auto-detection
-        const detectedLang = initializeLanguage({ 
-          userProfile, 
-          deliveryCountry 
+        // Resolve language using single resolver
+        const resolvedLang = resolveLanguage({
+          manualOverride,
+          countryCode,
+          userProfile
         });
         
-        setLanguageState(detectedLang);
-        saveLanguage(detectedLang);
-        updateHTMLAttributes(detectedLang);
+        // Set resolved language
+        setResolvedLanguage(resolvedLang);
       } catch (error) {
         console.warn('Failed to initialize language:', error);
-        // Fallback to saved language
-        const currentLang = getCurrentLanguage();
-        setLanguageState(currentLang);
-        saveLanguage(currentLang);
-        updateHTMLAttributes(currentLang);
+        // Fallback to English only on error
+        setResolvedLanguage('en');
       } finally {
         setIsInitialized(true);
       }
@@ -68,84 +89,100 @@ export function LanguageProvider({ children }) {
     initLanguage();
   }, []);
 
-  // Listen for country changes and update language automatically
+  /**
+   * Listen for country changes and re-resolve language
+   */
   useEffect(() => {
     if (!isInitialized) return; // Wait for initial load
     
-    const handleStorageChange = (e) => {
-      // Only react to country changes, not language changes (to avoid loops)
-      if (e.key === 'afrikoni_detected_country' && e.newValue) {
-        // Check if user has manually overridden language
-        if (hasLanguageOverride()) {
-          return; // Don't auto-update if user has manually set language
+    const handleCountryChange = async (e) => {
+      // Check if user has manually overridden
+      if (hasManualOverride()) {
+        return; // Don't change language if manually overridden
+      }
+      
+      const countryCode = e.detail?.countryCode || 
+        (typeof window !== 'undefined' ? localStorage.getItem('afrikoni_detected_country') : null);
+      
+      if (!countryCode || countryCode === 'DEFAULT') return;
+      
+      try {
+        // Get user profile if available
+        let userProfile = null;
+        try {
+          const { supabase, supabaseHelpers } = await import('@/api/supabaseClient');
+          const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+          const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+          userProfile = profile;
+        } catch (error) {
+          // Silently fail
         }
         
-        // Get language for new country
-        const newLang = getLanguageForCountry(e.newValue);
+        // Re-resolve language with new country
+        const resolvedLang = resolveLanguage({
+          countryCode,
+          userProfile
+        });
         
-        if (newLang && newLang !== language) {
-          setLanguageState(newLang);
-          saveLanguage(newLang);
-          updateHTMLAttributes(newLang);
+        // Update language immediately
+        if (resolvedLang !== language) {
+          setResolvedLanguage(resolvedLang);
         }
+      } catch (error) {
+        console.warn('Failed to update language on country change:', error);
       }
     };
     
-    // Listen for localStorage changes (from other tabs/windows)
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom events (from same tab)
-    const handleCountryChange = (e) => {
-      if (e.detail?.countryCode) {
-        if (hasLanguageOverride()) {
-          return;
-        }
-        
-        const newLang = getLanguageForCountry(e.detail.countryCode);
-        
-        if (newLang && newLang !== language) {
-          setLanguageState(newLang);
-          saveLanguage(newLang);
-          updateHTMLAttributes(newLang);
-        }
-      }
-    };
-    
+    // Listen for custom country change event
     window.addEventListener('afrikoni:countryChanged', handleCountryChange);
     
+    // Also listen for localStorage changes (cross-tab)
+    const handleStorageChange = (e) => {
+      if (e.key === 'afrikoni_detected_country' && e.newValue) {
+        handleCountryChange({ detail: { countryCode: e.newValue } });
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('afrikoni:countryChanged', handleCountryChange);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [isInitialized, language]);
 
+  /**
+   * Set language (when user manually selects)
+   */
   const setLanguage = async (lang) => {
-    // Validate language
     if (!['en', 'fr', 'ar', 'pt'].includes(lang)) {
       console.warn(`Invalid language code: ${lang}`);
       return;
     }
     
-    setLanguageState(lang);
-    saveLanguage(lang);
-    updateHTMLAttributes(lang);
+    // Set manual override
+    setManualLanguage(lang);
     
-    // Set override flag and update user profile
+    // Update language
+    setResolvedLanguage(lang);
+    
+    // Update user profile if available
     try {
-      let userProfile = null;
-      try {
-        const { supabase, supabaseHelpers } = await import('@/api/supabaseClient');
-        const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-        const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        userProfile = profile;
-      } catch (error) {
-        // User might not be logged in
-      }
+      const { supabase } = await import('@/api/supabaseClient');
+      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
+      const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      await setLanguageWithOverride(lang, { userProfile });
+      if (profile?.id) {
+        await supabase
+          .from('profiles')
+          .update({ 
+            language: lang,
+            preferred_language: lang 
+          })
+          .eq('id', profile.id);
+      }
     } catch (error) {
-      console.warn('Failed to set language override:', error);
-      // Continue anyway - language is already set
+      // Silently fail - localStorage update is sufficient
     }
   };
 
@@ -165,9 +202,9 @@ export function useLanguage() {
     return {
       language: 'en',
       setLanguage: () => {},
-      t: (key) => key
+      t: (key) => key,
+      isInitialized: false
     };
   }
   return context;
 }
-
