@@ -39,6 +39,15 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
   const [buyersLooking, setBuyersLooking] = useState(0);
   const navigate = useNavigate();
 
+  // Helper functions to determine which data to load
+  const shouldLoadBuyerData = (role, view) => {
+    return role === 'buyer' || (role === 'hybrid' && (view === 'all' || view === 'buyer'));
+  };
+
+  const shouldLoadSellerData = (role, view) => {
+    return role === 'seller' || (role === 'hybrid' && (view === 'all' || view === 'seller'));
+  };
+
   const getDefaultKPIs = (role) => {
     // v2.5: Brand-consistent colors
     return [
