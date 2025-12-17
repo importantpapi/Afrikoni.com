@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getCurrentLanguage, setCurrentLanguage as saveLanguage, t } from './translations';
-import { initializeLanguage, setLanguageWithOverride } from './languageDetection';
+import { initializeLanguage, setLanguageWithOverride, hasLanguageOverride } from './languageDetection';
+import { getLanguageForCountry } from './countryLanguageMap.js';
 
 const LanguageContext = createContext();
 
@@ -22,6 +23,7 @@ export function LanguageProvider({ children }) {
     }
   };
 
+  // Initialize language on mount and react to country changes
   useEffect(() => {
     // Initialize language on mount with auto-detection
     const initLanguage = async () => {
@@ -65,6 +67,57 @@ export function LanguageProvider({ children }) {
     
     initLanguage();
   }, []);
+
+  // Listen for country changes and update language automatically
+  useEffect(() => {
+    if (!isInitialized) return; // Wait for initial load
+    
+    const handleStorageChange = (e) => {
+      // Only react to country changes, not language changes (to avoid loops)
+      if (e.key === 'afrikoni_detected_country' && e.newValue) {
+        // Check if user has manually overridden language
+        if (hasLanguageOverride()) {
+          return; // Don't auto-update if user has manually set language
+        }
+        
+        // Get language for new country
+        const newLang = getLanguageForCountry(e.newValue);
+        
+        if (newLang && newLang !== language) {
+          setLanguageState(newLang);
+          saveLanguage(newLang);
+          updateHTMLAttributes(newLang);
+        }
+      }
+    };
+    
+    // Listen for localStorage changes (from other tabs/windows)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events (from same tab)
+    const handleCountryChange = (e) => {
+      if (e.detail?.countryCode) {
+        if (hasLanguageOverride()) {
+          return;
+        }
+        
+        const newLang = getLanguageForCountry(e.detail.countryCode);
+        
+        if (newLang && newLang !== language) {
+          setLanguageState(newLang);
+          saveLanguage(newLang);
+          updateHTMLAttributes(newLang);
+        }
+      }
+    };
+    
+    window.addEventListener('afrikoni:countryChanged', handleCountryChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('afrikoni:countryChanged', handleCountryChange);
+    };
+  }, [isInitialized, language]);
 
   const setLanguage = async (lang) => {
     // Validate language

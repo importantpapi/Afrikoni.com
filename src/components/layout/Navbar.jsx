@@ -364,6 +364,11 @@ export default function Navbar({ user, onLogout }) {
       }
     }
     
+    // Dispatch custom event to notify LanguageContext of country change
+    window.dispatchEvent(new CustomEvent('afrikoni:countryChanged', {
+      detail: { countryCode }
+    }));
+    
     setCountryOpen(false);
   };
 
