@@ -1642,9 +1642,8 @@ export default function Marketplace() {
                   size="sm"
                   variant="secondary"
                   className="bg-white border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold"
-                    loading={aiBestMatchLoading}
-                    variant="secondary"
-                    onClick={async () => {
+                  loading={aiBestMatchLoading}
+                  onClick={async () => {
                     setAiBestMatch(null);
                     if (!Array.isArray(filteredProducts) || filteredProducts.length === 0) return;
                     setAiBestMatchLoading(true);
