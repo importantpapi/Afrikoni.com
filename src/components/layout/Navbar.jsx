@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
 import NotificationBell from '@/components/notificationbell';
 import { createPageUrl } from '@/utils';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
@@ -73,7 +73,8 @@ const ALL_COUNTRIES = Object.keys(COUNTRY_NAMES).filter(key => key !== 'DEFAULT'
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
-  const { language, setLanguage, t } = useLanguage();
+  const { i18n } = useTranslation();
+  const language = i18n.language;
   const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
   const [megaOpen, setMegaOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
@@ -172,8 +173,8 @@ export default function Navbar({ user, onLogout }) {
           setDetectedCountry(savedCountry);
           setSelectedCurrency(savedCurrency);
           setContextCurrency(savedCurrency); // Sync with context
-          if (savedLanguage !== language) {
-            setLanguage(savedLanguage);
+          if (savedLanguage && savedLanguage !== language) {
+            i18n.changeLanguage(savedLanguage);
           }
         } else {
           // Auto-detect
@@ -181,8 +182,8 @@ export default function Navbar({ user, onLogout }) {
           setDetectedCountry(preferences.countryCode);
           setSelectedCurrency(preferences.currency);
           setContextCurrency(preferences.currency); // Sync with context
-          if (preferences.language !== language) {
-            setLanguage(preferences.language);
+          if (preferences.language && preferences.language !== language) {
+            i18n.changeLanguage(preferences.language);
           }
           
           // Save to localStorage
@@ -297,8 +298,7 @@ export default function Navbar({ user, onLogout }) {
   };
 
   const handleLanguageChange = (langCode) => {
-    setLanguage(langCode);
-    localStorage.setItem('afrikoni_selected_language', langCode);
+    i18n.changeLanguage(langCode);
     setSettingsOpen(false);
   };
 
@@ -332,8 +332,7 @@ export default function Navbar({ user, onLogout }) {
     // Auto-update language based on country (optional)
     const newLanguage = getLanguageForCountry(countryCode);
     if (newLanguage && newLanguage !== language) {
-      setLanguage(newLanguage);
-      localStorage.setItem('afrikoni_selected_language', newLanguage);
+      i18n.changeLanguage(newLanguage);
     }
     
     setCountryOpen(false);

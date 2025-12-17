@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { initSentry } from './utils/sentry';
 import { initGA4 } from './utils/analytics';
 import { trackPageLoad } from './utils/performance';
+import './i18n';
 import './index.css';
 
 // Initialize error tracking and analytics

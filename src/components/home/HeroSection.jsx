@@ -5,7 +5,7 @@ import { Search, X, CheckCircle, Users, Globe, Shield, Lock, TrendingUp, ArrowRi
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/components/ui/Logo';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/api/supabaseClient';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
@@ -82,7 +82,7 @@ function SocialProofSection() {
       )}
       <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
         <Globe className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-        <span className="font-medium">Active across 54 African countries</span>
+        <span className="font-medium">{t('active_54')}</span>
       </div>
       {stats.activeBusinesses > 0 && (
         <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
@@ -98,7 +98,7 @@ function SocialProofSection() {
 }
 
 export default function HeroSection({ categories = [] }) {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -230,7 +230,7 @@ export default function HeroSection({ categories = [] }) {
             <Card className="border border-afrikoni-gold/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-lg opacity-70">
               <CardContent className="p-4 space-y-2">
                 <h3 className="text-xs font-semibold text-afrikoni-gold/80 mb-2 uppercase tracking-wide">
-                  Quick Access
+                  {t('quick_access')}
                 </h3>
                 <motion.button
                   whileHover={{ x: 2 }}
@@ -239,7 +239,7 @@ export default function HeroSection({ categories = [] }) {
                 >
                   <ShoppingBag className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-afrikoni-cream/80">Buy / Source Products</p>
+                    <p className="text-xs font-medium text-afrikoni-cream/80">{t('buy_source')}</p>
                   </div>
                   <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
@@ -250,7 +250,7 @@ export default function HeroSection({ categories = [] }) {
                 >
                   <Store className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-afrikoni-cream/80">Sell Products</p>
+                    <p className="text-xs font-medium text-afrikoni-cream/80">{t('sell_products')}</p>
                   </div>
                   <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
@@ -261,7 +261,7 @@ export default function HeroSection({ categories = [] }) {
                 >
                   <Truck className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-afrikoni-cream/80">Ship Goods</p>
+                    <p className="text-xs font-medium text-afrikoni-cream/80">{t('ship_goods')}</p>
                   </div>
                   <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
@@ -279,10 +279,10 @@ export default function HeroSection({ categories = [] }) {
             className="mb-6"
           >
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-gold mb-4 leading-tight tracking-tight">
-              Trade. Trust. Thrive.
+              {t('trade_trust_thrive')}
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream/95 font-medium mb-6 max-w-3xl mx-auto leading-relaxed">
-              A Pan-African B2B marketplace where verified African suppliers, buyers, and logistics partners build, trade, and scale safely across 54 countries.
+              {t('hero_subtitle')}
             </p>
           </motion.div>
 
@@ -361,7 +361,7 @@ export default function HeroSection({ categories = [] }) {
                   <input
                 id="hero-search-input"
                     type="text"
-                    placeholder="Search verified products, suppliers, or post an RFQ…"
+                    placeholder={t('search_placeholder')}
                 value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);

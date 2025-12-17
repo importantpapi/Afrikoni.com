@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MapPin, Package, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -87,6 +88,7 @@ const popularCategories = [
 ];
 
 export default function ExploreAfricanSupply() {
+  const { t } = useTranslation();
   const { currency, formatPrice } = useCurrency();
   const [countryScrollPosition, setCountryScrollPosition] = useState(0);
   const [categoryProducts, setCategoryProducts] = useState({});
@@ -213,10 +215,10 @@ export default function ExploreAfricanSupply() {
           className="text-center mb-8 md:mb-12"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
-            Explore African Supply
+            {t('explore_supply')}
           </h2>
           <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto mb-8">
-            Browse verified products by category and country, or fast‑track sourcing with a protected RFQ when you need suppliers to come to you.
+            {t('explore_supply_subtitle')}
           </p>
         </motion.div>
 
@@ -231,11 +233,11 @@ export default function ExploreAfricanSupply() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
               <MapPin className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold" />
-              Source by Country
+              {t('source_by_country')}
             </h3>
             <Link to="/countries">
               <Button variant="outline" size="sm" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10">
-                View All Countries
+                {t('view_all_countries')}
               </Button>
             </Link>
           </div>
@@ -309,7 +311,7 @@ export default function ExploreAfricanSupply() {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
               <Package className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold" />
-              Popular Categories
+              {t('popular_categories')}
             </h3>
           </div>
 
