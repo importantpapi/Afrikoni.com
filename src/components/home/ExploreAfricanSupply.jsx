@@ -241,10 +241,10 @@ export default function ExploreAfricanSupply() {
           </div>
           
           {/* Country Slider */}
-          <div className="relative">
+          <div className="relative flex items-center">
             <div
               ref={countryScrollRef}
-              className="flex gap-3 overflow-x-auto scrollbar-hide pb-4"
+              className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 flex-1"
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
