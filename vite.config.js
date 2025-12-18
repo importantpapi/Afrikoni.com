@@ -13,14 +13,18 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunks
+          // CRITICAL: Bundle ALL React-related libs together to prevent load order issues
           if (id.includes('node_modules')) {
-            // Keep React core together to prevent load order issues
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('react-i18next') || id.includes('i18next')) {
+            // Bundle React + ALL React-dependent libraries together
+            if (id.includes('react') || 
+                id.includes('react-dom') || 
+                id.includes('react-router') || 
+                id.includes('react-i18next') || 
+                id.includes('i18next') ||
+                id.includes('framer-motion') ||
+                id.includes('@radix-ui') ||
+                id.includes('lucide-react')) {
               return 'vendor-react';
-            }
-            if (id.includes('framer-motion') || id.includes('lucide-react') || id.includes('@radix-ui')) {
-              return 'vendor-ui';
             }
             if (id.includes('recharts')) {
               return 'vendor-charts';
@@ -28,10 +32,7 @@ export default defineConfig({
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
-            if (id.includes('date-fns') || id.includes('sonner')) {
-              return 'vendor-utils';
-            }
-            // Other node_modules
+            // Everything else
             return 'vendor-other';
           }
           
@@ -55,8 +56,8 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 800, // Increased for dashboard chunk (acceptable for admin features)
-    minify: 'esbuild', // Faster than terser, already included
+    chunkSizeWarningLimit: 1000,
+    minify: 'esbuild',
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
