@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
@@ -11,7 +11,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import {
   ShoppingCart, FileText, Package, MessageSquare, Wallet, Truck,
   Users, Plus, TrendingUp, ArrowRight, Clock, CheckCircle, XCircle, Building2,
-  Shield, AlertTriangle, GraduationCap, HelpCircle
+  Shield, AlertTriangle, GraduationCap, HelpCircle, RefreshCw
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { format, subDays } from 'date-fns';
@@ -21,6 +21,7 @@ import { getActivityMetrics, getSearchAppearanceCount } from '@/services/activit
 import { toast } from 'sonner';
 import { getUserDisplayName } from '@/utils/userHelpers';
 import { useTranslation } from 'react-i18next';
+import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
 
 export default function DashboardHome({ currentRole = 'buyer', activeView = 'all' }) {
   const { t } = useTranslation();
@@ -202,6 +203,36 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
       isMounted = false;
     };
   }, [currentRole, navigate]);
+
+  // Real-time data updates
+  const handleRealTimeUpdate = useCallback((payload) => {
+    console.log('[Dashboard] Real-time update:', payload.table, payload.event);
+    
+    // Reload specific data based on what changed
+    if (payload.table === 'orders') {
+      loadKPIs(currentRole, companyId);
+      loadChartData(currentRole, companyId);
+      loadRecentOrders(companyId);
+    } else if (payload.table === 'rfqs') {
+      loadKPIs(currentRole, companyId);
+      loadChartData(currentRole, companyId);
+      loadRecentRFQs(companyId);
+    } else if (payload.table === 'products') {
+      loadKPIs(currentRole, companyId);
+    } else if (payload.table === 'notifications') {
+      // Notification bell will handle its own updates
+    } else if (payload.table === 'messages') {
+      loadKPIs(currentRole, companyId);
+      loadRecentMessages(companyId);
+    }
+  }, [currentRole, companyId]);
+
+  // Subscribe to real-time updates
+  const { subscriptions } = useRealTimeDashboardData(
+    companyId,
+    user?.id,
+    handleRealTimeUpdate
+  );
 
   const AcademyLesson = ({ title, description, link }) => (
     <Link to={link} className="block h-full">
