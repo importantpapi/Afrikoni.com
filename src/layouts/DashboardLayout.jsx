@@ -16,7 +16,6 @@ import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { Logo } from '@/components/ui/Logo';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { useLanguage } from '@/i18n/LanguageContext';
 import { isAdmin } from '@/utils/permissions';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import { DashboardContextProvider } from '@/contexts/DashboardContext';
@@ -34,7 +33,6 @@ import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
-  const { t } = useLanguage();
   const { refreshRole } = useRole();
   const { role: dashboardRole } = useDashboardRole();
   const [sidebarOpen, setSidebarOpen] = useState(true);
