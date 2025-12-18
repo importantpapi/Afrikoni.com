@@ -10,7 +10,7 @@ const Badge = React.forwardRef(({ className, variant = 'default', ...props }, re
     warning: 'bg-yellow-100 text-yellow-700 border-yellow-200',
     info: 'bg-blue-100 text-blue-700 border-blue-200',
     neutral: 'bg-afrikoni-cream text-afrikoni-deep border-afrikoni-gold/20',
-    verified: 'bg-green-600 text-afrikoni-creamborder-green-700',
+    verified: 'bg-green-600 text-afrikoni-cream border-green-700',
     premium: 'bg-afrikoni-gold text-afrikoni-chestnut border-afrikoni-goldDark',
     danger: 'bg-red-100 text-red-700 border-red-200'
   };
