@@ -693,13 +693,13 @@ function App() {
             <Route path="/logistics-hub/:country?" element={<LogisticsHubPage />} />
             <Route path="/logistics-hub" element={<LogisticsHubPage />} />
             <Route path="/dashboard/test-emails" element={<ProtectedRoute><DashboardRoleProvider><TestEmails /></DashboardRoleProvider></ProtectedRoute>} />
-            {/* Risk & Compliance Routes */}
-            <Route path="/dashboard/risk" element={<ProtectedRoute><DashboardRoleProvider><RiskManagement /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/compliance" element={<ProtectedRoute><DashboardRoleProvider><ComplianceCenter /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/kyc" element={<ProtectedRoute><DashboardRoleProvider><KYCTracker /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/anticorruption" element={<ProtectedRoute><DashboardRoleProvider><AntiCorruption /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/crisis" element={<ProtectedRoute><DashboardRoleProvider><CrisisManagement /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/audit" element={<ProtectedRoute><DashboardRoleProvider><AuditLogs /></DashboardRoleProvider></ProtectedRoute>} />
+            {/* Risk & Compliance Routes - ADMIN ONLY */}
+            <Route path="/dashboard/risk" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><RiskManagement /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/compliance" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><ComplianceCenter /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/kyc" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><KYCTracker /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/anticorruption" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AntiCorruption /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/crisis" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><CrisisManagement /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/audit" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AuditLogs /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/financing" element={<TradeFinancing />} />
             <Route path="/ai-matchmaking" element={<AIMatchmaking />} />

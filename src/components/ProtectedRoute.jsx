@@ -1,20 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { requireAuth, requireOnboarding } from '@/utils/authHelpers';
+import { requireAuth, requireOnboarding, getCurrentUserAndRole } from '@/utils/authHelpers';
+import { isAdmin } from '@/utils/permissions';
+import AccessDenied from './AccessDenied';
 
-export default function ProtectedRoute({ children, requireOnboarding: needsOnboarding = false }) {
+export default function ProtectedRoute({ 
+  children, 
+  requireOnboarding: needsOnboarding = false,
+  requireAdmin: needsAdmin = false 
+}) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
-    // We intentionally only depend on needsOnboarding here; Supabase clients are stable singletons.
-  }, [needsOnboarding]);
+    // We intentionally only depend on needsOnboarding and needsAdmin here; Supabase clients are stable singletons.
+  }, [needsOnboarding, needsAdmin]);
 
   const checkAuth = async () => {
     try {
+      // Check if admin access is required
+      if (needsAdmin) {
+        const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        if (!userData) {
+          navigate('/login');
+          return;
+        }
+
+        const hasAdminAccess = isAdmin(userData);
+        if (!hasAdminAccess) {
+          console.warn('❌ Access denied: Admin-only page');
+          setAccessDenied(true);
+          setIsLoading(false);
+          return;
+        }
+
+        setIsAuthorized(true);
+        setIsLoading(false);
+        return;
+      }
+
       if (needsOnboarding) {
         // Require both auth and onboarding
         const result = await requireOnboarding(supabase, supabaseHelpers);
@@ -59,6 +87,10 @@ export default function ProtectedRoute({ children, requireOnboarding: needsOnboa
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
     );
+  }
+
+  if (accessDenied) {
+    return <AccessDenied />;
   }
 
   if (!isAuthorized) {
