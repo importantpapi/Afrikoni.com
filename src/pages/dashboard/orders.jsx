@@ -24,12 +24,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function DashboardOrdersInner() {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentRole, setCurrentRole] = useState('buyer');
