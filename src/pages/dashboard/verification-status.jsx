@@ -8,11 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabase';
-import { getCurrentUserAndRole, getOrCreateCompany } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { toast } from 'sonner';
-import LoadingState from '@/components/LoadingState';
-import ErrorState from '@/components/ErrorState';
+// import LoadingState from '@/components/LoadingState'; // Component doesn't exist
+// import ErrorState from '@/components/ErrorState'; // Component doesn't exist
 
 /**
  * Supplier Verification Status Dashboard
@@ -78,7 +78,7 @@ export default function VerificationStatus() {
   const loadVerificationStatus = async () => {
     try {
       const { user } = await getCurrentUserAndRole(supabase);
-      const companyId = await getOrCreateCompany(supabase, user);
+      const companyId = user?.user_metadata?.company_id || user?.company_id;
 
       // Load company data
       const { data: companyData, error: companyError } = await supabase
@@ -172,7 +172,13 @@ export default function VerificationStatus() {
   const StatusIcon = status.icon;
 
   if (loading) {
-    return <LoadingState message="Loading verification status..." />;
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
