@@ -171,13 +171,23 @@ export default function FounderControlPanel() {
   };
 
   const loadCommissions = async () => {
-    const result = await getCommissionSummary(supabase, timeframe);
-    if (result.success) {
-      setCommissionData(result.summary);
+    try {
+      const result = await getCommissionSummary(supabase, timeframe);
+      if (result.success) {
+        setCommissionData(result.summary);
+        setMetrics(prev => ({
+          ...prev,
+          revenue: result.summary.earned.value,
+          pendingRevenue: result.summary.pending.value
+        }));
+      }
+    } catch (error) {
+      // Commission table doesn't exist yet - skip for now
+      console.log('Commission tracking not yet set up');
       setMetrics(prev => ({
         ...prev,
-        revenue: result.summary.earned.value,
-        pendingRevenue: result.summary.pending.value
+        revenue: 0,
+        pendingRevenue: 0
       }));
     }
   };
