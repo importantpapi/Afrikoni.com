@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import CookieSettingsModal from '@/components/ui/CookieSettingsModal';
 
 const AFRICAN_COUNTRIES = [
@@ -28,7 +28,7 @@ const AFRICAN_COUNTRIES = [
 ];
 
 export default function DashboardSettings() {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [currentRole, setCurrentRole] = useState('buyer');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

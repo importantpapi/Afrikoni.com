@@ -28,10 +28,10 @@ import KoniAILogo from '@/components/koni/KoniAILogo';
 import KoniAIBadge from '@/components/koni/KoniAIBadge';
 import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
 import KoniAIHero from '@/components/koni/KoniAIHero';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 export default function KoniAIHub() {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);

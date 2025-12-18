@@ -18,7 +18,7 @@ import { FileText, Search, Plus, MessageSquare, Calendar, DollarSign, Package, T
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLanguage } from '@/i18n/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 import VerificationUpsell from '@/components/upsell/VerificationUpsell';
 import { getCompanySubscription } from '@/services/subscriptionService';
@@ -35,7 +35,7 @@ const AFRICAN_COUNTRIES = [
 ];
 
 function DashboardRFQsInner() {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [rfqs, setRfqs] = useState([]);
   const [quotes, setQuotes] = useState([]);
   const [categories, setCategories] = useState([]);
