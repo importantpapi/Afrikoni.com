@@ -4,13 +4,14 @@
  * anti-corruption, KYC/AML, and operational risk management across 54 African countries
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Shield, AlertTriangle, TrendingUp, TrendingDown, FileCheck, Lock,
   Truck, DollarSign, Clock, CheckCircle, XCircle, AlertCircle,
-  ArrowRight, Filter, Search, Eye, ExternalLink
+  ArrowRight, Filter, Search, Eye, ExternalLink, RefreshCw, UserPlus,
+  Users, Bell
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,8 @@ import { isAdmin } from '@/utils/permissions';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import AccessDenied from '@/components/AccessDenied';
+import { useRealTimeSubscription } from '@/hooks/useRealTimeData';
+import { toast } from 'sonner';
 
 export default function RiskManagementDashboard() {
   // All hooks must be at the top - before any conditional returns
@@ -66,6 +69,9 @@ export default function RiskManagementDashboard() {
   });
   const [riskScoreHistory, setRiskScoreHistory] = useState([]);
   const [complianceByHub, setComplianceByHub] = useState([]);
+  const [newRegistrations, setNewRegistrations] = useState([]);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
     checkAccess();
@@ -74,8 +80,23 @@ export default function RiskManagementDashboard() {
   useEffect(() => {
     if (hasAccess) {
       loadRiskData();
+      loadNewRegistrations();
     }
   }, [hasAccess]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!hasAccess || !autoRefresh) return;
+
+    const interval = setInterval(() => {
+      console.log('[Risk Dashboard] Auto-refreshing data...');
+      loadRiskData();
+      loadNewRegistrations();
+      setLastRefresh(new Date());
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [hasAccess, autoRefresh]);
 
   const checkAccess = async () => {
     try {
@@ -101,6 +122,91 @@ export default function RiskManagementDashboard() {
       setLoading(false);
     }
   };
+
+  // Load new user registrations (last 24 hours)
+  const loadNewRegistrations = async () => {
+    try {
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+      // Get new users from auth.users (metadata)
+      const { data: recentUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('*, companies!inner(company_name, country, verification_status)')
+        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (usersError) throw usersError;
+
+      const registrations = (recentUsers || []).map(user => ({
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name || 'Unknown',
+        companyName: user.companies?.company_name || 'No company',
+        country: user.companies?.country || 'Unknown',
+        verificationStatus: user.companies?.verification_status || 'pending',
+        createdAt: user.created_at,
+        role: user.role || 'buyer'
+      }));
+
+      setNewRegistrations(registrations);
+
+      // If there are new registrations, show a summary notification
+      if (registrations.length > 0) {
+        console.log(`[Risk Dashboard] ${registrations.length} new registrations in last 24h`);
+      }
+
+    } catch (error) {
+      console.error('Error loading new registrations:', error);
+      setNewRegistrations([]);
+    }
+  };
+
+  // Real-time handler for new user registrations
+  const handleNewRegistration = useCallback((payload) => {
+    console.log('[Risk Dashboard] New user registered!', payload);
+    
+    // Show instant notification
+    toast.success('New User Registration', {
+      description: `A new user just registered on the platform.`,
+      action: {
+        label: 'View',
+        onClick: () => window.location.href = '/dashboard/admin/users'
+      },
+      duration: 10000 // Show for 10 seconds
+    });
+
+    // Reload registrations
+    loadNewRegistrations();
+  }, []);
+
+  // Real-time handler for risk changes
+  const handleRiskDataChange = useCallback((payload) => {
+    console.log('[Risk Dashboard] Risk data changed:', payload.table, payload.eventType);
+    
+    // Show alert for critical events
+    if (payload.table === 'disputes' && payload.eventType === 'INSERT') {
+      toast.error('New Dispute Created', {
+        description: 'A new dispute has been created and requires attention.',
+        duration: 10000
+      });
+    } else if (payload.table === 'audit_log' && payload.data?.new?.risk_level === 'critical') {
+      toast.error('Critical Risk Alert', {
+        description: `${payload.data?.new?.action || 'Critical event'} detected`,
+        duration: 10000
+      });
+    }
+
+    // Reload risk data
+    loadRiskData();
+  }, []);
+
+  // Subscribe to real-time updates
+  useRealTimeSubscription('profiles', handleNewRegistration, null, [handleNewRegistration]);
+  useRealTimeSubscription('disputes', handleRiskDataChange, null, [handleRiskDataChange]);
+  useRealTimeSubscription('audit_log', handleRiskDataChange, null, [handleRiskDataChange]);
+  useRealTimeSubscription('shipments', handleRiskDataChange, null, [handleRiskDataChange]);
+  useRealTimeSubscription('companies', handleRiskDataChange, null, [handleRiskDataChange]);
 
   const loadRiskData = async () => {
     try {
@@ -470,20 +576,139 @@ export default function RiskManagementDashboard() {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-              <Shield className="w-6 h-6 text-afrikoni-gold" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                <Shield className="w-6 h-6 text-afrikoni-gold" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">
+                  Afrikoni Shield™
+                </h1>
+                <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+                  Risk Management & Compliance Command Center
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">
-                Afrikoni Shield™
-              </h1>
-              <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
-                Risk Management & Compliance Command Center
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-xs text-afrikoni-text-dark/60">Last updated</div>
+                <div className="text-sm font-medium text-afrikoni-text-dark">
+                  {lastRefresh.toLocaleTimeString()}
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  loadRiskData();
+                  loadNewRegistrations();
+                  setLastRefresh(new Date());
+                  toast.success('Data refreshed');
+                }}
+                className="border-afrikoni-gold/30 hover:bg-afrikoni-gold/10"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button
+                variant={autoRefresh ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={autoRefresh ? 'bg-afrikoni-gold hover:bg-afrikoni-gold/90' : 'border-afrikoni-gold/30'}
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                {autoRefresh ? 'Live' : 'Paused'}
+              </Button>
             </div>
           </div>
         </motion.div>
+
+        {/* New Registrations Alert (Last 24h) */}
+        {newRegistrations.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mb-6"
+          >
+            <Card className="border-afrikoni-gold/40 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-gold/5 rounded-afrikoni-lg shadow-premium">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-afrikoni-gold/30 rounded-full flex items-center justify-center">
+                    <UserPlus className="w-6 h-6 text-afrikoni-gold" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-afrikoni-text-dark">
+                      New User Registrations (Last 24h)
+                    </h3>
+                    <p className="text-sm text-afrikoni-text-dark/70">
+                      {newRegistrations.length} new {newRegistrations.length === 1 ? 'user' : 'users'} registered in the last 24 hours
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {newRegistrations.map((reg) => (
+                    <div
+                      key={reg.id}
+                      className="p-4 bg-white border border-afrikoni-gold/20 rounded-lg hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <Users className="w-5 h-5 text-afrikoni-gold" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-afrikoni-text-dark">{reg.fullName}</h4>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {reg.role}
+                              </Badge>
+                              <Badge
+                                className={`text-xs ${
+                                  reg.verificationStatus === 'verified'
+                                    ? 'bg-green-50 text-green-700 border-green-200'
+                                    : reg.verificationStatus === 'pending'
+                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                                }`}
+                              >
+                                {reg.verificationStatus}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-afrikoni-text-dark/70 mb-1">{reg.email}</p>
+                            <div className="flex items-center gap-3 text-xs text-afrikoni-text-dark/60">
+                              <span>{reg.companyName}</span>
+                              <span>•</span>
+                              <span>{reg.country}</span>
+                              <span>•</span>
+                              <span>{new Date(reg.createdAt).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Link to={`/dashboard/admin/users`}>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {newRegistrations.length > 5 && (
+                  <div className="mt-4 text-center">
+                    <Link to="/dashboard/admin/users">
+                      <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold">
+                        View All Users
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Section A: Real-Time Risk Overview KPIs */}
         <motion.div
