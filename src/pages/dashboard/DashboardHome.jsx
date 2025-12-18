@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { format, subDays } from 'date-fns';
-import { useLanguage } from '@/i18n/LanguageContext';
 import { StatCardSkeleton, CardSkeleton } from '@/components/ui/skeletons';
 import OnboardingProgressTracker from '@/components/dashboard/OnboardingProgressTracker';
 import { getActivityMetrics, getSearchAppearanceCount } from '@/services/activityTracking';
@@ -23,7 +22,8 @@ import { toast } from 'sonner';
 import { getUserDisplayName } from '@/utils/userHelpers';
 
 export default function DashboardHome({ currentRole = 'buyer', activeView = 'all' }) {
-  const { t } = useLanguage();
+  // Simple fallback for translation - always return empty string to use fallbacks
+  const t = () => '';
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
