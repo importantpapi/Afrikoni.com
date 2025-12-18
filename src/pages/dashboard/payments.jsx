@@ -53,25 +53,34 @@ function PaymentsDashboardInner() {
       setCompanyId(userCompanyId);
       setUserRole(role);
 
-      // Load wallet account
-      let walletAccount = await getWalletAccount(userCompanyId);
-      if (!walletAccount) {
-        // Create wallet if it doesn't exist
-        const { createWalletAccount } = await import('@/lib/supabaseQueries/payments');
-        walletAccount = await createWalletAccount(userCompanyId);
+      // Try to load payment data - tables may not exist yet
+      try {
+        // Load wallet account
+        let walletAccount = await getWalletAccount(userCompanyId);
+        if (!walletAccount) {
+          // Create wallet if it doesn't exist
+          const { createWalletAccount } = await import('@/lib/supabaseQueries/payments');
+          walletAccount = await createWalletAccount(userCompanyId);
+        }
+        setWallet(walletAccount);
+
+        // Load transactions
+        const txs = await getWalletTransactions(userCompanyId, { limit: 50 });
+        setTransactions(txs);
+
+        // Load escrow payments
+        const escrows = await getEscrowPaymentsByCompany(userCompanyId, role);
+        setEscrowPayments(escrows);
+      } catch (dataError) {
+        console.log('Payment tables not yet set up:', dataError.message);
+        // Set empty data - feature not yet available
+        setWallet(null);
+        setTransactions([]);
+        setEscrowPayments([]);
       }
-      setWallet(walletAccount);
-
-      // Load transactions
-      const txs = await getWalletTransactions(userCompanyId, { limit: 50 });
-      setTransactions(txs);
-
-      // Load escrow payments
-      const escrows = await getEscrowPaymentsByCompany(userCompanyId, role);
-      setEscrowPayments(escrows);
     } catch (error) {
       console.error('Error loading payments data:', error);
-      toast.error('Failed to load payments data');
+      navigate('/dashboard');
     } finally {
       setIsLoading(false);
     }

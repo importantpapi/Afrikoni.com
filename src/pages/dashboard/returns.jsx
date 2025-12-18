@@ -46,12 +46,19 @@ function ReturnsDashboardInner() {
       setCompanyId(userCompanyId);
       setUserRole(role);
 
-      const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
-      const returnsList = await getReturns(userCompanyId, role, filters);
-      setReturns(returnsList);
+      // Try to load returns - table may not exist yet
+      try {
+        const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
+        const returnsList = await getReturns(userCompanyId, role, filters);
+        setReturns(returnsList);
+      } catch (dataError) {
+        console.log('Returns table not yet set up:', dataError.message);
+        // Set empty data - feature not yet available
+        setReturns([]);
+      }
     } catch (error) {
       console.error('Error loading returns:', error);
-      toast.error('Failed to load returns');
+      navigate('/dashboard');
     } finally {
       setIsLoading(false);
     }

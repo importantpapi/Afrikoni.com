@@ -46,12 +46,19 @@ export default function InvoicesDashboard() {
       setCompanyId(userCompanyId);
       setUserRole(role);
 
-      const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
-      const invoiceList = await getInvoices(userCompanyId, role, filters);
-      setInvoices(invoiceList);
+      // Try to load invoices - table may not exist yet
+      try {
+        const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
+        const invoiceList = await getInvoices(userCompanyId, role, filters);
+        setInvoices(invoiceList);
+      } catch (dataError) {
+        console.log('Invoices table not yet set up:', dataError.message);
+        // Set empty data - feature not yet available
+        setInvoices([]);
+      }
     } catch (error) {
       console.error('Error loading invoices:', error);
-      toast.error('Failed to load invoices');
+      navigate('/dashboard');
     } finally {
       setIsLoading(false);
     }
