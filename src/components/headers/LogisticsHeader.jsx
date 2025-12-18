@@ -69,10 +69,9 @@ export default function LogisticsHeader({
           </div>
         </div>
 
-        {/* Utilities */}
+        {/* Utilities — Messages + Notifications + Menu Toggle */}
         <div className="flex items-center gap-4 overflow-visible">
-          <NotificationBell />
-          
+          {/* Messages */}
           <Link
             to="/messages"
             className="flex items-center justify-center w-10 h-10
@@ -84,6 +83,23 @@ export default function LogisticsHeader({
                            bg-afrikoni-gold rounded-full border-2
                            border-afrikoni-ivory"></span>
           </Link>
+
+          {/* Notifications */}
+          <NotificationBell />
+
+          {/* Menu Toggle (Mobile) */}
+          <button
+            onClick={() => setSidebarOpen?.(true)}
+            className="lg:hidden inline-flex items-center justify-center
+                       w-10 h-10 rounded-lg
+                       text-afrikoni-charcoal
+                       hover:bg-afrikoni-gold/10
+                       focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/30
+                       transition-colors"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Identity (User Menu handled by DashboardLayout) */}

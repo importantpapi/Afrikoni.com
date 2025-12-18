@@ -27,20 +27,8 @@ export default function HybridHeader({
 
   return (
     <HeaderShell>
-      {/* LEFT — Sidebar Toggle + Search */}
-      <div className="flex flex-1 items-center gap-3">
-        {/* Sidebar Toggle */}
-        <button
-          onClick={() => setSidebarOpen?.(true)}
-          className="lg:hidden inline-flex items-center justify-center
-                     rounded-md p-2 text-afrikoni-charcoal
-                     hover:bg-afrikoni-gold/10
-                     focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/30"
-          aria-label="Open menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
+      {/* LEFT — Search Only */}
+      <div className="flex flex-1 items-center">
         {/* Search Bar */}
         <div className="relative w-full max-w-[520px]">
           <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -111,10 +99,9 @@ export default function HybridHeader({
           </Button>
         </div>
 
-        {/* Utilities */}
+        {/* Utilities — Messages + Notifications + Menu Toggle */}
         <div className="flex items-center gap-4 overflow-visible">
-          <NotificationBell />
-          
+          {/* Messages */}
           <Link
             to="/messages"
             className="flex items-center justify-center w-10 h-10
@@ -126,6 +113,23 @@ export default function HybridHeader({
                            bg-afrikoni-gold rounded-full border-2
                            border-afrikoni-ivory"></span>
           </Link>
+
+          {/* Notifications */}
+          <NotificationBell />
+
+          {/* Menu Toggle (Mobile) */}
+          <button
+            onClick={() => setSidebarOpen?.(true)}
+            className="lg:hidden inline-flex items-center justify-center
+                       w-10 h-10 rounded-lg
+                       text-afrikoni-charcoal
+                       hover:bg-afrikoni-gold/10
+                       focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/30
+                       transition-colors"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Identity (User Menu handled by DashboardLayout) */}
