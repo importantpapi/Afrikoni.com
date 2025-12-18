@@ -27,13 +27,18 @@ export default function HybridHeader({
 
   return (
     <HeaderShell>
-      {/* LEFT — Search */}
-      <div className="flex flex-1 items-center gap-4">
+      {/* LEFT — Sidebar Toggle + Search */}
+      <div className="flex flex-1 items-center gap-3">
+        {/* Sidebar Toggle */}
         <button
-          onClick={() => setSidebarOpen(prev => !prev)}
-          className="md:hidden p-2 rounded-lg hover:bg-afrikoni-sand/20 transition-colors"
+          onClick={() => setSidebarOpen?.(true)}
+          className="lg:hidden inline-flex items-center justify-center
+                     rounded-md p-2 text-afrikoni-charcoal
+                     hover:bg-afrikoni-gold/10
+                     focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/30"
+          aria-label="Open menu"
         >
-          <Menu className="w-5 h-5 text-afrikoni-text-dark" />
+          <Menu className="h-5 w-5" />
         </button>
 
         {/* Search Bar */}

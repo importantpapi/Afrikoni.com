@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, AlertTriangle, Sparkles } from 'lucide-react';
+import { Search, AlertTriangle, Sparkles, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,14 +13,26 @@ import HeaderShell from './HeaderShell';
  */
 export default function AdminHeader({
   t,
+  setSidebarOpen,
   setSearchOpen,
   navigate,
   alertCount = 0,
 }) {
   return (
     <HeaderShell>
-      {/* LEFT — Global Admin Search (flexes naturally) */}
-      <div className="flex flex-1 items-center">
+      {/* LEFT — Sidebar Toggle + Global Admin Search */}
+      <div className="flex flex-1 items-center gap-3">
+        {/* Sidebar Toggle */}
+        <button
+          onClick={() => setSidebarOpen?.(true)}
+          className="lg:hidden inline-flex items-center justify-center
+                     rounded-md p-2 text-afrikoni-charcoal
+                     hover:bg-red-50
+                     focus:outline-none focus:ring-2 focus:ring-red-300"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
         <div className="relative w-full max-w-[520px]">
           <Search className="w-4 h-4 text-red-600 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
