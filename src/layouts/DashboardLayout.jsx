@@ -457,8 +457,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 w-full md:ml-[260px] min-h-screen relative z-10 overflow-visible">
-        {/* Premium Top Bar */}
-        <header className="sticky top-0 z-50 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
+        {/* Premium Top Bar - Full Width, No Centering */}
+        <header className="sticky top-0 z-50 h-16 w-full bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-sm">
           <div className="relative overflow-visible">
             {(() => {
               // Role-based headers: Only show what helps complete the task
@@ -683,7 +683,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         )}
 
         {/* Page Content */}
-        <main className="relative z-10 flex-1 w-full px-2 md:px-3 lg:px-4 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
+        <main className="relative z-10 flex-1 w-full px-6 py-6 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
           {children}
         </main>
       </div>
