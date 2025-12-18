@@ -123,41 +123,135 @@ export default function RiskManagementDashboard() {
     }
   };
 
-  // Load new user registrations (last 24 hours)
+  // Load new user registrations (last 7 days to catch all recent users)
   const loadNewRegistrations = async () => {
     try {
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      // Get new users from auth.users (metadata)
+      console.log('[Risk Dashboard] Loading registrations since:', sevenDaysAgo.toISOString());
+
+      // Get ALL users from profiles (with LEFT join to companies)
       const { data: recentUsers, error: usersError } = await supabase
         .from('profiles')
-        .select('*, companies!inner(company_name, country, verification_status)')
-        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .select(`
+          *,
+          companies:company_id (
+            id,
+            company_name,
+            country,
+            verification_status,
+            created_at
+          )
+        `)
+        .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: false });
 
-      if (usersError) throw usersError;
+      if (usersError) {
+        console.error('Error fetching registrations:', usersError);
+        throw usersError;
+      }
 
-      const registrations = (recentUsers || []).map(user => ({
-        id: user.id,
-        email: user.email,
-        fullName: user.full_name || 'Unknown',
-        companyName: user.companies?.company_name || 'No company',
-        country: user.companies?.country || 'Unknown',
-        verificationStatus: user.companies?.verification_status || 'pending',
-        createdAt: user.created_at,
-        role: user.role || 'buyer'
+      console.log(`[Risk Dashboard] Found ${recentUsers?.length || 0} registrations`);
+
+      // Get user activity (orders, RFQs, products)
+      const registrations = await Promise.all((recentUsers || []).map(async (user) => {
+        // Get user activity counts
+        let orderCount = 0;
+        let rfqCount = 0;
+        let productCount = 0;
+
+        try {
+          if (user.company_id) {
+            // Get orders count
+            const { count: orders } = await supabase
+              .from('orders')
+              .select('*', { count: 'exact', head: true })
+              .or(`buyer_company_id.eq.${user.company_id},seller_company_id.eq.${user.company_id}`);
+            orderCount = orders || 0;
+
+            // Get RFQs count
+            const { count: rfqs } = await supabase
+              .from('rfqs')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', user.company_id);
+            rfqCount = rfqs || 0;
+
+            // Get products count
+            const { count: products } = await supabase
+              .from('products')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', user.company_id);
+            productCount = products || 0;
+          }
+        } catch (activityError) {
+          console.warn('Error fetching user activity:', activityError);
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          fullName: user.full_name || user.email?.split('@')[0] || 'Unknown User',
+          companyId: user.company_id,
+          companyName: user.companies?.company_name || 'No company yet',
+          country: user.companies?.country || 'Not specified',
+          verificationStatus: user.companies?.verification_status || 'unverified',
+          createdAt: user.created_at,
+          role: user.role || 'buyer',
+          // Activity stats
+          orderCount,
+          rfqCount,
+          productCount,
+          totalActivity: orderCount + rfqCount + productCount,
+          // Additional info
+          phone: user.phone || 'N/A',
+          isAdmin: user.is_admin || false
+        };
       }));
+
+      // Sort by creation date (newest first)
+      registrations.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       setNewRegistrations(registrations);
 
-      // If there are new registrations, show a summary notification
-      if (registrations.length > 0) {
-        console.log(`[Risk Dashboard] ${registrations.length} new registrations in last 24h`);
+      console.log(`[Risk Dashboard] Processed ${registrations.length} registrations with activity data`);
+      
+      // Log the specific user if they're in the results
+      const specificUser = registrations.find(r => 
+        r.email === 'binoscientific@gmail.com' || 
+        r.id === '351c7471-fd49-48d5-b53a-368fb31c2360'
+      );
+      
+      if (specificUser) {
+        console.log('✅ Found specific user:', specificUser);
+      } else {
+        console.warn('⚠️ Specific user NOT found in recent registrations');
+        // Try to fetch this specific user directly
+        const { data: directUser } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            companies:company_id (
+              id,
+              company_name,
+              country,
+              verification_status
+            )
+          `)
+          .or('email.eq.binoscientific@gmail.com,id.eq.351c7471-fd49-48d5-b53a-368fb31c2360')
+          .single();
+        
+        if (directUser) {
+          console.log('✅ Found user directly:', directUser);
+          console.log('Created at:', directUser.created_at);
+        }
       }
 
     } catch (error) {
       console.error('Error loading new registrations:', error);
+      toast.error('Failed to load registrations', {
+        description: error.message
+      });
       setNewRegistrations([]);
     }
   };
@@ -624,91 +718,198 @@ export default function RiskManagementDashboard() {
           </div>
         </motion.div>
 
-        {/* New Registrations Alert (Last 24h) */}
-        {newRegistrations.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mb-6"
-          >
-            <Card className="border-afrikoni-gold/40 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-gold/5 rounded-afrikoni-lg shadow-premium">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
+        {/* New Registrations - COMPLETE USER VISIBILITY */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <Card className="border-afrikoni-gold/40 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-gold/5 rounded-afrikoni-lg shadow-premium">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-afrikoni-gold/30 rounded-full flex items-center justify-center">
                     <UserPlus className="w-6 h-6 text-afrikoni-gold" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-afrikoni-text-dark">
-                      New User Registrations (Last 24h)
+                      User Registrations (Last 7 Days)
                     </h3>
                     <p className="text-sm text-afrikoni-text-dark/70">
-                      {newRegistrations.length} new {newRegistrations.length === 1 ? 'user' : 'users'} registered in the last 24 hours
+                      {newRegistrations.length} {newRegistrations.length === 1 ? 'user' : 'users'} registered • Complete activity tracking
                     </p>
                   </div>
                 </div>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {newRegistrations.map((reg) => (
-                    <div
-                      key={reg.id}
-                      className="p-4 bg-white border border-afrikoni-gold/20 rounded-lg hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Users className="w-5 h-5 text-afrikoni-gold" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadNewRegistrations}
+                  className="border-afrikoni-gold/30"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Reload
+                </Button>
+              </div>
+
+              {newRegistrations.length === 0 ? (
+                <div className="text-center py-8 text-afrikoni-text-dark/60">
+                  <Users className="w-12 h-12 mx-auto mb-3 text-afrikoni-gold/40" />
+                  <p>No new registrations in the last 7 days</p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                    {newRegistrations.map((reg) => (
+                      <div
+                        key={reg.id}
+                        className="p-5 bg-white border border-afrikoni-gold/20 rounded-lg hover:shadow-md transition-all hover:border-afrikoni-gold/40"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          {/* User Info */}
+                          <div className="flex items-start gap-4 flex-1">
+                            <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-lg font-bold text-afrikoni-gold">
+                                {reg.fullName.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              {/* Name & Status */}
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <h4 className="font-bold text-afrikoni-text-dark">{reg.fullName}</h4>
+                                <Badge variant="outline" className="text-xs capitalize bg-afrikoni-gold/10">
+                                  {reg.role}
+                                </Badge>
+                                <Badge
+                                  className={`text-xs ${
+                                    reg.verificationStatus === 'verified'
+                                      ? 'bg-green-50 text-green-700 border-green-200'
+                                      : reg.verificationStatus === 'pending'
+                                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                      : 'bg-gray-50 text-gray-700 border-gray-200'
+                                  }`}
+                                >
+                                  {reg.verificationStatus}
+                                </Badge>
+                                {reg.isAdmin && (
+                                  <Badge className="text-xs bg-red-50 text-red-700 border-red-200">
+                                    ADMIN
+                                  </Badge>
+                                )}
+                              </div>
+
+                              {/* Contact & Company */}
+                              <div className="space-y-1 mb-3">
+                                <p className="text-sm text-afrikoni-text-dark/80 font-medium">
+                                  📧 {reg.email}
+                                </p>
+                                <p className="text-sm text-afrikoni-text-dark/70">
+                                  🏢 {reg.companyName}
+                                </p>
+                                <p className="text-sm text-afrikoni-text-dark/70">
+                                  🌍 {reg.country}
+                                </p>
+                                {reg.phone !== 'N/A' && (
+                                  <p className="text-sm text-afrikoni-text-dark/70">
+                                    📱 {reg.phone}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Activity Stats - WHAT THEY DO */}
+                              <div className="bg-afrikoni-ivory/50 rounded-lg p-3 mb-3">
+                                <p className="text-xs font-semibold text-afrikoni-text-dark/70 mb-2 uppercase tracking-wide">
+                                  Activity Summary
+                                </p>
+                                <div className="grid grid-cols-3 gap-3">
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-afrikoni-text-dark">
+                                      {reg.orderCount}
+                                    </div>
+                                    <div className="text-xs text-afrikoni-text-dark/60">Orders</div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-afrikoni-text-dark">
+                                      {reg.rfqCount}
+                                    </div>
+                                    <div className="text-xs text-afrikoni-text-dark/60">RFQs</div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-afrikoni-text-dark">
+                                      {reg.productCount}
+                                    </div>
+                                    <div className="text-xs text-afrikoni-text-dark/60">Products</div>
+                                  </div>
+                                </div>
+                                {reg.totalActivity === 0 && (
+                                  <p className="text-xs text-center text-afrikoni-text-dark/50 mt-2 italic">
+                                    No activity yet
+                                  </p>
+                                )}
+                                {reg.totalActivity > 0 && (
+                                  <p className="text-xs text-center text-afrikoni-gold font-medium mt-2">
+                                    ✓ Active user ({reg.totalActivity} total actions)
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Registration Time */}
+                              <div className="text-xs text-afrikoni-text-dark/50">
+                                📅 Registered: {new Date(reg.createdAt).toLocaleString('en-US', {
+                                  weekday: 'short',
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-afrikoni-text-dark">{reg.fullName}</h4>
-                              <Badge variant="outline" className="text-xs capitalize">
-                                {reg.role}
-                              </Badge>
-                              <Badge
-                                className={`text-xs ${
-                                  reg.verificationStatus === 'verified'
-                                    ? 'bg-green-50 text-green-700 border-green-200'
-                                    : reg.verificationStatus === 'pending'
-                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                    : 'bg-gray-50 text-gray-700 border-gray-200'
-                                }`}
+
+                          {/* Actions */}
+                          <div className="flex flex-col gap-2">
+                            <Link to={`/dashboard/admin/users`}>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="whitespace-nowrap border-afrikoni-gold/30 hover:bg-afrikoni-gold/10"
                               >
-                                {reg.verificationStatus}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-afrikoni-text-dark/70 mb-1">{reg.email}</p>
-                            <div className="flex items-center gap-3 text-xs text-afrikoni-text-dark/60">
-                              <span>{reg.companyName}</span>
-                              <span>•</span>
-                              <span>{reg.country}</span>
-                              <span>•</span>
-                              <span>{new Date(reg.createdAt).toLocaleString()}</span>
-                            </div>
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Profile
+                              </Button>
+                            </Link>
+                            {reg.companyId && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => navigator.clipboard.writeText(reg.id)}
+                                className="whitespace-nowrap text-xs"
+                              >
+                                Copy ID
+                              </Button>
+                            )}
                           </div>
                         </div>
-                        <Link to={`/dashboard/admin/users`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </Link>
                       </div>
-                    </div>
-                  ))}
-                </div>
-                {newRegistrations.length > 5 && (
-                  <div className="mt-4 text-center">
-                    <Link to="/dashboard/admin/users">
-                      <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold">
-                        View All Users
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+
+                  {newRegistrations.length > 10 && (
+                    <div className="mt-4 text-center">
+                      <Link to="/dashboard/admin/users">
+                        <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold">
+                          View All Users in Admin Panel
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Section A: Real-Time Risk Overview KPIs */}
         <motion.div
