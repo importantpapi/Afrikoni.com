@@ -151,7 +151,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     hybrid: buyerNav,
     logistics: logisticsNav,
     admin: [
-      { icon: LayoutDashboard, label: t('dashboard.title'), path: '/dashboard/admin' },
+      { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/admin' },
       { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics' },
       { icon: DollarSign, label: 'Revenue & Finance', path: '/dashboard/admin/revenue' },
       { icon: TrendingUp, label: 'Growth Metrics', path: '/dashboard/admin/growth-metrics' },
@@ -431,14 +431,14 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               className="flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-medium text-afrikoni-sand hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold transition-all"
             >
               <Settings className="w-5 h-5" />
-              <span>{t('dashboard.settings')}</span>
+              <span>Settings</span>
             </Link>
             <Link
               to="/dashboard/help"
               className="flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-medium text-afrikoni-sand hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold transition-all"
             >
               <HelpCircle className="w-5 h-5" />
-              <span>{t('dashboard.help') || 'Help Center'}</span>
+              <span>Help Center</span>
             </Link>
           </div>
 
@@ -557,7 +557,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <LayoutDashboard className="w-4 h-4" />
-                            {t('dashboard.title') || 'Dashboard'}
+                            Dashboard
                           </Link>
                           <Link 
                             to={profile?.company_id ? `/business/${profile.company_id}` : '/dashboard/settings'} 
@@ -565,7 +565,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <User className="w-4 h-4" />
-                            {t('common.view') || 'View'} Profile
+                            View Profile
                           </Link>
                           <Link 
                             to="/messages" 
@@ -573,7 +573,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <MessageSquare className="w-4 h-4" />
-                            {t('messages.title') || 'Messages'}
+                            Messages
                           </Link>
                           <Link 
                             to="/dashboard/orders" 
@@ -581,7 +581,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Package className="w-4 h-4" />
-                            {t('dashboard.orders') || 'Orders'}
+                            Orders
                           </Link>
                           <Link 
                             to="/dashboard/rfqs" 
@@ -589,7 +589,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <FileText className="w-4 h-4" />
-                            {t('nav.rfq') || 'RFQ'}
+                            RFQs
                           </Link>
                           <Link 
                             to="/verification-center" 
@@ -597,7 +597,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Shield className="w-4 h-4" />
-                            {t('verification.title') || 'Verification'}
+                            Verification
                           </Link>
                           <Link 
                             to="/dashboard/settings" 
@@ -605,7 +605,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Settings className="w-4 h-4" />
-                            {t('dashboard.settings') || 'Settings'}
+                            Settings
                           </Link>
                           {isUserAdmin && (
                             <>
@@ -657,7 +657,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             type="button"
                           >
                             <LogOut className="w-4 h-4" />
-                            {t('auth.logout') || 'Logout'}
+                            Logout
                           </button>
                         </div>
             </motion.div>
