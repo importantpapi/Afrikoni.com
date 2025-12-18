@@ -50,20 +50,29 @@ export default function ReviewsDashboard() {
       setCompanyId(userCompanyId);
       setUserRole(role);
 
-      // Load reviews
-      const reviewsList = await getCompanyReviews(userCompanyId);
-      setReviews(reviewsList);
+      // Try to load reviews - table may not exist yet
+      try {
+        // Load reviews
+        const reviewsList = await getCompanyReviews(userCompanyId);
+        setReviews(reviewsList);
 
-      // Load trust history
-      const history = await getCompanyTrustHistory(userCompanyId);
-      setTrustHistory(history);
+        // Load trust history
+        const history = await getCompanyTrustHistory(userCompanyId);
+        setTrustHistory(history);
 
-      // Load ranking
-      const companyRanking = await getCompanyRanking(userCompanyId);
-      setRanking(companyRanking);
+        // Load ranking
+        const companyRanking = await getCompanyRanking(userCompanyId);
+        setRanking(companyRanking);
+      } catch (dataError) {
+        console.log('Reviews table not yet set up:', dataError.message);
+        // Set empty data - feature not yet available
+        setReviews([]);
+        setTrustHistory([]);
+        setRanking(null);
+      }
     } catch (error) {
       console.error('Error loading reviews data:', error);
-      toast.error('Failed to load reviews data');
+      navigate('/dashboard');
     } finally {
       setIsLoading(false);
     }
