@@ -123,8 +123,10 @@ export default function HybridHeader({
           </select>
         </div>
 
-        {/* Notifications */}
-        <NotificationBell />
+        {/* Notifications (with proper wrapper for consistency) */}
+        <div className="flex items-center justify-center w-10 h-10">
+          <NotificationBell />
+        </div>
 
         {/* Messages */}
         <Link
