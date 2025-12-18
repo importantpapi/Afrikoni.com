@@ -33,6 +33,7 @@ import BuyerHeader from '@/components/headers/BuyerHeader';
 import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
 import AdminHeader from '@/components/headers/AdminHeader';
+import HybridHeader from '@/components/headers/HybridHeader';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useTranslation();
@@ -497,8 +498,19 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       setSearchOpen={setSearchOpen}
                     />
                   );
-                case 'buyer':
                 case 'hybrid':
+                  return (
+                    <HybridHeader
+                      t={t}
+                      openWhatsAppCommunity={openWhatsAppCommunity}
+                      setSidebarOpen={setSidebarOpen}
+                      setSearchOpen={setSearchOpen}
+                      navigate={navigate}
+                      activeView={activeView}
+                      setActiveView={setActiveView}
+                    />
+                  );
+                case 'buyer':
                 default:
                   return (
                     <BuyerHeader
