@@ -462,7 +462,10 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           <div className="relative overflow-visible">
             {(() => {
               // Role-based headers: Only show what helps complete the task
-              if (isUserAdmin) {
+              // Admin header ONLY for admin dashboard paths
+              const isAdminPath = location.pathname.startsWith('/dashboard/admin');
+              
+              if (isAdminPath && isUserAdmin) {
                 return (
                   <AdminHeader
                     t={t}
@@ -474,6 +477,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 );
               }
 
+              // Role-based headers for buyers/sellers/logistics
               switch (dashboardRole) {
                 case 'seller':
                   return (
