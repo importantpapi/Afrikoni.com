@@ -63,12 +63,8 @@ export default function BuyerHeader({
             </Button>
           </div>
 
-          {/* UTILITIES — Notifications (secondary importance, explicit container) */}
-          <div className="flex items-center pr-6">
-            <div className="flex items-center justify-center w-10 h-10">
-              <NotificationBell />
-            </div>
-          </div>
+          {/* UTILITIES — Notifications (clean, modern spacing) */}
+          <NotificationBell />
 
           {/* IDENTITY — User Menu (handled by DashboardLayout) */}
           <div className="flex items-center">

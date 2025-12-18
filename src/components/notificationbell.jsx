@@ -189,29 +189,33 @@ export default function NotificationBell() {
 
   // ALWAYS render the bell icon (even if user not loaded)
   // Only show dropdown if user is logged in
-  
-  console.log('🔔 NotificationBell rendering:', { user: !!user, unreadCount });
-  
   return (
-    <div className="relative inline-flex" style={{ border: '2px solid red' }}>
+    <div className="relative inline-flex items-center justify-center">
       <button
         onClick={() => {
-          console.log('🔔 Bell clicked, user:', !!user);
           if (user) {
             setIsOpen(!isOpen);
           }
         }}
         className="relative inline-flex items-center justify-center
-                   w-9 h-9 rounded-full
-                   hover:bg-black/5
-                   transition"
+                   w-10 h-10 rounded-lg
+                   text-afrikoni-text-dark
+                   hover:bg-afrikoni-sand/30
+                   active:bg-afrikoni-sand/40
+                   transition-all duration-200
+                   ring-1 ring-transparent
+                   hover:ring-afrikoni-gold/20
+                   hover:shadow-sm"
         aria-label="Notifications"
         type="button"
-        style={{ backgroundColor: 'rgba(255, 0, 0, 0.1)' }}
       >
-        <Bell className="w-5 h-5 text-afrikoni-charcoal" style={{ stroke: '#000', strokeWidth: 2 }} />
+        <Bell className="w-5 h-5 text-afrikoni-charcoal" />
         {user && unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-sm">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] 
+                         bg-gradient-to-br from-red-500 to-red-600 
+                         text-white text-[10px] font-bold
+                         rounded-full flex items-center justify-center
+                         shadow-md ring-2 ring-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
