@@ -164,6 +164,15 @@
     "searchOrders": "Search orders by ID, product, or supplier...",
     "all": "All"
   },
+  "buyer": {
+    "searchPlaceholder": "Search products, suppliers, RFQs..."
+  },
+  "seller": {
+    "searchPlaceholder": "Search RFQs, buyers, orders..."
+  },
+  "admin": {
+    "searchPlaceholder": "Global search: users, RFQs, transactions..."
+  },
   "empty": {
     "noOrders": "No orders yet",
     "noOrdersDesc": "Your recent orders will appear here.",
