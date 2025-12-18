@@ -6,10 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import NotificationBell from '@/components/notificationbell';
 
 /**
- * ADMIN HEADER - Enterprise Pattern
+ * ADMIN HEADER - Correct Visual Hierarchy
  * 
- * KEY: Uses ml-auto to anchor right side (NOT justify-between)
- * Result: Natural spacing, no compression, enterprise-correct
+ * RIGHT SIDE GROUPING:
+ * 1. PRIMARY CONTROLS (pr-6) → Alerts + KoniAI
+ * 2. UTILITIES (pr-6) → Notifications
+ * 3. IDENTITY → User Menu
+ * 
  * NO GOLD - Admin is control, not commerce
  */
 export default function AdminHeader({
@@ -19,7 +22,7 @@ export default function AdminHeader({
   alertCount = 0,
 }) {
   return (
-    <header className="h-[68px] w-full border-b bg-red-50/30 border-b border-red-200/50">
+    <header className="h-[68px] w-full border-b bg-red-50/30 border-red-200/50">
       <div className="flex h-full w-full items-center px-8">
 
         {/* LEFT — Global Admin Search (flexes naturally) */}
@@ -43,42 +46,52 @@ export default function AdminHeader({
           </div>
         </div>
 
-        {/* RIGHT — Anchored actions (ml-auto creates natural spacing) */}
-        <div className="ml-auto flex items-center gap-4">
+        {/* RIGHT — Properly grouped with visual hierarchy */}
+        <div className="ml-auto flex items-center">
 
-          <Button
-            onClick={() => navigate('/dashboard/admin/alerts')}
-            variant="outline"
-            className="flex items-center gap-2 border-red-300
-                       text-red-700 hover:bg-red-50 hover:border-red-400
-                       rounded-lg px-4 h-10 transition-all relative
-                       whitespace-nowrap"
-          >
-            <AlertTriangle className="w-4 h-4" />
-            <span className="text-sm font-medium">Alerts</span>
-            {alertCount > 0 && (
-              <Badge className="absolute -top-2 -right-2 bg-red-600
-                               text-white px-1.5 py-0.5 text-xs min-w-[20px]
-                               h-5 flex items-center justify-center">
-                {alertCount}
-              </Badge>
-            )}
-          </Button>
+          {/* PRIMARY CONTROLS — Alerts + KoniAI (breathe together with pr-6) */}
+          <div className="flex items-center gap-3 pr-6">
+            <Button
+              onClick={() => navigate('/dashboard/admin/alerts')}
+              variant="outline"
+              className="flex items-center gap-2 border-red-300
+                         text-red-700 hover:bg-red-50 hover:border-red-400
+                         rounded-lg px-4 h-10 transition-all relative
+                         whitespace-nowrap"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span className="text-sm font-medium">Alerts</span>
+              {alertCount > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-red-600
+                                 text-white px-1.5 py-0.5 text-xs min-w-[20px]
+                                 h-5 flex items-center justify-center">
+                  {alertCount}
+                </Badge>
+              )}
+            </Button>
 
-          <Button
-            onClick={() => navigate('/dashboard/koniai')}
-            className="flex items-center gap-2 bg-purple-600
-                       hover:bg-purple-700 text-white rounded-lg px-4 h-10
-                       transition-all shadow-sm font-medium
-                       whitespace-nowrap"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm">KoniAI</span>
-          </Button>
+            <Button
+              onClick={() => navigate('/dashboard/koniai')}
+              className="flex items-center gap-2 bg-purple-600
+                         hover:bg-purple-700 text-white rounded-lg px-4 h-10
+                         transition-all shadow-sm font-medium
+                         whitespace-nowrap"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm">KoniAI</span>
+            </Button>
+          </div>
 
-          <NotificationBell />
+          {/* UTILITIES — Notifications (secondary importance) */}
+          <div className="flex items-center gap-4 pr-6">
+            <NotificationBell />
+          </div>
 
-          {/* Avatar handled by DashboardLayout */}
+          {/* IDENTITY — User Menu (handled by DashboardLayout) */}
+          <div className="flex items-center">
+            {/* User avatar rendered by parent */}
+          </div>
+
         </div>
 
       </div>

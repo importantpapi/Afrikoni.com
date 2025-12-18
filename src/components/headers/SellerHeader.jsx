@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/notificationbell';
 
 /**
- * SELLER HEADER - Enterprise Pattern
+ * SELLER HEADER - Correct Visual Hierarchy
  * 
- * KEY: Uses ml-auto to anchor right side (NOT justify-between)
- * Result: Natural spacing, no compression, enterprise-correct
+ * RIGHT SIDE GROUPING:
+ * 1. PRIMARY + SECONDARY ACTIONS (pr-6) → View RFQs + Add Product
+ * 2. UTILITIES (pr-6) → Notifications
+ * 3. IDENTITY → User Menu
  */
 export default function SellerHeader({
   t,
@@ -19,7 +21,7 @@ export default function SellerHeader({
     <header className="h-[68px] w-full border-b bg-background">
       <div className="flex h-full w-full items-center px-8">
 
-        {/* LEFT — Search (flexes naturally, no max-width cap on wrapper) */}
+        {/* LEFT — Search (flexes naturally) */}
         <div className="flex flex-1 items-center">
           <div className="relative w-full max-w-[520px]">
             <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -40,38 +42,48 @@ export default function SellerHeader({
           </div>
         </div>
 
-        {/* RIGHT — Anchored actions (ml-auto creates natural spacing) */}
-        <div className="ml-auto flex items-center gap-4">
+        {/* RIGHT — Properly grouped with visual hierarchy */}
+        <div className="ml-auto flex items-center">
 
-          <Button
-            onClick={() => navigate('/dashboard/products/new')}
-            variant="outline"
-            className="hidden md:flex items-center gap-2
-                       border-afrikoni-gold/40 text-afrikoni-text-dark
-                       hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold
-                       rounded-lg px-4 h-10 transition-all
-                       whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">Add Product</span>
-          </Button>
+          {/* PRIMARY + SECONDARY ACTIONS (breathe together with pr-6) */}
+          <div className="flex items-center gap-3 pr-6">
+            <Button
+              onClick={() => navigate('/dashboard/products/new')}
+              variant="outline"
+              className="hidden md:flex items-center gap-2
+                         border-afrikoni-gold/40 text-afrikoni-text-dark
+                         hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold
+                         rounded-lg px-4 h-10 transition-all
+                         whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-sm">Add Product</span>
+            </Button>
 
-          <Button
-            onClick={() => navigate('/dashboard/rfqs')}
-            className="flex items-center gap-2 bg-afrikoni-gold
-                       hover:bg-afrikoni-gold/90
-                       text-afrikoni-charcoal font-semibold
-                       shadow-md rounded-lg px-6 h-11
-                       transition-all hover:shadow-lg
-                       whitespace-nowrap"
-          >
-            <FileText className="w-4 h-4" />
-            <span className="text-sm">View RFQs</span>
-          </Button>
+            <Button
+              onClick={() => navigate('/dashboard/rfqs')}
+              className="flex items-center gap-2 bg-afrikoni-gold
+                         hover:bg-afrikoni-gold/90
+                         text-afrikoni-charcoal font-semibold
+                         shadow-md rounded-lg px-6 h-11
+                         transition-all hover:shadow-lg
+                         whitespace-nowrap"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="text-sm">View RFQs</span>
+            </Button>
+          </div>
 
-          <NotificationBell />
+          {/* UTILITIES — Notifications (secondary importance) */}
+          <div className="flex items-center gap-4 pr-6">
+            <NotificationBell />
+          </div>
 
-          {/* Avatar handled by DashboardLayout */}
+          {/* IDENTITY — User Menu (handled by DashboardLayout) */}
+          <div className="flex items-center">
+            {/* User avatar rendered by parent */}
+          </div>
+
         </div>
 
       </div>

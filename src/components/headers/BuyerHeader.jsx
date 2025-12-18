@@ -5,10 +5,14 @@ import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/notificationbell';
 
 /**
- * BUYER HEADER - Enterprise Pattern
+ * BUYER HEADER - Correct Visual Hierarchy
  * 
- * KEY: Uses ml-auto to anchor right side (NOT justify-between)
- * Result: Natural spacing, no compression, enterprise-correct
+ * RIGHT SIDE GROUPING:
+ * 1. PRIMARY ACTION (pr-6) → Create RFQ
+ * 2. UTILITIES (pr-6) → Notifications
+ * 3. IDENTITY → User Menu
+ * 
+ * This creates professional visual rhythm: Action → Utility → Identity
  */
 export default function BuyerHeader({
   t,
@@ -19,7 +23,7 @@ export default function BuyerHeader({
     <header className="h-[68px] w-full border-b bg-background">
       <div className="flex h-full w-full items-center px-8">
 
-        {/* LEFT — Search (flexes naturally, no max-width cap on wrapper) */}
+        {/* LEFT — Search (flexes naturally) */}
         <div className="flex flex-1 items-center">
           <div className="relative w-full max-w-[520px]">
             <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -40,25 +44,35 @@ export default function BuyerHeader({
           </div>
         </div>
 
-        {/* RIGHT — Anchored actions (ml-auto creates natural spacing) */}
-        <div className="ml-auto flex items-center gap-4">
+        {/* RIGHT — Properly grouped with visual hierarchy */}
+        <div className="ml-auto flex items-center">
 
-          <Button
-            onClick={() => navigate('/dashboard/rfqs/new')}
-            className="flex items-center gap-2 bg-afrikoni-gold
-                       hover:bg-afrikoni-gold/90
-                       text-afrikoni-charcoal font-semibold
-                       shadow-md rounded-lg px-6 h-11
-                       transition-all hover:shadow-lg
-                       whitespace-nowrap"
-          >
-            <Search className="w-4 h-4" />
-            <span className="text-sm">Create RFQ</span>
-          </Button>
+          {/* PRIMARY ACTION — Create RFQ (breathes with pr-6) */}
+          <div className="pr-6">
+            <Button
+              onClick={() => navigate('/dashboard/rfqs/new')}
+              className="flex items-center gap-2 bg-afrikoni-gold
+                         hover:bg-afrikoni-gold/90
+                         text-afrikoni-charcoal font-semibold
+                         shadow-md rounded-lg px-6 h-11
+                         transition-all hover:shadow-lg
+                         whitespace-nowrap"
+            >
+              <Search className="w-4 h-4" />
+              <span className="text-sm">Create RFQ</span>
+            </Button>
+          </div>
 
-          <NotificationBell />
+          {/* UTILITIES — Notifications (secondary importance) */}
+          <div className="flex items-center gap-4 pr-6">
+            <NotificationBell />
+          </div>
 
-          {/* Avatar handled by DashboardLayout */}
+          {/* IDENTITY — User Menu (handled by DashboardLayout) */}
+          <div className="flex items-center">
+            {/* User avatar rendered by parent */}
+          </div>
+
         </div>
 
       </div>
