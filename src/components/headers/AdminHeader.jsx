@@ -96,10 +96,10 @@ export default function AdminHeader({
           {/* Notifications */}
           <NotificationBell />
 
-          {/* Menu Toggle (Mobile) */}
+          {/* Menu Toggle — ALWAYS VISIBLE */}
           <button
             onClick={() => setSidebarOpen?.(true)}
-            className="lg:hidden inline-flex items-center justify-center
+            className="inline-flex items-center justify-center
                        w-10 h-10 rounded-lg
                        text-afrikoni-charcoal
                        hover:bg-red-50
