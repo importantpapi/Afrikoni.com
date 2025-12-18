@@ -459,7 +459,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       <div className="flex flex-col flex-1 w-full md:ml-[260px] min-h-screen relative z-10 overflow-visible">
         {/* Premium Top Bar - Full Width, No Centering */}
         <header className="sticky top-0 z-50 h-16 w-full bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-sm">
-          <div className="relative overflow-visible">
+          {/* Header Content - Direct child, no wrapper */}
+          <div className="relative h-full w-full">
             {(() => {
               // Role-based headers: Only show what helps complete the task
               // Admin header ONLY for admin dashboard paths
@@ -511,7 +512,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
             })()}
 
             {/* User Menu Trigger (shared across roles) */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3 z-50">
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-3 z-50">
                 <button
                   ref={userMenuButtonRef}
                   onClick={(e) => {
