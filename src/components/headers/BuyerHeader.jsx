@@ -20,9 +20,9 @@ export default function BuyerHeader({
   navigate,
 }) {
   return (
-    <div className="flex items-center justify-between px-4 lg:px-6 py-3 relative">
+    <div className="flex items-center justify-between px-2 md:px-3 lg:px-4 py-3 relative">
       {/* LEFT: Search Bar */}
-      <div className="flex items-center gap-2 flex-1 max-w-2xl relative">
+      <div className="flex items-center gap-2 flex-1 max-w-4xl relative">
         <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 z-10 pointer-events-none" />
         <Input
           placeholder={t('buyer.searchPlaceholder') || 'Search products, suppliers, RFQs...'}
@@ -33,15 +33,14 @@ export default function BuyerHeader({
       </div>
 
       {/* RIGHT: Primary CTA + Notifications */}
-      <div className="flex items-center gap-3 ml-4">
+      <div className="flex items-center gap-2 ml-3 flex-shrink-0">
         {/* PRIMARY CTA: Create RFQ (Gold) */}
         <Button
           onClick={() => navigate('/dashboard/rfqs/new')}
-          className="flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-md rounded-lg px-5 py-2.5 transition-all hover:shadow-lg"
+          className="flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-md rounded-lg px-4 py-2.5 transition-all hover:shadow-lg whitespace-nowrap"
         >
           <Search className="w-4 h-4" />
-          <span className="hidden lg:inline text-sm">Create RFQ</span>
-          <span className="lg:hidden text-sm">RFQ</span>
+          <span className="text-sm">Create RFQ</span>
         </Button>
 
         {/* Notifications (Icon Only) */}
