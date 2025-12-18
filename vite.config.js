@@ -15,14 +15,18 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            // Keep React core together to prevent load order issues
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('react-i18next') || id.includes('i18next')) {
               return 'vendor-react';
             }
-            if (id.includes('framer-motion') || id.includes('lucide-react')) {
+            if (id.includes('framer-motion') || id.includes('lucide-react') || id.includes('@radix-ui')) {
               return 'vendor-ui';
             }
             if (id.includes('recharts')) {
               return 'vendor-charts';
+            }
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
             }
             if (id.includes('date-fns') || id.includes('sonner')) {
               return 'vendor-utils';
