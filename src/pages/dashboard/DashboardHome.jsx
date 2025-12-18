@@ -20,10 +20,10 @@ import OnboardingProgressTracker from '@/components/dashboard/OnboardingProgress
 import { getActivityMetrics, getSearchAppearanceCount } from '@/services/activityTracking';
 import { toast } from 'sonner';
 import { getUserDisplayName } from '@/utils/userHelpers';
+import { useTranslation } from 'react-i18next';
 
 export default function DashboardHome({ currentRole = 'buyer', activeView = 'all' }) {
-  // Simple fallback for translation - always return empty string to use fallbacks
-  const t = () => '';
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
