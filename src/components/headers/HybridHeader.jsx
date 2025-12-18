@@ -22,6 +22,7 @@ export default function HybridHeader({
   navigate,
   activeView,
   setActiveView,
+  userAvatar,
 }) {
   const isBuyerView = activeView === 'buyer';
 
@@ -132,9 +133,9 @@ export default function HybridHeader({
           </button>
         </div>
 
-        {/* Identity (User Menu handled by DashboardLayout) */}
-        <div className="flex items-center gap-2">
-          {/* User avatar rendered by parent */}
+        {/* Identity — User Avatar */}
+        <div className="flex items-center">
+          {userAvatar}
         </div>
 
       </div>

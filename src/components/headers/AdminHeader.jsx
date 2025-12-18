@@ -17,6 +17,7 @@ export default function AdminHeader({
   setSearchOpen,
   navigate,
   alertCount = 0,
+  userAvatar,
 }) {
   return (
     <HeaderShell>
@@ -111,9 +112,9 @@ export default function AdminHeader({
           </button>
         </div>
 
-        {/* Identity (User Menu handled by DashboardLayout) */}
-        <div className="flex items-center gap-2">
-          {/* User avatar rendered by parent */}
+        {/* Identity — User Avatar */}
+        <div className="flex items-center">
+          {userAvatar}
         </div>
 
       </div>

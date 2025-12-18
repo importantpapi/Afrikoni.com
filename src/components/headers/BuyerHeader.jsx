@@ -15,6 +15,7 @@ export default function BuyerHeader({
   setSidebarOpen,
   setSearchOpen,
   navigate,
+  userAvatar,
 }) {
   return (
     <HeaderShell>
@@ -92,9 +93,9 @@ export default function BuyerHeader({
           </button>
         </div>
 
-        {/* Identity (User Menu handled by DashboardLayout) */}
-        <div className="flex items-center gap-2">
-          {/* User avatar rendered by parent */}
+        {/* Identity — User Avatar */}
+        <div className="flex items-center">
+          {userAvatar}
         </div>
 
       </div>

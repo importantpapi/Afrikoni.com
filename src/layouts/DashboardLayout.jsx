@@ -34,6 +34,7 @@ import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
 import AdminHeader from '@/components/headers/AdminHeader';
 import HybridHeader from '@/components/headers/HybridHeader';
+import UserAvatar from '@/components/headers/UserAvatar';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useTranslation();
@@ -475,9 +476,31 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                     setSearchOpen={setSearchOpen}
                     navigate={navigate}
                     alertCount={0}
+                    userAvatar={
+                      <UserAvatar
+                        user={user}
+                        profile={profile}
+                        userMenuOpen={userMenuOpen}
+                        setUserMenuOpen={setUserMenuOpen}
+                        userMenuButtonRef={userMenuButtonRef}
+                        getUserInitial={getUserInitial}
+                      />
+                    }
                   />
                 );
               }
+
+              // Shared user avatar for all headers
+              const userAvatarComponent = (
+                <UserAvatar
+                  user={user}
+                  profile={profile}
+                  userMenuOpen={userMenuOpen}
+                  setUserMenuOpen={setUserMenuOpen}
+                  userMenuButtonRef={userMenuButtonRef}
+                  getUserInitial={getUserInitial}
+                />
+              );
 
               // Role-based headers for buyers/sellers/logistics
               switch (dashboardRole) {
@@ -488,6 +511,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       setSidebarOpen={setSidebarOpen}
                       setSearchOpen={setSearchOpen}
                       navigate={navigate}
+                      userAvatar={userAvatarComponent}
                     />
                   );
                 case 'logistics':
@@ -496,6 +520,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       t={t}
                       setSidebarOpen={setSidebarOpen}
                       setSearchOpen={setSearchOpen}
+                      userAvatar={userAvatarComponent}
                     />
                   );
                 case 'hybrid':
@@ -508,6 +533,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       navigate={navigate}
                       activeView={activeView}
                       setActiveView={setActiveView}
+                      userAvatar={userAvatarComponent}
                     />
                   );
                 case 'buyer':
@@ -518,39 +544,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       setSidebarOpen={setSidebarOpen}
                       setSearchOpen={setSearchOpen}
                       navigate={navigate}
+                      userAvatar={userAvatarComponent}
                     />
                   );
               }
             })()}
-
-            {/* User Menu Trigger (shared across roles) */}
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-3 z-50">
-                <button
-                  ref={userMenuButtonRef}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setUserMenuOpen(prev => !prev);
-                  }}
-                  className="flex items-center gap-2 p-1.5 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-all cursor-pointer relative"
-                  type="button"
-                  aria-label="User menu"
-                  aria-expanded={userMenuOpen}
-                >
-                  <div className="w-8 h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-charcoal font-bold text-sm shadow-afrikoni">
-                    {(() => {
-                      try {
-                        return getUserInitial(user || null, profile || null);
-                      } catch (error) {
-                        console.warn('Error getting user initial:', error);
-                        return 'U';
-                      }
-                    })()}
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-afrikoni-text-dark transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-            </div>
         </div>
 
         {/* User Menu Dropdown - Fixed position for visibility */}

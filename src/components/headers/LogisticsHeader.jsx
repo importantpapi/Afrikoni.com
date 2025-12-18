@@ -13,6 +13,7 @@ export default function LogisticsHeader({
   t,
   setSidebarOpen,
   setSearchOpen,
+  userAvatar,
 }) {
   return (
     <HeaderShell>
@@ -92,9 +93,9 @@ export default function LogisticsHeader({
           </button>
         </div>
 
-        {/* Identity (User Menu handled by DashboardLayout) */}
-        <div className="flex items-center gap-2">
-          {/* User avatar rendered by parent */}
+        {/* Identity — User Avatar */}
+        <div className="flex items-center">
+          {userAvatar}
         </div>
 
       </div>
