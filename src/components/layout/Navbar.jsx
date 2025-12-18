@@ -73,7 +73,7 @@ const ALL_COUNTRIES = Object.keys(COUNTRY_NAMES).filter(key => key !== 'DEFAULT'
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const language = i18n.language;
   const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
   const [megaOpen, setMegaOpen] = useState(false);
@@ -387,7 +387,7 @@ How It Works
                 className="h-8 sm:h-9 px-2 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
               >
                 <GitCompare className="w-4 h-4" />
-                <span className="ml-1 hidden lg:inline">{t('nav.compare')}</span>
+                <span className="ml-1 hidden lg:inline">Compare</span>
                 <span className="ml-1 bg-afrikoni-gold text-afrikoni-chestnut text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {compareCount}
                 </span>
@@ -660,7 +660,7 @@ How It Works
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <LayoutDashboard className="w-4 h-4" />
-                            {t('dashboard.title')}
+                            Dashboard
                           </Link>
                           <Link
                             to={userProfile?.company_id ? `/business/${userProfile.company_id}` : '/dashboard/settings'}
@@ -668,7 +668,7 @@ How It Works
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <User className="w-4 h-4" />
-                            {t('common.view')} Profile
+                            View Profile
                           </Link>
                           <Link
                             to="/messages"
@@ -676,7 +676,7 @@ How It Works
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <MessageSquare className="w-4 h-4" />
-                            {t('messages.title')}
+                            Messages
                           </Link>
                           <Link
                             to="/orders"
@@ -684,7 +684,7 @@ How It Works
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Package className="w-4 h-4" />
-                            {t('dashboard.orders')}
+                            Orders
                           </Link>
                           <Link
                             to={createPageUrl('RFQManagement')}
@@ -692,7 +692,7 @@ How It Works
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <FileText className="w-4 h-4" />
-                            {t('nav.rfq')}
+                            RFQs
                           </Link>
                           <Link
                             to="/dashboard/settings"
@@ -700,7 +700,7 @@ How It Works
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Settings className="w-4 h-4" />
-                            {t('dashboard.settings')}
+                            Settings
                           </Link>
                           <div className="border-t border-afrikoni-gold/20 my-1"></div>
                           <button
@@ -721,7 +721,7 @@ How It Works
                             className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-red-50 text-sm text-red-600 transition-colors"
                           >
                             <LogOut className="w-4 h-4" />
-                            {t('auth.logout')}
+                            Logout
                           </button>
                         </div>
                       </motion.div>
@@ -791,7 +791,7 @@ How It Works
                   <h2 className="text-xl sm:text-2xl font-bold text-afrikoni-chestnut mb-4">Browse All Categories</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                     {categoriesLoading ? (
-                      <div className="col-span-full text-gray-500 text-sm py-4">{t('nav.loadingCategories')}</div>
+                      <div className="col-span-full text-gray-500 text-sm py-4">Loading categories...</div>
                     ) : categories.length > 0 ? (
                       categories.map((category) => (
                         <Link
@@ -809,7 +809,7 @@ How It Works
                         </Link>
                       ))
                     ) : (
-                      <div className="col-span-full text-gray-500 text-sm py-4">{t('nav.noCategories')}</div>
+                      <div className="col-span-full text-gray-500 text-sm py-4">No categories available</div>
                     )}
                   </div>
                   <div className="mt-4 text-center">
@@ -832,47 +832,47 @@ How It Works
 
           {/* Marketplace */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">{t('nav.marketplace')}</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Marketplace</h3>
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/marketplace" onClick={() => setMegaOpen(false)}>{t('nav.browseProducts')}</Link>
-              <Link to="/trending" onClick={() => setMegaOpen(false)}>{t('nav.trending')}</Link>
-              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>{t('nav.findSuppliers')}</Link>
-              <Link to="/order-protection" onClick={() => setMegaOpen(false)}>{t('nav.buyerProtection')}</Link>
+              <Link to="/marketplace" onClick={() => setMegaOpen(false)}>Browse Products</Link>
+              <Link to="/trending" onClick={() => setMegaOpen(false)}>Trending</Link>
+              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
+              <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Buyer Protection</Link>
             </nav>
           </div>
 
           {/* Buyers */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">{t('nav.forBuyers')}</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">For Buyers</h3>
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>{t('nav.findSuppliers')}</Link>
-              <Link to="/rfq" onClick={() => setMegaOpen(false)}>{t('nav.requestQuotation')}</Link>
-              <Link to="/buyer-hub" onClick={() => setMegaOpen(false)}>{t('nav.buyerHub')}</Link>
-              <Link to="/logistics" onClick={() => setMegaOpen(false)}>{t('nav.logistics')}</Link>
-              <Link to="/protection" onClick={() => setMegaOpen(false)}>{t('nav.tradeShield')}</Link>
-              <Link to="/inspection" onClick={() => setMegaOpen(false)}>{t('nav.inspectionServices')}</Link>
+              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
+              <Link to="/rfq" onClick={() => setMegaOpen(false)}>Request Quotation</Link>
+              <Link to="/buyer-hub" onClick={() => setMegaOpen(false)}>Buyer Hub</Link>
+              <Link to="/logistics" onClick={() => setMegaOpen(false)}>Logistics</Link>
+              <Link to="/protection" onClick={() => setMegaOpen(false)}>Trade Shield</Link>
+              <Link to="/inspection" onClick={() => setMegaOpen(false)}>Inspection Services</Link>
             </nav>
           </div>
 
           {/* Suppliers */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">{t('nav.forSuppliers')}</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">For Suppliers</h3>
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>{t('nav.sellOnAfrikoni')}</Link>
-              <Link to="/dashboard" onClick={() => setMegaOpen(false)}>{t('nav.supplierDashboard')}</Link>
-              <Link to="/verification-center" onClick={() => setMegaOpen(false)}>{t('nav.kycVerification')}</Link>
-              <Link to="/resources" onClick={() => setMegaOpen(false)}>{t('nav.supplierResources')}</Link>
+              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
+              <Link to="/dashboard" onClick={() => setMegaOpen(false)}>Supplier Dashboard</Link>
+              <Link to="/verification-center" onClick={() => setMegaOpen(false)}>KYC Verification</Link>
+              <Link to="/resources" onClick={() => setMegaOpen(false)}>Supplier Resources</Link>
             </nav>
           </div>
 
           {/* Trust & Safety */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">{t('nav.trustSafety')}</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Trust & Safety</h3>
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/dashboard/risk" onClick={() => setMegaOpen(false)}>{t('nav.afrikoniShield')}</Link>
-              <Link to="/order-protection" onClick={() => setMegaOpen(false)}>{t('nav.orderProtection')}</Link>
-              <Link to="/anti-fraud" onClick={() => setMegaOpen(false)}>{t('nav.antiFraud')}</Link>
-              <Link to="/disputes" onClick={() => setMegaOpen(false)}>{t('nav.disputeResolution')}</Link>
+              <Link to="/dashboard/risk" onClick={() => setMegaOpen(false)}>Afrikoni Shield</Link>
+              <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Order Protection</Link>
+              <Link to="/anti-fraud" onClick={() => setMegaOpen(false)}>Anti-Fraud</Link>
+              <Link to="/disputes" onClick={() => setMegaOpen(false)}>Dispute Resolution</Link>
             </nav>
           </div>
                 </div>
