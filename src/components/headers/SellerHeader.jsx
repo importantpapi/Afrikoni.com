@@ -74,11 +74,9 @@ export default function SellerHeader({
             </Button>
           </div>
 
-          {/* UTILITIES — Notifications (secondary importance, explicit container) */}
-          <div className="flex items-center pr-6">
-            <div className="flex items-center justify-center w-10 h-10">
-              <NotificationBell />
-            </div>
+          {/* UTILITIES — Notifications (with proper container for visibility) */}
+          <div className="flex items-center gap-4 pr-6">
+            <NotificationBell />
           </div>
 
           {/* IDENTITY — User Menu (handled by DashboardLayout) */}
