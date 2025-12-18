@@ -9,7 +9,7 @@ import NotificationBell from '@/components/notificationbell';
  * 
  * RIGHT SIDE GROUPING:
  * 1. PRIMARY CONTROL (pr-6) → Date Range
- * 2. UTILITIES (pr-6) → Notifications + Messages
+ * 2. UTILITIES (pr-6) → Notifications + Messages (with explicit containers)
  * 3. IDENTITY → User Menu
  */
 export default function LogisticsHeader({
@@ -62,13 +62,16 @@ export default function LogisticsHeader({
             </div>
           </div>
 
-          {/* UTILITIES — Notifications + Messages (secondary importance) */}
+          {/* UTILITIES — Notifications + Messages (secondary importance, explicit containers) */}
           <div className="flex items-center gap-4 pr-6">
-            <NotificationBell />
+            <div className="flex items-center justify-center w-10 h-10">
+              <NotificationBell />
+            </div>
             
             <Link
               to="/messages"
-              className="p-2 rounded-lg hover:bg-afrikoni-sand/20
+              className="flex items-center justify-center w-10 h-10
+                         rounded-lg hover:bg-afrikoni-sand/20
                          relative transition-all hover:scale-105"
             >
               <MessageSquare className="w-5 h-5 text-afrikoni-text-dark" />

@@ -9,7 +9,7 @@ import NotificationBell from '@/components/notificationbell';
  * 
  * RIGHT SIDE GROUPING:
  * 1. PRIMARY + SECONDARY ACTIONS (pr-6) → View RFQs + Add Product
- * 2. UTILITIES (pr-6) → Notifications
+ * 2. UTILITIES (pr-6) → Notifications (with explicit container)
  * 3. IDENTITY → User Menu
  */
 export default function SellerHeader({
@@ -74,9 +74,11 @@ export default function SellerHeader({
             </Button>
           </div>
 
-          {/* UTILITIES — Notifications (secondary importance) */}
-          <div className="flex items-center gap-4 pr-6">
-            <NotificationBell />
+          {/* UTILITIES — Notifications (secondary importance, explicit container) */}
+          <div className="flex items-center pr-6">
+            <div className="flex items-center justify-center w-10 h-10">
+              <NotificationBell />
+            </div>
           </div>
 
           {/* IDENTITY — User Menu (handled by DashboardLayout) */}
