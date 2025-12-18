@@ -457,8 +457,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 w-full md:ml-[260px] min-h-screen relative z-10 overflow-visible">
-        {/* Premium Top Bar - Full Width, No Centering */}
-        <header className="sticky top-0 z-50 h-16 w-full bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-sm">
+        {/* Premium Top Bar - Enterprise Pattern (headers render their own <header> tag) */}
+        <div className="sticky top-0 z-50 bg-afrikoni-ivory shadow-sm">
           {/* Header Content - Direct child, no wrapper */}
           <div className="relative h-full w-full">
             {(() => {
@@ -539,7 +539,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 </button>
               </div>
             </div>
-        </header>
+        </div>
 
         {/* User Menu Dropdown - Fixed position for visibility */}
         {userMenuOpen && (
