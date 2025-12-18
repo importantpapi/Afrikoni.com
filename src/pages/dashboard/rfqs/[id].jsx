@@ -23,6 +23,9 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { getRFQStatusExplanation } from '@/utils/rfqStatusExplanations';
 import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
+import { DealMilestoneTracker, DealMilestoneCompact } from '@/components/orders/DealMilestoneTracker';
+import { SupplierQuoteTemplates, QuoteWritingTips } from '@/components/quotes/SupplierQuoteTemplates';
+import { FirstTimeQuoteGuidance } from '@/components/onboarding/FirstTimeUserGuidance';
 
 export default function RFQDetail() {
   const { id } = useParams();
@@ -896,6 +899,18 @@ export default function RFQDetail() {
                     className="mb-6 p-4 border border-afrikoni-gold/30 rounded-lg bg-afrikoni-offwhite"
                   >
                     <h4 className="font-semibold mb-4">Submit Your Quote</h4>
+                    
+                    {/* First-Time Quote Guidance */}
+                    <FirstTimeQuoteGuidance />
+                    
+                    {/* Supplier Quote Templates */}
+                    <SupplierQuoteTemplates 
+                      onTemplateSelect={(templateText) => {
+                        setQuoteForm(prev => ({ ...prev, notes: templateText }));
+                      }}
+                      rfqCategory={rfq?.category?.name}
+                    />
+                    
                     <form onSubmit={handleSubmitQuote} className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>

@@ -25,6 +25,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { TimelineItem } from '@/components/ui/reusable/TimelineItem';
 import { StatusBadge } from '@/components/ui/reusable/StatusBadge';
 import BuyerProtectionOption from '@/components/upsell/BuyerProtectionOption';
+import { DealMilestoneTracker } from '@/components/orders/DealMilestoneTracker';
 
 export default function OrderDetail() {
   const { id } = useParams();
@@ -579,6 +580,19 @@ export default function OrderDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Deal Milestone Tracker */}
+            <DealMilestoneTracker 
+              currentStatus={order?.status || 'pending'}
+              milestones={timeline.map(t => ({
+                status: t.status,
+                completed: t.completed,
+                timestamp: t.timestamp,
+                notes: t.note
+              }))}
+              orderNumber={order?.order_number}
+              estimatedDelivery={order?.estimated_delivery || shipment?.estimated_arrival}
+            />
 
             {/* Escrow / Wallet Timeline */}
             {Array.isArray(walletEvents) && walletEvents.length > 0 && (

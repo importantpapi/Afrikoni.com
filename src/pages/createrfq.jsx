@@ -19,6 +19,7 @@ import { AIDescriptionService } from '@/components/services/AIDescriptionService
 import ShippingCalculator from '@/components/shipping/ShippingCalculator';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { RFQQualityHelper } from '@/components/rfq/RFQQualityHelper';
+import { FirstTimeRFQGuidance } from '@/components/onboarding/FirstTimeUserGuidance';
 
 export default function CreateRFQ() {
   const { t } = useLanguage();
@@ -216,6 +217,9 @@ export default function CreateRFQ() {
 
   return (
     <div className="min-h-screen bg-afrikoni-offwhite py-4 sm:py-8">
+      {/* First-Time RFQ Guidance */}
+      <FirstTimeRFQGuidance />
+      
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6">
         <div className="mb-2">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">{t('rfq.createTitle')}</h1>
