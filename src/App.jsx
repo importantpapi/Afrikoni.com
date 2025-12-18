@@ -82,8 +82,10 @@ const AdminRFQAnalytics = lazy(() => import('./pages/dashboard/admin/rfq-analyti
 const AdminRFQReview = lazy(() => import('./pages/dashboard/admin/rfq-review'));
 const SupplierRFQs = lazy(() => import('./pages/dashboard/supplier-rfqs'));
 const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
+const AdminReviewsModeration = lazy(() => import('./pages/dashboard/admin/reviews-moderation'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
 const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-tickets'));
+const AdminTrustEngine = lazy(() => import('./pages/dashboard/admin/trust-engine'));
 const AdminGrowthMetrics = lazy(() => import('./pages/dashboard/admin/growth-metrics'));
 const AdminOnboardingTracker = lazy(() => import('./pages/dashboard/admin/onboarding-tracker'));
 const SupportChat = lazy(() => import('./pages/dashboard/support-chat'));
@@ -163,6 +165,7 @@ const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 const TrustCenter = lazy(() => import('./pages/trust'));
 const HowPaymentWorks = lazy(() => import('./pages/how-payment-works'));
 const About = lazy(() => import('./pages/about'));
+const AfrikoniCode = lazy(() => import('./pages/afrikoni-code'));
 const Community = lazy(() => import('./pages/community'));
 const Blog = lazy(() => import('./pages/blog'));
 const Troubleshooting = lazy(() => import('./pages/troubleshooting'));
@@ -301,6 +304,8 @@ function App() {
             <Route path="/dashboard/admin/rfq-review/:id" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminRFQReview /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/supplier-rfqs" element={<ProtectedRoute><DashboardRoleProvider><SupplierRFQs /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/reviews" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminReviews /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/reviews-moderation" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminReviewsModeration /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/trust-engine" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminTrustEngine /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/revenue" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminRevenue /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/growth-metrics" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminGrowthMetrics /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminOnboardingTracker /></DashboardRoleProvider></ProtectedRoute>} />
@@ -724,6 +729,7 @@ function App() {
             <Route path="/how-payment-works" element={<HowPaymentWorks />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/about" element={<About />} />
+            <Route path="/afrikoni-code" element={<AfrikoniCode />} />
             <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/community" element={<Community />} />
             <Route path="/blog" element={<Blog />} />

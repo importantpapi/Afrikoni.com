@@ -85,11 +85,11 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
       size="sm"
       onClick={handleToggle}
       disabled={isLoading}
-      className={className}
+      className={`${className} bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md transition-all rounded-full p-2`}
       aria-label={isSaved ? `Remove ${itemType} from saved` : `Save ${itemType}`}
     >
       <Heart 
-        className={`w-4 h-4 ${isSaved ? 'fill-afrikoni-gold text-afrikoni-gold' : 'text-afrikoni-deep/70'}`} 
+        className={`w-5 h-5 transition-all ${isSaved ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-700 hover:text-red-500 hover:scale-105'}`} 
         aria-hidden="true"
       />
     </Button>

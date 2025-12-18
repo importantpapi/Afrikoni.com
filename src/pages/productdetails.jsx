@@ -857,35 +857,99 @@ export default function ProductDetail() {
             </div>
 
             {supplier && (
-              <Card className="border-afrikoni-gold/20">
-                <CardHeader className="border-b">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Building2 className="w-5 h-5" /> Supplier Information
+              <Card className="border-2 border-afrikoni-gold/30 shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-br from-white to-afrikoni-offwhite">
+                <CardHeader className="border-b border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-transparent">
+                  <CardTitle className="text-xl font-bold flex items-center gap-2 text-afrikoni-chestnut">
+                    <div className="w-10 h-10 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center">
+                      <Building2 className="w-5 h-5 text-afrikoni-gold" />
+                    </div>
+                    Supplier Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  <div>
-                    <h3 className="font-bold text-afrikoni-chestnut mb-1">{supplier.company_name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-afrikoni-deep">
-                      <MapPin className="w-4 h-4" /> {supplier.city}, {supplier.country}
+                <CardContent className="p-6">
+                  {/* Supplier Header with Logo */}
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20 border-2 border-afrikoni-gold/30 flex items-center justify-center flex-shrink-0 shadow-md">
+                      {supplier.logo_url ? (
+                        <img 
+                          src={supplier.logo_url} 
+                          alt={supplier.company_name}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = '<svg class="w-8 h-8 text-afrikoni-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/></svg>';
+                          }}
+                        />
+                      ) : (
+                        <Building2 className="w-8 h-8 text-afrikoni-gold" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-afrikoni-chestnut mb-1 leading-tight">
+                        {supplier.company_name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-afrikoni-deep/80 mb-2">
+                        <MapPin className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
+                        <span>{supplier.city ? `${supplier.city}, ` : ''}{supplier.country}</span>
+                      </div>
+                      {/* Verification Badges */}
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        {supplier?.verification_status === 'verified' && (
+                          <TrustBadge type="verified-supplier" />
+                        )}
+                        {supplier?.verification_status === 'pending' && (
+                          <Badge className="bg-amber-50 text-amber-700 border-amber-300">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Verification in Progress
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {supplier?.verification_status === 'verified' && (
-                      <TrustBadge type="verified-supplier" />
-                    )}
-                    {supplier?.verification_status === 'pending' && (
-                      <Badge className="bg-amber-50 text-amber-700 border-amber-300">
-                        <Clock className="w-3 h-3 mr-1" /> Verification in Progress
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Link to={`/business/${supplier.id}`} className="flex-1">
-                      <Button variant="outline" className="w-full">View Business Profile</Button>
+
+                  {/* Supplier Quick Info */}
+                  {(supplier.year_established || supplier.business_type || supplier.employee_count) && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                      {supplier.year_established && (
+                        <div className="text-center">
+                          <p className="text-xs text-afrikoni-deep/60 mb-1">Established</p>
+                          <p className="font-bold text-afrikoni-chestnut">{supplier.year_established}</p>
+                        </div>
+                      )}
+                      {supplier.business_type && (
+                        <div className="text-center">
+                          <p className="text-xs text-afrikoni-deep/60 mb-1">Business Type</p>
+                          <p className="font-bold text-afrikoni-chestnut text-sm">{supplier.business_type?.replace(/_/g, ' ')}</p>
+                        </div>
+                      )}
+                      {supplier.employee_count && (
+                        <div className="text-center">
+                          <p className="text-xs text-afrikoni-deep/60 mb-1">Team Size</p>
+                          <p className="font-bold text-afrikoni-chestnut">{supplier.employee_count}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
+                    <Link to={`/business/${supplier.id}`} className="block">
+                      <Button 
+                        className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold shadow-md hover:shadow-lg transition-all"
+                        size="lg"
+                      >
+                        <Building2 className="w-4 h-4 mr-2" />
+                        View Complete Business Profile
+                      </Button>
                     </Link>
-                    <Link to={createPageUrl('SupplierProfile') + '?id=' + supplier.id} className="flex-1">
-                      <Button variant="outline" className="w-full">Legacy Profile</Button>
+                    <Link to={createPageUrl('SupplierProfile') + '?id=' + supplier.id} className="block">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full text-afrikoni-deep/60 hover:text-afrikoni-deep hover:bg-afrikoni-gold/10 text-xs"
+                        size="sm"
+                      >
+                        View Legacy Profile
+                      </Button>
                     </Link>
                   </div>
                 </CardContent>

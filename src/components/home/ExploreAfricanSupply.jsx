@@ -10,6 +10,7 @@ import { supabase } from '@/api/supabaseClient';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import Price from '@/components/ui/Price';
 import { matchProductToPopularCategory } from '@/utils/productCategoryIntelligence';
+import SaveButton from '@/components/ui/SaveButton';
 
 // All 54 African countries with flags
 const ALL_AFRICAN_COUNTRIES = [
@@ -376,6 +377,10 @@ export default function ExploreAfricanSupply() {
                                     ) : (
                                       <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10" />
                                     )}
+                                    {/* Save Button */}
+                                    <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
+                                      <SaveButton itemId={product.id} itemType="product" />
+                                    </div>
                                   </div>
                                   <CardContent className="p-3 space-y-1.5">
                                     <h5 className="font-semibold text-afrikoni-chestnut text-base md:text-lg leading-snug line-clamp-2">

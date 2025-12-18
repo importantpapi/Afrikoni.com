@@ -660,16 +660,17 @@ export default function Marketplace() {
                   <Badge variant="primary" className="text-xs">⭐ {t('marketplace.featured')}</Badge>
                 </div>
               )}
+              {/* Save Button - Top Right */}
+              <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
+                <SaveButton itemId={product.id} itemType="product" />
+              </div>
               {/* Supplier verification / trust badge */}
               {product.companies?.verification_status === 'verified' && (
-                <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/65 text-white px-2 py-1 rounded-full shadow-sm">
+                <div className="absolute top-12 right-2 flex items-center gap-1 bg-black/65 text-white px-2 py-1 rounded-full shadow-sm">
                   <Logo type="icon" size="sm" link={false} className="w-5 h-5" />
                   <Smile className="w-3 h-3 text-afrikoni-gold" />
                 </div>
               )}
-              <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
-                <SaveButton itemId={product.id} itemType="product" />
-              </div>
               {Array.isArray(product.allImages) && product.allImages.length > 1 && (
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
                   {product.allImages.length} photos

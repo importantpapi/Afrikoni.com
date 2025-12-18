@@ -28,7 +28,7 @@ export const sellerNav = [
   { icon: Wallet, label: 'Payments & Escrow', path: '/dashboard/payments' },
   { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
   { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
-  { icon: StarIcon, label: 'Reviews & Performance', path: '/dashboard/reviews' },
+  { icon: Shield, label: 'Trust & Reviews', path: '/dashboard/reviews' },
   { icon: TrendingUp, label: 'Performance Metrics', path: '/dashboard/performance' },
   { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
   { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
@@ -39,6 +39,8 @@ export const sellerNav = [
   { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
   { icon: Shield, label: 'Disputes', path: '/dashboard/disputes' },
 ];
+
+
 
 
 

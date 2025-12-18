@@ -20,13 +20,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   ShoppingCart, Search, Filter, Package, DollarSign, Calendar, TrendingUp, Truck, CheckCircle,
-  Download, FileText, Copy, MoreVertical, Trash2, Edit, Save, RotateCcw, CheckSquare, Square
+  Download, FileText, Copy, MoreVertical, Trash2, Edit, Save, RotateCcw, CheckSquare, Square, Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import LeaveReviewModal from '@/components/reviews/LeaveReviewModal';
 
 function DashboardOrdersInner() {
   const { t } = useTranslation();
@@ -43,6 +44,10 @@ function DashboardOrdersInner() {
   const [templateName, setTemplateName] = useState('');
   const [templates, setTemplates] = useState([]);
   const [dateRangeFilter, setDateRangeFilter] = useState('all');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedOrderForReview, setSelectedOrderForReview] = useState(null);
+  const [orderReviewStatus, setOrderReviewStatus] = useState({});
+  const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,6 +71,7 @@ function DashboardOrdersInner() {
       const userData = profile || user;
       const normalizedRole = getUserRole(userData);
       setCurrentRole(normalizedRole);
+      setCompanyId(userCompanyId);
 
       // Build query based on role
       let query = buildOrderQuery({
@@ -96,6 +102,11 @@ function DashboardOrdersInner() {
         ...result,
         isLoading: false
       }));
+
+      // Load review status for buyer's completed orders
+      if (canViewBuyerFeatures(normalizedRole, viewMode) && userCompanyId) {
+        await loadReviewStatus(ordersData, userCompanyId);
+      }
     } catch (error) {
       console.error('Error loading orders:', error);
       toast.error(error?.message || 'Failed to load orders. Please try again.');
@@ -108,6 +119,32 @@ function DashboardOrdersInner() {
       }));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadReviewStatus = async (ordersList, userCompanyId) => {
+    try {
+      const orderIds = ordersList.map(o => o.id);
+      if (orderIds.length === 0) return;
+
+      const { data: reviews, error } = await supabase
+        .from('reviews')
+        .select('order_id, status')
+        .eq('buyer_company_id', userCompanyId)
+        .in('order_id', orderIds);
+
+      if (error) {
+        console.error('Error loading review status:', error);
+        return;
+      }
+
+      const statusMap = {};
+      reviews?.forEach(review => {
+        statusMap[review.order_id] = review.status;
+      });
+      setOrderReviewStatus(statusMap);
+    } catch (error) {
+      console.error('Error in loadReviewStatus:', error);
     }
   };
 
@@ -307,24 +344,56 @@ function DashboardOrdersInner() {
     { 
       header: 'Actions',
       accessor: 'id',
-      render: (value, order) => (
-        <div className="flex items-center gap-2">
-          <Link to={`/dashboard/orders/${value}`}>
-            <Button variant="outline" size="sm" className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-text-dark">View</Button>
-          </Link>
-          {currentRole === 'buyer' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => reorderFromOrder(order)}
-              className="p-1.5"
-              title="Reorder"
-            >
-              <RotateCcw className="w-4 h-4 text-afrikoni-gold" />
-            </Button>
-          )}
-        </div>
-      )
+      render: (value, order) => {
+        const reviewStatus = orderReviewStatus[value];
+        const canReview = currentRole === 'buyer' && order.status === 'completed' && !reviewStatus;
+        
+        return (
+          <div className="flex items-center gap-2">
+            <Link to={`/dashboard/orders/${value}`}>
+              <Button variant="outline" size="sm" className="border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-text-dark">View</Button>
+            </Link>
+            {currentRole === 'buyer' && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => reorderFromOrder(order)}
+                  className="p-1.5"
+                  title="Reorder"
+                >
+                  <RotateCcw className="w-4 h-4 text-afrikoni-gold" />
+                </Button>
+                {canReview && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedOrderForReview(order);
+                      setShowReviewModal(true);
+                    }}
+                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+                    title="Leave Review"
+                  >
+                    <Star className="w-4 h-4 mr-1" />
+                    Review
+                  </Button>
+                )}
+                {reviewStatus === 'pending' && (
+                  <Badge variant="outline" className="text-xs">
+                    Review Pending
+                  </Badge>
+                )}
+                {reviewStatus === 'approved' && (
+                  <Badge className="bg-green-100 text-green-800 text-xs">
+                    Reviewed
+                  </Badge>
+                )}
+              </>
+            )}
+          </div>
+        );
+      }
     }
   ];
 
@@ -618,6 +687,23 @@ function DashboardOrdersInner() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Leave Review Modal */}
+      {showReviewModal && selectedOrderForReview && (
+        <LeaveReviewModal
+          isOpen={showReviewModal}
+          onClose={(wasSubmitted) => {
+            setShowReviewModal(false);
+            setSelectedOrderForReview(null);
+            // Reload orders if review was submitted
+            if (wasSubmitted) {
+              loadUserAndOrders();
+            }
+          }}
+          order={selectedOrderForReview}
+          buyerCompanyId={companyId}
+        />
+      )}
     </DashboardLayout>
   );
 }

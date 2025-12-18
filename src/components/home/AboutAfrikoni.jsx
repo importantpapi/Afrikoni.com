@@ -15,12 +15,12 @@ export default function AboutAfrikoni() {
     {
       icon: Users,
       title: 'Verified Suppliers',
-      description: 'Connect with pre-verified suppliers you can trust across 54 African countries'
+      description: 'Connect with pre-verified suppliers you can trust across African markets'
     },
     {
       icon: Shield,
       title: 'Trade Shield Protection',
-      description: 'Secure escrow system and quality guarantees protect every transaction'
+      description: 'Assisted and secured transaction workflows with quality guarantees protect every transaction'
     },
     {
       icon: Truck,
@@ -43,7 +43,7 @@ export default function AboutAfrikoni() {
             What Afrikoni Offers
           </h2>
           <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
-            Africa's leading B2B marketplace connecting buyers and suppliers across the continent
+            A digital B2B trade platform building trust and structure in African trade
           </p>
         </motion.div>
 
@@ -84,10 +84,10 @@ export default function AboutAfrikoni() {
           className="bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut rounded-2xl p-8 md:p-12 text-center text-afrikoni-cream"
         >
           <h3 className="text-2xl md:text-3xl font-bold font-serif mb-4">
-            Join Africa's Premier B2B Marketplace
+            Join Afrikoni's B2B Trade Platform
           </h3>
           <p className="text-lg text-afrikoni-cream mb-6 max-w-2xl mx-auto">
-            Connect with verified suppliers, source products, and grow your business across 54 African countries
+            Connect with verified suppliers, source products, and grow your business with structured B2B trade across African markets
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/signup">

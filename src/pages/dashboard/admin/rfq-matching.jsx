@@ -11,11 +11,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   FileText, Search, CheckCircle, Clock, Users, MapPin, 
-  Package, DollarSign, Calendar, ArrowRight, Filter
+  Package, DollarSign, Calendar, ArrowRight, Filter, Shield, Award, TrendingUp, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
+import { useRFQMatching } from '@/hooks/useRFQMatching';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function RFQMatching() {
   const navigate = useNavigate();
@@ -28,6 +30,13 @@ export default function RFQMatching() {
   const [selectedSuppliers, setSelectedSuppliers] = useState([]);
   const [matchingNotes, setMatchingNotes] = useState(''); // Internal notes: why these suppliers were matched
   const [isMatching, setIsMatching] = useState(false);
+  const [showTrustScores, setShowTrustScores] = useState(true); // Toggle AI suggestions
+
+  // 🧊 PHASE B: Trust-based matching (DORMANT - Admin-only)
+  const { matches, isLoading: isMatchingLoading, refresh: refreshMatches } = useRFQMatching(
+    selectedRFQ?.id || null,
+    suppliers
+  );
 
   useEffect(() => {
     loadData();
@@ -62,12 +71,12 @@ export default function RFQMatching() {
       if (rfqsError) throw rfqsError;
       setRfqs(rfqsData || []);
 
-      // Load verified suppliers for matching
+      // 🧊 PHASE B: Load verified suppliers with trust scores for matching
       const { data: suppliersData, error: suppliersError } = await supabase
         .from('companies')
-        .select('id, company_name, country, city, verified, verification_status')
+        .select('id, company_name, country, city, verified, verification_status, trust_score, average_rating, approved_reviews_count')
         .eq('verified', true)
-        .order('company_name', { ascending: true });
+        .order('trust_score', { ascending: false }); // Sort by trust by default
 
       if (suppliersError) throw suppliersError;
       setSuppliers(suppliersData || []);
@@ -344,52 +353,140 @@ export default function RFQMatching() {
                 </p>
               </div>
 
-              {/* Supplier Selection */}
+              {/* Supplier Selection with Trust Tiers */}
               <div>
-                <Label className="text-base font-semibold mb-3 block">
-                  Select Verified Suppliers to Match
-                </Label>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-base font-semibold">
+                    Select Verified Suppliers to Match
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowTrustScores(!showTrustScores)}
+                      className="text-xs"
+                    >
+                      {showTrustScores ? '🧊 Hide AI Suggestions' : '🤖 Show AI Suggestions'}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 🧊 PHASE B: Trust-based match suggestions (Admin-only) */}
+                {showTrustScores && matches.length > 0 && !isMatchingLoading && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                    <div className="flex items-start gap-2 mb-3">
+                      <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-purple-900">
+                          🧊 AI-Suggested Matches (Phase B - Admin Review Required)
+                        </p>
+                        <p className="text-xs text-purple-700 mt-1">
+                          These are trust-based suggestions. Human judgment always wins.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {matches.slice(0, 5).map((match, idx) => (
+                        <div key={match.id} className="flex items-center gap-2 text-sm bg-white rounded p-2 border border-purple-100">
+                          <span className="font-bold text-purple-600">#{idx + 1}</span>
+                          <span className="flex-1 font-medium">{match.company_name}</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge className={
+                                  match.match_tier === 'A' ? 'bg-green-100 text-green-800 border-green-300' :
+                                  match.match_tier === 'B' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                  'bg-orange-100 text-orange-800 border-orange-300'
+                                }>
+                                  Tier {match.match_tier}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="max-w-xs">
+                                <div className="text-xs space-y-1">
+                                  <p><strong>Match Score:</strong> {match.match_score}/100</p>
+                                  <p><strong>Confidence:</strong> {match.match_confidence}</p>
+                                  <p><strong>Reasons:</strong></p>
+                                  <ul className="list-disc pl-4">
+                                    {match.match_reasons?.map((reason, i) => (
+                                      <li key={i}>{reason}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <span className="text-xs text-purple-600">{match.match_score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2 max-h-64 overflow-y-auto border border-afrikoni-gold/20 rounded-lg p-3">
                   {suppliers.length === 0 ? (
                     <p className="text-sm text-afrikoni-deep/70 text-center py-4">
                       No verified suppliers found
                     </p>
                   ) : (
-                    suppliers.map((supplier) => (
-                      <div
-                        key={supplier.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                          selectedSuppliers.includes(supplier.id)
-                            ? 'bg-afrikoni-gold/10 border-afrikoni-gold'
-                            : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
-                        }`}
-                        onClick={() => {
-                          if (selectedSuppliers.includes(supplier.id)) {
-                            setSelectedSuppliers(selectedSuppliers.filter(id => id !== supplier.id));
-                          } else {
-                            setSelectedSuppliers([...selectedSuppliers, supplier.id]);
-                          }
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedSuppliers.includes(supplier.id)}
-                          onChange={() => {}}
-                          className="w-4 h-4 text-afrikoni-gold border-afrikoni-gold/30 rounded"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-afrikoni-chestnut">{supplier.company_name}</p>
-                          <p className="text-xs text-afrikoni-deep/70">
-                            {supplier.city && `${supplier.city}, `}{supplier.country}
-                          </p>
+                    // Display matches first if trust scores enabled, otherwise regular list
+                    (showTrustScores && matches.length > 0 ? matches : suppliers).map((supplier) => {
+                      // Find match data if showing trust scores
+                      const matchData = showTrustScores ? supplier : matches.find(m => m.id === supplier.id);
+                      
+                      return (
+                        <div
+                          key={supplier.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                            selectedSuppliers.includes(supplier.id)
+                              ? 'bg-afrikoni-gold/10 border-afrikoni-gold'
+                              : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+                          }`}
+                          onClick={() => {
+                            if (selectedSuppliers.includes(supplier.id)) {
+                              setSelectedSuppliers(selectedSuppliers.filter(id => id !== supplier.id));
+                            } else {
+                              setSelectedSuppliers([...selectedSuppliers, supplier.id]);
+                            }
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedSuppliers.includes(supplier.id)}
+                            onChange={() => {}}
+                            className="w-4 h-4 text-afrikoni-gold border-afrikoni-gold/30 rounded"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-afrikoni-chestnut">{supplier.company_name}</p>
+                              {/* 🧊 PHASE B: Show trust tier badge (admin-only) */}
+                              {showTrustScores && matchData && matchData.match_tier && (
+                                <Badge variant="outline" className={`text-xs ${
+                                  matchData.match_tier === 'A' ? 'bg-green-50 text-green-700 border-green-300' :
+                                  matchData.match_tier === 'B' ? 'bg-blue-50 text-blue-700 border-blue-300' :
+                                  'bg-orange-50 text-orange-700 border-orange-300'
+                                }`}>
+                                  {matchData.match_tier}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-afrikoni-deep/70">
+                              {supplier.city && `${supplier.city}, `}{supplier.country}
+                              {showTrustScores && supplier.trust_score !== undefined && (
+                                <span className="ml-2 text-afrikoni-gold">
+                                  • Trust: {supplier.trust_score || 0}/100
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                          {supplier.verified && (
+                            <Badge variant="outline" className="text-xs">
+                              <Shield className="w-3 h-3 mr-1" />
+                              Verified
+                            </Badge>
+                          )}
                         </div>
-                        {supplier.verified && (
-                          <Badge variant="outline" className="text-xs">
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>

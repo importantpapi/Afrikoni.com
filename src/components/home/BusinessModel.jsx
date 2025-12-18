@@ -105,15 +105,14 @@ export default function BusinessModel() {
           className="text-center mb-12 md:mb-16"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
-            AFRIKONI: BRUTAL REALITY CHECK &<br />
-            SUSTAINABLE BUSINESS MODEL
+            AFRIKONI: A LONG-TERM INFRASTRUCTURE PLAY
           </h2>
           <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
-            Can Afrikoni really work? Here's our honest answer and transparent approach.
+            Afrikoni is not a shortcut or a hype-driven marketplace. It is a long-term effort to build the structure African trade has historically lacked.
           </p>
-          <div className="inline-flex items-center gap-2 bg-green-100 border border-green-300 rounded-full px-6 py-3">
-            <CheckCircle className="w-5 h-5 text-green-700" aria-hidden="true" />
-            <span className="text-green-800 font-semibold">YES, IT CAN WORK - IF DONE RIGHT</span>
+          <div className="inline-flex items-center gap-2 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-full px-6 py-3">
+            <CheckCircle className="w-5 h-5 text-afrikoni-gold" aria-hidden="true" />
+            <span className="text-afrikoni-chestnut font-semibold">We believe this can work if built patiently, ethically, and in collaboration with real businesses on the ground.</span>
           </div>
         </motion.div>
         
@@ -302,6 +301,13 @@ export default function BusinessModel() {
             );
           })}
         </div>
+
+            {/* Disclaimer */}
+            <div className="bg-afrikoni-offwhite border-l-4 border-afrikoni-gold/50 p-4 rounded-r-lg mb-6">
+              <p className="text-sm text-afrikoni-deep/70 italic">
+                Illustrative projections based on modeled assumptions, not current performance.
+              </p>
+            </div>
 
             {/* Total Revenue Projection */}
             <Card className="border-afrikoni-gold bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20">

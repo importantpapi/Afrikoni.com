@@ -77,7 +77,7 @@ function Footer() {
               <Logo type="full" size="sm" link={true} className="text-afrikoni-cream" />
             </div>
             <p className="text-xs md:text-sm text-afrikoni-cream/90 mb-3 md:mb-4 leading-relaxed">
-              Afrikoni — Africa's trusted B2B trade engine.
+              Afrikoni — Building trusted B2B trade infrastructure for Africa.
               <br />
               Connecting suppliers, buyers & logistics across 54 countries.
             </p>

@@ -44,7 +44,7 @@ export default function Home() {
     <>
       <SEO 
         title="AFRIKONI - AI-Powered African B2B Marketplace with Verified Suppliers"
-        description="The AI-powered B2B marketplace connecting Africa and the world. Verified African suppliers, secure escrow payments, Afrikoni Shield™ compliance, and cross-border logistics across 54 countries."
+        description="The AI-powered B2B marketplace connecting Africa and the world. Verified African suppliers, assisted and secured transaction workflows, Afrikoni Shield™ compliance, and cross-border logistics across African markets."
         url="/"
       />
       <StructuredData type="Organization" />

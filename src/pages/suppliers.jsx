@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Building2, MapPin, Star, Shield, Package, Users, MessageCircle, Globe, Bookmark } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { useSupplierRanking } from '@/hooks/useSupplierRanking';
+import RecommendedBadge from '@/components/suppliers/RecommendedBadge';
 
 const AFRICAN_COUNTRIES = [
   'Nigeria', 'South Africa', 'Kenya', 'Egypt', 'Ghana', 'Morocco', 'Ethiopia',
@@ -24,14 +27,33 @@ export default function Suppliers() {
   const [selectedBusinessType, setSelectedBusinessType] = useState('all');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [buyerCountry, setBuyerCountry] = useState(null);
+
+  // ✅ PHASE A: Trust-based ranking (activated)
+  const { rankedSuppliers, isLoading: isRanking } = useSupplierRanking(
+    suppliers,
+    searchQuery,
+    buyerCountry
+  );
 
   useEffect(() => {
     loadSuppliers();
+    loadBuyerCountry();
   }, []);
 
   useEffect(() => {
     applyFilters();
   }, [selectedCountry, selectedBusinessType, verifiedOnly, searchQuery]);
+
+  // Load buyer's country for location-based ranking boost
+  const loadBuyerCountry = async () => {
+    try {
+      const { profile } = await getCurrentUserAndRole(supabase);
+      setBuyerCountry(profile?.country || null);
+    } catch (error) {
+      // Silent fail - country is optional
+    }
+  };
 
   const loadSuppliers = async () => {
     setIsLoading(true);
@@ -40,13 +62,16 @@ export default function Suppliers() {
         .from('companies')
         .select('*')
         .eq('role', 'seller')
+        // ✅ Initial sort by trust_score (fallback)
         .order('trust_score', { ascending: false })
         .limit(100);
 
       if (error) throw error;
+      // ✅ Ranking happens in useSupplierRanking hook
       setSuppliers(data || []);
     } catch (error) {
       // Error logged (removed for production)
+      setSuppliers([]);
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +84,7 @@ export default function Suppliers() {
         .from('companies')
         .select('*')
         .eq('role', 'seller')
+        // ✅ Initial sort by trust_score (ranking hook will refine)
         .order('trust_score', { ascending: false });
 
       const { data, error } = await query.limit(100);
@@ -66,6 +92,7 @@ export default function Suppliers() {
 
       let filtered = Array.isArray(data) ? data : [];
 
+      // Client-side filters (applied before ranking)
       if (searchQuery) {
         filtered = filtered.filter(s =>
           s?.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,9 +112,11 @@ export default function Suppliers() {
         filtered = filtered.filter(s => s?.verified);
       }
 
+      // ✅ Trust-based ranking happens in useSupplierRanking hook
       setSuppliers(filtered);
     } catch (error) {
       // Error logged (removed for production)
+      setSuppliers([]);
     } finally {
       setIsLoading(false);
     }
@@ -157,11 +186,11 @@ export default function Suppliers() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {isLoading ? (
+        {isLoading || isRanking ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
           </div>
-        ) : suppliers.length === 0 ? (
+        ) : rankedSuppliers.length === 0 ? (
           <Card className="border-afrikoni-gold/20">
             <CardContent className="p-12 text-center">
               <Building2 className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
@@ -171,7 +200,7 @@ export default function Suppliers() {
           </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {suppliers.map(supplier => {
+            {rankedSuppliers.map((supplier, index) => {
               // Mock data for demonstration - in production, this would come from the database
               const mockData = {
                 rating: 4.8,
@@ -185,6 +214,13 @@ export default function Suppliers() {
 
               return (
                 <Card key={supplier.id} className="border-afrikoni-gold/20 hover:shadow-lg transition-shadow relative">
+                  {/* ✅ PHASE A: Recommended Badge (Top suppliers only) */}
+                  {supplier.is_recommended && index < 6 && (
+                    <div className="absolute top-4 left-4 z-10">
+                      <RecommendedBadge type="recommended" />
+                    </div>
+                  )}
+                  
                   <div className="absolute top-4 right-4 z-10">
                     <button className="p-2 hover:bg-afrikoni-cream rounded-full transition">
                       <Bookmark className="w-5 h-5 text-afrikoni-deep/70" />

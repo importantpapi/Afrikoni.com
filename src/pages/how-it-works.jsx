@@ -86,7 +86,7 @@ export default function HowItWorks() {
       number: '01',
       icon: Search,
       title: 'Search & Discover',
-      description: 'Use our powerful search to find verified African suppliers and products across 54 countries. Filter by category, country, price, and more.',
+      description: 'Use our powerful search to find verified African suppliers and products across African markets. Filter by category, country, price, and more.',
       features: ['Browse by category', 'Filter by location', 'Compare prices', 'Verify suppliers'],
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',

@@ -24,7 +24,6 @@ export const buyerNav = [
   { icon: Wallet, label: 'Payments & Escrow', path: '/dashboard/payments' },
   { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
   { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
-  { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews' },
   { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
   { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
   { icon: Shield, label: 'Protection', path: '/dashboard/protection' },

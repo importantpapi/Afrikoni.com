@@ -158,6 +158,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     admin: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/admin' },
       { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics' },
+      { icon: Shield, label: 'Trust Engine', path: '/dashboard/admin/trust-engine' },
       { icon: DollarSign, label: 'Revenue & Finance', path: '/dashboard/admin/revenue' },
       { icon: TrendingUp, label: 'Growth Metrics', path: '/dashboard/admin/growth-metrics' },
       { icon: UsersIcon, label: 'Onboarding Tracker', path: '/dashboard/admin/onboarding-tracker' },
@@ -165,7 +166,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: UsersIcon, label: 'Supplier Management', path: '/dashboard/admin/supplier-management' },
       { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
       { icon: Shield, label: 'Verification Review', path: '/dashboard/admin/verification-review' },
-      { icon: Star, label: 'Review Moderation', path: '/dashboard/admin/reviews' },
+      { icon: Star, label: 'Reviews Moderation', path: '/dashboard/admin/reviews-moderation' },
       { icon: Target, label: 'Marketing Leads', path: '/dashboard/admin/leads' },
       { icon: FileSearch, label: 'KYB Verification', path: '/dashboard/admin/kyb' },
       { icon: UsersIcon, label: 'Disputes & Escrow', path: '/dashboard/admin/disputes' },

@@ -1,37 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Globe, Users, Target, Heart, MapPin, Play, CheckCircle, Store, ShoppingBag, Truck, ArrowRight, Sparkles } from 'lucide-react';
+import { Globe, Users, Target, Heart, MapPin, Play, CheckCircle, Store, ShoppingBag, Truck, ArrowRight, Sparkles, Shield } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { useLanguage } from '@/i18n/LanguageContext';
 import BusinessModel from '@/components/home/BusinessModel';
-import BushidoManifesto from '@/components/home/BushidoManifesto';
 
 export default function About() {
   const { t } = useLanguage();
 
   const values = [
     {
-      icon: Target,
-      title: 'Empowering African Businesses',
-      description: 'We believe every African business deserves access to global markets. Our platform breaks down barriers and creates opportunities.'
-    },
-    {
       icon: Heart,
       title: 'Trust & Transparency',
-      description: 'Trust is the foundation of trade. We build it through verification, escrow protection, and transparent processes.'
+      description: 'We build trust through verification processes, clear rules, and transparent workflows — not promises.'
+    },
+    {
+      icon: Target,
+      title: 'Empowering African Businesses',
+      description: 'We focus on enabling African SMEs to trade under clearer, safer, and more reliable conditions.'
     },
     {
       icon: Globe,
-      title: 'Connecting 54 Countries',
-      description: 'From Lagos to Nairobi, Cairo to Cape Town, we connect businesses across all 54 African countries.'
+      title: 'Structured Trade Infrastructure',
+      description: 'We are building the foundational systems needed to formalize and strengthen African B2B trade.'
     },
     {
       icon: Users,
-      title: 'Community First',
-      description: 'We\'re not just a platform—we\'re a community of entrepreneurs, traders, and innovators building Africa\'s future.'
+      title: 'Collaboration & Partnership',
+      description: 'We work with verified suppliers, logistics partners, and businesses on the ground to build sustainable trade networks.'
     }
   ];
 
@@ -51,8 +50,8 @@ export default function About() {
       ]
     },
     {
-      name: 'CTO',
-      role: 'Technology Leader',
+      name: 'Technical Lead',
+      role: 'Technology Leadership',
       description: 'Building the infrastructure for seamless B2B trade',
       placeholder: true,
       badges: ['B2B Technology Specialist'],
@@ -60,8 +59,8 @@ export default function About() {
       flag: '🇳🇬'
     },
     {
-      name: 'Head of Operations',
-      role: 'Operations Expert',
+      name: 'Operations Lead',
+      role: 'Operations Management',
       description: 'Ensuring smooth transactions and customer satisfaction',
       placeholder: true,
       badges: ['Trade Operations & Customer Success'],
@@ -73,8 +72,8 @@ export default function About() {
   return (
     <>
       <SEO 
-        title="About Afrikoni - Africa's Trusted B2B Trade Engine"
-        description="Africa's trusted B2B trade engine — connecting buyers, sellers and logistics across 54 countries. Learn about Afrikoni's vision, mission, and founding story."
+        title="About Afrikoni - Building Trust & Structure in African B2B Trade"
+        description="A digital B2B trade platform focused on building trust, structure, and reliability in African trade. Learn about Afrikoni's vision, mission, and founding story."
         url="/about"
         ogType="website"
         ogImage="/images/og-about.jpg"
@@ -82,7 +81,7 @@ export default function About() {
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": "Afrikoni",
-          "description": "Africa's trusted B2B trade engine connecting buyers, sellers and logistics across 54 countries",
+          "description": "A digital B2B trade platform focused on building trust, structure, and reliability in African trade",
           "url": "https://afrikoni.com",
           "logo": "https://afrikoni.com/images/logo.png",
           "founder": {
@@ -129,7 +128,7 @@ export default function About() {
                 transition={{ delay: 0.3, duration: 0.6 }}
                 className="text-xl md:text-2xl lg:text-3xl text-afrikoni-deep font-semibold max-w-4xl mx-auto mb-6 leading-relaxed"
               >
-                Africa's trusted B2B trade engine — connecting buyers, sellers and logistics across 54 countries.
+                A digital B2B trade platform focused on building trust, structure, and reliability in African trade, starting within Africa and expanding globally over time.
               </motion.p>
               
               <motion.p
@@ -138,7 +137,7 @@ export default function About() {
                 transition={{ delay: 0.4, duration: 0.6 }}
                 className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto leading-relaxed"
               >
-                Empowering African businesses to go global through verified suppliers, secure payments, and seamless logistics.
+                The platform is designed to support buyers, sellers, and logistics partners through verification, standardized listings, and structured trade workflows.
               </motion.p>
             </motion.div>
             
@@ -191,13 +190,16 @@ export default function About() {
                 
                 <div className="space-y-5 text-afrikoni-deep leading-relaxed text-base md:text-lg">
                       <p>
-                    Afrikoni was born from a simple vision: <span className="font-semibold text-afrikoni-chestnut">to make African businesses accessible to the world and the world accessible to African businesses.</span>
+                        Afrikoni was born from a simple but critical insight: <span className="font-semibold text-afrikoni-chestnut">without structure, there is no trust, and without trust, trade cannot scale.</span>
                       </p>
                       <p>
-                    As entrepreneurs ourselves, we have firsthand experience with the challenges of cross-border trade in Africa — payment risks, trust issues, and fragmented markets. We knew there had to be a better way.
+                        As entrepreneurs, we experienced firsthand the realities of cross-border trade across African markets: fragmented information, lack of verification, informal processes, and payment risk. These challenges limit the ability of businesses to trade with confidence, even within the continent.
                       </p>
                       <p>
-                        Today, Afrikoni connects thousands of businesses across 54 African countries, facilitating millions in trade volume through our secure escrow system and verified supplier network.
+                        Afrikoni is building the foundational digital infrastructure required to formalize and strengthen intra-African B2B trade. The platform is currently in a controlled beta phase, onboarding verified suppliers and validating trusted trade processes across selected African trade corridors.
+                      </p>
+                      <p className="text-afrikoni-chestnut font-medium">
+                        Afrikoni is intentionally developed in phases, prioritizing trust and operational reliability before scale.
                       </p>
                 </div>
               </motion.div>
@@ -218,7 +220,7 @@ export default function About() {
                       <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">Our Vision</h3>
                     </div>
                     <p className="text-afrikoni-deep leading-relaxed text-base md:text-lg mb-8">
-                      To become the most trusted B2B marketplace in Africa, where every business—from small local suppliers to large international buyers—can trade with confidence, security, and transparency.
+                      To help establish trusted, transparent, and structured trade across African markets, enabling businesses of all sizes to trade with confidence and reliability.
                     </p>
                     <Link to="/services/buyers">
                       <Button 
@@ -251,25 +253,28 @@ export default function About() {
                     <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">Our Mission</h3>
                   </div>
                   <p className="text-afrikoni-deep leading-relaxed text-base md:text-lg mb-8">
-                    To empower African businesses to go global by providing a trusted, secure, and transparent B2B marketplace that breaks down barriers and creates opportunities.
+                    To empower African businesses by providing the digital structure, verification, and governance needed to trade reliably within Africa and, over time, globally.
                   </p>
                   
-                  <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-afrikoni-deep font-medium">Connect businesses across all 54 African countries</span>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-afrikoni-deep font-medium">Provide secure escrow payments and buyer protection</span>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-afrikoni-deep font-medium">Verify suppliers and build trust in African trade</span>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-afrikoni-deep font-medium">Enable seamless logistics and shipping solutions</span>
+                  <div className="mb-6">
+                    <h4 className="text-lg font-bold text-afrikoni-chestnut mb-4">What We Are Building</h4>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                        <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-afrikoni-deep font-medium">Enable structured B2B connections across African markets</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                        <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-afrikoni-deep font-medium">Support supplier verification and standardized product information</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                        <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-afrikoni-deep font-medium">Facilitate assisted and secure trade workflows</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                        <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-afrikoni-deep font-medium">Collaborate with logistics partners to improve trade execution</span>
+                      </div>
                     </div>
                   </div>
 
@@ -293,9 +298,42 @@ export default function About() {
         {/* Business Model & Reality Check */}
         <BusinessModel />
 
-        {/* Afrikoni Bushido Manifesto */}
+        {/* Afrikoni Code CTA */}
         <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-br from-afrikoni-chestnut/5 via-afrikoni-gold/5 to-afrikoni-chestnut/5">
-          <BushidoManifesto />
+          <div className="max-w-7xl mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Card className="border-2 border-afrikoni-gold/30 shadow-2xl bg-gradient-to-br from-afrikoni-chestnut/10 to-afrikoni-deep/10">
+                <CardContent className="p-10 md:p-14 text-center">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    className="w-20 h-20 rounded-xl bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-gold/10 flex items-center justify-center mx-auto mb-6 shadow-lg"
+                  >
+                    <Shield className="w-10 h-10 text-afrikoni-gold" />
+                  </motion.div>
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-6">
+                    The Afrikoni Code
+                  </h2>
+                  <p className="text-lg md:text-xl text-afrikoni-deep mb-8 max-w-2xl mx-auto leading-relaxed">
+                    Discover the internal principles guiding how Afrikoni is built and operated. This is not marketing. This is a commitment.
+                  </p>
+                  <Link to="/afrikoni-code">
+                    <Button 
+                      size="lg" 
+                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-semibold group"
+                    >
+                      Read The Afrikoni Code
+                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
         </section>
 
         {/* Our Values */}
@@ -459,7 +497,7 @@ export default function About() {
                   className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold group"
                 >
                   <Truck className="w-5 h-5 mr-2" />
-                  Partner in Logistics
+                  Logistics Partner (Pilot)
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
