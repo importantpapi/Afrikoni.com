@@ -15,63 +15,68 @@ export default function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      loadNotifications();
-      
-      const setupSubscription = async () => {
-        try {
-          const { getOrCreateCompany } = await import('@/utils/companyHelper');
-          const companyId = await getOrCreateCompany(supabase, user);
-          
-          if (!companyId && !user.id && !user.email) {
+      if (user) {
+        loadNotifications();
+        
+        const setupSubscription = async () => {
+          try {
+            const { getOrCreateCompany } = await import('@/utils/companyHelper');
+            const companyId = await getOrCreateCompany(supabase, user);
+            
+            if (!companyId && !user.id && !user.email) {
+              return null;
+            }
+            
+            let filter = '';
+            if (companyId) {
+              filter = `company_id=eq.${companyId}`;
+            } else if (user.id) {
+              filter = `user_id=eq.${user.id}`;
+            } else if (user.email) {
+              filter = `user_email=eq.${user.email}`;
+            }
+            
+            const channel = supabase
+              .channel(`notifications-${user.id || user.email}`)
+              .on('postgres_changes', {
+                event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+                schema: 'public',
+                table: 'notifications',
+                filter: filter
+              }, (payload) => {
+                console.log('[NotificationBell] Real-time update:', payload.eventType);
+                // Instantly reload notifications on any change
+                loadNotifications();
+              })
+              .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                  console.log('[NotificationBell] Real-time subscribed');
+                } else if (status === 'CHANNEL_ERROR') {
+                  console.debug('Notification subscription error');
+                }
+              });
+
+            return () => {
+              if (channel) {
+                console.log('[NotificationBell] Unsubscribing');
+                supabase.removeChannel(channel);
+              }
+            };
+          } catch (error) {
             return null;
           }
-          
-          let filter = '';
-          if (companyId) {
-            filter = `company_id=eq.${companyId}`;
-          } else if (user.id) {
-            filter = `user_id=eq.${user.id}`;
-          } else if (user.email) {
-            filter = `user_email=eq.${user.email}`;
-          }
-          
-          const channel = supabase
-            .channel(`notifications-${user.id || user.email}`)
-            .on('postgres_changes', {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'notifications',
-              filter: filter
-            }, () => {
-              loadNotifications();
-            })
-            .subscribe((status) => {
-              if (status === 'CHANNEL_ERROR') {
-                console.debug('Notification subscription error');
-              }
-            });
+        };
 
-          return () => {
-            if (channel) {
-              supabase.removeChannel(channel);
-            }
-          };
-        } catch (error) {
-          return null;
-        }
-      };
+        let cleanup;
+        setupSubscription().then(cleanupFn => {
+          cleanup = cleanupFn;
+        });
 
-      let cleanup;
-      setupSubscription().then(cleanupFn => {
-        cleanup = cleanupFn;
-      });
-
-      return () => {
-        if (cleanup) cleanup();
-      };
-    }
-  }, [user]);
+        return () => {
+          if (cleanup) cleanup();
+        };
+      }
+    }, [user]);
 
   const loadUser = async () => {
     try {
