@@ -169,7 +169,7 @@ function TrustEngineInner() {
                   <AlertCircle className="w-6 h-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-afrikoni-deep/60">Tier C (<50)</p>
+                  <p className="text-sm text-afrikoni-deep/60">Tier C (&lt;50)</p>
                   <p className="text-2xl font-bold text-afrikoni-chestnut">{stats.tierC}</p>
                 </div>
               </div>
