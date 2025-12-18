@@ -73,7 +73,7 @@ const ALL_COUNTRIES = Object.keys(COUNTRY_NAMES).filter(key => key !== 'DEFAULT'
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const language = i18n.language;
   const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
   const [megaOpen, setMegaOpen] = useState(false);
