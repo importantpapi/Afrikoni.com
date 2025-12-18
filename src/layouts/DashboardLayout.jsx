@@ -549,6 +549,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                   );
               }
             })()}
+          </div>
         </div>
 
         {/* User Menu Dropdown - Fixed position for visibility */}
