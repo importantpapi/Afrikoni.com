@@ -103,5 +103,74 @@
   },
   "home": {
     "trustedByBusinesses": "Trusted by leading businesses across Africa"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "buyerSubtitle": "Source products and connect with verified suppliers across Africa.",
+    "sellerSubtitle": "Manage your products, RFQs, and grow your business.",
+    "hybridSubtitle": "Handle both buying and selling from one powerful dashboard.",
+    "logisticsSubtitle": "Track shipments and manage logistics operations.",
+    "totalOrders": "Total Orders",
+    "totalRFQs": "Total RFQs",
+    "products": "Products",
+    "unreadMessages": "Unread Messages",
+    "suppliers": "Suppliers",
+    "payoutBalance": "Payout Balance",
+    "quickActions": "Quick Actions",
+    "addProduct": "Add Product",
+    "viewRFQs": "View RFQs",
+    "viewSales": "View Sales",
+    "manageCompany": "Manage Company",
+    "browseProducts": "Browse Products",
+    "contactSuppliers": "Contact Suppliers",
+    "trackShipments": "Track Shipments",
+    "messages": "Messages",
+    "orders": "Orders",
+    "settings": "Settings",
+    "help": "Help Center",
+    "salesOverview": "Sales & Orders Overview",
+    "rfqActivity": "RFQ Activity Overview",
+    "recentOrders": "Recent Orders",
+    "recentMessages": "Recent Messages",
+    "ordersAndSales": "Orders & Sales",
+    "viewAllOrders": "View All Orders"
+  },
+  "rfq": {
+    "postTradeRequest": "Post a Trade Request (RFQ)",
+    "getMatchedDescription": "Get matched with verified African suppliers. Reviewed within 24–48 hours.",
+    "whatHappensAfter": "What happens after I post an RFQ?",
+    "step1Title": "Submit request",
+    "step1Description": "2–3 minutes",
+    "step2Title": "Afrikoni verifies suppliers & terms",
+    "step2Description": "Manual review",
+    "step3Title": "You receive curated quotes",
+    "step3Description": "24–48 hours",
+    "step4Title": "Trade coordinated securely",
+    "step4Description": "Protected transaction",
+    "create": "Post a Trade Request (RFQ)"
+  },
+  "common": {
+    "view": "View"
+  },
+  "empty": {
+    "noOrders": "No orders yet",
+    "noOrdersDesc": "Your recent orders will appear here.",
+    "noRFQs": "No RFQs yet",
+    "noRFQsDesc": "Your recent RFQs will appear here.",
+    "noMessages": "No messages yet",
+    "noMessagesDesc": "Your recent messages will appear here."
+  },
+  "messages": {
+    "title": "Messages"
+  },
+  "auth": {
+    "logout": "Logout"
+  },
+  "nav": {
+    "rfq": "RFQs"
+  },
+  "verification": {
+    "title": "Verification"
   }
 }
