@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { createPageUrl } from '@/utils';
 
@@ -19,18 +18,15 @@ export default function NotificationBell() {
     if (user) {
       loadNotifications();
       
-      // Subscribe to real-time notifications only if we have proper filters
       const setupSubscription = async () => {
         try {
           const { getOrCreateCompany } = await import('@/utils/companyHelper');
           const companyId = await getOrCreateCompany(supabase, user);
           
-          // Only subscribe if we have a valid filter
           if (!companyId && !user.id && !user.email) {
             return null;
           }
           
-          // Build filter for realtime subscription
           let filter = '';
           if (companyId) {
             filter = `company_id=eq.${companyId}`;
@@ -52,7 +48,6 @@ export default function NotificationBell() {
             })
             .subscribe((status) => {
               if (status === 'CHANNEL_ERROR') {
-                // Silently handle subscription errors
                 console.debug('Notification subscription error');
               }
             });
@@ -63,7 +58,6 @@ export default function NotificationBell() {
             }
           };
         } catch (error) {
-          // Silently fail - subscription is optional
           return null;
         }
       };
@@ -92,7 +86,6 @@ export default function NotificationBell() {
   const loadNotifications = async () => {
     if (!user) return;
     
-    // Ensure session is ready before querying (RLS requires auth.uid())
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
@@ -107,11 +100,9 @@ export default function NotificationBell() {
     }
     
     try {
-      // Get company_id if available
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
       const companyId = await getOrCreateCompany(supabase, user);
 
-      // If company_id was created, verify profile has it set (RLS requires this)
       if (companyId && user.id) {
         try {
           const { data: profileCheck } = await supabase
@@ -120,7 +111,6 @@ export default function NotificationBell() {
             .eq('id', user.id)
             .maybeSingle();
 
-          // If profile doesn't have company_id, update it (RLS requires this match)
           if (profileCheck?.company_id !== companyId) {
             await supabase
               .from('profiles')
@@ -131,8 +121,6 @@ export default function NotificationBell() {
         }
       }
 
-      // Always require at least one filter to pass RLS
-      // Prefer user_id over company_id for RLS matching (more reliable)
       if (!user.id && !user.email) {
         setNotifications([]);
         setUnreadCount(0);
@@ -145,7 +133,6 @@ export default function NotificationBell() {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Prefer user_id first (most reliable for RLS), then company_id, then user_email
       if (user.id) {
         query = query.eq('user_id', user.id);
       } else if (companyId) {
@@ -157,7 +144,6 @@ export default function NotificationBell() {
       const { data, error } = await query;
 
       if (error) {
-        // Log but don't throw - gracefully handle errors
         console.debug('Notification bell query error:', error);
         setNotifications([]);
         setUnreadCount(0);
@@ -187,50 +173,31 @@ export default function NotificationBell() {
     }
   };
 
-  // ALWAYS render the bell icon (even if user not loaded)
-  // Only show dropdown if user is logged in
-  
-  // DEBUG: Force visibility
-  console.log('🔔 NotificationBell RENDERING');
-  
+  // ALWAYS render the bell - clean, ungrouped, balanced
   return (
-    <div className="relative inline-flex items-center justify-center" 
-         style={{ 
-           outline: '3px solid red',
-           backgroundColor: 'yellow',
-           padding: '4px'
-         }}>
-      <button
-        onClick={() => {
-          console.log('🔔 BELL CLICKED');
-          if (user) {
-            setIsOpen(!isOpen);
-          }
-        }}
-        className="relative inline-flex items-center justify-center
-                   w-10 h-10 rounded-lg
-                   text-afrikoni-text-dark
-                   hover:bg-afrikoni-sand/30
-                   active:bg-afrikoni-sand/40
-                   transition-all duration-200
-                   ring-1 ring-transparent
-                   hover:ring-afrikoni-gold/20
-                   hover:shadow-sm"
-        aria-label="Notifications"
-        type="button"
-        style={{ backgroundColor: 'lime' }}
-      >
-        <Bell className="w-5 h-5" style={{ stroke: 'black', strokeWidth: 3 }} />
-        {user && unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] 
-                         bg-gradient-to-br from-red-500 to-red-600 
-                         text-white text-[10px] font-bold
-                         rounded-full flex items-center justify-center
-                         shadow-md ring-2 ring-white">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+    <button
+      onClick={() => {
+        if (user) {
+          setIsOpen(!isOpen);
+        }
+      }}
+      className="relative inline-flex items-center justify-center
+                 w-10 h-10 rounded-lg
+                 text-gray-700 hover:text-gray-900
+                 hover:bg-gray-100
+                 transition-colors duration-200"
+      aria-label="Notifications"
+      type="button"
+    >
+      <Bell className="w-5 h-5" />
+      {user && unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] 
+                       bg-red-500 text-white text-[10px] font-bold
+                       rounded-full flex items-center justify-center
+                       shadow-sm ring-2 ring-white">
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+      )}
 
       {user && isOpen && (
         <>
@@ -252,7 +219,7 @@ export default function NotificationBell() {
               zIndex: 9998,
             }}
           />
-          {/* Notification Dropdown - Fixed positioning with portal-like rendering */}
+          {/* Notification Dropdown */}
           <Card 
             className="fixed w-80 md:w-96 max-h-[500px] overflow-hidden shadow-2xl border-2 border-afrikoni-gold/30 bg-white flex flex-col"
             style={{
@@ -288,7 +255,6 @@ export default function NotificationBell() {
                           markAsRead(notification.id);
                           setIsOpen(false);
                           
-                          // Navigate based on type
                           if (notification.link) {
                             window.location.href = notification.link;
                           } else if (notification.type === 'order' && notification.related_id) {
@@ -352,7 +318,6 @@ export default function NotificationBell() {
           </Card>
         </>
       )}
-    </div>
+    </button>
   );
 }
-

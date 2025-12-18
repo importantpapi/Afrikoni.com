@@ -82,11 +82,9 @@ export default function AdminHeader({
             </Button>
           </div>
 
-          {/* UTILITIES — Notifications (secondary importance, explicit container) */}
+          {/* UTILITIES — Notifications (clean, ungrouped) */}
           <div className="flex items-center pr-6">
-            <div className="flex items-center justify-center w-10 h-10">
-              <NotificationBell />
-            </div>
+            <NotificationBell />
           </div>
 
           {/* IDENTITY — User Menu (handled by DashboardLayout) */}

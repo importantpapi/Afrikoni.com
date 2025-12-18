@@ -62,11 +62,9 @@ export default function LogisticsHeader({
             </div>
           </div>
 
-          {/* UTILITIES — Notifications + Messages (secondary importance, explicit containers) */}
+          {/* UTILITIES — Notifications + Messages (clean, ungrouped) */}
           <div className="flex items-center gap-4 pr-6">
-            <div className="flex items-center justify-center w-10 h-10">
-              <NotificationBell />
-            </div>
+            <NotificationBell />
             
             <Link
               to="/messages"
