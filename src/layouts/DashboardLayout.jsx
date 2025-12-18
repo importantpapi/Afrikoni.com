@@ -33,6 +33,9 @@ import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
+  // Simple fallback for translation - always return empty string to use fallbacks
+  const t = () => '';
+  
   const { refreshRole } = useRole();
   const { role: dashboardRole } = useDashboardRole();
   const [sidebarOpen, setSidebarOpen] = useState(true);
