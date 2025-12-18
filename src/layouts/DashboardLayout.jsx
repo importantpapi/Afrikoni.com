@@ -457,7 +457,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 w-full md:ml-[260px] min-h-screen relative z-10 overflow-visible">
         {/* Premium Top Bar */}
-        <header className="sticky top-0 z-30 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
+        <header className="sticky top-0 z-50 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
           <div className="relative overflow-visible">
             {(() => {
               switch (dashboardRole) {
@@ -495,7 +495,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
             })()}
 
             {/* User Menu Trigger (shared across roles) */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3 z-50">
                 <button
                   ref={userMenuButtonRef}
                   onClick={(e) => {
@@ -667,7 +667,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 w-full px-4 md:px-6 lg:px-8 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
+        <main className="relative z-10 flex-1 w-full px-4 md:px-6 lg:px-8 pb-20 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
           {children}
         </main>
       </div>
