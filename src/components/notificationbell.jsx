@@ -189,10 +189,20 @@ export default function NotificationBell() {
 
   // ALWAYS render the bell icon (even if user not loaded)
   // Only show dropdown if user is logged in
+  
+  // DEBUG: Force visibility
+  console.log('🔔 NotificationBell RENDERING');
+  
   return (
-    <div className="relative inline-flex items-center justify-center">
+    <div className="relative inline-flex items-center justify-center" 
+         style={{ 
+           outline: '3px solid red',
+           backgroundColor: 'yellow',
+           padding: '4px'
+         }}>
       <button
         onClick={() => {
+          console.log('🔔 BELL CLICKED');
           if (user) {
             setIsOpen(!isOpen);
           }
@@ -208,8 +218,9 @@ export default function NotificationBell() {
                    hover:shadow-sm"
         aria-label="Notifications"
         type="button"
+        style={{ backgroundColor: 'lime' }}
       >
-        <Bell className="w-5 h-5 text-afrikoni-charcoal" />
+        <Bell className="w-5 h-5" style={{ stroke: 'black', strokeWidth: 3 }} />
         {user && unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] 
                          bg-gradient-to-br from-red-500 to-red-600 
