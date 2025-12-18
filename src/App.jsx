@@ -90,6 +90,7 @@ const UserDisputes = lazy(() => import('./pages/dashboard/disputes'));
 const SubscriptionsPage = lazy(() => import('./pages/dashboard/subscriptions'));
 const LogisticsQuotePage = lazy(() => import('./pages/dashboard/logistics-quote'));
 const VerificationMarketplace = lazy(() => import('./pages/dashboard/verification-marketplace'));
+const VerificationStatus = lazy(() => import('./pages/dashboard/verification-status'));
 const TeamMembersPage = lazy(() => import('./pages/dashboard/team-members'));
 const SupplierAcquisitionPage = lazy(() => import('./pages/supplier-acquisition/[country]'));
 const LogisticsPartnerOnboarding = lazy(() => import('./pages/logistics-partner-onboarding'));
@@ -203,6 +204,7 @@ function App() {
             <Route path="/supplier-onboarding" element={<ProtectedRoute><SupplierOnboarding /></ProtectedRoute>} />
             {/* Trust & Verification Center */}
             <Route path="/dashboard/verification" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
+            <Route path="/dashboard/verification-status" element={<ProtectedRoute><VerificationStatus /></ProtectedRoute>} />
             <Route path="/verification-center" element={<ProtectedRoute><VerificationCenter /></ProtectedRoute>} />
             <Route path="/products" element={<Products />} />
             <Route path="/marketplace" element={<Marketplace />} />

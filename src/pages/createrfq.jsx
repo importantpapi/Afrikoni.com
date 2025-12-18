@@ -18,6 +18,7 @@ import { validateRFQForm } from '@/utils/validation';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import ShippingCalculator from '@/components/shipping/ShippingCalculator';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { RFQQualityHelper } from '@/components/rfq/RFQQualityHelper';
 
 export default function CreateRFQ() {
   const { t } = useLanguage();
@@ -254,6 +255,32 @@ export default function CreateRFQ() {
             </div>
           </CardContent>
         </Card>
+
+        {/* RFQ Quality Helper */}
+        <RFQQualityHelper 
+          formData={{
+            product_name: formData.title,
+            quantity: formData.quantity,
+            unit: formData.unit,
+            specifications: formData.description,
+            budget_min: formData.target_price,
+            delivery_country: formData.delivery_location,
+            timeline: formData.urgency
+          }}
+          onTemplateSelect={(template) => {
+            setFormData(prev => ({
+              ...prev,
+              title: template.product || prev.title,
+              quantity: template.quantity || prev.quantity,
+              unit: template.unit || prev.unit,
+              description: template.specifications || prev.description,
+              target_price: template.budget || prev.target_price,
+              urgency: template.timeline || prev.urgency
+            }));
+            toast.success('Template applied! Review and adjust as needed.');
+          }}
+        />
+
         {/* Section 1 - Product Details */}
         <Card className="border-afrikoni-gold/20">
           <CardContent className="p-6 space-y-6">

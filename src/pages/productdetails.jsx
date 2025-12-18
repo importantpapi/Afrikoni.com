@@ -35,6 +35,8 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import Price, { PriceRange } from '@/components/ui/Price';
+import { PaymentProtectionBanner } from '@/components/trust/PaymentProtectionBanner';
+import { VerificationBadgeTooltip } from '@/components/trust/VerificationBadgeTooltip';
 
 /**
  * ⚠️ INSTITUTIONAL PRODUCT PAGE
@@ -808,6 +810,9 @@ export default function ProductDetail() {
                   <p className="text-xs text-afrikoni-deep/60 text-center -mt-2 mb-1">
                     All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
                   </p>
+
+                  {/* Payment Protection - Build Confidence */}
+                  <PaymentProtectionBanner variant="compact" className="mt-2 mb-3" />
                   
                   {/* SECONDARY CTA: Contact Supplier - Less prominent */}
                   <Button 

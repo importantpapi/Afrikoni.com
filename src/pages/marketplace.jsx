@@ -38,6 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip } from '@/components/ui/tooltip';
+import { VerificationBadgeTooltip } from '@/components/trust/VerificationBadgeTooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Drawer } from '@/components/ui/drawer';
@@ -864,25 +865,18 @@ export default function Marketplace() {
                     </div>
                     {/* Trust & compliance badges */}
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {product.companies?.verification_status === 'verified' && (
-                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          {t('marketplace.verifiedSupplier')}
+                      <VerificationBadgeTooltip
+                        verified={product.companies?.verification_status === 'verified' || product.companies?.verified}
+                        verificationStatus={product.companies?.verification_status}
+                        companyName={product.companies?.company_name || 'This supplier'}
+                        size="sm"
+                      />
+                      {(product.companies?.verification_status !== 'verified' && !product.companies?.verified) && (
+                        <Badge className="text-xs bg-gray-50 text-gray-600 border-gray-200">
+                          <Shield className="w-3 h-3 mr-1" />
+                          {t('marketplace.tradeShieldEligible')}
                         </Badge>
                       )}
-                      {product.companies?.verification_status === 'pending' && (
-                        <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {t('marketplace.verificationInProgress')}
-                        </Badge>
-                      )}
-                      {product.companies?.verification_status !== 'verified' &&
-                        product.companies?.verification_status !== 'pending' && (
-                          <Badge className="text-xs bg-gray-50 text-gray-600 border-gray-200">
-                            <Shield className="w-3 h-3 mr-1" />
-                            {t('marketplace.tradeShieldEligible')}
-                          </Badge>
-                        )}
                     </div>
                     {/* Why buyers trust this supplier */}
                     {(product?.companies ||
