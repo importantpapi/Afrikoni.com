@@ -75,6 +75,7 @@ const AdminReview = lazy(() => import('./pages/dashboard/admin/review'));
 const AdminVerificationReview = lazy(() => import('./pages/dashboard/admin/verification-review'));
 const AdminAnalytics = lazy(() => import('./pages/dashboard/admin/analytics'));
 const AdminMarketplace = lazy(() => import('./pages/dashboard/admin/marketplace'));
+const FounderControlPanel = lazy(() => import('./pages/dashboard/admin/founder-control-panel'));
 const AdminSupplierManagement = lazy(() => import('./pages/dashboard/admin/supplier-management'));
 const AdminRFQMatching = lazy(() => import('./pages/dashboard/admin/rfq-matching'));
 const AdminRFQAnalytics = lazy(() => import('./pages/dashboard/admin/rfq-analytics'));
@@ -291,6 +292,7 @@ function App() {
             <Route path="/dashboard/admin/verification-review" element={<ProtectedRoute><AdminVerificationReview /></ProtectedRoute>} />
             <Route path="/dashboard/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><AdminMarketplace /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/founder-control" element={<ProtectedRoute><FounderControlPanel /></ProtectedRoute>} />
             <Route path="/dashboard/admin/supplier-management" element={<ProtectedRoute><AdminSupplierManagement /></ProtectedRoute>} />
             <Route path="/dashboard/admin/rfq-matching" element={<ProtectedRoute><AdminRFQMatching /></ProtectedRoute>} />
             <Route path="/dashboard/admin/rfq-analytics" element={<ProtectedRoute><AdminRFQAnalytics /></ProtectedRoute>} />
