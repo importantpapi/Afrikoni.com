@@ -187,12 +187,16 @@ export default function NotificationBell() {
     }
   };
 
-  if (!user) return null;
-
+  // ALWAYS render the bell icon (even if user not loaded)
+  // Only show dropdown if user is logged in
   return (
     <div className="relative inline-flex">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (user) {
+            setIsOpen(!isOpen);
+          }
+        }}
         className="relative inline-flex items-center justify-center
                    w-9 h-9 rounded-full
                    hover:bg-black/5
@@ -201,14 +205,14 @@ export default function NotificationBell() {
         type="button"
       >
         <Bell className="w-5 h-5 text-afrikoni-charcoal" />
-        {unreadCount > 0 && (
+        {user && unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-sm">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
-      {isOpen && (
+      {user && isOpen && (
         <>
           {/* Backdrop */}
           <div 
