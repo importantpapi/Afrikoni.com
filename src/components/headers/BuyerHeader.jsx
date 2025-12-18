@@ -7,11 +7,8 @@ import NotificationBell from '@/components/notificationbell';
 /**
  * BUYER HEADER - Deal-First Navigation
  * 
- * ENTERPRISE STANDARD: NO max-w, NO mx-auto, NO centered container
- * Full-width header that spans cleanly across available width
- * 
- * LEFT: Search with fixed width (not flex)
- * RIGHT: Create RFQ (PRIMARY gold CTA), Notifications, Profile
+ * PROPER SPACING: Search takes good space, actions on right with breathing room
+ * NO compression to one side - proper distribution across full width
  */
 export default function BuyerHeader({
   t,
@@ -20,11 +17,11 @@ export default function BuyerHeader({
   navigate,
 }) {
   return (
-    <div className="flex h-full items-center justify-between px-6">
+    <div className="flex h-full items-center justify-between px-6 gap-6">
       
-      {/* LEFT: Search Bar (Fixed Width) */}
-      <div className="flex flex-1 items-center gap-4">
-        <div className="w-[380px] lg:w-[420px] relative">
+      {/* LEFT: Search Bar - Takes up good space */}
+      <div className="flex items-center flex-1 max-w-2xl">
+        <div className="w-full relative">
           <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             placeholder={t('buyer.searchPlaceholder') || 'Search products, suppliers, RFQs...'}
@@ -35,12 +32,12 @@ export default function BuyerHeader({
         </div>
       </div>
 
-      {/* RIGHT: Primary CTA + Notifications */}
-      <div className="flex items-center gap-3">
+      {/* RIGHT: Primary CTA + Notifications - Proper spacing */}
+      <div className="flex items-center gap-3 flex-shrink-0">
         {/* PRIMARY CTA: Create RFQ (Gold - Visual Priority) */}
         <Button
           onClick={() => navigate('/dashboard/rfqs/new')}
-          className="flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-md rounded-lg px-6 py-2.5 h-11 transition-all hover:shadow-lg"
+          className="flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-md rounded-lg px-6 py-2.5 h-11 transition-all hover:shadow-lg whitespace-nowrap"
         >
           <Search className="w-4 h-4" />
           <span className="text-sm font-semibold">Create RFQ</span>
@@ -49,7 +46,8 @@ export default function BuyerHeader({
         {/* Notifications (Icon Only) */}
         <NotificationBell />
 
-        {/* Profile handled by DashboardLayout */}
+        {/* Profile handled by DashboardLayout - space reserved */}
+        <div className="w-10" /> {/* Reserve space for profile avatar */}
       </div>
 
     </div>

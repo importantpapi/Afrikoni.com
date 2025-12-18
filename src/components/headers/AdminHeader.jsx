@@ -8,11 +8,9 @@ import NotificationBell from '@/components/notificationbell';
 /**
  * ADMIN HEADER - Control-First Navigation
  * 
- * ENTERPRISE STANDARD: NO max-w, NO mx-auto, NO centered container
+ * PROPER SPACING: Search takes good space, actions on right with breathing room
+ * NO compression to one side - proper distribution across full width
  * NO GOLD BUTTONS - Admin is not commerce
- * 
- * LEFT: Global Search (fixed width)
- * RIGHT: Alerts (red priority), KoniAI (purple), Notifications
  */
 export default function AdminHeader({
   t,
@@ -22,11 +20,11 @@ export default function AdminHeader({
   alertCount = 0,
 }) {
   return (
-    <div className="flex h-full items-center justify-between px-6 bg-red-50/30 border-b border-red-200/50">
+    <div className="flex h-full items-center justify-between px-6 gap-6 bg-red-50/30 border-b border-red-200/50">
       
-      {/* LEFT: Global Admin Search (Fixed Width) */}
-      <div className="flex flex-1 items-center gap-4">
-        <div className="w-[380px] lg:w-[480px] relative">
+      {/* LEFT: Global Admin Search - Takes up good space */}
+      <div className="flex items-center flex-1 max-w-2xl">
+        <div className="w-full relative">
           <Search className="w-4 h-4 text-red-600 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             placeholder={t('admin.searchPlaceholder') || 'Global search: users, RFQs, transactions...'}
@@ -37,13 +35,13 @@ export default function AdminHeader({
         </div>
       </div>
 
-      {/* RIGHT: Admin Control Actions + Notifications */}
-      <div className="flex items-center gap-3">
+      {/* RIGHT: Admin Control Actions + Notifications - Proper spacing */}
+      <div className="flex items-center gap-3 flex-shrink-0">
         {/* Priority Alerts (Red - Control Priority) */}
         <Button
           onClick={() => navigate('/dashboard/admin/alerts')}
           variant="outline"
-          className="flex items-center gap-2 border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 rounded-lg px-4 py-2 h-10 transition-all relative"
+          className="flex items-center gap-2 border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 rounded-lg px-4 py-2 h-10 transition-all relative whitespace-nowrap"
         >
           <AlertTriangle className="w-4 h-4" />
           <span className="text-sm font-medium">Alerts</span>
@@ -57,7 +55,7 @@ export default function AdminHeader({
         {/* KoniAI Admin Panel (Purple - Intelligence) */}
         <Button
           onClick={() => navigate('/dashboard/koniai')}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 h-10 transition-all shadow-sm font-medium"
+          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 h-10 transition-all shadow-sm font-medium whitespace-nowrap"
         >
           <Sparkles className="w-4 h-4" />
           <span className="text-sm">KoniAI</span>
@@ -66,7 +64,8 @@ export default function AdminHeader({
         {/* Notifications (Icon Only) */}
         <NotificationBell />
 
-        {/* Profile handled by DashboardLayout */}
+        {/* Profile handled by DashboardLayout - space reserved */}
+        <div className="w-10" /> {/* Reserve space for profile avatar */}
       </div>
 
     </div>
