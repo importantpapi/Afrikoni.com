@@ -70,8 +70,12 @@ export default function RiskManagementDashboard() {
   const [riskScoreHistory, setRiskScoreHistory] = useState([]);
   const [complianceByHub, setComplianceByHub] = useState([]);
   const [newRegistrations, setNewRegistrations] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // All users (no time filter)
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showAllUsers, setShowAllUsers] = useState(false); // Toggle between recent and all
+  const [searchEmail, setSearchEmail] = useState(''); // Search by email
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   useEffect(() => {
     checkAccess();
@@ -81,6 +85,7 @@ export default function RiskManagementDashboard() {
     if (hasAccess) {
       loadRiskData();
       loadNewRegistrations();
+      loadAllUsers(); // Also load all users
     }
   }, [hasAccess]);
 
@@ -123,15 +128,116 @@ export default function RiskManagementDashboard() {
     }
   };
 
-  // Load new user registrations (last 7 days to catch all recent users)
+  // Load ALL users (no time filter) for search and complete visibility
+  const loadAllUsers = async () => {
+    try {
+      setIsLoadingUsers(true);
+      console.log('[Risk Dashboard] Loading ALL users...');
+
+      const { data: allUsersData, error: allUsersError } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          companies:company_id (
+            id,
+            company_name,
+            country,
+            verification_status,
+            created_at
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit to 100 most recent for performance
+
+      if (allUsersError) {
+        console.error('Error fetching all users:', allUsersError);
+        throw allUsersError;
+      }
+
+      console.log(`[Risk Dashboard] Found ${allUsersData?.length || 0} total users`);
+
+      // Process users with activity
+      const processedUsers = await Promise.all((allUsersData || []).map(async (user) => {
+        let orderCount = 0;
+        let rfqCount = 0;
+        let productCount = 0;
+
+        try {
+          if (user.company_id) {
+            const { count: orders } = await supabase
+              .from('orders')
+              .select('*', { count: 'exact', head: true })
+              .or(`buyer_company_id.eq.${user.company_id},seller_company_id.eq.${user.company_id}`);
+            orderCount = orders || 0;
+
+            const { count: rfqs } = await supabase
+              .from('rfqs')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', user.company_id);
+            rfqCount = rfqs || 0;
+
+            const { count: products } = await supabase
+              .from('products')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', user.company_id);
+            productCount = products || 0;
+          }
+        } catch (activityError) {
+          console.warn('Error fetching user activity:', activityError);
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          fullName: user.full_name || user.email?.split('@')[0] || 'Unknown User',
+          companyId: user.company_id,
+          companyName: user.companies?.company_name || 'No company yet',
+          country: user.companies?.country || 'Not specified',
+          verificationStatus: user.companies?.verification_status || 'unverified',
+          createdAt: user.created_at,
+          role: user.role || 'buyer',
+          orderCount,
+          rfqCount,
+          productCount,
+          totalActivity: orderCount + rfqCount + productCount,
+          phone: user.phone || 'N/A',
+          isAdmin: user.is_admin || false
+        };
+      }));
+
+      setAllUsers(processedUsers);
+      console.log(`[Risk Dashboard] Processed ${processedUsers.length} total users`);
+
+      // Check for specific user
+      const specificUser = processedUsers.find(r => 
+        r.email?.toLowerCase() === 'binoscientific@gmail.com' || 
+        r.id === '351c7471-fd49-48d5-b53a-368fb31c2360'
+      );
+      
+      if (specificUser) {
+        console.log('✅ FOUND specific user in all users:', specificUser);
+      } else {
+        console.warn('⚠️ Specific user NOT found in database');
+      }
+
+      setIsLoadingUsers(false);
+    } catch (error) {
+      console.error('Error loading all users:', error);
+      toast.error('Failed to load users', { description: error.message });
+      setAllUsers([]);
+      setIsLoadingUsers(false);
+    }
+  };
+
+  // Load new user registrations (last 30 days to catch all recent users)
   const loadNewRegistrations = async () => {
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      console.log('[Risk Dashboard] Loading registrations since:', sevenDaysAgo.toISOString());
+      console.log('[Risk Dashboard] Loading registrations since:', thirtyDaysAgo.toISOString());
 
-      // Get ALL users from profiles (with LEFT join to companies)
+      // Get users from last 30 days (with LEFT join to companies)
       const { data: recentUsers, error: usersError } = await supabase
         .from('profiles')
         .select(`
@@ -144,7 +250,7 @@ export default function RiskManagementDashboard() {
             created_at
           )
         `)
-        .gte('created_at', sevenDaysAgo.toISOString())
+        .gte('created_at', thirtyDaysAgo.toISOString())
         .order('created_at', { ascending: false });
 
       if (usersError) {
@@ -718,7 +824,7 @@ export default function RiskManagementDashboard() {
           </div>
         </motion.div>
 
-        {/* New Registrations - COMPLETE USER VISIBILITY */}
+        {/* New Registrations - COMPLETE USER VISIBILITY WITH SEARCH */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -734,33 +840,129 @@ export default function RiskManagementDashboard() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-afrikoni-text-dark">
-                      User Registrations (Last 7 Days)
+                      {showAllUsers ? 'All Users' : 'Recent Registrations (Last 30 Days)'}
                     </h3>
                     <p className="text-sm text-afrikoni-text-dark/70">
-                      {newRegistrations.length} {newRegistrations.length === 1 ? 'user' : 'users'} registered • Complete activity tracking
+                      {showAllUsers 
+                        ? `${allUsers.length} total users • Complete activity tracking` 
+                        : `${newRegistrations.length} recent users • Complete activity tracking`
+                      }
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadNewRegistrations}
-                  className="border-afrikoni-gold/30"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Reload
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={showAllUsers ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setShowAllUsers(!showAllUsers);
+                      if (!showAllUsers && allUsers.length === 0) {
+                        loadAllUsers();
+                      }
+                    }}
+                    className={showAllUsers ? 'bg-afrikoni-gold hover:bg-afrikoni-gold/90' : 'border-afrikoni-gold/30'}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    {showAllUsers ? 'All Users' : 'Show All'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      loadNewRegistrations();
+                      loadAllUsers();
+                    }}
+                    className="border-afrikoni-gold/30"
+                    disabled={isLoadingUsers}
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingUsers ? 'animate-spin' : ''}`} />
+                    Reload
+                  </Button>
+                </div>
               </div>
 
-              {newRegistrations.length === 0 ? (
-                <div className="text-center py-8 text-afrikoni-text-dark/60">
-                  <Users className="w-12 h-12 mx-auto mb-3 text-afrikoni-gold/40" />
-                  <p>No new registrations in the last 7 days</p>
+              {/* SEARCH BAR */}
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-gold" />
+                  <Input
+                    type="text"
+                    placeholder="Search by email (e.g., binoscientific@gmail.com)..."
+                    value={searchEmail}
+                    onChange={(e) => setSearchEmail(e.target.value)}
+                    className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold"
+                  />
                 </div>
-              ) : (
+                {searchEmail && (
+                  <p className="text-xs text-afrikoni-text-dark/60 mt-2">
+                    Searching for: <span className="font-semibold">{searchEmail}</span>
+                    <button 
+                      onClick={() => setSearchEmail('')}
+                      className="ml-2 text-afrikoni-gold hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </p>
+                )}
+              </div>
+
+              {(() => {
+                // Filter users based on search and view mode
+                let displayUsers = showAllUsers ? allUsers : newRegistrations;
+                
+                if (searchEmail) {
+                  displayUsers = displayUsers.filter(u => 
+                    u.email?.toLowerCase().includes(searchEmail.toLowerCase()) ||
+                    u.fullName?.toLowerCase().includes(searchEmail.toLowerCase()) ||
+                    u.companyName?.toLowerCase().includes(searchEmail.toLowerCase())
+                  );
+                }
+
+                if (displayUsers.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-afrikoni-text-dark/60">
+                      <Users className="w-12 h-12 mx-auto mb-3 text-afrikoni-gold/40" />
+                      {searchEmail ? (
+                        <div>
+                          <p className="font-semibold mb-2">No users found matching "{searchEmail}"</p>
+                          <p className="text-sm">Try searching with a different email or name</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSearchEmail('')}
+                            className="mt-4 border-afrikoni-gold/30"
+                          >
+                            Clear Search
+                          </Button>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-semibold mb-2">
+                            {showAllUsers ? 'No users in database' : 'No new registrations in the last 30 days'}
+                          </p>
+                          <p className="text-sm">
+                            {showAllUsers 
+                              ? 'The database appears to be empty or users are not being created properly.'
+                              : 'Click "Show All" to see all users regardless of registration date.'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
                 <>
+                  {/* Results Count */}
+                  <div className="mb-3 p-3 bg-white rounded-lg border border-afrikoni-gold/20">
+                    <p className="text-sm font-medium text-afrikoni-text-dark">
+                      📊 Showing <span className="text-afrikoni-gold font-bold">{displayUsers.length}</span> {displayUsers.length === 1 ? 'user' : 'users'}
+                      {searchEmail && <span className="text-afrikoni-text-dark/70"> matching your search</span>}
+                    </p>
+                  </div>
+
                   <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {newRegistrations.map((reg) => (
+                    {displayUsers.map((reg) => (
                       <div
                         key={reg.id}
                         className="p-5 bg-white border border-afrikoni-gold/20 rounded-lg hover:shadow-md transition-all hover:border-afrikoni-gold/40"
@@ -895,7 +1097,7 @@ export default function RiskManagementDashboard() {
                     ))}
                   </div>
 
-                  {newRegistrations.length > 10 && (
+                  {displayUsers.length > 10 && (
                     <div className="mt-4 text-center">
                       <Link to="/dashboard/admin/users">
                         <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold">
@@ -906,7 +1108,8 @@ export default function RiskManagementDashboard() {
                     </div>
                   )}
                 </>
-              )}
+              );
+            })()}
             </CardContent>
           </Card>
         </motion.div>
