@@ -32,6 +32,7 @@ import { useDashboardRole } from '@/context/DashboardRoleContext';
 import BuyerHeader from '@/components/headers/BuyerHeader';
 import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
+import AdminHeader from '@/components/headers/AdminHeader';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useTranslation();
@@ -460,12 +461,24 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         <header className="sticky top-0 z-50 bg-afrikoni-ivory border-b border-afrikoni-gold/20 shadow-premium backdrop-blur-sm overflow-visible">
           <div className="relative overflow-visible">
             {(() => {
+              // Role-based headers: Only show what helps complete the task
+              if (isUserAdmin) {
+                return (
+                  <AdminHeader
+                    t={t}
+                    setSidebarOpen={setSidebarOpen}
+                    setSearchOpen={setSearchOpen}
+                    navigate={navigate}
+                    alertCount={0}
+                  />
+                );
+              }
+
               switch (dashboardRole) {
                 case 'seller':
                   return (
                     <SellerHeader
                       t={t}
-                      openWhatsAppCommunity={openWhatsAppCommunity}
                       setSidebarOpen={setSidebarOpen}
                       setSearchOpen={setSearchOpen}
                       navigate={navigate}
@@ -485,7 +498,6 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                   return (
                     <BuyerHeader
                       t={t}
-                      openWhatsAppCommunity={openWhatsAppCommunity}
                       setSidebarOpen={setSidebarOpen}
                       setSearchOpen={setSearchOpen}
                       navigate={navigate}

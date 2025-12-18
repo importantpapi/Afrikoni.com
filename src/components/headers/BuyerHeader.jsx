@@ -1,101 +1,54 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, MessageCircle, Search, Calendar, MessageSquare } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/notificationbell';
 
 /**
- * Buyer dashboard header.
- * - Shows RFQ-focused quick action.
- * - No "Add Product" or logistics actions.
+ * BUYER HEADER - Deal-First Navigation
+ * 
+ * CORE RULE: Users only see what helps them complete a deal.
+ * Buyer's brain = "I need supply, price, security."
+ * 
+ * LEFT: Search products / suppliers / RFQs
+ * RIGHT: Create RFQ (PRIMARY gold CTA), Notifications, Profile
  */
 export default function BuyerHeader({
   t,
-  openWhatsAppCommunity,
   setSidebarOpen,
   setSearchOpen,
   navigate,
 }) {
   return (
-    <div className="flex items-center justify-between px-2 md:px-4 lg:px-6 py-4 relative overflow-visible">
-      {/* Community CTA - Mobile */}
-      <div className="md:hidden">
-        <button
-          onClick={() => openWhatsAppCommunity('dashboard_header_mobile')}
-          className="flex items-center gap-2 px-3 py-1.5 bg-afrikoni-gold text-afrikoni-chestnut rounded-full text-xs font-semibold hover:bg-afrikoni-goldLight transition-colors"
-        >
-          <MessageCircle className="w-3.5 h-3.5" />
-          Community
-        </button>
+    <div className="flex items-center justify-between px-4 lg:px-6 py-3 relative">
+      {/* LEFT: Search Bar */}
+      <div className="flex items-center gap-2 flex-1 max-w-2xl relative">
+        <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 z-10 pointer-events-none" />
+        <Input
+          placeholder={t('buyer.searchPlaceholder') || 'Search products, suppliers, RFQs...'}
+          className="pl-10 pr-4 h-10 w-full border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 shadow-sm transition-all text-sm bg-white rounded-lg"
+          onFocus={() => setSearchOpen && setSearchOpen(true)}
+          onBlur={() => setSearchOpen && setTimeout(() => setSearchOpen(false), 200)}
+        />
       </div>
 
-      {/* Left: Menu + Search */}
-      <div className="flex items-center gap-4 flex-1">
-        <button
-          onClick={() => setSidebarOpen(prev => !prev)}
-          className="md:hidden p-2 rounded-afrikoni hover:bg-afrikoni-sand/20 transition-colors"
-        >
-          <Menu className="w-5 h-5 text-afrikoni-text-dark" />
-        </button>
-
-        {/* Search Bar */}
-        <div className="hidden md:flex items-center gap-2 flex-1 max-w-md relative">
-          <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 z-10" />
-          <Input
-            placeholder={t('common.search') || 'Search orders, products, suppliers...'}
-            className="pl-10 pr-4 h-10 w-full border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 shadow-afrikoni transition-all text-sm bg-white rounded-afrikoni"
-            onFocus={() => setSearchOpen(true)}
-            onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-          />
-        </div>
-      </div>
-
-      {/* Right: Community CTA (Desktop) + Quick Create + Notifications + User */}
-      <div className="flex items-center gap-3">
-        {/* Community CTA - Desktop */}
-        <button
-          onClick={() => openWhatsAppCommunity('dashboard_header_desktop')}
-          className="hidden md:flex items-center gap-2 px-4 py-2 bg-afrikoni-gold text-afrikoni-chestnut rounded-full text-sm font-semibold hover:bg-afrikoni-goldLight transition-colors shadow-afrikoni"
-        >
-          <MessageCircle className="w-4 h-4" />
-          Join Community 🚀
-        </button>
-
-        {/* Quick Create RFQ */}
+      {/* RIGHT: Primary CTA + Notifications */}
+      <div className="flex items-center gap-3 ml-4">
+        {/* PRIMARY CTA: Create RFQ (Gold) */}
         <Button
           onClick={() => navigate('/dashboard/rfqs/new')}
-          className="hidden lg:flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-4 py-2"
+          className="flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-md rounded-lg px-5 py-2.5 transition-all hover:shadow-lg"
         >
           <Search className="w-4 h-4" />
-          <span className="text-sm">Create RFQ</span>
+          <span className="hidden lg:inline text-sm">Create RFQ</span>
+          <span className="lg:hidden text-sm">RFQ</span>
         </Button>
 
-        {/* Date Range Selector */}
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-white border border-afrikoni-gold/20 rounded-afrikoni hover:border-afrikoni-gold/40 transition-colors">
-          <Calendar className="w-4 h-4 text-afrikoni-gold" />
-          <select className="bg-transparent text-sm font-medium text-afrikoni-text-dark border-0 focus:outline-none cursor-pointer">
-            <option>Last 7 days</option>
-            <option>Last 30 days</option>
-            <option>Last 90 days</option>
-            <option>This year</option>
-          </select>
-        </div>
-
-        {/* Notifications */}
+        {/* Notifications (Icon Only) */}
         <NotificationBell />
 
-        {/* Messages */}
-        <Link
-          to="/messages"
-          className="p-2 rounded-afrikoni hover:bg-afrikoni-sand/20 relative transition-all hover:scale-105"
-        >
-          <MessageSquare className="w-5 h-5 text-afrikoni-text-dark" />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-afrikoni-gold rounded-full border-2 border-afrikoni-ivory"></span>
-        </Link>
+        {/* Profile handled by DashboardLayout */}
       </div>
     </div>
   );
 }
-
-
