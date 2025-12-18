@@ -134,7 +134,15 @@
     "recentOrders": "Recent Orders",
     "recentMessages": "Recent Messages",
     "ordersAndSales": "Orders & Sales",
-    "viewAllOrders": "View All Orders"
+    "viewAllOrders": "View All Orders",
+    "pending": "Pending",
+    "intransit": "In Transit",
+    "totalvalue": "Total Value"
+  },
+  "DASHBOARD": {
+    "PENDING": "Pending",
+    "INTRANSIT": "In Transit",
+    "TOTALVALUE": "Total Value"
   },
   "rfq": {
     "postTradeRequest": "Post a Trade Request (RFQ)",
@@ -151,7 +159,10 @@
     "create": "Post a Trade Request (RFQ)"
   },
   "common": {
-    "view": "View"
+    "view": "View",
+    "search": "Search",
+    "searchOrders": "Search orders by ID, product, or supplier...",
+    "all": "All"
   },
   "empty": {
     "noOrders": "No orders yet",
