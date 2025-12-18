@@ -207,18 +207,17 @@ export default function RiskManagementDashboard() {
 
       setAllUsers(processedUsers);
       console.log(`[Risk Dashboard] Processed ${processedUsers.length} total users`);
-
-      // Check for specific user
-      const specificUser = processedUsers.find(r => 
-        r.email?.toLowerCase() === 'binoscientific@gmail.com' || 
-        r.id === '351c7471-fd49-48d5-b53a-368fb31c2360'
-      );
       
-      if (specificUser) {
-        console.log('✅ FOUND specific user in all users:', specificUser);
-      } else {
-        console.warn('⚠️ Specific user NOT found in database');
-      }
+      // Log all users for complete visibility
+      console.log('✅ ALL USERS LOADED:', processedUsers.map(u => ({
+        email: u.email,
+        name: u.fullName,
+        role: u.role,
+        activity: u.totalActivity,
+        registered: u.createdAt
+      })));
+      
+      console.log(`📊 Total: ${processedUsers.length} users | Active: ${processedUsers.filter(u => u.totalActivity > 0).length} | Inactive: ${processedUsers.filter(u => u.totalActivity === 0).length}`);
 
       setIsLoadingUsers(false);
     } catch (error) {
@@ -322,36 +321,17 @@ export default function RiskManagementDashboard() {
 
       console.log(`[Risk Dashboard] Processed ${registrations.length} registrations with activity data`);
       
-      // Log the specific user if they're in the results
-      const specificUser = registrations.find(r => 
-        r.email === 'binoscientific@gmail.com' || 
-        r.id === '351c7471-fd49-48d5-b53a-368fb31c2360'
-      );
+      // Log all recent registrations for complete visibility
+      console.log('📋 RECENT REGISTRATIONS (Last 30 days):', registrations.map(r => ({
+        email: r.email,
+        name: r.fullName,
+        company: r.companyName,
+        role: r.role,
+        activity: r.totalActivity,
+        registered: r.createdAt
+      })));
       
-      if (specificUser) {
-        console.log('✅ Found specific user:', specificUser);
-      } else {
-        console.warn('⚠️ Specific user NOT found in recent registrations');
-        // Try to fetch this specific user directly
-        const { data: directUser } = await supabase
-          .from('profiles')
-          .select(`
-            *,
-            companies:company_id (
-              id,
-              company_name,
-              country,
-              verification_status
-            )
-          `)
-          .or('email.eq.binoscientific@gmail.com,id.eq.351c7471-fd49-48d5-b53a-368fb31c2360')
-          .single();
-        
-        if (directUser) {
-          console.log('✅ Found user directly:', directUser);
-          console.log('Created at:', directUser.created_at);
-        }
-      }
+      console.log(`📊 Summary: ${registrations.length} recent users | ${registrations.filter(r => r.totalActivity > 0).length} active | ${registrations.filter(r => r.totalActivity === 0).length} need attention`);
 
     } catch (error) {
       console.error('Error loading new registrations:', error);
