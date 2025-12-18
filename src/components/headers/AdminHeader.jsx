@@ -98,14 +98,14 @@ export default function AdminHeader({
 
           {/* Menu Toggle — ALWAYS VISIBLE */}
           <button
-            onClick={() => setSidebarOpen?.(true)}
+            onClick={() => setSidebarOpen?.(prev => !prev)}
             className="inline-flex items-center justify-center
                        w-10 h-10 rounded-lg
                        text-afrikoni-charcoal
                        hover:bg-red-50
                        focus:outline-none focus:ring-2 focus:ring-red-300
                        transition-colors"
-            aria-label="Open menu"
+            aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </button>
