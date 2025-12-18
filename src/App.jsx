@@ -286,28 +286,29 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/dashboard/admin" element={<ProtectedRoute><DashboardRoleProvider><AdminDashboard /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/users" element={<ProtectedRoute><DashboardRoleProvider><AdminUsers /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/review" element={<ProtectedRoute><DashboardRoleProvider><AdminReview /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/verification-review" element={<ProtectedRoute><DashboardRoleProvider><AdminVerificationReview /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/analytics" element={<ProtectedRoute><DashboardRoleProvider><AdminAnalytics /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute><DashboardRoleProvider><AdminMarketplace /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/founder-control" element={<ProtectedRoute><DashboardRoleProvider><FounderControlPanel /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/supplier-management" element={<ProtectedRoute><DashboardRoleProvider><AdminSupplierManagement /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/rfq-matching" element={<ProtectedRoute><DashboardRoleProvider><AdminRFQMatching /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/rfq-analytics" element={<ProtectedRoute><DashboardRoleProvider><AdminRFQAnalytics /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/rfq-review" element={<ProtectedRoute><DashboardRoleProvider><AdminRFQReview /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/rfq-review/:id" element={<ProtectedRoute><DashboardRoleProvider><AdminRFQReview /></DashboardRoleProvider></ProtectedRoute>} />
+            {/* ADMIN DASHBOARD ROUTES - ALL ADMIN-ONLY */}
+            <Route path="/dashboard/admin" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminDashboard /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/users" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminUsers /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/review" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminReview /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/verification-review" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminVerificationReview /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/analytics" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminAnalytics /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/marketplace" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminMarketplace /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/founder-control" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><FounderControlPanel /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/supplier-management" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminSupplierManagement /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-matching" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminRFQMatching /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-analytics" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminRFQAnalytics /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-review" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminRFQReview /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/rfq-review/:id" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminRFQReview /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/supplier-rfqs" element={<ProtectedRoute><DashboardRoleProvider><SupplierRFQs /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/reviews" element={<ProtectedRoute><DashboardRoleProvider><AdminReviews /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/revenue" element={<ProtectedRoute><DashboardRoleProvider><AdminRevenue /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/growth-metrics" element={<ProtectedRoute><DashboardRoleProvider><AdminGrowthMetrics /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute><DashboardRoleProvider><AdminOnboardingTracker /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/leads" element={<ProtectedRoute><DashboardRoleProvider><AdminLeads /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/kyb" element={<ProtectedRoute><DashboardRoleProvider><AdminKYB /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/disputes" element={<ProtectedRoute><DashboardRoleProvider><AdminDisputes /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/support-tickets" element={<ProtectedRoute><DashboardRoleProvider><AdminSupportTickets /></DashboardRoleProvider></ProtectedRoute>} />
-            <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute><DashboardRoleProvider><AdminOnboardingTracker /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/reviews" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminReviews /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/revenue" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminRevenue /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/growth-metrics" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminGrowthMetrics /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminOnboardingTracker /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/leads" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminLeads /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/kyb" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminKYB /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/disputes" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminDisputes /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/support-tickets" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminSupportTickets /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminOnboardingTracker /></DashboardRoleProvider></ProtectedRoute>} />
             {/* Dashboard sub-pages (wrapped in DashboardRoleProvider so RequireDashboardRole can use the context) */}
             <Route
               path="/dashboard/orders"
