@@ -117,7 +117,11 @@ CREATE TRIGGER on_profile_created
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_admin_on_new_profile();
 
-RAISE NOTICE '✅ Trigger created: on_profile_created';
+-- Log success
+DO $$ 
+BEGIN
+  RAISE NOTICE '✅ Trigger created: on_profile_created';
+END $$;
 
 -- ============================================================================
 -- STEP 4: Verification and Reporting (SIMPLIFIED - No complex queries)
