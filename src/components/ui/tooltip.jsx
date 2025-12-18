@@ -3,6 +3,15 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+// Provider component (for compatibility)
+export const TooltipProvider = ({ children }) => <>{children}</>;
+
+// Trigger component (for compatibility)
+export const TooltipTrigger = ({ children, ...props }) => <>{children}</>;
+
+// Content component (for compatibility)
+export const TooltipContent = ({ children, ...props }) => <>{children}</>;
+
 export function Tooltip({ children, content, position = 'top', className }) {
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
