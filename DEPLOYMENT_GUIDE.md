@@ -1,201 +1,110 @@
-# 🚀 Deployment Guide - GitHub & Vercel
+# 🚀 Deployment Guide - Afrikoni Marketplace
 
-## ✅ **GitHub Repository**
+## ✅ GitHub Repository
+- **Repository**: https://github.com/importantpapi/Afrikoni.com.git
+- **Branch**: `main`
+- **Status**: ✅ All changes committed and pushed
 
-**Repository:** `https://github.com/importantpapi/Afrikoni.com.git`  
-**Status:** ✅ All changes committed and pushed
+## 📦 Vercel Deployment
 
-### Recent Commits:
-- RLS performance optimizations
-- Error handling improvements
-- Database index optimizations
-- Accessibility fixes
+### Step 1: Connect to Vercel
 
----
+1. Go to [https://vercel.com](https://vercel.com)
+2. Sign in with your GitHub account
+3. Click **"Add New Project"**
+4. Import from GitHub: `importantpapi/Afrikoni.com`
+5. Vercel will auto-detect Vite framework from `vercel.json`
 
-## 🌐 **Vercel Deployment**
+### Step 2: Configure Build Settings
 
-### **Option 1: Auto-Deploy (If Already Connected)**
+Vercel should auto-detect these from `vercel.json`:
+- **Framework Preset**: Vite
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Install Command**: `npm install`
 
-If your GitHub repository is already connected to Vercel:
-1. ✅ Changes are automatically deployed on push to `main` branch
-2. Check your Vercel dashboard: https://vercel.com/dashboard
-3. View deployment status and logs
+### Step 3: Set Environment Variables
 
-### **Option 2: Manual Setup (If Not Connected)**
+In Vercel dashboard → Project Settings → Environment Variables, add:
 
-#### **Step 1: Connect Repository**
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Click **"Add New Project"**
-3. Import from GitHub: `importantpapi/Afrikoni.com`
-4. Vercel will auto-detect:
-   - Framework: **Vite**
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-   - Install Command: `npm install`
-
-#### **Step 2: Configure Environment Variables**
-
-In Vercel project settings → Environment Variables, add:
-
-**Required:**
-```bash
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_FLW_PUBLIC_KEY=your_flutterwave_public_key
+#### Required Variables:
+```
+VITE_SUPABASE_URL=https://qkeeufeiaphqylsnfhza.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrZWV1ZmVpYXBocXlsc25maHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MzYwNjYsImV4cCI6MjA4MDAxMjA2Nn0.CaGKQ3C5rz-XP-5r2I8xrHZ7F-5w4Z-1yzxtclddQus
 ```
 
-**Optional (Recommended for Production):**
-```bash
-VITE_GA4_ID=G-HV6W89FG6E
-VITE_SENTRY_DSN=your_sentry_dsn
-VITE_TARGET_COUNTRY=Ghana
-VITE_WHATSAPP_COMMUNITY_LINK=your_whatsapp_link
+#### Optional (if using direct email):
+```
+VITE_EMAIL_PROVIDER=resend
+VITE_EMAIL_API_KEY=re_WQrisYJe_MQgpRaH5s3mCTHZFmsKugZbd
 ```
 
-#### **Step 3: Deploy**
+**Important**: 
+- Set these for **Production**, **Preview**, and **Development** environments
+- After adding variables, **redeploy** the project
 
-1. Click **"Deploy"**
-2. Vercel will:
-   - Install dependencies
-   - Run build command
-   - Deploy to production
-3. You'll get a URL like: `https://afrikoni-marketplace.vercel.app`
+### Step 4: Supabase Edge Function Secrets
 
----
+The email service uses a Supabase Edge Function. Set the secret in Supabase:
 
-## 📋 **Vercel Configuration**
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Go to **Settings** → **Edge Functions** → **Secrets**
+4. Add secret:
+   - **Name**: `RESEND_API_KEY`
+   - **Value**: `re_WQrisYJe_MQgpRaH5s3mCTHZFmsKugZbd`
 
-Your `vercel.json` is already configured:
+### Step 5: Deploy
 
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
+1. Click **"Deploy"** in Vercel
+2. Wait for build to complete
+3. Your app will be live at: `https://your-project.vercel.app`
 
-This ensures:
-- ✅ SPA routing works correctly
-- ✅ All routes redirect to `index.html`
-- ✅ Proper headers for sitemap.xml and robots.txt
+### Step 6: Custom Domain (Optional)
 
----
+1. In Vercel dashboard → Settings → Domains
+2. Add your custom domain (e.g., `afrikoni.com`)
+3. Follow DNS configuration instructions
 
-## 🔍 **Verify Deployment**
+## 🔄 Automatic Deployments
 
-### **1. Check Build Status**
-- Go to Vercel Dashboard → Your Project → Deployments
-- Verify build completed successfully
-- Check build logs for any errors
+Vercel will automatically deploy:
+- **Production**: Every push to `main` branch
+- **Preview**: Every push to other branches or pull requests
 
-### **2. Test Production URL**
-- Visit your Vercel deployment URL
-- Test key features:
-  - ✅ Homepage loads
-  - ✅ No console errors
-  - ✅ Authentication works
-  - ✅ Routes navigate correctly
+## 📝 Post-Deployment Checklist
 
-### **3. Check Environment Variables**
-- Vercel Dashboard → Settings → Environment Variables
-- Verify all required variables are set
-- Ensure they're available for Production environment
+- [ ] Verify environment variables are set correctly
+- [ ] Test email functionality (newsletter subscription)
+- [ ] Test product image uploads
+- [ ] Test notification system
+- [ ] Verify Supabase Edge Function is deployed
+- [ ] Check that `hello@afrikoni.com` is used for all emails
+- [ ] Test mobile navigation
+- [ ] Verify hybrid dashboard shows Products link
 
----
+## 🐛 Troubleshooting
 
-## 🔄 **Continuous Deployment**
+### Build Fails
+- Check that all environment variables are set
+- Verify `package.json` has correct build script
+- Check Vercel build logs for errors
 
-Once connected:
-- ✅ Every push to `main` branch = Auto-deploy
-- ✅ Preview deployments for pull requests
-- ✅ Automatic HTTPS/SSL certificates
-- ✅ Global CDN distribution
+### Email Not Working
+- Verify `RESEND_API_KEY` is set in Supabase Edge Function secrets
+- Check that `hello@afrikoni.com` domain is verified in Resend
+- Test email service from `/dashboard/test-emails` page
 
----
+### Images Not Loading
+- Verify Supabase Storage bucket `product-images` is public
+- Check CORS settings in Supabase Storage
 
-## 📊 **Monitoring**
+## 📚 Additional Resources
 
-### **Vercel Analytics (Optional)**
-- Enable in Vercel Dashboard → Analytics
-- Track page views, performance metrics
-
-### **Error Tracking**
-- Sentry integration (if `VITE_SENTRY_DSN` is set)
-- View errors in Sentry dashboard
-
-### **Performance**
-- Vercel automatically provides:
-  - Lighthouse scores
-  - Core Web Vitals
-  - Build performance metrics
+- [Vercel Documentation](https://vercel.com/docs)
+- [Supabase Edge Functions](https://supabase.com/docs/guides/functions)
+- [Resend Documentation](https://resend.com/docs)
 
 ---
 
-## 🛠️ **Troubleshooting**
-
-### **Build Fails**
-1. Check build logs in Vercel dashboard
-2. Verify all environment variables are set
-3. Ensure `package.json` scripts are correct
-4. Check for TypeScript/ESLint errors
-
-### **Routes Not Working**
-- Verify `vercel.json` rewrites are configured
-- Check that `dist/index.html` exists after build
-- Ensure React Router is configured correctly
-
-### **Environment Variables Not Working**
-- Verify variables are set for "Production" environment
-- Check variable names start with `VITE_` (required for Vite)
-- Redeploy after adding new variables
-
----
-
-## 📝 **Quick Commands**
-
-```bash
-# Check deployment status
-vercel ls
-
-# View deployment logs
-vercel logs
-
-# Open deployment in browser
-vercel open
-
-# Pull environment variables
-vercel env pull .env.local
-```
-
----
-
-## ✅ **Deployment Checklist**
-
-- [x] Code committed to GitHub
-- [x] Repository connected to Vercel
-- [ ] Environment variables configured
-- [ ] Build successful
-- [ ] Production URL accessible
-- [ ] All features tested
-- [ ] Analytics configured (optional)
-- [ ] Error tracking enabled (optional)
-
----
-
-## 🎯 **Next Steps**
-
-1. **Connect to Vercel** (if not already connected)
-2. **Set environment variables** in Vercel dashboard
-3. **Deploy** and verify production URL
-4. **Test** all features in production
-5. **Monitor** performance and errors
-
-Your application is ready for deployment! 🚀
+**Last Updated**: After quick save feature and notification system implementation
