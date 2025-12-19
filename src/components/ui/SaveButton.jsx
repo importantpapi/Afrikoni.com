@@ -77,7 +77,14 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
         toast.success('Saved to your list');
       }
     } catch (error) {
-      toast.error('Failed to update saved status');
+      console.error('Save button error:', error);
+      if (error.code === '23505') {
+        // Duplicate key - item already saved
+        setIsSaved(true);
+        toast.info('Item is already saved');
+      } else {
+        toast.error(`Failed to ${isSaved ? 'unsave' : 'save'} item: ${error.message || 'Unknown error'}`);
+      }
     } finally {
       setIsLoading(false);
     }
