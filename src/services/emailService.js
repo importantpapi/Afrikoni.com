@@ -26,7 +26,7 @@ export async function sendEmail({
   subject,
   template,
   data = {},
-  from = 'Afrikoni <hello@afrikoni.com>'
+  from = 'Afrikoni <hello@afrikoni.com>', // Official email: hello@afrikoni.com
 }) {
   if (!EMAIL_API_KEY || EMAIL_PROVIDER === 'none') {
     if (import.meta.env.DEV) {
@@ -66,6 +66,10 @@ export async function sendEmail({
  * Send via Resend (https://resend.com)
  */
 async function sendViaResend({ to, subject, html, from }) {
+  // Ensure all emails use hello@afrikoni.com as official address
+  const officialEmail = 'hello@afrikoni.com';
+  const fromAddress = from || `Afrikoni <${officialEmail}>`;
+  
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -73,10 +77,11 @@ async function sendViaResend({ to, subject, html, from }) {
       'Authorization': `Bearer ${EMAIL_API_KEY}`
     },
     body: JSON.stringify({
-      from,
+      from: fromAddress,
       to: [to],
       subject,
-      html
+      html,
+      reply_to: officialEmail, // All replies go to hello@afrikoni.com
     })
   });
 
@@ -93,6 +98,10 @@ async function sendViaResend({ to, subject, html, from }) {
  * Send via SendGrid
  */
 async function sendViaSendGrid({ to, subject, html, from }) {
+  // Ensure all emails use hello@afrikoni.com as official address
+  const officialEmail = 'hello@afrikoni.com';
+  const fromAddress = from || `Afrikoni <${officialEmail}>`;
+  
   const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
     method: 'POST',
     headers: {
@@ -100,8 +109,11 @@ async function sendViaSendGrid({ to, subject, html, from }) {
       'Authorization': `Bearer ${EMAIL_API_KEY}`
     },
     body: JSON.stringify({
-      personalizations: [{ to: [{ email: to }] }],
-      from: { email: from },
+      personalizations: [{ 
+        to: [{ email: to }],
+        reply_to: { email: officialEmail } // All replies go to hello@afrikoni.com
+      }],
+      from: { email: fromAddress },
       subject,
       content: [{ type: 'text/html', value: html }]
     })
