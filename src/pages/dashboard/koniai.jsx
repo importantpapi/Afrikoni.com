@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Sparkles, Copy, CheckCircle, Loader2, AlertCircle,
@@ -33,6 +33,7 @@ import { useTranslation } from 'react-i18next';
 export default function KoniAIHub() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -732,7 +733,10 @@ export default function KoniAIHub() {
                         <Button
                           size="sm"
                           className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
-                          onClick={() => navigate('/messages?recipient=' + buyer.id)}
+                          onClick={() => navigate('/messages', { 
+                            state: { from: location.pathname + location.search },
+                            search: `?recipient=${buyer.id}`
+                          })}
                         >
                           <MessageSquare className="w-3 h-3 mr-1" />
                           Reach Out

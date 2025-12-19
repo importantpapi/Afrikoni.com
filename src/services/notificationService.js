@@ -349,6 +349,7 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
     }
 
     // If no category, notify all sellers (fallback)
+    // RFQ notifications are business-critical - always send email
     if (!rfqCategoryId) {
       const { data: sellers } = await supabase
         .from('companies')
@@ -364,7 +365,8 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
             message: 'A new Request for Quotation has been posted',
             type: 'rfq',
             link: `/dashboard/rfqs/${rfqId}`,
-            related_id: rfqId
+            related_id: rfqId,
+            sendEmail: true // RFQ notifications are business-critical, always email
           });
         }
       }
@@ -381,6 +383,7 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
 
     if (!productsInCategory || productsInCategory.length === 0) {
       // Fallback: notify all sellers if no category match found
+      // RFQ notifications are business-critical - always send email
       const { data: allSellers } = await supabase
         .from('companies')
         .select('id, owner_email')
@@ -395,7 +398,8 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
             message: 'A new Request for Quotation has been posted',
             type: 'rfq',
             link: `/dashboard/rfqs/${rfqId}`,
-            related_id: rfqId
+            related_id: rfqId,
+            sendEmail: true // RFQ notifications are business-critical, always email
           });
         }
       }
@@ -421,6 +425,7 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
     }
 
     // Notify only relevant sellers
+    // RFQ notifications are business-critical - always send email
     for (const seller of sellers) {
       await createNotification({
         company_id: seller.id,
@@ -429,7 +434,8 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
         message: 'A new Request for Quotation matching your product category has been posted',
         type: 'rfq',
         link: `/dashboard/rfqs/${rfqId}`,
-        related_id: rfqId
+        related_id: rfqId,
+        sendEmail: true // RFQ notifications are business-critical, always email
       });
     }
   } catch (error) {
@@ -440,6 +446,7 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
 
 /**
  * Helper to create notification when quote is submitted
+ * RFQ notifications are business-critical - always send email
  */
 export async function notifyQuoteSubmitted(quoteId, rfqId, buyerCompanyId) {
   await createNotification({
@@ -448,7 +455,8 @@ export async function notifyQuoteSubmitted(quoteId, rfqId, buyerCompanyId) {
     message: 'A supplier has submitted a quote for your RFQ',
     type: 'quote',
     link: `/dashboard/rfqs/${rfqId}`,
-    related_id: quoteId
+    related_id: quoteId,
+    sendEmail: true // RFQ responses are business-critical, always email
   });
 }
 
@@ -490,12 +498,64 @@ export async function notifyOrderStatusChange(orderId, newStatus, buyerCompanyId
 
 /**
  * Helper to create notification when message is received
- * This ensures every message triggers a notification, even if sent while user is offline
+ * 
+ * Core principle: Notifications trigger action, not mirror data.
+ * Only notify if:
+ * - User is NOT currently viewing that conversation
+ * - User did NOT send the last message
+ * - Email only on first message in conversation
+ * 
+ * @param {string} messageId - The message ID
+ * @param {string} conversationId - The conversation ID
+ * @param {string} receiverCompanyId - Company receiving the message
+ * @param {string} senderCompanyId - Company sending the message
+ * @param {object} options - Additional options
+ * @param {string} options.activeConversationId - Currently viewed conversation ID (if user is on /messages)
+ * @param {boolean} options.isFirstMessage - Whether this is the first message in the conversation
  */
-export async function notifyNewMessage(messageId, conversationId, receiverCompanyId, senderCompanyId) {
+export async function notifyNewMessage(
+  messageId, 
+  conversationId, 
+  receiverCompanyId, 
+  senderCompanyId,
+  options = {}
+) {
   try {
+    const { activeConversationId = null, isFirstMessage = false } = options;
+
+    // Rule 1: Don't notify if user is viewing this conversation
+    if (activeConversationId === conversationId) {
+      // User is already viewing this conversation - no notification needed
+      return;
+    }
+
+    // Rule 2: Check if user sent the last message (rapid back-and-forth)
+    // If they did, they're likely still engaged - skip notification
+    const { data: lastMessage } = await supabase
+      .from('messages')
+      .select('sender_company_id, created_at')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: false })
+      .limit(2)
+      .maybeSingle();
+
+    // If last message was from receiver (they sent it), don't notify
+    // This prevents notifications during rapid chat
+    if (lastMessage && lastMessage.sender_company_id === receiverCompanyId) {
+      // Check time difference - if less than 5 minutes, likely still chatting
+      const messageTime = new Date(lastMessage.created_at);
+      const now = new Date();
+      const minutesDiff = (now - messageTime) / (1000 * 60);
+      
+      if (minutesDiff < 5) {
+        // Recent message from receiver - they're likely still engaged
+        return;
+      }
+    }
+
     // Get sender company info for better notification message
     let senderName = 'Someone';
+    let productContext = null;
     if (senderCompanyId) {
       const { data: senderCompany } = await supabase
         .from('companies')
@@ -505,6 +565,30 @@ export async function notifyNewMessage(messageId, conversationId, receiverCompan
       
       if (senderCompany?.company_name) {
         senderName = senderCompany.company_name;
+      }
+    }
+
+    // Get conversation context for better notification
+    const { data: conversation } = await supabase
+      .from('conversations')
+      .select('subject, related_to, related_type')
+      .eq('id', conversationId)
+      .maybeSingle();
+
+    // Build notification message with context
+    let notificationMessage = `You have a new message from ${senderName}`;
+    if (conversation?.subject) {
+      notificationMessage = `${senderName}: ${conversation.subject}`;
+    } else if (conversation?.related_type === 'product' && conversation?.related_to) {
+      // Try to get product name
+      const { data: product } = await supabase
+        .from('products')
+        .select('title')
+        .eq('id', conversation.related_to)
+        .maybeSingle();
+      
+      if (product?.title) {
+        notificationMessage = `${senderName} sent a message about ${product.title}`;
       }
     }
 
@@ -522,19 +606,25 @@ export async function notifyNewMessage(messageId, conversationId, receiverCompan
     // Only create if it doesn't exist
     if (!existing) {
       const template = NOTIFICATION_TEMPLATES.message.new;
+      
+      // Email logic: Only send email on first message in conversation
+      const shouldSendEmail = isFirstMessage;
+      
       await createNotification({
         company_id: receiverCompanyId,
         title: template.title,
-        message: `You have a new message from ${senderName}`,
+        message: notificationMessage,
         type: 'message',
         link: `/messages?conversation=${conversationId}`,
         related_id: messageId,
-        sendEmail: true // Messages are important, send email
+        sendEmail: shouldSendEmail // Only email on first message
       });
     }
   } catch (error) {
     // Silently fail - notification creation is not critical
-    console.error('Failed to create message notification:', error);
+    if (import.meta.env.DEV) {
+      console.error('Failed to create message notification:', error);
+    }
   }
 }
 

@@ -24,6 +24,7 @@ import SystemMessage from './SystemMessage';
 import DealActions from './DealActions';
 import AntiBypassWarning from './AntiBypassWarning';
 import { toast } from 'sonner';
+import { notifyNewMessage } from '@/services/notificationService';
 
 export default function ConversationView({ conversationId, conversation, currentUser, companyId, onBack }) {
   const [messages, setMessages] = useState([]);
@@ -88,13 +89,20 @@ export default function ConversationView({ conversationId, conversation, current
 
     setIsSending(true);
     try {
-      const { data, error } = await supabase
+      // Get receiver company ID from conversation
+      const receiverCompanyId = conversation.buyer_company_id === companyId
+        ? conversation.seller_company_id
+        : conversation.buyer_company_id;
+
+      const { data: newMsg, error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_company_id: companyId,
+          receiver_company_id: receiverCompanyId,
           content: text.trim(),
-          message_type: 'text'
+          message_type: 'text',
+          read: false
         })
         .select()
         .single();
@@ -114,6 +122,28 @@ export default function ConversationView({ conversationId, conversation, current
             (conversation?.buyer_unread_count || 0) + 1,
         })
         .eq('id', conversationId);
+
+      // Create notification using smart notification logic
+      // Check if this is the first message in the conversation
+      const { data: messageCount } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact' })
+        .eq('conversation_id', conversationId);
+      
+      const isFirstMessage = (messageCount?.length || 0) <= 1;
+      
+      // Use notifyNewMessage with smart logic
+      // Since user is viewing this conversation, receiver should get notified
+      await notifyNewMessage(
+        newMsg.id,
+        conversationId,
+        receiverCompanyId,
+        companyId,
+        {
+          activeConversationId: conversationId, // User is viewing this conversation
+          isFirstMessage: isFirstMessage
+        }
+      );
 
       setNewMessage('');
       inputRef.current?.focus();

@@ -160,35 +160,19 @@ export default function CreateRFQ() {
       const { data: newRFQ, error } = await supabase.from('rfqs').insert(rfqData).select().single();
       if (error) throw error;
 
-      // Send email notification
-      try {
-        const { sendRFQReceivedEmail } = await import('@/services/emailService');
-        await sendRFQReceivedEmail(user.email, {
-          rfqTitle: rfqData.title,
-          rfqId: newRFQ.id,
-          category: categories.find(c => c.id === formData.category_id)?.name || 'General',
-          quantity: quantity,
-          unit: formData.unit || 'pieces',
-          deliveryLocation: formData.delivery_location || 'TBD',
-          deadline: formData.delivery_deadline ? format(formData.delivery_deadline, 'yyyy-MM-dd') : 'TBD'
-        });
-      } catch (emailError) {
-        // Email is optional, continue
-        console.log('Email notification failed:', emailError);
-      }
-
-      // Create notification for buyer
+      // Create notification for buyer (includes email if preferences allow)
       if (companyId) {
         try {
           const { createNotification } = await import('@/services/notificationService');
           await createNotification({
             company_id: companyId,
             user_email: user.email,
-            title: 'RFQ Created',
-            message: `Your RFQ "${rfqData.title}" is now live and visible to suppliers`,
+            title: 'RFQ Created Successfully',
+            message: `Your RFQ "${rfqData.title}" is now live and visible to suppliers. You'll be notified when suppliers submit quotes.`,
             type: 'rfq',
             link: `/dashboard/rfqs/${newRFQ.id}`,
-            related_id: newRFQ.id
+            related_id: newRFQ.id,
+            sendEmail: true // Send email confirmation to buyer (respects preferences)
           });
         } catch (notifError) {
           // Silently ignore notification failures

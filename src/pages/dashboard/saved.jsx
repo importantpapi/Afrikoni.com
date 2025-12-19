@@ -6,11 +6,13 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Heart, Package, Users, Search, Bookmark } from 'lucide-react';
+// Removed Radix Tabs - using plain conditionals instead
+import { Heart, Package, Users, Search, Bookmark, FileText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import { getPrimaryImageFromProduct } from '@/utils/productImages';
+import OptimizedImage from '@/components/OptimizedImage';
 
 function DashboardSavedInner() {
   const [savedProducts, setSavedProducts] = useState([]);
@@ -55,7 +57,17 @@ function DashboardSavedInner() {
         
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*, product_images(*)')
+          .select(`
+            *,
+            product_images(*),
+            companies!company_id (
+              id,
+              company_name,
+              country,
+              verification_status,
+              verified
+            )
+          `)
           .in('id', productIds);
         
         if (productsError) {
@@ -63,14 +75,29 @@ function DashboardSavedInner() {
           toast.error('Failed to load product details');
           setSavedProducts([]);
         } else {
-          // Map products with saved_item_id, preserving order
+          // Map products with saved_item_id, preserving order, and add primary image
           const productMap = new Map((productsData || []).map(p => [p.id, p]));
           const products = savedItems
             .map(item => {
               const product = productMap.get(item.item_id);
-              return product ? { ...product, saved_item_id: item.id } : null;
+              if (!product) {
+                console.warn('Product not found for saved item:', item.item_id);
+                return null;
+              }
+              
+              // Get primary image from product_images
+              const primaryImage = getPrimaryImageFromProduct(product);
+              
+              // Product data is logged in useEffect (prevents render loop)
+              
+              return { 
+                ...product, 
+                saved_item_id: item.id,
+                primaryImage: primaryImage || null
+              };
             })
             .filter(Boolean);
+          
           setSavedProducts(products);
         }
       } else {
@@ -115,7 +142,7 @@ function DashboardSavedInner() {
               return company ? { ...company, saved_item_id: item.id } : null;
             })
             .filter(Boolean);
-          setSavedSuppliers(suppliers);
+      setSavedSuppliers(suppliers);
         }
       } else {
         setSavedSuppliers([]);
@@ -136,6 +163,14 @@ function DashboardSavedInner() {
     );
   });
 
+  // Debug: Log only when products count changes (prevents render loop spam)
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('📊 Saved products count:', savedProducts.length);
+      console.log('🔍 Filtered products count:', filteredProducts.length);
+    }
+  }, [savedProducts.length, filteredProducts.length]);
+
   const filteredSuppliers = savedSuppliers.filter((s) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -144,6 +179,100 @@ function DashboardSavedInner() {
       s.country?.toLowerCase().includes(q)
     );
   });
+
+  // Normalize products - handles all field name variations
+  const [normalizedProducts, setNormalizedProducts] = useState([]);
+  const [imageUrlsResolved, setImageUrlsResolved] = useState(new Map());
+
+  // Normalize products array with all field variations
+  useEffect(() => {
+    const normalize = async () => {
+      const normalized = filteredProducts.map((p) => {
+        // Normalize title
+        const title = p.title || p.name || p.product_name || 'Untitled product';
+        
+        // Normalize image path/URL (try all possible field names)
+        const imagePathOrUrl =
+          p.primaryImage ||
+          p.image ||
+          p.imageUrl ||
+          p.image_url ||
+          (p.product_images && Array.isArray(p.product_images) && p.product_images.find(i => i.is_primary)?.url) ||
+          (p.product_images && Array.isArray(p.product_images) && p.product_images[0]?.url) ||
+          (Array.isArray(p.images) && p.images[0]) ||
+          null;
+        
+        // Normalize price
+        const price = p.price ?? p.unit_price ?? p.price_min ?? null;
+        const priceMax = p.price_max ?? null;
+        const currency = p.currency || 'USD';
+        
+        // Normalize company name
+        const companyName = 
+          p.companies?.company_name || 
+          p.companies?.name || 
+          p.company?.company_name || 
+          p.company_name || 
+          'Supplier';
+        
+        return {
+          ...p,
+          title,
+          imagePathOrUrl,
+          price,
+          priceMax,
+          currency,
+          companyName,
+          company: p.companies || p.company || null
+        };
+      });
+      
+      setNormalizedProducts(normalized);
+      
+      // Resolve image URLs (handle 403 errors with signed URLs if needed)
+      const urlMap = new Map();
+      for (const product of normalized) {
+        if (product.imagePathOrUrl) {
+          // If already a full HTTPS URL, use it directly
+          if (product.imagePathOrUrl.startsWith('https://')) {
+            urlMap.set(product.id, product.imagePathOrUrl);
+          } else {
+            // Try to get public URL first
+            const { data: publicUrlData } = supabase.storage
+              .from('product-images')
+              .getPublicUrl(product.imagePathOrUrl);
+            
+            if (publicUrlData?.publicUrl) {
+              urlMap.set(product.id, publicUrlData.publicUrl);
+            } else {
+              // Fallback: try to create signed URL (for private buckets)
+              try {
+                const { data: signedData } = await supabase.storage
+                  .from('product-images')
+                  .createSignedUrl(product.imagePathOrUrl, 3600);
+                
+                if (signedData?.signedUrl) {
+                  urlMap.set(product.id, signedData.signedUrl);
+                }
+              } catch (err) {
+                console.warn('Could not create signed URL for product image:', product.id, err);
+                // Will fallback to placeholder
+              }
+            }
+          }
+        }
+      }
+      
+      setImageUrlsResolved(urlMap);
+    };
+    
+    if (filteredProducts.length > 0) {
+      normalize();
+    } else {
+      setNormalizedProducts([]);
+      setImageUrlsResolved(new Map());
+    }
+  }, [filteredProducts]);
 
   const handleUnsave = async (itemId, itemType) => {
     try {
@@ -186,8 +315,21 @@ function DashboardSavedInner() {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Saved Items</h1>
-          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Your saved products and suppliers</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">Saved Items</h1>
+          {activeTab === 'products' && (
+            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+              {normalizedProducts.length > 0 
+                ? `You saved ${normalizedProducts.length} product${normalizedProducts.length !== 1 ? 's' : ''}`
+                : 'No saved products yet'}
+            </p>
+          )}
+          {activeTab === 'suppliers' && (
+            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+              {savedSuppliers.length > 0 
+                ? `You saved ${savedSuppliers.length} supplier${savedSuppliers.length !== 1 ? 's' : ''}`
+                : 'No saved suppliers yet'}
+            </p>
+          )}
         </motion.div>
 
         {/* Summary */}
@@ -236,67 +378,183 @@ function DashboardSavedInner() {
             />
           </div>
 
-        {/* v2.5: Premium Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium">
-            <TabsTrigger value="products" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Saved Products</TabsTrigger>
-            <TabsTrigger value="suppliers" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">Saved Suppliers</TabsTrigger>
-          </TabsList>
-        </Tabs>
+          {/* Plain Tab Buttons (replaces Radix Tabs) */}
+          <div className="flex gap-2 bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium">
+            <button
+              onClick={() => setActiveTab('products')}
+              className={`px-4 py-2 rounded-full font-semibold transition-all duration-200 ${
+                activeTab === 'products'
+                  ? 'bg-afrikoni-gold text-afrikoni-charcoal shadow-afrikoni'
+                  : 'text-afrikoni-text-dark/70 hover:text-afrikoni-gold'
+              }`}
+            >
+              Saved Products
+            </button>
+            <button
+              onClick={() => setActiveTab('suppliers')}
+              className={`px-4 py-2 rounded-full font-semibold transition-all duration-200 ${
+                activeTab === 'suppliers'
+                  ? 'bg-afrikoni-gold text-afrikoni-charcoal shadow-afrikoni'
+                  : 'text-afrikoni-text-dark/70 hover:text-afrikoni-gold'
+              }`}
+            >
+              Saved Suppliers
+            </button>
+          </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="hidden" /> 
+        {/* Debug line removed for production */}
 
-          <TabsContent value="products" className="space-y-4">
-            {filteredProducts.length === 0 ? (
-              <Card>
-                <CardContent className="p-0">
-                  <EmptyState 
-                    type="products"
-                    title="No saved products yet"
-                    description="Save products you're interested in to access them quickly later."
-                    cta="Browse Products"
-                    ctaLink="/products"
-                  />
-                </CardContent>
-              </Card>
+        {/* Products Tab Content - Plain Conditional (no TabsContent) */}
+        {activeTab === 'products' && (
+          <div className="mt-4 space-y-4">
+            {normalizedProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4">
+                <Package className="w-16 h-16 text-afrikoni-text-dark/30 mb-4" />
+                <h3 className="text-xl font-semibold text-afrikoni-text-dark mb-2">
+                  {savedProducts.length === 0 ? "No saved products yet" : "No products match your search"}
+                </h3>
+                <p className="text-afrikoni-text-dark/70 text-center mb-6 max-w-md">
+                  {savedProducts.length === 0 
+                    ? "Save products you're interested in to access them quickly later."
+                    : `Try a different search term. You have ${savedProducts.length} saved product${savedProducts.length !== 1 ? 's' : ''}.`}
+                </p>
+                <Link to="/products">
+                  <Button 
+                    variant="default"
+                    className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white"
+                  >
+                    Browse Marketplace
+                  </Button>
+                </Link>
+              </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProducts.map((product) => (
-                  <Card key={product.id} className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-                    <CardContent className="p-5 md:p-6">
-                      <div className="aspect-video bg-afrikoni-sand rounded-afrikoni mb-4 flex items-center justify-center">
-                        <Package className="w-12 h-12 text-afrikoni-text-dark/50" />
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {normalizedProducts.map((p) => {
+                  const imageUrlResolved = imageUrlsResolved.get(p.id);
+                  
+                  return (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="rounded-xl border-2 border-afrikoni-gold/20 bg-white p-4 shadow-sm hover:border-afrikoni-gold/60 hover:shadow-xl transition-all duration-300 group">
+                        <Link to={`/product?id=${p.id}`} className="block">
+                          {/* Image Section - Always renders */}
+                          <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-afrikoni-ivory mb-3 relative">
+                            {imageUrlResolved ? (
+                              <img 
+                                src={imageUrlResolved} 
+                                alt={p.title} 
+                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                onError={(e) => {
+                                  // Fallback to placeholder on error
+                                  e.target.src = '/placeholder.png';
+                                  e.target.onerror = null;
+                                }}
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-sm opacity-60">
+                                <Package className="w-12 h-12 text-afrikoni-text-dark/40" />
                       </div>
-                      <h3 className="font-semibold text-afrikoni-text-dark mb-2">{product.title}</h3>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-lg font-bold text-afrikoni-gold">
-                          {product.price_min && product.price_max 
-                            ? `${product.currency || 'USD'} ${product.price_min} - ${product.price_max}`
-                            : product.price 
-                            ? `${product.currency || 'USD'} ${product.price}`
-                            : 'Price on request'}
-                        </span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleUnsave(product.id, 'product')}
-                        >
-                          <Heart className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
-                        </Button>
+                            )}
+                            
+                            {/* Un-save button overlay */}
+                            <div className="absolute top-2 right-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm h-9 w-9 p-0"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleUnsave(p.id, 'product');
+                                }}
+                                title="Remove from saved"
+                              >
+                                <X className="w-5 h-5 text-afrikoni-gold" />
+                              </Button>
+                            </div>
+                            
+                            {/* Badges */}
+                            {p.featured && (
+                              <div className="absolute top-2 left-2">
+                                <Badge variant="primary" className="text-xs">⭐ Featured</Badge>
+                              </div>
+                            )}
+                            {p.status === 'active' && (
+                              <div className="absolute top-2 left-2" style={{ top: p.featured ? '2.5rem' : '0.5rem' }}>
+                                <Badge variant="success" className="text-xs">✓ Active</Badge>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Product Info */}
+                          <div className="mt-3">
+                            <h3 className="font-semibold text-afrikoni-text-dark mb-1 line-clamp-2 group-hover:text-afrikoni-gold transition-colors">
+                              {p.title}
+                            </h3>
+                            <div className="flex items-center gap-2 text-sm text-afrikoni-text-dark/70 mb-2">
+                              <Users className="w-3 h-3" />
+                              <span>{p.companyName}</span>
+                              {p.company?.verified && (
+                                <Badge variant="success" className="text-xs ml-1">✓ Verified</Badge>
+                              )}
+                            </div>
+                            {p.price != null && (
+                              <div className="text-base font-bold text-afrikoni-gold mb-2">
+                                {p.priceMax 
+                                  ? `${p.currency} ${p.price} - ${p.priceMax}`
+                                  : `${p.currency} ${p.price}`}
+                              </div>
+                            )}
+                            {p.country_of_origin && (
+                              <div className="flex items-center gap-1 text-xs text-afrikoni-text-dark/60 mb-3">
+                                <span>📍</span>
+                                <span>{p.country_of_origin}</span>
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mt-3">
+                          <Link to={`/product?id=${p.id}`} className="flex-1">
+                            <Button 
+                              variant="outline" 
+                              className="w-full text-sm"
+                              size="sm"
+                            >
+                              View Details
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="default"
+                            className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white text-sm"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              navigate(`/dashboard/rfqs/new?product=${p.id}`);
+                            }}
+                          >
+                            <FileText className="w-4 h-4 mr-1" />
+                            Create RFQ
+                          </Button>
+                        </div>
                       </div>
-                      <Link to={`/product?id=${product.id}`}>
-                        <Button variant="outline" className="w-full" size="sm">View Product</Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="suppliers" className="space-y-4">
+        {/* Suppliers Tab Content - Plain Conditional (no TabsContent) */}
+        {activeTab === 'suppliers' && (
+          <div className="mt-4 space-y-4">
             {filteredSuppliers.length === 0 ? (
               <Card>
                 <CardContent className="p-0">
@@ -338,8 +596,8 @@ function DashboardSavedInner() {
                 ))}
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -199,6 +199,20 @@ export default function Onboarding() {
         console.log('Welcome email not sent:', emailError);
       }
 
+      // Notify admins that user completed onboarding (with company info)
+      try {
+        const { notifyAdminOfOnboardingCompletion } = await import('@/services/riskMonitoring');
+        await notifyAdminOfOnboardingCompletion(
+          user.id,
+          user.email,
+          formData.full_name || user.email?.split('@')[0],
+          formData.company_name || null
+        );
+      } catch (notifyError) {
+        // Don't block onboarding if notification fails
+        console.warn('Failed to notify admins of onboarding completion:', notifyError);
+      }
+
       toast.success('Onboarding completed! Welcome to Afrikoni.');
       
       // Show community invite modal/dialog

@@ -26,6 +26,7 @@ import { useLiveStats } from '@/hooks/useLiveStats';
 import { getUserInitial, extractUserName } from '@/utils/userHelpers';
 import { buyerNav } from '@/config/navigation/buyerNav';
 import { sellerNav } from '@/config/navigation/sellerNav';
+import { hybridNav } from '@/config/navigation/hybridNav';
 import { logisticsNav } from '@/config/navigation/logisticsNav';
 import { useRole, getDashboardHomePath } from '@/context/RoleContext';
 import { useDashboardRole } from '@/context/DashboardRoleContext';
@@ -152,8 +153,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const sidebarItems = {
     buyer: buyerNav,
     seller: sellerNav,
-    // Hybrid users share the buyer navigation shell
-    hybrid: buyerNav,
+    // Hybrid users get both buyer and seller features
+    hybrid: hybridNav,
     logistics: logisticsNav,
     admin: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/admin' },
@@ -696,7 +697,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         )}
 
         {/* Page Content - Mobile optimized padding */}
-        <main className="relative z-10 flex-1 w-full px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6 bg-afrikoni-ivory overflow-x-hidden min-h-[calc(100vh-80px)]">
+        <main className="relative z-10 flex-1 w-full px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6 bg-afrikoni-ivory overflow-x-hidden overflow-y-auto min-h-[calc(100vh-80px)]">
           {children}
         </main>
       </div>

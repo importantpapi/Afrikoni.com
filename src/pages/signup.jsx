@@ -77,6 +77,20 @@ export default function Signup() {
           // Don't fail signup if profile creation fails - user can still proceed
         }
 
+        // Notify admins of new user registration
+        try {
+          const { notifyAdminOfNewRegistration } = await import('@/services/riskMonitoring');
+          await notifyAdminOfNewRegistration(
+            data.user.id,
+            formData.email,
+            formData.fullName,
+            null // Company name will be set during onboarding
+          );
+        } catch (notifyError) {
+          // Don't block signup if notification fails
+          console.warn('Failed to notify admins of new registration:', notifyError);
+        }
+
         toast.success(t('signup.success'));
         // Redirect to explicit target if provided (e.g. logistics partner onboarding), otherwise onboarding
         const target =

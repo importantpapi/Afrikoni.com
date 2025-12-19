@@ -465,8 +465,29 @@ export default function SmartImageUploader({
                   }}
                 />
                 
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                {/* Delete button - always visible in top-right corner */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    removeImage(index);
+                  }}
+                  className="absolute top-1 right-1 z-20 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition-all hover:scale-110"
+                  title="Remove image"
+                  aria-label="Remove image"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {/* Primary badge */}
+                {img.is_primary && (
+                  <div className="absolute top-1 left-1 bg-afrikoni-gold text-white text-xs px-2 py-1 rounded font-semibold z-10">
+                    Main
+                  </div>
+                )}
+
+                {/* Overlay on hover for additional actions */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
                   <div className="flex gap-2">
                     {!img.is_primary && (
                       <Button
@@ -476,35 +497,17 @@ export default function SmartImageUploader({
                           e.stopPropagation();
                           setPrimary(index);
                         }}
-                        className="h-8 text-xs"
+                        className="h-8 text-xs bg-white hover:bg-gray-100"
                       >
                         Set Main
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeImage(index);
-                      }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
                   </div>
                 </div>
 
-                {/* Primary badge */}
-                {img.is_primary && (
-                  <div className="absolute top-2 left-2 bg-afrikoni-gold text-white text-xs px-2 py-1 rounded font-semibold">
-                    Main
-                  </div>
-                )}
-
-                {/* Drag handle */}
-                <div className="absolute top-2 right-2 bg-white/90 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <GripVertical className="w-4 h-4 text-afrikoni-deep" />
+                {/* Drag handle - bottom right */}
+                <div className="absolute bottom-1 right-1 bg-white/90 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <GripVertical className="w-3 h-3 text-afrikoni-deep" />
                 </div>
               </motion.div>
             ))}
@@ -532,4 +535,5 @@ export default function SmartImageUploader({
     </div>
   );
 }
+
 

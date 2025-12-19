@@ -379,6 +379,39 @@ export const emailTemplates = {
       <p>${message}</p>
     `;
     return baseTemplate(content, buttonText, buttonLink);
+  },
+
+  adminNewUser: (data) => {
+    const { adminName, userName, userEmail, companyName, registrationDate, viewUrl } = data;
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New User Registration</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #D4A937 0%, #C9A961 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">🎉 New User Registration</h1>
+        </div>
+        <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px;">
+          <p style="font-size: 16px; margin-bottom: 20px;">Hello ${adminName || 'Admin'},</p>
+          <p style="font-size: 16px; margin-bottom: 20px;">A new user has just registered on Afrikoni:</p>
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 10px 0;"><strong>Name:</strong> ${userName}</p>
+            <p style="margin: 10px 0;"><strong>Email:</strong> ${userEmail}</p>
+            <p style="margin: 10px 0;"><strong>Company:</strong> ${companyName}</p>
+            <p style="margin: 10px 0;"><strong>Registered:</strong> ${registrationDate}</p>
+          </div>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${viewUrl || 'https://afrikoni.com/dashboard/risk'}" style="display: inline-block; background: #D4A937; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">View in Afrikoni Shield</a>
+          </div>
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">This is an automated notification from Afrikoni Shield™.</p>
+        </div>
+      </body>
+      </html>
+    `;
   }
 };
 

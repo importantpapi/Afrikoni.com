@@ -531,11 +531,11 @@ Contact us for more information, custom specifications, or to request samples.`;
     return Object.keys(newErrors).length === 0;
   };
 
-  // Submit Product
-  const handleSubmit = async () => {
-    if (!validateStep(5)) {
-      toast.error(t('addProductAlibaba.fixErrors') || 'Please fix errors before submitting');
-      return;
+  // Save changes (for editing - can be called from any step)
+  const handleSaveChanges = async (skipValidation = false) => {
+    if (!isEditing || !productId) {
+      // If not editing, use regular submit
+      return handleSubmit();
     }
 
     if (!user?.id) {
@@ -553,20 +553,17 @@ Contact us for more information, custom specifications, or to request samples.`;
         throw new Error('Unable to create or find your company. Please complete your profile first.');
       }
 
-      // Ensure company_id is set correctly
-      console.log('🏢 Company info:', { companyId, user: user?.id });
-      
       const productData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         category_id: formData.category_id || null,
         country_of_origin: formData.country_of_origin,
         city: formData.city || null,
-        price: parseFloat(formData.price),
-        price_min: parseFloat(formData.price),
+        price: parseFloat(formData.price) || 0,
+        price_min: parseFloat(formData.price) || 0,
         currency: formData.currency,
-        moq: parseFloat(formData.moq),
-        min_order_quantity: parseFloat(formData.moq),
+        moq: parseFloat(formData.moq) || 1,
+        min_order_quantity: parseFloat(formData.moq) || 1,
         unit: formData.unit,
         delivery_time: formData.delivery_time || null,
         packaging: formData.packaging || null,
@@ -576,8 +573,8 @@ Contact us for more information, custom specifications, or to request samples.`;
           dimensions: formData.dimensions,
           shipping_cost: formData.shipping_cost
         },
-        status: 'active', // Published immediately to marketplace
-        published_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
+        // Keep existing status when saving changes
       };
 
       let savedProductId;
@@ -904,10 +901,16 @@ Contact us for more information, custom specifications, or to request samples.`;
         }
       }
 
-      toast.success(isEditing ? t('addProductAlibaba.updateSuccess') : t('addProductAlibaba.publishSuccess'));
-      setTimeout(() => {
-        navigate('/dashboard/products');
-      }, 1000);
+      // Only navigate away if this is the final submit (Step 5), not for quick save
+      if (currentStep === STEPS.length) {
+        toast.success(isEditing ? t('addProductAlibaba.updateSuccess') : t('addProductAlibaba.publishSuccess'));
+        setTimeout(() => {
+          navigate('/dashboard/products');
+        }, 1000);
+      } else {
+        // Quick save - stay on current step
+        toast.success('Changes saved successfully!');
+      }
     } catch (error) {
       console.error('Save product error:', error);
       const errorMessage = error?.message || 'Unknown error occurred';
@@ -1001,12 +1004,32 @@ Contact us for more information, custom specifications, or to request samples.`;
             <div className="flex items-center justify-between mb-2">
               {STEPS.map((step, index) => (
                 <div key={step.id} className="flex items-center flex-1">
-                  <div className="flex items-center">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Allow clicking on completed steps or current step
+                      // When editing, allow jumping to any step
+                      if (isEditing || currentStep >= step.id) {
+                        setCurrentStep(step.id);
+                      }
+                    }}
+                    className={`flex items-center group ${
+                      isEditing || currentStep >= step.id
+                        ? 'cursor-pointer hover:opacity-80 transition-opacity'
+                        : 'cursor-not-allowed opacity-50'
+                    }`}
+                    disabled={!isEditing && currentStep < step.id}
+                    title={
+                      isEditing || currentStep >= step.id
+                        ? `Go to ${step.name}`
+                        : 'Complete previous steps first'
+                    }
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                       currentStep > step.id ? 'bg-afrikoni-gold text-white' :
                       currentStep === step.id ? 'bg-afrikoni-gold text-white ring-2 ring-afrikoni-gold ring-offset-2' :
                       'bg-gray-200 text-gray-600'
-                    }`}>
+                    } ${isEditing || currentStep >= step.id ? 'group-hover:scale-110' : ''}`}>
                       {currentStep > step.id ? <CheckCircle className="w-5 h-5" /> : <step.icon className="w-5 h-5" />}
                     </div>
                     <span className={`ml-2 text-sm font-medium ${
@@ -1014,7 +1037,7 @@ Contact us for more information, custom specifications, or to request samples.`;
                     }`}>
                       {step.name}
                     </span>
-                  </div>
+                  </button>
                   {index < STEPS.length - 1 && (
                     <div className={`flex-1 h-1 mx-4 ${
                       currentStep > step.id ? 'bg-afrikoni-gold' : 'bg-gray-200'
@@ -1024,6 +1047,11 @@ Contact us for more information, custom specifications, or to request samples.`;
               ))}
             </div>
             <Progress value={progress} className="mt-4" />
+            {isEditing && (
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                💡 Tip: Click on any step above to jump directly to it
+              </p>
+            )}
           </div>
         </div>
 
@@ -1537,7 +1565,7 @@ Contact us for more information, custom specifications, or to request samples.`;
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8 pt-6 border-t">
+            <div className="flex justify-between items-center mt-8 pt-6 border-t gap-3">
               <Button
                 variant="outline"
                 onClick={prevStep}
@@ -1547,26 +1575,50 @@ Contact us for more information, custom specifications, or to request samples.`;
                 Previous
               </Button>
 
-              {currentStep < STEPS.length ? (
-                <Button onClick={nextStep}>
-                  Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={isSaving}>
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Publishing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      {isEditing ? 'Update Product' : 'Publish to Marketplace'}
-                    </>
-                  )}
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {/* Save Changes button - shown when editing on any step */}
+                {isEditing && currentStep < STEPS.length && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleSaveChanges(true)}
+                    disabled={isSaving}
+                    className="bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {currentStep < STEPS.length ? (
+                  <Button onClick={nextStep}>
+                    Next
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit} disabled={isSaving}>
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        {isEditing ? 'Update Product' : 'Publish to Marketplace'}
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

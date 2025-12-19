@@ -17,6 +17,9 @@ import { emailTemplates } from './emailTemplates';
 
 const EMAIL_PROVIDER = import.meta.env.VITE_EMAIL_PROVIDER || 'none';
 const EMAIL_API_KEY = import.meta.env.VITE_EMAIL_API_KEY;
+// Official Afrikoni email - must use hello@afrikoni.com
+const OFFICIAL_EMAIL = 'hello@afrikoni.com';
+const OFFICIAL_EMAIL_NAME = 'Afrikoni';
 
 /**
  * Send email using configured provider
@@ -26,7 +29,7 @@ export async function sendEmail({
   subject,
   template,
   data = {},
-  from = 'Afrikoni <hello@afrikoni.com>', // Official email: hello@afrikoni.com
+  from = `${OFFICIAL_EMAIL_NAME} <${OFFICIAL_EMAIL}>`, // Always uses hello@afrikoni.com
 }) {
   // Validate email address
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -56,7 +59,14 @@ export async function sendEmail({
     
     switch (EMAIL_PROVIDER) {
       case 'resend':
-        return await sendViaResend({ to, subject, html, from });
+        // Try Supabase Edge Function first (avoids CORS), fallback to direct API
+        try {
+          return await sendViaSupabase({ to, subject, html, from });
+        } catch (supabaseError) {
+          // If Supabase function fails, try direct Resend API
+          console.warn('Supabase Edge Function failed, trying direct Resend API:', supabaseError);
+          return await sendViaResend({ to, subject, html, from });
+        }
       
       case 'sendgrid':
         return await sendViaSendGrid({ to, subject, html, from });
@@ -82,52 +92,62 @@ export async function sendEmail({
  * Send via Resend (https://resend.com)
  */
 async function sendViaResend({ to, subject, html, from }) {
-  // Ensure all emails use hello@afrikoni.com as official address
-  const officialEmail = 'hello@afrikoni.com';
-  const fromAddress = from || `Afrikoni <${officialEmail}>`;
+  // Always use hello@afrikoni.com as official address
+  const officialEmail = OFFICIAL_EMAIL;
+  const fromAddress = from || `${OFFICIAL_EMAIL_NAME} <${officialEmail}>`;
   
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${EMAIL_API_KEY}`
-    },
-    body: JSON.stringify({
-      from: fromAddress,
-      to: [to],
-      subject,
-      html,
-      reply_to: officialEmail, // All replies go to hello@afrikoni.com
-    })
-  });
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${EMAIL_API_KEY}`
+      },
+      body: JSON.stringify({
+        from: fromAddress,
+        to: [to],
+        subject,
+        html,
+        reply_to: officialEmail, // All replies go to hello@afrikoni.com
+      })
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-    const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
-    
-    // Provide user-friendly error messages
-    if (response.status === 401) {
-      throw new Error('Invalid API key. Please check email configuration.');
-    } else if (response.status === 403) {
-      throw new Error('Email sending not authorized. Please verify domain settings.');
-    } else if (response.status === 422) {
-      throw new Error(`Invalid email: ${errorMessage}`);
-    } else {
-      throw new Error(`Email send failed: ${errorMessage}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+      
+      // Provide user-friendly error messages
+      if (response.status === 401) {
+        throw new Error('Invalid API key. Please check email configuration.');
+      } else if (response.status === 403) {
+        throw new Error('Email sending not authorized. Please verify domain settings.');
+      } else if (response.status === 422) {
+        throw new Error(`Invalid email: ${errorMessage}`);
+      } else {
+        throw new Error(`Email send failed: ${errorMessage}`);
+      }
     }
-  }
 
-  const data = await response.json();
-  return { success: true, id: data.id };
+    const data = await response.json();
+    return { success: true, id: data.id };
+  } catch (error) {
+    // Handle network errors (CORS, connectivity, etc.)
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.error('📧 Network error sending email:', error);
+      throw new Error('Network error: Unable to reach email service. Please check your internet connection and try again.');
+    }
+    // Re-throw other errors
+    throw error;
+  }
 }
 
 /**
  * Send via SendGrid
  */
 async function sendViaSendGrid({ to, subject, html, from }) {
-  // Ensure all emails use hello@afrikoni.com as official address
-  const officialEmail = 'hello@afrikoni.com';
-  const fromAddress = from || `Afrikoni <${officialEmail}>`;
+  // Always use hello@afrikoni.com as official address
+  const officialEmail = OFFICIAL_EMAIL;
+  const fromAddress = from || `${OFFICIAL_EMAIL_NAME} <${officialEmail}>`;
   
   const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
     method: 'POST',
@@ -156,22 +176,68 @@ async function sendViaSendGrid({ to, subject, html, from }) {
 
 /**
  * Send via Supabase Edge Function
- * Requires a Supabase Edge Function to be deployed
+ * This avoids CORS issues by handling email sending server-side
  */
 async function sendViaSupabase({ to, subject, html, from }) {
-  const { supabase } = await import('@/api/supabaseClient');
-  
-  const { data, error } = await supabase.functions.invoke('send-email', {
-    body: {
-      to,
-      subject,
-      html,
-      from
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase configuration missing');
     }
-  });
 
-  if (error) throw error;
-  return { success: true, data };
+    // Call Edge Function directly via fetch (works without auth)
+    const functionUrl = `${supabaseUrl}/functions/v1/send-email`;
+    
+    const response = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`
+      },
+      body: JSON.stringify({
+        to,
+        subject,
+        html,
+        from: from || `${OFFICIAL_EMAIL_NAME} <${OFFICIAL_EMAIL}>`
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText || `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      console.error('📧 Edge Function error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
+      
+      throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error('📧 Email send failed:', data);
+      throw new Error(data.error || 'Email send failed');
+    }
+    
+    return { success: true, id: data.id };
+  } catch (error) {
+    console.error('📧 sendViaSupabase error:', error);
+    // Re-throw with more context
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Network error: Unable to reach email service. Please check your internet connection and try again.');
+    }
+    throw error;
+  }
 }
 
 /**

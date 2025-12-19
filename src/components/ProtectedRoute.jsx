@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { requireAuth, requireOnboarding, getCurrentUserAndRole } from '@/utils/authHelpers';
 import { isAdmin } from '@/utils/permissions';
@@ -14,6 +14,8 @@ export default function ProtectedRoute({
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     checkAuth();
@@ -66,7 +68,9 @@ export default function ProtectedRoute({
         // Only require auth
         const result = await requireAuth(supabase);
         if (!result) {
-          navigate('/login');
+          // Preserve current location as "from" state for redirect after login
+          const next = searchParams.get('next') || location.pathname + location.search;
+          navigate(`/login?next=${encodeURIComponent(next)}`);
           return;
         }
         setIsAuthorized(true);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
+import { notifyNewMessage } from '@/services/notificationService';
 
 export default function NewMessageDialog({ open, onOpenChange, recipientCompany, relatedTo, relatedType, subject }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -59,9 +63,9 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
         conversationId = newConv.id;
       }
 
-      const { error } = await supabase.from('messages').insert({
+      const { data: newMsg, error } = await supabase.from('messages').insert({
         conversation_id: conversationId,
-        sender_company_id: user.company_id,
+        sender_company_id: companyId,
         receiver_company_id: recipientCompany.id,
         sender_user_email: user.email,
         content: content.trim(),
@@ -69,7 +73,9 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
         related_to: relatedTo,
         related_type: relatedType,
         subject: subject
-      });
+      })
+      .select()
+      .single();
 
       if (error) throw error;
 
@@ -82,20 +88,36 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
         })
         .eq('id', conversationId);
 
-      // Create notification
-      await supabase.from('notifications').insert({
-        user_email: recipientCompany.owner_email,
-        company_id: recipientCompany.id,
-        title: 'New Message',
-        message: `You received a new message from ${user.email}`,
-        type: 'message',
-        link: `/messages?conversation=${conversationId}`,
-        read: false
-      });
+      // Create notification using smart notification logic
+      // Check if this is the first message in the conversation
+      const { data: messageCount } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact' })
+        .eq('conversation_id', conversationId);
+      
+      const isFirstMessage = (messageCount?.length || 0) <= 1;
+      
+      // Use notifyNewMessage with smart logic (user is not viewing conversation since they're sending)
+      await notifyNewMessage(
+        newMsg.id,
+        conversationId,
+        recipientCompany.id,
+        companyId,
+        {
+          activeConversationId: null, // User is not viewing conversation (they're sending)
+          isFirstMessage: isFirstMessage
+        }
+      );
 
       toast.success('Message sent!');
       setContent('');
       onOpenChange(false);
+      
+      // Navigate to messages with "from" state preserved
+      navigate('/messages', { 
+        state: { from: location.pathname + location.search },
+        search: `?conversation=${conversationId}`
+      });
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to send message');

@@ -22,7 +22,8 @@ import {
   sendEmail
 } from '@/services/emailService';
 import { supabase } from '@/api/supabaseClient';
-import { Mail, Send, CheckCircle, XCircle, AlertCircle, TestTube } from 'lucide-react';
+import { Mail, Send, CheckCircle, XCircle, AlertCircle, TestTube, Bug } from 'lucide-react';
+import { testResendAPIDirectly } from '@/utils/testResendAPI';
 
 export default function TestEmails() {
   const [testEmail, setTestEmail] = useState('');
@@ -30,6 +31,8 @@ export default function TestEmails() {
   const [results, setResults] = useState({});
   const [detailedResults, setDetailedResults] = useState({});
   const [isTestingAll, setIsTestingAll] = useState(false);
+  const [diagnosticResult, setDiagnosticResult] = useState(null);
+  const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false);
 
   // Verify email configuration
   const emailConfig = {
@@ -37,7 +40,7 @@ export default function TestEmails() {
     hasApiKey: !!import.meta.env.VITE_EMAIL_API_KEY,
     apiKeyLength: import.meta.env.VITE_EMAIL_API_KEY?.length || 0,
     apiKeyPrefix: import.meta.env.VITE_EMAIL_API_KEY?.substring(0, 3) || '',
-    officialEmail: 'hello@afrikoni.com'
+    officialEmail: 'hello@afrikoni.com' // Always uses hello@afrikoni.com
   };
 
   const handleTestEmail = async (emailType, emailFunction, emailData, customFrom = null) => {
@@ -382,6 +385,83 @@ export default function TestEmails() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+            {emailConfig.hasApiKey && emailConfig.provider === 'resend' && (
+              <div className="mt-4 pt-4 border-t border-afrikoni-gold/20">
+                <Button
+                  onClick={async () => {
+                    setIsRunningDiagnostic(true);
+                    setDiagnosticResult(null);
+                    try {
+                      const result = await testResendAPIDirectly();
+                      setDiagnosticResult(result);
+                      if (result.success) {
+                        toast.success('API connection test successful!');
+                      } else {
+                        toast.error(`API test failed: ${result.error}`);
+                      }
+                    } catch (error) {
+                      setDiagnosticResult({
+                        success: false,
+                        error: error.message || 'Unknown error'
+                      });
+                      toast.error(`Diagnostic failed: ${error.message}`);
+                    } finally {
+                      setIsRunningDiagnostic(false);
+                    }
+                  }}
+                  disabled={isRunningDiagnostic}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Bug className="w-4 h-4 mr-2" />
+                  {isRunningDiagnostic ? 'Running Diagnostic...' : 'Run API Diagnostic Test'}
+                </Button>
+                {diagnosticResult && (
+                  <div className={`mt-3 p-3 rounded-lg border-2 ${
+                    diagnosticResult.success 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-red-50 border-red-200'
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      {diagnosticResult.success ? (
+                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="flex-1">
+                        <p className={`font-semibold ${
+                          diagnosticResult.success ? 'text-green-800' : 'text-red-800'
+                        }`}>
+                          {diagnosticResult.success ? '✓ API Connection Successful' : '✗ API Connection Failed'}
+                        </p>
+                        <p className={`text-sm mt-1 ${
+                          diagnosticResult.success ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                          {diagnosticResult.error || 'Connection test passed'}
+                        </p>
+                        {diagnosticResult.details && (
+                          <pre className="text-xs mt-2 p-2 bg-white/50 rounded overflow-auto">
+                            {JSON.stringify(diagnosticResult.details, null, 2)}
+                          </pre>
+                        )}
+                        {!diagnosticResult.success && (
+                          <div className="mt-2 text-xs text-red-700 space-y-1">
+                            <p><strong>Possible causes:</strong></p>
+                            <ul className="list-disc list-inside ml-2 space-y-1">
+                              <li>Domain <code>afrikoni.com</code> not verified in Resend</li>
+                              <li>API key invalid or expired</li>
+                              <li>CORS/network connectivity issue</li>
+                              <li>Browser security blocking the request</li>
+                            </ul>
+                            <p className="mt-2"><strong>Solution:</strong> Verify your domain in Resend Dashboard → Domains</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

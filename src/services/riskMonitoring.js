@@ -4,9 +4,11 @@
  */
 
 import { supabase } from '@/api/supabaseClient';
+import { sendEmail } from '@/services/emailService';
 
 /**
  * Create admin notification for new user registration
+ * Also sends email notification to admins
  */
 export async function notifyAdminOfNewRegistration(userId, userEmail, userName, companyName) {
   try {
@@ -21,11 +23,14 @@ export async function notifyAdminOfNewRegistration(userId, userEmail, userName, 
       return;
     }
 
+    const userNameDisplay = userName || userEmail?.split('@')[0] || 'New User';
+    const companyDisplay = companyName || 'No company yet';
+
     // Create notification for each admin
     const notifications = adminProfiles.map(admin => ({
       user_id: admin.id,
       title: '🎉 New User Registration',
-      message: `${userName || userEmail} (${companyName || 'No company'}) just registered on the platform.`,
+      message: `${userNameDisplay} (${companyDisplay}) just registered on the platform.`,
       type: 'system',
       priority: 'high',
       metadata: {
@@ -33,7 +38,7 @@ export async function notifyAdminOfNewRegistration(userId, userEmail, userName, 
         new_user_email: userEmail,
         new_user_name: userName,
         company_name: companyName,
-        action_url: '/dashboard/admin/users'
+        action_url: '/dashboard/risk'
       },
       read: false,
       created_at: new Date().toISOString()
@@ -49,8 +54,84 @@ export async function notifyAdminOfNewRegistration(userId, userEmail, userName, 
       console.log(`✅ Created ${notifications.length} admin notifications for new registration`);
     }
 
+    // Send email notifications to admins
+    for (const admin of adminProfiles) {
+      if (admin.email) {
+        try {
+          await sendEmail({
+            to: admin.email,
+            subject: `🎉 New User Registration: ${userNameDisplay}`,
+            template: 'adminNewUser',
+            data: {
+              adminName: admin.email.split('@')[0],
+              userName: userNameDisplay,
+              userEmail: userEmail,
+              companyName: companyDisplay,
+              registrationDate: new Date().toLocaleString(),
+              viewUrl: `${window.location.origin}/dashboard/risk`
+            }
+          });
+        } catch (emailError) {
+          console.warn(`Failed to send email to admin ${admin.email}:`, emailError);
+          // Don't fail the whole process if one email fails
+        }
+      }
+    }
+
   } catch (error) {
     console.error('Error in notifyAdminOfNewRegistration:', error);
+  }
+}
+
+/**
+ * Notify admins when a user completes onboarding
+ */
+export async function notifyAdminOfOnboardingCompletion(userId, userEmail, userName, companyName) {
+  try {
+    // Get all admin users
+    const { data: adminProfiles } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .or('is_admin.eq.true,email.eq.hello@afrikoni.com');
+
+    if (!adminProfiles || adminProfiles.length === 0) {
+      console.warn('No admin users found to notify');
+      return;
+    }
+
+    const userNameDisplay = userName || userEmail?.split('@')[0] || 'New User';
+    const companyDisplay = companyName || 'No company';
+
+    // Create notification for each admin
+    const notifications = adminProfiles.map(admin => ({
+      user_id: admin.id,
+      title: '✅ User Completed Onboarding',
+      message: `${userNameDisplay} from ${companyDisplay} completed onboarding and is now active.`,
+      type: 'system',
+      priority: 'medium',
+      metadata: {
+        user_id: userId,
+        user_email: userEmail,
+        user_name: userName,
+        company_name: companyName,
+        action_url: '/dashboard/risk'
+      },
+      read: false,
+      created_at: new Date().toISOString()
+    }));
+
+    const { error } = await supabase
+      .from('notifications')
+      .insert(notifications);
+
+    if (error) {
+      console.error('Error creating onboarding notifications:', error);
+    } else {
+      console.log(`✅ Created ${notifications.length} admin notifications for onboarding completion`);
+    }
+
+  } catch (error) {
+    console.error('Error in notifyAdminOfOnboardingCompletion:', error);
   }
 }
 

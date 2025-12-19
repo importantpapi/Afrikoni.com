@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, Paperclip, Search, MoreVertical, Phone, Video, MapPin,
   Shield, CheckCircle, CheckCircle2, Clock, User, Verified, Star, X, File, Image as ImageIcon,
-  FileText, Download, Eye, Loader2, Sparkles, Globe, ShoppingCart, Receipt, Truck, Languages
+  FileText, Download, Eye, Loader2, Sparkles, Globe, ShoppingCart, Receipt, Truck, Languages, ArrowLeft
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,9 +34,26 @@ export default function MessagesPremium() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [productContext, setProductContext] = useState(null);
+
+  // Smart back navigation
+  const handleBack = () => {
+    // If we have a "from" state, go back there
+    if (location.state?.from) {
+      navigate(location.state.from);
+    } 
+    // If browser history exists, go back
+    else if (window.history.length > 1) {
+      navigate(-1);
+    } 
+    // Fallback to dashboard
+    else {
+      navigate('/dashboard');
+    }
+  };
 
   const generateSmartInquiry = async (product) => {
     if (!product) return;
@@ -245,42 +262,40 @@ export default function MessagesPremium() {
                 .eq('id', newMessage.id);
             }
             
-            // Show toast notification (even if viewing conversation)
-            toast.info(`New message from ${senderCompanyName}`, {
-              description: newMessage.content?.substring(0, 50) + (newMessage.content?.length > 50 ? '...' : ''),
-              action: {
-                label: 'View',
-                onClick: () => {
-                  // Already viewing, just scroll to bottom
-                  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-                }
-              }
-            });
+            // Don't show toast if viewing conversation - message is already visible
+            // Toasts are for UI feedback, not business events
           } else {
-            // Message is for a different conversation - show prominent toast
-            toast.success(`New message from ${senderCompanyName}`, {
-              description: newMessage.content?.substring(0, 50) + (newMessage.content?.length > 50 ? '...' : ''),
-              duration: 5000,
-              action: {
-                label: 'Open',
-                onClick: () => {
-                  setSelectedConversation(newMessage.conversation_id);
-                  navigate(`/messages?conversation=${newMessage.conversation_id}`);
-                }
-              }
-            });
+            // Message is for a different conversation
+            // Don't show toast - notification bell will handle it
+            // Toasts are for UI feedback (saved, sent, error), not business events
           }
 
-          // Always create notification for new messages
+          // Create notification only if user is NOT viewing this conversation
+          // Core principle: Notifications trigger action, not mirror data
           try {
+            // Check if this is the first message in the conversation
+            const { data: messageCount } = await supabase
+              .from('messages')
+              .select('id', { count: 'exact' })
+              .eq('conversation_id', newMessage.conversation_id);
+            
+            const isFirstMessage = (messageCount?.length || 0) <= 1;
+            
             await notifyNewMessage(
               newMessage.id,
               newMessage.conversation_id,
               newMessage.receiver_company_id,
-              newMessage.sender_company_id
+              newMessage.sender_company_id,
+              {
+                activeConversationId: selectedConversation, // Pass current conversation
+                isFirstMessage: isFirstMessage
+              }
             );
           } catch (error) {
-            // Silently fail - notification might already exist or there's a duplicate
+            // Silently fail - notification creation is not critical
+            if (import.meta.env.DEV) {
+              console.warn('Notification creation failed:', error);
+            }
           }
 
           // Refresh conversations to update unread counts
@@ -627,8 +642,8 @@ export default function MessagesPremium() {
         })
         .eq('id', selectedConversation);
 
-      // Create notification
-      await notifyNewMessage(newMsg.id, selectedConversation, receiverCompanyId, companyId);
+      // Don't create notification for messages user sends themselves
+      // Notification will be created on receiver's side via real-time subscription
 
       setMessages(prev => {
         const prevArray = Array.isArray(prev) ? prev : [];
@@ -711,9 +726,21 @@ export default function MessagesPremium() {
       <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">Messages</h1>
-              <p className="text-sm text-afrikoni-deep">Communicate with your business partners</p>
+            <div className="flex items-center gap-3 flex-1">
+              {/* Back Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="flex items-center gap-2 text-afrikoni-deep hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back</span>
+              </Button>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">Messages</h1>
+                <p className="text-sm text-afrikoni-deep">Communicate with your business partners</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="info" className="text-xs">
@@ -858,11 +885,13 @@ export default function MessagesPremium() {
                   <div className="p-3 md:p-4 border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                        {/* Mobile: Back to conversation list */}
                         <button
                           onClick={() => setSelectedConversation(null)}
                           className="lg:hidden mr-2 p-1 hover:bg-afrikoni-gold/10 rounded"
+                          aria-label="Back to conversations"
                         >
-                          ←
+                          <ArrowLeft className="w-4 h-4" />
                         </button>
                         <div className="relative">
                           <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">

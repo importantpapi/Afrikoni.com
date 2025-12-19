@@ -60,6 +60,21 @@ export default function HeaderActions({ user, onLogout }) {
 
       {user ? (
         <>
+          {/* Messages Button - Visible when logged in */}
+          <Link to="/messages">
+            <motion.div 
+              className="relative"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <div className="relative group">
+                <MessageSquare className="w-5 h-5 text-afrikoni-deep hover:text-afrikoni-gold transition-colors" />
+                <div className="absolute top-full right-0 mt-2 w-48 bg-afrikoni-chestnut text-afrikoni-cream text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                  View Messages
+                </div>
+              </div>
+            </motion.div>
+          </Link>
           <Link to="/orders">
             <motion.div 
               className="relative"
@@ -151,6 +166,14 @@ export default function HeaderActions({ user, onLogout }) {
         </>
       ) : (
         <>
+          {/* Messages CTA for logged out users */}
+          <Link to="/login?next=/messages">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign in to message</span>
+              <span className="sm:hidden">Messages</span>
+            </Button>
+          </Link>
           <Link to="/login">
             <Button variant="ghost" size="sm">Login</Button>
           </Link>
