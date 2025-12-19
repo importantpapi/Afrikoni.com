@@ -981,9 +981,13 @@ export default function ProductDetail() {
                   <Card className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-4">
                       <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product?.title || 'Product'}</h3>
-                      <p className="text-lg font-bold text-afrikoni-gold">
-                        {product?.price_min || product?.price ? `$${product.price_min || product.price}` : 'Price on request'}
-                      </p>
+                      <div className="text-lg font-bold text-afrikoni-gold">
+                        <Price
+                          amount={product?.price_min || product?.price}
+                          fromCurrency={product?.currency || 'USD'}
+                          className="text-lg font-bold text-afrikoni-gold"
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 </Link>
@@ -1004,9 +1008,13 @@ export default function ProductDetail() {
                   <Card className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-4">
                       <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product?.title || 'Product'}</h3>
-                      <p className="text-lg font-bold text-afrikoni-gold">
-                        {product?.price_min || product?.price ? `$${product.price_min || product.price}` : 'Price on request'}
-                      </p>
+                      <div className="text-lg font-bold text-afrikoni-gold">
+                        <Price
+                          amount={product?.price_min || product?.price}
+                          fromCurrency={product?.currency || 'USD'}
+                          className="text-lg font-bold text-afrikoni-gold"
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 </Link>

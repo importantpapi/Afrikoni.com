@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 /**
  * ProductImageGallery component
@@ -10,8 +9,6 @@ import { Button } from '@/components/ui/button';
  */
 export default function ProductImageGallery({ images = [], productTitle = 'Product' }) {
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [showLightbox, setShowLightbox] = useState(false);
 
   if (!images || images.length === 0) {
@@ -44,14 +41,6 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
     return img.alt_text || img.alt || `${productTitle} - Image ${index + 1}`;
   };
 
-  const handleMouseMove = (e) => {
-    if (!isZoomed) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPosition({ x, y });
-  };
-
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % normalizedImages.length);
   };
@@ -63,45 +52,24 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
   return (
     <>
       <div className="space-y-4">
-        {/* Main Image with Zoom */}
+        {/* Main Image */}
         <div
-          className="relative aspect-square bg-afrikoni-cream rounded-xl overflow-hidden group cursor-zoom-in touch-none"
-          onMouseEnter={() => {
-            // Only enable zoom on desktop (non-touch devices)
-            if (window.matchMedia('(hover: hover)').matches) {
-              setIsZoomed(true);
-            }
-          }}
-          onMouseLeave={() => setIsZoomed(false)}
-          onMouseMove={handleMouseMove}
+          className="relative aspect-square bg-afrikoni-cream rounded-xl overflow-hidden group cursor-pointer"
           onTouchStart={() => setShowLightbox(true)}
           onClick={() => setShowLightbox(true)}
         >
           <img
             src={getImageUrl(normalizedImages[selectedImage])}
             alt={getImageAlt(normalizedImages[selectedImage], selectedImage + 1)}
-            className={`w-full h-full object-cover transition-transform duration-300 ${
-              isZoomed ? 'scale-150' : 'scale-100'
-            }`}
-            style={{
-              transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
-            }}
+            className="w-full h-full object-cover"
             loading="lazy"
             decoding="async"
           />
           
-          {/* Zoom Indicator - Desktop only */}
-          {isZoomed && (
-            <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm hidden md:flex">
-              <ZoomIn className="w-4 h-4" />
-              <span>Click to view fullscreen</span>
-            </div>
-          )}
-
-          {/* Tap to view indicator - Mobile only */}
-          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm md:hidden">
+          {/* Click to view indicator */}
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm">
             <ZoomIn className="w-4 h-4" />
-            <span className="text-xs">Tap to view</span>
+            <span className="text-xs md:text-sm">Click to view</span>
           </div>
 
           {/* Navigation Arrows - Always visible on mobile, hover on desktop */}
