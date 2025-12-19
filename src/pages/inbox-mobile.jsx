@@ -111,6 +111,9 @@ export default function InboxMobile() {
           subject: conv.subject,
           related_rfq_id: conv.related_rfq_id,
           related_product_id: conv.related_product_id,
+          is_system: conv.is_system || conv.seller_company_id === null,
+          seller_company_id: conv.seller_company_id,
+          buyer_company_id: conv.buyer_company_id,
         };
       });
 
