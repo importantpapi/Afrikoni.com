@@ -14,6 +14,9 @@ import NewsletterPopup from './components/ui/NewsletterPopup';
 import MobileTrustBadge from './components/ui/MobileTrustBadge';
 import MobileMainNav from './components/layout/MobileMainNav';
 
+// Lazy load MobileLayout outside component to prevent re-creation on every render
+const MobileLayout = lazy(() => import('@/layouts/MobileLayout'));
+
 function Footer() {
   const [openSections, setOpenSections] = useState({
     company: false,
@@ -449,8 +452,6 @@ export default function Layout({ children }) {
   // On mobile, use MobileLayout (which includes its own header and bottom nav)
   // On desktop, use the traditional layout
   if (isMobile) {
-    // Dynamic import to avoid SSR issues
-    const MobileLayout = lazy(() => import('@/layouts/MobileLayout'));
     return (
       <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" /></div>}>

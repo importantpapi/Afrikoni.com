@@ -22,23 +22,8 @@ interface MobileLayoutProps {
 }
 
 export default function MobileLayout({ children, user, userRole = 'buyer' }: MobileLayoutProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Only apply mobile layout on mobile viewports
-  if (!isMobile) {
-    return <>{children}</>;
-  }
-
+  // MobileLayout is only called when isMobile is true in parent Layout component
+  // No need to check again here - just render the mobile layout
   return (
     <div className="mobile-layout min-h-screen bg-afrikoni-offwhite">
       {/* Mobile Header - Sticky, 56px height, z-30 */}
