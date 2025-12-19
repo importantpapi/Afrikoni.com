@@ -249,9 +249,60 @@ export default function RFQMobileWizard() {
           .eq('user_id', user.id);
       }
 
-      // Success - navigate to inbox
-      toast.success('RFQ created successfully!');
-      navigate(`/messages-premium?rfq=${newRFQ.id}`);
+      // Move 1: Auto-create system conversation thread for RFQ
+      // This creates a "Waiting for suppliers" thread in inbox
+      try {
+        // Create a system conversation (buyer_company_id = companyId, seller_company_id = null for system)
+        // This will show in inbox as "RFQ: [title]" with system messages
+        const { data: systemConv, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            buyer_company_id: companyId,
+            seller_company_id: null, // System conversation
+            subject: `RFQ: ${rfqData.title}`,
+            last_message: 'Your RFQ is live. Waiting for supplier responses...',
+            last_message_at: new Date().toISOString(),
+            related_rfq_id: newRFQ.id,
+            is_system: true
+          })
+          .select()
+          .single();
+
+        if (!convError && systemConv) {
+          // Create system message with expectations
+          const systemMessage = `✅ Your RFQ "${rfqData.title}" has been created successfully!
+
+📊 Status: In Review
+⏱️ Average response time: 6-24 hours
+👥 Verified suppliers only: ${formData.verified_only ? 'Yes' : 'No'}
+
+We're matching your RFQ with verified suppliers. You'll receive notifications when suppliers respond.
+
+💡 Tip: Keep your inbox open to see responses in real-time.`;
+
+          await supabase
+            .from('messages')
+            .insert({
+              conversation_id: systemConv.id,
+              sender_company_id: null, // System message
+              content: systemMessage,
+              message_type: 'system',
+              is_system: true
+            });
+
+          // Navigate to inbox with the new conversation
+          navigate(`/inbox-mobile?conversation=${systemConv.id}&rfq=${newRFQ.id}`);
+        } else {
+          // Fallback if conversation creation fails
+          navigate(`/inbox-mobile?rfq=${newRFQ.id}`);
+        }
+      } catch (error) {
+        console.error('Error creating system conversation:', error);
+        // Still navigate to inbox even if system conversation fails
+        navigate(`/inbox-mobile?rfq=${newRFQ.id}`);
+      }
+
+      toast.success('RFQ created! Check your inbox for responses.');
     } catch (error) {
       console.error('Error creating RFQ:', error);
       toast.error('Failed to create RFQ. Please try again.');

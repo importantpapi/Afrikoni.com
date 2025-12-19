@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import ConversationList from '@/components/inbox/ConversationList';
 import ConversationView from '@/components/inbox/ConversationView';
+import BrandClarityBanner from '@/components/ui/BrandClarityBanner';
 import { ArrowLeft, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -41,10 +42,18 @@ export default function InboxMobile() {
     }
   }, [currentUser, companyId]);
 
-  // Handle RFQ parameter
+  // Handle RFQ and conversation parameters
   useEffect(() => {
+    const conversationId = searchParams.get('conversation');
     const rfqId = searchParams.get('rfq');
-    if (rfqId && conversations.length > 0) {
+    
+    if (conversationId && conversations.length > 0) {
+      // Direct conversation ID takes priority
+      const conv = conversations.find(c => c.id === conversationId);
+      if (conv) {
+        setSelectedConversation(conversationId);
+      }
+    } else if (rfqId && conversations.length > 0) {
       // Find conversation related to this RFQ
       const rfqConv = conversations.find(c => c.related_rfq_id === rfqId);
       if (rfqConv) {
@@ -195,6 +204,11 @@ export default function InboxMobile() {
         onSelectConversation={setSelectedConversation}
         currentUserId={currentUser?.id}
       />
+
+      {/* Brand Clarity Banner (bottom of list) */}
+      <div className="px-4 py-4 pb-safe">
+        <BrandClarityBanner variant="compact" />
+      </div>
     </div>
   );
 }

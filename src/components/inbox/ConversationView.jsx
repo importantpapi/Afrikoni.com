@@ -20,6 +20,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import ChatBubble from './ChatBubble';
 import SupplierHeaderCard from './SupplierHeaderCard';
 import QuickReplies from './QuickReplies';
+import SystemMessage from './SystemMessage';
+import DealActions from './DealActions';
+import AntiBypassWarning from './AntiBypassWarning';
 import { toast } from 'sonner';
 
 export default function ConversationView({ conversationId, conversation, currentUser, companyId, onBack }) {
@@ -151,6 +154,11 @@ export default function ConversationView({ conversationId, conversation, current
         </div>
       </div>
 
+      {/* Anti-Bypass Warning (first time only) */}
+      <div className="px-4 pt-4">
+        <AntiBypassWarning />
+      </div>
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {isLoading ? (
@@ -172,17 +180,35 @@ export default function ConversationView({ conversationId, conversation, current
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <ChatBubble
-                key={message.id}
-                message={message}
-                isOwn={message.sender_company_id === companyId}
-              />
-            ))}
+            {messages.map((message) => {
+              // System messages get special styling
+              if (message.is_system || message.message_type === 'system') {
+                return <SystemMessage key={message.id} message={message} />;
+              }
+              return (
+                <ChatBubble
+                  key={message.id}
+                  message={message}
+                  isOwn={message.sender_company_id === companyId}
+                />
+              );
+            })}
             <div ref={messagesEndRef} />
           </>
         )}
       </div>
+
+      {/* Deal Actions - Show when conversation has supplier (not system conversation) */}
+      {otherCompany && conversation && conversation.seller_company_id && (
+        <DealActions
+          conversation={conversation}
+          companyId={companyId}
+          onActionComplete={(action) => {
+            // Reload messages after action
+            loadMessages();
+          }}
+        />
+      )}
 
       {/* Quick Replies (if no messages) */}
       {messages.length === 0 && otherCompany && (
