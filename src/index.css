@@ -77,6 +77,39 @@ html, body {
   padding-top: env(safe-area-inset-top, 0);
 }
 
+/* Mobile Layout System - Z-Index Hierarchy */
+.mobile-layout {
+  position: relative;
+  z-index: 1; /* Content layer */
+}
+
+.mobile-header {
+  z-index: 30; /* Header layer */
+}
+
+.whatsapp-fab {
+  z-index: 40; /* WhatsApp button layer */
+}
+
+.mobile-bottom-nav {
+  z-index: 50; /* Bottom nav layer */
+}
+
+/* Modal/Dialog z-index */
+[role="dialog"],
+[data-radix-portal] {
+  z-index: 100 !important; /* Modal layer */
+}
+
+/* Mobile Page Content - Safe Padding */
+@media (max-width: 768px) {
+  .mobile-page-content {
+    padding-top: 16px;
+    padding-bottom: 96px; /* 72px bottom nav + 24px safe area */
+    min-height: calc(100vh - 56px - 72px); /* Full height minus header and nav */
+  }
+}
+
 /* Mobile-first typography - minimum 16px for readability */
 @media (max-width: 768px) {
   html {

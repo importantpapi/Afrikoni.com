@@ -3,12 +3,16 @@
 export const translations = {
   en: {
     // Navigation
+    'nav.home': 'Home',
     'nav.marketplace': 'Marketplace',
     'nav.buyerHub': 'Buyer Hub',
     'nav.supplierHub': 'Supplier Hub',
     'nav.logistics': 'Logistics & Shipping',
     'nav.protection': 'Order Protection',
     'nav.rfq': 'RFQ',
+    'nav.messages': 'Messages',
+    'nav.profile': 'Profile',
+    'nav.login': 'Login',
     'nav.help': 'Help Center',
     'nav.allCategories': 'All Categories',
     'nav.explore': 'Explore',
@@ -729,7 +733,11 @@ export const translations = {
   
   fr: {
     // Navigation
+    'nav.home': 'Accueil',
     'nav.marketplace': 'Place de marché',
+    'nav.messages': 'Messages',
+    'nav.profile': 'Profil',
+    'nav.login': 'Connexion',
     'nav.buyerHub': 'Hub des acheteurs',
     'nav.supplierHub': 'Hub des fournisseurs',
     'nav.logistics': 'Logistique et expédition',
@@ -1318,7 +1326,11 @@ export const translations = {
   
   ar: {
     // Navigation
+    'nav.home': 'الرئيسية',
     'nav.marketplace': 'السوق',
+    'nav.messages': 'الرسائل',
+    'nav.profile': 'الملف الشخصي',
+    'nav.login': 'تسجيل الدخول',
     'nav.buyerHub': 'مركز المشترين',
     'nav.supplierHub': 'مركز الموردين',
     'nav.logistics': 'الخدمات اللوجستية والشحن',
@@ -1907,7 +1919,11 @@ export const translations = {
   
   pt: {
     // Navigation
+    'nav.home': 'Início',
     'nav.marketplace': 'Mercado',
+    'nav.messages': 'Mensagens',
+    'nav.profile': 'Perfil',
+    'nav.login': 'Entrar',
     'nav.buyerHub': 'Hub de Compradores',
     'nav.supplierHub': 'Hub de Fornecedores',
     'nav.logistics': 'Logística e Envio',

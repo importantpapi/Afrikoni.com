@@ -279,11 +279,14 @@ export default function HeroSection({ categories = [] }) {
             transition={{ duration: 0.6 }}
             className="mb-6"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-gold mb-4 leading-tight tracking-tight">
+            {/* Mobile: Title only + short subtitle */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-afrikoni-gold mb-3 md:mb-4 leading-tight tracking-tight">
               {t('trade_trust_thrive')}
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-afrikoni-cream/95 font-medium mb-6 max-w-3xl mx-auto leading-relaxed">
-              {t('hero_subtitle')}
+            {/* Mobile: Short subtitle only, Desktop: Full subtitle */}
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-afrikoni-cream/95 font-medium mb-4 md:mb-6 max-w-3xl mx-auto leading-relaxed">
+              <span className="md:hidden">Africa's trusted B2B marketplace.</span>
+              <span className="hidden md:inline">{t('hero_subtitle')}</span>
             </p>
           </motion.div>
 

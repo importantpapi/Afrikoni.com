@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabaseHelpers, supabase } from '@/api/supabaseClient';
@@ -375,12 +375,16 @@ function Footer() {
 export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
   // Check if we're on a dashboard route - don't show main layout for dashboard
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  // Check if we're on a product page (where sticky CTA will be shown)
+  const isProductPage = location.pathname.startsWith('/product');
 
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   useEffect(() => {
     loadUser();
     
@@ -394,6 +398,16 @@ export default function Layout({ children }) {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Check mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const loadUser = async () => {
@@ -432,9 +446,35 @@ export default function Layout({ children }) {
     return <>{children}</>;
   }
 
-  // Check if we're on a product page (where sticky CTA will be shown)
-  const isProductPage = location.pathname.startsWith('/product');
+  // On mobile, use MobileLayout (which includes its own header and bottom nav)
+  // On desktop, use the traditional layout
+  if (isMobile) {
+    // Dynamic import to avoid SSR issues
+    const MobileLayout = lazy(() => import('@/layouts/MobileLayout'));
+    return (
+      <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" /></div>}>
+          <MobileLayout user={user}>
+            {children}
+          </MobileLayout>
+        </Suspense>
+        
+        {/* WhatsApp Sticky Button - MobileLayout handles positioning */}
+        <WhatsAppButton />
 
+        {/* Cookie Banner */}
+        <CookieBanner />
+
+        {/* Newsletter Popup */}
+        <NewsletterPopup />
+
+        {/* Mobile Trust Badge */}
+        <MobileTrustBadge />
+      </div>
+    );
+  }
+
+  // Desktop layout (unchanged)
   return (
     <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
       {/* Navbar */}
