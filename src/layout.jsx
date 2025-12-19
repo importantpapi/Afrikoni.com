@@ -451,28 +451,35 @@ export default function Layout({ children }) {
 
   // On mobile, use MobileLayout (which includes its own header and bottom nav)
   // On desktop, use the traditional layout
-  if (isMobile) {
-    return (
-      <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" /></div>}>
-          <MobileLayout user={user}>
-            {children}
-          </MobileLayout>
-        </Suspense>
-        
-        {/* WhatsApp Sticky Button - MobileLayout handles positioning */}
-        <WhatsAppButton />
+  // IMPORTANT: Don't use MobileLayout for dashboard routes (they have their own layout)
+  if (isMobile && !isDashboardRoute) {
+    try {
+      return (
+        <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" /></div>}>
+            <MobileLayout user={user}>
+              {children}
+            </MobileLayout>
+          </Suspense>
+          
+          {/* WhatsApp Sticky Button - MobileLayout handles positioning */}
+          <WhatsAppButton />
 
-        {/* Cookie Banner */}
-        <CookieBanner />
+          {/* Cookie Banner */}
+          <CookieBanner />
 
-        {/* Newsletter Popup */}
-        <NewsletterPopup />
+          {/* Newsletter Popup */}
+          <NewsletterPopup />
 
-        {/* Mobile Trust Badge */}
-        <MobileTrustBadge />
-      </div>
-    );
+          {/* Mobile Trust Badge */}
+          <MobileTrustBadge />
+        </div>
+      );
+    } catch (error) {
+      // Fallback to desktop layout if MobileLayout fails
+      console.error('MobileLayout error:', error);
+      // Continue to desktop layout below
+    }
   }
 
   // Desktop layout (unchanged)

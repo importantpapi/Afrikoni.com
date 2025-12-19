@@ -35,7 +35,14 @@ export function LanguageProvider({ children }) {
   const translate = (key) => t(key, language);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t: translate }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage, 
+      t: translate,
+      i18n: {
+        isInitialized: true // Translations are always initialized via the translations.js file
+      }
+    }}>
       {children}
     </LanguageContext.Provider>
   );
@@ -48,7 +55,10 @@ export function useLanguage() {
     return {
       language: 'en',
       setLanguage: () => {},
-      t: (key) => key
+      t: (key) => key,
+      i18n: {
+        isInitialized: true // Fallback assumes initialized
+      }
     };
   }
   return context;
