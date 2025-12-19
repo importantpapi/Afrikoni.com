@@ -9,6 +9,13 @@ import { trackPageLoad } from './utils/performance';
 import './i18n';
 import './index.css';
 
+// Import test utility for email service (available in browser console)
+if (import.meta.env.DEV) {
+  import('@/utils/testEmailService').catch(() => {
+    // Silently fail if test utility can't be loaded
+  });
+}
+
 // Initialize error tracking and analytics
 try {
   initSentry();

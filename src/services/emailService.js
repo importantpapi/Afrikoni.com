@@ -28,6 +28,12 @@ export async function sendEmail({
   data = {},
   from = 'Afrikoni <hello@afrikoni.com>', // Official email: hello@afrikoni.com
 }) {
+  // Validate email address
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(to)) {
+    return { success: false, error: 'Invalid email address' };
+  }
+
   if (!EMAIL_API_KEY || EMAIL_PROVIDER === 'none') {
     if (import.meta.env.DEV) {
       console.log('📧 Email (not sent - no provider configured):', {
@@ -37,7 +43,12 @@ export async function sendEmail({
         data
       });
     }
-    return { success: false, error: 'Email provider not configured' };
+    return { success: false, error: 'Email provider not configured. Please contact support.' };
+  }
+
+  // Validate API key format for Resend
+  if (EMAIL_PROVIDER === 'resend' && EMAIL_API_KEY && !EMAIL_API_KEY.startsWith('re_')) {
+    console.warn('⚠️ Resend API key format may be incorrect (should start with "re_")');
   }
 
   try {
@@ -91,8 +102,19 @@ async function sendViaResend({ to, subject, html, from }) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to send email via Resend');
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+    const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+    
+    // Provide user-friendly error messages
+    if (response.status === 401) {
+      throw new Error('Invalid API key. Please check email configuration.');
+    } else if (response.status === 403) {
+      throw new Error('Email sending not authorized. Please verify domain settings.');
+    } else if (response.status === 422) {
+      throw new Error(`Invalid email: ${errorMessage}`);
+    } else {
+      throw new Error(`Email send failed: ${errorMessage}`);
+    }
   }
 
   const data = await response.json();

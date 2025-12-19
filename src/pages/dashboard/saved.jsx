@@ -38,13 +38,21 @@ function DashboardSavedInner() {
         .from('saved_items')
         .select('*')
         .eq('user_id', userData.id)
-        .eq('item_type', 'product');
+        .eq('item_type', 'product')
+        .order('created_at', { ascending: false });
 
       if (savedItemsError) {
         console.error('Error loading saved items:', savedItemsError);
+        toast.error('Failed to load saved products');
         setSavedProducts([]);
       } else if (savedItems && savedItems.length > 0) {
-        const productIds = savedItems.map(item => item.item_id);
+        const productIds = savedItems.map(item => item.item_id).filter(Boolean);
+        
+        if (productIds.length === 0) {
+          setSavedProducts([]);
+          return;
+        }
+        
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*, product_images(*)')
@@ -52,12 +60,17 @@ function DashboardSavedInner() {
         
         if (productsError) {
           console.error('Error loading products:', productsError);
+          toast.error('Failed to load product details');
           setSavedProducts([]);
         } else {
-          const products = (productsData || []).map(product => ({
-            ...product,
-            saved_item_id: savedItems.find(item => item.item_id === product.id)?.id
-          }));
+          // Map products with saved_item_id, preserving order
+          const productMap = new Map((productsData || []).map(p => [p.id, p]));
+          const products = savedItems
+            .map(item => {
+              const product = productMap.get(item.item_id);
+              return product ? { ...product, saved_item_id: item.id } : null;
+            })
+            .filter(Boolean);
           setSavedProducts(products);
         }
       } else {
@@ -69,13 +82,21 @@ function DashboardSavedInner() {
         .from('saved_items')
         .select('*')
         .eq('user_id', userData.id)
-        .eq('item_type', 'supplier');
+        .eq('item_type', 'supplier')
+        .order('created_at', { ascending: false });
 
       if (savedSupplierItemsError) {
         console.error('Error loading saved supplier items:', savedSupplierItemsError);
+        toast.error('Failed to load saved suppliers');
         setSavedSuppliers([]);
       } else if (savedSupplierItems && savedSupplierItems.length > 0) {
-        const companyIds = savedSupplierItems.map(item => item.item_id);
+        const companyIds = savedSupplierItems.map(item => item.item_id).filter(Boolean);
+        
+        if (companyIds.length === 0) {
+          setSavedSuppliers([]);
+          return;
+        }
+        
         const { data: companiesData, error: companiesError } = await supabase
           .from('companies')
           .select('*')
@@ -83,12 +104,17 @@ function DashboardSavedInner() {
         
         if (companiesError) {
           console.error('Error loading companies:', companiesError);
+          toast.error('Failed to load supplier details');
           setSavedSuppliers([]);
         } else {
-          const suppliers = (companiesData || []).map(company => ({
-            ...company,
-            saved_item_id: savedSupplierItems.find(item => item.item_id === company.id)?.id
-          }));
+          // Map companies with saved_item_id, preserving order
+          const companyMap = new Map((companiesData || []).map(c => [c.id, c]));
+          const suppliers = savedSupplierItems
+            .map(item => {
+              const company = companyMap.get(item.item_id);
+              return company ? { ...company, saved_item_id: item.id } : null;
+            })
+            .filter(Boolean);
           setSavedSuppliers(suppliers);
         }
       } else {

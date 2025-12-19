@@ -24,16 +24,21 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
       
       setUserId(userData.id);
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('saved_items')
         .select('id')
         .eq('user_id', userData.id)
         .eq('item_id', itemId)
         .eq('item_type', itemType)
-        .single();
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned (expected)
+        console.error('Error checking saved status:', error);
+      }
       
       setIsSaved(!!data);
     } catch (error) {
+      console.error('Error in checkSavedStatus:', error);
       setIsSaved(false);
     }
   };
@@ -52,38 +57,70 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
     try {
       if (isSaved) {
         // Unsave
-        const { error } = await supabase
+        const { error, count } = await supabase
           .from('saved_items')
           .delete()
           .eq('user_id', userId)
           .eq('item_id', itemId)
-          .eq('item_type', itemType);
+          .eq('item_type', itemType)
+          .select('id', { count: 'exact' });
         
         if (error) throw error;
         setIsSaved(false);
         toast.success('Removed from saved');
       } else {
-        // Save
+        // Save - check if already exists first
+        const { data: existing } = await supabase
+          .from('saved_items')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('item_id', itemId)
+          .eq('item_type', itemType)
+          .maybeSingle();
+        
+        if (existing) {
+          setIsSaved(true);
+          toast.info('Item is already saved');
+          return;
+        }
+        
+        // Insert new saved item
         const { error } = await supabase
           .from('saved_items')
           .insert({
             user_id: userId,
             item_id: itemId,
             item_type: itemType
-          });
+          })
+          .select()
+          .single();
         
-        if (error) throw error;
-        setIsSaved(true);
-        toast.success('Saved to your list');
+        if (error) {
+          // Handle duplicate key error gracefully
+          if (error.code === '23505') {
+            setIsSaved(true);
+            toast.info('Item is already saved');
+          } else {
+            throw error;
+          }
+        } else {
+          setIsSaved(true);
+          toast.success('Saved to your list');
+        }
       }
     } catch (error) {
       console.error('Save button error:', error);
+      const errorMessage = error.message || 'Unknown error';
+      
       if (error.code === '23505') {
         // Duplicate key - item already saved
         setIsSaved(true);
         toast.info('Item is already saved');
+      } else if (error.code === '42501') {
+        // Permission denied - RLS policy issue
+        toast.error('Permission denied. Please ensure you are logged in.');
       } else {
-        toast.error(`Failed to ${isSaved ? 'unsave' : 'save'} item: ${error.message || 'Unknown error'}`);
+        toast.error(`Failed to ${isSaved ? 'unsave' : 'save'} item: ${errorMessage}`);
       }
     } finally {
       setIsLoading(false);

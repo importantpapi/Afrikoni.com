@@ -106,10 +106,16 @@ export default function NewsletterPopup() {
       });
       
       if (emailResult.success) {
-        toast.success('Thank you for subscribing! Welcome email sent to your inbox.');
+        toast.success('Thank you for subscribing! Welcome email sent to your inbox.', {
+          duration: 5000,
+          description: 'Check your inbox for the welcome email from hello@afrikoni.com'
+        });
       } else {
         console.error('Email send failed:', emailResult.error);
-        toast.warning('Subscribed successfully, but welcome email could not be sent. Please check your email settings.');
+        toast.warning('Subscribed successfully, but welcome email could not be sent.', {
+          duration: 8000,
+          description: emailResult.error || 'Please check your email settings or contact support.'
+        });
       }
       
       localStorage.setItem('newsletterSubscribed', 'true');
@@ -129,10 +135,16 @@ export default function NewsletterPopup() {
       });
       
       if (emailResult.success) {
-        toast.success('Thank you for subscribing! Welcome email sent to your inbox.');
+        toast.success('Thank you for subscribing! Welcome email sent to your inbox.', {
+          duration: 5000,
+          description: 'Check your inbox for the welcome email from hello@afrikoni.com'
+        });
       } else {
         console.error('Email send failed:', emailResult.error);
-        toast.warning('Subscribed successfully, but welcome email could not be sent.');
+        toast.warning('Subscribed successfully, but welcome email could not be sent.', {
+          duration: 8000,
+          description: emailResult.error || 'Please check your email settings or contact support.'
+        });
       }
       
       setShowPopup(false);
