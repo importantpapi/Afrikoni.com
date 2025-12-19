@@ -117,12 +117,14 @@ const AddProductSimple = lazy(() => import('./pages/addproduct-simple'));
 const AddProductAlibaba = lazy(() => import('./pages/addproduct-alibaba'));
 const CreateRFQ = lazy(() => import('./pages/rfq/create'));
 const CreateRFQLegacy = lazy(() => import('./pages/createrfq'));
+const RFQMobileWizard = lazy(() => import('./pages/rfq-mobile-wizard'));
 const RFQStart = lazy(() => import('./pages/rfq-start'));
 const RFQSuccess = lazy(() => import('./pages/rfq-success'));
 const Categories = lazy(() => import('./pages/categories'));
 const Orders = lazy(() => import('./pages/orders'));
 const OrderDetail = lazy(() => import('./pages/orderdetails'));
 const MessagesPremium = lazy(() => import('./pages/messages-premium'));
+const InboxMobile = lazy(() => import('./pages/inbox-mobile'));
 const VerificationCenter = lazy(() => import('./pages/verification-center'));
 const Analytics = lazy(() => import('./pages/analytics'));
 const TradeFinancing = lazy(() => import('./pages/tradefinancing'));
@@ -220,6 +222,7 @@ function App() {
             <Route path="/products/add-old" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
             <Route path="/rfq/start" element={<RFQStart />} />
             <Route path="/rfq/create" element={<ProtectedRoute><CreateRFQ /></ProtectedRoute>} />
+            <Route path="/rfq/create-mobile" element={<ProtectedRoute><RFQMobileWizard /></ProtectedRoute>} />
             <Route path="/rfq/success" element={<ProtectedRoute><RFQSuccess /></ProtectedRoute>} />
             <Route path="/rfq" element={<RFQMarketplace />} />
             <Route path="/rfq/detail" element={<ProtectedRoute><RFQDetail /></ProtectedRoute>} />
@@ -238,6 +241,7 @@ function App() {
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
             <Route path="/order" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><MessagesPremium /></ProtectedRoute>} />
+            <Route path="/inbox-mobile" element={<ProtectedRoute><InboxMobile /></ProtectedRoute>} />
             {/* Unified Dashboard entry points guarded by role and URL-derived DashboardRoleContext */}
             <Route
               path="/dashboard"

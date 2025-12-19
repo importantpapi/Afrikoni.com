@@ -44,13 +44,13 @@ export default function MobileMainNav({ user }) {
     { 
       icon: FileText, 
       label: t('nav.rfq') || 'RFQ', 
-      path: '/rfq-start',
+      path: '/rfq/create-mobile',
       ariaLabel: 'Create RFQ'
     },
     { 
       icon: MessageSquare, 
       label: t('nav.messages') || 'Messages', 
-      path: user ? '/messages-premium' : '/login',
+      path: user ? '/inbox-mobile' : '/login',
       ariaLabel: 'View messages'
     },
     { 
