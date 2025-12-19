@@ -685,30 +685,40 @@ export default function ProductDetail() {
                     <div>
                       {/* Price Range Display - Use selected variant price if available */}
                       {(() => {
-                        // Get currency: product.currency > inferred from country > USD
+                        // Map country names to currency codes
+                        const countryCurrencyMap = {
+                          'Angola': 'AOA', 'Nigeria': 'NGN', 'Ghana': 'GHS', 'Kenya': 'KES',
+                          'South Africa': 'ZAR', 'Egypt': 'EGP', 'Morocco': 'MAD', 'Senegal': 'XOF',
+                          'Tanzania': 'TZS', 'Ethiopia': 'ETB', 'Cameroon': 'XAF', 'Côte d\'Ivoire': 'XOF',
+                          'Uganda': 'UGX', 'Algeria': 'DZD', 'Sudan': 'SDG', 'Mozambique': 'MZN',
+                          'Madagascar': 'MGA', 'Mali': 'XOF', 'Burkina Faso': 'XOF', 'Niger': 'XOF',
+                          'Rwanda': 'RWF', 'Benin': 'XOF', 'Guinea': 'GNF', 'Chad': 'XAF',
+                          'Zimbabwe': 'ZWL', 'Zambia': 'ZMW', 'Malawi': 'MWK', 'Gabon': 'XAF',
+                          'Botswana': 'BWP', 'Gambia': 'GMD', 'Guinea-Bissau': 'XOF', 'Liberia': 'LRD',
+                          'Sierra Leone': 'SLL', 'Togo': 'XOF', 'Mauritania': 'MRU', 'Namibia': 'NAD',
+                          'Lesotho': 'LSL', 'Eritrea': 'ERN', 'Djibouti': 'DJF', 'South Sudan': 'SSP',
+                          'Central African Republic': 'XAF', 'Republic of the Congo': 'XAF', 'DR Congo': 'CDF',
+                          'São Tomé and Príncipe': 'STN', 'Cape Verde': 'CVE', 'Comoros': 'KMF',
+                          'Mauritius': 'MUR', 'Somalia': 'SOS', 'Burundi': 'BIF', 'Equatorial Guinea': 'XAF',
+                          'Eswatini': 'SZL', 'Libya': 'LYD', 'Tunisia': 'TND'
+                        };
+                        
+                        // Get currency: country currency > product currency (if not USD) > USD
                         const getProductCurrency = () => {
-                          if (product.currency) return product.currency;
                           const originCountry = product.country_of_origin || supplier?.country;
-                          if (originCountry) {
-                            const countryCurrencyMap = {
-                              'Angola': 'AOA', 'Nigeria': 'NGN', 'Ghana': 'GHS', 'Kenya': 'KES',
-                              'South Africa': 'ZAR', 'Egypt': 'EGP', 'Morocco': 'MAD', 'Senegal': 'XOF',
-                              'Tanzania': 'TZS', 'Ethiopia': 'ETB', 'Cameroon': 'XAF', 'Côte d\'Ivoire': 'XOF',
-                              'Uganda': 'UGX', 'Algeria': 'DZD', 'Sudan': 'SDG', 'Mozambique': 'MZN',
-                              'Madagascar': 'MGA', 'Mali': 'XOF', 'Burkina Faso': 'XOF', 'Niger': 'XOF',
-                              'Rwanda': 'RWF', 'Benin': 'XOF', 'Guinea': 'GNF', 'Chad': 'XAF',
-                              'Zimbabwe': 'ZWL', 'Zambia': 'ZMW', 'Malawi': 'MWK', 'Gabon': 'XAF',
-                              'Botswana': 'BWP', 'Gambia': 'GMD', 'Guinea-Bissau': 'XOF', 'Liberia': 'LRD',
-                              'Sierra Leone': 'SLL', 'Togo': 'XOF', 'Mauritania': 'MRU', 'Namibia': 'NAD',
-                              'Lesotho': 'LSL', 'Eritrea': 'ERN', 'Djibouti': 'DJF', 'South Sudan': 'SSP',
-                              'Central African Republic': 'XAF', 'Republic of the Congo': 'XAF', 'DR Congo': 'CDF',
-                              'São Tomé and Príncipe': 'STN', 'Cape Verde': 'CVE', 'Comoros': 'KMF',
-                              'Mauritius': 'MUR', 'Somalia': 'SOS', 'Burundi': 'BIF', 'Equatorial Guinea': 'XAF',
-                              'Eswatini': 'SZL', 'Libya': 'LYD', 'Tunisia': 'TND'
-                            };
-                            return countryCurrencyMap[originCountry] || 'USD';
+                          
+                          // If we have a country, use its currency (override USD)
+                          if (originCountry && countryCurrencyMap[originCountry]) {
+                            return countryCurrencyMap[originCountry];
                           }
-                          return 'USD';
+                          
+                          // Otherwise, use product currency if set and not USD
+                          if (product.currency && product.currency !== 'USD') {
+                            return product.currency;
+                          }
+                          
+                          // Default fallback
+                          return product.currency || 'USD';
                         };
                         const productCurrency = getProductCurrency();
                         
@@ -839,73 +849,78 @@ export default function ProductDetail() {
                         <span className="text-afrikoni-deep">Currency:</span>
                         <span className="font-semibold text-afrikoni-chestnut">
                           {(() => {
-                            // Use product currency if set
-                            if (product.currency) return product.currency;
+                            // Map country names to currency codes
+                            const countryCurrencyMap = {
+                              'Angola': 'AOA',
+                              'Nigeria': 'NGN',
+                              'Ghana': 'GHS',
+                              'Kenya': 'KES',
+                              'South Africa': 'ZAR',
+                              'Egypt': 'EGP',
+                              'Morocco': 'MAD',
+                              'Senegal': 'XOF',
+                              'Tanzania': 'TZS',
+                              'Ethiopia': 'ETB',
+                              'Cameroon': 'XAF',
+                              'Côte d\'Ivoire': 'XOF',
+                              'Uganda': 'UGX',
+                              'Algeria': 'DZD',
+                              'Sudan': 'SDG',
+                              'Mozambique': 'MZN',
+                              'Madagascar': 'MGA',
+                              'Mali': 'XOF',
+                              'Burkina Faso': 'XOF',
+                              'Niger': 'XOF',
+                              'Rwanda': 'RWF',
+                              'Benin': 'XOF',
+                              'Guinea': 'GNF',
+                              'Chad': 'XAF',
+                              'Zimbabwe': 'ZWL',
+                              'Zambia': 'ZMW',
+                              'Malawi': 'MWK',
+                              'Gabon': 'XAF',
+                              'Botswana': 'BWP',
+                              'Gambia': 'GMD',
+                              'Guinea-Bissau': 'XOF',
+                              'Liberia': 'LRD',
+                              'Sierra Leone': 'SLL',
+                              'Togo': 'XOF',
+                              'Mauritania': 'MRU',
+                              'Namibia': 'NAD',
+                              'Lesotho': 'LSL',
+                              'Eritrea': 'ERN',
+                              'Djibouti': 'DJF',
+                              'South Sudan': 'SSP',
+                              'Central African Republic': 'XAF',
+                              'Republic of the Congo': 'XAF',
+                              'DR Congo': 'CDF',
+                              'São Tomé and Príncipe': 'STN',
+                              'Cape Verde': 'CVE',
+                              'Comoros': 'KMF',
+                              'Mauritius': 'MUR',
+                              'Somalia': 'SOS',
+                              'Burundi': 'BIF',
+                              'Equatorial Guinea': 'XAF',
+                              'Eswatini': 'SZL',
+                              'Libya': 'LYD',
+                              'Tunisia': 'TND'
+                            };
                             
-                            // Otherwise, infer from country of origin
+                            // Get country of origin
                             const originCountry = product.country_of_origin || supplier?.country;
-                            if (originCountry) {
-                              // Map country names to currency codes
-                              const countryCurrencyMap = {
-                                'Angola': 'AOA',
-                                'Nigeria': 'NGN',
-                                'Ghana': 'GHS',
-                                'Kenya': 'KES',
-                                'South Africa': 'ZAR',
-                                'Egypt': 'EGP',
-                                'Morocco': 'MAD',
-                                'Senegal': 'XOF',
-                                'Tanzania': 'TZS',
-                                'Ethiopia': 'ETB',
-                                'Cameroon': 'XAF',
-                                'Côte d\'Ivoire': 'XOF',
-                                'Uganda': 'UGX',
-                                'Algeria': 'DZD',
-                                'Sudan': 'SDG',
-                                'Mozambique': 'MZN',
-                                'Madagascar': 'MGA',
-                                'Mali': 'XOF',
-                                'Burkina Faso': 'XOF',
-                                'Niger': 'XOF',
-                                'Rwanda': 'RWF',
-                                'Benin': 'XOF',
-                                'Guinea': 'GNF',
-                                'Chad': 'XAF',
-                                'Zimbabwe': 'ZWL',
-                                'Zambia': 'ZMW',
-                                'Malawi': 'MWK',
-                                'Gabon': 'XAF',
-                                'Botswana': 'BWP',
-                                'Gambia': 'GMD',
-                                'Guinea-Bissau': 'XOF',
-                                'Liberia': 'LRD',
-                                'Sierra Leone': 'SLL',
-                                'Togo': 'XOF',
-                                'Mauritania': 'MRU',
-                                'Namibia': 'NAD',
-                                'Lesotho': 'LSL',
-                                'Eritrea': 'ERN',
-                                'Djibouti': 'DJF',
-                                'South Sudan': 'SSP',
-                                'Central African Republic': 'XAF',
-                                'Republic of the Congo': 'XAF',
-                                'DR Congo': 'CDF',
-                                'São Tomé and Príncipe': 'STN',
-                                'Cape Verde': 'CVE',
-                                'Comoros': 'KMF',
-                                'Mauritius': 'MUR',
-                                'Somalia': 'SOS',
-                                'Burundi': 'BIF',
-                                'Equatorial Guinea': 'XAF',
-                                'Eswatini': 'SZL',
-                                'Libya': 'LYD',
-                                'Tunisia': 'TND'
-                              };
-                              return countryCurrencyMap[originCountry] || 'USD';
+                            
+                            // If we have a country, use its currency (even if product.currency is USD)
+                            if (originCountry && countryCurrencyMap[originCountry]) {
+                              return countryCurrencyMap[originCountry];
+                            }
+                            
+                            // Otherwise, use product currency if set and not USD
+                            if (product.currency && product.currency !== 'USD') {
+                              return product.currency;
                             }
                             
                             // Default fallback
-                            return 'USD';
+                            return product.currency || 'USD';
                           })()}
                         </span>
                       </div>
