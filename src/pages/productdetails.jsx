@@ -37,6 +37,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb';
 import Price, { PriceRange } from '@/components/ui/Price';
 import { PaymentProtectionBanner } from '@/components/trust/PaymentProtectionBanner';
 import { VerificationBadgeTooltip } from '@/components/trust/VerificationBadgeTooltip';
+import MobileStickyCTA from '@/components/ui/MobileStickyCTA';
 
 /**
  * ⚠️ INSTITUTIONAL PRODUCT PAGE
@@ -376,7 +377,7 @@ export default function ProductDetail() {
         />
       )}
       <div className="min-h-screen bg-stone-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 pb-24 md:pb-8">
         {fromSellerCreate && supplier && user && user.company_id === supplier.id && (
           <div className="mb-4 rounded-lg border border-afrikoni-gold/30 bg-afrikoni-cream px-4 py-3 text-xs sm:text-sm text-afrikoni-deep flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <span className="font-semibold text-afrikoni-chestnut">
@@ -928,33 +929,43 @@ export default function ProductDetail() {
                   </div>
                 </div>
                 <div className="space-y-3 md:space-y-4">
-                  {/* PRIMARY CTA: Request Quote - Dominates the section */}
-                  <Button 
-                    onClick={handleCreateRFQ} 
-                    className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation min-h-[52px] text-base md:text-lg" 
-                    size="lg"
-                  >
-                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> 
-                    <span>{t('product.requestQuote') || 'Request Quote'}</span>
-                  </Button>
-                  
-                  <p className="text-xs text-afrikoni-deep/60 text-center -mt-2 mb-1">
-                    All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
-                  </p>
+                  {/* PRIMARY CTA: Request Quote - Hidden on mobile (shown in sticky CTA) */}
+                  <div className="hidden md:block space-y-3">
+                    <Button 
+                      onClick={handleCreateRFQ} 
+                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation min-h-[52px] text-base md:text-lg" 
+                      size="lg"
+                    >
+                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> 
+                      <span>{t('product.requestQuote') || 'Request Quote'}</span>
+                    </Button>
+                    
+                    <p className="text-xs text-afrikoni-deep/60 text-center -mt-2 mb-1">
+                      All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
+                    </p>
 
-                  {/* Payment Protection - Build Confidence */}
-                  <PaymentProtectionBanner variant="compact" className="mt-2 mb-3" />
+                    {/* Payment Protection - Build Confidence */}
+                    <PaymentProtectionBanner variant="compact" className="mt-2 mb-3" />
+                    
+                    {/* SECONDARY CTA: Contact Supplier - Less prominent */}
+                    <Button 
+                      onClick={handleContactSupplier} 
+                      variant="outline"
+                      className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation min-h-[44px] text-sm md:text-base" 
+                      size="lg"
+                    >
+                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> 
+                      <span>{t('product.contactSupplier') || 'Contact Supplier'}</span>
+                    </Button>
+                  </div>
                   
-                  {/* SECONDARY CTA: Contact Supplier - Less prominent */}
-                  <Button 
-                    onClick={handleContactSupplier} 
-                    variant="outline"
-                    className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation min-h-[44px] text-sm md:text-base" 
-                    size="lg"
-                  >
-                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> 
-                    <span>{t('product.contactSupplier') || 'Contact Supplier'}</span>
-                  </Button>
+                  {/* Mobile: Show compact info only */}
+                  <div className="md:hidden space-y-2">
+                    <PaymentProtectionBanner variant="compact" className="mt-2 mb-3" />
+                    <p className="text-xs text-afrikoni-deep/60 text-center">
+                      All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
+                    </p>
+                  </div>
                   
                   {/* TERTIARY CTA: AI RFQ - Subtle, optional */}
                   <div className="pt-1">
@@ -1163,6 +1174,18 @@ export default function ProductDetail() {
           relatedTo={product.id}
           relatedType="product"
           subject={`Inquiry about: ${product.title}`}
+        />
+      )}
+
+      {/* Mobile Sticky CTA - Always visible on mobile for key actions */}
+      {product && (
+        <MobileStickyCTA
+          label={t('product.requestQuote') || 'Request Quote'}
+          onClick={handleCreateRFQ}
+          icon={FileText}
+          variant="default"
+          secondaryAction={handleContactSupplier}
+          secondaryLabel={t('product.contactSupplier') || 'Contact'}
         />
       )}
     </div>

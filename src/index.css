@@ -68,6 +68,89 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Safe area support for notched devices (iOS) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Mobile-first typography - minimum 16px for readability */
+@media (max-width: 768px) {
+  html {
+    font-size: 16px; /* Prevents iOS zoom on input focus */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Ensure all text is readable - minimum 14px */
+  p, span, div, a, button, label {
+    font-size: clamp(14px, 4vw, 16px);
+  }
+  
+  /* Headings should be larger but readable */
+  h1 { font-size: clamp(24px, 6vw, 32px); }
+  h2 { font-size: clamp(20px, 5vw, 28px); }
+  h3 { font-size: clamp(18px, 4.5vw, 24px); }
+  h4 { font-size: clamp(16px, 4vw, 20px); }
+  
+  /* Larger tap targets for mobile - 44px minimum */
+  button, a, [role="button"], input[type="button"], input[type="submit"], 
+  .clickable, [onclick] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent horizontal scroll - critical */
+  * {
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+  
+  /* Force no horizontal overflow */
+  body, html {
+    overflow-x: hidden !important;
+    position: relative;
+  }
+  
+  /* Mobile-optimized spacing */
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Ensure containers don't overflow */
+  .container, .max-w-7xl, .max-w-6xl, .max-w-5xl, 
+  .max-w-4xl, .max-w-3xl, .max-w-2xl, .max-w-xl {
+    width: 100%;
+    max-width: 100vw;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Tables should scroll horizontally if needed, not break layout */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  
+  /* Cards should not overflow */
+  .card, [class*="Card"] {
+    max-width: 100%;
+    overflow: hidden;
+  }
+}
+
 /* Navbar horizontal scroll without visible scrollbar (if ever needed) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

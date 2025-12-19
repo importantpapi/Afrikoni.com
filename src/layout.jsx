@@ -12,6 +12,7 @@ import WhatsAppButton from './components/ui/WhatsAppButton';
 import CookieBanner from './components/ui/CookieBanner';
 import NewsletterPopup from './components/ui/NewsletterPopup';
 import MobileTrustBadge from './components/ui/MobileTrustBadge';
+import MobileMainNav from './components/layout/MobileMainNav';
 
 function Footer() {
   const [openSections, setOpenSections] = useState({
@@ -431,16 +432,22 @@ export default function Layout({ children }) {
     return <>{children}</>;
   }
 
+  // Check if we're on a product page (where sticky CTA will be shown)
+  const isProductPage = location.pathname.startsWith('/product');
+
   return (
     <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
       {/* Navbar */}
       <Navbar user={user} onLogout={handleLogout} />
 
-      {/* Main Content - Add padding-top to account for fixed navbar (80px) */}
-      <main className="bg-afrikoni-offwhite pt-20 relative overflow-visible">{children}</main>
+      {/* Main Content - Add padding-top for navbar, padding-bottom for mobile nav */}
+      <main className="bg-afrikoni-offwhite pt-20 pb-20 md:pb-0 relative overflow-visible">{children}</main>
 
       {/* Footer */}
       <Footer />
+
+      {/* Mobile Bottom Navigation (Main Site) - Hidden on product pages (sticky CTA shown instead) */}
+      {!isProductPage && <MobileMainNav user={user} />}
 
       {/* WhatsApp Sticky Button */}
       <WhatsAppButton />

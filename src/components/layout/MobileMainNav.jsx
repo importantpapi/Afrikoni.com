@@ -1,60 +1,88 @@
+/**
+ * Mobile Main Navigation (Bottom Nav)
+ * 
+ * Mobile-first bottom navigation for main site pages (non-dashboard)
+ * Designed for one-handed use with 44px+ tap targets
+ * 
+ * Features:
+ * - Thumb-friendly positioning
+ * - High contrast for sunlight readability
+ * - Clear labels (no icon-only)
+ * - Safe area support for notched devices
+ */
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  LayoutDashboard, Package, ShoppingCart, FileText, MessageSquare
+  Home,
+  ShoppingBag,
+  FileText,
+  MessageSquare,
+  User
 } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 
-export default function MobileBottomNav({ userRole = 'buyer' }) {
+export default function MobileMainNav({ user }) {
   const location = useLocation();
   const { t } = useLanguage();
 
-  // Simplified navigation items for mobile bottom nav
-  const getNavItems = () => {
-    if (userRole === 'seller' || userRole === 'hybrid') {
-      return [
-        { icon: LayoutDashboard, label: t('dashboard.title') || 'Dashboard', path: '/dashboard' },
-        { icon: Package, label: t('dashboard.products') || 'Products', path: '/dashboard/products' },
-        { icon: ShoppingCart, label: t('dashboard.orders') || 'Orders', path: '/dashboard/orders' },
-        { icon: FileText, label: t('dashboard.rfqs') || 'RFQs', path: '/dashboard/rfqs' },
-        { icon: MessageSquare, label: t('dashboard.messages') || 'Messages', path: '/messages' }
-      ];
-    } else {
-      return [
-        { icon: LayoutDashboard, label: t('dashboard.title') || 'Dashboard', path: '/dashboard' },
-        { icon: ShoppingCart, label: t('dashboard.orders') || 'Orders', path: '/dashboard/orders' },
-        { icon: FileText, label: t('dashboard.rfqs') || 'RFQs', path: '/dashboard/rfqs' },
-        { icon: MessageSquare, label: t('dashboard.messages') || 'Messages', path: '/messages' },
-        { icon: Package, label: t('marketplace.browseProducts') || 'Browse', path: '/marketplace' }
-      ];
+  // Core navigation items for main site
+  const navItems = [
+    { 
+      icon: Home, 
+      label: t('nav.home') || 'Home', 
+      path: '/',
+      ariaLabel: 'Go to homepage'
+    },
+    { 
+      icon: ShoppingBag, 
+      label: t('nav.marketplace') || 'Marketplace', 
+      path: '/marketplace',
+      ariaLabel: 'Browse marketplace'
+    },
+    { 
+      icon: FileText, 
+      label: t('nav.rfq') || 'RFQ', 
+      path: '/rfq-start',
+      ariaLabel: 'Create RFQ'
+    },
+    { 
+      icon: MessageSquare, 
+      label: t('nav.messages') || 'Messages', 
+      path: user ? '/messages-premium' : '/login',
+      ariaLabel: 'View messages'
+    },
+    { 
+      icon: User, 
+      label: user ? (t('nav.profile') || 'Profile') : (t('nav.login') || 'Login'), 
+      path: user ? '/dashboard' : '/login',
+      ariaLabel: user ? 'Go to dashboard' : 'Login or signup'
     }
-  };
-
-  const navItems = getNavItems();
+  ];
 
   return (
     <nav 
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-afrikoni-gold/30 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
       role="navigation"
-      aria-label="Dashboard navigation"
+      aria-label="Main navigation"
     >
-      {/* Safe area padding for notched devices - 44px minimum tap targets */}
+      {/* Safe area padding for notched devices */}
       <div className="flex items-center justify-around px-1 py-2 pb-safe">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || 
-            (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && 
-             !location.pathname.includes('/orders') && 
-             !location.pathname.includes('/rfqs') && 
-             !location.pathname.includes('/products') &&
-             !location.pathname.includes('/messages'));
+            (item.path === '/' && location.pathname === '/') ||
+            (item.path === '/marketplace' && location.pathname.startsWith('/marketplace')) ||
+            (item.path === '/rfq-start' && location.pathname.startsWith('/rfq')) ||
+            (item.path === '/messages-premium' && location.pathname.startsWith('/messages')) ||
+            (item.path === '/dashboard' && location.pathname.startsWith('/dashboard'));
           
           return (
             <Link
               key={item.path}
               to={item.path}
-              aria-label={item.label}
+              aria-label={item.ariaLabel}
               className={`
                 flex flex-col items-center justify-center gap-1 
                 min-w-[44px] min-h-[44px] px-2 py-2
@@ -82,7 +110,7 @@ export default function MobileBottomNav({ userRole = 'buyer' }) {
               </span>
               {isActive && (
                 <motion.div
-                  layoutId="activeBottomNav"
+                  layoutId="activeMainNav"
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-afrikoni-gold rounded-b-full"
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   aria-hidden="true"
