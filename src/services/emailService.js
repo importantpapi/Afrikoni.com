@@ -57,8 +57,13 @@ export async function sendEmail({
         throw new Error(`Unknown email provider: ${EMAIL_PROVIDER}`);
     }
   } catch (error) {
-    console.error('Email send error:', error);
-    return { success: false, error: error.message };
+    console.error('📧 Email send error:', error);
+    console.error('Email config:', {
+      provider: EMAIL_PROVIDER,
+      hasKey: !!EMAIL_API_KEY,
+      keyLength: EMAIL_API_KEY?.length || 0
+    });
+    return { success: false, error: error.message || 'Unknown error' };
   }
 }
 

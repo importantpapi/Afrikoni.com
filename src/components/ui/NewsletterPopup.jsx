@@ -98,21 +98,22 @@ export default function NewsletterPopup() {
       }
       
       // Send welcome email
-      try {
-        await sendEmail({
-          to: email,
-          subject: 'Welcome to Afrikoni - Africa\'s B2B Trade Engine',
-          template: 'newsletterWelcome',
-          data: { email }
-        });
-      } catch (emailError) {
-        // Email sending is non-critical, log but don't fail
-        console.log('Welcome email not sent (email service may not be configured):', emailError);
+      const emailResult = await sendEmail({
+        to: email,
+        subject: 'Welcome to Afrikoni - Africa\'s B2B Trade Engine',
+        template: 'newsletterWelcome',
+        data: { email }
+      });
+      
+      if (emailResult.success) {
+        toast.success('Thank you for subscribing! Welcome email sent to your inbox.');
+      } else {
+        console.error('Email send failed:', emailResult.error);
+        toast.warning('Subscribed successfully, but welcome email could not be sent. Please check your email settings.');
       }
       
       localStorage.setItem('newsletterSubscribed', 'true');
       localStorage.setItem('newsletterEmail', email);
-      toast.success('Thank you for subscribing! Check your inbox for a welcome email.');
       setShowPopup(false);
     } catch (error) {
       // Fallback: store in localStorage if Supabase fails
@@ -120,18 +121,20 @@ export default function NewsletterPopup() {
       localStorage.setItem('newsletterEmail', email);
       
       // Still try to send welcome email
-      try {
-        await sendEmail({
-          to: email,
-          subject: 'Welcome to Afrikoni - Africa\'s B2B Trade Engine',
-          template: 'newsletterWelcome',
-          data: { email }
-        });
-      } catch (emailError) {
-        console.log('Welcome email not sent:', emailError);
+      const emailResult = await sendEmail({
+        to: email,
+        subject: 'Welcome to Afrikoni - Africa\'s B2B Trade Engine',
+        template: 'newsletterWelcome',
+        data: { email }
+      });
+      
+      if (emailResult.success) {
+        toast.success('Thank you for subscribing! Welcome email sent to your inbox.');
+      } else {
+        console.error('Email send failed:', emailResult.error);
+        toast.warning('Subscribed successfully, but welcome email could not be sent.');
       }
       
-      toast.success('Thank you for subscribing! Check your inbox for a welcome email.');
       setShowPopup(false);
     } finally {
       setIsSubmitting(false);

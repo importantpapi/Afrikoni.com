@@ -33,41 +33,67 @@ function DashboardSavedInner() {
         return;
       }
 
-      // Load saved products
-      const { data: savedProductsData } = await supabase
+      // Load saved products - Manual join (more reliable)
+      const { data: savedItems, error: savedItemsError } = await supabase
         .from('saved_items')
-        .select(`
-          *,
-          products:item_id(*, product_images(*))
-        `)
+        .select('*')
         .eq('user_id', userData.id)
         .eq('item_type', 'product');
 
-      const products = (savedProductsData || [])
-        .filter(item => item.products)
-        .map(item => ({
-          ...item.products,
-          saved_item_id: item.id
-        }));
-      setSavedProducts(products);
+      if (savedItemsError) {
+        console.error('Error loading saved items:', savedItemsError);
+        setSavedProducts([]);
+      } else if (savedItems && savedItems.length > 0) {
+        const productIds = savedItems.map(item => item.item_id);
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('*, product_images(*)')
+          .in('id', productIds);
+        
+        if (productsError) {
+          console.error('Error loading products:', productsError);
+          setSavedProducts([]);
+        } else {
+          const products = (productsData || []).map(product => ({
+            ...product,
+            saved_item_id: savedItems.find(item => item.item_id === product.id)?.id
+          }));
+          setSavedProducts(products);
+        }
+      } else {
+        setSavedProducts([]);
+      }
 
-      // Load saved suppliers (companies)
-      const { data: savedSuppliersData } = await supabase
+      // Load saved suppliers (companies) - Manual join (more reliable)
+      const { data: savedSupplierItems, error: savedSupplierItemsError } = await supabase
         .from('saved_items')
-        .select(`
-          *,
-          companies:item_id(*)
-        `)
+        .select('*')
         .eq('user_id', userData.id)
         .eq('item_type', 'supplier');
 
-      const suppliers = (savedSuppliersData || [])
-        .filter(item => item.companies)
-        .map(item => ({
-          ...item.companies,
-          saved_item_id: item.id
-        }));
-      setSavedSuppliers(suppliers);
+      if (savedSupplierItemsError) {
+        console.error('Error loading saved supplier items:', savedSupplierItemsError);
+        setSavedSuppliers([]);
+      } else if (savedSupplierItems && savedSupplierItems.length > 0) {
+        const companyIds = savedSupplierItems.map(item => item.item_id);
+        const { data: companiesData, error: companiesError } = await supabase
+          .from('companies')
+          .select('*')
+          .in('id', companyIds);
+        
+        if (companiesError) {
+          console.error('Error loading companies:', companiesError);
+          setSavedSuppliers([]);
+        } else {
+          const suppliers = (companiesData || []).map(company => ({
+            ...company,
+            saved_item_id: savedSupplierItems.find(item => item.item_id === company.id)?.id
+          }));
+          setSavedSuppliers(suppliers);
+        }
+      } else {
+        setSavedSuppliers([]);
+      }
     } catch (error) {
       toast.error('Failed to load saved items');
     } finally {
