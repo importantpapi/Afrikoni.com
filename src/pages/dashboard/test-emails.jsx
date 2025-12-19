@@ -329,6 +329,12 @@ export default function TestEmails() {
                     </span>
                   </div>
                 )}
+                <div className="flex items-center justify-between">
+                  <span className="text-afrikoni-deep">Environment:</span>
+                  <span className="font-semibold text-afrikoni-deep">
+                    {import.meta.env.MODE === 'production' ? 'Production' : import.meta.env.MODE === 'development' ? 'Development' : 'Unknown'}
+                  </span>
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -348,14 +354,32 @@ export default function TestEmails() {
               </div>
             </div>
             {(!emailConfig.hasApiKey || emailConfig.provider === 'none') && (
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-yellow-800">Configuration Required</p>
-                    <p className="text-xs text-yellow-700 mt-1">
-                      Set VITE_EMAIL_PROVIDER and VITE_EMAIL_API_KEY in your environment variables.
-                    </p>
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-red-800 mb-2">⚠️ Configuration Missing or Not Deployed</p>
+                    <div className="text-xs text-red-700 space-y-2">
+                      <p><strong>If you just updated Vercel environment variables:</strong></p>
+                      <ol className="list-decimal list-inside ml-2 space-y-1">
+                        <li>Environment variables are only available after redeployment</li>
+                        <li>Go to Vercel Dashboard → Deployments → Click "Redeploy" on latest deployment</li>
+                        <li>Or trigger a new deployment by pushing to GitHub</li>
+                        <li>Wait for deployment to complete, then refresh this page</li>
+                      </ol>
+                      <p className="mt-2"><strong>Verify in Vercel:</strong></p>
+                      <ul className="list-disc list-inside ml-2 space-y-1">
+                        <li>Settings → Environment Variables</li>
+                        <li><code>VITE_EMAIL_PROVIDER</code> = <code>resend</code></li>
+                        <li><code>VITE_EMAIL_API_KEY</code> = <code>re_QzfeoKRt_2MpMRAe7f66oHfYmjCda3y5w</code> (complete key)</li>
+                        <li>Environment scope: "All Environments" or at least "Production"</li>
+                      </ul>
+                      <p className="mt-2"><strong>Current values detected:</strong></p>
+                      <ul className="list-disc list-inside ml-2">
+                        <li>Provider: <code>{emailConfig.provider}</code></li>
+                        <li>API Key: <code>{emailConfig.hasApiKey ? `Present (${emailConfig.apiKeyLength} chars)` : 'Missing'}</code></li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
