@@ -610,21 +610,34 @@ export default function ProductDetail() {
                         {product.title}
                       </h1>
                       <div className="flex flex-wrap gap-2 items-center text-xs sm:text-sm">
-                        {supplier && (
+                        {(product.country_of_origin || supplier) && (
                           <div className="flex items-center gap-1 text-afrikoni-deep/80">
                             <MapPin className="w-3 h-3" />
                             <span>
-                              {supplier.city && supplier.country
-                                ? `${supplier.city}, ${supplier.country}`
-                                : supplier.country || 'Origin not specified'}
+                              {(() => {
+                                // Priority: product.country_of_origin > supplier.country
+                                const originCountry = product.country_of_origin || supplier?.country;
+                                const originCity = supplier?.city;
+                                
+                                if (originCity && originCountry) {
+                                  return `${originCity}, ${originCountry}`;
+                                } else if (originCountry) {
+                                  return originCountry;
+                                }
+                                return 'Origin not specified';
+                              })()}
                             </span>
                             <span>
                               {/* Basic flag support for key markets */}
-                              {supplier.country === 'Angola' && '🇦🇴'}
-                              {supplier.country === 'Nigeria' && '🇳🇬'}
-                              {supplier.country === 'Ghana' && '🇬🇭'}
-                              {supplier.country === 'Kenya' && '🇰🇪'}
-                              {supplier.country === 'South Africa' && '🇿🇦'}
+                              {(() => {
+                                const originCountry = product.country_of_origin || supplier?.country;
+                                if (originCountry === 'Angola') return '🇦🇴';
+                                if (originCountry === 'Nigeria') return '🇳🇬';
+                                if (originCountry === 'Ghana') return '🇬🇭';
+                                if (originCountry === 'Kenya') return '🇰🇪';
+                                if (originCountry === 'South Africa') return '🇿🇦';
+                                return '';
+                              })()}
                             </span>
                           </div>
                         )}
@@ -671,52 +684,85 @@ export default function ProductDetail() {
                   <div className="space-y-4">
                     <div>
                       {/* Price Range Display - Use selected variant price if available */}
-                      {selectedVariant?.price ? (
-                        <>
-                          <Price
-                            amount={selectedVariant.price}
-                            fromCurrency={product.currency || 'USD'}
-                            unit={product.unit || 'unit'}
-                            className="text-3xl font-bold text-afrikoni-gold mb-1"
-                            showUnit={true}
-                          />
-                        </>
-                      ) : product.price_min && product.price_max ? (
-                        <>
-                          <PriceRange
-                            min={product.price_min}
-                            max={product.price_max}
-                            fromCurrency={product.currency || 'USD'}
-                            unit={product.moq_unit || product.unit || 'unit'}
-                            className="text-3xl font-bold text-afrikoni-gold mb-1"
-                          />
-                          <div className="text-sm text-afrikoni-deep">Price range per {product.moq_unit || product.unit || 'unit'}</div>
-                        </>
-                      ) : product.price_min ? (
-                        <>
-                          <Price
-                            amount={product.price_min}
-                            fromCurrency={product.currency || 'USD'}
-                            unit={product.unit || 'unit'}
-                            className="text-3xl font-bold text-afrikoni-gold mb-1"
-                            suffix="+"
-                            showUnit={true}
-                          />
-                          <div className="text-sm text-afrikoni-deep">Starting from</div>
-                        </>
-                      ) : product.price ? (
-                        <>
-                          <Price
-                            amount={product.price}
-                            fromCurrency={product.currency || 'USD'}
-                            unit={product.unit || 'unit'}
-                            className="text-3xl font-bold text-afrikoni-gold mb-1"
-                            showUnit={true}
-                          />
-                        </>
-                      ) : (
-                        <div className="text-lg font-semibold text-afrikoni-deep">Price on request</div>
-                      )}
+                      {(() => {
+                        // Get currency: product.currency > inferred from country > USD
+                        const getProductCurrency = () => {
+                          if (product.currency) return product.currency;
+                          const originCountry = product.country_of_origin || supplier?.country;
+                          if (originCountry) {
+                            const countryCurrencyMap = {
+                              'Angola': 'AOA', 'Nigeria': 'NGN', 'Ghana': 'GHS', 'Kenya': 'KES',
+                              'South Africa': 'ZAR', 'Egypt': 'EGP', 'Morocco': 'MAD', 'Senegal': 'XOF',
+                              'Tanzania': 'TZS', 'Ethiopia': 'ETB', 'Cameroon': 'XAF', 'Côte d\'Ivoire': 'XOF',
+                              'Uganda': 'UGX', 'Algeria': 'DZD', 'Sudan': 'SDG', 'Mozambique': 'MZN',
+                              'Madagascar': 'MGA', 'Mali': 'XOF', 'Burkina Faso': 'XOF', 'Niger': 'XOF',
+                              'Rwanda': 'RWF', 'Benin': 'XOF', 'Guinea': 'GNF', 'Chad': 'XAF',
+                              'Zimbabwe': 'ZWL', 'Zambia': 'ZMW', 'Malawi': 'MWK', 'Gabon': 'XAF',
+                              'Botswana': 'BWP', 'Gambia': 'GMD', 'Guinea-Bissau': 'XOF', 'Liberia': 'LRD',
+                              'Sierra Leone': 'SLL', 'Togo': 'XOF', 'Mauritania': 'MRU', 'Namibia': 'NAD',
+                              'Lesotho': 'LSL', 'Eritrea': 'ERN', 'Djibouti': 'DJF', 'South Sudan': 'SSP',
+                              'Central African Republic': 'XAF', 'Republic of the Congo': 'XAF', 'DR Congo': 'CDF',
+                              'São Tomé and Príncipe': 'STN', 'Cape Verde': 'CVE', 'Comoros': 'KMF',
+                              'Mauritius': 'MUR', 'Somalia': 'SOS', 'Burundi': 'BIF', 'Equatorial Guinea': 'XAF',
+                              'Eswatini': 'SZL', 'Libya': 'LYD', 'Tunisia': 'TND'
+                            };
+                            return countryCurrencyMap[originCountry] || 'USD';
+                          }
+                          return 'USD';
+                        };
+                        const productCurrency = getProductCurrency();
+                        
+                        if (selectedVariant?.price) {
+                          return (
+                            <Price
+                              amount={selectedVariant.price}
+                              fromCurrency={productCurrency}
+                              unit={product.unit || 'unit'}
+                              className="text-3xl font-bold text-afrikoni-gold mb-1"
+                              showUnit={true}
+                            />
+                          );
+                        } else if (product.price_min && product.price_max) {
+                          return (
+                            <>
+                              <PriceRange
+                                min={product.price_min}
+                                max={product.price_max}
+                                fromCurrency={productCurrency}
+                                unit={product.moq_unit || product.unit || 'unit'}
+                                className="text-3xl font-bold text-afrikoni-gold mb-1"
+                              />
+                              <div className="text-sm text-afrikoni-deep">Price range per {product.moq_unit || product.unit || 'unit'}</div>
+                            </>
+                          );
+                        } else if (product.price_min) {
+                          return (
+                            <>
+                              <Price
+                                amount={product.price_min}
+                                fromCurrency={productCurrency}
+                                unit={product.unit || 'unit'}
+                                className="text-3xl font-bold text-afrikoni-gold mb-1"
+                                suffix="+"
+                                showUnit={true}
+                              />
+                              <div className="text-sm text-afrikoni-deep">Starting from</div>
+                            </>
+                          );
+                        } else if (product.price) {
+                          return (
+                            <Price
+                              amount={product.price}
+                              fromCurrency={productCurrency}
+                              unit={product.unit || 'unit'}
+                              className="text-3xl font-bold text-afrikoni-gold mb-1"
+                              showUnit={true}
+                            />
+                          );
+                        } else {
+                          return <div className="text-lg font-semibold text-afrikoni-deep">Price on request</div>;
+                        }
+                      })()}
                       
                       {Array.isArray(reviews) && reviews.length > 0 && (
                         <div className="flex items-center gap-2 mt-2">
@@ -791,7 +837,77 @@ export default function ProductDetail() {
                       {/* Currency */}
                       <div className="flex justify-between">
                         <span className="text-afrikoni-deep">Currency:</span>
-                        <span className="font-semibold text-afrikoni-chestnut">{product.currency || 'USD'}</span>
+                        <span className="font-semibold text-afrikoni-chestnut">
+                          {(() => {
+                            // Use product currency if set
+                            if (product.currency) return product.currency;
+                            
+                            // Otherwise, infer from country of origin
+                            const originCountry = product.country_of_origin || supplier?.country;
+                            if (originCountry) {
+                              // Map country names to currency codes
+                              const countryCurrencyMap = {
+                                'Angola': 'AOA',
+                                'Nigeria': 'NGN',
+                                'Ghana': 'GHS',
+                                'Kenya': 'KES',
+                                'South Africa': 'ZAR',
+                                'Egypt': 'EGP',
+                                'Morocco': 'MAD',
+                                'Senegal': 'XOF',
+                                'Tanzania': 'TZS',
+                                'Ethiopia': 'ETB',
+                                'Cameroon': 'XAF',
+                                'Côte d\'Ivoire': 'XOF',
+                                'Uganda': 'UGX',
+                                'Algeria': 'DZD',
+                                'Sudan': 'SDG',
+                                'Mozambique': 'MZN',
+                                'Madagascar': 'MGA',
+                                'Mali': 'XOF',
+                                'Burkina Faso': 'XOF',
+                                'Niger': 'XOF',
+                                'Rwanda': 'RWF',
+                                'Benin': 'XOF',
+                                'Guinea': 'GNF',
+                                'Chad': 'XAF',
+                                'Zimbabwe': 'ZWL',
+                                'Zambia': 'ZMW',
+                                'Malawi': 'MWK',
+                                'Gabon': 'XAF',
+                                'Botswana': 'BWP',
+                                'Gambia': 'GMD',
+                                'Guinea-Bissau': 'XOF',
+                                'Liberia': 'LRD',
+                                'Sierra Leone': 'SLL',
+                                'Togo': 'XOF',
+                                'Mauritania': 'MRU',
+                                'Namibia': 'NAD',
+                                'Lesotho': 'LSL',
+                                'Eritrea': 'ERN',
+                                'Djibouti': 'DJF',
+                                'South Sudan': 'SSP',
+                                'Central African Republic': 'XAF',
+                                'Republic of the Congo': 'XAF',
+                                'DR Congo': 'CDF',
+                                'São Tomé and Príncipe': 'STN',
+                                'Cape Verde': 'CVE',
+                                'Comoros': 'KMF',
+                                'Mauritius': 'MUR',
+                                'Somalia': 'SOS',
+                                'Burundi': 'BIF',
+                                'Equatorial Guinea': 'XAF',
+                                'Eswatini': 'SZL',
+                                'Libya': 'LYD',
+                                'Tunisia': 'TND'
+                              };
+                              return countryCurrencyMap[originCountry] || 'USD';
+                            }
+                            
+                            // Default fallback
+                            return 'USD';
+                          })()}
+                        </span>
                       </div>
                     </div>
                   </div>
