@@ -359,7 +359,7 @@ export default function Products() {
                               <TrendingUp className="w-3 h-3 mr-1" /> Trending
                             </Badge>
                           )}
-                          <div className="absolute top-3 right-3 z-10" onClick={(e) => e.preventDefault()}>
+                          <div className="absolute top-3 right-3 z-10">
                             <SaveButton itemId={product.id} itemType="product" />
                           </div>
                         </div>

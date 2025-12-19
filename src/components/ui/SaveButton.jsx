@@ -38,7 +38,11 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
     }
   };
 
-  const handleToggle = async () => {
+  const handleToggle = async (e) => {
+    // Prevent event from bubbling up to parent (e.g., Link or Card onClick)
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!userId) {
       toast.error('Please log in to save items');
       return;

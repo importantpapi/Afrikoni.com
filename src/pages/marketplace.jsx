@@ -661,7 +661,7 @@ export default function Marketplace() {
                 </div>
               )}
               {/* Save Button - Top Right */}
-              <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
+              <div className="absolute top-2 right-2 z-20">
                 <SaveButton itemId={product.id} itemType="product" />
               </div>
               {/* Supplier verification / trust badge */}
