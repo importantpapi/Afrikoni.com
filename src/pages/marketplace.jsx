@@ -1687,16 +1687,16 @@ export default function Marketplace() {
                 />
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-40 md:w-52 h-10 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 rounded-xl shadow-sm font-medium bg-white">
-                    <SelectValue placeholder={t('marketplace.sortBy') || 'Sort by...'} />
+                    <SelectValue placeholder={t('marketplace.sortBy') || 'Sort by: Newest First'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="-created_at">🆕 {t('marketplace.newestListings')}</SelectItem>
-                    <SelectItem value="price_min">💰 {t('marketplace.lowestPrice')}</SelectItem>
-                    <SelectItem value="-price_min">💎 {t('marketplace.highestPrice')}</SelectItem>
-                    <SelectItem value="min_order_quantity">📦 {t('marketplace.lowestMOQ')}</SelectItem>
-                    <SelectItem value="-min_order_quantity">📦 {t('marketplace.highestMOQ')}</SelectItem>
-                    <SelectItem value="relevance">⭐ {t('marketplace.bestMatch')}</SelectItem>
-                    <SelectItem value="-views">👁️ {t('marketplace.mostViewed')}</SelectItem>
+                    <SelectItem value="-created_at">🆕 {t('marketplace.newestListings') || 'Newest First'}</SelectItem>
+                    <SelectItem value="price_min">💰 {t('marketplace.lowestPrice') || 'Price: Low to High'}</SelectItem>
+                    <SelectItem value="-price_min">💎 {t('marketplace.highestPrice') || 'Price: High to Low'}</SelectItem>
+                    <SelectItem value="min_order_quantity">📦 {t('marketplace.lowestMOQ') || 'MOQ: Low to High'}</SelectItem>
+                    <SelectItem value="-min_order_quantity">📦 {t('marketplace.highestMOQ') || 'MOQ: High to Low'}</SelectItem>
+                    <SelectItem value="relevance">⭐ {t('marketplace.bestMatch') || 'Best Match'}</SelectItem>
+                    <SelectItem value="-views">👁️ {t('marketplace.mostViewed') || 'Most Viewed'}</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="hidden md:flex items-center gap-2">
