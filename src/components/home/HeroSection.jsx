@@ -377,7 +377,7 @@ export default function HeroSection({ categories = [] }) {
                 </SelectContent>
               </Select>
 
-                  {/* Main Search Input - Dominant */}
+                  {/* Main Search Input - Dominant - Enhanced Visibility */}
                   <input
                 id="hero-search-input"
                     type="text"
@@ -401,7 +401,7 @@ export default function HeroSection({ categories = [] }) {
                         setSearchFocused(false);
                       }, 200);
                     }}
-                    className="flex-1 text-sm md:text-base px-2 md:px-2 focus:outline-none placeholder:text-afrikoni-deep/50 bg-transparent text-afrikoni-chestnut min-h-[44px] md:min-h-[44px]"
+                    className="flex-1 text-sm md:text-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-afrikoni-gold/50 md:focus:border-afrikoni-gold/40 transition-all duration-200"
                   />
 
                   {/* Clear button */}
