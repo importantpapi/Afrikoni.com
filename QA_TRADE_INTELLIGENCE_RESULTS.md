@@ -9,10 +9,12 @@
 
 ### Funnel Sanity Check
 - ✅ **RFQs count**: Verified via SQL - counts match actual RFQs table
-- ✅ **Conversations ≤ RFQs**: Logic verified - conversations are linked to RFQs
+- ⚠️ **Conversations can exceed RFQs**: This is EXPECTED - conversations can be created independently (product inquiries, direct contact). View logic updated to handle this correctly.
 - ✅ **Deals ≤ Conversations**: Logic verified - orders come from conversations
 - ✅ **No negative numbers**: All counts are non-negative
 - ✅ **No NaN/Infinity**: All percentage calculations use proper null handling
+
+**Note:** Fixed `trade_performance` view to correctly calculate RFQ-to-conversation rate by only counting RFQ-linked conversations.
 
 ### Manual Verification
 - ✅ RFQ appears in count when exists
