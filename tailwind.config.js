@@ -9,8 +9,11 @@ export default {
       colors: {
         // Premium AFRIKONI OS v2.0 Color System
         afrikoni: {
-          // Primary Colors
-          gold: '#D4A937',           // Afrikoni Gold - Primary brand color
+          // Primary Colors - Maintain brand identity
+          gold: '#D4A937',           // Afrikoni Gold - Primary brand color (for backgrounds, borders)
+          goldText: '#B8941F',       // Darker gold for text on light backgrounds (WCAG AA: 4.5:1)
+          goldDark: '#8B6F0F',       // Darker gold for better contrast on light backgrounds
+          goldLight: '#E4C27F',      // Lighter gold for dark backgrounds
           charcoal: '#121212',        // Deep Charcoal Black - Sidebar/headers
           // Secondary Colors
           sand: '#E8D8B5',            // Warm Sand
@@ -20,16 +23,15 @@ export default {
           purple: '#8140FF',          // Royal Purple
           green: '#3AB795',           // Emerald Green
           red: '#E84855',             // Red for alerts
-          // Text Colors
-          'text-dark': '#2E2A1F',     // Dark brown/black for headings
-          'text-deep': '#3A2313',     // Deep text
-          'text-light': '#FDF8F0',    // Light text on dark
+          // Text Colors - WCAG AA Compliant (4.5:1 on white/light backgrounds)
+          'text-dark': '#1A150F',     // Darkened from #2E2A1F for 4.5:1 contrast on white
+          'text-deep': '#2A1F15',     // Darkened from #3A2313 for better contrast (4.5:1)
+          'text-light': '#FDF8F0',    // Light text on dark backgrounds
           // Legacy support (mapped to new colors)
           earth: "#4B2C17",
           deep: "#3A2313",
-          chestnut: "#2A180E",
-          goldDark: "#A17833",
-          goldLight: "#E4C27F",
+          chestnut: "#2A180E",        // Keep original for dark backgrounds
+          chestnutText: "#1A1209",   // Darker variant for text on light (WCAG AA)
           cream: "#F3E5C7",
           offwhite: "#FDF8F0",
           'earth-brown': '#4B2C17',

@@ -11,6 +11,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import Price from '@/components/ui/Price';
 import { matchProductToPopularCategory } from '@/utils/productCategoryIntelligence';
 import SaveButton from '@/components/ui/SaveButton';
+import OptimizedImage from '@/components/OptimizedImage';
 
 // All 54 African countries with flags
 const ALL_AFRICAN_COUNTRIES = [
@@ -370,15 +371,15 @@ export default function ExploreAfricanSupply() {
                                 <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-2 md:border border-afrikoni-gold/30 hover:border-afrikoni-gold/60 bg-[#FFF6E1] overflow-hidden rounded-xl shadow-md md:shadow-none">
                                   <div className="h-36 md:h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
                                     {primaryImage?.url ? (
-                                      <img
+                                      <OptimizedImage
                                         src={primaryImage.url}
                                         alt={product.title || 'Product'}
                                         className="w-full h-full object-cover"
-                                        loading="lazy"
-                                        onError={(e) => {
-                                          e.target.style.display = 'none';
-                                          e.target.nextElementSibling?.classList.remove('hidden');
-                                        }}
+                                        width={400}
+                                        height={300}
+                                        quality={85}
+                                        placeholder="/product-placeholder.svg"
+                                        priority={productIdx < 4} // Load first 4 images immediately
                                       />
                                     ) : null}
                                     <div className={`w-full h-full bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10 flex items-center justify-center ${primaryImage?.url ? 'hidden' : ''}`}>
