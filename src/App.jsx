@@ -85,6 +85,7 @@ const AdminReviews = lazy(() => import('./pages/dashboard/admin/reviews'));
 const AdminReviewsModeration = lazy(() => import('./pages/dashboard/admin/reviews-moderation'));
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
 const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-tickets'));
+const TradeIntelligence = lazy(() => import('./pages/dashboard/admin/trade-intelligence'));
 const AdminTrustEngine = lazy(() => import('./pages/dashboard/admin/trust-engine'));
 const AdminGrowthMetrics = lazy(() => import('./pages/dashboard/admin/growth-metrics'));
 const AdminOnboardingTracker = lazy(() => import('./pages/dashboard/admin/onboarding-tracker'));
@@ -318,6 +319,7 @@ function App() {
             <Route path="/dashboard/admin/disputes" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminDisputes /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/support-tickets" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminSupportTickets /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminOnboardingTracker /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/trade-intelligence" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><TradeIntelligence /></DashboardRoleProvider></ProtectedRoute>} />
             {/* Dashboard sub-pages (wrapped in DashboardRoleProvider so RequireDashboardRole can use the context) */}
             <Route
               path="/dashboard/orders"
