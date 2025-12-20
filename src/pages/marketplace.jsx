@@ -1827,7 +1827,7 @@ export default function Marketplace() {
                   <ProductCard 
                     key={product.id} 
                     product={product}
-                    priority={idx < 4} // Load first 4 product images immediately for better LCP
+                    priority={idx < 2} // Load first 2 images immediately on mobile, more on desktop (handled by OptimizedImage)
                   />
                 ))}
                 {/* Fill empty space when there are few products */}

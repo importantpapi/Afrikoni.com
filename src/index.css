@@ -68,13 +68,23 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Safe area support for notched devices (iOS) */
+/* Safe area support for notched devices (iOS) - Mobile only */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0.5rem);
 }
 
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+@media (min-width: 768px) {
+  .safe-area-top {
+    padding-top: 0; /* Remove safe area on desktop */
+  }
 }
 
 /* Mobile Layout System - Z-Index Hierarchy */
