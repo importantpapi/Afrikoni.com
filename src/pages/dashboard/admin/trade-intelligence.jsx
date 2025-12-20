@@ -42,6 +42,22 @@ export default function TradeIntelligenceDashboard() {
   const [timeRange, setTimeRange] = useState('30d');
   const [activeTab, setActiveTab] = useState('overview');
 
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        const admin = isAdmin(user);
+        setHasAccess(admin);
+      } catch (error) {
+        setHasAccess(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAccess();
+  }, []);
+
   // Calculate date range
   const getDateRange = () => {
     const now = new Date();
