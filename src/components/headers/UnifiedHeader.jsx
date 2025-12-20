@@ -66,13 +66,13 @@ export default function UnifiedHeader({
         transition-all duration-300
       `}
     >
-      <div className="flex items-center h-16 md:h-20 px-4 md:px-6 w-full max-w-[1920px] mx-auto">
+      <div className="flex items-center h-14 md:h-16 lg:h-20 px-3 md:px-4 lg:px-6 w-full max-w-[1920px] mx-auto gap-2 md:gap-4">
         {/* LEFT SECTION: Logo/Home + Breadcrumbs/Title */}
         <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
-          {/* Logo/Home Button */}
+          {/* Logo/Home Button - Mobile optimized */}
           <Link
             to="/"
-            className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-lg hover:bg-afrikoni-gold/20 transition-all touch-manipulation"
+            className="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-lg hover:bg-afrikoni-gold/20 active:scale-95 transition-all touch-manipulation min-w-[44px] min-h-[44px]"
             aria-label="Home"
           >
             <Logo type="icon" size="sm" />
@@ -152,10 +152,10 @@ export default function UnifiedHeader({
             </Button>
           )}
 
-          {/* Language Selector */}
+          {/* Language Selector - Mobile optimized */}
           <div className="relative group">
             <button
-              className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-lg hover:bg-afrikoni-gold/20 text-afrikoni-cream transition-all touch-manipulation"
+              className="flex items-center justify-center w-11 h-11 md:w-11 md:h-11 rounded-lg hover:bg-afrikoni-gold/20 active:scale-95 text-afrikoni-cream transition-all touch-manipulation min-w-[44px] min-h-[44px]"
               aria-label="Change language"
             >
               <Globe className="w-5 h-5" />
@@ -163,10 +163,10 @@ export default function UnifiedHeader({
             {/* Language dropdown would go here */}
           </div>
 
-          {/* Messages */}
+          {/* Messages - Mobile optimized */}
           <Link
             to="/messages"
-            className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-lg hover:bg-afrikoni-gold/20 text-afrikoni-cream transition-all touch-manipulation"
+            className="relative flex items-center justify-center w-11 h-11 md:w-11 md:h-11 rounded-lg hover:bg-afrikoni-gold/20 active:scale-95 text-afrikoni-cream transition-all touch-manipulation min-w-[44px] min-h-[44px]"
             aria-label="Messages"
           >
             <MessageSquare className="w-5 h-5" />
@@ -189,11 +189,11 @@ export default function UnifiedHeader({
             </button>
           )}
 
-          {/* User Avatar */}
+          {/* User Avatar - Mobile optimized */}
           {userAvatar || (
             <Link
               to={user ? '/dashboard' : '/login'}
-              className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-afrikoni-gold/20 hover:bg-afrikoni-gold/30 border-2 border-afrikoni-gold/40 transition-all touch-manipulation"
+              className="flex items-center justify-center w-11 h-11 md:w-11 md:h-11 rounded-full bg-afrikoni-gold/20 hover:bg-afrikoni-gold/30 active:scale-95 border-2 border-afrikoni-gold/40 transition-all touch-manipulation min-w-[44px] min-h-[44px]"
               aria-label={user ? 'Dashboard' : 'Login'}
             >
               {user ? (

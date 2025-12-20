@@ -559,7 +559,7 @@ export default function Marketplace() {
     return '';
   };
 
-  const ProductCard = React.memo(({ product }) => {
+  const ProductCard = React.memo(({ product, priority = false }) => {
     const [quickViewOpen, setQuickViewOpen] = useState(false);
     const [activeImage, setActiveImage] = useState(product.primaryImage || null);
 
@@ -822,7 +822,16 @@ export default function Marketplace() {
                             className="w-16 h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0"
                             onClick={() => setActiveImage(img)}
                           >
-                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <OptimizedImage
+                              src={img}
+                              alt={`${product.title || product.name} - Image ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                              width={64}
+                              height={64}
+                              quality={75}
+                              priority={idx < 3} // Load first 3 thumbnails immediately
+                              placeholder="/product-placeholder.svg"
+                            />
                           </button>
                         ))}
                       </div>
@@ -1814,8 +1823,12 @@ export default function Marketplace() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
-                {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {Array.isArray(filteredProducts) && filteredProducts.map((product, idx) => (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product}
+                    priority={idx < 4} // Load first 4 product images immediately for better LCP
+                  />
                 ))}
                 {/* Fill empty space when there are few products */}
                 {filteredProducts.length > 0 && filteredProducts.length < 4 && (
