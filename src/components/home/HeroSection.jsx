@@ -70,27 +70,29 @@ function SocialProofSection() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
-      className="flex flex-wrap items-center justify-center gap-6 md:gap-8 mt-8 text-meta"
+      className="flex flex-wrap items-center justify-center gap-3 md:gap-8 mt-6 md:mt-8 text-meta px-2 md:px-0"
     >
       {stats.verifiedSuppliers > 0 && (
-        <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
-          <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-          <span>
-            <span className="font-bold text-afrikoni-gold text-body">{stats.verifiedSuppliers}+</span>
-            <span className="ml-1.5 text-body font-normal">Verified Suppliers</span>
+        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
+          <CheckCircle className="w-4 h-4 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
+          <span className="text-xs md:text-body">
+            <span className="font-bold text-afrikoni-gold">{stats.verifiedSuppliers}+</span>
+            <span className="ml-1 md:ml-1.5 font-normal hidden sm:inline">Verified Suppliers</span>
+            <span className="ml-1 md:hidden font-normal">Suppliers</span>
           </span>
         </div>
       )}
-      <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
-        <Globe className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-        <span className="text-body font-normal">{t('active_54')}</span>
+      <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
+        <Globe className="w-4 h-4 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
+        <span className="text-xs md:text-body font-normal">{t('active_54')}</span>
       </div>
       {stats.activeBusinesses > 0 && (
-        <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
-          <Users className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-          <span>
-            <span className="font-bold text-afrikoni-gold text-body">{stats.activeBusinesses}+</span>
-            <span className="ml-1.5 text-body font-normal">Active Businesses</span>
+        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
+          <Users className="w-4 h-4 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
+          <span className="text-xs md:text-body">
+            <span className="font-bold text-afrikoni-gold">{stats.activeBusinesses}+</span>
+            <span className="ml-1 md:ml-1.5 font-normal hidden sm:inline">Active Businesses</span>
+            <span className="ml-1 md:hidden font-normal">Businesses</span>
           </span>
         </div>
       )}
@@ -205,7 +207,7 @@ export default function HeroSection({ categories = [] }) {
   }, [showSuggestions]);
 
   return (
-    <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-16 md:py-24 overflow-visible">
+    <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-12 md:py-24 overflow-visible">
       {/* Faint Afrikoni Logo Watermark */}
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.04]">
         <Logo type="icon" size="xl" link={false} className="scale-150 text-afrikoni-gold" />
@@ -277,28 +279,28 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-8 md:mb-12"
+            className="mb-6 md:mb-12 px-2 md:px-0"
           >
-            {/* H1 - Single dominant heading */}
-            <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-6 md:mb-8">
+            {/* H1 - Single dominant heading - Mobile optimized */}
+            <h1 className="text-[32px] md:text-h1 font-bold leading-[1.15] md:leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-4 md:mb-8">
               {t('trade_trust_thrive')}
             </h1>
             
-            {/* Subheading - Body role, lower contrast */}
-            <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/90 mb-6 md:mb-8 max-w-3xl mx-auto">
+            {/* Subheading - Body role, lower contrast - Mobile optimized */}
+            <p className="text-base md:text-body font-normal leading-[1.5] md:leading-[1.6] text-afrikoni-cream/95 md:text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto px-2 md:px-0">
               <span className="md:hidden">Africa's trusted B2B marketplace.</span>
               <span className="hidden md:inline">{t('hero_subtitle')}</span>
             </p>
             
-            {/* Subtle Early Access Signal */}
+            {/* Subtle Early Access Signal - Mobile enhanced */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
-              className="inline-flex items-center gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 mb-8 md:mb-10"
+              className="inline-flex items-center gap-2.5 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-5 py-2.5 md:px-4 md:py-2 mb-6 md:mb-10 shadow-sm md:shadow-none"
             >
-              <div className="w-2 h-2 rounded-full bg-afrikoni-gold animate-pulse"></div>
-              <span className="text-meta font-medium text-afrikoni-cream/80">
+              <div className="w-2.5 h-2.5 md:w-2 md:h-2 rounded-full bg-afrikoni-gold animate-pulse flex-shrink-0"></div>
+              <span className="text-sm md:text-meta font-medium text-afrikoni-cream/90 md:text-afrikoni-cream/80 leading-tight">
                 {t('early_access_signal') || 'Afrikoni is expanding its verified network'}
               </span>
             </motion.div>
@@ -323,30 +325,30 @@ export default function HeroSection({ categories = [] }) {
             <span className="opacity-80">Cross-border logistics support</span>
           </motion.div> */}
 
-            {/* Enterprise-Grade Search Bar - PRIMARY ACTION */}
+            {/* Enterprise-Grade Search Bar - PRIMARY ACTION - Mobile Enhanced */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-              className="max-w-3xl mx-auto mb-10 md:mb-12"
+              className="max-w-3xl mx-auto mb-8 md:mb-12 px-2 md:px-0"
           >
               <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
             <div
               className={`
-                    flex items-center gap-3
-                    bg-white/95
-                    rounded-full
-                    shadow-lg
-                    border border-afrikoni-gold/20
-                    px-4 py-3
+                    flex items-center gap-2 md:gap-3
+                    bg-white/98 md:bg-white/95
+                    rounded-2xl md:rounded-full
+                    shadow-xl md:shadow-lg
+                    border-2 md:border border-afrikoni-gold/30 md:border-afrikoni-gold/20
+                    px-3 md:px-4 py-2.5 md:py-3
                     transition-all duration-300
-                    focus-within:ring-1 focus-within:ring-afrikoni-gold/30 focus-within:shadow-xl
-                    ${searchFocused ? 'shadow-xl border-afrikoni-gold/30' : ''}
+                    focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-afrikoni-gold/40 md:focus-within:ring-afrikoni-gold/30 focus-within:shadow-2xl md:focus-within:shadow-xl
+                    ${searchFocused ? 'shadow-2xl md:shadow-xl border-afrikoni-gold/40 md:border-afrikoni-gold/30' : ''}
                   `}
                 >
-                  {/* Category Dropdown - Subtle, Embedded */}
+                  {/* Category Dropdown - Subtle, Embedded - Mobile optimized */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="bg-transparent text-sm text-afrikoni-deep/70 px-3 focus:outline-none border-0 focus:ring-0 h-auto py-1.5 min-w-[80px] sm:min-w-[100px]">
+                    <SelectTrigger className="bg-transparent text-xs md:text-sm text-afrikoni-deep/70 px-2 md:px-3 focus:outline-none border-0 focus:ring-0 h-auto py-1 md:py-1.5 min-w-[70px] sm:min-w-[100px] font-medium">
                       <SelectValue placeholder="All" />
                 </SelectTrigger>
                     <SelectContent className="max-h-[60vh] sm:max-h-[400px] bg-white shadow-xl border-afrikoni-gold/20">
@@ -399,7 +401,7 @@ export default function HeroSection({ categories = [] }) {
                         setSearchFocused(false);
                       }, 200);
                     }}
-                    className="flex-1 text-base px-2 focus:outline-none placeholder:text-afrikoni-deep/50 bg-transparent text-afrikoni-chestnut min-h-[44px]"
+                    className="flex-1 text-sm md:text-base px-2 md:px-2 focus:outline-none placeholder:text-afrikoni-deep/50 bg-transparent text-afrikoni-chestnut min-h-[44px] md:min-h-[44px]"
                   />
 
                   {/* Clear button */}
@@ -418,13 +420,13 @@ export default function HeroSection({ categories = [] }) {
                     </motion.button>
                   )}
 
-                  {/* Search Button - Secondary */}
+                  {/* Search Button - Secondary - Mobile enhanced */}
                   <button
                   onClick={handleSearch}
-                    className="flex items-center gap-2 bg-afrikoni-gold/60 text-afrikoni-chestnut font-medium px-5 py-2 rounded-full hover:bg-afrikoni-gold/70 transition-all duration-200 min-h-[44px] touch-manipulation opacity-90"
+                    className="flex items-center gap-1.5 md:gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-xl md:rounded-full hover:bg-afrikoni-gold/90 md:hover:bg-afrikoni-gold/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
                   >
-                    <Search className="w-4 h-4" />
-                    <span className="hidden sm:inline">Search</span>
+                    <Search className="w-4.5 h-4.5 md:w-4 md:h-4" />
+                    <span className="hidden sm:inline text-sm md:text-base">Search</span>
                   </button>
                 </div>
 

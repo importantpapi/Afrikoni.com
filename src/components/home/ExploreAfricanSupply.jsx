@@ -229,20 +229,20 @@ export default function ExploreAfricanSupply() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-12 md:mb-16"
+          className="mb-10 md:mb-16"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1">
-              <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2 mb-1">
-                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold" />
-                {t('source_by_country')}
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg md:text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2 mb-1">
+                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
+                <span className="truncate">{t('source_by_country')}</span>
               </h3>
-              <p className="text-meta font-medium text-afrikoni-deep/60">
+              <p className="text-xs md:text-meta font-medium text-afrikoni-deep/60 leading-tight">
                 Supplier availability varies by category and verification status
               </p>
             </div>
-            <Link to="/countries">
-              <Button variant="outline" size="sm" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10">
+            <Link to="/countries" className="flex-shrink-0 ml-2">
+              <Button variant="outline" size="sm" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs md:text-sm min-h-[36px] md:min-h-[32px] px-3 md:px-4 touch-manipulation">
                 {t('view_all_countries')}
               </Button>
             </Link>
@@ -269,11 +269,11 @@ export default function ExploreAfricanSupply() {
                   whileHover={{ y: -4, scale: 1.05 }}
                   className="flex-shrink-0"
                 >
-                  <Link to={`/marketplace?country=${country.code}`}>
-                    <Card className="w-32 md:w-36 h-auto min-h-[100px] md:min-h-[110px] hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-afrikoni-offwhite flex items-center justify-center">
-                      <CardContent className="p-3 text-center">
-                        <div className="text-3xl md:text-4xl mb-2">{country.flag}</div>
-                        <h4 className="font-bold text-afrikoni-chestnut text-xs md:text-sm leading-tight whitespace-normal break-words">
+                  <Link to={`/marketplace?country=${country.code}`} className="block touch-manipulation active:scale-95">
+                    <Card className="w-28 md:w-36 h-auto min-h-[90px] md:min-h-[110px] hover:shadow-afrikoni-lg transition-all cursor-pointer border-2 md:border border-afrikoni-gold/30 md:border-afrikoni-gold/20 hover:border-afrikoni-gold/50 md:hover:border-afrikoni-gold/40 bg-white md:bg-afrikoni-offwhite flex items-center justify-center shadow-md md:shadow-none">
+                      <CardContent className="p-2.5 md:p-3 text-center">
+                        <div className="text-2.5xl md:text-4xl mb-1.5 md:mb-2">{country.flag}</div>
+                        <h4 className="font-bold text-afrikoni-chestnut text-[11px] md:text-sm leading-tight whitespace-normal break-words px-1">
                           {country.name}
                         </h4>
                       </CardContent>
@@ -314,10 +314,10 @@ export default function ExploreAfricanSupply() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
-              <Package className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold" />
-              {t('popular_categories')}
+          <div className="flex items-center justify-between mb-5 md:mb-6">
+            <h3 className="text-lg md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
+              <Package className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
+              <span>{t('popular_categories')}</span>
             </h3>
           </div>
 
@@ -329,19 +329,19 @@ export default function ExploreAfricanSupply() {
 
               return (
                 <div key={category.key} className="space-y-4">
-                  {/* Category Header */}
+                  {/* Category Header - Mobile optimized */}
                   <div className="flex items-center justify-between">
                     <Link 
                       to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
-                      className="flex items-center gap-3 group"
+                      className="flex items-center gap-2.5 md:gap-3 group touch-manipulation active:scale-95"
                     >
-                      <div className="w-10 h-10 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg group-hover:scale-110 transition-transform">
-                        <Icon className="w-5 h-5 text-afrikoni-chestnut" />
+                      <div className="w-11 h-11 md:w-10 md:h-10 bg-afrikoni-gold rounded-xl md:rounded-lg flex items-center justify-center shadow-lg md:shadow-afrikoni-lg group-hover:scale-110 transition-transform flex-shrink-0">
+                        <Icon className="w-5.5 h-5.5 md:w-5 md:h-5 text-afrikoni-chestnut" />
                       </div>
-                      <h4 className="text-lg md:text-xl font-bold text-afrikoni-chestnut group-hover:text-afrikoni-gold transition-colors">
+                      <h4 className="text-base md:text-xl font-bold text-afrikoni-chestnut group-hover:text-afrikoni-gold transition-colors">
                         {category.name}
                       </h4>
-                      <ArrowRight className="w-5 h-5 text-afrikoni-gold opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                     </Link>
                   </div>
 
@@ -354,7 +354,7 @@ export default function ExploreAfricanSupply() {
                     </div>
                   ) : products.length > 0 ? (
                     <>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                         {products.map((product, productIdx) => {
                           const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
                           return (
@@ -366,9 +366,9 @@ export default function ExploreAfricanSupply() {
                               transition={{ duration: 0.4, delay: (productIdx % 8) * 0.05 }}
                               whileHover={{ y: -4, scale: 1.02 }}
                             >
-                              <Link to={`/product/${product.id}`}>
-                                <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-afrikoni-gold/30 hover:border-afrikoni-gold/60 bg-[#FFF6E1] overflow-hidden rounded-xl">
-                                  <div className="h-40 md:h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
+                              <Link to={`/product/${product.id}`} className="block touch-manipulation active:scale-[0.98]">
+                                <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-2 md:border border-afrikoni-gold/30 hover:border-afrikoni-gold/60 bg-[#FFF6E1] overflow-hidden rounded-xl shadow-md md:shadow-none">
+                                  <div className="h-36 md:h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
                                     {primaryImage?.url ? (
                                       <img
                                         src={primaryImage.url}
@@ -387,12 +387,12 @@ export default function ExploreAfricanSupply() {
                                       <SaveButton itemId={product.id} itemType="product" />
                                     </div>
                                   </div>
-                                  <CardContent className="p-3 space-y-1.5">
-                                    <h5 className="font-semibold text-afrikoni-chestnut text-base md:text-lg leading-snug line-clamp-2">
+                                  <CardContent className="p-2.5 md:p-3 space-y-1.5">
+                                    <h5 className="font-semibold text-afrikoni-chestnut text-sm md:text-lg leading-snug line-clamp-2">
                                       {product.title}
                                     </h5>
                                     {product.price_min ? (
-                                      <div className="text-sm md:text-base text-afrikoni-gold font-bold">
+                                      <div className="text-xs md:text-base text-afrikoni-gold font-bold">
                                         {product.price_max && product.price_max !== product.price_min ? (
                                           <>
                                             <Price 
@@ -471,13 +471,13 @@ export default function ExploreAfricanSupply() {
                       )}
                     </>
                   ) : !isLoading ? (
-                    <div className="text-center py-8 px-4">
+                    <div className="text-center py-6 md:py-8 px-4">
                       <div className="max-w-md mx-auto space-y-4">
-                        <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/70 mb-4">
+                        <p className="text-sm md:text-body font-normal leading-[1.5] md:leading-[1.6] text-afrikoni-deep/70 mb-4 px-2">
                           Suppliers in this category are onboarding. Submit an RFQ to get matched with verified suppliers.
                         </p>
-                        <Link to="/dashboard/rfqs/new">
-                          <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white">
+                        <Link to="/dashboard/rfqs/new" className="inline-block">
+                          <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] px-6 md:px-8 py-2.5 md:py-2.5 text-sm md:text-base font-semibold shadow-lg md:shadow-md active:scale-95 touch-manipulation">
                             Post RFQ
                             <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
