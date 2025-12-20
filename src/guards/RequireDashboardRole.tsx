@@ -21,7 +21,9 @@ export default function RequireDashboardRole({ allow, children }: Props) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!allow.includes(role)) {
+    // Only redirect if role is determined and doesn't match
+    // Don't redirect if role is still loading (null/undefined)
+    if (role && !allow.includes(role)) {
       const target = getDashboardHomePath(role);
       if (location.pathname !== target) {
         navigate(target, { replace: true });
@@ -29,8 +31,18 @@ export default function RequireDashboardRole({ allow, children }: Props) {
     }
   }, [allow, role, location.pathname, navigate]);
 
-  if (!allow.includes(role)) {
+  // Don't render anything if role doesn't match (but don't redirect if role is still loading)
+  if (role && !allow.includes(role)) {
     return null;
+  }
+  
+  // If role is still loading, show loading state instead of redirecting
+  if (!role) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
+    );
   }
 
   return <>{children}</>;

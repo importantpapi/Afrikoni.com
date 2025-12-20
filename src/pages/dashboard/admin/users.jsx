@@ -19,6 +19,7 @@ import { isAdmin } from '@/utils/permissions';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import AccessDenied from '@/components/AccessDenied';
+import { toast } from 'sonner';
 
 // Mock user data - in production, this would come from Supabase
 const mockUsers = [
@@ -81,7 +82,7 @@ export default function AdminUsers() {
   const [user, setUser] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [editingUser, setEditingUser] = useState(null);
@@ -95,11 +96,72 @@ export default function AdminUsers() {
     try {
       const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       setUser(userData);
-      setHasAccess(isAdmin(userData));
+      const admin = isAdmin(userData);
+      setHasAccess(admin);
+      
+      if (admin) {
+        await loadUsers();
+      }
     } catch (error) {
       setHasAccess(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      // Load real users from profiles table
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, user_role, created_at, last_sign_in_at, is_admin')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (profilesError) {
+        console.error('Error loading users:', profilesError);
+        toast.error('Failed to load users');
+        return;
+      }
+
+      // Load company data for each user
+      const userIds = profilesData?.map(p => p.id) || [];
+      let companyMap = {};
+      
+      if (userIds.length > 0) {
+        const { data: companiesData } = await supabase
+          .from('companies')
+          .select('owner_id, company_name, role, country')
+          .in('owner_id', userIds);
+
+        // Map companies to users
+        (companiesData || []).forEach(company => {
+          if (company.owner_id) {
+            companyMap[company.owner_id] = company;
+          }
+        });
+      }
+
+      // Combine profile and company data
+      const usersWithCompanies = (profilesData || []).map(profile => {
+        const company = companyMap[profile.id];
+        return {
+          id: profile.id,
+          email: profile.email,
+          fullName: profile.full_name || profile.email?.split('@')[0] || 'Unknown',
+          role: profile.is_admin ? 'admin' : (company?.role || profile.user_role || 'user'),
+          createdAt: profile.created_at,
+          lastLogin: profile.last_sign_in_at,
+          status: 'active', // You can add a status field to profiles if needed
+          companyName: company?.company_name,
+          country: company?.country
+        };
+      });
+
+      setUsers(usersWithCompanies);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast.error('Failed to load users');
     }
   };
 

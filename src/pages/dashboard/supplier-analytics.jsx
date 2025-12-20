@@ -232,7 +232,7 @@ function SupplierAnalyticsInner() {
       buildConversionData(products || [], messages || [], rfqs || []);
       buildTopProductsData(products || []);
       buildTrafficSourceData(products || []);
-      buildEngagementData(products || [], messages || [], rfqs || []);
+      await buildEngagementData(products || [], messages || [], rfqs || []);
 
     } catch (error) {
       toast.error('Failed to load analytics');
@@ -332,13 +332,85 @@ function SupplierAnalyticsInner() {
     setTrafficSourceData(sources);
   };
 
-  const buildEngagementData = (products, messages, rfqs) => {
-    const data = [
-      { name: 'Views', value: metrics.totalViews, color: '#D4A937' },
-      { name: 'Contacts', value: metrics.totalContacts, color: '#8140FF' },
-      { name: 'RFQs', value: metrics.totalRFQs, color: '#3AB795' },
-    ];
-    setEngagementData(data);
+  const buildEngagementData = async (products, messages, rfqs) => {
+    try {
+      // Calculate real engagement metrics from actual data
+      const totalViews = products.reduce((sum, p) => sum + (parseInt(p.views) || 0), 0);
+      const totalContacts = messages?.length || 0;
+      const totalRFQs = rfqs?.length || 0;
+      
+      // Get engagement trends over time (last 30 days)
+      const { start, end } = getDateRange(timeRange);
+      const startISO = start.toISOString();
+      const endISO = end.toISOString();
+      
+      // Fetch product views activity (if tracked in activity_tracking or product_views table)
+      const { data: activityData } = await supabase
+        .from('activity_tracking')
+        .select('activity_type, created_at')
+        .eq('activity_type', 'product_view')
+        .in('entity_id', products.map(p => p.id))
+        .gte('created_at', startISO)
+        .lte('created_at', endISO);
+      
+      // Count messages and RFQs by date
+      const messagesByDate = {};
+      const rfqsByDate = {};
+      
+      (messages || []).forEach(msg => {
+        const date = new Date(msg.created_at).toISOString().split('T')[0];
+        messagesByDate[date] = (messagesByDate[date] || 0) + 1;
+      });
+      
+      (rfqs || []).forEach(rfq => {
+        const date = new Date(rfq.created_at).toISOString().split('T')[0];
+        rfqsByDate[date] = (rfqsByDate[date] || 0) + 1;
+      });
+      
+      // Build engagement trend data
+      const engagementTrend = [];
+      const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      for (let i = 0; i < days; i++) {
+        const date = new Date(start);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Count views for this date from activity tracking
+        const viewsOnDate = (activityData || []).filter(a => {
+          const activityDate = new Date(a.created_at).toISOString().split('T')[0];
+          return activityDate === dateStr;
+        }).length;
+        
+        engagementTrend.push({
+          date: format(date, 'MMM dd'),
+          views: viewsOnDate,
+          contacts: messagesByDate[dateStr] || 0,
+          rfqs: rfqsByDate[dateStr] || 0
+        });
+      }
+      
+      // Set both summary and trend data
+      const summaryData = [
+        { name: 'Views', value: totalViews, color: '#D4A937' },
+        { name: 'Contacts', value: totalContacts, color: '#8140FF' },
+        { name: 'RFQs', value: totalRFQs, color: '#3AB795' },
+      ];
+      setEngagementData(summaryData);
+      
+      // Also update views trend data with real engagement
+      if (engagementTrend.length > 0) {
+        setViewsTrendData(engagementTrend);
+      }
+    } catch (error) {
+      console.error('Error building engagement data:', error);
+      // Fallback to basic metrics
+      const data = [
+        { name: 'Views', value: metrics.totalViews, color: '#D4A937' },
+        { name: 'Contacts', value: metrics.totalContacts, color: '#8140FF' },
+        { name: 'RFQs', value: metrics.totalRFQs, color: '#3AB795' },
+      ];
+      setEngagementData(data);
+    }
   };
 
   const handleRefresh = () => {
