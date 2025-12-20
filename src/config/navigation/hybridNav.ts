@@ -1,41 +1,74 @@
 import {
   LayoutDashboard,
-  Sparkles,
   ShoppingCart,
   FileText,
-  Package,
   MessageSquare,
-  Building2,
-  BarChart3,
-  TrendingUp,
-  Sparkles as SparklesIcon,
-  Users as UsersIcon,
   Wallet,
-  Shield,
+  Package,
+  Truck,
   Receipt,
   RotateCcw,
+  Building2,
+  Users as UsersIcon,
+  BarChart3,
+  TrendingUp,
+  Shield,
   Star as StarIcon,
+  Sparkles,
+  HelpCircle,
 } from 'lucide-react';
 
+// Hybrid menu structure:
+// PRIMARY: Core workflow items (always visible, role-agnostic)
+// SECONDARY: Collapsible "Manage" section (operational tools)
+// TERTIARY: Collapsed "Insights" section
+// SUPPORT: Help & verification (bottom, separated)
+// Note: Menu changes entirely when role switches via activeView prop
+
 export const hybridNav = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/hybrid' },
-  { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
-  { icon: ShoppingCart, label: 'Orders & Sales', path: '/dashboard/orders' },
-  { icon: Package, label: 'Products', path: '/dashboard/products' },
-  { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs' },
-  { icon: MessageSquare, label: 'Messages', path: '/messages' },
-  { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
-  { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
-  { icon: TrendingUp, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics' },
-  { icon: SparklesIcon, label: 'Subscriptions', path: '/dashboard/subscriptions' },
-  { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
-  { icon: Wallet, label: 'Payments', path: '/dashboard/payments' },
-  { icon: Shield, label: 'Protection', path: '/dashboard/protection' },
-  { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/support-chat' },
-  { icon: Shield, label: 'Disputes', path: '/dashboard/disputes' },
-  { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
-  { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
-  { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews' },
+  // 🔥 PRIMARY - Core workflow (always visible, works for both buyer and seller)
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/hybrid', priority: 'primary' },
+  { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs', priority: 'primary' },
+  { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+  { icon: ShoppingCart, label: 'Orders & Sales', path: '/dashboard/orders', priority: 'primary' },
+  { icon: Wallet, label: 'Payments', path: '/dashboard/payments', priority: 'primary' },
+  
+  // 🧩 SECONDARY - Manage section (collapsible, operational tools)
+  { 
+    icon: Package, 
+    label: 'Manage', 
+    path: null, 
+    priority: 'secondary',
+    isSection: true,
+    children: [
+      { icon: Package, label: 'Products', path: '/dashboard/products' },
+      { icon: Truck, label: 'Fulfillment', path: '/dashboard/fulfillment' },
+      { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
+      { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
+      { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
+    ]
+  },
+  
+  // 🛡️ TERTIARY - Insights (collapsed by default)
+  { 
+    icon: BarChart3, 
+    label: 'Insights', 
+    path: null, 
+    priority: 'tertiary',
+    isSection: true,
+    collapsedByDefault: true,
+    children: [
+      { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
+      { icon: TrendingUp, label: 'Performance Metrics', path: '/dashboard/performance' },
+      { icon: StarIcon, label: 'Trust & Reviews', path: '/dashboard/reviews' },
+    ]
+  },
+  
+  // 💬 SUPPORT - Help & verification (bottom, separated)
+  { icon: Shield, label: 'Verification', path: '/verification-center', priority: 'support' },
+  { icon: HelpCircle, label: 'Support Chat', path: '/dashboard/support-chat', priority: 'support' },
+  { icon: Shield, label: 'Disputes', path: '/dashboard/disputes', priority: 'support' },
 ];
 
 

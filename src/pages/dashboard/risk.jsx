@@ -76,6 +76,7 @@ export default function RiskManagementDashboard() {
   const [showAllUsers, setShowAllUsers] = useState(false); // Toggle between recent and all
   const [searchEmail, setSearchEmail] = useState(''); // Search by email
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [contactSubmissions, setContactSubmissions] = useState([]); // Contact form submissions
 
   useEffect(() => {
     checkAccess();
@@ -450,6 +451,18 @@ export default function RiskManagementDashboard() {
         .select('*')
         .eq('status', 'pending');
 
+      // Load recent contact form submissions (last 7 days, unread)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const { data: contactSubmissionsData } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      setContactSubmissions(contactSubmissionsData || []);
+
       // Build early warning alerts from real data
       const alerts = [];
       
@@ -509,6 +522,35 @@ export default function RiskManagementDashboard() {
             action: 'Review Verification',
             actionRequired: true,
             acknowledged: false
+          });
+        });
+      }
+
+      // Add contact form submission alerts
+      if (contactSubmissionsData && contactSubmissionsData.length > 0) {
+        contactSubmissionsData.forEach(submission => {
+          // Determine severity based on category
+          let severity = 'low';
+          if (['complaint', 'dispute', 'fraud', 'security'].includes(submission.category?.toLowerCase())) {
+            severity = 'high';
+          } else if (['support', 'technical', 'billing'].includes(submission.category?.toLowerCase())) {
+            severity = 'medium';
+          }
+
+          alerts.push({
+            id: `contact-${submission.id}`,
+            timestamp: submission.created_at,
+            type: 'Contact Submission',
+            category: 'Customer Service',
+            severity: severity,
+            title: `${submission.name} - ${submission.category || 'General'} Inquiry`,
+            message: submission.subject || submission.message?.substring(0, 100) || 'No subject',
+            description: submission.message?.substring(0, 200) || '',
+            entity: `${submission.name} (${submission.email})`,
+            action: 'Respond',
+            actionRequired: severity === 'high',
+            acknowledged: false,
+            metadata: submission // Store full submission data
           });
         });
       }
@@ -1537,37 +1579,118 @@ export default function RiskManagementDashboard() {
           <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredAlerts.map((alert) => (
+                {filteredAlerts.map((alert) => {
+                  const isContactSubmission = alert.type === 'Contact Submission';
+                  const submission = alert.metadata;
+                  
+                  return (
                   <div
                     key={alert.id}
-                    className="p-4 border border-afrikoni-gold/20 rounded-afrikoni hover:bg-afrikoni-sand/10 transition-all"
+                    className={`p-5 border-2 rounded-lg transition-all ${
+                      isContactSubmission
+                        ? 'border-afrikoni-gold bg-gradient-to-r from-afrikoni-cream/50 to-afrikoni-ivory/30 hover:shadow-lg hover:border-afrikoni-gold/60'
+                        : 'border-afrikoni-gold/20 hover:bg-afrikoni-sand/10'
+                    }`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className={`w-3 h-3 rounded-full mt-1.5 ${getSeverityColor(alert.severity)}`} />
+                      <div className="flex items-start gap-4 flex-1">
+                        <div className={`w-4 h-4 rounded-full mt-1.5 flex-shrink-0 ${getSeverityColor(alert.severity)}`} />
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-afrikoni-text-dark">{alert.title}</h3>
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            {isContactSubmission && (
+                              <div className="w-10 h-10 bg-gradient-to-br from-afrikoni-gold to-afrikoni-chestnut rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                📧
+                              </div>
+                            )}
+                            <h3 className={`font-bold text-afrikoni-text-dark ${isContactSubmission ? 'text-lg' : ''}`}>
+                              {alert.title}
+                            </h3>
                             <Badge
                               variant="outline"
-                              className={`text-xs capitalize ${
-                                alert.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
-                                alert.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                alert.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                'bg-blue-50 text-blue-700 border-blue-200'
+                              className={`text-xs capitalize font-semibold ${
+                                alert.severity === 'critical' ? 'bg-red-100 text-red-800 border-red-300 shadow-sm' :
+                                alert.severity === 'high' ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-sm' :
+                                alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-300 shadow-sm' :
+                                'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
                               }`}
                             >
                               {alert.severity}
                             </Badge>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs font-semibold ${
+                                isContactSubmission 
+                                  ? 'bg-afrikoni-gold/20 text-afrikoni-chestnut border-afrikoni-gold/40' 
+                                  : ''
+                              }`}
+                            >
                               {alert.category}
                             </Badge>
+                            {isContactSubmission && submission?.category && (
+                              <Badge className="bg-afrikoni-gold text-white border-0 text-xs font-bold px-3 py-1">
+                                {submission.category}
+                              </Badge>
+                            )}
                           </div>
-                          <p className="text-sm text-afrikoni-text-dark/70 mb-2">{alert.description}</p>
+                          
+                          {isContactSubmission && submission ? (
+                            <div className="space-y-3 mb-3">
+                              <div className="bg-white/80 rounded-lg p-4 border border-afrikoni-gold/20">
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                  <div>
+                                    <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide mb-1">Contact</div>
+                                    <div className="text-sm font-bold text-afrikoni-chestnut">{submission.name}</div>
+                                    <a 
+                                      href={`mailto:${submission.email}`}
+                                      className="text-xs text-afrikoni-gold hover:underline font-medium"
+                                    >
+                                      {submission.email}
+                                    </a>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide mb-1">Submitted</div>
+                                    <div className="text-sm text-afrikoni-text-dark">
+                                      {new Date(submission.created_at).toLocaleString('en-US', {
+                                        dateStyle: 'medium',
+                                        timeStyle: 'short'
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                                {submission.subject && (
+                                  <div className="mb-2">
+                                    <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide mb-1">Subject</div>
+                                    <div className="text-sm font-semibold text-afrikoni-chestnut">{submission.subject}</div>
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide mb-2">Message</div>
+                                  <div className="text-sm text-afrikoni-text-dark/80 bg-afrikoni-cream/30 p-3 rounded border-l-3 border-afrikoni-gold line-clamp-3">
+                                    {submission.message}
+                                  </div>
+                                </div>
+                                {submission.attachments && submission.attachments.length > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-afrikoni-gold/20">
+                                    <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide mb-2">Attachments</div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {submission.attachments.map((att, idx) => (
+                                        <Badge key={idx} variant="outline" className="text-xs bg-afrikoni-ivory/50">
+                                          📎 {typeof att === 'string' ? att.split('/').pop() : att.name || 'Attachment'}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-afrikoni-text-dark/70 mb-2">{alert.description}</p>
+                          )}
+                          
                           <div className="flex items-center gap-4 text-xs text-afrikoni-text-dark/50">
-                            <span>{new Date(alert.timestamp).toLocaleString()}</span>
+                            <span className="font-medium">{new Date(alert.timestamp).toLocaleString()}</span>
                             {alert.actionRequired && (
-                              <span className="text-afrikoni-red font-medium">Action Required</span>
+                              <span className="text-afrikoni-red font-bold bg-red-50 px-2 py-1 rounded">⚡ Action Required</span>
                             )}
                             {alert.acknowledged && (
                               <span className="text-afrikoni-green">Acknowledged</span>
@@ -1575,12 +1698,30 @@ export default function RiskManagementDashboard() {
                           </div>
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" className="ml-4">
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        {isContactSubmission ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="whitespace-nowrap bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white border-afrikoni-gold font-semibold shadow-md"
+                            onClick={() => {
+                              if (submission?.email) {
+                                window.location.href = `mailto:${submission.email}?subject=Re: ${submission.subject || 'Your Inquiry'}`;
+                              }
+                            }}
+                          >
+                            📧 Reply
+                          </Button>
+                        ) : (
+                          <Button variant="ghost" size="sm" className="ml-4">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

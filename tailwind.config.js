@@ -77,7 +77,21 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
+        // Remove serif - not used in institutional design
+      },
+      fontSize: {
+        // H1 - Hero / Page title
+        'h1': ['60px', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.02em' }],
+        'h1-mobile': ['40px', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.02em' }],
+        // H2 - Section titles
+        'h2': ['40px', { lineHeight: '1.2', fontWeight: '600' }],
+        'h2-mobile': ['28px', { lineHeight: '1.2', fontWeight: '600' }],
+        // H3 - Subsections / Card titles
+        'h3': ['22px', { lineHeight: '1.3', fontWeight: '600' }],
+        // Body - Primary text
+        'body': ['18px', { lineHeight: '1.6', fontWeight: '400' }],
+        // Meta / Labels / Badges
+        'meta': ['14px', { lineHeight: '1.5', fontWeight: '500', letterSpacing: '0.02em' }],
       },
       boxShadow: {
         'afrikoni': '0 2px 10px rgba(212,169,55,0.25)',

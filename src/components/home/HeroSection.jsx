@@ -70,27 +70,27 @@ function SocialProofSection() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
-      className="flex flex-wrap items-center justify-center gap-6 md:gap-8 mt-8 text-sm md:text-base"
+      className="flex flex-wrap items-center justify-center gap-6 md:gap-8 mt-8 text-meta"
     >
       {stats.verifiedSuppliers > 0 && (
         <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
           <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
           <span>
-            <span className="font-bold text-afrikoni-gold text-base md:text-lg">{stats.verifiedSuppliers}+</span>
-            <span className="ml-1.5 font-medium">Verified Suppliers</span>
+            <span className="font-bold text-afrikoni-gold text-body">{stats.verifiedSuppliers}+</span>
+            <span className="ml-1.5 text-body font-normal">Verified Suppliers</span>
           </span>
         </div>
       )}
       <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
         <Globe className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-        <span className="font-medium">{t('active_54')}</span>
+        <span className="text-body font-normal">{t('active_54')}</span>
       </div>
       {stats.activeBusinesses > 0 && (
         <div className="flex items-center gap-2.5 text-afrikoni-cream/95 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 backdrop-blur-sm">
           <Users className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
           <span>
-            <span className="font-bold text-afrikoni-gold text-base md:text-lg">{stats.activeBusinesses}+</span>
-            <span className="ml-1.5 font-medium">Active Businesses</span>
+            <span className="font-bold text-afrikoni-gold text-body">{stats.activeBusinesses}+</span>
+            <span className="ml-1.5 text-body font-normal">Active Businesses</span>
           </span>
         </div>
       )}
@@ -230,7 +230,7 @@ export default function HeroSection({ categories = [] }) {
           >
             <Card className="border border-afrikoni-gold/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-lg opacity-70">
               <CardContent className="p-4 space-y-2">
-                <h3 className="text-xs font-semibold text-afrikoni-gold/80 mb-2 uppercase tracking-wide">
+                <h3 className="text-meta font-medium text-afrikoni-gold/80 mb-4 tracking-[0.02em]">
                   {t('quick_access')}
                 </h3>
                 <motion.button
@@ -240,7 +240,7 @@ export default function HeroSection({ categories = [] }) {
                 >
                   <ShoppingBag className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-afrikoni-cream/80">{t('buy_source')}</p>
+                    <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('buy_source')}</p>
                   </div>
                   <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
@@ -251,7 +251,7 @@ export default function HeroSection({ categories = [] }) {
                 >
                   <Store className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-afrikoni-cream/80">{t('sell_products')}</p>
+                    <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('sell_products')}</p>
                   </div>
                   <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
@@ -262,7 +262,7 @@ export default function HeroSection({ categories = [] }) {
                 >
                   <Truck className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-afrikoni-cream/80">{t('ship_goods')}</p>
+                    <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('ship_goods')}</p>
                   </div>
                   <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
@@ -277,17 +277,31 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-6"
+            className="mb-8 md:mb-12"
           >
-            {/* Mobile: Title only + short subtitle */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-afrikoni-gold mb-3 md:mb-4 leading-tight tracking-tight">
+            {/* H1 - Single dominant heading */}
+            <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-6 md:mb-8">
               {t('trade_trust_thrive')}
             </h1>
-            {/* Mobile: Short subtitle only, Desktop: Full subtitle */}
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-afrikoni-cream/95 font-medium mb-4 md:mb-6 max-w-3xl mx-auto leading-relaxed">
+            
+            {/* Subheading - Body role, lower contrast */}
+            <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/90 mb-6 md:mb-8 max-w-3xl mx-auto">
               <span className="md:hidden">Africa's trusted B2B marketplace.</span>
               <span className="hidden md:inline">{t('hero_subtitle')}</span>
             </p>
+            
+            {/* Subtle Early Access Signal */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="inline-flex items-center gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/20 rounded-full px-4 py-2 mb-8 md:mb-10"
+            >
+              <div className="w-2 h-2 rounded-full bg-afrikoni-gold animate-pulse"></div>
+              <span className="text-meta font-medium text-afrikoni-cream/80">
+                {t('early_access_signal') || 'Afrikoni is expanding its verified network'}
+              </span>
+            </motion.div>
           </motion.div>
 
           {/* Afrikoni Shield trust strip - Hidden per request */}
@@ -309,12 +323,12 @@ export default function HeroSection({ categories = [] }) {
             <span className="opacity-80">Cross-border logistics support</span>
           </motion.div> */}
 
-            {/* Enterprise-Grade Search Bar */}
+            {/* Enterprise-Grade Search Bar - PRIMARY ACTION */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-              className="max-w-3xl mx-auto mb-8"
+              className="max-w-3xl mx-auto mb-10 md:mb-12"
           >
               <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
             <div
@@ -451,36 +465,36 @@ export default function HeroSection({ categories = [] }) {
           >
             <Card className="border border-afrikoni-gold/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-lg opacity-70">
               <CardContent className="p-4 space-y-2">
-                <h3 className="text-xs font-semibold text-afrikoni-gold/80 mb-2 uppercase tracking-wide">
+                <h3 className="text-meta font-medium text-afrikoni-gold/80 mb-4 tracking-[0.02em]">
                   Why Afrikoni
                 </h3>
-                <div className="space-y-1.5">
-                  <div className="flex items-start gap-2 p-1.5 rounded-lg bg-afrikoni-gold/3">
-                    <Shield className="w-3.5 h-3.5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                    <Shield className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-medium text-afrikoni-cream/80">Verified Only</p>
-                      <p className="text-[10px] text-afrikoni-cream/60">Only vetted African suppliers</p>
+                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Verified Only</h4>
+                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Only vetted African suppliers</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2 p-1.5 rounded-lg bg-afrikoni-gold/3">
-                    <Lock className="w-3.5 h-3.5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                    <Lock className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-medium text-afrikoni-cream/80">Secure Payments</p>
-                      <p className="text-[10px] text-afrikoni-cream/60">Escrow‑protected trade</p>
+                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Secure Payments</h4>
+                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Escrow‑protected trade</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2 p-1.5 rounded-lg bg-afrikoni-gold/3">
-                    <Globe className="w-3.5 h-3.5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                    <Globe className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-medium text-afrikoni-cream/80">54 Countries</p>
-                      <p className="text-[10px] text-afrikoni-cream/60">Pan-African reach</p>
+                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">54 Countries</h4>
+                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Pan-African reach</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2 p-1.5 rounded-lg bg-afrikoni-gold/3">
-                    <TrendingUp className="w-3.5 h-3.5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                    <TrendingUp className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-medium text-afrikoni-cream/80">Growing Network</p>
-                      <p className="text-[10px] text-afrikoni-cream/60">Active daily</p>
+                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Growing Network</h4>
+                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">New suppliers onboarding regularly</p>
                     </div>
                   </div>
                 </div>

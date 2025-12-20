@@ -26,6 +26,9 @@ import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { isSeller } from '@/utils/roleHelpers';
+import { useNavigate } from 'react-router-dom';
 
 // Country code to country name mapping
 const COUNTRY_NAMES = {
@@ -73,6 +76,7 @@ const ALL_COUNTRIES = Object.keys(COUNTRY_NAMES).filter(key => key !== 'DEFAULT'
 
 export default function Navbar({ user, onLogout }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { i18n } = useTranslation();
   const language = i18n.language;
   const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
@@ -101,6 +105,7 @@ export default function Navbar({ user, onLogout }) {
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
+  const [userRole, setUserRole] = useState(null);
 
   // Load compare count from localStorage
   useEffect(() => {
@@ -209,14 +214,19 @@ export default function Navbar({ user, onLogout }) {
     const loadUserProfile = async () => {
       if (user?.id) {
         try {
-          const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-          const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+          const { profile, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
           if (profile) {
             setUserProfile(profile);
+          }
+          if (role) {
+            setUserRole(role);
           }
         } catch (error) {
           // Silently fail
         }
+      } else {
+        setUserRole(null);
+        setUserProfile(null);
       }
     };
     loadUserProfile();
@@ -858,8 +868,18 @@ How It Works
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">For Suppliers</h3>
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
-              <Link to="/dashboard" onClick={() => setMegaOpen(false)}>Supplier Dashboard</Link>
+              <Link to="/become-supplier" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
+              <Link 
+                to={user && userRole && isSeller(userRole) ? "/dashboard" : "/become-supplier"} 
+                onClick={() => {
+                  setMegaOpen(false);
+                  if (!user || !userRole || !isSeller(userRole)) {
+                    navigate('/become-supplier');
+                  }
+                }}
+              >
+                Supplier Dashboard
+              </Link>
               <Link to="/verification-center" onClick={() => setMegaOpen(false)}>KYC Verification</Link>
               <Link to="/resources" onClick={() => setMegaOpen(false)}>Supplier Resources</Link>
             </nav>
@@ -869,10 +889,20 @@ How It Works
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Trust & Safety</h3>
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/dashboard/risk" onClick={() => setMegaOpen(false)}>Afrikoni Shield</Link>
+              <Link to="/protection" onClick={() => setMegaOpen(false)}>Afrikoni Shield</Link>
               <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Order Protection</Link>
               <Link to="/anti-fraud" onClick={() => setMegaOpen(false)}>Anti-Fraud</Link>
-              <Link to="/disputes" onClick={() => setMegaOpen(false)}>Dispute Resolution</Link>
+              <Link 
+                to={user ? "/dashboard/disputes" : "/disputes"} 
+                onClick={() => {
+                  setMegaOpen(false);
+                  if (user) {
+                    navigate('/dashboard/disputes');
+                  }
+                }}
+              >
+                Dispute Resolution
+              </Link>
             </nav>
           </div>
                 </div>

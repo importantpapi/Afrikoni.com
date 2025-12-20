@@ -15,6 +15,7 @@ import {
   Filter,
   SlidersHorizontal,
   MapPin,
+  Globe,
   Shield,
   Star,
   MessageSquare,
@@ -1184,34 +1185,46 @@ export default function Marketplace() {
                 </Select>
               </div>
             </div>
-            {/* Enhanced Quick access chips for popular markets */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs md:text-sm font-semibold text-afrikoni-chestnut/90">{t('marketplace.popularMarkets') || 'Popular Markets'}:</span>
-              <button
-                type="button"
-                onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
-                className={`px-4 py-2 rounded-xl border-2 text-xs md:text-sm font-medium transition-all shadow-sm hover:shadow-md ${
-                  !selectedFilters.country
-                    ? 'bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/90 text-white border-afrikoni-gold shadow-md'
-                    : 'border-afrikoni-gold/40 text-afrikoni-deep hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold/60'
-                }`}
-              >
-                🌍 {t('marketplace.allAfrica') || 'All Africa'}
-              </button>
-              {POPULAR_COUNTRIES.map((country) => (
+            {/* Market Scope Selector - Global vs Countries */}
+            <div className="flex flex-col gap-4">
+              {/* Global Market Scope - Primary */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-meta font-medium text-afrikoni-chestnut/90">{t('marketplace.popularMarkets') || 'Popular Markets'}:</span>
                 <button
-                  key={country}
                   type="button"
-                  onClick={() => setSelectedFilters({ ...selectedFilters, country })}
-                  className={`px-4 py-2 rounded-xl border-2 text-xs md:text-sm font-medium transition-all shadow-sm hover:shadow-md ${
-                    selectedFilters.country === country
-                      ? 'bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/90 text-white border-afrikoni-gold shadow-md'
-                      : 'border-afrikoni-gold/40 text-afrikoni-deep hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold/60'
+                  onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
+                  aria-label={`Market scope: ${t('marketplace.allAfricanMarkets') || 'All African Markets'}`}
+                  className={`group inline-flex items-center gap-2.5 px-6 py-3 rounded-lg border-2 text-meta font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 ${
+                    !selectedFilters.country
+                      ? 'bg-afrikoni-gold text-white border-afrikoni-gold shadow-md hover:bg-afrikoni-goldDark hover:shadow-lg'
+                      : 'bg-white border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/5 hover:border-afrikoni-gold/50'
                   }`}
                 >
-                  {country}
+                  <Globe className="w-4 h-4 flex-shrink-0" />
+                  <span>{t('marketplace.allAfricanMarkets') || 'All African Markets'}</span>
                 </button>
-              ))}
+              </div>
+              
+              {/* Country Filters - Secondary */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-meta font-medium text-afrikoni-chestnut/70">Countries:</span>
+                {POPULAR_COUNTRIES.map((country) => (
+                  <button
+                    key={country}
+                    type="button"
+                    onClick={() => setSelectedFilters({ ...selectedFilters, country })}
+                    aria-label={`Filter by country: ${country}`}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-meta font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 ${
+                      selectedFilters.country === country
+                        ? 'bg-afrikoni-gold text-white border-afrikoni-gold shadow-md hover:bg-afrikoni-goldDark hover:shadow-lg'
+                        : 'bg-white border-afrikoni-gold/20 text-afrikoni-deep hover:bg-afrikoni-gold/5 hover:border-afrikoni-gold/40'
+                    }`}
+                  >
+                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{country}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

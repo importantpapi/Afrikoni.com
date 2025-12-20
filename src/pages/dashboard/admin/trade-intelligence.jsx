@@ -178,6 +178,9 @@ export default function TradeIntelligenceDashboard() {
           </Select>
         </div>
 
+        {/* Admin Alerts Panel */}
+        <AdminAlertsPanel />
+
         {/* Summary Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
@@ -355,37 +358,104 @@ export default function TradeIntelligenceDashboard() {
               </CardContent>
             </Card>
 
-            {/* Supply Gaps */}
+            {/* Supply Gaps & Onboarding Signals */}
+            <SupplierOnboardingInsights />
+
+          </TabsContent>
+
+          {/* Trending Demand Tab */}
+          <TabsContent value="trending" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Supply Gap Insights</CardTitle>
+                <CardTitle>Trending Demand</CardTitle>
+                <p className="text-sm text-afrikoni-deep/70 mt-1">
+                  Categories and regions with increasing demand
+                </p>
               </CardHeader>
               <CardContent>
-                {gapsLoading ? (
+                {trendsLoading ? (
                   <div className="flex items-center justify-center h-64">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
                   </div>
-                ) : supplyGaps.length > 0 ? (
-                  <div className="space-y-3">
-                    {supplyGaps.slice(0, 5).map((gap, idx) => (
-                      <div key={idx} className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-semibold text-orange-900">
-                            {gap.category_name}
+                ) : demandTrends?.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Group by category and show trends */}
+                    {Object.entries(
+                      demandTrends.reduce((acc, trend) => {
+                        const key = trend.category_name || 'Uncategorized';
+                        if (!acc[key]) {
+                          acc[key] = {
+                            category_name: key,
+                            total_rfqs: 0,
+                            total_budget: 0,
+                            countries: new Set()
+                          };
+                        }
+                        acc[key].total_rfqs += trend.rfqs_count || 0;
+                        acc[key].total_budget += parseFloat(trend.total_budget_demanded || 0);
+                        if (trend.buyer_country) {
+                          acc[key].countries.add(trend.buyer_country);
+                        }
+                        return acc;
+                      }, {})
+                    )
+                      .map(([key, data]) => ({
+                        ...data,
+                        countries: Array.from(data.countries)
+                      }))
+                      .sort((a, b) => b.total_rfqs - a.total_rfqs)
+                      .slice(0, 20)
+                      .map((trend, idx) => (
+                        <div key={idx} className="p-4 bg-afrikoni-cream rounded-lg hover:bg-afrikoni-gold/5 transition-colors">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-semibold text-afrikoni-chestnut text-lg">
+                              {trend.category_name}
+                            </div>
+                            <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold">
+                              #{idx + 1} Trending
+                            </Badge>
                           </div>
-                          <Badge className="bg-orange-200 text-orange-900">
-                            {gap.gap_count} gaps
-                          </Badge>
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <div className="text-afrikoni-deep/70 mb-1">RFQs</div>
+                              <div className="font-bold text-afrikoni-chestnut text-lg">{trend.total_rfqs}</div>
+                            </div>
+                            <div>
+                              <div className="text-afrikoni-deep/70 mb-1">Total Budget</div>
+                              <div className="font-bold text-afrikoni-gold text-lg">
+                                ${(trend.total_budget / 1000).toFixed(1)}k
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-afrikoni-deep/70 mb-1">Countries</div>
+                              <div className="font-bold text-afrikoni-chestnut text-lg">
+                                {trend.countries.length}
+                              </div>
+                            </div>
+                          </div>
+                          {trend.countries.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-afrikoni-gold/20">
+                              <div className="text-xs text-afrikoni-deep/70 mb-1">Top Countries:</div>
+                              <div className="flex flex-wrap gap-2">
+                                {trend.countries.slice(0, 5).map((country, cIdx) => (
+                                  <Badge key={cIdx} variant="outline" className="text-xs">
+                                    {country}
+                                  </Badge>
+                                ))}
+                                {trend.countries.length > 5 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{trend.countries.length - 5} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div className="text-sm text-orange-700">
-                          Need more suppliers in {gap.buyer_country}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 ) : (
                   <div className="text-center text-afrikoni-deep/70 py-8">
-                    No supply gaps detected
+                    No demand trend data available
                   </div>
                 )}
               </CardContent>
@@ -452,63 +522,76 @@ export default function TradeIntelligenceDashboard() {
 
           {/* Suppliers Tab */}
           <TabsContent value="suppliers" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Supplier Intelligence & Reliability</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {suppliersLoading ? (
-                  <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
-                  </div>
-                ) : supplierIntelligence?.length > 0 ? (
-                  <div className="space-y-4">
-                    {/* Supplier List */}
-                    <div className="space-y-2">
-                      {supplierIntelligence.slice(0, 20).map((supplier) => (
-                        <div key={supplier.company_id} className="p-4 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-cream transition-colors">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="font-semibold text-afrikoni-chestnut">
-                                  {supplier.company_name}
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Supplier Intelligence & Reliability</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {suppliersLoading ? (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
+                      </div>
+                    ) : supplierIntelligence?.length > 0 ? (
+                      <div className="space-y-4">
+                        {/* Supplier List */}
+                        <div className="space-y-2">
+                          {supplierIntelligence.slice(0, 20).map((supplier) => (
+                            <div key={supplier.company_id} className="p-4 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-cream transition-colors">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                    <div className="font-semibold text-afrikoni-chestnut">
+                                      {supplier.company_name}
+                                    </div>
+                                    {supplier.verified && (
+                                      <Badge className="bg-green-100 text-green-700">Verified</Badge>
+                                    )}
+                                    <ReliabilityBadge 
+                                      reliabilityScore={supplier.reliability_score} 
+                                      size="small"
+                                    />
+                                    {supplier.slow_response_flag && (
+                                      <Badge variant="warning">Slow Response</Badge>
+                                    )}
+                                    {supplier.high_dispute_flag && (
+                                      <Badge variant="destructive">High Disputes</Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-afrikoni-deep/70 space-y-1">
+                                    <div>{supplier.country} • {supplier.completion_rate.toFixed(1)}% completion</div>
+                                    <div>
+                                      Avg response: {supplier.avg_response_hours?.toFixed(1) || 'N/A'} hours
+                                      • {supplier.total_orders} orders
+                                    </div>
+                                  </div>
                                 </div>
-                                {supplier.verified && (
-                                  <Badge className="bg-green-100 text-green-700">Verified</Badge>
-                                )}
-                                {supplier.slow_response_flag && (
-                                  <Badge variant="warning">Slow Response</Badge>
-                                )}
-                                {supplier.high_dispute_flag && (
-                                  <Badge variant="destructive">High Disputes</Badge>
-                                )}
-                              </div>
-                              <div className="text-sm text-afrikoni-deep/70 space-y-1">
-                                <div>{supplier.country} • {supplier.completion_rate.toFixed(1)}% completion</div>
-                                <div>
-                                  Avg response: {supplier.avg_response_hours?.toFixed(1) || 'N/A'} hours
-                                  • {supplier.total_orders} orders
+                                <div className="text-right ml-4">
+                                  <div className="text-2xl font-bold text-afrikoni-gold">
+                                    {supplier.reliability_score?.toFixed(0) || 'N/A'}
+                                  </div>
+                                  <div className="text-xs text-afrikoni-deep/50">Reliability</div>
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right ml-4">
-                              <div className="text-2xl font-bold text-afrikoni-gold">
-                                {supplier.reliability_score?.toFixed(0) || 'N/A'}
-                              </div>
-                              <div className="text-xs text-afrikoni-deep/50">Reliability</div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-afrikoni-deep/70 py-8">
-                    No supplier data available
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      </div>
+                    ) : (
+                      <div className="text-center text-afrikoni-deep/70 py-8">
+                        No supplier data available
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Trust History Sidebar */}
+              <div>
+                <TrustHistoryTimeline companyId={supplierIntelligence?.[0]?.company_id} />
+              </div>
+            </div>
           </TabsContent>
 
           {/* Demand Tab */}

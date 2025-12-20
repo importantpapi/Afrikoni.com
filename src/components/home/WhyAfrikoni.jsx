@@ -57,7 +57,7 @@ export default function WhyAfrikoni() {
       icon: Award,
       subtitle: 'QUALITY ASSURED',
       title: 'Quality Guarantee',
-      description: 'Money-back guarantee on all orders. If you\'re not satisfied, we\'ll make it right.',
+      description: 'Structured dispute and refund process if goods don\'t match the agreement.',
       color: 'text-yellow-600',
       borderColor: 'border-yellow-600',
       iconBg: 'bg-yellow-50'
@@ -65,8 +65,8 @@ export default function WhyAfrikoni() {
     {
       icon: Users,
       subtitle: 'GROWING COMMUNITY',
-      title: 'Trusted by 50,000+ Buyers',
-      description: 'Join thousands of successful businesses who have grown their trade through Afrikoni.',
+      title: 'Trusted by Growing Network of Buyers',
+      description: 'Join a growing community of businesses building Africa\'s trade future.',
       color: 'text-purple-600',
       borderColor: 'border-purple-600',
       iconBg: 'bg-purple-50'
@@ -83,10 +83,10 @@ export default function WhyAfrikoni() {
           transition={{ duration: 0.5 }}
           className="text-center mb-10 md:mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3 md:mb-4">
-            Why 50,000+ Buyers Trust Afrikoni
+          <h2 className="text-h2-mobile md:text-h2 font-semibold leading-[1.2] text-afrikoni-chestnut mb-6">
+            Why Buyers Trust Afrikoni
           </h2>
-          <p className="text-base md:text-lg text-afrikoni-deep max-w-3xl mx-auto">
+          <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/80 max-w-3xl mx-auto">
             We've built Africa's most trusted B2B marketplace with security and quality at the core.
           </p>
         </motion.div>
@@ -108,13 +108,13 @@ export default function WhyAfrikoni() {
                   transition={{ duration: 0.2 }}
                 >
                   <Card className={`border-l-4 ${feature.borderColor} rounded-lg shadow-md hover:shadow-xl transition-all`}>
-                    <CardContent className="p-5 md:p-6">
+                    <CardContent className="p-6">
                       <Icon className={`w-10 h-10 ${feature.color} mb-4`} />
-                      <p className="text-sm text-afrikoni-deep/70 mb-1">{feature.subtitle}</p>
-                      <h3 className={`font-bold text-lg md:text-xl ${feature.color} mb-3`}>
+                      <p className="text-meta font-medium text-afrikoni-deep/70 mb-2">{feature.subtitle}</p>
+                      <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-3">
                         {feature.title}
                       </h3>
-                      <p className="text-afrikoni-deep text-sm">
+                      <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/80">
                         {feature.description}
                       </p>
                     </CardContent>
@@ -149,13 +149,13 @@ export default function WhyAfrikoni() {
                     className={`border-l-4 ${feature.borderColor} rounded-lg shadow-md min-w-[280px]`}
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <CardContent className="p-5">
+                    <CardContent className="p-6">
                       <Icon className={`w-10 h-10 ${feature.color} mb-4`} />
-                      <p className="text-sm text-afrikoni-deep/70 mb-1">{feature.subtitle}</p>
-                      <h3 className={`font-bold text-lg ${feature.color} mb-3`}>
+                      <p className="text-meta font-medium text-afrikoni-deep/70 mb-2">{feature.subtitle}</p>
+                      <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-3">
                         {feature.title}
                       </h3>
-                      <p className="text-afrikoni-deep text-sm">
+                      <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/80">
                         {feature.description}
                       </p>
                     </CardContent>

@@ -13,6 +13,7 @@ import { useSupplierIntelligence, useTrustEvolution, useRiskSignals } from '@/ho
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { Shield, TrendingUp, AlertTriangle, CheckCircle, Clock, XCircle, Package, DollarSign } from 'lucide-react';
+import TrustHistoryTimeline from '@/components/intelligence/TrustHistoryTimeline';
 
 export default function SellerIntelligence() {
   const [loading, setLoading] = useState(true);

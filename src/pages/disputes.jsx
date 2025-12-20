@@ -1,7 +1,106 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { FileText, Clock, Shield, CheckCircle, AlertCircle, MessageSquare } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { Button } from '@/components/ui/button';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { SystemPageHero, SystemPageSection, SystemPageCard, SystemPageTimeline, SystemPageCTA } from '@/components/system/SystemPageLayout';
 
 export default function Disputes() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        if (userData) {
+          setUser(userData);
+          // Redirect authenticated users to dashboard disputes
+          navigate('/dashboard/disputes', { replace: true });
+        }
+      } catch (error) {
+        // User not logged in, show public page
+      } finally {
+        setChecking(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
+      </div>
+    );
+  }
+
+  const disputeFlowSteps = [
+    {
+      number: 1,
+      title: 'Open Dispute',
+      description: 'Buyer or supplier opens a dispute directly from the protected order page with clear reason and initial evidence.',
+      icon: AlertCircle
+    },
+    {
+      number: 2,
+      title: 'Upload Evidence',
+      description: 'Both sides upload clear evidence: contracts, invoices, photos, videos, and key messages from the order conversation.',
+      icon: FileText
+    },
+    {
+      number: 3,
+      title: 'Afrikoni Review',
+      description: 'Afrikoni\'s team reviews the case and, if needed, asks questions or involves inspection partners for verification.',
+      icon: Shield
+    },
+    {
+      number: 4,
+      title: 'Resolution Proposed',
+      description: 'Afrikoni proposes a resolution (refund, partial refund, re-shipment, or other remedy) based on what was agreed in writing.',
+      icon: CheckCircle
+    }
+  ];
+
+  const requiredEvidence = [
+    {
+      icon: FileText,
+      title: 'Order Documents',
+      description: 'Original order confirmation, contract, or agreement showing terms and conditions.'
+    },
+    {
+      icon: MessageSquare,
+      title: 'Communication Records',
+      description: 'Relevant messages from the order conversation that support your case.'
+    },
+    {
+      icon: Shield,
+      title: 'Visual Evidence',
+      description: 'Photos or videos showing the issue (damaged goods, wrong items, etc.).'
+    }
+  ];
+
+  const timelines = [
+    {
+      icon: Clock,
+      title: 'Acknowledgment',
+      description: 'Afrikoni acknowledges new disputes within 1 business day.'
+    },
+    {
+      icon: FileText,
+      title: 'Initial Review',
+      description: 'Initial review and information request usually within 3–5 business days.'
+    },
+    {
+      icon: CheckCircle,
+      title: 'Resolution',
+      description: 'Most cases are resolved within 7–14 business days, depending on evidence and inspections.'
+    }
+  ];
+
   return (
     <>
       <SEO
@@ -9,61 +108,126 @@ export default function Disputes() {
         description="Understand how Afrikoni handles order disputes between buyers and suppliers, with clear timelines, documentation, and mediation."
         url="/disputes"
       />
+      
       <div className="min-h-screen bg-afrikoni-offwhite">
-        <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
-          <header className="mb-8 md:mb-10 space-y-3">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3">
-                Dispute Resolution
-              </h1>
-              <p className="text-afrikoni-deep/80 max-w-2xl">
-                When something goes wrong, Afrikoni Trade Shield provides a structured path to
-                investigate, document, and resolve disputes between buyers and suppliers.
-              </p>
-            </div>
-            <div className="bg-white/90 border border-afrikoni-gold/30 rounded-lg p-4">
-              <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut uppercase tracking-wide mb-2">
-                Before you worry
-              </p>
-              <p className="text-sm md:text-base text-afrikoni-deep/90">
-                Most trades finish without any dispute. This page explains what happens in the rare cases where there
-                is a problem, so you know <span className="font-semibold">Afrikoni will stand in the middle</span> and
-                follow a clear, fair process.
-              </p>
-            </div>
-          </header>
+        {/* Hero Section */}
+        <SystemPageHero
+          eyebrow="Dispute Resolution"
+          eyebrowIcon={Shield}
+          title="Dispute Resolution"
+          subtitle="When something goes wrong, Afrikoni Trade Shield provides a structured path to investigate, document, and resolve disputes between buyers and suppliers."
+          primaryCTA={{ label: 'Open a Dispute', to: '/login' }}
+        />
 
-          <section className="bg-white rounded-xl border border-afrikoni-gold/20 p-6 space-y-3">
-            <h2 className="font-semibold text-afrikoni-chestnut mb-3">Typical dispute flow</h2>
-            <ol className="list-decimal list-inside text-sm text-afrikoni-deep/80 space-y-1.5">
-              <li>The buyer or supplier opens a dispute directly from the protected order page.</li>
-              <li>Both sides upload clear evidence: contracts, invoices, photos, videos and key messages.</li>
-              <li>Afrikoni&apos;s team reviews the case and, if needed, asks questions or involves inspection partners.</li>
-              <li>
-                Afrikoni proposes a resolution (refund, partial refund, re‑shipment or other remedy) based on
-                what was agreed in writing.
-              </li>
-            </ol>
-            <p className="text-xs md:text-sm text-afrikoni-deep/80 mt-2">
-              Important: disputes are only fully covered when payment and communication stay inside Afrikoni Trade Shield™.
-            </p>
-            <div className="mt-4 space-y-2">
-              <h3 className="font-semibold text-afrikoni-chestnut text-sm md:text-base">Typical timelines</h3>
-              <ul className="list-disc list-inside text-xs md:text-sm text-afrikoni-deep/80 space-y-1">
-                <li>Afrikoni acknowledges new disputes within 1 business day.</li>
-                <li>Initial review and information request usually within 3–5 business days.</li>
-                <li>Most cases are resolved within 7–14 business days, depending on evidence and inspections.</li>
-              </ul>
-              <p className="text-xs md:text-sm text-afrikoni-deep/70">
-                Complex cross-border cases may take longer, but Afrikoni will always communicate clearly inside
-                the order chat about the status and next steps.
-              </p>
+        {/* Before You Worry Notice */}
+        <SystemPageSection>
+          <div className="bg-afrikoni-cream rounded-xl border-2 border-afrikoni-gold/40 p-8 mb-12">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-afrikoni-gold" />
+              </div>
+              <div>
+                <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-3">
+                  Before You Worry
+                </h3>
+                <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80">
+                  Most trades finish without any dispute. This page explains what happens in the rare cases where there is a problem, so you know <strong>Afrikoni will stand in the middle</strong> and follow a clear, fair process.
+                </p>
+              </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </SystemPageSection>
+
+        {/* Dispute Flow */}
+        <SystemPageSection
+          title="Typical Dispute Flow"
+          subtitle="A clear, structured process for resolving issues"
+        >
+          <SystemPageTimeline steps={disputeFlowSteps} />
+        </SystemPageSection>
+
+        {/* Required Evidence & Timelines */}
+        <SystemPageSection
+          title="What You Need to Know"
+          subtitle="Essential information for successful dispute resolution"
+        >
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Required Evidence */}
+            <div>
+              <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-gold mb-6">
+                Required Evidence
+              </h3>
+              <div className="space-y-4">
+                {requiredEvidence.map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <SystemPageCard
+                      key={idx}
+                      icon={Icon}
+                      title={item.title}
+                    >
+                      {item.description}
+                    </SystemPageCard>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Timelines */}
+            <div>
+              <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-gold mb-6">
+                Typical Timelines
+              </h3>
+              <div className="space-y-4">
+                {timelines.map((timeline, idx) => {
+                  const Icon = timeline.icon;
+                  return (
+                    <SystemPageCard
+                      key={idx}
+                      icon={Icon}
+                      title={timeline.title}
+                    >
+                      {timeline.description}
+                    </SystemPageCard>
+                  );
+                })}
+              </div>
+              <div className="mt-6 p-4 bg-afrikoni-cream/50 rounded-lg border border-afrikoni-gold/20">
+                <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/70 text-sm">
+                  <strong>Note:</strong> Complex cross-border cases may take longer, but Afrikoni will always communicate clearly inside the order chat about the status and next steps.
+                </p>
+              </div>
+            </div>
+          </div>
+        </SystemPageSection>
+
+        {/* Important Notice */}
+        <SystemPageSection>
+          <div className="bg-afrikoni-cream rounded-xl border-2 border-afrikoni-gold/40 p-8 mb-12">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-afrikoni-gold" />
+              </div>
+              <div>
+                <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-3">
+                  Important: Full Protection Requires Staying Inside Afrikoni
+                </h3>
+                <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80">
+                  Disputes are only fully covered when payment and communication stay inside Afrikoni Trade Shield™. Moving conversations or payments outside the platform reduces our ability to mediate and resolve disputes effectively.
+                </p>
+              </div>
+            </div>
+          </div>
+        </SystemPageSection>
+
+        {/* CTA Footer */}
+        <SystemPageCTA
+          title="Have an Active Dispute?"
+          description="If you're already logged in, access your dispute dashboard to manage active cases"
+          ctaLabel="Go to Dispute Dashboard"
+          ctaTo="/login"
+        />
       </div>
     </>
   );
 }
-
-

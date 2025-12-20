@@ -85,14 +85,42 @@ export const SPACING = {
   title: 'mb-6 md:mb-8',
 };
 
+/**
+ * AFRIKONI TYPOGRAPHY SYSTEM
+ * Institutional, Trust-driven, Enterprise-grade
+ * 
+ * STRICT TYPOGRAPHIC ROLES - NO DEVIATIONS
+ */
 export const TYPOGRAPHY = {
-  h1: 'text-3xl md:text-4xl font-bold text-afrikoni-text-dark leading-tight',
-  h2: 'text-2xl md:text-3xl font-bold text-afrikoni-text-dark leading-tight',
-  h3: 'text-xl md:text-2xl font-semibold text-afrikoni-text-dark',
-  sectionTitle: 'text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider mb-4 pb-3 border-b-2 border-afrikoni-gold',
-  body: 'text-sm md:text-base text-afrikoni-text-dark/70',
-  kpiNumber: 'text-3xl md:text-4xl font-bold text-afrikoni-text-dark',
-  kpiLabel: 'text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide',
+  // H1 - Hero / Page title
+  // Desktop: 60px, Mobile: 40px
+  // font-weight: 700, line-height: 1.1, letter-spacing: -0.02em
+  h1: 'text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-text-dark',
+  
+  // H2 - Section titles
+  // Desktop: 40px, Mobile: 28px
+  // font-weight: 600, line-height: 1.2
+  h2: 'text-h2-mobile md:text-h2 font-semibold leading-[1.2] text-afrikoni-text-dark',
+  
+  // H3 - Subsections / Card titles
+  // 22px
+  // font-weight: 600, line-height: 1.3
+  h3: 'text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark',
+  
+  // Body - Primary text
+  // 18px
+  // font-weight: 400, line-height: 1.6
+  body: 'text-body font-normal leading-[1.6] text-afrikoni-text-dark',
+  
+  // Meta / Labels / Badges
+  // 14px
+  // font-weight: 500, letter-spacing: 0.02em
+  meta: 'text-meta font-medium leading-[1.5] tracking-[0.02em] text-afrikoni-text-dark/70',
+  
+  // Legacy support (deprecated - use above)
+  sectionTitle: 'text-h2-mobile md:text-h2 font-semibold text-afrikoni-text-dark mb-4 pb-3 border-b-2 border-afrikoni-gold',
+  kpiNumber: 'text-h1-mobile md:text-h1 font-bold text-afrikoni-text-dark',
+  kpiLabel: 'text-meta font-medium text-afrikoni-text-dark/70',
 };
 
 export const SHADOWS = {

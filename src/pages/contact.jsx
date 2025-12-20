@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageCircle, Mail, Phone, MapPin, Clock, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabaseHelpers } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import OptimizedImage from '@/components/OptimizedImage';
 
 export default function Contact() {
@@ -68,55 +68,106 @@ export default function Contact() {
     
     try {
       // Save contact form submission to database
-      const { error } = await supabaseHelpers.db.insert('contact_submissions', {
-        name: formData.name,
-        email: formData.email,
-        category: formData.category || 'general',
-        subject: formData.subject || '',
-        message: formData.message,
-        attachments: attachments.map(a => a.url),
-        created_at: new Date().toISOString()
-      });
-
-      if (error) throw error;
-
-      // Send email notification to hello@afrikoni.com
-      try {
-        const { sendEmail } = await import('@/services/emailService');
-        const emailSubject = formData.subject 
-          ? `Contact Form: ${formData.subject}` 
-          : `Contact Form: ${formData.category || 'General Inquiry'}`;
-        
-        const emailMessage = `
-          <p><strong>Name:</strong> ${formData.name}</p>
-          <p><strong>Email:</strong> ${formData.email}</p>
-          <p><strong>Category:</strong> ${formData.category || 'General'}</p>
-          ${formData.subject ? `<p><strong>Subject:</strong> ${formData.subject}</p>` : ''}
-          <p><strong>Message:</strong></p>
-          <p>${formData.message.replace(/\n/g, '<br>')}</p>
-          ${attachments.length > 0 ? `<p><strong>Attachments:</strong> ${attachments.map(a => a.name).join(', ')}</p>` : ''}
-        `;
-
-        await sendEmail({
-          to: 'hello@afrikoni.com',
-          subject: emailSubject,
-          template: 'default',
-          data: {
-            title: 'New Contact Form Submission',
-            message: emailMessage
-          }
+      // Note: We don't use .select() because anonymous users can INSERT but not SELECT
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          category: formData.category || 'general',
+          subject: formData.subject || '',
+          message: formData.message,
+          attachments: attachments.length > 0 ? attachments.map(a => a.url) : []
         });
-      } catch (emailError) {
-        console.error('Error sending email notification:', emailError);
-        // Don't fail the form submission if email fails
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
       }
+
+      // Create admin notification and send structured email (non-blocking)
+      // This runs in the background and doesn't affect form submission success
+      (async () => {
+        try {
+          const { createNotification } = await import('@/services/notificationService');
+          const { sendEmail } = await import('@/services/emailService');
+          
+          // Create structured email subject
+          const emailSubject = formData.subject 
+            ? `📧 Contact Form: ${formData.subject}` 
+            : `📧 Contact Form: ${formData.category || 'General Inquiry'}`;
+
+          // Create admin notification
+          try {
+            await createNotification({
+              company_id: null, // Admin notification
+              user_email: 'hello@afrikoni.com',
+              title: `📧 New Contact Form Submission: ${formData.category || 'General'}`,
+              message: `${formData.name} (${formData.email}) submitted a ${formData.category || 'general'} inquiry${formData.subject ? `: ${formData.subject}` : ''}`,
+              type: 'contact',
+              link: '/dashboard/risk?tab=contact',
+              sendEmail: true,
+              emailSubject: emailSubject
+            });
+          } catch (notifError) {
+            console.warn('Notification creation failed (non-critical):', notifError);
+          }
+
+          // Send structured email to admin
+          const emailResult = await sendEmail({
+            to: 'hello@afrikoni.com',
+            subject: emailSubject,
+            template: 'contactSubmission',
+            data: {
+              name: formData.name,
+              email: formData.email,
+              category: formData.category || 'General',
+              subject: formData.subject || 'No subject',
+              message: formData.message,
+              attachments: attachments,
+              submissionDate: new Date().toLocaleString('en-US', { 
+                dateStyle: 'full', 
+                timeStyle: 'short' 
+              })
+            }
+          });
+
+          if (!emailResult.success && import.meta.env.DEV) {
+            console.warn('Email notification failed (non-critical):', emailResult.error);
+          }
+        } catch (emailError) {
+          // Silently fail - email is not critical for form submission
+          if (import.meta.env.DEV) {
+            console.warn('Email notification error (non-critical):', emailError);
+          }
+        }
+      })();
 
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       setFormData({ name: '', email: '', category: '', subject: '', message: '' });
       setAttachments([]);
     } catch (error) {
       console.error('Error submitting contact form:', error);
-      toast.error('Failed to send message. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to send message. Please try again.';
+      
+      if (error?.code === '42501') {
+        errorMessage = 'Permission denied. Please contact support at hello@afrikoni.com';
+      } else if (error?.code === '42P01') {
+        errorMessage = 'Database error. Please contact support at hello@afrikoni.com';
+      } else if (error?.code === '23505') {
+        errorMessage = 'Duplicate submission. Please wait a moment and try again.';
+      } else if (error?.message) {
+        // Show user-friendly error message
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

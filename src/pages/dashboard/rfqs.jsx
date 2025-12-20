@@ -219,13 +219,13 @@ function DashboardRFQsInner() {
                   <FileText className="w-6 h-6 text-afrikoni-gold" />
                 </div>
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-1">
+                  <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-chestnut mb-3">
                     {currentRole === 'buyer' ? 'My RFQs' : 
                      currentRole === 'seller' ? 'RFQs Received' : 
                      currentRole === 'hybrid' ? 'All RFQs' :
                      'RFQs'}
                   </h1>
-                  <p className="text-afrikoni-text-dark/70 text-sm md:text-base">
+                  <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">
                     {currentRole === 'buyer' && 'Manage your requests for quotations and track responses'}
                     {currentRole === 'seller' && 'Browse and respond to buyer requests matching your products'}
                     {currentRole === 'hybrid' && 'View all RFQs across your buyer and seller activities'}

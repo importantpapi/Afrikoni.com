@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
 import { useRFQMatching } from '@/hooks/useRFQMatching';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import ReliabilityBadge from '@/components/intelligence/ReliabilityBadge';
 
 export default function RFQMatching() {
   const navigate = useNavigate();
@@ -506,13 +507,24 @@ export default function RFQMatching() {
                                 </span>
                               )}
                             </p>
+                            {supplier.reliability_score && (
+                              <div className="mt-1">
+                                <ReliabilityBadge 
+                                  reliabilityScore={supplier.reliability_score} 
+                                  size="small"
+                                  showTooltip={true}
+                                />
+                              </div>
+                            )}
                           </div>
-                          {supplier.verified && (
-                            <Badge variant="outline" className="text-xs">
-                              <Shield className="w-3 h-3 mr-1" />
-                              Verified
-                            </Badge>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {supplier.verified && (
+                              <Badge variant="outline" className="text-xs">
+                                <Shield className="w-3 h-3 mr-1" />
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       );
                     })

@@ -55,6 +55,7 @@ export const translations = {
     'hero.trending.cashew': 'Cashew nuts',
     'hero.trending.leather': 'Leather goods',
     'hero.subtitle': 'What are you looking for?',
+    'early_access_signal': 'Afrikoni is expanding its verified network',
     
     // Trust Cards
     'trust.title': 'Trade with Confidence',
@@ -316,7 +317,9 @@ export const translations = {
     'marketplace.viewingCountry': 'Viewing: {country}',
     'marketplace.viewingAllAfrica': 'Viewing: All Africa',
     'marketplace.countryMarketplace': 'Country Marketplace',
-    'marketplace.allAfrica': 'All Africa',
+    'marketplace.allAfrica': 'All Africa', // Deprecated - use allAfricanMarkets
+    'marketplace.allAfricanMarkets': 'All African Markets',
+    'marketplace.panAfricanScope': 'Pan-African scope',
     'marketplace.verification': 'Verification',
     'marketplace.sortBy': 'Sort By',
     'marketplace.priceRange': 'Price Range',
@@ -353,7 +356,9 @@ export const translations = {
     'marketplace.viewingCountry': 'You are viewing the {country} marketplace. Search results are limited to suppliers from this country.',
     'marketplace.viewingAllAfrica': 'You are viewing the All Africa marketplace. Choose a country if you want results from one market only.',
     'marketplace.countryMarketplace': 'Country marketplace:',
-    'marketplace.allAfrica': 'All Africa',
+    'marketplace.allAfrica': 'All Africa', // Deprecated - use allAfricanMarkets
+    'marketplace.allAfricanMarkets': 'All African Markets',
+    'marketplace.panAfricanScope': 'Pan-African scope',
     'marketplace.verification': 'Verification',
     'marketplace.priceRange': 'Price Range',
     'marketplace.minPrice': 'Min $',
@@ -694,7 +699,7 @@ export const translations = {
     'login.seller': 'Seller',
     'login.logistics': 'Logistics',
     'login.sslSecured': 'SSL Secured',
-    'login.trusted': 'Trusted by 50,000+',
+    'login.trusted': 'Trusted Platform',
     'login.dontHaveAccount': 'Don\'t have an account?',
     'login.createAccount': 'Create account',
     'login.contextRFQTitle': 'You are almost done creating an RFQ.',
@@ -784,6 +789,8 @@ export const translations = {
     'hero.trending.solar': 'Panneaux solaires',
     'hero.trending.cashew': 'Noix de cajou',
     'hero.trending.leather': 'Articles en cuir',
+    'hero.subtitle': 'Que recherchez-vous?',
+    'early_access_signal': 'Afrikoni étend son réseau vérifié',
     
     // Trust Cards
     'trust.title': 'Commercez en toute confiance',
@@ -988,7 +995,9 @@ export const translations = {
     'marketplace.viewingCountry': 'Affichage: {country}',
     'marketplace.viewingAllAfrica': 'Affichage: Toute l\'Afrique',
     'marketplace.countryMarketplace': 'Marché par pays',
-    'marketplace.allAfrica': 'Toute l\'Afrique',
+    'marketplace.allAfrica': 'Toute l\'Afrique', // Deprecated - use allAfricanMarkets
+    'marketplace.allAfricanMarkets': 'Tous les marchés africains',
+    'marketplace.panAfricanScope': 'Portée panafricaine',
     'marketplace.verification': 'Vérification',
     'marketplace.sortBy': 'Trier par',
     'marketplace.priceRange': 'Gamme de prix',
@@ -1287,7 +1296,7 @@ export const translations = {
     'login.seller': 'Vendeur',
     'login.logistics': 'Logistique',
     'login.sslSecured': 'SSL sécurisé',
-    'login.trusted': 'Approuvé par 50 000+',
+    'login.trusted': 'Plateforme de confiance',
     'login.dontHaveAccount': 'Vous n\'avez pas de compte?',
     'login.createAccount': 'Créer un compte',
     'login.contextRFQTitle': 'Vous êtes sur le point de créer une demande de devis.',
@@ -1377,6 +1386,8 @@ export const translations = {
     'hero.trending.solar': 'الألواح الشمسية',
     'hero.trending.cashew': 'الكاجو',
     'hero.trending.leather': 'منتجات الجلد',
+    'hero.subtitle': 'ماذا تبحث عنه?',
+    'early_access_signal': 'أفريكوني يوسع شبكته المتحقق منها',
     
     // Trust Cards
     'trust.title': 'تداول بثقة',
@@ -1591,6 +1602,8 @@ export const translations = {
     // Marketplace Extended
     'marketplace.popularMarkets': 'الأسواق الشائعة',
     'marketplace.allCountries': 'جميع الدول',
+    'marketplace.allAfricanMarkets': 'جميع الأسواق الإفريقية',
+    'marketplace.panAfricanScope': 'نطاق عموم أفريقيا',
     'marketplace.searchPlaceholder': 'ابحث عن المنتجات، الموردين...',
     'marketplace.noResults': 'لم يتم العثور على منتجات تطابق بحثك',
     'marketplace.tryDifferentFilters': 'حاول تعديل الفلاتر أو مصطلحات البحث الخاصة بك',
@@ -1880,7 +1893,7 @@ export const translations = {
     'login.seller': 'بائع',
     'login.logistics': 'الخدمات اللوجستية',
     'login.sslSecured': 'محمي بـ SSL',
-    'login.trusted': 'موثوق من قبل 50,000+',
+    'login.trusted': 'منصة موثوقة',
     'login.dontHaveAccount': 'ليس لديك حساب?',
     'login.createAccount': 'إنشاء حساب',
     'login.contextRFQTitle': 'أنت على وشك إنشاء طلب عرض سعر.',
@@ -1970,6 +1983,8 @@ export const translations = {
     'hero.trending.solar': 'Painéis solares',
     'hero.trending.cashew': 'Castanha de caju',
     'hero.trending.leather': 'Artigos de couro',
+    'hero.subtitle': 'O que você está procurando?',
+    'early_access_signal': 'Afrikoni está expandindo sua rede verificada',
     
     // Trust Cards
     'trust.title': 'Comercie com Confiança',
@@ -2179,6 +2194,8 @@ export const translations = {
     // Marketplace Extended
     'marketplace.popularMarkets': 'Mercados Populares',
     'marketplace.allCountries': 'Todos os Países',
+    'marketplace.allAfricanMarkets': 'Todos os mercados africanos',
+    'marketplace.panAfricanScope': 'Escopo pan-africano',
     'marketplace.searchPlaceholder': 'Pesquisar produtos, fornecedores...',
     'marketplace.noResults': 'Nenhum produto encontrado correspondendo à sua pesquisa',
     'marketplace.tryDifferentFilters': 'Tente ajustar seus filtros ou termos de pesquisa',
@@ -2401,7 +2418,7 @@ export const translations = {
     'login.seller': 'Vendedor',
     'login.logistics': 'Logística',
     'login.sslSecured': 'SSL Protegido',
-    'login.trusted': 'Confiado por 50.000+',
+    'login.trusted': 'Plataforma Confiável',
     'login.dontHaveAccount': 'Não tem uma conta?',
     'login.createAccount': 'Criar conta',
     'login.contextRFQTitle': 'Você está quase terminando de criar uma solicitação de cotação.',

@@ -358,52 +358,79 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         : 0;
 
       // v2.5: Brand-consistent KPI icon colors
-      const kpiList = [
-        {
+      // Role-based KPI filtering: buyers don't see seller-specific metrics
+      const kpiList = [];
+      
+      // Orders: only show for buyers if > 0, always show for sellers
+      if (role === 'buyer') {
+        // For buyers: only add if > 0 (will be filtered in render)
+        kpiList.push({
+          icon: ShoppingCart,
+          label: t('dashboard.totalOrders') || 'Total Orders',
+          value: totalOrders.toLocaleString(),
+          change: totalOrders > 0 ? '+12.5%' : null,
+          color: 'bg-afrikoni-gold/15 text-afrikoni-gold',
+          iconBg: 'bg-afrikoni-gold/20'
+        });
+      } else if (role === 'seller' || role === 'hybrid') {
+        // Sellers/hybrid: always show orders
+        kpiList.push({
           icon: ShoppingCart,
           label: t('dashboard.totalOrders') || 'Total Orders',
           value: totalOrders.toLocaleString(),
           change: '+12.5%',
           color: 'bg-afrikoni-gold/15 text-afrikoni-gold',
           iconBg: 'bg-afrikoni-gold/20'
-        },
-        {
+        });
+      }
+      
+      // RFQs: always show for buyers, only for sellers if they receive RFQs
+      if (role === 'buyer' || role === 'hybrid') {
+        kpiList.push({
           icon: FileText,
           label: t('dashboard.totalRFQs') || 'Total RFQs',
           value: totalRFQs.toLocaleString(),
-          change: '+8.2%',
+          change: totalRFQs > 0 ? '+8.2%' : null,
           color: 'bg-afrikoni-purple/15 text-afrikoni-purple',
           iconBg: 'bg-afrikoni-purple/20'
-        },
-        {
+        });
+      }
+      
+      // Products: ONLY for sellers/hybrid (buyers never see this)
+      if (role === 'seller' || role === 'hybrid') {
+        kpiList.push({
           icon: Package,
           label: t('dashboard.products') || 'Products',
           value: totalProducts.toLocaleString(),
-          change: role === 'seller' || role === 'hybrid' ? '+5.1%' : null,
+          change: '+5.1%',
           color: 'bg-afrikoni-green/15 text-afrikoni-green',
           iconBg: 'bg-afrikoni-green/20'
-        },
-        {
-          icon: MessageSquare,
-          label: t('dashboard.unreadMessages') || 'Unread Messages',
-          value: unreadMessages.toLocaleString(),
-          change: unreadMessages > 0 ? 'New' : null,
-          color: 'bg-afrikoni-red/15 text-afrikoni-red',
-          iconBg: 'bg-afrikoni-red/20'
-        }
-      ];
+        });
+      }
+      
+      // Messages: always show
+      kpiList.push({
+        icon: MessageSquare,
+        label: t('dashboard.unreadMessages') || 'Unread Messages',
+        value: unreadMessages.toLocaleString(),
+        change: unreadMessages > 0 ? 'New' : null,
+        color: 'bg-afrikoni-red/15 text-afrikoni-red',
+        iconBg: 'bg-afrikoni-red/20'
+      });
 
-      if (role === 'buyer' || role === 'hybrid') {
+      // Suppliers: ONLY for buyers (sellers never see this)
+      if (role === 'buyer') {
         kpiList.push({
           icon: Users,
           label: t('dashboard.suppliers') || 'Suppliers',
           value: supplierCount.toLocaleString(),
-          change: '+3.2%',
+          change: supplierCount > 0 ? '+3.2%' : null,
           color: 'bg-afrikoni-clay/10 text-afrikoni-clay',
           iconBg: 'bg-afrikoni-clay/20'
         });
       }
 
+      // Payouts: ONLY for sellers/hybrid (buyers never see this)
       if (role === 'seller' || role === 'hybrid') {
         kpiList.push({
           icon: Wallet,
@@ -830,7 +857,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
               return `${t('dashboard.welcome') || 'Welcome back'}!`;
             })()}
           </h1>
-          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+          <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">
             {currentRole === 'buyer' && (t('dashboard.buyerSubtitle') || 'Source products and connect with verified suppliers across Africa.')}
             {currentRole === 'seller' && (t('dashboard.sellerSubtitle') || 'Manage your products, RFQs, and grow your business.')}
             {currentRole === 'hybrid' && (t('dashboard.hybridSubtitle') || 'Handle both buying and selling from one powerful dashboard.')}
@@ -900,18 +927,18 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-base md:text-lg font-bold text-afrikoni-text-dark flex items-center gap-2">
+                  <h2 className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark flex items-center gap-2">
                     Afrikoni Academy
                   </h2>
                   <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-[10px] md:text-xs uppercase tracking-wide">
                     Guided learning
                   </Badge>
                 </div>
-                <p className="text-xs md:text-sm text-afrikoni-text-dark/80">
+                <p className="text-meta font-medium text-afrikoni-text-dark/80">
                   Short, practical lessons to help you trade safely and confidently on Afrikoni. Start with the steps
                   below — each one is designed for busy African businesses, not lawyers.
                 </p>
-                <div className="grid md:grid-cols-3 gap-3 text-xs md:text-sm">
+                <div className="grid md:grid-cols-3 gap-3 text-meta">
                   {currentRole === 'buyer' && (
                     <>
                       <AcademyLesson
@@ -978,8 +1005,8 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         </motion.div>
       )}
 
-      {/* Primary CTA for Buyers - Post New RFQ */}
-      {(currentRole === 'buyer' || currentRole === 'hybrid') && (
+      {/* Primary CTA for Sellers - Add Products */}
+      {(currentRole === 'seller' || (currentRole === 'hybrid' && (activeView === 'seller' || activeView === 'all'))) && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -990,18 +1017,68 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex-1">
-                  <h2 className="text-xl md:text-2xl font-bold text-afrikoni-text-dark mb-2 flex items-center gap-2">
+                  <h2 className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark mb-3 flex items-center gap-2">
+                    <Package className="w-6 h-6 text-afrikoni-gold" />
+                    List Your Products
+                  </h2>
+                  <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70 mb-2">
+                    Add products to your catalog to start receiving RFQs from buyers. Verified suppliers get priority matching.
+                  </p>
+                  {/* Subtle first-time guidance - only show if no products yet */}
+                  {(() => {
+                    const productsKPI = kpis.find(k => k.label.includes('Product'));
+                    return productsKPI && parseInt(productsKPI.value) === 0;
+                  })() && (
+                    <p className="text-meta font-medium text-afrikoni-text-dark/60 italic">
+                      Start by adding your first product — buyers will find you through RFQs.
+                    </p>
+                  )}
+                </div>
+                <Link to="/dashboard/products/new" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal px-6 md:px-8 py-3 md:py-4 text-body font-bold shadow-xl hover:shadow-2xl transition-all min-h-[44px]"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Product
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Primary CTA for Hybrid Buyers - Post New RFQ */}
+      {(currentRole === 'buyer' || (currentRole === 'hybrid' && (activeView === 'buyer' || activeView === 'all'))) && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="mb-6"
+        >
+          <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-premium-lg">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h2 className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark mb-3 flex items-center gap-2">
                     <FileText className="w-6 h-6 text-afrikoni-gold" />
                     Post a Trade Request (RFQ)
                   </h2>
-                  <p className="text-sm md:text-base text-afrikoni-text-dark/70">
+                  <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70 mb-2">
                     Describe what you need and get matched with verified suppliers. Your request is live and suppliers will respond with quotes.
                   </p>
+                  {/* Subtle first-time guidance - only show if no RFQs yet */}
+                  {recentRFQs.length === 0 && (
+                    <p className="text-meta font-medium text-afrikoni-text-dark/60 italic">
+                      Start by posting an RFQ — suppliers will respond here.
+                    </p>
+                  )}
                 </div>
-                <Link to="/rfq/create">
+                <Link to="/rfq/create" className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold shadow-xl hover:shadow-2xl transition-all"
+                    className="w-full sm:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal px-6 md:px-8 py-3 md:py-4 text-body font-bold shadow-xl hover:shadow-2xl transition-all min-h-[44px]"
                   >
                     <Plus className="w-5 h-5 mr-2" />
                     Post New RFQ
@@ -1013,46 +1090,253 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         </motion.div>
       )}
 
-      {/* KPI Bar - Premium Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {kpis.map((kpi, idx) => {
-          const Icon = kpi.icon;
-          const iconColorClass =
-            typeof kpi?.color === 'string'
-              ? (kpi.color.split(' ')[1] || '')
-              : '';
-          return (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: idx * 0.05 }}
-            >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg overflow-hidden">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`w-12 h-12 ${kpi.iconBg} rounded-full flex items-center justify-center`}>
-                      <Icon className={`w-6 h-6 ${iconColorClass}`} />
+      {/* KPI Bar - Premium Cards with Role-Based Zero-Metric Handling */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+        {(() => {
+          // For buyers: filter out zero metrics and replace with guidance
+          if (currentRole === 'buyer') {
+            const visibleKPIs = kpis.filter(kpi => {
+              // Always show RFQs and Messages (actionable)
+              if (kpi.label.includes('RFQ') || kpi.label.includes('Message')) return true;
+              // Hide zero metrics that aren't actionable yet
+              const numericValue = parseInt(kpi.value) || 0;
+              return numericValue > 0;
+            });
+            
+            // Add guidance cards for hidden zero metrics
+            const guidanceCards = [];
+            
+            // Orders guidance
+            const ordersKPI = kpis.find(k => k.label.includes('Order'));
+            if (!ordersKPI || parseInt(ordersKPI.value) === 0) {
+              guidanceCards.push({
+                icon: ShoppingCart,
+                label: 'Orders',
+                guidance: 'Orders will appear once a supplier accepts your RFQ',
+                color: 'bg-afrikoni-gold/15 text-afrikoni-gold',
+                iconBg: 'bg-afrikoni-gold/20',
+                isGuidance: true
+              });
+            }
+            
+            // Suppliers guidance
+            const suppliersKPI = kpis.find(k => k.label.includes('Supplier'));
+            if (!suppliersKPI || parseInt(suppliersKPI.value) === 0) {
+              guidanceCards.push({
+                icon: Users,
+                label: 'Suppliers',
+                guidance: 'Suppliers respond after you post an RFQ',
+                color: 'bg-afrikoni-clay/10 text-afrikoni-clay',
+                iconBg: 'bg-afrikoni-clay/20',
+                isGuidance: true
+              });
+            }
+            
+            // Combine visible KPIs with guidance cards
+            const allCards = [...visibleKPIs, ...guidanceCards];
+            
+            return allCards.map((kpi, idx) => {
+              const Icon = kpi.icon;
+              const iconColorClass =
+                typeof kpi?.color === 'string'
+                  ? (kpi.color.split(' ')[1] || '')
+                  : '';
+              
+              // Render guidance card differently
+              if (kpi.isGuidance) {
+                return (
+                  <motion.div
+                    key={`guidance-${idx}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  >
+                    <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg overflow-hidden">
+                      <CardContent className="p-4 sm:p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 ${kpi.iconBg} rounded-full flex items-center justify-center flex-shrink-0`}>
+                            <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
+                          </div>
+                        </div>
+                        <div className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark mb-2">
+                          {kpi.label}
+                        </div>
+                        <div className="text-meta font-medium text-afrikoni-text-dark/70 leading-relaxed">
+                          {kpi.guidance}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              }
+              
+              // Regular KPI card
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                >
+                  <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg overflow-hidden">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-12 h-12 ${kpi.iconBg} rounded-full flex items-center justify-center`}>
+                          <Icon className={`w-6 h-6 ${iconColorClass}`} />
+                        </div>
+                        {kpi.change && (
+                          <Badge variant="outline" className="text-xs bg-afrikoni-green/10 text-afrikoni-green border-afrikoni-green/20">
+                            <TrendingUp className="w-3 h-3 mr-1" />
+                            {kpi.change}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-h1-mobile md:text-h1 font-bold leading-[1.1] text-afrikoni-text-dark mb-2">
+                        {kpi.value}
+                      </div>
+                      <div className="text-meta font-medium text-afrikoni-text-dark/70 uppercase tracking-[0.02em]">
+                        {kpi.label}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            });
+          }
+          
+          // For sellers: show all KPIs but add guidance for critical zero metrics
+          if (currentRole === 'seller' || (currentRole === 'hybrid' && activeView === 'seller')) {
+            const allKPIs = [...kpis];
+            const guidanceCards = [];
+            
+            // Products guidance (critical for sellers)
+            const productsKPI = kpis.find(k => k.label.includes('Product'));
+            if (!productsKPI || parseInt(productsKPI.value) === 0) {
+              guidanceCards.push({
+                icon: Package,
+                label: 'Products',
+                guidance: 'Add your first product to start receiving RFQs',
+                color: 'bg-afrikoni-green/15 text-afrikoni-green',
+                iconBg: 'bg-afrikoni-green/20',
+                isGuidance: true,
+                actionPath: '/dashboard/products/new'
+              });
+            }
+            
+            // Combine KPIs with guidance (guidance appears after regular KPIs)
+            const allCards = [...allKPIs, ...guidanceCards];
+            
+            return allCards.map((kpi, idx) => {
+              const Icon = kpi.icon;
+              const iconColorClass =
+                typeof kpi?.color === 'string'
+                  ? (kpi.color.split(' ')[1] || '')
+                  : '';
+              
+              // Render guidance card with action
+              if (kpi.isGuidance && kpi.actionPath) {
+                return (
+                  <motion.div
+                    key={`seller-guidance-${idx}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  >
+                    <Link to={kpi.actionPath} className="block min-h-[44px]">
+                      <Card className="border-afrikoni-gold/30 hover:border-afrikoni-gold/60 hover:shadow-premium-lg transition-all bg-gradient-to-br from-afrikoni-gold/5 to-white rounded-afrikoni-lg overflow-hidden cursor-pointer touch-manipulation active:scale-[0.98]">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 ${kpi.iconBg} rounded-full flex items-center justify-center flex-shrink-0`}>
+                              <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
+                          </div>
+                          <div className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark mb-2">
+                            {kpi.label}
+                          </div>
+                          <div className="text-meta font-medium text-afrikoni-text-dark/70 leading-relaxed">
+                            {kpi.guidance}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                );
+              }
+              
+              // Regular KPI card
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                >
+                  <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg overflow-hidden">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-12 h-12 ${kpi.iconBg} rounded-full flex items-center justify-center`}>
+                          <Icon className={`w-6 h-6 ${iconColorClass}`} />
+                        </div>
+                        {kpi.change && (
+                          <Badge variant="outline" className="text-xs bg-afrikoni-green/10 text-afrikoni-green border-afrikoni-green/20">
+                            <TrendingUp className="w-3 h-3 mr-1" />
+                            {kpi.change}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-h1-mobile md:text-h1 font-bold leading-[1.1] text-afrikoni-text-dark mb-2">
+                        {kpi.value}
+                      </div>
+                      <div className="text-meta font-medium text-afrikoni-text-dark/70 uppercase tracking-[0.02em]">
+                        {kpi.label}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            });
+          }
+          
+          // For logistics: show all KPIs as before
+          return kpis.map((kpi, idx) => {
+            const Icon = kpi.icon;
+            const iconColorClass =
+              typeof kpi?.color === 'string'
+                ? (kpi.color.split(' ')[1] || '')
+                : '';
+            return (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
+              >
+                <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg overflow-hidden">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 ${kpi.iconBg} rounded-full flex items-center justify-center`}>
+                        <Icon className={`w-6 h-6 ${iconColorClass}`} />
+                      </div>
+                      {kpi.change && (
+                        <Badge variant="outline" className="text-xs bg-afrikoni-green/10 text-afrikoni-green border-afrikoni-green/20">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          {kpi.change}
+                        </Badge>
+                      )}
                     </div>
-                    {kpi.change && (
-                      <Badge variant="outline" className="text-xs bg-afrikoni-green/10 text-afrikoni-green border-afrikoni-green/20">
-                        <TrendingUp className="w-3 h-3 mr-1" />
-                        {kpi.change}
-                      </Badge>
-                    )}
-                  </div>
-                  {/* v2.5: Increased KPI number size by 20% */}
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
-                    {kpi.value}
-                  </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
-                    {kpi.label}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
+                    <div className="text-h1-mobile md:text-h1 font-bold leading-[1.1] text-afrikoni-text-dark mb-2">
+                      {kpi.value}
+                    </div>
+                    <div className="text-meta font-medium text-afrikoni-text-dark/70 uppercase tracking-[0.02em]">
+                      {kpi.label}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          });
+        })()}
       </div>
 
       {/* Verification & Approvals (Seller / Hybrid) */}
@@ -1061,11 +1345,11 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
           <Card className="border-afrikoni-gold/30 bg-white rounded-afrikoni-lg shadow-premium-lg">
             <CardHeader className="flex flex-row items-center justify-between border-b border-afrikoni-gold/15 pb-4">
               <div>
-                <CardTitle className="text-base md:text-lg font-bold text-afrikoni-text-dark flex items-center gap-2">
+                <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark flex items-center gap-2">
                   <Shield className="w-5 h-5 text-afrikoni-gold" />
                   Verification & Approvals
                 </CardTitle>
-                <p className="text-xs md:text-sm text-afrikoni-text-dark/70 mt-1">
+                <p className="text-meta font-medium text-afrikoni-text-dark/70 mt-1">
                   Track your supplier verification and product approval status.
                 </p>
               </div>
@@ -1189,11 +1473,11 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
           <Card className="border-2 border-afrikoni-purple bg-gradient-to-r from-afrikoni-purple/10 to-afrikoni-gold/10 rounded-afrikoni-lg shadow-premium-lg">
             <CardHeader className="flex flex-row items-center justify-between border-b border-afrikoni-gold/15 pb-4">
               <div>
-                <CardTitle className="text-xl md:text-2xl font-bold text-afrikoni-text-dark flex items-center gap-2">
+                <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark flex items-center gap-2">
                   <FileText className="w-6 h-6 text-afrikoni-purple" />
                   Active Buyer Requests
                 </CardTitle>
-                <p className="text-sm md:text-base text-afrikoni-text-dark/70 mt-1">
+                <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70 mt-1">
                   Respond to real buyer demand. Suppliers respond to RFQs, not browse aimlessly.
                 </p>
               </div>
@@ -1218,8 +1502,8 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-afrikoni-text-dark mb-1">{rfq.title}</h3>
-                          <p className="text-sm text-afrikoni-text-dark/70 line-clamp-2 mb-2">
+                          <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark mb-2">{rfq.title}</h3>
+                          <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70 line-clamp-2 mb-2">
                             {rfq.description}
                           </p>
                           <div className="flex items-center gap-4 text-xs text-afrikoni-text-dark/60">
@@ -1260,7 +1544,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
       <div>
         {/* v2.5: Premium Section Title with Gold Underline */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3">
+          <h2 className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark uppercase tracking-[0.02em] border-b-2 border-afrikoni-gold pb-3">
             {t('dashboard.quickActions') || 'Quick Actions'}
           </h2>
         </div>
@@ -1282,7 +1566,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                       <div className={`w-16 h-16 ${action.color} rounded-full flex items-center justify-center shadow-premium`}>
                         <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                       </div>
-                      <span className="text-sm font-semibold text-afrikoni-text-dark">{action.label}</span>
+                      <span className="text-body font-semibold text-afrikoni-text-dark">{action.label}</span>
                     </CardContent>
                   </Card>
                 </Link>
@@ -1303,10 +1587,10 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                     <Shield className="w-8 h-8 text-afrikoni-gold" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-afrikoni-text-dark mb-1">
+                    <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-text-dark mb-2">
                       Risk & Compliance Center
                     </h3>
-                    <p className="text-sm text-afrikoni-text-dark/70">
+                    <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">
                       Monitor fraud, logistics, corruption, and tax risks across 54 African countries
                     </p>
                   </div>

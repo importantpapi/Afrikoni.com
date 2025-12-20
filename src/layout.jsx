@@ -61,7 +61,7 @@ function Footer() {
   const companyLinks = [
     { to: '/buyer-hub', label: 'How Sourcing Works' },
     { to: '/supplier-hub', label: 'How Selling Works' },
-    { to: '/trust', label: 'Trust & Fair Use' },
+    { to: '/trust', label: 'Marketplace Rules' },
     { to: '/about', label: 'About Us' },
     { to: '/logistics', label: 'Logistics' },
     { to: '/order-protection', label: 'Trust & Safety' },
@@ -255,13 +255,13 @@ function Footer() {
             <Shield className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold flex-shrink-0" />
             <h3 className="text-base md:text-lg font-bold text-afrikoni-gold">Your Trust & Security Are Our Priority</h3>
           </div>
-          <p className="text-xs md:text-sm text-afrikoni-cream/90 mb-4 md:mb-6">Join 50,000+ businesses trading safely on Afrikoni</p>
+          <p className="text-xs md:text-sm text-afrikoni-cream/90 mb-4 md:mb-6">Built with verification, secure transactions, and trade protection from day one.</p>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             <div className="flex items-start gap-2 md:gap-3">
               <Lock className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Secure Payments</div>
-                <div className="text-xs md:text-sm text-afrikoni-cream/80">Bank-grade security with escrow protection</div>
+                <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Secure Transactions</div>
+                <div className="text-xs md:text-sm text-afrikoni-cream/80">Trade with protection mechanisms designed to reduce risk and fraud</div>
               </div>
 
             </div>
@@ -269,15 +269,15 @@ function Footer() {
               <Shield className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
               <div>
                 <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Verified Suppliers</div>
-                <div className="text-xs md:text-sm text-afrikoni-cream/80">Every supplier thoroughly vetted and verified</div>
+                <div className="text-xs md:text-sm text-afrikoni-cream/80">Suppliers complete identity and business verification before gaining full access</div>
               </div>
 
             </div>
             <div className="flex items-start gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
               <Award className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Quality Guarantee</div>
-                <div className="text-xs md:text-sm text-afrikoni-cream/80">Money-back guarantee on all transactions</div>
+                <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Trade Protection</div>
+                <div className="text-xs md:text-sm text-afrikoni-cream/80">Clear rules, dispute handling, and enforcement standards</div>
               </div>
             </div>
           </div>
@@ -332,7 +332,7 @@ function Footer() {
                   to="/trust" 
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
                 >
-                  Trust & Fair Use
+                  Marketplace Rules
                 </Link>
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>

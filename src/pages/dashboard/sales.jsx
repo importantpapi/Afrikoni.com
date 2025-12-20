@@ -114,8 +114,8 @@ function DashboardSalesInner() {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Sales</h1>
-          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Manage your sales and fulfillments</p>
+          <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-text-dark mb-6">Sales</h1>
+          <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">Manage your sales and fulfillments</p>
         </motion.div>
 
         {/* v2.5: Premium Stats Cards */}
@@ -132,8 +132,8 @@ function DashboardSalesInner() {
                     <ShoppingCart className="w-6 h-6 text-afrikoni-gold" />
                   </div>
                 </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{orders.length}</div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Sales</div>
+                <div className="text-h1-mobile md:text-h1 font-bold leading-[1.1] text-afrikoni-text-dark mb-2">{orders.length}</div>
+                <div className="text-meta font-medium text-afrikoni-text-dark/70 uppercase tracking-[0.02em]">Total Sales</div>
               </CardContent>
             </Card>
           </motion.div>

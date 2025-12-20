@@ -1,30 +1,41 @@
 import {
   LayoutDashboard,
-  Sparkles,
   Truck,
   Warehouse,
-  FileText,
   MessageSquare,
   Building2,
   BarChart3,
   Wallet,
   Settings,
-  AlertTriangle,
 } from 'lucide-react';
 
+// Logistics menu structure:
+// PRIMARY: Core operational workflow (always visible)
+// SECONDARY: Management & settings (collapsible)
+// Note: Logistics users are professional and tolerate more complexity
+// Keep functional, don't over-polish (lowest priority per user feedback)
+
 export const logisticsNav = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/logistics' },
-  { icon: Sparkles, label: 'KoniAI', path: '/dashboard/koniai' },
-  { icon: Truck, label: 'Shipments', path: '/dashboard/shipments' },
-  { icon: Truck, label: 'Logistics Overview', path: '/dashboard/logistics' },
-  { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment' },
-  { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs' },
-  { icon: MessageSquare, label: 'Messages', path: '/messages' },
-  { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
-  { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
-  { icon: Wallet, label: 'Payments', path: '/dashboard/payments' },
-  { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
-  { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk' },
+  // 🔥 PRIMARY - Core operational workflow
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/logistics', priority: 'primary' },
+  { icon: Truck, label: 'Shipments', path: '/dashboard/shipments', priority: 'primary' },
+  { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment', priority: 'primary' },
+  { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+  { icon: Wallet, label: 'Payments', path: '/dashboard/payments', priority: 'primary' },
+  
+  // 🧩 SECONDARY - Management (collapsible)
+  { 
+    icon: Building2, 
+    label: 'Manage', 
+    path: null, 
+    priority: 'secondary',
+    isSection: true,
+    children: [
+      { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+      { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
+      { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
+    ]
+  },
 ];
 
 

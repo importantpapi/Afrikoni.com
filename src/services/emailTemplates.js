@@ -370,6 +370,131 @@ export const emailTemplates = {
   },
 
   /**
+   * Contact Form Submission (Admin Notification)
+   * Professional Afrikoni-themed email with enhanced visibility
+   */
+  contactSubmission: (data) => {
+    const { name, email, category, subject, message, attachments = [], submissionDate } = data;
+    
+    // Determine priority badge color based on category
+    let priorityColor = '#D4A574'; // Default gold
+    let priorityText = 'Normal';
+    if (['complaint', 'dispute', 'fraud', 'security'].includes(category?.toLowerCase())) {
+      priorityColor = '#DC2626'; // Red for high priority
+      priorityText = 'High Priority';
+    } else if (['support', 'technical', 'billing'].includes(category?.toLowerCase())) {
+      priorityColor = '#F59E0B'; // Orange for medium priority
+      priorityText = 'Medium Priority';
+    }
+    
+    const content = `
+      <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); padding: 30px; border-radius: 8px 8px 0 0; text-align: center; margin-bottom: 0;">
+        <div style="display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 12px 24px; border-radius: 50px; margin-bottom: 15px;">
+          <span style="font-size: 32px; margin-right: 10px;">📧</span>
+        </div>
+        <h2 style="color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">New Contact Form Submission</h2>
+        <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">Requires immediate attention</p>
+      </div>
+
+      <div style="background: #FFFFFF; padding: 0; border: 1px solid #E5E5E5; border-top: none;">
+        <!-- Priority Badge -->
+        <div style="background: ${priorityColor}; color: white; padding: 12px 24px; text-align: center; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">
+          ${priorityText} • ${category || 'General Inquiry'}
+        </div>
+
+        <!-- Submission Details Card -->
+        <div style="background: linear-gradient(to right, #F5F5DC 0%, #FAF0E6 100%); padding: 30px; border-bottom: 2px solid #D4A574;">
+          <h3 style="color: #8B4513; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; display: flex; align-items: center;">
+            <span style="background: #D4A574; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">👤</span>
+            Contact Information
+          </h3>
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <tr style="background: #8B4513; color: white;">
+              <td style="padding: 12px 20px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 160px;">Field</td>
+              <td style="padding: 12px 20px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Details</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #F0F0F0;">
+              <td style="padding: 16px 20px; font-weight: 600; color: #8B4513; background: #FAF0E6;">Name:</td>
+              <td style="padding: 16px 20px; color: #333; font-size: 15px; font-weight: 500;">${name}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #F0F0F0;">
+              <td style="padding: 16px 20px; font-weight: 600; color: #8B4513; background: #FAF0E6;">Email:</td>
+              <td style="padding: 16px 20px;">
+                <a href="mailto:${email}" style="color: #D4A574; text-decoration: none; font-weight: 600; font-size: 15px; border-bottom: 2px solid #D4A574; padding-bottom: 2px;">${email}</a>
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #F0F0F0;">
+              <td style="padding: 16px 20px; font-weight: 600; color: #8B4513; background: #FAF0E6;">Category:</td>
+              <td style="padding: 16px 20px;">
+                <span style="background: ${priorityColor}; color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;">
+                  ${category || 'General'}
+                </span>
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #F0F0F0;">
+              <td style="padding: 16px 20px; font-weight: 600; color: #8B4513; background: #FAF0E6;">Subject:</td>
+              <td style="padding: 16px 20px; color: #333; font-size: 15px; font-weight: 500;">${subject || 'No subject provided'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 16px 20px; font-weight: 600; color: #8B4513; background: #FAF0E6;">Submitted:</td>
+              <td style="padding: 16px 20px; color: #666; font-size: 14px;">
+                <span style="background: #F5F5DC; padding: 4px 12px; border-radius: 4px; font-weight: 600;">${submissionDate}</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Message Content Card -->
+        <div style="background: #FFFFFF; padding: 30px; border-bottom: 2px solid #D4A574;">
+          <h3 style="color: #8B4513; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; display: flex; align-items: center;">
+            <span style="background: #D4A574; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">💬</span>
+            Message Content
+          </h3>
+          <div style="background: linear-gradient(to bottom, #FAF0E6 0%, #F5F5DC 100%); padding: 24px; border-radius: 8px; border-left: 4px solid #D4A574; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div style="white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.8; color: #333; font-size: 15px; font-weight: 400;">
+${message.replace(/\n/g, '\n')}
+            </div>
+          </div>
+        </div>
+
+        ${attachments.length > 0 ? `
+        <!-- Attachments Card -->
+        <div style="background: #FFF8DC; padding: 30px; border-bottom: 2px solid #D4A574; border-left: 4px solid #F59E0B;">
+          <h3 style="color: #8B4513; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; display: flex; align-items: center;">
+            <span style="background: #F59E0B; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">📎</span>
+            Attachments (${attachments.length})
+          </h3>
+          <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <ul style="margin: 0; padding: 0; list-style: none;">
+              ${attachments.map((att, idx) => `
+                <li style="padding: 12px 16px; margin-bottom: ${idx < attachments.length - 1 ? '8px' : '0'}; background: #FAF0E6; border-radius: 6px; border-left: 3px solid #D4A574;">
+                  <a href="${att.url || att}" style="color: #8B4513; text-decoration: none; font-weight: 600; font-size: 14px; word-break: break-all; display: flex; align-items: center;">
+                    <span style="margin-right: 8px; font-size: 18px;">📄</span>
+                    ${att.name || att.url || att}
+                  </a>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Action Required Card -->
+        <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); padding: 30px; text-align: center;">
+          <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚡</div>
+            <h3 style="color: #FFFFFF; margin: 0 0 10px 0; font-size: 22px; font-weight: 700;">Action Required</h3>
+            <p style="color: rgba(255, 255, 255, 0.95); margin: 0; font-size: 16px; line-height: 1.6;">
+              Review this submission in the <strong>Risk & Compliance Dashboard</strong> and respond to the user within <strong>24-48 hours</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
+    return baseTemplate(content, 'View in Risk Dashboard', 'https://afrikoni.com/dashboard/risk?tab=contact');
+  },
+
+  /**
    * Default template
    */
   default: (data) => {
