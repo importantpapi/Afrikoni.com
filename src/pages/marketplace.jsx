@@ -642,15 +642,17 @@ export default function Marketplace() {
                 <>
                   <button
                     type="button"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/80 text-white w-10 h-10 md:w-7 md:h-7 rounded-full flex items-center justify-center touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-lg md:text-base"
                     onClick={goToPrevImage}
+                    aria-label="Previous image"
                   >
                     ‹
                   </button>
                   <button
                     type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/80 text-white w-10 h-10 md:w-7 md:h-7 rounded-full flex items-center justify-center touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-lg md:text-base"
                     onClick={goToNextImage}
+                    aria-label="Next image"
                   >
                     ›
                   </button>
@@ -745,21 +747,22 @@ export default function Marketplace() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs sm:text-sm"
+                  className="text-xs sm:text-sm min-h-[44px] md:min-h-0 px-4 md:px-3 touch-manipulation active:scale-95 md:active:scale-100"
                   onClick={(e) => {
                     e.stopPropagation();
                     setQuickViewOpen(true);
                   }}
                 >
                   <Eye className="w-4 h-4 mr-1" />
-                  Quick view
+                  <span className="hidden sm:inline">Quick view</span>
+                  <span className="sm:hidden">View</span>
                 </Button>
               </div>
             </CardContent>
             {/* Quick View Dialog */}
             <Dialog open={quickViewOpen} onOpenChange={(open) => setQuickViewOpen(open)}>
               <DialogContent
-                className="max-w-3xl"
+                className="max-w-3xl w-[95vw] md:w-full max-h-[90vh] md:max-h-[85vh] overflow-y-auto p-4 md:p-6"
                 onClick={(e) => e.stopPropagation()}
               >
                 <DialogHeader>
@@ -794,7 +797,7 @@ export default function Marketplace() {
                     </span>
                   </DialogTitle>
                 </DialogHeader>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                   <div className="space-y-3">
                     <div className="aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
                       {activeImage ? (
@@ -819,8 +822,9 @@ export default function Marketplace() {
                           <button
                             key={idx}
                             type="button"
-                            className="w-16 h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0"
+                            className="w-16 h-16 md:w-16 md:h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0 touch-manipulation active:scale-95 min-w-[64px] min-h-[64px]"
                             onClick={() => setActiveImage(img)}
+                            aria-label={`View image ${idx + 1}`}
                           >
                             <OptimizedImage
                               src={img}
@@ -1071,7 +1075,7 @@ export default function Marketplace() {
               <Search className="w-5 h-5 text-afrikoni-gold absolute left-4 top-1/2 -translate-y-1/2 z-10" />
               <Input
                 placeholder={t('marketplace.searchPlaceholder') || 'Search products, suppliers, categories...'}
-                className="pl-12 pr-4 h-12 text-base border-2 border-afrikoni-gold/30 focus:border-afrikoni-gold rounded-xl shadow-sm hover:shadow-md transition-all"
+                className="pl-12 pr-4 h-12 md:h-11 min-h-[44px] text-base md:text-sm border-2 border-afrikoni-gold/30 focus:border-afrikoni-gold rounded-xl shadow-sm hover:shadow-md transition-all touch-manipulation"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -1154,7 +1158,7 @@ export default function Marketplace() {
               variant="secondary"
               size="sm"
               onClick={() => setFiltersOpen(true)}
-              className="md:hidden"
+              className="md:hidden min-h-[44px] px-4 touch-manipulation active:scale-95"
             >
               <SlidersHorizontal className="w-4 h-4 mr-2" />
               {t('marketplace.filters')}
@@ -1181,7 +1185,7 @@ export default function Marketplace() {
                     setSelectedFilters({ ...selectedFilters, country: countryValue });
                   }}
                 >
-                  <SelectTrigger className="w-44 md:w-52 h-10 border-2 border-afrikoni-gold/40 bg-white hover:border-afrikoni-gold/60 text-afrikoni-deep text-sm font-medium rounded-xl shadow-sm">
+                  <SelectTrigger className="w-44 md:w-52 h-11 md:h-10 min-h-[44px] md:min-h-0 border-2 border-afrikoni-gold/40 bg-white hover:border-afrikoni-gold/60 text-afrikoni-deep text-sm font-medium rounded-xl shadow-sm touch-manipulation">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1363,14 +1367,14 @@ export default function Marketplace() {
                     <Input 
                       placeholder={t('marketplace.minPrice')} 
                       type="number" 
-                      className="text-sm"
+                      className="text-sm min-h-[44px] md:min-h-0 touch-manipulation"
                       value={priceMin}
                       onChange={(e) => setPriceMin(e.target.value)}
                     />
                     <Input 
                       placeholder={t('marketplace.maxPrice')} 
                       type="number" 
-                      className="text-sm"
+                      className="text-sm min-h-[44px] md:min-h-0 touch-manipulation"
                       value={priceMax}
                       onChange={(e) => setPriceMax(e.target.value)}
                     />
@@ -1383,7 +1387,7 @@ export default function Marketplace() {
                     <Input 
                       placeholder={t('marketplace.minQuantity')} 
                       type="number" 
-                      className="text-sm"
+                      className="text-sm min-h-[44px] md:min-h-0 touch-manipulation"
                       value={moqMin}
                       onChange={(e) => setMoqMin(e.target.value)}
                     />
@@ -1695,7 +1699,7 @@ export default function Marketplace() {
                   }}
                 />
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40 md:w-52 h-10 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 rounded-xl shadow-sm font-medium bg-white">
+                  <SelectTrigger className="w-40 md:w-52 h-11 md:h-10 min-h-[44px] md:min-h-0 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 rounded-xl shadow-sm font-medium bg-white touch-manipulation">
                     <SelectValue placeholder={t('marketplace.sortBy') || 'Sort by: Newest First'} />
                   </SelectTrigger>
                   <SelectContent>
@@ -1822,7 +1826,7 @@ export default function Marketplace() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
                 {Array.isArray(filteredProducts) && filteredProducts.map((product, idx) => (
                   <ProductCard 
                     key={product.id} 

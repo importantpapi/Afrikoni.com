@@ -355,7 +355,7 @@ export default function ExploreAfricanSupply() {
                     </div>
                   ) : products.length > 0 ? (
                     <>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-3 lg:gap-4">
                         {products.map((product, productIdx) => {
                           const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
                           return (
@@ -451,18 +451,19 @@ export default function ExploreAfricanSupply() {
                                         </div>
                                       )}
                                     </div>
-                                    {/* Quick View Button */}
+                                    {/* Quick View Button - Mobile optimized */}
                                     <div className="pt-2">
                                       <Button 
                                         size="sm" 
                                         variant="outline" 
-                                        className="w-full border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs"
+                                        className="w-full border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           window.location.href = `/product/${product.id}`;
                                         }}
                                       >
-                                        Quick View
+                                        <span className="hidden sm:inline">Quick View</span>
+                                        <span className="sm:hidden">View</span>
                                       </Button>
                                     </div>
                                   </CardContent>

@@ -40,18 +40,20 @@ html, body {
   }
 }
 
-/* Mobile touch optimizations */
+/* Mobile touch optimizations - Only apply on touch devices */
 @media (hover: none) and (pointer: coarse) {
   /* Touch device optimizations */
-  button, a, [role="button"] {
+  button:not(.touch-ignore),
+  a:not(.touch-ignore),
+  [role="button"]:not(.touch-ignore) {
     -webkit-tap-highlight-color: rgba(212, 169, 55, 0.2);
     tap-highlight-color: rgba(212, 169, 55, 0.2);
   }
   
-  /* Ensure minimum touch target size (44x44px recommended by Apple/Google) */
-  button:not(.touch-ignore),
-  a:not(.touch-ignore),
-  [role="button"]:not(.touch-ignore) {
+  /* Ensure minimum touch target size (44x44px recommended by Apple/Google) - Mobile only */
+  button:not(.touch-ignore):not([class*="md:min-h-0"]),
+  a:not(.touch-ignore):not([class*="md:min-h-0"]),
+  [role="button"]:not(.touch-ignore):not([class*="md:min-h-0"]) {
     min-height: 44px;
     min-width: 44px;
   }
@@ -59,6 +61,39 @@ html, body {
   /* Disable hover effects on touch devices */
   *:hover {
     /* Let individual components handle hover states */
+  }
+  
+  /* Reduce animations on mobile for better performance */
+  * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Optimize scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Mobile-specific performance optimizations */
+@media (max-width: 768px) {
+  /* Reduce will-change usage on mobile */
+  * {
+    will-change: auto;
+  }
+  
+  /* Optimize image rendering */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Reduce shadow complexity on mobile */
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
   }
 }
 
