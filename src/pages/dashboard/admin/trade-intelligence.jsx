@@ -3,8 +3,7 @@
  * Admin view for all intelligence layers
  */
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp, Users, ShoppingBag, AlertTriangle, MapPin, BarChart3,
   Shield, Target, Activity, DollarSign, Globe, Package

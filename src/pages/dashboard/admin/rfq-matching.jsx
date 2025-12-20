@@ -71,12 +71,41 @@ export default function RFQMatching() {
       if (rfqsError) throw rfqsError;
       setRfqs(rfqsData || []);
 
-      // 🧊 PHASE B: Load verified suppliers with trust scores for matching
-      const { data: suppliersData, error: suppliersError } = await supabase
+      // 🧊 PHASE B: Load verified suppliers with trust scores and reliability scores for matching
+      // First get companies
+      const { data: companiesData, error: companiesError } = await supabase
         .from('companies')
         .select('id, company_name, country, city, verified, verification_status, trust_score, average_rating, approved_reviews_count')
-        .eq('verified', true)
-        .order('trust_score', { ascending: false }); // Sort by trust by default
+        .eq('verified', true);
+
+      if (companiesError) throw companiesError;
+
+      // Then get reliability scores from supplier_intelligence view
+      const { data: reliabilityData, error: reliabilityError } = await supabase
+        .from('supplier_intelligence')
+        .select('company_id, reliability_score, avg_response_hours, completion_rate, dispute_rate, slow_response_flag, high_dispute_flag')
+        .in('company_id', companiesData?.map(c => c.id) || []);
+
+      if (reliabilityError) {
+        console.warn('Error loading reliability scores:', reliabilityError);
+      }
+
+      // Merge reliability data with company data
+      const suppliersData = companiesData?.map(company => {
+        const reliability = reliabilityData?.find(r => r.company_id === company.id);
+        return {
+          ...company,
+          reliability_score: reliability?.reliability_score || company.trust_score || 50,
+          avg_response_hours: reliability?.avg_response_hours,
+          completion_rate: reliability?.completion_rate,
+          dispute_rate: reliability?.dispute_rate,
+          slow_response_flag: reliability?.slow_response_flag,
+          high_dispute_flag: reliability?.high_dispute_flag
+        };
+      }) || [];
+
+      // Sort by reliability score (higher is better)
+      suppliersData.sort((a, b) => (b.reliability_score || 0) - (a.reliability_score || 0));
 
       if (suppliersError) throw suppliersError;
       setSuppliers(suppliersData || []);

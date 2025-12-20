@@ -86,6 +86,8 @@ const AdminReviewsModeration = lazy(() => import('./pages/dashboard/admin/review
 const AdminRevenue = lazy(() => import('./pages/dashboard/admin/revenue'));
 const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-tickets'));
 const TradeIntelligence = lazy(() => import('./pages/dashboard/admin/trade-intelligence'));
+const SellerIntelligence = lazy(() => import('./pages/dashboard/seller/intelligence'));
+const BuyerIntelligence = lazy(() => import('./pages/dashboard/buyer/intelligence'));
 const AdminTrustEngine = lazy(() => import('./pages/dashboard/admin/trust-engine'));
 const AdminGrowthMetrics = lazy(() => import('./pages/dashboard/admin/growth-metrics'));
 const AdminOnboardingTracker = lazy(() => import('./pages/dashboard/admin/onboarding-tracker'));
