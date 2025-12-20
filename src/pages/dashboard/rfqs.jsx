@@ -448,8 +448,8 @@ function DashboardRFQsInner() {
                           <div className="flex flex-col md:flex-row md:items-start gap-4">
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-start gap-3 mb-4">
-                                <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut leading-tight flex-1 min-w-0">
-                                  {rfq.title}
+                                <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut leading-tight flex-1 min-w-0 line-clamp-2">
+                                  {rfq.title || `RFQ ${rfq.id?.slice(0, 8) || 'Unknown'}`}
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
                                   <Badge 

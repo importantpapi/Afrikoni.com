@@ -377,19 +377,23 @@ export default function ExploreAfricanSupply() {
                                         loading="lazy"
                                         onError={(e) => {
                                           e.target.style.display = 'none';
+                                          e.target.nextElementSibling?.classList.remove('hidden');
                                         }}
                                       />
-                                    ) : (
-                                      <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10" />
-                                    )}
-                                    {/* Save Button */}
-                                    <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
-                                      <SaveButton itemId={product.id} itemType="product" />
+                                    ) : null}
+                                    <div className={`w-full h-full bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10 flex items-center justify-center ${primaryImage?.url ? 'hidden' : ''}`}>
+                                      <Package className="w-12 h-12 text-afrikoni-gold/40" />
                                     </div>
+                                    {/* Save Button */}
+                                    {product.id && (
+                                      <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
+                                        <SaveButton itemId={product.id} itemType="product" />
+                                      </div>
+                                    )}
                                   </div>
                                   <CardContent className="p-2.5 md:p-3 space-y-1.5">
-                                    <h5 className="font-semibold text-afrikoni-chestnut text-sm md:text-lg leading-snug line-clamp-2">
-                                      {product.title}
+                                    <h5 className="font-semibold text-afrikoni-chestnut text-sm md:text-lg leading-snug line-clamp-2 min-h-[2.5em]">
+                                      {product.title || 'Product Name'}
                                     </h5>
                                     {product.price_min ? (
                                       <div className="text-xs md:text-base text-afrikoni-gold font-bold">
@@ -445,6 +449,20 @@ export default function ExploreAfricanSupply() {
                                           </span>
                                         </div>
                                       )}
+                                    </div>
+                                    {/* Quick View Button */}
+                                    <div className="pt-2">
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="w-full border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          window.location.href = `/product/${product.id}`;
+                                        }}
+                                      >
+                                        Quick View
+                                      </Button>
                                     </div>
                                   </CardContent>
                                 </Card>

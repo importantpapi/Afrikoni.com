@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Menu, MessageSquare } from 'lucide-react';
+import { Search, Menu, MessageSquare, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/notificationbell';
@@ -55,7 +55,7 @@ export default function BuyerHeader({
                        transition-all hover:shadow-lg
                        whitespace-nowrap"
           >
-            <Search className="w-4 h-4" />
+            <Plus className="w-4 h-4" />
             <span className="text-sm">Create RFQ</span>
           </Button>
         </div>

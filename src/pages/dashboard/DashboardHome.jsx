@@ -11,7 +11,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import {
   ShoppingCart, FileText, Package, MessageSquare, Wallet, Truck,
   Users, Plus, TrendingUp, ArrowRight, Clock, CheckCircle, XCircle, Building2,
-  Shield, AlertTriangle, GraduationCap, HelpCircle, RefreshCw
+  Shield, AlertTriangle, GraduationCap, HelpCircle, RefreshCw, BarChart3
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { format, subDays } from 'date-fns';
@@ -1591,7 +1591,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
                       Risk & Compliance Center
                     </h3>
                     <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">
-                      Monitor fraud, logistics, corruption, and tax risks across 54 African countries
+                      Monitor fraud, logistics, and compliance risks across Africa
                     </p>
                   </div>
                   <ArrowRight className="w-5 h-5 text-afrikoni-gold" />
@@ -1626,40 +1626,28 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
             </CardHeader>
             <CardContent className="p-6">
               {salesChartData.length === 0 ? (
-                /* v2.5: Animated Demo Preview */
-                <div className="h-64 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.3 }}
-                        transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-                      >
-                        <ResponsiveContainer width="100%" height={250}>
-                          <AreaChart data={[
-                            { date: 'Mon', orders: 5, revenue: 1200 },
-                            { date: 'Tue', orders: 8, revenue: 1800 },
-                            { date: 'Wed', orders: 12, revenue: 2400 },
-                            { date: 'Thu', orders: 10, revenue: 2000 },
-                            { date: 'Fri', orders: 15, revenue: 3000 },
-                            { date: 'Sat', orders: 18, revenue: 3600 },
-                            { date: 'Sun', orders: 20, revenue: 4000 },
-                          ]}>
-                            <defs>
-                              <linearGradient id="demoOrders" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#D4A937" stopOpacity={0.15}/>
-                                <stop offset="95%" stopColor="#D4A937" stopOpacity={0}/>
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E8D8B5" opacity={0.3} />
-                            <XAxis dataKey="date" stroke="#2E2A1F" fontSize={12} opacity={0.3} />
-                            <YAxis stroke="#2E2A1F" fontSize={12} opacity={0.3} />
-                            <Area type="monotone" dataKey="orders" stroke="#D4A937" strokeWidth={2} fillOpacity={1} fill="url(#demoOrders)" />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </motion.div>
-                      <p className="text-xs text-afrikoni-text-dark/50 mt-2">No data yet — this preview disappears when real activity begins.</p>
-                    </div>
+                <div className="h-64 flex flex-col items-center justify-center text-center p-6">
+                  <div className="w-16 h-16 bg-afrikoni-gold/10 rounded-full flex items-center justify-center mb-4">
+                    <BarChart3 className="w-8 h-8 text-afrikoni-gold/60" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-afrikoni-text-dark mb-2">
+                    No orders yet
+                  </h3>
+                  <p className="text-sm text-afrikoni-text-dark/70 mb-4 max-w-sm">
+                    Start by posting an RFQ or browsing products. Your sales and orders data will appear here once you make your first transaction.
+                  </p>
+                  <div className="flex gap-3">
+                    <Link to="/dashboard/rfqs/new">
+                      <Button size="sm" className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Post RFQ
+                      </Button>
+                    </Link>
+                    <Link to="/marketplace">
+                      <Button size="sm" variant="outline" className="border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10">
+                        Browse Products
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ) : (
@@ -1727,35 +1715,28 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
             </CardHeader>
             <CardContent className="p-6">
               {rfqChartData.length === 0 ? (
-                /* v2.5: Animated Demo Preview */
-                <div className="h-64 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.3 }}
-                        transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-                      >
-                        <ResponsiveContainer width="100%" height={250}>
-                          <BarChart data={[
-                            { date: 'Mon', sent: 2, received: 1 },
-                            { date: 'Tue', sent: 4, received: 3 },
-                            { date: 'Wed', sent: 6, received: 4 },
-                            { date: 'Thu', sent: 5, received: 3 },
-                            { date: 'Fri', sent: 8, received: 5 },
-                            { date: 'Sat', sent: 10, received: 6 },
-                            { date: 'Sun', sent: 12, received: 7 },
-                          ]}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#E8D8B5" opacity={0.3} />
-                            <XAxis dataKey="date" stroke="#2E2A1F" fontSize={12} opacity={0.3} />
-                            <YAxis stroke="#2E2A1F" fontSize={12} opacity={0.3} />
-                            <Bar dataKey="sent" fill="#8140FF" opacity={0.3} />
-                            <Bar dataKey="received" fill="#3AB795" opacity={0.3} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </motion.div>
-                      <p className="text-xs text-afrikoni-text-dark/50 mt-2">No data yet — this preview disappears when real activity begins.</p>
-                    </div>
+                <div className="h-64 flex flex-col items-center justify-center text-center p-6">
+                  <div className="w-16 h-16 bg-afrikoni-purple/10 rounded-full flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-afrikoni-purple/60" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-afrikoni-text-dark mb-2">
+                    No RFQ activity yet
+                  </h3>
+                  <p className="text-sm text-afrikoni-text-dark/70 mb-4 max-w-sm">
+                    Start by posting an RFQ or browsing products. Your RFQ activity will appear here once you create or receive your first request.
+                  </p>
+                  <div className="flex gap-3">
+                    <Link to="/dashboard/rfqs/new">
+                      <Button size="sm" className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create RFQ
+                      </Button>
+                    </Link>
+                    <Link to="/rfq-marketplace">
+                      <Button size="sm" variant="outline" className="border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10">
+                        Browse RFQs
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ) : (
