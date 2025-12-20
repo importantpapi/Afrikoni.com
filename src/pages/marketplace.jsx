@@ -629,7 +629,7 @@ export default function Marketplace() {
                   className="w-full h-full object-cover"
                   width={400}
                   height={300}
-                  priority={false}
+                  priority={priority}
                   quality={85}
                   placeholder="/product-placeholder.svg"
                 />
