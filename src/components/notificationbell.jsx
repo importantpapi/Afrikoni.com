@@ -272,8 +272,13 @@ export default function NotificationBell() {
                             window.location.href = `/verification-center`;
                           } else if (notification.type === 'product' && notification.related_id) {
                             window.location.href = `/dashboard/products/new?id=${notification.related_id}`;
-                          } else if (notification.type === 'support_ticket' && notification.related_id) {
-                            window.location.href = `/dashboard/support-chat?ticketId=${notification.related_id}`;
+                          } else if (notification.type === 'support' || notification.type === 'support_ticket') {
+                            // Open support chat sidebar or navigate to support chat
+                            if (notification.link) {
+                              window.location.href = notification.link;
+                            } else {
+                              window.location.href = `/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`;
+                            }
                           } else if (notification.type === 'dispute' && notification.related_id) {
                             window.location.href = `/dashboard/disputes/${notification.related_id}`;
                           }
@@ -295,6 +300,27 @@ export default function NotificationBell() {
                                 </span>
                               )}
                             </div>
+                            {/* Quick Reply Button for Support/Messages */}
+                            {(notification.type === 'support' || notification.type === 'support_ticket' || notification.type === 'message') && (
+                              <div className="mt-2 pt-2 border-t border-afrikoni-gold/10">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markAsRead(notification.id);
+                                    setIsOpen(false);
+                                    if (notification.type === 'support' || notification.type === 'support_ticket') {
+                                      window.location.href = `/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`;
+                                    } else if (notification.type === 'message' && notification.related_id) {
+                                      window.location.href = `/messages?conversation=${notification.related_id}`;
+                                    }
+                                  }}
+                                  className="w-full text-left text-xs font-medium text-afrikoni-gold hover:text-afrikoni-gold/80 flex items-center gap-1"
+                                >
+                                  <MessageSquare className="w-3 h-3" />
+                                  {notification.type === 'support' || notification.type === 'support_ticket' ? 'Open Support Chat' : 'Reply to Message'}
+                                </button>
+                              </div>
+                            )}
                           </div>
                           {!notification.read && (
                             <div className="w-2 h-2 bg-afrikoni-gold rounded-full flex-shrink-0 mt-1" />

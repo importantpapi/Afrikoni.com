@@ -328,8 +328,17 @@ export default function NotificationsCenter() {
       navigate(`/dashboard/rfqs/${notification.related_id}`);
     } else if (notification.type === 'message' && notification.related_id) {
       navigate(`/messages?conversation=${notification.related_id}`);
+    } else if (notification.type === 'support' || notification.type === 'support_ticket') {
+      // Support notifications - navigate to support chat
+      if (notification.related_id) {
+        navigate(`/dashboard/support-chat?ticket=${notification.related_id}`);
+      } else {
+        navigate('/dashboard/support-chat');
+      }
     } else if (notification.type === 'product' && notification.related_id) {
       navigate(`/dashboard/products/new?id=${notification.related_id}`);
+    } else if (notification.type === 'dispute' && notification.related_id) {
+      navigate(`/dashboard/disputes/${notification.related_id}`);
     }
   };
 
@@ -491,6 +500,25 @@ export default function NotificationsCenter() {
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
+                                  {/* Reply button for support and message notifications */}
+                                  {(notification.type === 'support' || notification.type === 'support_ticket' || notification.type === 'message') && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 text-xs border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold hover:text-white"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (notification.type === 'support' || notification.type === 'support_ticket') {
+                                          navigate(`/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`);
+                                        } else if (notification.type === 'message' && notification.related_id) {
+                                          navigate(`/messages?conversation=${notification.related_id}`);
+                                        }
+                                      }}
+                                    >
+                                      <MessageSquare className="w-3 h-3 mr-1" />
+                                      Reply
+                                    </Button>
+                                  )}
                                   {notification.read && (
                                     <CheckCircle className="w-5 h-5 text-afrikoni-gold" />
                                   )}
