@@ -29,10 +29,12 @@ export default function RFQCard() {
                   </div>
                   <div>
                     <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-chestnut mb-3">
-                      {t('rfq.postTradeRequest')}
+                      <span className="md:hidden">Post a Trade Request (RFQ)</span>
+                      <span className="hidden md:inline">{t('rfq.postTradeRequest')}</span>
                     </h3>
                     <p className="text-lg md:text-xl text-afrikoni-deep/80 mb-4">
-                      {t('rfq.getMatchedDescription')}
+                      <span className="md:hidden">Don't know the supplier? Tell us what you need. Verified suppliers send you quotes.</span>
+                      <span className="hidden md:inline">{t('rfq.getMatchedDescription')}</span>
                     </p>
                   </div>
                 </div>
@@ -46,7 +48,8 @@ export default function RFQCard() {
                         size="lg" 
                         className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-bold px-8 py-6 text-lg md:text-xl shadow-afrikoni-xl hover:shadow-afrikoni-2xl transition-all"
                       >
-                        {t('rfq.postTradeRequest')}
+                        <span className="md:hidden">Post a Trade Request (RFQ)</span>
+                        <span className="hidden md:inline">{t('rfq.postTradeRequest')}</span>
                         <ArrowRight className="w-5 h-5 md:w-6 md:h-6 ml-2" />
                       </Button>
                     </motion.div>

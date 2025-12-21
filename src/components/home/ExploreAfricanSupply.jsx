@@ -560,12 +560,13 @@ export default function ExploreAfricanSupply() {
                     <div className="text-center py-6 md:py-8 px-4">
                       <div className="max-w-md mx-auto space-y-4">
                         <p className="text-sm md:text-body font-normal leading-[1.5] md:leading-[1.6] text-afrikoni-deep/70 mb-4 px-2">
-                          Suppliers in this category are onboarding. Submit an RFQ to get matched with verified suppliers.
+                          Suppliers in this category are onboarding. Post a trade request to get matched with verified suppliers.
                         </p>
                         <Link to="/dashboard/rfqs/new" className="inline-block">
                           {/* Mobile: Neutral outline, Desktop: Gold primary */}
                           <Button className="md:bg-afrikoni-gold md:hover:bg-afrikoni-goldDark md:text-white border-2 border-afrikoni-chestnut/30 md:border-0 text-afrikoni-chestnut md:text-white hover:bg-afrikoni-chestnut/5 md:hover:bg-afrikoni-goldDark min-h-[44px] px-6 md:px-8 py-2.5 md:py-2.5 text-sm md:text-base font-semibold shadow-md md:shadow-md active:scale-95 touch-manipulation">
-                            Post RFQ
+                            <span className="md:hidden">Post Trade Request</span>
+                            <span className="hidden md:inline">Post RFQ</span>
                             <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
                         </Link>

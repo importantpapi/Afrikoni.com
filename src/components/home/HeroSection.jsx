@@ -296,7 +296,7 @@ export default function HeroSection({ categories = [] }) {
                   Find verified African suppliers
                 </h1>
                 <p className="text-base font-medium text-afrikoni-cream/95 leading-relaxed">
-                  or post an RFQ in minutes
+                  Search products or verified suppliers across 54 countries
                 </p>
                 {/* Small brand seal */}
                 <p className="text-xs text-afrikoni-cream/70 font-medium">
@@ -334,7 +334,7 @@ export default function HeroSection({ categories = [] }) {
             <span className="opacity-80">Cross-border logistics support</span>
           </motion.div> */}
 
-            {/* Mobile: Commanding Search Bar - PRIMARY ACTION */}
+            {/* Mobile: DOMINANT Search Bar - THE CONTROL PANEL */}
             <div className="md:hidden space-y-4 mb-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -343,27 +343,27 @@ export default function HeroSection({ categories = [] }) {
                 className="w-full"
               >
                 <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
-                  {/* Mobile: Full-width, dark background, gold border */}
+                  {/* Mobile: FULL-WIDTH, HEAVIER, DARKER - THE ENGINE */}
                   <div
                     className={`
                       flex items-center gap-3
-                      bg-gradient-to-br from-afrikoni-chestnut/95 to-afrikoni-deep/95
+                      bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-deep to-afrikoni-chestnut
                       rounded-lg
                       shadow-2xl
-                      border-2 border-afrikoni-gold/50
-                      px-4 py-3.5
+                      border border-afrikoni-gold/40
+                      px-4 py-4
                       transition-all duration-300
-                      ${searchFocused ? 'border-afrikoni-gold shadow-[0_0_20px_rgba(212,169,55,0.4)]' : 'border-afrikoni-gold/50'}
+                      ${searchFocused ? 'border-afrikoni-gold shadow-[0_0_24px_rgba(212,169,55,0.5)]' : 'border-afrikoni-gold/40'}
                     `}
                   >
                     {/* Search Icon - Gold, prominent */}
                     <Search className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
                     
-                    {/* Main Search Input - Dominant, high contrast */}
+                    {/* Main Search Input - DOMINANT, HIGH CONTRAST */}
                     <input
                       id="hero-search-input"
                       type="text"
-                      placeholder="Search products, suppliers, or RFQs"
+                      placeholder="Search products or verified suppliers"
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -383,7 +383,7 @@ export default function HeroSection({ categories = [] }) {
                           setSearchFocused(false);
                         }, 200);
                       }}
-                      className="flex-1 text-base px-2 py-2 focus:outline-none placeholder:text-afrikoni-cream/60 text-afrikoni-cream bg-transparent min-h-[48px] font-medium"
+                      className="flex-1 text-base px-2 py-2 focus:outline-none placeholder:text-afrikoni-cream/70 text-afrikoni-cream bg-transparent min-h-[52px] font-semibold"
                     />
 
                     {/* Clear button */}
@@ -402,13 +402,13 @@ export default function HeroSection({ categories = [] }) {
                       </motion.button>
                     )}
 
-                    {/* Search Button - Gold, prominent */}
+                    {/* Search Button - Clear value proposition */}
                     <button
                       onClick={handleSearch}
-                      className="flex items-center gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-bold px-5 py-2.5 rounded-lg hover:bg-afrikoni-gold/90 active:scale-95 transition-all duration-200 min-h-[48px] touch-manipulation shadow-lg"
+                      className="flex items-center gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-bold px-5 py-3 rounded-lg hover:bg-afrikoni-gold/90 active:scale-95 transition-all duration-200 min-h-[52px] touch-manipulation shadow-lg"
                     >
                       <Search className="w-5 h-5" />
-                      <span className="text-sm font-bold">START</span>
+                      <span className="text-sm font-bold">Find suppliers</span>
                     </button>
                   </div>
 
@@ -435,20 +435,28 @@ export default function HeroSection({ categories = [] }) {
                 </div>
               </motion.div>
 
-              {/* PRIMARY CTA - Post RFQ Button (ONLY GOLD ACTION ON MOBILE) */}
+              {/* SECONDARY CTA - RFQ Card with Clear Explanation */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.15, ease: 'easeOut' }}
+                className="bg-afrikoni-cream/30 border border-afrikoni-chestnut/20 rounded-lg p-4 space-y-3"
               >
+                {/* RFQ Explanation - ONE clear line */}
+                <p className="text-sm text-afrikoni-chestnut/90 font-medium leading-relaxed">
+                  <span className="font-bold text-afrikoni-chestnut">RFQ = </span>
+                  Tell us what you need. Verified suppliers send you quotes.
+                </p>
+                
+                {/* RFQ Button - Clear wording */}
                 <button
                   onClick={() => navigate('/dashboard/rfqs/new')}
-                  className="w-full flex items-center justify-center gap-3 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-chestnut font-bold px-6 py-4 rounded-lg active:scale-95 transition-all duration-200 min-h-[56px] touch-manipulation shadow-xl border-2 border-afrikoni-gold"
+                  className="w-full flex items-center justify-center gap-3 bg-afrikoni-chestnut/10 hover:bg-afrikoni-chestnut/20 border-2 border-afrikoni-chestnut/30 text-afrikoni-chestnut font-semibold px-6 py-3.5 rounded-lg active:scale-95 transition-all duration-200 min-h-[48px] touch-manipulation"
                 >
                   <FileText className="w-5 h-5" />
                   <div className="flex flex-col items-start">
-                    <span className="text-base font-bold">Post an RFQ</span>
-                    <span className="text-xs text-afrikoni-chestnut/80 font-normal">Get quotes from verified suppliers</span>
+                    <span className="text-base font-bold">Post a Trade Request (RFQ)</span>
+                    <span className="text-xs text-afrikoni-chestnut/70 font-normal">Suppliers come to you</span>
                   </div>
                 </button>
               </motion.div>
