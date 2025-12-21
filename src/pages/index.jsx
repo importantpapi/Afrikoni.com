@@ -60,18 +60,18 @@ export default function Home() {
         {/* Trust Counters - Compact - Hidden per request */}
         {/* <TrustCounters /> */}
 
-        {/* Explore African Supply - Merged Categories & Countries */}
-        <section>
+        {/* Explore African Supply - Merged Categories & Countries - Mobile: Reduced padding */}
+        <section className="pb-8 md:pb-16 lg:pb-20">
           <ExploreAfricanSupply />
         </section>
 
-        {/* RFQ Card - Prominent Placement */}
-        <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-chestnut/10 to-afrikoni-gold/5">
+        {/* RFQ Card - Prominent Placement - Mobile: Reduced padding */}
+        <section className="py-8 md:py-16 lg:py-20 bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-chestnut/10 to-afrikoni-gold/5">
           <RFQCard />
         </section>
 
-        {/* Partner Logos */}
-        <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-white to-afrikoni-offwhite">
+        {/* Partner Logos - Mobile: Hidden to reduce length */}
+        <section className="hidden md:block py-12 md:py-16 lg:py-20 bg-gradient-to-b from-white to-afrikoni-offwhite">
           <PartnerLogos />
         </section>
 

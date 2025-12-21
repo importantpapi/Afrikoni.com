@@ -435,7 +435,7 @@ export default function HeroSection({ categories = [] }) {
                 </div>
               </motion.div>
 
-              {/* Secondary CTA - Post RFQ Button */}
+              {/* PRIMARY CTA - Post RFQ Button (ONLY GOLD ACTION ON MOBILE) */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -443,12 +443,12 @@ export default function HeroSection({ categories = [] }) {
               >
                 <button
                   onClick={() => navigate('/dashboard/rfqs/new')}
-                  className="w-full flex items-center justify-center gap-3 bg-transparent border-2 border-afrikoni-gold text-afrikoni-gold font-semibold px-6 py-4 rounded-lg hover:bg-afrikoni-gold/10 active:scale-95 transition-all duration-200 min-h-[52px] touch-manipulation shadow-md"
+                  className="w-full flex items-center justify-center gap-3 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-chestnut font-bold px-6 py-4 rounded-lg active:scale-95 transition-all duration-200 min-h-[56px] touch-manipulation shadow-xl border-2 border-afrikoni-gold"
                 >
                   <FileText className="w-5 h-5" />
                   <div className="flex flex-col items-start">
                     <span className="text-base font-bold">Post an RFQ</span>
-                    <span className="text-xs text-afrikoni-cream/80 font-normal">Get quotes from verified suppliers</span>
+                    <span className="text-xs text-afrikoni-chestnut/80 font-normal">Get quotes from verified suppliers</span>
                   </div>
                 </button>
               </motion.div>

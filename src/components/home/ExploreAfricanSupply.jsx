@@ -240,7 +240,8 @@ export default function ExploreAfricanSupply() {
           <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex-1 min-w-0">
               <h3 className="text-lg md:text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2 mb-1">
-                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
+                {/* Mobile: Neutral brown icon, Desktop: Gold icon */}
+                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-chestnut/70 md:text-afrikoni-gold flex-shrink-0" />
                 <span className="truncate">{t('source_by_country')}</span>
               </h3>
               <p className="text-xs md:text-meta font-medium text-afrikoni-deep/60 leading-tight">
@@ -248,7 +249,8 @@ export default function ExploreAfricanSupply() {
               </p>
             </div>
             <Link to="/countries" className="flex-shrink-0 ml-2">
-              <Button variant="outline" size="sm" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs md:text-sm min-h-[36px] md:min-h-[32px] px-3 md:px-4 touch-manipulation">
+              {/* Mobile: Neutral brown border, Desktop: Gold border */}
+              <Button variant="outline" size="sm" className="border-afrikoni-chestnut/30 md:border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 md:hover:bg-afrikoni-gold/10 text-xs md:text-sm min-h-[36px] md:min-h-[32px] px-3 md:px-4 touch-manipulation">
                 {t('view_all_countries')}
               </Button>
             </Link>
@@ -322,16 +324,73 @@ export default function ExploreAfricanSupply() {
         >
           <div className="flex items-center justify-between mb-5 md:mb-6">
             <h3 className="text-lg md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
-              <Package className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
+              {/* Mobile: Neutral brown icon, Desktop: Gold icon */}
+              <Package className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-chestnut/70 md:text-afrikoni-gold flex-shrink-0" />
               <span>{t('popular_categories')}</span>
             </h3>
           </div>
 
+          {/* Mobile: Show max 3 categories, collapse empty ones */}
           <div className="space-y-12">
-            {popularCategories.map((category, categoryIdx) => {
+            {popularCategories.slice(0, 3).map((category, categoryIdx) => {
               const Icon = category.icon;
               const products = categoryProducts[category.key] || [];
               const isLoading = loadingProducts[category.key];
+              const hasProducts = products.length > 0;
+
+              // On mobile, collapse empty categories
+              if (!hasProducts && !isLoading) {
+                return (
+                  <div key={category.key} className="md:space-y-4">
+                    {/* Collapsed empty category - Mobile only */}
+                    <div className="md:hidden">
+                      <Link 
+                        to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
+                        className="flex items-center gap-2.5 group touch-manipulation active:scale-95 py-2"
+                      >
+                        <div className="w-9 h-9 bg-afrikoni-chestnut/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Icon className="w-4.5 h-4.5 text-afrikoni-chestnut/60" />
+                        </div>
+                        <h4 className="text-sm font-semibold text-afrikoni-chestnut/70">
+                          {category.name}
+                        </h4>
+                        <ArrowRight className="w-3.5 h-3.5 text-afrikoni-chestnut/50 ml-auto flex-shrink-0" />
+                      </Link>
+                    </div>
+                    {/* Desktop: Full empty category display */}
+                    <div className="hidden md:block space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Link 
+                          to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
+                          className="flex items-center gap-3 group touch-manipulation active:scale-95"
+                        >
+                          <div className="w-10 h-10 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg group-hover:scale-110 transition-transform flex-shrink-0">
+                            <Icon className="w-5 h-5 text-afrikoni-chestnut" />
+                          </div>
+                          <h4 className="text-xl font-bold text-afrikoni-chestnut group-hover:text-afrikoni-gold transition-colors">
+                            {category.name}
+                          </h4>
+                          <ArrowRight className="w-5 h-5 text-afrikoni-gold opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                        </Link>
+                      </div>
+                      {/* Empty state for desktop */}
+                      <div className="text-center py-8 px-4">
+                        <div className="max-w-md mx-auto space-y-4">
+                          <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/70 mb-4 px-2">
+                            Suppliers in this category are onboarding. Submit an RFQ to get matched with verified suppliers.
+                          </p>
+                          <Link to="/dashboard/rfqs/new" className="inline-block">
+                            <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] px-8 py-2.5 text-base font-semibold shadow-md">
+                              Post RFQ
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div key={category.key} className="space-y-4">
@@ -341,13 +400,14 @@ export default function ExploreAfricanSupply() {
                       to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
                       className="flex items-center gap-2.5 md:gap-3 group touch-manipulation active:scale-95"
                     >
-                      <div className="w-11 h-11 md:w-10 md:h-10 bg-afrikoni-gold rounded-xl md:rounded-lg flex items-center justify-center shadow-lg md:shadow-afrikoni-lg group-hover:scale-110 transition-transform flex-shrink-0">
-                        <Icon className="w-5.5 h-5.5 md:w-5 md:h-5 text-afrikoni-chestnut" />
+                      {/* Mobile: Neutral brown icon, Desktop: Gold icon */}
+                      <div className="w-11 h-11 md:w-10 md:h-10 bg-afrikoni-chestnut/10 md:bg-afrikoni-gold rounded-xl md:rounded-lg flex items-center justify-center shadow-lg md:shadow-afrikoni-lg group-hover:scale-110 transition-transform flex-shrink-0">
+                        <Icon className="w-5.5 h-5.5 md:w-5 md:h-5 text-afrikoni-chestnut md:text-afrikoni-chestnut" />
                       </div>
                       <h4 className="text-base md:text-xl font-bold text-afrikoni-chestnut group-hover:text-afrikoni-gold transition-colors">
                         {category.name}
                       </h4>
-                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-chestnut/60 md:text-afrikoni-gold opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                     </Link>
                   </div>
 
@@ -458,10 +518,11 @@ export default function ExploreAfricanSupply() {
                                     </div>
                                     {/* Quick View Button - Mobile optimized */}
                                     <div className="pt-2">
+                                      {/* Mobile: Neutral brown border, Desktop: Gold border */}
                                       <Button 
                                         size="sm" 
                                         variant="outline" 
-                                        className="w-full border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100"
+                                        className="w-full border-afrikoni-chestnut/30 md:border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 md:hover:bg-afrikoni-gold/10 text-xs min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           window.location.href = `/product/${product.id}`;
@@ -502,7 +563,8 @@ export default function ExploreAfricanSupply() {
                           Suppliers in this category are onboarding. Submit an RFQ to get matched with verified suppliers.
                         </p>
                         <Link to="/dashboard/rfqs/new" className="inline-block">
-                          <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] px-6 md:px-8 py-2.5 md:py-2.5 text-sm md:text-base font-semibold shadow-lg md:shadow-md active:scale-95 touch-manipulation">
+                          {/* Mobile: Neutral outline, Desktop: Gold primary */}
+                          <Button className="md:bg-afrikoni-gold md:hover:bg-afrikoni-goldDark md:text-white border-2 border-afrikoni-chestnut/30 md:border-0 text-afrikoni-chestnut md:text-white hover:bg-afrikoni-chestnut/5 md:hover:bg-afrikoni-goldDark min-h-[44px] px-6 md:px-8 py-2.5 md:py-2.5 text-sm md:text-base font-semibold shadow-md md:shadow-md active:scale-95 touch-manipulation">
                             Post RFQ
                             <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
@@ -514,6 +576,21 @@ export default function ExploreAfricanSupply() {
               );
             })}
           </div>
+
+          {/* Mobile: "View All Categories" Link - Only show if more than 3 categories */}
+          {popularCategories.length > 3 && (
+            <div className="md:hidden mt-8 text-center">
+              <Link to="/marketplace">
+                <Button 
+                  variant="outline" 
+                  className="border-2 border-afrikoni-chestnut/30 text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 min-h-[44px] px-6 py-2.5 text-sm font-semibold touch-manipulation active:scale-95"
+                >
+                  View All Categories
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          )}
         </motion.div>
       </div>
     </section>
