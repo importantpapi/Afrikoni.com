@@ -377,7 +377,7 @@ export default function ExploreAfricanSupply() {
                       <div className="text-center py-8 px-4">
                         <div className="max-w-md mx-auto space-y-4">
                           <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/70 mb-4 px-2">
-                            Suppliers in this category are onboarding. Submit an RFQ to get matched with verified suppliers.
+                            Suppliers in this category are onboarding. Post a trade request to get matched with verified suppliers.
                           </p>
                           <Link to="/dashboard/rfqs/new" className="inline-block">
                             <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] px-8 py-2.5 text-base font-semibold shadow-md">
