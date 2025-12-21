@@ -126,10 +126,10 @@ export default function Login() {
       if (error.message) {
         if (error.message.includes('Invalid login credentials') || error.message.includes('Invalid email or password')) {
           errorMessage = 'Invalid email or password. Please check and try again.';
-        } else if (error.message.includes('email') && error.message.includes('invalid')) {
+        } else         if (error.message.includes('email') && error.message.includes('invalid')) {
           // Check if it's a typo (common domain typos)
-          if (email.includes('afrikonii.com')) {
-            errorMessage = 'Email address appears to have a typo. Did you mean "hello@afrikoni.com" (single "i")?';
+          if (email.includes('afrikonii.com') || email.includes('afriikoni.com') || email.includes('afrikoni.comm') || email.includes('afrikon.com')) {
+            errorMessage = 'Email address appears to have a typo. Did you mean "hello@afrikoni.com"?';
           } else {
             errorMessage = 'Please enter a valid email address.';
           }
@@ -206,13 +206,32 @@ export default function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => {
-                      // Auto-fix common typos
+                      // Auto-fix common typos in afrikoni.com domain
                       let value = e.target.value;
-                      // Fix double 'i' typo in afrikoni domain
-                      if (value.includes('afrikonii.com')) {
-                        value = value.replace('afrikonii.com', 'afrikoni.com');
+                      const correctDomain = 'afrikoni.com';
+                      
+                      // Fix various typos: afrikonii.com, afriikoni.com, afrikoni.comm, etc.
+                      const typoPatterns = [
+                        /afrikonii\.com/gi,      // double 'i' at end
+                        /afriikoni\.com/gi,      // double 'i' in middle
+                        /afrikoni\.comm/gi,      // double 'm'
+                        /afrikon\.com/gi,        // missing 'i'
+                        /afrikoni\.co/gi,        // missing 'm'
+                        /afrikoni\.c/gi,         // missing 'om'
+                      ];
+                      
+                      let wasFixed = false;
+                      typoPatterns.forEach(pattern => {
+                        if (pattern.test(value)) {
+                          value = value.replace(pattern, correctDomain);
+                          wasFixed = true;
+                        }
+                      });
+                      
+                      if (wasFixed) {
                         toast.info('Fixed email domain typo', { duration: 2000 });
                       }
+                      
                       setEmail(value);
                     }}
                     placeholder={t('login.emailPlaceholder')}
@@ -221,9 +240,9 @@ export default function Login() {
                     autoComplete="email"
                   />
                 </div>
-                {email.includes('afrikonii.com') && (
+                {(email.includes('afrikonii.com') || email.includes('afriikoni.com') || email.includes('afrikoni.comm') || email.includes('afrikon.com')) && (
                   <p className="text-xs text-amber-600 mt-1">
-                    💡 Did you mean "afrikoni.com" (single "i")?
+                    💡 Did you mean "afrikoni.com"?
                   </p>
                 )}
               </div>
