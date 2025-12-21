@@ -25,19 +25,35 @@ export default function AuthCallback() {
         const errorDescription = hashParams.get('error_description');
 
         if (errorParam) {
-          throw new Error(errorDescription || errorParam);
+          const friendlyError = errorDescription || errorParam;
+          if (friendlyError.includes('access_denied') || friendlyError.includes('user_cancelled')) {
+            throw new Error('Sign-in was cancelled. Please try again.');
+          }
+          throw new Error(friendlyError);
         }
 
-        if (!accessToken) {
-          // Try to get session from Supabase
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError || !session) {
-            throw new Error('No session found. Please try signing in again.');
+        // Wait a moment for Supabase to process the session (longer on mobile)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Try to get session from Supabase first
+        let session = null;
+        const { data: { session: existingSession }, error: sessionError } = await supabase.auth.getSession();
+        if (!sessionError && existingSession) {
+          session = existingSession;
+        }
+
+        // If no session and we have tokens in URL, wait a bit more for Supabase to process
+        if (!session && accessToken) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const { data: { session: newSession } } = await supabase.auth.getSession();
+          if (newSession) {
+            session = newSession;
           }
         }
 
-        // Wait a moment for Supabase to process the session
-        await new Promise(resolve => setTimeout(resolve, 500));
+        if (!session) {
+          throw new Error('No session found. Please try signing in again.');
+        }
 
         // Get the current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -74,6 +90,14 @@ export default function AuthCallback() {
             console.error('Profile creation error:', profileError);
             // Don't fail the auth flow if profile creation fails
           }
+
+          // Send welcome email for new OAuth users
+          try {
+            const { sendWelcomeEmail } = await import('@/services/emailService');
+            await sendWelcomeEmail(user.email, fullName);
+          } catch (emailError) {
+            console.log('Welcome email not sent:', emailError);
+          }
         }
 
         toast.success(t('login.success') || 'Logged in successfully!');
@@ -108,11 +132,15 @@ export default function AuthCallback() {
         }
       } catch (err) {
         console.error('Auth callback error:', err);
-        setError(err.message || 'Authentication failed');
-        toast.error(err.message || 'Authentication failed');
+        const errorMessage = err.message || 'Authentication failed. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        
+        // On mobile, redirect faster
+        const redirectDelay = window.innerWidth < 768 ? 2000 : 3000;
         setTimeout(() => {
           navigate('/login');
-        }, 3000);
+        }, redirectDelay);
       } finally {
         setIsLoading(false);
       }
@@ -122,7 +150,7 @@ export default function AuthCallback() {
   }, [navigate, searchParams, t]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-8 sm:py-12 px-4">
       <div className="w-full max-w-md text-center">
         <div className="flex justify-center mb-6">
           <Logo type="full" size="lg" link={true} showTagline={false} />
@@ -130,18 +158,22 @@ export default function AuthCallback() {
         {isLoading ? (
           <>
             <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-afrikoni-gold" />
-            <p className="text-afrikoni-deep">Completing sign in...</p>
+            <p className="text-afrikoni-deep text-base sm:text-lg">Completing sign in...</p>
+            <p className="text-afrikoni-deep/70 text-sm mt-2">Please wait...</p>
           </>
         ) : error ? (
           <>
-            <div className="text-red-600 mb-4">
-              <p className="font-semibold">Authentication Error</p>
-              <p className="text-sm mt-2">{error}</p>
+            <div className="text-red-600 mb-4 p-4 bg-red-50 rounded-lg border border-red-200">
+              <p className="font-semibold text-base sm:text-lg mb-2">Authentication Error</p>
+              <p className="text-sm sm:text-base mt-2 break-words">{error}</p>
             </div>
-            <p className="text-afrikoni-deep text-sm">Redirecting to login...</p>
+            <p className="text-afrikoni-deep text-sm sm:text-base">Redirecting to login...</p>
           </>
         ) : (
-          <p className="text-afrikoni-deep">Redirecting...</p>
+          <>
+            <p className="text-afrikoni-deep text-base sm:text-lg">Redirecting...</p>
+            <p className="text-afrikoni-deep/70 text-sm mt-2">Setting up your account...</p>
+          </>
         )}
       </div>
     </div>

@@ -111,7 +111,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-8 sm:py-12 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -119,7 +119,7 @@ export default function Login() {
         className="w-full max-w-md"
       >
         <Card className="border-afrikoni-gold/20 shadow-2xl bg-afrikoni-offwhite rounded-xl">
-          <CardContent className="p-8 md:p-10">
+          <CardContent className="p-6 sm:p-8 md:p-10">
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
                 <Logo type="full" size="lg" link={true} showTagline={true} />

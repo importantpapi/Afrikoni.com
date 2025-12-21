@@ -36,15 +36,24 @@ export default function FacebookSignIn({
     try {
       setIsLoading(true);
 
+      // Ensure we have a valid redirect URL
+      const baseUrl = window.location.origin;
       const fullRedirectUrl = redirectTo.startsWith('http') 
         ? redirectTo 
-        : `${window.location.origin}${redirectTo}`;
+        : `${baseUrl}${redirectTo}`;
+
+      // Build callback URL - ensure it works on mobile
+      const callbackUrl = `${baseUrl}/auth/callback?redirect_to=${encodeURIComponent(fullRedirectUrl)}`;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect_to=${encodeURIComponent(fullRedirectUrl)}`,
-          scopes: 'email'
+          redirectTo: callbackUrl,
+          scopes: 'email',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
 
@@ -52,12 +61,29 @@ export default function FacebookSignIn({
         throw error;
       }
 
-      if (onSuccess) {
+      // Note: On mobile, the redirect happens automatically
+      // The onSuccess callback may not fire if redirect happens immediately
+      if (onSuccess && data) {
         onSuccess(data);
       }
     } catch (error) {
       console.error('Facebook sign-in error:', error);
-      const errorMessage = error.message || 'Failed to sign in with Facebook. Please try again.';
+      
+      // Provide user-friendly error messages
+      let errorMessage = 'Failed to sign in with Facebook. Please try again.';
+      
+      if (error.message) {
+        if (error.message.includes('popup')) {
+          errorMessage = 'Please allow popups or try using email/password sign-in.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('cancelled') || error.message.includes('denied')) {
+          errorMessage = 'Facebook sign-in was cancelled. Please try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast.error(errorMessage);
       
       if (onError) {

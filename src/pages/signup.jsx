@@ -77,6 +77,18 @@ export default function Signup() {
           // Don't fail signup if profile creation fails - user can still proceed
         }
 
+        // Send welcome email immediately after signup
+        try {
+          const { sendWelcomeEmail } = await import('@/services/emailService');
+          await sendWelcomeEmail(
+            formData.email, 
+            formData.fullName || formData.email?.split('@')[0] || 'there'
+          );
+        } catch (emailError) {
+          // Don't block signup if email fails
+          console.log('Welcome email not sent:', emailError);
+        }
+
         // Notify admins of new user registration
         try {
           const { notifyAdminOfNewRegistration } = await import('@/services/riskMonitoring');
@@ -99,7 +111,17 @@ export default function Signup() {
             : '/onboarding?step=1';
         navigate(target);
       } else {
-        // Email confirmation required
+        // Email confirmation required - still send welcome email
+        try {
+          const { sendWelcomeEmail } = await import('@/services/emailService');
+          await sendWelcomeEmail(
+            formData.email, 
+            formData.fullName || formData.email?.split('@')[0] || 'there'
+          );
+        } catch (emailError) {
+          console.log('Welcome email not sent:', emailError);
+        }
+        
         toast.success(t('signup.checkEmail'));
         navigate('/login?message=check-email');
       }
@@ -122,7 +144,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-8 sm:py-12 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -130,7 +152,7 @@ export default function Signup() {
         className="w-full max-w-md"
       >
         <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-2xl rounded-xl">
-          <CardContent className="p-8 md:p-10">
+          <CardContent className="p-6 sm:p-8 md:p-10">
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
                 <Logo type="full" size="lg" link={true} showTagline={true} />
