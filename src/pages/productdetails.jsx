@@ -470,11 +470,11 @@ export default function ProductDetail() {
             <Card className="border-afrikoni-gold/20">
               <Tabs defaultValue="description">
                 <CardHeader className="border-b">
-                  <TabsList className="w-full justify-start">
-                    <TabsTrigger value="description">{t('product.description')}</TabsTrigger>
-                    <TabsTrigger value="specifications">{t('product.specifications')}</TabsTrigger>
-                    <TabsTrigger value="packaging">{t('product.packaging')}</TabsTrigger>
-                    <TabsTrigger value="reviews">{t('product.reviews')} ({reviews.length})</TabsTrigger>
+                  <TabsList className="w-full justify-start overflow-x-auto touch-manipulation">
+                    <TabsTrigger value="description" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.description')}</TabsTrigger>
+                    <TabsTrigger value="specifications" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.specifications')}</TabsTrigger>
+                    <TabsTrigger value="packaging" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.packaging')}</TabsTrigger>
+                    <TabsTrigger value="reviews" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.reviews')} ({reviews.length})</TabsTrigger>
                   </TabsList>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -933,7 +933,7 @@ export default function ProductDetail() {
                   <div className="hidden md:block space-y-3">
                     <Button 
                       onClick={handleCreateRFQ} 
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation min-h-[52px] text-base md:text-lg" 
+                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-95 md:active:scale-100 min-h-[52px] md:min-h-[52px] text-base md:text-lg" 
                       size="lg"
                     >
                       <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> 
@@ -951,7 +951,7 @@ export default function ProductDetail() {
                     <Button 
                       onClick={handleContactSupplier} 
                       variant="outline"
-                      className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation min-h-[44px] text-sm md:text-base" 
+                      className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation active:scale-95 md:active:scale-100 min-h-[44px] md:min-h-0 text-sm md:text-base" 
                       size="lg"
                     >
                       <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> 

@@ -258,12 +258,12 @@ function DashboardRFQsInner() {
                   placeholder="Search RFQs by title, description, or keywords..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-xl text-base"
+                  className="pl-12 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-xl text-base md:text-sm touch-manipulation"
                 />
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-12 border-afrikoni-gold/30 rounded-xl">
+                  <SelectTrigger className="w-full sm:w-48 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 rounded-xl touch-manipulation">
                     <SelectValue placeholder="All Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -276,7 +276,7 @@ function DashboardRFQsInner() {
                   </SelectContent>
                 </Select>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-12 border-afrikoni-gold/30 rounded-xl">
+                  <SelectTrigger className="w-full sm:w-48 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 rounded-xl touch-manipulation">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
@@ -289,7 +289,7 @@ function DashboardRFQsInner() {
                   </SelectContent>
                 </Select>
                 <Select value={countryFilter} onValueChange={setCountryFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-12 border-afrikoni-gold/30 rounded-xl">
+                  <SelectTrigger className="w-full sm:w-48 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 rounded-xl touch-manipulation">
                     <SelectValue placeholder="All Countries" />
                   </SelectTrigger>
                   <SelectContent>

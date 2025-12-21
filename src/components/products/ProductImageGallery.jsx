@@ -80,7 +80,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
                   e.stopPropagation();
                   prevImage();
                 }}
-                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 active:bg-black/80 text-white p-2 md:p-2.5 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 active:bg-black/80 text-white p-2.5 md:p-2.5 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
@@ -90,7 +90,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
                   e.stopPropagation();
                   nextImage();
                 }}
-                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 active:bg-black/80 text-white p-2 md:p-2.5 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 active:bg-black/80 text-white p-2.5 md:p-2.5 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
                 aria-label="Next image"
               >
                 <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -106,7 +106,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
               <button
                 key={idx}
                 onClick={() => setSelectedImage(idx)}
-                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all touch-manipulation ${
+                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all touch-manipulation active:scale-95 min-w-[64px] min-h-[64px] ${
                   selectedImage === idx
                     ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/20'
                     : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40 active:border-afrikoni-gold/60'
@@ -151,7 +151,8 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
               
               <button
                 onClick={() => setShowLightbox(false)}
-                className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 active:bg-black/80 text-white p-2.5 md:p-2 rounded-full touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
+                aria-label="Close lightbox"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -160,13 +161,15 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 active:bg-black/80 text-white p-2.5 md:p-2 rounded-full touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
+                    aria-label="Previous image"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 active:bg-black/80 text-white p-2.5 md:p-2 rounded-full touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
+                    aria-label="Next image"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
