@@ -76,11 +76,44 @@ html, body {
   }
 }
 
+/* Smooth pulse animation - optimized for mobile */
+@keyframes pulse-smooth {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.pulse-smooth {
+  animation: pulse-smooth 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: opacity, transform;
+}
+
 /* Mobile-specific performance optimizations */
 @media (max-width: 768px) {
   /* Reduce will-change usage on mobile */
   * {
     will-change: auto;
+  }
+  
+  /* Optimize pulse animation for mobile - simpler, less CPU intensive */
+  .pulse-smooth {
+    animation: pulse-smooth 2.5s ease-in-out infinite;
+    will-change: opacity;
+    transform: none; /* Remove transform on mobile for better performance */
+  }
+  
+  @keyframes pulse-smooth {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
   
   /* Optimize image rendering */
@@ -94,6 +127,12 @@ html, body {
   .shadow-xl,
   .shadow-2xl {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  /* Disable complex animations on mobile for better performance */
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
   }
 }
 

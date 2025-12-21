@@ -29,7 +29,7 @@ export default function WhatsAppButton() {
       }}
     >
       <MessageCircle className="w-6 h-6 md:w-7 md:h-7" />
-      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full pulse-smooth" />
     </motion.button>
   );
 }

@@ -308,7 +308,7 @@ export default function HeroSection({ categories = [] }) {
               transition={{ duration: 0.6, delay: 0.25 }}
               className="inline-flex items-center gap-2.5 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-5 py-2.5 md:px-4 md:py-2 mb-6 md:mb-10 shadow-sm md:shadow-none"
             >
-              <div className="w-2.5 h-2.5 md:w-2 md:h-2 rounded-full bg-afrikoni-gold animate-pulse flex-shrink-0"></div>
+              <div className="w-2.5 h-2.5 md:w-2 md:h-2 rounded-full bg-afrikoni-gold flex-shrink-0 pulse-smooth"></div>
               <span className="text-sm md:text-meta font-medium text-afrikoni-cream/90 md:text-afrikoni-cream/80 leading-tight">
                 {t('early_access_signal') || 'Afrikoni is expanding its verified network'}
               </span>
