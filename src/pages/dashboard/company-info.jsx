@@ -699,9 +699,9 @@ export default function CompanyInfo() {
                           <SelectTrigger className={`mt-1 ${errors.country ? 'border-red-500' : ''}`}>
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[400px] overflow-y-auto">
                       {AFRICAN_COUNTRIES.map(country => (
-                        <SelectItem key={country} value={country}>{country}</SelectItem>
+                        <SelectItem key={country} value={country} className="cursor-pointer">{country}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
