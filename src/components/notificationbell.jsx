@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { Bell } from 'lucide-react';
+import { Bell, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { createPageUrl } from '@/utils';
 
