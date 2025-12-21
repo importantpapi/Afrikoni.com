@@ -19,12 +19,12 @@ export function DataTable({ columns, data, onRowClick, className }) {
             transition={{ delay: rowIdx * 0.05 }}
             onClick={() => onRowClick?.(row)}
             className={cn(
-              'cursor-pointer active:scale-[0.98] transition-transform',
+              'cursor-pointer active:scale-[0.95] md:active:scale-[0.98] transition-transform touch-manipulation',
               onRowClick && 'cursor-pointer'
             )}
           >
-            <Card className="border-afrikoni-gold/20 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-4 space-y-3">
+            <Card className="border-afrikoni-gold/20 shadow-sm hover:shadow-md transition-shadow active:shadow-lg">
+              <CardContent className="p-4 md:p-5 space-y-3">
                 {columns.map((column, colIdx) => {
                   // Skip columns that are actions or less important on mobile
                   if (column.hideOnMobile) return null;
