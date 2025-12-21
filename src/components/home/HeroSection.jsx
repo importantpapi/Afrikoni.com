@@ -440,7 +440,7 @@ export default function HeroSection({ categories = [] }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.15, ease: 'easeOut' }}
-                className="bg-afrikoni-cream/30 border border-afrikoni-chestnut/20 rounded-lg p-4 space-y-3"
+                className="bg-afrikoni-cream/30 border border-afrikoni-chestnut/20 rounded-lg p-4 space-y-3 relative z-10"
               >
                 {/* RFQ Explanation - ONE clear line */}
                 <p className="text-sm text-afrikoni-chestnut/90 font-medium leading-relaxed">
