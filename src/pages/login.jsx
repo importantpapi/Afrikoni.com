@@ -206,8 +206,11 @@ export default function Login() {
                   />
                 </div>
                 <div className="mt-2 text-right">
-                  <Link to="#" className="text-sm text-afrikoni-gold hover:text-afrikoni-goldDark font-medium">
-                    {t('login.forgotPassword')}
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-sm text-afrikoni-gold hover:text-afrikoni-goldDark font-medium"
+                  >
+                    {t('login.forgotPassword') || 'Forgot Password?'}
                   </Link>
                 </div>
               </div>
