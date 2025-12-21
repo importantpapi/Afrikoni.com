@@ -91,22 +91,29 @@ export default function AuthCallback() {
             // Don't fail the auth flow if profile creation fails
           }
 
-          // Send welcome email for new OAuth users
-          try {
-            const { sendWelcomeEmail } = await import('@/services/emailService');
-            await sendWelcomeEmail(user.email, fullName);
-          } catch (emailError) {
-            console.log('Welcome email not sent:', emailError);
+          // MVP Rule: OAuth emails are pre-verified by provider
+          // Send welcome email only if email is confirmed
+          const emailVerified = user.email_confirmed_at !== null;
+          if (emailVerified) {
+            try {
+              const { sendWelcomeEmail } = await import('@/services/emailService');
+              await sendWelcomeEmail(user.email, fullName);
+            } catch (emailError) {
+              console.log('Welcome email not sent:', emailError);
+            }
           }
         }
 
         toast.success(t('login.success') || 'Logged in successfully!');
 
-        // Check email verification
+        // Check email verification - MVP Rule: Block if not confirmed
         const emailVerified = user.email_confirmed_at !== null;
         if (!emailVerified) {
-          // Warn but don't block - in production you might redirect to verification page
-          console.warn('Email not verified');
+          // Block OAuth users too if email not confirmed
+          await supabase.auth.signOut();
+          toast.error('Please confirm your email before accessing Afrikoni.');
+          navigate('/login?message=confirm-email', { replace: true });
+          return;
         }
 
         // Check onboarding status and redirect

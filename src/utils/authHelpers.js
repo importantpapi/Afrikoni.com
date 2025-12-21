@@ -197,6 +197,12 @@ export async function requireAuth(supabase) {
   if (error || !user) {
     return null;
   }
+
+  // MVP Rule: Require email confirmation
+  const emailVerified = user.email_confirmed_at !== null;
+  if (!emailVerified) {
+    return null; // Treat unconfirmed as not authenticated
+  }
   
   return { user };
 }
@@ -214,6 +220,12 @@ export async function requireOnboarding(supabase, supabaseHelpers) {
   
   if (!result.user) {
     return null; // Not authenticated
+  }
+
+  // MVP Rule: Require email confirmation before onboarding
+  const emailVerified = result.user.email_confirmed_at !== null;
+  if (!emailVerified) {
+    return null; // Treat unconfirmed as not authenticated
   }
   
   if (!result.onboardingCompleted) {

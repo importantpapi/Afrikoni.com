@@ -59,9 +59,12 @@ export default function Signup() {
 
       if (error) throw error;
 
-      // Wait for session to be established
-      if (data?.session) {
-        // Create profile in profiles table using UPSERT
+      // MVP Rule: Require email confirmation BEFORE any access
+      // Supabase will send confirmation email automatically
+      // We do NOT create profile or send welcome email until confirmation
+
+      // Create profile in profiles table (but user can't access until confirmed)
+      if (data?.user) {
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({
@@ -73,23 +76,11 @@ export default function Signup() {
           }, { onConflict: 'id' });
 
         if (profileError) {
-          // Error logged (removed for production)
           // Don't fail signup if profile creation fails - user can still proceed
+          console.warn('Profile creation error:', profileError);
         }
 
-        // Send welcome email immediately after signup
-        try {
-          const { sendWelcomeEmail } = await import('@/services/emailService');
-          await sendWelcomeEmail(
-            formData.email, 
-            formData.fullName || formData.email?.split('@')[0] || 'there'
-          );
-        } catch (emailError) {
-          // Don't block signup if email fails
-          console.log('Welcome email not sent:', emailError);
-        }
-
-        // Notify admins of new user registration
+        // Notify admins of new user registration (silent, doesn't block)
         try {
           const { notifyAdminOfNewRegistration } = await import('@/services/riskMonitoring');
           await notifyAdminOfNewRegistration(
@@ -102,29 +93,16 @@ export default function Signup() {
           // Don't block signup if notification fails
           console.warn('Failed to notify admins of new registration:', notifyError);
         }
-
-        toast.success(t('signup.success'));
-        // Redirect to explicit target if provided (e.g. logistics partner onboarding), otherwise onboarding
-        const target =
-          redirectUrl && redirectUrl !== createPageUrl('Home')
-            ? redirectUrl
-            : '/onboarding?step=1';
-        navigate(target);
-      } else {
-        // Email confirmation required - still send welcome email
-        try {
-          const { sendWelcomeEmail } = await import('@/services/emailService');
-          await sendWelcomeEmail(
-            formData.email, 
-            formData.fullName || formData.email?.split('@')[0] || 'there'
-          );
-        } catch (emailError) {
-          console.log('Welcome email not sent:', emailError);
-        }
-        
-        toast.success(t('signup.checkEmail'));
-        navigate('/login?message=check-email');
       }
+
+      // MVP Rule: NO welcome email before confirmation
+      // Welcome email will be sent AFTER confirmation (in onboarding or auth-callback)
+
+      // Show clear message about email confirmation
+      toast.success('Account created! Please check your email to confirm your account.');
+      
+      // Redirect to login with clear message
+      navigate('/login?message=confirm-email', { replace: true });
     } catch (error) {
       // Error logged (removed for production)
       toast.error(error.message || t('signup.error'));

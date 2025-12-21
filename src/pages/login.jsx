@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Lock, Loader2, Shield, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Loader2, Shield, CheckCircle, Send } from 'lucide-react';
 import { FaFacebook } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
@@ -28,6 +28,34 @@ export default function Login() {
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
   const intent = searchParams.get('intent');
 
+  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast.error('Please enter your email address first.');
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
+
+      if (error) throw error;
+
+      toast.success('Confirmation email sent! Please check your inbox.');
+      setShowResendConfirmation(false);
+    } catch (err) {
+      console.error('Resend error:', err);
+      toast.error(err.message || 'Failed to resend confirmation email. Please try again.');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -36,15 +64,32 @@ export default function Login() {
     }
 
     setIsLoading(true);
+    setShowResendConfirmation(false);
+    
     try {
       const { data, error } = await supabaseHelpers.auth.signIn(email, password);
-      if (error) throw error;
-
-      toast.success(t('login.success'));
       
-      // Check email verification first
+      if (error) {
+        // Check if error is due to unconfirmed email
+        if (error.message.includes('email') && error.message.includes('confirm')) {
+          setShowResendConfirmation(true);
+          throw new Error('Please confirm your email before signing in.');
+        }
+        throw error;
+      }
+
+      // Check email verification - MVP Rule: Block login if not confirmed
       const { data: { user: authUser } } = await supabase.auth.getUser();
       const emailVerified = authUser?.email_confirmed_at !== null;
+
+      if (!emailVerified) {
+        // MVP Rule: Block login if email not confirmed
+        setShowResendConfirmation(true);
+        await supabase.auth.signOut(); // Sign out immediately
+        throw new Error('Please confirm your email before signing in.');
+      }
+
+      toast.success(t('login.success'));
 
       // Log successful login to audit log
       const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
@@ -54,32 +99,12 @@ export default function Login() {
         success: true
       });
       
-      if (!emailVerified) {
-        toast.warning('Please verify your email address before accessing the dashboard.');
-        // Still allow access but show warning
-        // In production, you might want to redirect to a verification page
-      }
-      
-      // Check onboarding status and redirect accordingly
-      const { onboardingCompleted, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!onboardingCompleted) {
-        navigate('/onboarding?step=1');
+      // MVP Rule: Redirect to homepage (NOT dashboard) after login
+      // Dashboard access is protected separately
+      if (redirectUrl && redirectUrl !== createPageUrl('Home') && !redirectUrl.includes('/dashboard')) {
+        navigate(redirectUrl);
       } else {
-        // After successful login + onboarding, go directly to dashboard
-        const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
-        const dashboardPath = getDashboardPathForRole(role);
-        
-        // For hybrid users, use unified dashboard
-        const finalPath = role === 'hybrid' ? '/dashboard' : dashboardPath;
-        
-        // If user came from a specific page (RFQ / product), send them back there
-        if (redirectUrl && redirectUrl !== createPageUrl('Home') && !redirectUrl.includes('/dashboard')) {
-          navigate(redirectUrl);
-        } else {
-          // Go directly to dashboard - no repeated "Join Afrikoni" screen
-          navigate(finalPath, { replace: true });
-        }
+        navigate('/', { replace: true }); // Go to homepage
       }
     } catch (error) {
       // Log failed login attempt to audit log
@@ -203,6 +228,34 @@ export default function Login() {
                 )}
               </Button>
             </form>
+
+            {/* Resend Confirmation Email */}
+            {showResendConfirmation && (
+              <div className="mt-4 p-4 bg-afrikoni-cream border border-afrikoni-gold/40 rounded-lg">
+                <p className="text-sm text-afrikoni-deep mb-3">
+                  Please confirm your email before signing in.
+                </p>
+                <Button
+                  onClick={handleResendConfirmation}
+                  disabled={isResending}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  {isResending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Resend Confirmation Email
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {/* OAuth Buttons */}
             <div className="mt-6">
