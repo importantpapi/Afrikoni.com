@@ -105,18 +105,44 @@ function SupportChatInner() {
             setTicketStatus('open');
             toast.success(`Your support ticket: ${newTicketNumber}`);
             
-            // Send notification to admin when new ticket is created
+            // Send notification to admin when new ticket is created - Fix: Find admin users
             try {
-              const { createNotification } = await import('@/services/notificationService');
-              await createNotification({
-                company_id: null, // Admin notification
-                user_email: 'hello@afrikoni.com',
-                title: `New Support Ticket Created - ${newTicketNumber}`,
-                message: `A new support ticket has been created by ${userData.email || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
-                type: 'support',
-                link: `/dashboard/admin/support-tickets?ticket=${newTicketNumber}`,
-                sendEmail: true
-              });
+              // Find admin users to notify
+              const { data: adminUsers } = await supabase
+                .from('profiles')
+                .select('id, email')
+                .eq('role', 'admin')
+                .limit(10);
+
+              if (adminUsers && adminUsers.length > 0) {
+                const { createNotification } = await import('@/services/notificationService');
+                // Create notification for each admin
+                await Promise.all(adminUsers.map(admin => 
+                  createNotification({
+                    user_id: admin.id,
+                    company_id: null,
+                    user_email: admin.email || 'hello@afrikoni.com',
+                    title: `New Support Ticket Created - ${newTicketNumber}`,
+                    message: `A new support ticket has been created by ${userData.email || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
+                    type: 'support',
+                    link: `/dashboard/admin/support-tickets?ticket=${newTicketNumber}`,
+                    sendEmail: true
+                  }).catch(err => console.error('Failed to notify admin:', admin.email, err))
+                ));
+              } else {
+                // Fallback: Create notification with email only
+                const { createNotification } = await import('@/services/notificationService');
+                await createNotification({
+                  user_id: null,
+                  company_id: null,
+                  user_email: 'hello@afrikoni.com',
+                  title: `New Support Ticket Created - ${newTicketNumber}`,
+                  message: `A new support ticket has been created by ${userData.email || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
+                  type: 'support',
+                  link: `/dashboard/admin/support-tickets?ticket=${newTicketNumber}`,
+                  sendEmail: true
+                });
+              }
             } catch (notifError) {
               console.error('Failed to send admin notification for new ticket:', notifError);
             }
@@ -244,20 +270,47 @@ function SupportChatInner() {
         })
         .eq('ticket_number', ticketNumber);
 
-      // Send email notification to admin
+      // Send notification to admin - Fix: Create notification for admin users
       try {
-        const { createNotification } = await import('@/services/notificationService');
-        await createNotification({
-          company_id: null, // Admin notification
-          user_email: 'hello@afrikoni.com',
-          title: `New Support Message - ${ticketNumber}`,
-          message: `New message from ${user.email || 'User'}: ${newMessage.trim().substring(0, 100)}...`,
-          type: 'support',
-          link: `/dashboard/admin/support-tickets?ticket=${ticketNumber}`,
-          sendEmail: true
-        });
+        // Find admin users to notify
+        const { data: adminUsers } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .eq('role', 'admin')
+          .limit(10);
+
+        if (adminUsers && adminUsers.length > 0) {
+          const { createNotification } = await import('@/services/notificationService');
+          // Create notification for each admin
+          await Promise.all(adminUsers.map(admin => 
+            createNotification({
+              user_id: admin.id,
+              company_id: null,
+              user_email: admin.email || 'hello@afrikoni.com',
+              title: `New Support Message - ${ticketNumber}`,
+              message: `New message from ${user.email || 'User'}: ${newMessage.trim().substring(0, 100)}...`,
+              type: 'support',
+              link: `/dashboard/admin/support-tickets?ticket=${ticketNumber}`,
+              sendEmail: true
+            }).catch(err => console.error('Failed to notify admin:', admin.email, err))
+          ));
+        } else {
+          // Fallback: Create notification with email only
+          const { createNotification } = await import('@/services/notificationService');
+          await createNotification({
+            user_id: null,
+            company_id: null,
+            user_email: 'hello@afrikoni.com',
+            title: `New Support Message - ${ticketNumber}`,
+            message: `New message from ${user.email || 'User'}: ${newMessage.trim().substring(0, 100)}...`,
+            type: 'support',
+            link: `/dashboard/admin/support-tickets?ticket=${ticketNumber}`,
+            sendEmail: true
+          });
+        }
       } catch (notifError) {
         console.error('Failed to send notification:', notifError);
+        // Don't fail the message send if notification fails
       }
 
       setNewMessage('');

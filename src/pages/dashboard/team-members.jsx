@@ -83,15 +83,26 @@ function TeamMembersInner() {
           console.error('Error loading subscription:', error);
         }
 
-        // Load team members
-        const { data: teamData, error: teamError } = await supabase
-          .from('company_team')
-          .select('*')
-          .eq('company_id', userCompanyId)
-          .order('created_at', { ascending: false });
+        // Load team members - Fix: Better error handling
+        try {
+          const { data: teamData, error: teamError } = await supabase
+            .from('company_team')
+            .select('*')
+            .eq('company_id', userCompanyId)
+            .order('created_at', { ascending: false });
 
-        if (teamError) throw teamError;
-        setTeamMembers(teamData || []);
+          if (teamError) {
+            console.error('Team members query error:', teamError);
+            // Don't throw - just log and set empty array
+            setTeamMembers([]);
+          } else {
+            setTeamMembers(teamData || []);
+          }
+        } catch (teamLoadError) {
+          console.error('Error loading team members:', teamLoadError);
+          setTeamMembers([]);
+          // Don't show error toast here - it's not critical
+        }
       }
     } catch (error) {
       console.error('Error loading data:', error);

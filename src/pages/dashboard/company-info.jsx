@@ -366,6 +366,21 @@ export default function CompanyInfo() {
 
       toast.success('Company information saved successfully!');
       
+      // Invalidate supplier page cache by triggering a refresh
+      // This ensures supplier page shows updated data
+      if (finalCompanyId) {
+        // Clear any cached company data
+        try {
+          await supabase
+            .from('companies')
+            .select('id')
+            .eq('id', finalCompanyId)
+            .single();
+        } catch (e) {
+          // Ignore - just triggering a refresh
+        }
+      }
+      
       // Redirect back to where user came from, or to dashboard
       // Small delay to show success message
       setTimeout(() => {

@@ -51,17 +51,18 @@ export default function SupplierProfile() {
     }
 
     try {
-      const [companiesRes, prodsRes, revsRes] = await Promise.all([
-        supabase.from('companies').select('*'),
-        supabase.from('products').select('*').eq('status', 'active'),
-        supabase.from('reviews').select('*')
+      // Fix: Load supplier directly by ID instead of loading all companies
+      const [companyRes, prodsRes, revsRes] = await Promise.all([
+        supabase.from('companies').select('*').eq('id', supplierId).maybeSingle(),
+        supabase.from('products').select('*').eq('status', 'active').eq('company_id', supplierId),
+        supabase.from('reviews').select('*').eq('reviewed_company_id', supplierId)
       ]);
 
-      if (companiesRes.error) throw companiesRes.error;
+      if (companyRes.error) throw companyRes.error;
       if (prodsRes.error) throw prodsRes.error;
       if (revsRes.error) throw revsRes.error;
 
-      const foundSupplier = companiesRes.data?.find(c => c.id === supplierId);
+      const foundSupplier = companyRes.data;
             if (!foundSupplier) {
               toast.error('Supplier not found');
               navigate(createPageUrl('Suppliers'));
@@ -69,8 +70,8 @@ export default function SupplierProfile() {
             }
 
       setSupplier(foundSupplier);
-      setProducts(prodsRes.data?.filter(p => p.company_id === supplierId) || []);
-      setReviews(revsRes.data?.filter(r => r.reviewed_company_id === supplierId) || []);
+      setProducts(prodsRes.data || []);
+      setReviews(revsRes.data || []);
     } catch (error) {
       console.error('Failed to load supplier profile:', error);
       toast.error('Failed to load supplier profile. Please try again.', {

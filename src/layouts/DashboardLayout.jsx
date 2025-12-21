@@ -36,6 +36,7 @@ import LogisticsHeader from '@/components/headers/LogisticsHeader';
 import AdminHeader from '@/components/headers/AdminHeader';
 import HybridHeader from '@/components/headers/HybridHeader';
 import UserAvatar from '@/components/headers/UserAvatar';
+import SupportChatSidebar from '@/components/dashboard/SupportChatSidebar';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useTranslation();
