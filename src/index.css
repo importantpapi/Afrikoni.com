@@ -172,15 +172,6 @@ html, body {
     }
   }
   
-  /* Replace complex animations with simpler ones on mobile */
-  .animate-pulse {
-    animation: pulse-smooth-mobile 2s ease-in-out infinite !important;
-  }
-  
-  .animate-bounce {
-    animation: bounce-smooth 1.5s ease-in-out infinite !important;
-  }
-  
   /* Skeleton loading - simple shimmer for mobile */
   .skeleton-loading {
     background: linear-gradient(90deg, #F3E5C7 25%, #FDF8F0 50%, #F3E5C7 75%);
