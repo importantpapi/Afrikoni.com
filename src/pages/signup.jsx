@@ -63,6 +63,24 @@ export default function Signup() {
       // Supabase will send confirmation email automatically
       // We do NOT create profile or send welcome email until confirmation
 
+      // Ensure confirmation email is sent - resend if needed
+      if (data?.user && !data?.session) {
+        // No session means email confirmation is required
+        // Try to resend confirmation email to ensure it's sent
+        try {
+          const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
+            email: formData.email
+          });
+          if (resendError) {
+            console.warn('Failed to resend confirmation email:', resendError);
+            // Don't block signup - Supabase should have sent it already
+          }
+        } catch (resendErr) {
+          console.warn('Error resending confirmation email:', resendErr);
+        }
+      }
+
       // Create profile in profiles table (but user can't access until confirmed)
       if (data?.user) {
         const { error: profileError } = await supabase

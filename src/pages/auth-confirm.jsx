@@ -44,10 +44,55 @@ export default function AuthConfirm() {
         }
 
         // Verify email with Supabase
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: type === 'email' ? 'email' : 'signup'
-        });
+        // Try multiple verification methods for compatibility
+        let verificationSuccess = false;
+        let verificationError = null;
+
+        // Method 1: Try verifyOtp with token_hash
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: type === 'email' ? 'email' : 'signup'
+          });
+          if (!error) {
+            verificationSuccess = true;
+          } else {
+            verificationError = error;
+          }
+        } catch (otpError) {
+          verificationError = otpError;
+        }
+
+        // Method 2: If verifyOtp fails, try with token directly
+        if (!verificationSuccess && token) {
+          try {
+            const { data, error } = await supabase.auth.verifyOtp({
+              token: token,
+              type: type === 'email' ? 'email' : 'signup'
+            });
+            if (!error) {
+              verificationSuccess = true;
+            } else if (!verificationError) {
+              verificationError = error;
+            }
+          } catch (tokenError) {
+            if (!verificationError) {
+              verificationError = tokenError;
+            }
+          }
+        }
+
+        // Method 3: Check if already confirmed via session
+        if (!verificationSuccess) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user?.email_confirmed_at) {
+            verificationSuccess = true;
+          }
+        }
+
+        if (!verificationSuccess && verificationError) {
+          throw verificationError;
+        }
 
         if (error) {
           // Check if already confirmed

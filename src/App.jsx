@@ -21,6 +21,7 @@ import Onboarding from './pages/onboarding';
 import AuthCallback from './pages/auth-callback';
 import AuthConfirm from './pages/auth-confirm';
 import AuthSuccess from './pages/auth-success';
+import ForgotPassword from './pages/forgot-password';
 import NotFound from './pages/NotFound';
 import SitemapXML from './pages/sitemap.xml';
 import PrivacyPolicy from './pages/privacy-policy';
@@ -213,6 +214,8 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/confirm" element={<AuthConfirm />} />
             <Route path="/auth/success" element={<AuthSuccess />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ForgotPassword />} />
             <Route path="/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
             <Route path="/supplier-onboarding" element={<ProtectedRoute><SupplierOnboarding /></ProtectedRoute>} />
             {/* Trust & Verification Center */}

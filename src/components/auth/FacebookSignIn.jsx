@@ -45,15 +45,14 @@ export default function FacebookSignIn({
       // Build callback URL - ensure it works on mobile
       const callbackUrl = `${baseUrl}/auth/callback?redirect_to=${encodeURIComponent(fullRedirectUrl)}`;
 
+      // Use skipBrowserRedirect for better mobile handling
+      // This prevents domain issues and works better cross-platform
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
           redirectTo: callbackUrl,
           scopes: 'email',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
+          skipBrowserRedirect: false, // Allow redirect for proper OAuth flow
         }
       });
 
@@ -73,7 +72,9 @@ export default function FacebookSignIn({
       let errorMessage = 'Failed to sign in with Facebook. Please try again.';
       
       if (error.message) {
-        if (error.message.includes('popup')) {
+        if (error.message.includes('domain') || error.message.includes('URL') || error.message.includes('app')) {
+          errorMessage = 'Facebook sign-in is temporarily unavailable. Please use email/password sign-in or contact support.';
+        } else if (error.message.includes('popup')) {
           errorMessage = 'Please allow popups or try using email/password sign-in.';
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = 'Network error. Please check your internet connection and try again.';
@@ -83,6 +84,12 @@ export default function FacebookSignIn({
           errorMessage = error.message;
         }
       }
+      
+      // Show alternative sign-in option
+      toast.error(errorMessage, {
+        duration: 5000,
+        description: 'You can sign in with email/password instead.',
+      });
       
       toast.error(errorMessage);
       

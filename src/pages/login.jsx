@@ -231,14 +231,19 @@ export default function Login() {
 
             {/* Resend Confirmation Email */}
             {showResendConfirmation && (
-              <div className="mt-4 p-4 bg-afrikoni-cream border border-afrikoni-gold/40 rounded-lg">
-                <p className="text-sm text-afrikoni-deep mb-3">
-                  Please confirm your email before signing in.
-                </p>
+              <div className="mt-4 p-4 bg-afrikoni-cream border border-afrikoni-gold/40 rounded-lg space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-afrikoni-chestnut mb-1">
+                    Email Not Confirmed
+                  </p>
+                  <p className="text-sm text-afrikoni-deep mb-2">
+                    Please check your email and click the confirmation link. If you didn't receive it, click below to resend.
+                  </p>
+                </div>
                 <Button
                   onClick={handleResendConfirmation}
                   disabled={isResending}
-                  variant="outline"
+                  variant="primary"
                   className="w-full"
                   size="sm"
                 >
@@ -253,6 +258,29 @@ export default function Login() {
                       Resend Confirmation Email
                     </>
                   )}
+                </Button>
+                <p className="text-xs text-afrikoni-deep/70 text-center">
+                  Check your spam folder if you don't see the email.
+                </p>
+              </div>
+            )}
+
+            {/* Message from URL params */}
+            {searchParams.get('message') === 'confirm-email' && !showResendConfirmation && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 mb-2">
+                  <strong>Account created!</strong> Please check your email to confirm your account.
+                </p>
+                <Button
+                  onClick={() => {
+                    setShowResendConfirmation(true);
+                  }}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Resend Confirmation Email
                 </Button>
               </div>
             )}
