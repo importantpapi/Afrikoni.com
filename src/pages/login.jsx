@@ -119,7 +119,29 @@ export default function Login() {
         console.warn('Failed to log login attempt:', auditError);
       }
       
-      toast.error(error.message || t('login.error'));
+      // Provide user-friendly error messages
+      let errorMessage = error.message || t('login.error');
+      
+      // Handle specific Supabase errors
+      if (error.message) {
+        if (error.message.includes('Invalid login credentials') || error.message.includes('Invalid email or password')) {
+          errorMessage = 'Invalid email or password. Please check and try again.';
+        } else if (error.message.includes('email') && error.message.includes('invalid')) {
+          // Check if it's a typo (common domain typos)
+          if (email.includes('afrikonii.com')) {
+            errorMessage = 'Email address appears to have a typo. Did you mean "hello@afrikoni.com" (single "i")?';
+          } else {
+            errorMessage = 'Please enter a valid email address.';
+          }
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Please confirm your email before signing in.';
+          setShowResendConfirmation(true);
+        } else if (error.message.includes('Too many requests')) {
+          errorMessage = 'Too many login attempts. Please wait a few minutes and try again.';
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -183,12 +205,27 @@ export default function Login() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      // Auto-fix common typos
+                      let value = e.target.value;
+                      // Fix double 'i' typo in afrikoni domain
+                      if (value.includes('afrikonii.com')) {
+                        value = value.replace('afrikonii.com', 'afrikoni.com');
+                        toast.info('Fixed email domain typo', { duration: 2000 });
+                      }
+                      setEmail(value);
+                    }}
                     placeholder={t('login.emailPlaceholder')}
                     className="pl-10"
                     required
+                    autoComplete="email"
                   />
                 </div>
+                {email.includes('afrikonii.com') && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    💡 Did you mean "afrikoni.com" (single "i")?
+                  </p>
+                )}
               </div>
 
               <div>

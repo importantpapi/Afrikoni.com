@@ -195,12 +195,27 @@ export default function Signup() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => {
+                    // Auto-fix common typos
+                    let value = e.target.value;
+                    // Fix double 'i' typo in afrikoni domain
+                    if (value.includes('afrikonii.com')) {
+                      value = value.replace('afrikonii.com', 'afrikoni.com');
+                      toast.info('Fixed email domain typo', { duration: 2000 });
+                    }
+                    setFormData(prev => ({ ...prev, email: value }));
+                  }}
                   placeholder={t('signup.emailPlaceholder')}
                   className="pl-10"
                   required
+                  autoComplete="email"
                 />
               </div>
+              {formData.email.includes('afrikonii.com') && (
+                <p className="text-xs text-amber-600 mt-1">
+                  💡 Did you mean "afrikoni.com" (single "i")?
+                </p>
+              )}
             </div>
 
             <div>

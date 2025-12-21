@@ -111,16 +111,31 @@ export default function ForgotPassword() {
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
-                      className="pl-10"
-                      required
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      // Auto-fix common typos
+                      let value = e.target.value;
+                      // Fix double 'i' typo in afrikoni domain
+                      if (value.includes('afrikonii.com')) {
+                        value = value.replace('afrikonii.com', 'afrikoni.com');
+                        toast.info('Fixed email domain typo', { duration: 2000 });
+                      }
+                      setEmail(value);
+                    }}
+                    placeholder="Enter your email address"
+                    className="pl-10"
+                    required
+                    autoComplete="email"
                     />
                   </div>
+                  {email.includes('afrikonii.com') && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      💡 Did you mean "afrikoni.com" (single "i")?
+                    </p>
+                  )}
                 </div>
 
                 <Button
