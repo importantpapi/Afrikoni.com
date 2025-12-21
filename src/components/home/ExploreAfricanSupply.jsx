@@ -355,7 +355,7 @@ export default function ExploreAfricanSupply() {
                   {isLoading && products.length === 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {[...Array(8)].map((_, i) => (
-                        <div key={i} className="h-64 bg-afrikoni-cream/50 rounded-lg animate-pulse" />
+                        <div key={i} className="h-64 bg-afrikoni-cream/50 rounded-lg skeleton-loading" />
                       ))}
                     </div>
                   ) : products.length > 0 ? (
@@ -487,9 +487,9 @@ export default function ExploreAfricanSupply() {
                         >
                           {isLoading && (
                             <div className="flex gap-2">
-                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full loading-dot" style={{ animationDelay: '0s' }} />
+                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full loading-dot" style={{ animationDelay: '0.3s' }} />
+                              <div className="w-2 h-2 bg-afrikoni-gold rounded-full loading-dot" style={{ animationDelay: '0.6s' }} />
                             </div>
                           )}
                         </div>

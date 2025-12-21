@@ -8,7 +8,7 @@ import { Card, CardContent } from './card';
 export function Skeleton({ className = '', ...props }) {
   return (
     <div
-      className={`animate-pulse bg-afrikoni-cream rounded ${className}`}
+      className={`skeleton-loading bg-afrikoni-cream rounded ${className}`}
       {...props}
     />
   );

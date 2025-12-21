@@ -236,7 +236,7 @@ export default function HeroSection({ categories = [] }) {
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
             className="hidden lg:block lg:col-span-3"
           >
             <Card className="border border-afrikoni-gold/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-lg opacity-70">
@@ -287,25 +287,25 @@ export default function HeroSection({ categories = [] }) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             className="mb-6 md:mb-12 px-2 md:px-0"
           >
-            {/* H1 - Single dominant heading - Mobile optimized */}
-            <h1 className="text-[32px] md:text-h1 font-bold leading-[1.15] md:leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-4 md:mb-8">
+            {/* H1 - Single dominant heading - Desktop restored */}
+            <h1 className="text-[32px] md:text-[60px] font-bold leading-[1.15] md:leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-4 md:mb-8">
               {t('trade_trust_thrive')}
             </h1>
             
-            {/* Subheading - Body role, lower contrast - Mobile optimized */}
-            <p className="text-base md:text-body font-normal leading-[1.5] md:leading-[1.6] text-afrikoni-cream/95 md:text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto px-2 md:px-0">
+            {/* Subheading - Desktop restored */}
+            <p className="text-base md:text-[18px] font-normal leading-[1.5] md:leading-[1.6] text-afrikoni-cream/95 md:text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto px-2 md:px-0">
               <span className="md:hidden">Africa's trusted B2B marketplace.</span>
-              <span className="hidden md:inline">{t('hero_subtitle')}</span>
+              <span className="hidden md:inline">{t('hero_subtitle') || 'A Pan-African B2B marketplace where verified African suppliers, buyers, and logistics partners build, trade, and scale safely across 54 countries.'}</span>
             </p>
             
             {/* Subtle Early Access Signal - Mobile enhanced */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.25 }}
+              transition={{ duration: 0.4, delay: 0.15, ease: 'easeOut' }}
               className="inline-flex items-center gap-2.5 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-5 py-2.5 md:px-4 md:py-2 mb-6 md:mb-10 shadow-sm md:shadow-none"
             >
               <div className="w-2.5 h-2.5 md:w-2 md:h-2 rounded-full bg-afrikoni-gold flex-shrink-0 pulse-smooth"></div>
@@ -338,7 +338,7 @@ export default function HeroSection({ categories = [] }) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
               className="max-w-3xl mx-auto mb-8 md:mb-12 px-2 md:px-0"
           >
               <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
