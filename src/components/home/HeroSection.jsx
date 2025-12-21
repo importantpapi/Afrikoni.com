@@ -448,15 +448,21 @@ export default function HeroSection({ categories = [] }) {
                   Tell us what you need. Verified suppliers send you quotes.
                 </p>
                 
-                {/* RFQ Button - Clear wording */}
+                {/* RFQ Button - Clear wording, proper touch target */}
                 <button
-                  onClick={() => navigate('/dashboard/rfqs/new')}
-                  className="w-full flex items-center justify-center gap-3 bg-afrikoni-chestnut/10 hover:bg-afrikoni-chestnut/20 border-2 border-afrikoni-chestnut/30 text-afrikoni-chestnut font-semibold px-6 py-3.5 rounded-lg active:scale-95 transition-all duration-200 min-h-[48px] touch-manipulation"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate('/dashboard/rfqs/new');
+                  }}
+                  className="w-full flex items-center justify-center gap-3 bg-afrikoni-chestnut/10 hover:bg-afrikoni-chestnut/20 active:bg-afrikoni-chestnut/30 border-2 border-afrikoni-chestnut/30 text-afrikoni-chestnut font-semibold px-6 py-4 rounded-lg active:scale-[0.98] transition-all duration-200 min-h-[52px] touch-manipulation cursor-pointer z-10 relative"
+                  type="button"
+                  aria-label="Post a Trade Request (RFQ)"
                 >
-                  <FileText className="w-5 h-5" />
-                  <div className="flex flex-col items-start">
-                    <span className="text-base font-bold">Post a Trade Request (RFQ)</span>
-                    <span className="text-xs text-afrikoni-chestnut/70 font-normal">Suppliers come to you</span>
+                  <FileText className="w-5 h-5 flex-shrink-0" />
+                  <div className="flex flex-col items-start flex-1 min-w-0">
+                    <span className="text-base font-bold text-left">Post a Trade Request (RFQ)</span>
+                    <span className="text-xs text-afrikoni-chestnut/70 font-normal text-left">Suppliers come to you</span>
                   </div>
                 </button>
               </motion.div>
