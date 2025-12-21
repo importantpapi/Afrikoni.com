@@ -17,12 +17,11 @@ export default function Home() {
   const { trackPageView } = useAnalytics();
 
   useEffect(() => {
-    // Only load data if we don't have categories yet
-    if (categories.length === 0) {
-      loadData();
-    }
+    // Only load data once on mount
+    loadData();
     trackPageView('Home');
-  }, [categories.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadData = async () => {
     try {

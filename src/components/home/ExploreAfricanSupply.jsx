@@ -168,15 +168,17 @@ export default function ExploreAfricanSupply() {
     }
   }, []);
 
-  // Initial load
+  // Initial load - only once on mount
   useEffect(() => {
     popularCategories.forEach(category => {
       loadCategoryProducts(category.key, 0, false);
     });
-  }, [loadCategoryProducts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Infinite scroll observer setup
+  // Infinite scroll observer setup - stable refs
   useEffect(() => {
+    const observers = [];
     popularCategories.forEach(category => {
       const observerRef = observerRefs.current[category.key];
       if (!observerRef) return;
@@ -192,9 +194,12 @@ export default function ExploreAfricanSupply() {
       );
 
       observer.observe(observerRef);
-
-      return () => observer.disconnect();
+      observers.push(observer);
     });
+
+    return () => {
+      observers.forEach(obs => obs.disconnect());
+    };
   }, [hasMore, loadingProducts, page, loadCategoryProducts]);
 
   const scrollCountries = (direction) => {
@@ -212,8 +217,8 @@ export default function ExploreAfricanSupply() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.4 }}
           className="text-center mb-8 md:mb-12"
         >
           <h2 className="text-h2-mobile md:text-h2 font-semibold leading-[1.2] text-afrikoni-chestnut mb-6">

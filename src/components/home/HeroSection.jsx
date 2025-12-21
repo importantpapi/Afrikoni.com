@@ -137,18 +137,27 @@ export default function HeroSection({ categories = [] }) {
   }, [categories, categorySearchQuery]);
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Check if user is logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
+      if (isMounted) {
+        setUser(session?.user || null);
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+      if (isMounted) {
+        setUser(session?.user || null);
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {

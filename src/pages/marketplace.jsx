@@ -311,6 +311,7 @@ export default function Marketplace() {
         )
       `;
       
+      // Build query from scratch to ensure proper structure
       query = supabase
         .from('products')
         .select(selectString);
@@ -340,6 +341,13 @@ export default function Marketplace() {
         }
       }
       
+      // Validate sortField exists before ordering
+      const validSortFields = ['created_at', 'views', 'price_min', 'min_order_quantity', 'title'];
+      if (!validSortFields.includes(sortField)) {
+        sortField = 'created_at';
+        ascending = false;
+      }
+      
       query = query.order(sortField, { ascending });
       
       const result = await paginateQuery(
@@ -361,7 +369,10 @@ export default function Marketplace() {
         isLoading: false
       }));
       
-      if (error) throw error;
+      if (error) {
+        console.error('Marketplace query error:', error);
+        throw error;
+      }
       
       // Transform products and get images from product_images table
       // NOTE: product_images is the single source of truth. products.images is deprecated.
