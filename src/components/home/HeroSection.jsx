@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CheckCircle, Users, Globe, Shield, Lock, TrendingUp, ArrowRight, Store, ShoppingBag, Truck } from 'lucide-react';
+import { Search, X, CheckCircle, Users, Globe, Shield, Lock, TrendingUp, ArrowRight, Store, ShoppingBag, Truck, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/components/ui/Logo';
@@ -283,37 +283,37 @@ export default function HeroSection({ categories = [] }) {
 
           {/* Center Content */}
           <div className="lg:col-span-6 text-center">
-            {/* Value Proposition */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="mb-6 md:mb-12 px-2 md:px-0"
-          >
-            {/* H1 - Single dominant heading - Desktop restored */}
-            <h1 className="text-[32px] md:text-[60px] font-bold leading-[1.15] md:leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-4 md:mb-8">
-              {t('trade_trust_thrive')}
-            </h1>
-            
-            {/* Subheading - Desktop restored */}
-            <p className="text-base md:text-[18px] font-normal leading-[1.5] md:leading-[1.6] text-afrikoni-cream/95 md:text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto px-2 md:px-0">
-              <span className="md:hidden">Africa's trusted B2B marketplace.</span>
-              <span className="hidden md:inline">{t('hero_subtitle') || 'A Pan-African B2B marketplace where verified African suppliers, buyers, and logistics partners build, trade, and scale safely across 54 countries.'}</span>
-            </p>
-            
-            {/* Subtle Early Access Signal - Mobile enhanced */}
+            {/* Mobile: Operational Header | Desktop: Brand Header */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15, ease: 'easeOut' }}
-              className="inline-flex items-center gap-2.5 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-5 py-2.5 md:px-4 md:py-2 mb-6 md:mb-10 shadow-sm md:shadow-none"
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="mb-6 md:mb-12 px-2 md:px-0"
             >
-              <div className="w-2.5 h-2.5 md:w-2 md:h-2 rounded-full bg-afrikoni-gold flex-shrink-0 pulse-smooth"></div>
-              <span className="text-sm md:text-meta font-medium text-afrikoni-cream/90 md:text-afrikoni-cream/80 leading-tight">
-                {t('early_access_signal') || 'Afrikoni is expanding its verified network'}
-              </span>
+              {/* Mobile: Operational, Action-Oriented */}
+              <div className="md:hidden space-y-4 mb-6">
+                <h1 className="text-2xl font-bold leading-tight text-afrikoni-gold mb-2">
+                  Find verified African suppliers
+                </h1>
+                <p className="text-base font-medium text-afrikoni-cream/95 leading-relaxed">
+                  or post an RFQ in minutes
+                </p>
+                {/* Small brand seal */}
+                <p className="text-xs text-afrikoni-cream/70 font-medium">
+                  Trade. Trust. Thrive.
+                </p>
+              </div>
+              
+              {/* Desktop: Brand Header (restored) */}
+              <div className="hidden md:block">
+                <h1 className="text-[60px] font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-4 md:mb-8">
+                  {t('trade_trust_thrive')}
+                </h1>
+                <p className="text-[18px] font-normal leading-[1.6] text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto">
+                  {t('hero_subtitle') || 'A Pan-African B2B marketplace where verified African suppliers, buyers, and logistics partners build, trade, and scale safely across 54 countries.'}
+                </p>
+              </div>
             </motion.div>
-          </motion.div>
 
           {/* Afrikoni Shield trust strip - Hidden per request */}
           {/* <motion.div
@@ -334,16 +334,136 @@ export default function HeroSection({ categories = [] }) {
             <span className="opacity-80">Cross-border logistics support</span>
           </motion.div> */}
 
-            {/* Enterprise-Grade Search Bar - PRIMARY ACTION - Mobile Enhanced */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
-              className="max-w-3xl mx-auto mb-8 md:mb-12 px-2 md:px-0"
-          >
+            {/* Mobile: Commanding Search Bar - PRIMARY ACTION */}
+            <div className="md:hidden space-y-4 mb-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
+                className="w-full"
+              >
+                <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
+                  {/* Mobile: Full-width, dark background, gold border */}
+                  <div
+                    className={`
+                      flex items-center gap-3
+                      bg-gradient-to-br from-afrikoni-chestnut/95 to-afrikoni-deep/95
+                      rounded-lg
+                      shadow-2xl
+                      border-2 border-afrikoni-gold/50
+                      px-4 py-3.5
+                      transition-all duration-300
+                      ${searchFocused ? 'border-afrikoni-gold shadow-[0_0_20px_rgba(212,169,55,0.4)]' : 'border-afrikoni-gold/50'}
+                    `}
+                  >
+                    {/* Search Icon - Gold, prominent */}
+                    <Search className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                    
+                    {/* Main Search Input - Dominant, high contrast */}
+                    <input
+                      id="hero-search-input"
+                      type="text"
+                      placeholder="Search products, suppliers, or RFQs"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                          handleSearch();
+                        }
+                      }}
+                      onFocus={() => {
+                        setSearchFocused(true);
+                        setShowSuggestions(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          setSearchFocused(false);
+                        }, 200);
+                      }}
+                      className="flex-1 text-base px-2 py-2 focus:outline-none placeholder:text-afrikoni-cream/60 text-afrikoni-cream bg-transparent min-h-[48px] font-medium"
+                    />
+
+                    {/* Clear button */}
+                    {searchQuery && (
+                      <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        onClick={() => {
+                          setSearchQuery('');
+                          setShowSuggestions(false);
+                        }}
+                        className="p-1.5 rounded-full hover:bg-afrikoni-gold/20 text-afrikoni-cream/80 hover:text-afrikoni-gold transition-colors"
+                        aria-label="Clear search"
+                      >
+                        <X className="w-4 h-4" />
+                      </motion.button>
+                    )}
+
+                    {/* Search Button - Gold, prominent */}
+                    <button
+                      onClick={handleSearch}
+                      className="flex items-center gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-bold px-5 py-2.5 rounded-lg hover:bg-afrikoni-gold/90 active:scale-95 transition-all duration-200 min-h-[48px] touch-manipulation shadow-lg"
+                    >
+                      <Search className="w-5 h-5" />
+                      <span className="text-sm font-bold">START</span>
+                    </button>
+                  </div>
+
+                  {/* Premium Search Suggestions Dropdown */}
+                  <AnimatePresence>
+                    {showSuggestions && (searchFocused || searchQuery) && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-full left-0 right-0 mt-2"
+                        style={{ position: 'absolute', zIndex: 9000 }}
+                      >
+                        <SearchSuggestions
+                          query={searchQuery}
+                          onSelectSuggestion={handleSelectSuggestion}
+                          showHistory={!searchQuery}
+                          showTrending={!searchQuery}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+
+              {/* Secondary CTA - Post RFQ Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.15, ease: 'easeOut' }}
+              >
+                <button
+                  onClick={() => navigate('/dashboard/rfqs/new')}
+                  className="w-full flex items-center justify-center gap-3 bg-transparent border-2 border-afrikoni-gold text-afrikoni-gold font-semibold px-6 py-4 rounded-lg hover:bg-afrikoni-gold/10 active:scale-95 transition-all duration-200 min-h-[52px] touch-manipulation shadow-md"
+                >
+                  <FileText className="w-5 h-5" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-base font-bold">Post an RFQ</span>
+                    <span className="text-xs text-afrikoni-cream/80 font-normal">Get quotes from verified suppliers</span>
+                  </div>
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Desktop: Enterprise-Grade Search Bar - Keep original design */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
+              className="hidden md:block max-w-3xl mx-auto mb-8 md:mb-12 px-2 md:px-0"
+            >
               <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
-            <div
-              className={`
+                <div
+                  className={`
                     flex items-center gap-2 md:gap-3
                     bg-white/98 md:bg-white/95
                     rounded-2xl md:rounded-full
@@ -355,11 +475,11 @@ export default function HeroSection({ categories = [] }) {
                     ${searchFocused ? 'shadow-2xl md:shadow-xl border-afrikoni-gold/40 md:border-afrikoni-gold/30' : ''}
                   `}
                 >
-                  {/* Category Dropdown - Subtle, Embedded - Mobile optimized */}
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  {/* Category Dropdown - Desktop only */}
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger className="bg-transparent text-xs md:text-sm text-afrikoni-deep/70 px-2 md:px-3 focus:outline-none border-0 focus:ring-0 h-auto py-1 md:py-1.5 min-w-[70px] sm:min-w-[100px] font-medium">
                       <SelectValue placeholder="All" />
-                </SelectTrigger>
+                    </SelectTrigger>
                     <SelectContent className="max-h-[60vh] sm:max-h-[400px] bg-white shadow-xl border-afrikoni-gold/20">
                       <div className="sticky top-0 bg-white z-10 p-3 border-b border-afrikoni-gold/20">
                         <Input
@@ -383,15 +503,15 @@ export default function HeroSection({ categories = [] }) {
                           </div>
                         )}
                       </div>
-                </SelectContent>
-              </Select>
+                    </SelectContent>
+                  </Select>
 
-                  {/* Main Search Input - Dominant - Enhanced Visibility */}
+                  {/* Main Search Input - Desktop */}
                   <input
-                id="hero-search-input"
+                    id="hero-search-input-desktop"
                     type="text"
                     placeholder={t('search_placeholder')}
-                value={searchQuery}
+                    value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
                       setShowSuggestions(true);
@@ -429,9 +549,9 @@ export default function HeroSection({ categories = [] }) {
                     </motion.button>
                   )}
 
-                  {/* Search Button - Secondary - Mobile enhanced */}
+                  {/* Search Button - Desktop */}
                   <button
-                  onClick={handleSearch}
+                    onClick={handleSearch}
                     className="flex items-center gap-1.5 md:gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-xl md:rounded-full hover:bg-afrikoni-gold/90 md:hover:bg-afrikoni-gold/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
                   >
                     <Search className="w-4.5 h-4.5 md:w-4 md:h-4" />
@@ -439,7 +559,7 @@ export default function HeroSection({ categories = [] }) {
                   </button>
                 </div>
 
-                {/* Premium Search Suggestions Dropdown */}
+                {/* Premium Search Suggestions Dropdown - Desktop */}
                 <AnimatePresence>
                   {showSuggestions && (searchFocused || searchQuery) && (
                     <motion.div
@@ -456,15 +576,20 @@ export default function HeroSection({ categories = [] }) {
                         showHistory={!searchQuery}
                         showTrending={!searchQuery}
                       />
-              </motion.div>
+                    </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
+            </motion.div>
+
+
+            {/* Social Proof - Moved below search on mobile */}
+            <div className="md:hidden mt-8">
+              <SocialProofSection />
             </div>
-          </motion.div>
-
-
-            {/* Social Proof */}
-            <SocialProofSection />
+            <div className="hidden md:block">
+              <SocialProofSection />
+            </div>
           </div>
 
           {/* Right Sidebar - Trust Features */}
