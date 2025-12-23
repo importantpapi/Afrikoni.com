@@ -17,50 +17,22 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the URL hash which contains the OAuth tokens
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const errorParam = hashParams.get('error');
-        const errorDescription = hashParams.get('error_description');
-
-        if (errorParam) {
-          const friendlyError = errorDescription || errorParam;
-          if (friendlyError.includes('access_denied') || friendlyError.includes('user_cancelled')) {
-            throw new Error('Sign-in was cancelled. Please try again.');
-          }
-          throw new Error(friendlyError);
-        }
-
-        // Wait a moment for Supabase to process the session (longer on mobile)
+        // Wait for Supabase to process the session
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Try to get session from Supabase first
-        let session = null;
-        const { data: { session: existingSession }, error: sessionError } = await supabase.auth.getSession();
-        if (!sessionError && existingSession) {
-          session = existingSession;
-        }
-
-        // If no session and we have tokens in URL, wait a bit more for Supabase to process
-        if (!session && accessToken) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          const { data: { session: newSession } } = await supabase.auth.getSession();
-          if (newSession) {
-            session = newSession;
-          }
-        }
-
-        if (!session) {
+        // Get session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
           throw new Error('No session found. Please try signing in again.');
         }
 
-        // Get the current user
+        // Get user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError) throw userError;
         if (!user) throw new Error('User not found');
 
-        // Check if profile exists, create if it doesn't
+        // Create profile if it doesn't exist
         const { data: existingProfile } = await supabase
           .from('profiles')
           .select('*')
@@ -68,74 +40,42 @@ export default function AuthCallback() {
           .single();
 
         if (!existingProfile) {
-          // Create profile from OAuth data
           const fullName = user.user_metadata?.full_name || 
                           user.user_metadata?.name || 
                           user.user_metadata?.display_name ||
                           user.email?.split('@')[0] || 
                           'User';
 
-          const { error: profileError } = await supabase
+          await supabase
             .from('profiles')
             .upsert({
               id: user.id,
               full_name: fullName,
               email: user.email,
-              role: 'buyer', // Default role
               onboarding_completed: false,
+              // No role - selected during onboarding
               avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
             }, { onConflict: 'id' });
-
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-            // Don't fail the auth flow if profile creation fails
-          }
-
-          // MVP Rule: OAuth emails are pre-verified by provider
-          // Send welcome email only if email is confirmed
-          const emailVerified = user.email_confirmed_at !== null;
-          if (emailVerified) {
-            try {
-              const { sendWelcomeEmail } = await import('@/services/emailService');
-              await sendWelcomeEmail(user.email, fullName);
-            } catch (emailError) {
-              console.log('Welcome email not sent:', emailError);
-            }
-          }
         }
 
-        toast.success(t('login.success') || 'Logged in successfully!');
-
-        // Check email verification - MVP Rule: Block if not confirmed
-        const emailVerified = user.email_confirmed_at !== null;
-        if (!emailVerified) {
-          // Block OAuth users too if email not confirmed
-          await supabase.auth.signOut();
-          toast.error('Please confirm your email before accessing Afrikoni.');
-          navigate('/login?message=confirm-email', { replace: true });
+        // Check email verification (OAuth providers usually verify emails automatically)
+        // But we check to be safe
+        if (!user.email_confirmed_at) {
+          toast.success(t('login.success') || 'Logged in successfully!');
+          navigate('/verify-email', { replace: true });
           return;
         }
 
-        // Check onboarding status and redirect
-        const userRoleData = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        const { onboardingCompleted, role } = userRoleData;
+        // Fetch user profile to check onboarding status
+        const { user: userData, profile, onboardingCompleted, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
         
-        // Get redirect URL from query params or use default
-        const redirectUrl = searchParams.get('redirect_to') || searchParams.get('redirect');
-
-        if (!onboardingCompleted) {
-          navigate('/onboarding?step=1', { replace: true });
+        toast.success(t('login.success') || 'Logged in successfully!');
+        
+        // Check onboarding completion
+        if (!onboardingCompleted || !companyId) {
+          navigate('/onboarding', { replace: true });
         } else {
-          const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
-          const dashboardPath = getDashboardPathForRole(role);
-          
-          // For hybrid users, use unified dashboard
-          const finalPath = role === 'hybrid' ? '/dashboard/hybrid' : dashboardPath;
-          if (redirectUrl && redirectUrl !== window.location.origin && !redirectUrl.includes('/dashboard')) {
-            navigate(redirectUrl);
-          } else {
-            navigate(finalPath);
-          }
+          navigate('/dashboard', { replace: true });
         }
       } catch (err) {
         console.error('Auth callback error:', err);
@@ -143,11 +83,9 @@ export default function AuthCallback() {
         setError(errorMessage);
         toast.error(errorMessage);
         
-        // On mobile, redirect faster
-        const redirectDelay = window.innerWidth < 768 ? 2000 : 3000;
         setTimeout(() => {
           navigate('/login');
-        }, redirectDelay);
+        }, 3000);
       } finally {
         setIsLoading(false);
       }
@@ -186,4 +124,3 @@ export default function AuthCallback() {
     </div>
   );
 }
-

@@ -36,7 +36,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
       return {
         user: null,
         profile: null,
-        role: 'buyer',
+        role: null,
         companyId: null,
         onboardingCompleted: false
       };
@@ -66,7 +66,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
       return {
         user: null,
         profile: null,
-        role: 'buyer',
+        role: null,
         companyId: null,
         onboardingCompleted: false
       };
@@ -78,7 +78,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
       return {
         user: null,
         profile: null,
-        role: 'buyer',
+        role: null,
         companyId: null,
         onboardingCompleted: false
       };
@@ -115,7 +115,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
         profile = {
           id: authUser.id,
           email: authUser.email,
-          role: 'buyer',
+          role: null,
           onboarding_completed: false
         };
       } else {
@@ -123,7 +123,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
         return {
           user: authUser,
           profile: null,
-          role: 'buyer',
+          role: null,
           companyId: null,
           onboardingCompleted: false
         };
@@ -134,7 +134,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
       return {
         user: authUser,
         profile: null,
-        role: 'buyer',
+        role: null,
         companyId: null,
         onboardingCompleted: false
       };
@@ -166,7 +166,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
     return {
       user: null,
       profile: null,
-      role: 'buyer',
+      role: null,
       companyId: null,
       onboardingCompleted: false
     };
@@ -186,24 +186,48 @@ export async function hasCompletedOnboarding(supabase, supabaseHelpers) {
 }
 
 /**
- * Require authentication - ensures there is a logged-in user
- * 
+ * Require authentication - ensures there is a logged-in user with a **fresh** session
+ *
+ * SECURITY: This MUST always derive state from `supabase.auth.getSession()`
+ * to avoid stale/cached auth leaking across users.
+ *
  * @param {Object} supabase - Supabase client instance
  * @returns {Promise<{user: Object}|null>}
  */
 export async function requireAuth(supabase) {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
+  // 1) Revalidate session first – this is the source of truth
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session || !session.user) {
+    return null;
+  }
+
+  // 2) Fetch current auth user and ensure it matches the session user
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
   if (error || !user) {
     return null;
   }
 
-  // MVP Rule: Require email confirmation
-  const emailVerified = user.email_confirmed_at !== null;
-  if (!emailVerified) {
-    return null; // Treat unconfirmed as not authenticated
+  // Safety check: session/user consistency
+  if (user.id !== session.user.id) {
+    // Defensive guard: if these ever diverge, treat as unauthenticated
+    if (import.meta.env.DEV) {
+      console.error('[AUTH] Session/user mismatch detected in requireAuth', {
+        sessionUserId: session.user.id,
+        userId: user.id,
+      });
+    }
+    return null;
   }
-  
+
+  // Email verification is intentionally **not** required for auth here.
   return { user };
 }
 
@@ -222,11 +246,12 @@ export async function requireOnboarding(supabase, supabaseHelpers) {
     return null; // Not authenticated
   }
 
-  // MVP Rule: Require email confirmation before onboarding
-  const emailVerified = result.user.email_confirmed_at !== null;
-  if (!emailVerified) {
-    return null; // Treat unconfirmed as not authenticated
-  }
+  // PRODUCTION FIX: Removed email verification requirement
+  // Users can complete onboarding even if email not confirmed
+  // const emailVerified = result.user.email_confirmed_at !== null;
+  // if (!emailVerified) {
+  //   return null; // Treat unconfirmed as not authenticated
+  // }
   
   if (!result.onboardingCompleted) {
     return { ...result, needsOnboarding: true }; // Flag for redirect

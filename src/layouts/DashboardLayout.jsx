@@ -113,9 +113,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       setCompanyId(cid || null);
       if (role) setUserRole(role);
       
-      // Safe admin check
+      // Safe admin check (pass profile for database flag)
       try {
-        const admin = isAdmin(userData);
+        const admin = isAdmin(userData, profile);
         setIsUserAdmin(admin || false);
       } catch (adminError) {
         console.warn('Error checking admin status:', adminError);

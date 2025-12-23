@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { User, Mail, Lock, Shield, CheckCircle, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, Shield, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
-
 
 export default function Signup() {
   const { t } = useLanguage();
@@ -25,6 +23,8 @@ export default function Signup() {
     password: '',
     confirmPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -32,111 +32,116 @@ export default function Signup() {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    
+    // Validation
     if (!formData.fullName || !formData.email || !formData.password) {
-      toast.error(t('signup.fillRequired'));
+      toast.error('Please fill in all required fields.');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error(t('signup.passwordMismatch'));
+      toast.error('Passwords do not match.');
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error(t('signup.passwordMinLength'));
+      toast.error('Password must be at least 6 characters.');
       return;
     }
 
     setIsLoading(true);
+
     try {
-      const { data, error } = await supabaseHelpers.auth.signUp(
-        formData.email,
-        formData.password,
-        { 
-          name: formData.fullName
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email.trim(),
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            // No role selection at signup - handled in onboarding
+          },
+        },
+      });
+
+      // Enhanced error logging for debugging
+      if (error) {
+        console.error('❌ Signup Error:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+          email: formData.email.trim(),
+          timestamp: new Date().toISOString()
+        });
+        
+        // Check if it's an email-related error
+        const isEmailError = error.message?.toLowerCase().includes('email') || 
+                            error.message?.toLowerCase().includes('confirmation') ||
+                            error.message?.toLowerCase().includes('smtp');
+        
+        if (isEmailError) {
+          console.error('📧 Email Configuration Issue Detected');
+          console.error('This error indicates Supabase Auth email service is not configured.');
+          console.error('Fix: Go to Supabase Dashboard → Authentication → Settings → Email Templates');
+          console.error('Option 1: Disable "Enable email confirmations" (for MVP/testing)');
+          console.error('Option 2: Configure SMTP in Supabase Dashboard → Project Settings → Auth → SMTP Settings');
         }
-      );
-
-      if (error) throw error;
-
-      // MVP Rule: Require email confirmation BEFORE any access
-      // Supabase will send confirmation email automatically
-      // We do NOT create profile or send welcome email until confirmation
-
-      // Ensure confirmation email is sent - resend if needed
-      if (data?.user && !data?.session) {
-        // No session means email confirmation is required
-        // Try to resend confirmation email to ensure it's sent
-        try {
-          const { error: resendError } = await supabase.auth.resend({
-            type: 'signup',
-            email: formData.email
-          });
-          if (resendError) {
-            console.warn('Failed to resend confirmation email:', resendError);
-            // Don't block signup - Supabase should have sent it already
-          }
-        } catch (resendErr) {
-          console.warn('Error resending confirmation email:', resendErr);
-        }
+        
+        toast.error(error.message);
+        setIsLoading(false);
+        return;
       }
 
-      // Create profile in profiles table (but user can't access until confirmed)
-      if (data?.user) {
-        const { error: profileError } = await supabase
+      // Enhanced success logging
+      console.log('✅ Signup Success:', {
+        userCreated: !!data.user,
+        sessionExists: !!data.session,
+        emailConfirmed: data.user?.email_confirmed_at ? true : false,
+        email: formData.email.trim(),
+        timestamp: new Date().toISOString()
+      });
+
+      // Create profile with onboarding_completed: false (user must complete onboarding)
+      try {
+        await supabase
           .from('profiles')
           .upsert({
             id: data.user.id,
             full_name: formData.fullName,
             email: formData.email,
-            role: 'buyer', // Default role - will be set in onboarding
-            onboarding_completed: false // Must complete onboarding
+            onboarding_completed: false
+            // No role - selected during onboarding
           }, { onConflict: 'id' });
-
-        if (profileError) {
-          // Don't fail signup if profile creation fails - user can still proceed
-          console.warn('Profile creation error:', profileError);
-        }
-
-        // Notify admins of new user registration (silent, doesn't block)
-        try {
-          const { notifyAdminOfNewRegistration } = await import('@/services/riskMonitoring');
-          await notifyAdminOfNewRegistration(
-            data.user.id,
-            formData.email,
-            formData.fullName,
-            null // Company name will be set during onboarding
-          );
-        } catch (notifyError) {
-          // Don't block signup if notification fails
-          console.warn('Failed to notify admins of new registration:', notifyError);
-        }
+        console.log('✅ Profile created successfully');
+      } catch (profileError) {
+        console.error('⚠️ Profile creation failed:', profileError);
+        toast.error('Account created but profile setup failed. Please contact support.');
+        setIsLoading(false);
+        return;
       }
 
-      // MVP Rule: NO welcome email before confirmation
-      // Welcome email will be sent AFTER confirmation (in onboarding or auth-callback)
-
-      // Show clear message about email confirmation
-      toast.success('Account created! Please check your email to confirm your account.');
-      
-      // Redirect to login with clear message
-      navigate('/login?message=confirm-email', { replace: true });
-    } catch (error) {
-      // Error logged (removed for production)
-      toast.error(error.message || t('signup.error'));
+      // Check if email is verified
+      if (data.user?.email_confirmed_at) {
+        // Email already verified → redirect to onboarding
+        toast.success('Account created! Complete your profile setup.');
+        navigate('/onboarding', { replace: true });
+      } else {
+        // Email not verified → redirect to verify email page
+        toast.success('Account created! Please verify your email to continue.');
+        navigate('/verify-email', { replace: true });
+      }
+    } catch (err) {
+      toast.error('Signup failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Determine the redirect path after OAuth signup
   const getOAuthRedirectPath = () => {
-    // If user came from a specific page, redirect there
     if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
       return redirectUrl;
     }
-    // For new signups, go to onboarding first
-    return '/onboarding';
+    // OAuth users will be checked for email verification and onboarding
+    return '/verify-email';
   };
 
   return (
@@ -156,7 +161,6 @@ export default function Signup() {
               <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">{t('signup.joinAfrikoni')}</h1>
               <p className="text-afrikoni-deep">{t('signup.subtitle')}</p>
             </div>
-
 
             {/* Trust Badges */}
             <div className="flex items-center justify-center gap-4 mb-6 text-xs text-afrikoni-deep/70">
@@ -195,46 +199,13 @@ export default function Signup() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => {
-                    // Auto-fix common typos in afrikoni.com domain
-                    let value = e.target.value;
-                    const correctDomain = 'afrikoni.com';
-                    
-                    // Fix various typos: afrikonii.com, afriikoni.com, afrikoni.comm, etc.
-                    const typoPatterns = [
-                      /afrikonii\.com/gi,      // double 'i' at end
-                      /afriikoni\.com/gi,      // double 'i' in middle
-                      /afrikoni\.comm/gi,      // double 'm'
-                      /afrikon\.com/gi,        // missing 'i'
-                      /afrikoni\.co/gi,        // missing 'm'
-                      /afrikoni\.c/gi,         // missing 'om'
-                    ];
-                    
-                    let wasFixed = false;
-                    typoPatterns.forEach(pattern => {
-                      if (pattern.test(value)) {
-                        value = value.replace(pattern, correctDomain);
-                        wasFixed = true;
-                      }
-                    });
-                    
-                    if (wasFixed) {
-                      toast.info('Fixed email domain typo', { duration: 2000 });
-                    }
-                    
-                    setFormData(prev => ({ ...prev, email: value }));
-                  }}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder={t('signup.emailPlaceholder')}
                   className="pl-10"
                   required
                   autoComplete="email"
                 />
               </div>
-              {(formData.email.includes('afrikonii.com') || formData.email.includes('afriikoni.com') || formData.email.includes('afrikoni.comm') || formData.email.includes('afrikon.com')) && (
-                <p className="text-xs text-amber-600 mt-1">
-                  💡 Did you mean "afrikoni.com"?
-                </p>
-              )}
             </div>
 
             <div>
@@ -243,13 +214,21 @@ export default function Signup() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                 <Input
                   id="password"
-                  type="password"
+                    type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder={t('signup.passwordPlaceholder')}
-                  className="pl-10"
+                    className="pl-10 pr-10"
                   required
                 />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-afrikoni-deep/70 hover:text-afrikoni-chestnut focus:outline-none"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
               </div>
             </div>
 
@@ -259,15 +238,24 @@ export default function Signup() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                 <Input
                   id="confirmPassword"
-                  type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                   placeholder={t('signup.confirmPasswordPlaceholder')}
-                  className="pl-10"
+                    className="pl-10 pr-10"
                   required
                 />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-afrikoni-deep/70 hover:text-afrikoni-chestnut focus:outline-none"
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
+
 
             <Button
               type="submit"
@@ -278,7 +266,7 @@ export default function Signup() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t('signup.creatingAccount')}
+                    Creating account…
                 </>
               ) : (
                 t('signup.createAccount')

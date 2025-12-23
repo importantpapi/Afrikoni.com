@@ -31,6 +31,7 @@ export default function Onboarding() {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState(null);
+  const [isWelcomeCompleting, setIsWelcomeCompleting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -48,52 +49,58 @@ export default function Onboarding() {
   useEffect(() => {
     checkOnboardingStatus();
     
-    // Check for step query param
-    const stepParam = searchParams.get('step');
-    if (stepParam && parseInt(stepParam) === 1) {
-      setCurrentStep(1);
-    }
-    
     // Check for role query param (from logistics partner onboarding)
     const roleParam = searchParams.get('role');
     if (roleParam && ['buyer', 'seller', 'hybrid', 'logistics', 'logistics_partner'].includes(roleParam)) {
       const normalizedRole = roleParam === 'logistics_partner' ? 'logistics' : roleParam;
       setSelectedRole(normalizedRole);
+      // If role is provided, skip to step 2
+      setCurrentStep(2);
     }
   }, [searchParams]);
 
   const checkOnboardingStatus = async () => {
     try {
-      const { user, onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Check email verification first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      if (!session.user.email_confirmed_at) {
+        navigate('/verify-email', { replace: true });
+        return;
+      }
+
+      const { user, onboardingCompleted, profile, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
       if (!user) {
-        navigate('/login');
+        navigate('/login', { replace: true });
         return;
       }
 
-      // If already completed, redirect to dashboard
-      if (onboardingCompleted) {
-        navigate('/dashboard');
+      // If already completed (has onboarding_completed=true AND company_id), redirect to dashboard
+      if (onboardingCompleted && companyId) {
+        navigate('/dashboard', { replace: true });
         return;
       }
+
+      // No role pre-selection - user must select role in Step 1
 
       // Load existing profile data if available
-      if (user) {
-        const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        if (profile) {
-          setSelectedRole(profile.role || null);
-          setFormData({
-            company_name: profile.company_name || '',
-            country: profile.country || '',
-            phone: profile.phone || '',
-            website: profile.website || '',
-            business_type: profile.business_type || '',
-            city: profile.city || ''
-          });
-        }
+      if (profile) {
+        setFormData({
+          company_name: profile.company_name || '',
+          country: profile.country || '',
+          phone: profile.phone || '',
+          website: profile.website || '',
+          business_type: profile.business_type || '',
+          city: profile.city || ''
+        });
       }
     } catch (error) {
-      // Error logged (removed for production)
+      console.error('Onboarding check error:', error);
       navigate('/login');
     } finally {
       setIsLoading(false);
@@ -129,6 +136,57 @@ export default function Onboarding() {
     setCurrentStep(1);
   };
 
+  /**
+   * One-time welcome completion handler.
+   * Marks onboarding as completed and sends the user directly
+   * to their role-specific dashboard, without asking for extra
+   * company details.
+   */
+  const handleWelcomeComplete = async () => {
+    setIsWelcomeCompleting(true);
+    try {
+      const { user, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const normalizedRole = selectedRole || profile?.role || user.user_metadata?.role || 'buyer';
+
+      // Best-effort: mark onboarding as completed in profiles table
+      try {
+        await supabase
+          .from('profiles')
+          .update({ onboarding_completed: true, role: normalizedRole, user_role: normalizedRole })
+          .eq('id', user.id);
+      } catch (profileError) {
+        console.warn('Welcome completion profile update failed (non-blocking):', profileError);
+      }
+
+      toast.success('Welcome to Afrikoni! Your account is ready.');
+
+      // Redirect to role-specific dashboard
+      const dashboardPath = `/${normalizedRole}/dashboard`;
+      console.log('[Onboarding] Redirecting to dashboard:', {
+        normalizedRole,
+        dashboardPath
+      });
+      navigate(dashboardPath, { replace: true });
+
+      // Hard fallback in case React Router navigation is blocked
+      setTimeout(() => {
+        if (window.location.pathname.includes('/onboarding')) {
+          window.location.assign(dashboardPath);
+        }
+      }, 300);
+    } catch (error) {
+      console.error('Welcome completion error:', error);
+      toast.error('Something went wrong finishing setup. Please try again.');
+    } finally {
+      setIsWelcomeCompleting(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -150,7 +208,7 @@ export default function Onboarding() {
         return;
       }
 
-      // Create or update company
+      // ATOMIC COMPANY CREATION: Only update profile if company creation succeeds
       let companyId = null;
       try {
         companyId = await getOrCreateCompany(supabase, {
@@ -159,35 +217,36 @@ export default function Onboarding() {
           email: user.email,
           role: selectedRole
         });
+        
+        if (!companyId) {
+          throw new Error('Company creation returned null');
+        }
       } catch (companyError) {
-        // Continue even if company creation fails
+        console.error('Company creation failed:', companyError);
+        toast.error('Failed to create company. Please try again.');
+        setIsSubmitting(false);
+        return; // STOP HERE - don't update profile if company creation fails
       }
 
-      // Update profile with role and onboarding completion
+      // ONLY update profile if company creation succeeded
       const updateData = {
         role: selectedRole,
         user_role: selectedRole,
-        onboarding_completed: true,
-        company_name: formData.company_name,
-        country: formData.country,
-        phone: formData.phone,
-        website: formData.website,
-        business_type: formData.business_type,
-        city: formData.city
+        company_id: companyId, // Required - onboarding only completes with company_id
+        onboarding_completed: true // ONLY set to true AFTER company creation succeeds
       };
 
-      if (companyId) {
-        updateData.company_id = companyId;
-      }
-
-      // Try profiles table first; if it doesn't exist, ignore and rely on auth metadata only
+      // Update profile with role and onboarding completion
       const { error: profileError } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', user.id);
 
-      if (profileError && profileError.code !== '42P01' && profileError.code !== 'PGRST116') {
-        throw profileError;
+      if (profileError) {
+        console.error('Profile update failed during onboarding:', profileError);
+        toast.error('Failed to update profile. Please try again.');
+        setIsSubmitting(false);
+        return; // Don't proceed if profile update fails
       }
 
       // Send welcome email
@@ -215,25 +274,20 @@ export default function Onboarding() {
 
       toast.success('Onboarding completed! Welcome to Afrikoni.');
       
-      // Show community invite modal/dialog
+      // Redirect to dashboard (which will detect role and show appropriate content)
+      navigate('/dashboard', { replace: true });
+      
+      // Show community invite after redirect (non-blocking)
       setTimeout(async () => {
         const shouldShowCommunity = window.confirm('🎉 Welcome to Afrikoni! Would you like to join our WhatsApp Community to connect with verified buyers, suppliers & logistics partners?');
         if (shouldShowCommunity) {
           const { openWhatsAppCommunity } = await import('@/utils/whatsappCommunity');
           openWhatsAppCommunity('onboarding_success');
         }
-      }, 500);
+      }, 1000);
       
-      // Get dashboard path based on selected role - go directly to dashboard
-      const { getDashboardPathForRole } = await import('@/utils/roleHelpers');
-      const normalizedRole = selectedRole || 'buyer';
-      const dashboardPath = getDashboardPathForRole(normalizedRole);
-      
-      // For hybrid users, go to unified dashboard
-      const finalPath = normalizedRole === 'hybrid' ? '/dashboard' : dashboardPath;
-      
-      // Navigate directly to dashboard - no more "Join Afrikoni" screen
-      navigate(finalPath, { replace: true });
+      // Redirect to role-specific dashboard
+      navigate(dashboardPath, { replace: true });
     } catch (error) {
       console.error('Onboarding error:', error);
       toast.error('Failed to complete onboarding. Please try again.');
@@ -373,7 +427,7 @@ export default function Onboarding() {
           </motion.div>
         )}
 
-        {/* Step 2: Company Information */}
+        {/* Step 2: One-time Welcome Page (replaces company form) */}
         {currentStep === 2 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -382,117 +436,30 @@ export default function Onboarding() {
           >
             <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
               <CardHeader>
-                <CardTitle className="text-2xl text-afrikoni-chestnut">{t('onboarding.companyInfo')}</CardTitle>
-                <p className="text-afrikoni-deep/70 mt-2">{t('onboarding.tellAboutBusiness')}</p>
+                <CardTitle className="text-2xl text-afrikoni-chestnut">
+                  Welcome to Afrikoni
+                </CardTitle>
+                <p className="text-afrikoni-deep/70 mt-3">
+                  Your account is now set up. You can start exploring your dashboard, connect with trusted
+                  buyers, suppliers and logistics partners across Africa, and manage your trade with confidence.
+                </p>
+                <p className="text-afrikoni-deep/70 mt-3">
+                  If you ever have questions or something doesn’t feel right, you can always reach out directly
+                  at <span className="font-semibold text-afrikoni-chestnut">hello@afrikoni.com</span> and we’ll
+                  take care of you.
+                </p>
               </CardHeader>
               <CardContent className="p-5 md:p-6">
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div>
-                    <Label htmlFor="company_name" className="mb-2 block font-semibold">
-                      {t('onboarding.companyName')} <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="company_name"
-                      value={formData.company_name}
-                      onChange={(e) => handleChange('company_name', e.target.value)}
-                      placeholder={t('onboarding.companyName')}
-                      required
-                      className={errors.company_name ? 'border-red-500' : ''}
-                    />
-                    {errors.company_name && (
-                      <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
-                    )}
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="country" className="mb-2 block font-semibold">
-                        {t('onboarding.country')} <span className="text-red-500">*</span>
-                      </Label>
-                      <select
-                        id="country"
-                        value={formData.country}
-                        onChange={(e) => handleChange('country', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut focus:outline-none focus:ring-2 focus:ring-afrikoni-gold ${errors.country ? 'border-red-500' : 'border-afrikoni-gold/20'}`}
-                        required
-                      >
-                        <option value="">{t('onboarding.selectCountry')}</option>
-                        {AFRICAN_COUNTRIES.map((country) => (
-                          <option key={country} value={country}>
-                            {country}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.country && (
-                        <p className="text-red-500 text-sm mt-1">{errors.country}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="city" className="mb-2 block font-semibold">{t('onboarding.city')}</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => handleChange('city', e.target.value)}
-                        placeholder={t('onboarding.city')}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone" className="mb-2 block font-semibold">{t('onboarding.phoneNumber')}</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleChange('phone', e.target.value)}
-                      placeholder="+1234567890"
-                      className={errors.phone ? 'border-red-500' : ''}
-                    />
-                    {errors.phone && (
-                      <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="website" className="mb-2 block font-semibold">{t('onboarding.website')}</Label>
-                    <Input
-                      id="website"
-                      type="url"
-                      value={formData.website}
-                      onChange={(e) => handleChange('website', e.target.value)}
-                      placeholder="https://yourcompany.com"
-                      className={errors.website ? 'border-red-500' : ''}
-                    />
-                    {errors.website && (
-                      <p className="text-red-500 text-sm mt-1">{errors.website}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="business_type" className="mb-2 block font-semibold">{t('onboarding.businessType')}</Label>
-                    {selectedRole === 'logistics' ? (
-                      // For logistics partners, lock business type to service/logistics provider
-                      <div className="w-full px-3 py-2 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut text-sm">
-                        {t('onboarding.businessType.serviceProvider')}
-                      </div>
-                    ) : (
-                      <select
-                        id="business_type"
-                        value={formData.business_type}
-                        onChange={(e) => handleChange('business_type', e.target.value)}
-                        className="w-full px-3 py-2 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite text-afrikoni-chestnut focus:outline-none focus:ring-2 focus:ring-afrikoni-gold"
-                      >
-                        <option value="">{t('onboarding.selectBusinessType')}</option>
-                        <option value="manufacturer">{t('onboarding.businessType.manufacturer')}</option>
-                        <option value="wholesaler">{t('onboarding.businessType.wholesaler')}</option>
-                        <option value="retailer">{t('onboarding.businessType.retailer')}</option>
-                        <option value="distributor">{t('onboarding.businessType.distributor')}</option>
-                        <option value="trader">{t('onboarding.businessType.trader')}</option>
-                        <option value="service_provider">{t('onboarding.businessType.serviceProvider')}</option>
-                        <option value="other">{t('onboarding.businessType.other')}</option>
-                      </select>
-                    )}
+                <div className="space-y-6">
+                  <div className="bg-afrikoni-cream/60 border border-afrikoni-gold/30 rounded-lg p-4 text-sm text-afrikoni-deep/80">
+                    <p className="mb-1">
+                      Afrikoni is built for serious trade: sourcing, selling and moving products across Africa with
+                      protection at every step.
+                    </p>
+                    <p>
+                      You’ll be able to update your company details later from your dashboard settings whenever you’re
+                      ready.
+                    </p>
                   </div>
 
                   <div className="flex gap-3 pt-4">
@@ -505,25 +472,26 @@ export default function Onboarding() {
                       {t('onboarding.previous')}
                     </Button>
                     <Button
-                      type="submit"
-                      disabled={isSubmitting}
+                      type="button"
+                      onClick={handleWelcomeComplete}
+                      disabled={isWelcomeCompleting}
                       variant="primary"
-                      className="flex-1 min-w-[120px]"
+                      className="flex-1 min-w-[160px]"
                     >
-                      {isSubmitting ? (
+                      {isWelcomeCompleting ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           {t('common.loading')}
                         </>
                       ) : (
                         <>
-                          {t('onboarding.finish')}
+                          Start using Afrikoni
                           <CheckCircle className="w-4 h-4 ml-2" />
                         </>
                       )}
                     </Button>
                   </div>
-                </form>
+                </div>
               </CardContent>
             </Card>
           </motion.div>

@@ -12,29 +12,7 @@ export async function getOrCreateCompany(supabase, userData) {
     return userData.company_id;
   }
 
-  // Try to find existing company by owner email
-  const { data: existingCompany } = await supabase
-    .from('companies')
-    .select('id')
-    .eq('owner_email', userData.email || userData.business_email)
-    .maybeSingle();
-
-  if (existingCompany) {
-    // Update profile with company_id
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({ 
-        id: userData.id,
-        company_id: existingCompany.id 
-      }, { onConflict: 'id' });
-    if (profileError) {
-      // Silently ignore profile upsert errors here to avoid blocking flows
-    }
-    
-    return existingCompany.id;
-  }
-
-  // Always create a company if one doesn't exist (non-blocking)
+  // Always create a fresh company if one doesn't exist (non-blocking)
   const role = userData.role || userData.user_role || 'buyer';
   const { data: newCompany, error } = await supabase
     .from('companies')

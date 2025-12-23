@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { requireAuth, requireOnboarding, getCurrentUserAndRole } from '@/utils/authHelpers';
+import { requireAuth, getCurrentUserAndRole } from '@/utils/authHelpers';
 import { isAdmin } from '@/utils/permissions';
 import AccessDenied from './AccessDenied';
 
@@ -26,13 +26,13 @@ export default function ProtectedRoute({
     try {
       // Check if admin access is required
       if (needsAdmin) {
-        const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+        const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
         if (!userData) {
           navigate('/login');
           return;
         }
 
-        const hasAdminAccess = isAdmin(userData);
+        const hasAdminAccess = isAdmin(userData, profile);
         if (!hasAdminAccess) {
           console.warn('❌ Access denied: Admin-only page');
           setAccessDenied(true);
@@ -45,36 +45,15 @@ export default function ProtectedRoute({
         return;
       }
 
-      if (needsOnboarding) {
-        // Require both auth and onboarding
-        const result = await requireOnboarding(supabase, supabaseHelpers);
-        if (!result) {
-          // Not authenticated - let requireOnboarding / callers redirect as needed
-          return;
-        }
-
-        if (result.needsOnboarding) {
-          // Route users to the correct onboarding experience based on their role
-          if (result.role === 'logistics') {
-            navigate('/logistics-partner-onboarding');
-          } else {
-            navigate('/onboarding');
-          }
-          return;
-        }
-
-        setIsAuthorized(true);
-      } else {
-        // Only require auth
-        const result = await requireAuth(supabase);
-        if (!result) {
-          // Preserve current location as "from" state for redirect after login
-          const next = searchParams.get('next') || location.pathname + location.search;
-          navigate(`/login?next=${encodeURIComponent(next)}`);
-          return;
-        }
-        setIsAuthorized(true);
+      // Onboarding is no longer required anywhere. We only check auth.
+      const result = await requireAuth(supabase);
+      if (!result) {
+        // Preserve current location as "from" state for redirect after login
+        const next = searchParams.get('next') || location.pathname + location.search;
+        navigate(`/login?next=${encodeURIComponent(next)}`);
+        return;
       }
+      setIsAuthorized(true);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('ProtectedRoute auth error:', error);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
@@ -7,16 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Mail, Lock, Loader2, Shield, CheckCircle, Send } from 'lucide-react';
-import { FaFacebook } from 'react-icons/fa';
+import { Mail, Lock, Loader2, Shield, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
-import { logLoginEvent } from '@/utils/auditLogger';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -26,134 +23,67 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
-  const intent = searchParams.get('intent');
-
-  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-
-  const handleResendConfirmation = async () => {
-    if (!email) {
-      toast.error('Please enter your email address first.');
-      return;
-    }
-
-    setIsResending(true);
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
-      });
-
-      if (error) throw error;
-
-      toast.success('Confirmation email sent! Please check your inbox.');
-      setShowResendConfirmation(false);
-    } catch (err) {
-      console.error('Resend error:', err);
-      toast.error(err.message || 'Failed to resend confirmation email. Please try again.');
-    } finally {
-      setIsResending(false);
-    }
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
     if (!email || !password) {
-      toast.error(t('login.fillFields'));
+      toast.error(t('login.fillFields') || 'Please fill in all fields.');
       return;
     }
 
     setIsLoading(true);
-    setShowResendConfirmation(false);
-    
+
     try {
-      const { data, error } = await supabaseHelpers.auth.signIn(email, password);
-      
-      if (error) {
-        // Check if error is due to unconfirmed email
-        if (error.message.includes('email') && error.message.includes('confirm')) {
-          setShowResendConfirmation(true);
-          throw new Error('Please confirm your email before signing in.');
-        }
-        throw error;
-      }
-
-      // Check email verification - MVP Rule: Block login if not confirmed
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      const emailVerified = authUser?.email_confirmed_at !== null;
-
-      if (!emailVerified) {
-        // MVP Rule: Block login if email not confirmed
-        setShowResendConfirmation(true);
-        await supabase.auth.signOut(); // Sign out immediately
-        throw new Error('Please confirm your email before signing in.');
-      }
-
-      toast.success(t('login.success'));
-
-      // Log successful login to audit log
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      await logLoginEvent({
-        user: userData,
-        profile,
-        success: true
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
       });
-      
-      // MVP Rule: Redirect to homepage (NOT dashboard) after login
-      // Dashboard access is protected separately
-      if (redirectUrl && redirectUrl !== createPageUrl('Home') && !redirectUrl.includes('/dashboard')) {
-        navigate(redirectUrl);
-      } else {
-        navigate('/', { replace: true }); // Go to homepage
+
+      if (error) {
+        toast.error(error.message);
+        setIsLoading(false);
+        return;
       }
-    } catch (error) {
-      // Log failed login attempt to audit log
-      try {
-        await logLoginEvent({
-          user: { email },
-          profile: null,
-          success: false
-        });
-      } catch (auditError) {
-        // Don't break login flow if audit logging fails
-        console.warn('Failed to log login attempt:', auditError);
-      }
-      
-      // Provide user-friendly error messages
-      let errorMessage = error.message || t('login.error');
-      
-      // Handle specific Supabase errors
-      if (error.message) {
-        if (error.message.includes('Invalid login credentials') || error.message.includes('Invalid email or password')) {
-          errorMessage = 'Invalid email or password. Please check and try again.';
-        } else         if (error.message.includes('email') && error.message.includes('invalid')) {
-          // Check if it's a typo (common domain typos)
-          if (email.includes('afrikonii.com') || email.includes('afriikoni.com') || email.includes('afrikoni.comm') || email.includes('afrikon.com')) {
-            errorMessage = 'Email address appears to have a typo. Did you mean "hello@afrikoni.com"?';
+
+      if (data.user) {
+        // Check email verification first
+        if (!data.user.email_confirmed_at) {
+          toast.success(t('login.success') || 'Logged in successfully!');
+          navigate('/verify-email', { replace: true });
+          return;
+        }
+
+        // Fetch user profile to check onboarding status
+        try {
+          const { user, profile, onboardingCompleted, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+          
+          toast.success(t('login.success') || 'Logged in successfully!');
+          
+          // Check onboarding completion
+          if (!onboardingCompleted || !companyId) {
+            navigate('/onboarding', { replace: true });
           } else {
-            errorMessage = 'Please enter a valid email address.';
+            navigate('/dashboard', { replace: true });
           }
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Please confirm your email before signing in.';
-          setShowResendConfirmation(true);
-        } else if (error.message.includes('Too many requests')) {
-          errorMessage = 'Too many login attempts. Please wait a few minutes and try again.';
+        } catch (roleError) {
+          console.error('Error fetching user role:', roleError);
+          // Fallback - redirect to onboarding to ensure complete setup
+          toast.success(t('login.success') || 'Logged in successfully!');
+          navigate('/onboarding', { replace: true });
         }
       }
-      
-      toast.error(errorMessage);
+    } catch (err) {
+      toast.error('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Determine the redirect path after OAuth login
   const getOAuthRedirectPath = () => {
-    // If user came from a specific page, redirect there
     if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
       return redirectUrl;
     }
-    // Otherwise, default to dashboard (will be determined by role in callback)
     return '/dashboard';
   };
 
@@ -165,7 +95,7 @@ export default function Login() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="border-afrikoni-gold/20 shadow-2xl bg-afrikoni-offwhite rounded-xl">
+        <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-2xl rounded-xl">
           <CardContent className="p-6 sm:p-8 md:p-10">
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
@@ -175,80 +105,38 @@ export default function Login() {
               <p className="text-afrikoni-deep">{t('login.subtitle')}</p>
             </div>
 
-            {intent && (
-              <div className="mb-6 p-3 rounded-lg bg-afrikoni-cream border border-afrikoni-gold/40 text-xs sm:text-sm text-afrikoni-deep flex flex-col gap-1">
-                {intent === 'rfq' && (
-                  <>
-                    <span className="font-semibold text-afrikoni-chestnut">
-                      {t('login.contextRFQTitle')}
-                    </span>
-                    <span>{t('login.contextRFQBody')}</span>
-                  </>
-                )}
-                {intent === 'message' && (
-                  <>
-                    <span className="font-semibold text-afrikoni-chestnut">
-                      {t('login.contextMessageTitle')}
-                    </span>
-                    <span>{t('login.contextMessageBody')}</span>
-                  </>
-                )}
+            {/* Trust Badges */}
+            <div className="flex items-center justify-center gap-4 mb-6 text-xs text-afrikoni-deep/70">
+              <div className="flex items-center gap-1">
+                <Shield className="w-4 h-4 text-green-600" />
+                <span>{t('login.sslSecured')}</span>
               </div>
-            )}
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-4 h-4 text-blue-600" />
+                <span>{t('login.trusted')}</span>
+              </div>
+            </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <Label htmlFor="email" className="mb-2 block font-semibold text-afrikoni-chestnut">{t('login.email')}</Label>
+                <Label htmlFor="email" className="mb-2 block font-semibold">{t('login.email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                   <Input
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => {
-                      // Auto-fix common typos in afrikoni.com domain
-                      let value = e.target.value;
-                      const correctDomain = 'afrikoni.com';
-                      
-                      // Fix various typos: afrikonii.com, afriikoni.com, afrikoni.comm, etc.
-                      const typoPatterns = [
-                        /afrikonii\.com/gi,      // double 'i' at end
-                        /afriikoni\.com/gi,      // double 'i' in middle
-                        /afrikoni\.comm/gi,      // double 'm'
-                        /afrikon\.com/gi,        // missing 'i'
-                        /afrikoni\.co/gi,        // missing 'm'
-                        /afrikoni\.c/gi,         // missing 'om'
-                      ];
-                      
-                      let wasFixed = false;
-                      typoPatterns.forEach(pattern => {
-                        if (pattern.test(value)) {
-                          value = value.replace(pattern, correctDomain);
-                          wasFixed = true;
-                        }
-                      });
-                      
-                      if (wasFixed) {
-                        toast.info('Fixed email domain typo', { duration: 2000 });
-                      }
-                      
-                      setEmail(value);
-                    }}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder={t('login.emailPlaceholder')}
                     className="pl-10"
                     required
                     autoComplete="email"
                   />
                 </div>
-                {(email.includes('afrikonii.com') || email.includes('afriikoni.com') || email.includes('afrikoni.comm') || email.includes('afrikon.com')) && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    💡 Did you mean "afrikoni.com"?
-                  </p>
-                )}
               </div>
 
               <div>
-                <Label htmlFor="password" className="mb-2 block font-semibold text-afrikoni-chestnut">{t('login.password')}</Label>
+                <Label htmlFor="password" className="mb-2 block font-semibold">{t('login.password')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
                   <Input
@@ -259,16 +147,18 @@ export default function Login() {
                     placeholder={t('login.passwordPlaceholder')}
                     className="pl-10"
                     required
+                    autoComplete="current-password"
                   />
                 </div>
-                <div className="mt-2 text-right">
-                  <Link 
-                    to="/forgot-password" 
-                    className="text-sm text-afrikoni-gold hover:text-afrikoni-goldDark font-medium"
-                  >
-                    {t('login.forgotPassword') || 'Forgot Password?'}
-                  </Link>
-                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Link
+                  to={createPageUrl('ForgotPassword')}
+                  className="text-sm text-afrikoni-gold hover:text-afrikoni-goldDark font-medium"
+                >
+                  {t('login.forgotPassword')}
+                </Link>
               </div>
 
               <Button
@@ -288,62 +178,6 @@ export default function Login() {
               </Button>
             </form>
 
-            {/* Resend Confirmation Email */}
-            {showResendConfirmation && (
-              <div className="mt-4 p-4 bg-afrikoni-cream border border-afrikoni-gold/40 rounded-lg space-y-3">
-                <div>
-                  <p className="text-sm font-semibold text-afrikoni-chestnut mb-1">
-                    Email Not Confirmed
-                  </p>
-                  <p className="text-sm text-afrikoni-deep mb-2">
-                    Please check your email and click the confirmation link. If you didn't receive it, click below to resend.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleResendConfirmation}
-                  disabled={isResending}
-                  variant="primary"
-                  className="w-full"
-                  size="sm"
-                >
-                  {isResending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Resend Confirmation Email
-                    </>
-                  )}
-                </Button>
-                <p className="text-xs text-afrikoni-deep/70 text-center">
-                  Check your spam folder if you don't see the email.
-                </p>
-              </div>
-            )}
-
-            {/* Message from URL params */}
-            {searchParams.get('message') === 'confirm-email' && !showResendConfirmation && (
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800 mb-2">
-                  <strong>Account created!</strong> Please check your email to confirm your account.
-                </p>
-                <Button
-                  onClick={() => {
-                    setShowResendConfirmation(true);
-                  }}
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Resend Confirmation Email
-                </Button>
-              </div>
-            )}
-
             {/* OAuth Buttons */}
             <div className="mt-6">
               <div className="relative">
@@ -358,18 +192,16 @@ export default function Login() {
                 <GoogleSignIn 
                   redirectTo={getOAuthRedirectPath()}
                   onSuccess={() => {
-                    // Optional: Show success message (redirect happens automatically)
-                    toast.success(t('login.success') || 'Redirecting...');
+                    toast.success(t('login.success') || 'Logged in successfully!');
                   }}
                   onError={(error) => {
-                    // Error handling is done in the component, but we can add additional logic here if needed
                     setIsLoading(false);
                   }}
                 />
                 <FacebookSignIn 
                   redirectTo={getOAuthRedirectPath()}
                   onSuccess={() => {
-                    toast.success(t('login.success') || 'Redirecting...');
+                    toast.success(t('login.success') || 'Logged in successfully!');
                   }}
                   onError={(error) => {
                     setIsLoading(false);
@@ -378,43 +210,19 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Quick Role Hints */}
-            <div className="mt-6 pt-6 border-t border-afrikoni-gold/20">
-              <p className="text-xs text-afrikoni-deep/70 text-center mb-3">{t('login.continueAs')}</p>
-              <div className="flex gap-2 justify-center">
-                <Badge variant="outline" className="text-xs">{t('login.buyer')}</Badge>
-                <Badge variant="outline" className="text-xs">{t('login.seller')}</Badge>
-                <Badge variant="outline" className="text-xs">{t('login.logistics')}</Badge>
-              </div>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="mt-6 pt-6 border-t border-afrikoni-gold/20">
-              <div className="flex items-center justify-center gap-4 text-xs text-afrikoni-deep/70">
-                <div className="flex items-center gap-1">
-                  <Shield className="w-4 h-4 text-green-600" />
-                  <span>{t('login.sslSecured')}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-blue-600" />
-                  <span>{t('login.trusted')}</span>
-                </div>
-              </div>
-            </div>
-
             <div className="mt-6 text-center text-sm">
               <p className="text-afrikoni-deep">
                 {t('login.dontHaveAccount')}{' '}
-                <Link
-                  to={
+                <a
+                  href={
                     redirectUrl
                       ? `${createPageUrl('Signup')}?redirect=${encodeURIComponent(redirectUrl)}`
                       : createPageUrl('Signup')
                   }
                   className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold"
                 >
-                  {t('login.createAccount')}
-                </Link>
+                  {t('login.signUp')}
+                </a>
               </p>
             </div>
           </CardContent>

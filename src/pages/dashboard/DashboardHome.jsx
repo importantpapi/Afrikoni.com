@@ -125,7 +125,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
           return;
         }
 
-        setIsUserAdmin(isAdmin(authUser));
+        setIsUserAdmin(isAdmin(authUser, profile));
 
         // Merge profile and authUser to ensure we have all available data
         // Debug: Log what we're getting
@@ -868,6 +868,180 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
           {currentRole}
         </Badge>
       </div>
+
+      {/* Primary CTA Banner - "What do I do now?" for new users */}
+      {(() => {
+        // Don't show CTA while loading
+        if (isLoading) return null;
+        
+        // Check if user is new (no activity yet)
+        // Use both recentRFQs array and KPI data for accurate check
+        const rfqKPI = kpis.find(k => k.label?.includes('RFQ') || k.label?.includes('rfq'));
+        const productKPI = kpis.find(k => k.label?.includes('Product') || k.label?.includes('product'));
+        
+        // Parse numeric value from KPI (handles strings like "0", "1,234", etc.)
+        const parseKPINumber = (value) => {
+          if (!value) return 0;
+          // Remove commas and parse
+          const cleaned = String(value).replace(/,/g, '');
+          const parsed = parseInt(cleaned, 10);
+          return isNaN(parsed) ? 0 : parsed;
+        };
+        
+        const rfqCount = parseKPINumber(rfqKPI?.value) || 0;
+        const productCount = parseKPINumber(productKPI?.value) || 0;
+        
+        const buyerHasRFQs = recentRFQs.length > 0 || rfqCount > 0;
+        const sellerHasProducts = productCount > 0;
+        const isNewBuyer = currentRole === 'buyer' && !buyerHasRFQs;
+        const isNewSeller = currentRole === 'seller' && !sellerHasProducts;
+        const isNewHybrid = currentRole === 'hybrid' && !buyerHasRFQs && !sellerHasProducts;
+
+        if (isNewBuyer) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
+                          <FileText className="w-6 h-6 text-afrikoni-chestnut" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
+                            Post Your First RFQ
+                          </h2>
+                          <p className="text-afrikoni-deep/80 text-sm md:text-base">
+                            Tell suppliers what you need. We'll match you with verified African suppliers who can deliver.
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-afrikoni-deep/70 mt-2">
+                        💰 <strong>Success fee only when deal closes</strong> - No upfront costs
+                      </p>
+                    </div>
+                    <Link to="/dashboard/rfqs/new" className="w-full md:w-auto">
+                      <Button
+                        size="lg"
+                        className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all min-h-[52px]"
+                      >
+                        Post RFQ Now
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        }
+
+        if (isNewSeller) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
+                          <Package className="w-6 h-6 text-afrikoni-chestnut" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
+                            Add Your First Product
+                          </h2>
+                          <p className="text-afrikoni-deep/80 text-sm md:text-base">
+                            List your products to start receiving RFQs from buyers. Verified suppliers get priority matching.
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-afrikoni-deep/70 mt-2">
+                        💰 <strong>Success fee only when deal closes</strong> - No listing fees
+                      </p>
+                    </div>
+                    <Link to="/dashboard/products/new" className="w-full md:w-auto">
+                      <Button
+                        size="lg"
+                        className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all min-h-[52px]"
+                      >
+                        Add Product Now
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        }
+
+        if (isNewHybrid) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
+                          <Plus className="w-6 h-6 text-afrikoni-chestnut" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
+                            Get Started
+                          </h2>
+                          <p className="text-afrikoni-deep/80 text-sm md:text-base">
+                            Add products to sell or post RFQs to buy. You can do both!
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-afrikoni-deep/70 mt-2">
+                        💰 <strong>Success fee only when deal closes</strong> - No upfront costs
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                      <Link to="/dashboard/products/new" className="w-full sm:w-auto">
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="w-full sm:w-auto border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-4 text-base font-bold"
+                        >
+                          Add Product
+                        </Button>
+                      </Link>
+                      <Link to="/dashboard/rfqs/new" className="w-full sm:w-auto">
+                        <Button
+                          size="lg"
+                          className="w-full sm:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-6 py-4 text-base font-bold shadow-xl"
+                        >
+                          Post RFQ
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        }
+
+        return null;
+      })()}
 
       {/* Onboarding Progress Tracker - For Suppliers */}
       {(currentRole === 'seller' || currentRole === 'hybrid') && companyId && (

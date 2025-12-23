@@ -1,92 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { getDashboardPathForRole } from '@/utils/roleHelpers';
+import { getUserRole } from '@/utils/roleHelpers';
+import { isAdmin } from '@/utils/permissions';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import BuyerHome from './buyer/BuyerHome';
 import SellerHome from './seller/SellerHome';
 import LogisticsHome from './logistics/LogisticsHome';
+import HybridHome from './hybrid/HybridHome';
 
 export default function Dashboard() {
   const [currentRole, setCurrentRole] = useState('buyer');
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     let isMounted = true;
 
-    const init = async () => {
-    try {
-        // Check email verification
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        const emailVerified = authUser?.email_confirmed_at !== null;
+    const loadUserAndRole = async () => {
+      try {
+        // Check session first
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session?.user) {
+          if (isMounted) {
+            navigate('/login', { replace: true });
+          }
+          return;
+        }
+
+        // Check email verification FIRST
+        if (!session.user.email_confirmed_at) {
+          if (isMounted) {
+            navigate('/verify-email', { replace: true });
+          }
+          return;
+        }
+
+        // Fetch user profile and role
+        const { user, profile, role, companyId, onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
         
         if (!isMounted) return;
+
+        if (!user) {
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        // Check onboarding completion - MUST have onboarding_completed=true AND company_id
+        if (!onboardingCompleted || !companyId) {
+          if (isMounted) {
+            navigate('/onboarding', { replace: true });
+          }
+          return;
+        }
+
+        // Check if user is admin (pass profile for database flag check)
+        const adminCheck = isAdmin(user, profile);
+        setIsAdminUser(adminCheck);
         
-        // Check onboarding and role
-        const { role, onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        
-        // If onboarding not completed, redirect to onboarding step 1
-        if (!onboardingCompleted) {
-          navigate('/onboarding?step=1', { replace: true });
+        // If admin, redirect to admin dashboard
+        if (adminCheck) {
+          navigate('/dashboard/admin', { replace: true });
           return;
         }
         
-        // Email verification status checked (not blocking access)
-
-        const normalizedRole = role || 'buyer';
-
-        // If user is explicitly on a role-specific dashboard path, respect the URL hint.
-        // This is especially important for logistics where we want a fully isolated view.
-        let effectiveRole = normalizedRole;
-        if (location.pathname.startsWith('/dashboard/logistics')) {
-          effectiveRole = 'logistics';
-        } else if (location.pathname.startsWith('/dashboard/buyer')) {
-          effectiveRole = 'buyer';
-        } else if (location.pathname.startsWith('/dashboard/seller')) {
-          effectiveRole = 'seller';
-        } else if (location.pathname.startsWith('/dashboard/hybrid')) {
-          effectiveRole = 'hybrid';
-        }
-
-        setCurrentRole(effectiveRole);
-
-        // If user hit the base /dashboard route, redirect them to a role-specific dashboard
-        if (location.pathname === '/dashboard') {
-          const dashboardPath = getDashboardPathForRole(normalizedRole);
-          // For hybrid and logistics, use unified dashboard
-          const finalPath =
-            normalizedRole === 'hybrid' || normalizedRole === 'logistics'
-              ? `/dashboard/${normalizedRole}`
-              : dashboardPath;
-          navigate(finalPath, { replace: true });
-          return;
-        }
+        // Normalize role using the helper function
+        const normalizedRole = getUserRole(profile || user) || role || 'buyer';
+        setCurrentRole(normalizedRole);
+        setIsLoading(false);
       } catch (error) {
-          // Error logged (removed for production)
-        if (isMounted) {
-          navigate('/login');
-        }
-      } finally {
+        console.error('Error loading user role:', error);
         if (isMounted) {
           setIsLoading(false);
+          // Default to buyer role on error
+          setCurrentRole('buyer');
         }
       }
     };
 
-    init();
+    loadUserAndRole();
 
-    return () => { isMounted = false; };
-  }, [navigate, location.pathname]);
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const renderDashboardContent = () => {
     switch (currentRole) {
       case 'buyer':
-      case 'hybrid':
         return <BuyerHome />;
+      case 'hybrid':
+        return <HybridHome />;
       case 'seller':
         return <SellerHome />;
       case 'logistics':
@@ -107,9 +115,8 @@ export default function Dashboard() {
   return (
     <DashboardLayout currentRole={currentRole}>
       <ErrorBoundary fallbackMessage="Failed to load dashboard. Please try again.">
-      {renderDashboardContent()}
+        {renderDashboardContent()}
       </ErrorBoundary>
     </DashboardLayout>
   );
 }
-

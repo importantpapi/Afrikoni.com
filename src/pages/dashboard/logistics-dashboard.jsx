@@ -320,6 +320,49 @@ function LogisticsDashboardInner() {
           </div>
       </div>
 
+      {/* Primary CTA Banner - "What do I do now?" for new logistics users */}
+      {kpis.activeShipments === 0 && recentShipments.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-lg shadow-xl mb-6">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
+                      <Truck className="w-6 h-6 text-afrikoni-chestnut" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
+                        Register Your Services
+                      </h2>
+                      <p className="text-afrikoni-deep/80 text-sm md:text-base">
+                        Set up your logistics profile to start receiving shipment requests from buyers and sellers. Verified logistics partners get priority matching.
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-afrikoni-deep/70 mt-2">
+                    💰 <strong>Success fee only when deal closes</strong> - No upfront costs
+                  </p>
+                </div>
+                <Link to="/dashboard/company-info" className="w-full md:w-auto">
+                  <Button
+                    size="lg"
+                    className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all min-h-[52px]"
+                  >
+                    Complete Profile
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         <Card className="bg-afrikoni-sand/70 border-slate-200">
