@@ -67,15 +67,26 @@ export default function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
     
+    // DEBUG: Log submit click
+    console.log('SUBMIT CLICKED');
+    
     // Clear previous errors
     setFieldErrors({ email: '', password: '', confirmPassword: '', general: '' });
     
     let hasErrors = false;
     const newErrors = { email: '', password: '', confirmPassword: '', general: '' };
 
-    // Required fields validation
-    if (!formData.fullName || !formData.email || !formData.password) {
+    // Required fields validation - show explicit inline errors
+    if (!formData.fullName.trim()) {
       newErrors.general = 'Please fill in all required fields';
+      hasErrors = true;
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required.';
+      hasErrors = true;
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required.';
       hasErrors = true;
     }
     if (formData.password && !formData.confirmPassword) {
@@ -83,13 +94,13 @@ export default function Signup() {
       hasErrors = true;
     }
 
-    // Email format validation
+    // Email format validation - show explicit inline error
     if (formData.email && !isValidEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address.';
       hasErrors = true;
     }
 
-    // Password strength validation (8 characters minimum)
+    // Password strength validation (8 characters minimum) - show explicit inline error
     if (formData.password) {
       const passwordValidation = isPasswordStrong(formData.password);
       if (!passwordValidation.valid) {
@@ -98,7 +109,7 @@ export default function Signup() {
       }
     }
 
-    // Password confirmation validation (only check if password is valid)
+    // Password confirmation validation - show explicit inline error
     if (formData.password && formData.confirmPassword) {
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match.';
@@ -106,17 +117,22 @@ export default function Signup() {
       }
     }
 
+    // If validation errors exist, show them and return (don't set loading)
     if (hasErrors) {
+      console.log('VALIDATION ERRORS:', newErrors);
       setFieldErrors(newErrors);
       return;
     }
 
+    // Validation passed - set loading state immediately before Supabase call
+    console.log('VALIDATION PASSED - Starting signup');
     setIsLoading(true);
     try {
       // ✅ USE DIRECT SUPABASE CALL - Same fix as login
       // supabaseHelpers.auth.signUp may be outdated or misconfigured
       let data, error;
       try {
+        console.log('CALLING SUPABASE AUTH.SIGNUP');
         const result = await supabase.auth.signUp({
         email: formData.email.trim(), // Trim email to prevent whitespace issues
         password: formData.password,
@@ -128,6 +144,8 @@ export default function Signup() {
       });
         data = result.data;
         error = result.error;
+        // DEBUG: Log Supabase response
+        console.log('SIGNUP RESPONSE', { data, error });
       } catch (networkError) {
         // Handle network/connection errors gracefully
         // These are errors that occur BEFORE Supabase can respond
