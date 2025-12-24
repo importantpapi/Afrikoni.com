@@ -32,20 +32,49 @@ export default function Signup() {
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
 
+  // Email validation helper
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
+  };
+
+  // Password validation helper
+  const isPasswordStrong = (password) => {
+    if (password.length < 6) {
+      return { valid: false, message: t('signup.passwordMinLength') || 'Password must be at least 6 characters' };
+    }
+    // Optional: Add more password strength checks
+    // if (password.length > 72) {
+    //   return { valid: false, message: 'Password must be less than 72 characters' };
+    // }
+    return { valid: true };
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
+    
+    // Required fields validation
     if (!formData.fullName || !formData.email || !formData.password) {
-      toast.error(t('signup.fillRequired'));
+      toast.error(t('signup.fillRequired') || 'Please fill in all required fields');
       return;
     }
 
+    // Email format validation
+    if (!isValidEmail(formData.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    // Password confirmation validation
     if (formData.password !== formData.confirmPassword) {
-      toast.error(t('signup.passwordMismatch'));
+      toast.error(t('signup.passwordMismatch') || 'Passwords do not match');
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast.error(t('signup.passwordMinLength'));
+    // Password strength validation
+    const passwordValidation = isPasswordStrong(formData.password);
+    if (!passwordValidation.valid) {
+      toast.error(passwordValidation.message);
       return;
     }
 
@@ -179,19 +208,52 @@ export default function Signup() {
       }
       
       // Handle specific auth errors with user-friendly messages
+      
+      // Duplicate email / User already exists
       if (errorMessage.toLowerCase().includes('user already registered') || 
           errorMessage.toLowerCase().includes('already registered') ||
-          errorCode === 'signup_disabled') {
-        toast.error('An account with this email already exists. Please log in instead.');
+          errorMessage.toLowerCase().includes('email address is already registered') ||
+          errorMessage.toLowerCase().includes('email already exists') ||
+          errorMessage.toLowerCase().includes('user already exists') ||
+          errorCode === 'signup_disabled' ||
+          errorCode === 'email_address_not_authorized') {
+        toast.error('An account with this email already exists. Please log in instead.', {
+          duration: 5000,
+          action: {
+            label: 'Go to Login',
+            onClick: () => navigate('/login')
+          }
+        });
         navigate('/login');
-      } else if (errorMessage.toLowerCase().includes('invalid email')) {
-        toast.error('Please enter a valid email address.');
-      } else if (errorMessage.toLowerCase().includes('password')) {
-        toast.error('Password does not meet requirements. Please check and try again.');
-      } else {
-        // Generic error for actual auth failures (only if not database-related)
-        toast.error(errorMessage || t('signup.error') || 'Signup failed. Please try again.');
+        return;
       }
+      
+      // Invalid email format (server-side validation)
+      if (errorMessage.toLowerCase().includes('invalid email') ||
+          errorMessage.toLowerCase().includes('email format') ||
+          errorCode === 'validation_failed') {
+        toast.error('Please enter a valid email address.');
+        return;
+      }
+      
+      // Password validation errors
+      if (errorMessage.toLowerCase().includes('password') ||
+          errorMessage.toLowerCase().includes('weak password') ||
+          errorMessage.toLowerCase().includes('password requirements')) {
+        toast.error('Password does not meet requirements. Please use at least 6 characters.');
+        return;
+      }
+      
+      // Rate limiting
+      if (errorMessage.toLowerCase().includes('rate limit') ||
+          errorMessage.toLowerCase().includes('too many requests') ||
+          errorCode === 'rate_limit_exceeded') {
+        toast.error('Too many signup attempts. Please wait a few minutes and try again.');
+        return;
+      }
+      
+      // Generic error for actual auth failures (only if not database-related)
+      toast.error(errorMessage || t('signup.error') || 'Signup failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -359,8 +421,11 @@ export default function Signup() {
                 redirectTo={getOAuthRedirectPath()}
                 onSuccess={() => {
                   toast.success(t('signup.success') || 'Account created successfully!');
+                  setIsLoading(false);
                 }}
                 onError={(error) => {
+                  console.error('[Signup] Google OAuth error:', error);
+                  // Error is already handled in GoogleSignIn component with toast
                   setIsLoading(false);
                 }}
               />
@@ -368,8 +433,11 @@ export default function Signup() {
                 redirectTo={getOAuthRedirectPath()}
                 onSuccess={() => {
                   toast.success(t('signup.success') || 'Account created successfully!');
+                  setIsLoading(false);
                 }}
                 onError={(error) => {
+                  console.error('[Signup] Facebook OAuth error:', error);
+                  // Error is already handled in FacebookSignIn component with toast
                   setIsLoading(false);
                 }}
               />

@@ -85,13 +85,11 @@ export default function FacebookSignIn({
         }
       }
       
-      // Show alternative sign-in option
+      // Show user-friendly error message
       toast.error(errorMessage, {
         duration: 5000,
         description: 'You can sign in with email/password instead.',
       });
-      
-      toast.error(errorMessage);
       
       if (onError) {
         onError(error);
