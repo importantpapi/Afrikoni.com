@@ -12,6 +12,7 @@ import { DashboardRoleProvider } from './context/DashboardRoleContext';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
 import { useBrowserNavigation } from './hooks/useBrowserNavigation';
+import AuthDebug from './components/dev/AuthDebug';
 
 // Lightweight routes - keep as regular imports for faster initial load
 import Home from './pages/index';
