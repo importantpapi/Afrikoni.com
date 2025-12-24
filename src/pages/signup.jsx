@@ -593,7 +593,8 @@ export default function Signup() {
                 </div>
               )}
               
-              {fieldErrors.password && (
+              {/* Only show error message if password is invalid AND error exists */}
+              {fieldErrors.password && formData.password.length < 8 && (
                 <p className="mt-1.5 text-sm text-red-600" role="alert">
                   {fieldErrors.password}
                 </p>
