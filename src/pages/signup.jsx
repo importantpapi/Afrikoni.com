@@ -46,10 +46,28 @@ export default function Signup() {
 
   // Password validation helper (8 characters minimum)
   const isPasswordStrong = (password) => {
+    if (!password) {
+      return { valid: false, message: 'Password is required.' };
+    }
     if (password.length < 8) {
-      return { valid: false, message: 'Password must be at least 8 characters.' };
+      return { 
+        valid: false, 
+        message: 'Password must be at least 8 characters.',
+        requirements: { minLength: false, length: password.length }
+      };
     }
     return { valid: true };
+  };
+
+  // Get password requirements status for real-time feedback
+  const getPasswordRequirements = (password) => {
+    if (!password) return null;
+    
+    return {
+      minLength: password.length >= 8,
+      currentLength: password.length,
+      requiredLength: 8
+    };
   };
 
   // Clear field error when user starts typing
