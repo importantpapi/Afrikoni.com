@@ -249,7 +249,26 @@ export default function Signup() {
       // 🔒 CRITICAL: NEVER show database/profile errors to users
       // Check if user account was actually created (auth succeeded)
       // If auth succeeded, redirect to PostLoginRouter - it will handle everything
-      const errorMessage = error?.message || '';
+      
+      // Sanitize error message - check multiple sources and remove URLs/technical details
+      let errorMessage = '';
+      if (error) {
+        // Check multiple possible error message locations
+        const possibleMessages = [
+          error?.message,
+          error?.error?.message,
+          error?.toString(),
+          JSON.stringify(error)
+        ].filter(Boolean);
+        
+        errorMessage = possibleMessages[0] || '';
+        
+        // STRICT URL SANITIZATION - Remove ANY URL patterns BEFORE processing
+        errorMessage = errorMessage.replace(/https?:\/\/[\w.-]+\.supabase\.co[^\s]*/gi, '[network error]');
+        errorMessage = errorMessage.replace(/qkeeufeiaphqylsnfhza[^\s]*/gi, '[network error]');
+        errorMessage = errorMessage.replace(/[\w-]+\.supabase\.co/gi, '[network error]');
+      }
+      
       const errorCode = error?.code || '';
       
       // Check if this looks like a database error (but we still check if user was created)
@@ -367,7 +386,11 @@ export default function Signup() {
 
       // Network/connection errors (Supabase URL, fetch failures, etc.)
       // These errors occur when the browser cannot reach Supabase at all
+      // CHECK ORIGINAL ERROR TOO - before sanitization
+      const originalErrorString = error?.toString() || error?.message || JSON.stringify(error) || '';
       const normalizedErrorMessage = errorMessage.toLowerCase();
+      const normalizedOriginalError = originalErrorString.toLowerCase();
+      
       const isNetworkLevelError = 
         normalizedErrorMessage.includes('load failed') ||
         normalizedErrorMessage.includes('network error') ||
@@ -378,7 +401,13 @@ export default function Signup() {
         normalizedErrorMessage.includes('networkerror') ||
         normalizedErrorMessage.includes('networkerror when attempting to fetch') ||
         normalizedErrorMessage.includes('supabase.co') || // Catch any Supabase URLs
+        normalizedErrorMessage.includes('qkeeufeiaphqylsnfhza') || // Catch project ID
+        normalizedOriginalError.includes('load failed') || // Check original too
+        normalizedOriginalError.includes('supabase.co') || // Check original too
+        normalizedOriginalError.includes('qkeeufeiaphqylsnfhza') || // Check original too
         /https?:\/\/[\w.-]+\.supabase\.co/.test(errorMessage) || // URL pattern matching
+        /https?:\/\/[\w.-]+\.supabase\.co/.test(originalErrorString) || // URL pattern in original
+        /qkeeufeiaphqylsnfhza/.test(originalErrorString) || // Project ID in original
         errorCode === 'ENOTFOUND' ||
         errorCode === 'ECONNREFUSED' ||
         errorCode === 'ETIMEDOUT' ||
@@ -397,18 +426,23 @@ export default function Signup() {
       
       // Generic error for actual auth failures (only if not database-related)
       // Never show raw error messages, URLs, or technical details to users
-      // Sanitize error message to remove technical details
-      let userFriendlyMessage = 'Signup failed. Please try again.';
+      // STRICT SANITIZATION - check original error too
+      const originalErrorCheck = error?.toString() || error?.message || JSON.stringify(error) || '';
+      const containsUrl = 
+        errorMessage.includes('supabase.co') || 
+        errorMessage.includes('http://') || 
+        errorMessage.includes('https://') ||
+        originalErrorCheck.includes('supabase.co') ||
+        originalErrorCheck.includes('qkeeufeiaphqylsnfhza') ||
+        /https?:\/\/[\w.-]+/.test(errorMessage) || // Any URL pattern
+        /https?:\/\/[\w.-]+/.test(originalErrorCheck) || // Any URL pattern in original
+        errorMessage.toLowerCase().includes('load failed') ||
+        originalErrorCheck.toLowerCase().includes('load failed');
       
-      // If error message contains URLs or technical details, use generic message
-      // This is a fallback for any errors that slipped through previous checks
-      if (errorMessage.includes('supabase.co') || 
-          errorMessage.includes('http://') || 
-          errorMessage.includes('https://') ||
-          /https?:\/\/[\w.-]+/.test(errorMessage) || // Any URL pattern
-          errorMessage.toLowerCase().includes('load failed')) {
-        userFriendlyMessage = "We're having trouble connecting to our servers. Please try again in a moment.";
-      }
+      // ALWAYS use safe message if ANY URL pattern detected
+      const userFriendlyMessage = containsUrl 
+        ? "We're having trouble connecting to our servers. Please try again in a moment."
+        : 'Signup failed. Please try again.';
       
       setFieldErrors({ 
         email: '',
