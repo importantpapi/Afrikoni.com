@@ -556,7 +556,7 @@ export default function Signup() {
                   }}
                   placeholder={t('signup.passwordPlaceholder')}
                   className="pl-10 pr-10"
-                  error={!!fieldErrors.password}
+                  error={!!fieldErrors.password && formData.password.length < 8}
                   required
                 />
                 <button
