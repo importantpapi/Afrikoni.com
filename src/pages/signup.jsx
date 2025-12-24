@@ -67,9 +67,15 @@ export default function Signup() {
     const newErrors = { email: '', password: '', confirmPassword: '', general: '' };
 
     // Required fields validation
+    if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
     if (!formData.fullName || !formData.email || !formData.password) {
-      newErrors.general = 'Please fill in all required fields';
-      hasErrors = true;
+        newErrors.general = 'Please fill in all required fields';
+        hasErrors = true;
+      }
+      if (formData.password && !formData.confirmPassword) {
+        newErrors.confirmPassword = 'Please confirm your password.';
+        hasErrors = true;
+      }
     }
 
     // Email format validation
@@ -78,17 +84,19 @@ export default function Signup() {
       hasErrors = true;
     }
 
-    // Password confirmation validation
-    if (formData.password && formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match.';
-      hasErrors = true;
-    }
-
     // Password strength validation (8 characters minimum)
     if (formData.password) {
       const passwordValidation = isPasswordStrong(formData.password);
       if (!passwordValidation.valid) {
         newErrors.password = passwordValidation.message;
+        hasErrors = true;
+      }
+    }
+
+    // Password confirmation validation (only check if password is valid)
+    if (formData.password && formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match.';
         hasErrors = true;
       }
     }
@@ -105,14 +113,14 @@ export default function Signup() {
       let data, error;
       try {
         const result = await supabase.auth.signUp({
-          email: formData.email.trim(), // Trim email to prevent whitespace issues
-          password: formData.password,
-          options: {
-            data: {
-              full_name: formData.fullName,
-            },
+        email: formData.email.trim(), // Trim email to prevent whitespace issues
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
           },
-        });
+        },
+      });
         data = result.data;
         error = result.error;
       } catch (networkError) {
@@ -203,15 +211,15 @@ export default function Signup() {
       if (data.user) {
         // Notify admins (fire and forget - never throws)
         Promise.resolve().then(async () => {
-          try {
-            const { notifyAdminOfNewRegistration } = await import('@/services/riskMonitoring');
-            await notifyAdminOfNewRegistration(
-              data.user.id,
-              formData.email.trim(),
-              formData.fullName,
+        try {
+          const { notifyAdminOfNewRegistration } = await import('@/services/riskMonitoring');
+          await notifyAdminOfNewRegistration(
+            data.user.id,
+            formData.email.trim(),
+            formData.fullName,
               null
-            );
-          } catch (notifyError) {
+          );
+        } catch (notifyError) {
             // Silent fail - non-critical
             console.warn('[Signup] Admin notification failed (non-critical):', notifyError);
           }
@@ -325,7 +333,7 @@ export default function Signup() {
         });
         return;
       }
-      
+
       // Rate limiting
       if (errorMessage.toLowerCase().includes('rate limit') ||
           errorMessage.toLowerCase().includes('too many requests') ||
