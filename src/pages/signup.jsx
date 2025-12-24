@@ -44,6 +44,14 @@ export default function Signup() {
     return emailRegex.test(email.trim());
   };
 
+  // Password validation helper (8 characters minimum)
+  const isPasswordStrong = (password) => {
+    if (password.length < 8) {
+      return { valid: false, message: 'Password must be at least 8 characters.' };
+    }
+    return { valid: true };
+  };
+
   // Clear field error when user starts typing
   const clearFieldError = (fieldName) => {
     setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
@@ -74,6 +82,15 @@ export default function Signup() {
     if (formData.password && formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match.';
       hasErrors = true;
+    }
+
+    // Password strength validation (8 characters minimum)
+    if (formData.password) {
+      const passwordValidation = isPasswordStrong(formData.password);
+      if (!passwordValidation.valid) {
+        newErrors.password = passwordValidation.message;
+        hasErrors = true;
+      }
     }
 
     if (hasErrors) {
