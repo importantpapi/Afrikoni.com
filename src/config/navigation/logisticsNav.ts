@@ -17,7 +17,7 @@ import {
 
 export const logisticsNav = [
   // 🔥 PRIMARY - Core operational workflow
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/logistics', priority: 'primary' },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', priority: 'primary' },
   { icon: Truck, label: 'Shipments', path: '/dashboard/shipments', priority: 'primary' },
   { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment', priority: 'primary' },
   { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },

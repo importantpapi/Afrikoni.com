@@ -23,6 +23,7 @@ import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 import VerificationUpsell from '@/components/upsell/VerificationUpsell';
 import { getCompanySubscription } from '@/services/subscriptionService';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -124,7 +125,14 @@ function DashboardRFQsInner() {
         ...rfq,
         quotesCount: quotesCountMap[rfq.id] || 0
       })) : [];
-      
+
+      // SAFETY ASSERTION: each RFQ should be associated with the current company when viewing "sent"
+      if (companyId && (activeTab === 'sent' || activeTab === 'all')) {
+        for (const rfq of rfqsWithQuotes) {
+          await assertRowOwnedByCompany(rfq, companyId, 'DashboardRFQs:rfqs');
+        }
+      }
+
       setRfqs(rfqsWithQuotes);
       setPagination(prev => ({
         ...prev,

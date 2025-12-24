@@ -71,7 +71,28 @@ export function handleSupabaseError(error, context = 'operation', options = {}) 
   }
 
   // Show toast notification
+  // GLOBAL FILTER: Suppress email confirmation errors
   if (showToast) {
+    // Check if this is an email confirmation error
+    const errorMessage = error?.message || userMessage || '';
+    const isEmailError = 
+      errorMessage.toLowerCase().includes('confirmation email') ||
+      (errorMessage.toLowerCase().includes('error sending') && errorMessage.toLowerCase().includes('email')) ||
+      (errorMessage.toLowerCase().includes('email delivery') && errorMessage.toLowerCase().includes('error'));
+    
+    if (isEmailError) {
+      // Suppress email errors - they are non-fatal
+      console.warn('[AUTH] Suppressed email confirmation error in supabaseErrorHandler:', errorMessage);
+      return {
+        handled: true,
+        message: userMessage,
+        code: error.code,
+        status: error.status,
+        originalError: error,
+        suppressed: true // Mark as suppressed
+      };
+    }
+    
     toast.error(userMessage, {
       duration: 5000
     });

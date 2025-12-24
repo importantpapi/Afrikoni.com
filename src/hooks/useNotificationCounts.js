@@ -21,13 +21,6 @@ export function useNotificationCounts(userId, companyId) {
 
     const loadCounts = async () => {
       try {
-        // Ensure auth is ready before queries
-        const { ensureAuthReady } = await import('@/api/supabaseClient');
-        const authReady = await ensureAuthReady();
-        if (!authReady) {
-          setCounts({ messages: 0, rfqs: 0, approvals: 0 });
-          return;
-        }
         // Unread messages (with null check and proper error handling)
         let messageCount = 0;
         let messageError = null;

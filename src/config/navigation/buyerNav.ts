@@ -11,6 +11,8 @@ import {
   BarChart3,
   Shield,
   HelpCircle,
+  Settings,
+  Users as UsersIcon,
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
@@ -23,7 +25,7 @@ import {
 
 export const buyerNav = [
   // 🔥 PRIMARY - Daily workflow (always visible)
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/buyer', priority: 'primary' },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', priority: 'primary' },
   { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs', priority: 'primary' },
   { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
   { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders', priority: 'primary' },
@@ -39,6 +41,7 @@ export const buyerNav = [
     children: [
       { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
       { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team' },
       { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
       { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
     ]
@@ -61,6 +64,7 @@ export const buyerNav = [
   
   // 💬 SUPPORT - Help section (bottom, separated)
   { icon: HelpCircle, label: 'Support Chat', path: '/dashboard/support-chat', priority: 'support' },
+  { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' },
 ];
 
 

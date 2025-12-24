@@ -13,6 +13,8 @@ import { Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { sendWelcomeEmail } from '@/services/emailService';
+import { logAuthEvent } from '@/lib/supabase-auth-helpers';
 
 export default function AuthConfirm() {
   const [searchParams] = useSearchParams();
@@ -94,22 +96,23 @@ export default function AuthConfirm() {
           throw verificationError;
         }
 
-        if (error) {
-          // Check if already confirmed
-          if (error.message.includes('already') || error.message.includes('confirmed')) {
-            setStatus('success');
-            setTimeout(() => {
-              navigate('/auth/success', { replace: true });
-            }, 1500);
-            return;
-          }
-          throw error;
-        }
-
         // Success - email confirmed
         setStatus('success');
         toast.success('Email confirmed successfully!');
-        
+
+        // Fire-and-forget: log auth event + send welcome email (if not already sent)
+        try {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (user) {
+            await logAuthEvent(user.id, 'email_verified', {});
+            await sendWelcomeEmail(user.email, user.user_metadata?.name || user.email?.split('@')[0] || 'there');
+          }
+        } catch (sideEffectError) {
+          console.debug('Post-confirmation side effects failed', sideEffectError);
+        }
+
         // Redirect to success page after brief delay
         setTimeout(() => {
           navigate('/auth/success', { replace: true });

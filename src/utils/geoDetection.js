@@ -4,7 +4,7 @@
  */
 
 // Country to currency mapping
-const COUNTRY_CURRENCY_MAP = {
+export const COUNTRY_CURRENCY_MAP = {
   // African countries
   'NG': 'NGN', // Nigeria
   'GH': 'GHS', // Ghana

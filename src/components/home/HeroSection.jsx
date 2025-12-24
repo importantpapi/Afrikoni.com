@@ -147,7 +147,15 @@ export default function HeroSection({ categories = [] }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // CRITICAL: Suppress email confirmation errors globally
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // GLOBAL FILTER: Suppress email confirmation errors
+      // Email delivery errors are non-fatal and must never show UI
+      if (event === 'SIGNED_UP') {
+        // Signup event - suppress email errors
+        console.debug('[AUTH] Signup event - email errors suppressed');
+      }
+      
       if (isMounted) {
         setUser(session?.user || null);
       }

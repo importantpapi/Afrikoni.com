@@ -198,8 +198,8 @@ export default function VerificationCenter() {
       const finalCompanyId = cid || await getOrCreateCompany(supabase, profile || userData);
       
       if (!finalCompanyId) {
-        toast.error('Unable to create company profile. Please complete onboarding first.');
-        navigate('/onboarding');
+        toast.error('Unable to create company profile. Please select your role first.');
+        navigate('/auth/post-login');
         return;
       }
       
@@ -1558,6 +1558,7 @@ export default function VerificationCenter() {
                                       ? 'bg-red-600 hover:bg-red-700' 
                                         : 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white'
                                     }
+                                    min-h-[44px] touch-manipulation
                                   `}
                                   as="span"
                                 >
@@ -1582,7 +1583,7 @@ export default function VerificationCenter() {
                                     size="sm"
                                     onClick={() => handleSubmitStep(step)}
                                     disabled={submittingStep === step.id || !canAccessStep(idx)}
-                                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white ml-2"
+                                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white ml-2 min-h-[44px] touch-manipulation"
                                   >
                                     {submittingStep === step.id ? (
                                       <>
@@ -1621,7 +1622,7 @@ export default function VerificationCenter() {
                               <Button
                                 variant="default"
                                 size="sm"
-                                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+                                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] touch-manipulation"
                                   onClick={async () => {
                                   if (step.id === 'email') {
                                       await handleEmailVerification();

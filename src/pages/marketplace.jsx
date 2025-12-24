@@ -1183,12 +1183,12 @@ export default function Marketplace() {
                 <MapPin className="w-4 h-4 text-afrikoni-gold" />
                 <span className="text-sm md:text-base font-medium text-afrikoni-chestnut">
                   {selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries')
-                    ? t('marketplace.productsFrom', { country: selectedFilters.country })
-                    : t('marketplace.allAfricanMarkets')}
+                    ? `Products from ${selectedFilters.country}`
+                    : 'All African Markets'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-afrikoni-deep/70 hidden md:inline text-sm">{t('marketplace.countryMarketplace') || 'Country:'}</span>
+                <span className="text-afrikoni-deep/70 hidden md:inline text-sm">Filter by Country:</span>
                 <Select
                   value={selectedFilters.country || t('marketplace.allCountries')}
                   onValueChange={(value) => {

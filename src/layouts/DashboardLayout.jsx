@@ -36,7 +36,6 @@ import LogisticsHeader from '@/components/headers/LogisticsHeader';
 import AdminHeader from '@/components/headers/AdminHeader';
 import HybridHeader from '@/components/headers/HybridHeader';
 import UserAvatar from '@/components/headers/UserAvatar';
-import SupportChatSidebar from '@/components/dashboard/SupportChatSidebar';
 
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useTranslation();
@@ -56,7 +55,6 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [devSelectedRole, setDevSelectedRole] = useState(currentRole);
-  const [collapsedSections, setCollapsedSections] = useState({});
   
   // Get notification counts for sidebar badges
   const notificationCounts = useNotificationCounts(user?.id, companyId);
@@ -113,9 +111,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       setCompanyId(cid || null);
       if (role) setUserRole(role);
       
-      // Safe admin check (pass profile for database flag)
+      // Safe admin check
       try {
-        const admin = isAdmin(userData, profile);
+        const admin = isAdmin(userData);
         setIsUserAdmin(admin || false);
       } catch (adminError) {
         console.warn('Error checking admin status:', adminError);
@@ -133,7 +131,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
   const handleLogout = async () => {
     try {
-      // Log logout to audit log before signing out
+      // Log logout to audit log before signing out (non-blocking)
       try {
         const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
         const { logLogoutEvent } = await import('@/utils/auditLogger');
@@ -144,11 +142,26 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         console.warn('Failed to log logout:', auditError);
       }
       
-      await supabaseHelpers.auth.signOut();
+      // Sign out using direct supabase client for reliability
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear any local state
+      setUser(null);
+      setProfile(null);
+      setCompanyId(null);
+      setUserRole(null);
+      
+      // Show success message
       toast.success('Logged out successfully');
-      navigate('/');
+      
+      // Redirect to home page
+      navigate('/', { replace: true });
     } catch (error) {
-      toast.error('Failed to logout');
+      console.error('Logout error:', error);
+      // Even if there's an error, try to redirect anyway
+      navigate('/', { replace: true });
+      toast.error('Logged out, but there was an issue clearing the session');
     }
   };
 
@@ -174,166 +187,18 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: FileSearch, label: 'KYB Verification', path: '/dashboard/admin/kyb' },
       { icon: UsersIcon, label: 'Disputes & Escrow', path: '/dashboard/admin/disputes' },
       { icon: MessageSquare, label: 'Support Tickets', path: '/dashboard/admin/support-tickets' },
-      { icon: BarChart3, label: 'Trade Intelligence', path: '/dashboard/admin/trade-intelligence' },
       { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
     ]
   };
 
-  // Filter out admin-only items for non-admins and separate by priority
-  const allMenuItems = (sidebarItems[userRole] || sidebarItems.buyer).filter(item => {
+  // Filter out admin-only items for non-admins
+  const menuItems = (sidebarItems[userRole] || sidebarItems.buyer).filter(item => {
     if (item.adminOnly && !isUserAdmin) {
       return false;
     }
     return true;
   });
-  
-  // Separate menu items by priority
-  const primaryItems = allMenuItems.filter(item => item.priority === 'primary' || !item.priority);
-  const secondaryItems = allMenuItems.filter(item => item.priority === 'secondary');
-  const tertiaryItems = allMenuItems.filter(item => item.priority === 'tertiary');
-  const supportItems = allMenuItems.filter(item => item.priority === 'support');
-  
-  // Initialize collapsed state for sections
-  useEffect(() => {
-    const initialCollapsed = {};
-    tertiaryItems.forEach(item => {
-      if (item.isSection && item.collapsedByDefault) {
-        initialCollapsed[item.label] = true;
-      }
-    });
-    setCollapsedSections(initialCollapsed);
-  }, [userRole]);
-  
-  const toggleSection = (sectionLabel) => {
-    setCollapsedSections(prev => ({
-      ...prev,
-      [sectionLabel]: !prev[sectionLabel]
-    }));
-  };
-  
-  const isSectionCollapsed = (sectionLabel) => {
-    return collapsedSections[sectionLabel] ?? false;
-  };
-  
-  // Helper function to render menu item
-  const renderMenuItem = (item, idx, isChild = false) => {
-    if (!item.icon) return null;
-    
-    const Icon = item.icon;
-    const hasPath = item.path && item.path !== null;
-    const isActive = hasPath && (
-      location.pathname === item.path || 
-      (item.path === '/dashboard/buyer' && location.pathname === '/dashboard') ||
-      (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products'))
-    );
-    
-    // Check if any child is active
-    const hasActiveChild = item.children && item.children.some(child => 
-      location.pathname === child.path
-    );
-    
-    const isCollapsed = item.isSection && isSectionCollapsed(item.label);
-    
-    if (item.isSection && item.children) {
-      // Render collapsible section
-      return (
-        <div key={`section-${item.label}-${idx}`} className={isChild ? '' : 'mt-2'}>
-          <button
-            onClick={() => toggleSection(item.label)}
-            className={`
-              w-full flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative min-h-[44px] touch-manipulation
-              ${hasActiveChild
-                ? 'bg-afrikoni-gold/20 text-afrikoni-gold' 
-                : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold active:bg-afrikoni-gold/20'
-              }
-              ${!isChild ? 'border-t border-afrikoni-gold/20 pt-4' : ''}
-            `}
-          >
-            {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${hasActiveChild ? 'text-afrikoni-gold' : 'text-afrikoni-gold'}`} />}
-            <span className="flex-1 text-left">{item.label}</span>
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4 text-afrikoni-gold" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-afrikoni-gold" />
-            )}
-          </button>
-          
-          {/* Render children */}
-          <AnimatePresence>
-            {!isCollapsed && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="ml-4 mt-1 space-y-1 overflow-hidden"
-              >
-                {item.children.map((child, childIdx) => renderMenuItem(child, childIdx, true))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      );
-    }
-    
-    // Render regular menu item
-    if (!hasPath) return null;
-    
-    return (
-      <motion.div
-        key={`${item.path}-${idx}`}
-        whileHover={{ x: isChild ? 0 : 2 }}
-        transition={{ duration: 0.2 }}
-      >
-        <Link
-          to={item.path}
-          onClick={(e) => {
-            try {
-              if (window.innerWidth < 768) {
-                setSidebarOpen(false);
-              }
-            } catch (error) {
-              console.error('Error navigating to:', item.path, error);
-              toast.error('Navigation error. Please try again.');
-            }
-          }}
-          className={`
-            flex items-center gap-3 ${isChild ? 'px-3 py-2' : 'px-4 py-3'} rounded-afrikoni text-sm font-semibold transition-all group relative min-h-[44px] touch-manipulation
-            ${isActive 
-              ? 'bg-afrikoni-gold text-white shadow-afrikoni-gold' 
-              : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold active:bg-afrikoni-gold/20'
-            }
-            ${isChild ? 'text-xs min-h-[40px]' : ''}
-          `}
-        >
-          {isActive && !isChild && (
-            <motion.div
-              layoutId="activeSidebarItem"
-              className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          )}
-          {Icon && <Icon className={`${isChild ? 'w-3 h-3' : 'w-5 h-5'} flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />}
-          <span className="flex-1">{item.label || 'Menu Item'}</span>
-          {/* Notification Badges */}
-          {item.path === '/messages' && notificationCounts.messages > 0 && (
-            <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-              {notificationCounts.messages > 9 ? '9+' : notificationCounts.messages}
-            </Badge>
-          )}
-          {item.path === '/dashboard/rfqs' && notificationCounts.rfqs > 0 && (
-            <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-              {notificationCounts.rfqs > 9 ? '9+' : notificationCounts.rfqs}
-            </Badge>
-          )}
-          {isActive && !isChild && <ChevronRight className="w-4 h-4 text-white" />}
-        </Link>
-      </motion.div>
-    );
-  };
-  
-  const menuItems = allMenuItems; // Keep for backward compatibility
   const isHybrid = userRole === 'hybrid';
 
   // Role switcher options
@@ -441,29 +306,148 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-            {/* PRIMARY ITEMS - Always visible */}
-            {primaryItems.map((item, idx) => renderMenuItem(item, idx))}
-            
-            {/* SECONDARY ITEMS - Collapsible sections */}
-            {secondaryItems.map((item, idx) => renderMenuItem(item, idx))}
-            
-            {/* TERTIARY ITEMS - Collapsed by default */}
-            {tertiaryItems.map((item, idx) => renderMenuItem(item, idx))}
-            
-            {/* Legacy support for non-buyer roles - render all items if no priority structure */}
-            {primaryItems.length === 0 && menuItems.map((item, idx) => {
-              // Skip items that are already handled above
-              if (item.priority) return null;
-              return renderMenuItem(item, idx);
+            {menuItems.map((item, idx) => {
+              if (!item.path) {
+                console.warn('Menu item missing path:', item);
+                return null;
+              }
+
+              if (!item.icon) {
+                console.warn('Menu item missing icon:', item);
+                return null;
+              }
+
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path || 
+                               (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products')) ||
+                               (item.path === '/dashboard/risk' && location.pathname.startsWith('/dashboard/risk'));
+              
+              // Check if this is a section header (Risk & Compliance)
+              const isSection = item.isSection;
+              
+              return (
+                <motion.div
+                  key={`${item.path}-${idx}`}
+                  whileHover={{ x: 2 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link
+                    to={item.path}
+                    onClick={(e) => {
+                      try {
+                        // Close sidebar on mobile after navigation
+                        if (window.innerWidth < 768) {
+                          setSidebarOpen(false);
+                        }
+                      } catch (error) {
+                        console.error('Error navigating to:', item.path, error);
+                        toast.error('Navigation error. Please try again.');
+                      }
+                    }}
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative
+                      ${isActive 
+                        ? 'bg-afrikoni-gold text-white shadow-afrikoni-gold' 
+                        : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
+                      }
+                      ${isSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
+                    `}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeSidebarItem"
+                        className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    )}
+                    {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />}
+                    <span className="flex-1">{item.label || 'Menu Item'}</span>
+                    {/* Notification Badges */}
+                    {item.path === '/messages' && notificationCounts.messages > 0 && (
+                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
+                        {notificationCounts.messages > 9 ? '9+' : notificationCounts.messages}
+                      </Badge>
+                    )}
+                    {item.path === '/dashboard/rfqs' && notificationCounts.rfqs > 0 && (
+                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
+                        {notificationCounts.rfqs > 9 ? '9+' : notificationCounts.rfqs}
+                      </Badge>
+                    )}
+                    {item.path === '/dashboard/admin/review' && notificationCounts.approvals > 0 && (
+                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
+                        {notificationCounts.approvals > 9 ? '9+' : notificationCounts.approvals}
+                      </Badge>
+                    )}
+                    {isActive && <ChevronRight className="w-4 h-4 text-white" />}
+                  </Link>
+                  
+                  {/* Sub-menu items for Risk & Compliance - Admin Only */}
+                  {isSection && isUserAdmin && (location.pathname.startsWith('/dashboard/risk') || location.pathname.startsWith('/dashboard/compliance') || location.pathname.startsWith('/dashboard/kyc') || location.pathname.startsWith('/dashboard/anticorruption') || location.pathname.startsWith('/dashboard/crisis') || location.pathname.startsWith('/dashboard/audit')) && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      <Link
+                        to="/dashboard/compliance"
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          location.pathname === '/dashboard/compliance'
+                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
+                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
+                        }`}
+                      >
+                        <FileCheck className="w-3 h-3" />
+                        Compliance Center
+                      </Link>
+                      <Link
+                        to="/dashboard/kyc"
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          location.pathname === '/dashboard/kyc'
+                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
+                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
+                        }`}
+                      >
+                        <Shield className="w-3 h-3" />
+                        KYC/AML Tracker
+                      </Link>
+                      <Link
+                        to="/dashboard/anticorruption"
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          location.pathname === '/dashboard/anticorruption'
+                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
+                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
+                        }`}
+                      >
+                        <Lock className="w-3 h-3" />
+                        Anti-Corruption
+                      </Link>
+                      <Link
+                        to="/dashboard/crisis"
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          location.pathname === '/dashboard/crisis'
+                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
+                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
+                        }`}
+                      >
+                        <AlertCircle className="w-3 h-3" />
+                        Crisis Management
+                      </Link>
+                      <Link
+                        to="/dashboard/audit"
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          location.pathname === '/dashboard/audit'
+                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
+                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
+                        }`}
+                      >
+                        <FileText className="w-3 h-3" />
+                        Audit Logs
+                      </Link>
+                    </div>
+                  )}
+                </motion.div>
+              );
             })}
           </nav>
 
-          {/* Bottom Section - Support & Settings */}
+          {/* Bottom Section - Settings & Help */}
           <div className="p-3 border-t border-afrikoni-gold/20 space-y-1">
-            {/* Support items (from menu) */}
-            {supportItems.map((item, idx) => renderMenuItem(item, idx))}
-            
-            {/* Settings & Help */}
             <Link
               to="/dashboard/settings"
               className="flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-medium text-afrikoni-sand hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold transition-all"

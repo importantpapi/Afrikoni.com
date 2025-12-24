@@ -43,9 +43,8 @@ function normalizeRoleFromPath(pathname: string): DashboardRole {
   }
 
   // Hybrid is treated as buyer on the frontend
-  if (pathname.startsWith('/dashboard/hybrid')) return 'buyer';
 
-  // Default all other /dashboard and /dashboard/buyer to buyer
+  // Default all other /dashboard to buyer
   return 'buyer';
 }
 
@@ -77,5 +76,3 @@ export function useDashboardRole(): DashboardRoleContextValue {
   }
   return ctx;
 }
-
-

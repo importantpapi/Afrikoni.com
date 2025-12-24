@@ -21,6 +21,7 @@ const AFRICAN_COUNTRIES = [
 
 export default function Suppliers() {
   const [suppliers, setSuppliers] = useState([]);
+  const [supplierStats, setSupplierStats] = useState({}); // Store real stats for each supplier
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('all');
@@ -68,12 +69,153 @@ export default function Suppliers() {
 
       if (error) throw error;
       // ✅ Ranking happens in useSupplierRanking hook
-      setSuppliers(data || []);
+      const suppliersList = data || [];
+      setSuppliers(suppliersList);
+      
+      // Load real stats for each supplier
+      await loadSupplierStats(suppliersList);
     } catch (error) {
       // Error logged (removed for production)
       setSuppliers([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Load real statistics for suppliers (products, years, reviews, response time, min order)
+  const loadSupplierStats = async (suppliersList) => {
+    try {
+      const statsPromises = suppliersList.map(async (supplier) => {
+        const companyId = supplier.id;
+        const stats = {
+          products: 0,
+          years: 0,
+          reviews: 0,
+          rating: 0,
+          responseTime: 'N/A',
+          minOrder: 'N/A',
+          categories: []
+        };
+
+        // Get product count
+        const { count: productCount } = await supabase
+          .from('products')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+          .eq('status', 'active');
+        stats.products = productCount || 0;
+
+        // Get product categories
+        const { data: products } = await supabase
+          .from('products')
+          .select('category_id, category')
+          .eq('company_id', companyId)
+          .limit(3);
+        if (products) {
+          const uniqueCategories = [...new Set(products.map(p => p.category || p.category_id).filter(Boolean))];
+          stats.categories = uniqueCategories.slice(0, 3);
+        }
+
+        // Calculate years in business from company created_at or year_established
+        if (supplier.created_at) {
+          const yearsSinceCreation = new Date().getFullYear() - new Date(supplier.created_at).getFullYear();
+          stats.years = yearsSinceCreation > 0 ? yearsSinceCreation : 0;
+        } else if (supplier.year_established) {
+          const yearEst = parseInt(supplier.year_established);
+          if (!isNaN(yearEst)) {
+            stats.years = new Date().getFullYear() - yearEst;
+          }
+        }
+
+        // Get reviews and rating
+        const { data: reviews } = await supabase
+          .from('reviews')
+          .select('rating')
+          .eq('seller_company_id', companyId);
+        if (reviews && reviews.length > 0) {
+          stats.reviews = reviews.length;
+          const avgRating = reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length;
+          stats.rating = Math.round(avgRating * 10) / 10; // Round to 1 decimal
+        }
+
+        // Calculate average response time from messages (last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const { data: recentMessages } = await supabase
+          .from('messages')
+          .select('created_at')
+          .eq('sender_company_id', companyId)
+          .gte('created_at', thirtyDaysAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        if (recentMessages && recentMessages.length > 1) {
+          // Calculate average time between message responses
+          let totalHours = 0;
+          let count = 0;
+          for (let i = 1; i < recentMessages.length; i++) {
+            const timeDiff = new Date(recentMessages[i-1].created_at) - new Date(recentMessages[i].created_at);
+            const hours = timeDiff / (1000 * 60 * 60);
+            if (hours < 48) { // Only count reasonable response times
+              totalHours += hours;
+              count++;
+            }
+          }
+          if (count > 0) {
+            const avgHours = totalHours / count;
+            if (avgHours < 2) {
+              stats.responseTime = '< 2 hours';
+            } else if (avgHours < 6) {
+              stats.responseTime = '< 6 hours';
+            } else if (avgHours < 24) {
+              stats.responseTime = '< 24 hours';
+            } else {
+              stats.responseTime = '< 48 hours';
+            }
+          }
+        }
+
+        // Get minimum order from products
+        const { data: productPrices } = await supabase
+          .from('products')
+          .select('min_order_quantity, price_min, currency')
+          .eq('company_id', companyId)
+          .not('min_order_quantity', 'is', null)
+          .order('min_order_quantity', { ascending: true })
+          .limit(1);
+        
+        if (productPrices && productPrices.length > 0) {
+          const product = productPrices[0];
+          const moq = product.min_order_quantity;
+          const price = product.price_min;
+          const currency = product.currency || 'USD';
+          
+          if (moq && price) {
+            const minOrderValue = moq * price;
+            if (minOrderValue >= 1000) {
+              stats.minOrder = `$${Math.round(minOrderValue / 1000)}K+`;
+            } else {
+              stats.minOrder = `${currency === 'USD' ? '$' : currency} ${Math.round(minOrderValue)}`;
+            }
+          } else if (moq) {
+            stats.minOrder = `MOQ: ${moq}`;
+          }
+        }
+
+        return { companyId, stats };
+      });
+
+      const allStats = await Promise.allSettled(statsPromises);
+      const statsMap = {};
+      allStats.forEach(result => {
+        if (result.status === 'fulfilled' && result.value) {
+          statsMap[result.value.companyId] = result.value.stats;
+        }
+      });
+      setSupplierStats(statsMap);
+    } catch (error) {
+      console.warn('Error loading supplier stats:', error);
+      // Continue with empty stats - will show defaults
     }
   };
 
@@ -201,15 +343,16 @@ export default function Suppliers() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
             {rankedSuppliers.map((supplier, index) => {
-              // Mock data for demonstration - in production, this would come from the database
-              const mockData = {
-                rating: 4.8,
-                reviews: 156,
-                products: 45,
-                years: 12,
-                responseTime: '< 2 hours',
-                minOrder: '$1,000',
-                categories: ['Food & Beverages', 'Organic Products']
+              // Get real stats from database or use sensible defaults
+              const realStats = supplierStats[supplier.id] || {};
+              const stats = {
+                rating: realStats.rating || 0,
+                reviews: realStats.reviews || 0,
+                products: realStats.products || 0,
+                years: realStats.years || 0,
+                responseTime: realStats.responseTime || 'N/A',
+                minOrder: realStats.minOrder || 'Contact',
+                categories: realStats.categories || []
               };
 
               return (
@@ -260,18 +403,20 @@ export default function Suppliers() {
                       </div>
 
                       {/* Rating */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center gap-1">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 ${star <= Math.round(mockData.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-afrikoni-deep/50'}`}
-                            />
-                          ))}
+                      {stats.reviews > 0 && (
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map(star => (
+                              <Star
+                                key={star}
+                                className={`w-4 h-4 ${star <= Math.round(stats.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-afrikoni-deep/50'}`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm font-semibold text-afrikoni-chestnut">{stats.rating > 0 ? stats.rating.toFixed(1) : '0.0'}</span>
+                          <span className="text-sm text-afrikoni-deep/70">({stats.reviews} {stats.reviews === 1 ? 'review' : 'reviews'})</span>
                         </div>
-                        <span className="text-sm font-semibold text-afrikoni-chestnut">{mockData.rating}</span>
-                        <span className="text-sm text-afrikoni-deep/70">({mockData.reviews} reviews)</span>
-                      </div>
+                      )}
 
                       {/* Description */}
                       <p className="text-sm text-afrikoni-deep mb-4 line-clamp-2">
@@ -279,33 +424,55 @@ export default function Suppliers() {
                       </p>
 
                       {/* Key Metrics */}
-                      <div className="grid grid-cols-4 gap-3 mb-4 pb-4 border-b border-afrikoni-gold/20">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Package className="w-4 h-4 text-afrikoni-deep/70" />
-                          <span className="text-afrikoni-deep">{mockData.products} products</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="w-4 h-4 text-afrikoni-deep/70" />
-                          <span className="text-afrikoni-deep">{mockData.years} years</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <MessageCircle className="w-4 h-4 text-afrikoni-deep/70" />
-                          <span className="text-afrikoni-deep">{mockData.responseTime}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Globe className="w-4 h-4 text-afrikoni-deep/70" />
-                          <span className="text-afrikoni-deep">{mockData.minOrder} min</span>
-                        </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 pb-4 border-b border-afrikoni-gold/20">
+                        {stats.products > 0 && (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Package className="w-4 h-4 text-afrikoni-deep/70" />
+                              <span className="text-afrikoni-deep font-semibold">{stats.products}</span>
+                            </div>
+                            <span className="text-xs text-afrikoni-deep/60">products</span>
+                          </div>
+                        )}
+                        {stats.years > 0 && (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Users className="w-4 h-4 text-afrikoni-deep/70" />
+                              <span className="text-afrikoni-deep font-semibold">{stats.years}</span>
+                            </div>
+                            <span className="text-xs text-afrikoni-deep/60">years</span>
+                          </div>
+                        )}
+                        {stats.responseTime !== 'N/A' && (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-sm">
+                              <MessageCircle className="w-4 h-4 text-afrikoni-deep/70" />
+                              <span className="text-afrikoni-deep font-semibold">{stats.responseTime}</span>
+                            </div>
+                            <span className="text-xs text-afrikoni-deep/60">response</span>
+                          </div>
+                        )}
+                        {stats.minOrder !== 'N/A' && stats.minOrder !== 'Contact' && (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Globe className="w-4 h-4 text-afrikoni-deep/70" />
+                              <span className="text-afrikoni-deep font-semibold">{stats.minOrder}</span>
+                            </div>
+                            <span className="text-xs text-afrikoni-deep/60">min order</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Categories */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {mockData.categories.map((cat, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs border-afrikoni-gold/30 text-afrikoni-deep">
-                            {cat}
-                          </Badge>
-                        ))}
-                      </div>
+                      {stats.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {stats.categories.map((cat, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs border-afrikoni-gold/30 text-afrikoni-deep">
+                              {typeof cat === 'string' ? cat : 'Category'}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
 
                       {/* View Profile Button */}
                       <Link to={`/business/${supplier.id}`}>

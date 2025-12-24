@@ -287,6 +287,31 @@ export const emailTemplates = {
   },
 
   /**
+   * Password Reset Confirmation
+   */
+  passwordResetConfirmation: (data) => {
+    const { userName = 'there' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Your Password Has Been Updated</h2>
+      <p>Hello ${userName},</p>
+      <p>This is a confirmation that your Afrikoni account password was successfully changed.</p>
+      
+      <div style="background: #f0f9f0; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+        <p style="margin: 0; font-size: 14px;">
+          If you made this change, you can safely ignore this message.
+        </p>
+      </div>
+      
+      <p><strong>If you did <em>not</em> make this change:</strong></p>
+      <ul>
+        <li>Reset your password immediately from the login page.</li>
+        <li>Contact Afrikoni support so we can review your account activity.</li>
+      </ul>
+    `;
+    return baseTemplate(content, 'Go to Afrikoni', 'https://afrikoni.com/login');
+  },
+
+  /**
    * Account Verification
    */
   accountVerification: (data) => {
@@ -367,6 +392,90 @@ export const emailTemplates = {
       <p>Thank you for being a trusted supplier on Afrikoni!</p>
     `;
     return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+  },
+
+  /**
+   * Account Locked (Security)
+   */
+  accountLocked: (data) => {
+    const { userName = 'there', unlockHelpUrl = 'https://afrikoni.com/help' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Security Alert – Account Temporarily Locked</h2>
+      <p>Hello ${userName},</p>
+      <p>For your security, we have temporarily locked your Afrikoni account after multiple unsuccessful sign-in attempts.</p>
+      
+      <div style="background: #fff3cd; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #ffc107;">
+        <p style="margin: 0;"><strong>What this means:</strong></p>
+        <ul style="margin: 10px 0 0 18px; padding: 0;">
+          <li>You won’t be able to sign in with your password for a short period.</li>
+          <li>This helps protect your account from unauthorized access.</li>
+        </ul>
+      </div>
+      
+      <p><strong>If this was you:</strong></p>
+      <ol style="margin: 10px 0 0 18px; padding: 0;">
+        <li>Wait a few minutes, then try signing in again.</li>
+        <li>If you forgot your password, use “Forgot password” on the login page to reset it.</li>
+      </ol>
+      
+      <p><strong>If this was not you:</strong></p>
+      <ul style="margin: 10px 0 0 18px; padding: 0;">
+        <li>Reset your password immediately.</li>
+        <li>Contact our support team so we can review your account activity.</li>
+      </ul>
+      
+      <p>You can find more details and help in our Help Center.</p>
+    `;
+    return baseTemplate(content, 'Visit Help Center', unlockHelpUrl);
+  },
+
+  /**
+   * Business Account Pending Approval
+   */
+  businessPendingApproval: (data) => {
+    const { userName = 'there', companyName = 'your company' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Your Afrikoni Business Account Is Under Review</h2>
+      <p>Hello ${userName},</p>
+      <p>Thank you for submitting your business details for <strong>${companyName}</strong>. Your account is now in our verification queue.</p>
+      
+      <div style="background: #f9f9f9; padding: 20px; border-radius: 6px; margin: 20px 0;">
+        <p style="margin: 0;"><strong>What we’re checking:</strong></p>
+        <ul style="margin: 10px 0 0 18px; padding: 0;">
+          <li>Company registration details</li>
+          <li>Business identity and risk checks</li>
+          <li>Any documents you uploaded</li>
+        </ul>
+      </div>
+      
+      <p><strong>Expected timeline:</strong> Most reviews are completed within <strong>24–48 hours</strong>.</p>
+      <p>We’ll email you as soon as your account is approved or if we need more information.</p>
+    `;
+    return baseTemplate(content, 'View Verification Status', 'https://afrikoni.com/dashboard/verification-status');
+  },
+
+  /**
+   * Business Account Approved
+   */
+  businessApproved: (data) => {
+    const { userName = 'there', companyName = 'your company' } = data;
+    const content = `
+      <h2 style="color: #8B4513; margin-top: 0;">Your Afrikoni Business Account Is Active</h2>
+      <p>Hello ${userName},</p>
+      <p>Great news – your business <strong>${companyName}</strong> has been approved on Afrikoni.</p>
+      
+      <div style="background: #f0f9f0; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+        <p style="margin: 0;"><strong>You can now:</strong></p>
+        <ul style="margin: 10px 0 0 18px; padding: 0;">
+          <li>Publish and manage products</li>
+          <li>Receive RFQs from verified buyers</li>
+          <li>Manage orders, shipments, and payments via Trade Shield</li>
+        </ul>
+      </div>
+      
+      <p>We’re excited to help you grow on Afrikoni. Log in to your dashboard to get started.</p>
+    `;
+    return baseTemplate(content, 'Open Seller Dashboard', 'https://afrikoni.com/dashboard/seller');
   },
 
   /**

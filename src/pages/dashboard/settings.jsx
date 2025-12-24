@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { LogOut } from 'lucide-react';
@@ -314,36 +314,67 @@ export default function DashboardSettings() {
 
   return (
     <DashboardLayout currentRole={currentRole}>
-      <div className="space-y-6">
-        {/* v2.5: Premium Header with Improved Spacing */}
+      <div className="space-y-8">
+        {/* Premium Header with Improved Typography */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-8"
+          className="mb-6 md:mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Settings</h1>
-          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Manage your account and preferences</p>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 bg-afrikoni-gold/10 rounded-xl">
+              <Settings className="w-6 h-6 md:w-7 md:h-7 text-afrikoni-gold" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-chestnut tracking-tight leading-tight">
+                Account Settings
+              </h1>
+              <p className="text-sm md:text-base text-afrikoni-deep/70 mt-1.5 font-normal">
+                Manage your account and preferences
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* v2.5: Premium Tabs */}
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium grid grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.profile')}</TabsTrigger>
-            <TabsTrigger value="company" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.company') || 'Company'}</TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.notifications')}</TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200">{t('settings.security')}</TabsTrigger>
+          <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium grid grid-cols-2 md:grid-cols-4 gap-2">
+            <TabsTrigger 
+              value="profile" 
+              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            >
+              {t('settings.profile') || 'Profile'}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="company" 
+              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            >
+              {t('settings.company') || 'Company'}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="notifications" 
+              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            >
+              {t('settings.notifications') || 'Notifications'}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="security" 
+              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            >
+              {t('settings.security') || 'Security'}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
-            {/* v2.5: Premium Settings Cards */}
-            <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
-              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-                <CardTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
-                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
+            {/* Premium Settings Cards */}
+            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
+              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
+                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
+                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <User className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  {t('settings.personalInformation')}
+                  {t('settings.personalInformation') || 'Personal Information'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
@@ -411,9 +442,9 @@ export default function DashboardSettings() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="language">{t('common.language')}</Label>
+                    <Label htmlFor="language">{t('common.language') || 'Language'}</Label>
                     <Select value={preferences.language} onValueChange={(v) => setPreferences({ ...preferences, language: v })}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1 min-h-[44px] md:min-h-0">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -426,9 +457,9 @@ export default function DashboardSettings() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="currency">{t('common.currency')}</Label>
+                    <Label htmlFor="currency">{t('common.currency') || 'Currency'}</Label>
                     <Select value={preferences.currency} onValueChange={(v) => setPreferences({ ...preferences, currency: v })}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1 min-h-[44px] md:min-h-0">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -444,150 +475,231 @@ export default function DashboardSettings() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t('settings.phone') || 'Phone'}</Label>
                   <Input
                     id="phone"
+                    type="tel"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
-                    placeholder="+234 800 000 0000"
+                    placeholder={t('settings.phonePlaceholder') || '+234 800 000 0000'}
+                    className="mt-1"
                   />
                 </div>
-                <Button onClick={() => handleSave('profile')} disabled={isSaving} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                <Button 
+                  onClick={() => handleSave('profile')} 
+                  disabled={isSaving} 
+                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark min-h-[44px] touch-manipulation w-full md:w-auto"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
-              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-                <CardTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
-                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
+            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
+              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
+                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
+                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <Building2 className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  {t('settings.companyInformation')}
+                  {t('settings.companyInformation') || 'Company Information'}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-5">
-                <div>
-                  <Label htmlFor="company_name">{t('settings.companyName')}</Label>
-                  <Input
-                    id="company_name"
-                    value={formData.company_name}
-                    onChange={(e) => handleChange('company_name', e.target.value)}
-                  />
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
+              <CardContent className="pt-6 space-y-6">
+                {/* Company Basic Information */}
+                <div className="space-y-5">
+                  <h3 className="text-base font-semibold text-afrikoni-chestnut border-b border-afrikoni-gold/20 pb-2.5">Basic Information</h3>
+                  
                   <div>
-                    <Label htmlFor="business_type">{t('settings.businessType')}</Label>
-                    <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('settings.selectBusinessType')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="manufacturer">{t('onboarding.businessType.manufacturer')}</SelectItem>
-                        <SelectItem value="wholesaler">{t('onboarding.businessType.wholesaler')}</SelectItem>
-                        <SelectItem value="distributor">{t('onboarding.businessType.distributor')}</SelectItem>
-                        <SelectItem value="trading_company">{t('onboarding.businessType.trader')}</SelectItem>
-                        <SelectItem value="logistics_provider">{t('onboarding.businessType.serviceProvider')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="country">{t('onboarding.country')}</Label>
-                    <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('onboarding.selectCountry')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AFRICAN_COUNTRIES.map(country => (
-                          <SelectItem key={country} value={country}>{country}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="city">{t('onboarding.city')}</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleChange('city', e.target.value)}
-                  />
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="business_email">{t('settings.businessEmail')}</Label>
+                    <Label htmlFor="company_name">{t('settings.companyName')} <span className="text-red-500">*</span></Label>
                     <Input
-                      id="business_email"
-                      type="email"
-                      value={formData.business_email}
-                      onChange={(e) => handleChange('business_email', e.target.value)}
+                      id="company_name"
+                      value={formData.company_name}
+                      onChange={(e) => handleChange('company_name', e.target.value)}
+                      placeholder="Enter your company name"
+                      className="mt-1"
                     />
                   </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="business_type">{t('settings.businessType')}</Label>
+                      <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('settings.selectBusinessType')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manufacturer">{t('onboarding.businessType.manufacturer')}</SelectItem>
+                          <SelectItem value="wholesaler">{t('onboarding.businessType.wholesaler')}</SelectItem>
+                          <SelectItem value="distributor">{t('onboarding.businessType.distributor')}</SelectItem>
+                          <SelectItem value="trading_company">{t('onboarding.businessType.trader')}</SelectItem>
+                          <SelectItem value="logistics_provider">{t('onboarding.businessType.serviceProvider')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="country">{t('onboarding.country')}</Label>
+                      <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('onboarding.selectCountry')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {AFRICAN_COUNTRIES.map(country => (
+                            <SelectItem key={country} value={country}>{country}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="city">{t('onboarding.city')}</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => handleChange('city', e.target.value)}
+                        placeholder="Enter city"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleChange('phone', e.target.value)}
+                        placeholder="+234 800 000 0000"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-5 pt-6 border-t border-afrikoni-gold/20">
+                  <h3 className="text-base font-semibold text-afrikoni-chestnut border-b border-afrikoni-gold/20 pb-2.5">Contact Information</h3>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="business_email">{t('settings.businessEmail')}</Label>
+                      <Input
+                        id="business_email"
+                        type="email"
+                        value={formData.business_email}
+                        onChange={(e) => handleChange('business_email', e.target.value)}
+                        placeholder="business@company.com"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="website">{t('onboarding.website')}</Label>
+                      <Input
+                        id="website"
+                        value={formData.website}
+                        onChange={(e) => handleChange('website', e.target.value)}
+                        placeholder="https://yourcompany.com"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Company Details */}
+                <div className="space-y-5 pt-6 border-t border-afrikoni-gold/20">
+                  <h3 className="text-base font-semibold text-afrikoni-chestnut border-b border-afrikoni-gold/20 pb-2.5">Company Details</h3>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="year_established">Year Established</Label>
+                      <Input
+                        id="year_established"
+                        type="number"
+                        value={formData.year_established}
+                        onChange={(e) => handleChange('year_established', e.target.value)}
+                        placeholder="e.g. 2010"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="company_size">Company Size</Label>
+                      <Select value={formData.company_size} onValueChange={(v) => handleChange('company_size', v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-10">1-10 employees</SelectItem>
+                          <SelectItem value="11-50">11-50 employees</SelectItem>
+                          <SelectItem value="51-200">51-200 employees</SelectItem>
+                          <SelectItem value="201-500">201-500 employees</SelectItem>
+                          <SelectItem value="500+">500+ employees</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
                   <div>
-                    <Label htmlFor="website">{t('onboarding.website')}</Label>
-                    <Input
-                      id="website"
-                      value={formData.website}
-                      onChange={(e) => handleChange('website', e.target.value)}
-                      placeholder="https://yourcompany.com"
+                    <Label htmlFor="company_description">Company Description</Label>
+                    <Textarea
+                      id="company_description"
+                      value={formData.company_description}
+                      onChange={(e) => handleChange('company_description', e.target.value)}
+                      rows={4}
+                      placeholder="Describe your company, products, and services..."
+                      className="mt-1"
                     />
+                    <p className="text-xs text-afrikoni-deep/60 mt-1">This helps buyers understand your business better</p>
                   </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="year_established">Year Established</Label>
-                    <Input
-                      id="year_established"
-                      type="number"
-                      value={formData.year_established}
-                      onChange={(e) => handleChange('year_established', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="company_size">Company Size</Label>
-                    <Select value={formData.company_size} onValueChange={(v) => handleChange('company_size', v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1-10">1-10 employees</SelectItem>
-                        <SelectItem value="11-50">11-50 employees</SelectItem>
-                        <SelectItem value="51-200">51-200 employees</SelectItem>
-                        <SelectItem value="201-500">201-500 employees</SelectItem>
-                        <SelectItem value="500+">500+ employees</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                {/* Legal & Compliance (Link to Verification Center) */}
+                <div className="pt-6 border-t border-afrikoni-gold/20">
+                  <div className="p-4 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Shield className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-afrikoni-chestnut mb-1">Legal & Compliance</h4>
+                        <p className="text-sm text-afrikoni-deep/70 mb-3">
+                          Update business registration, tax ID, and verification documents in the Verification Center.
+                        </p>
+                        <Link to="/verification-center">
+                          <Button type="button" variant="outline" size="sm" className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10">
+                            Go to Verification Center
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="company_description">Company Description</Label>
-                  <Textarea
-                    id="company_description"
-                    value={formData.company_description}
-                    onChange={(e) => handleChange('company_description', e.target.value)}
-                    rows={4}
-                  />
+
+                <div className="pt-4">
+                  <Button 
+                    onClick={() => handleSave('company')} 
+                    disabled={isSaving} 
+                    variant="primary" 
+                    className="w-full md:w-auto min-h-[44px] touch-manipulation"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
+                  </Button>
                 </div>
-                <Button onClick={handleSave} disabled={isSaving} variant="primary">
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
-              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-                <CardTitle className="flex items-center gap-3 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
-                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
+            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
+              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
+                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
+                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <Bell className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  Notification Preferences
+                  {t('settings.notifications') || 'Notification Preferences'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
@@ -667,22 +779,26 @@ export default function DashboardSettings() {
                     You can control which types of notifications you receive via email above.
                   </p>
                 </div>
-                <Button onClick={() => handleSave('notifications')} disabled={isSaving} className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full">
+                <Button 
+                  onClick={() => handleSave('notifications')} 
+                  disabled={isSaving} 
+                  className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full min-h-[44px] touch-manipulation"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Notification Preferences'}
+                  {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite">
-              <CardHeader className="border-b border-afrikoni-gold/20 pb-4">
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
+            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
+              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
+                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
+                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <Shield className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  Security Settings
+                  {t('settings.security') || 'Security Settings'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
@@ -799,9 +915,13 @@ export default function DashboardSettings() {
                   </div>
                 </div>
 
-                <Button onClick={() => handleSave('security')} disabled={isSaving} className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                <Button 
+                  onClick={() => handleSave('security')} 
+                  disabled={isSaving} 
+                  className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full md:w-auto min-h-[44px] touch-manipulation"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  Save Security Settings
+                  {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
                 </Button>
               </CardContent>
             </Card>

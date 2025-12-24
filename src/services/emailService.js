@@ -315,12 +315,48 @@ export async function sendPasswordResetEmail(userEmail, resetLink, userName) {
   });
 }
 
+export async function sendPasswordResetConfirmationEmail(userEmail, userName) {
+  return await sendEmail({
+    to: userEmail,
+    subject: 'Your Afrikoni Password Has Been Changed',
+    template: 'passwordResetConfirmation',
+    data: { userName }
+  });
+}
+
 export async function sendAccountVerificationEmail(userEmail, verificationLink, userName) {
   return await sendEmail({
     to: userEmail,
     subject: 'Verify Your Afrikoni Account',
     template: 'accountVerification',
     data: { verificationLink, userName }
+  });
+}
+
+export async function sendAccountLockedEmail(userEmail, userName) {
+  return await sendEmail({
+    to: userEmail,
+    subject: 'Security Alert – Your Afrikoni Account Is Temporarily Locked',
+    template: 'accountLocked',
+    data: { userName }
+  });
+}
+
+export async function sendBusinessPendingApprovalEmail(userEmail, userName, companyName) {
+  return await sendEmail({
+    to: userEmail,
+    subject: 'Your Afrikoni Business Account Is Under Review',
+    template: 'businessPendingApproval',
+    data: { userName, companyName }
+  });
+}
+
+export async function sendBusinessApprovedEmail(userEmail, userName, companyName) {
+  return await sendEmail({
+    to: userEmail,
+    subject: 'Congratulations! Your Afrikoni Business Account Is Active',
+    template: 'businessApproved',
+    data: { userName, companyName }
   });
 }
 

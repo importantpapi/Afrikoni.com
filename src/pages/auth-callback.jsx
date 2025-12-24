@@ -17,22 +17,34 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Wait for Supabase to process the session
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Get the URL hash which contains the OAuth tokens
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const errorParam = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
 
-        // Get session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-          throw new Error('No session found. Please try signing in again.');
+        if (errorParam) {
+          throw new Error(errorDescription || errorParam);
         }
 
-        // Get user
+        if (!accessToken) {
+          // Try to get session from Supabase
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError || !session) {
+            throw new Error('No session found. Please try signing in again.');
+          }
+        }
+
+        // Wait a moment for Supabase to process the session
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Get the current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError) throw userError;
         if (!user) throw new Error('User not found');
 
-        // Create profile if it doesn't exist
+        // Check if profile exists, create if it doesn't
         const { data: existingProfile } = await supabase
           .from('profiles')
           .select('*')
@@ -40,49 +52,52 @@ export default function AuthCallback() {
           .single();
 
         if (!existingProfile) {
+          // Create profile from OAuth data
           const fullName = user.user_metadata?.full_name || 
                           user.user_metadata?.name || 
                           user.user_metadata?.display_name ||
                           user.email?.split('@')[0] || 
                           'User';
 
-          await supabase
+          const { error: profileError } = await supabase
             .from('profiles')
             .upsert({
               id: user.id,
               full_name: fullName,
               email: user.email,
+              role: 'buyer', // Default role
               onboarding_completed: false,
-              // No role - selected during onboarding
               avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
             }, { onConflict: 'id' });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+            // Don't fail the auth flow if profile creation fails
+          }
         }
 
-        // Check email verification (OAuth providers usually verify emails automatically)
-        // But we check to be safe
-        if (!user.email_confirmed_at) {
-          toast.success(t('login.success') || 'Logged in successfully!');
-          navigate('/verify-email', { replace: true });
-          return;
-        }
-
-        // Fetch user profile to check onboarding status
-        const { user: userData, profile, onboardingCompleted, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        
         toast.success(t('login.success') || 'Logged in successfully!');
-        
-        // Check onboarding completion
-        if (!onboardingCompleted || !companyId) {
-          navigate('/onboarding', { replace: true });
+
+        // Check email verification
+        const emailVerified = user.email_confirmed_at !== null;
+        if (!emailVerified) {
+          // Warn but don't block - in production you might redirect to verification page
+          console.warn('Email not verified');
+        }
+
+        // Always redirect to PostLoginRouter - single source of truth for routing
+        // PostLoginRouter will handle profile creation, role checking, and redirects
+        const redirectUrl = searchParams.get('redirect_to') || searchParams.get('redirect');
+
+        if (redirectUrl && redirectUrl !== window.location.origin && !redirectUrl.includes('/dashboard') && !redirectUrl.includes('/auth/')) {
+          navigate(redirectUrl);
         } else {
-          navigate('/dashboard', { replace: true });
+          navigate('/auth/post-login', { replace: true });
         }
       } catch (err) {
         console.error('Auth callback error:', err);
-        const errorMessage = err.message || 'Authentication failed. Please try again.';
-        setError(errorMessage);
-        toast.error(errorMessage);
-        
+        setError(err.message || 'Authentication failed');
+        toast.error(err.message || 'Authentication failed');
         setTimeout(() => {
           navigate('/login');
         }, 3000);
@@ -95,7 +110,7 @@ export default function AuthCallback() {
   }, [navigate, searchParams, t]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-8 sm:py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md text-center">
         <div className="flex justify-center mb-6">
           <Logo type="full" size="lg" link={true} showTagline={false} />
@@ -103,24 +118,21 @@ export default function AuthCallback() {
         {isLoading ? (
           <>
             <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-afrikoni-gold" />
-            <p className="text-afrikoni-deep text-base sm:text-lg">Completing sign in...</p>
-            <p className="text-afrikoni-deep/70 text-sm mt-2">Please wait...</p>
+            <p className="text-afrikoni-deep">Completing sign in...</p>
           </>
         ) : error ? (
           <>
-            <div className="text-red-600 mb-4 p-4 bg-red-50 rounded-lg border border-red-200">
-              <p className="font-semibold text-base sm:text-lg mb-2">Authentication Error</p>
-              <p className="text-sm sm:text-base mt-2 break-words">{error}</p>
+            <div className="text-red-600 mb-4">
+              <p className="font-semibold">Authentication Error</p>
+              <p className="text-sm mt-2">{error}</p>
             </div>
-            <p className="text-afrikoni-deep text-sm sm:text-base">Redirecting to login...</p>
+            <p className="text-afrikoni-deep text-sm">Redirecting to login...</p>
           </>
         ) : (
-          <>
-            <p className="text-afrikoni-deep text-base sm:text-lg">Redirecting...</p>
-            <p className="text-afrikoni-deep/70 text-sm mt-2">Setting up your account...</p>
-          </>
+          <p className="text-afrikoni-deep">Redirecting...</p>
         )}
       </div>
     </div>
   );
 }
+

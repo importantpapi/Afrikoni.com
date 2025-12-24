@@ -77,17 +77,18 @@ export function useRole() {
 export function getDashboardHomePath(role: UserRole | null): string {
   switch (role) {
     case 'buyer':
-      return '/dashboard/buyer';
+      return '/dashboard';
     case 'seller':
-      return '/dashboard/seller';
+      return '/dashboard';
     case 'hybrid':
-      return '/dashboard/hybrid';
+      return '/dashboard';
     case 'logistics':
-      return '/dashboard/logistics';
+      return '/dashboard';
     default:
       return '/dashboard';
   }
 }
+
 
 
 

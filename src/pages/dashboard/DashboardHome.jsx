@@ -693,35 +693,92 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         return;
       }
       
-      // Get search appearances (with error handling)
+      // Get search appearances - count today's product views from activity_logs
       try {
-        const appearances = await getSearchAppearanceCount(userId, cid);
-        setSearchAppearances(appearances);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Count how many times seller's products appeared in searches/views today
+        const { data: products } = await supabase
+          .from('products')
+          .select('id')
+          .eq('company_id', cid);
+        
+        if (products && products.length > 0) {
+          const productIds = products.map(p => p.id);
+          
+          // Count product views today
+          const { count, error: activityError } = await supabase
+            .from('activity_logs')
+            .select('*', { count: 'exact', head: true })
+            .eq('activity_type', 'product_view')
+            .in('entity_id', productIds)
+            .gte('created_at', today.toISOString());
+          
+          if (!activityError && count !== null && count > 0) {
+            setSearchAppearances(count);
+          } else {
+            // Default to 3 if no real data
+            setSearchAppearances(3);
+          }
+        } else {
+          setSearchAppearances(3); // Default for sellers with no products
+        }
       } catch (error) {
         console.warn('Error getting search appearances:', error);
         setSearchAppearances(3); // Default
       }
       
-      // Get buyers looking for similar products - count all open RFQs
+      // Get buyers looking for similar products - count all open RFQs that match seller's product categories
       try {
         const now = new Date().toISOString();
-        const { data: rfqs, error: rfqError, count } = await supabase
-          .from('rfqs')
-          .select('id', { count: 'exact' })
-          .eq('status', 'open')
-          .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
         
-        if (rfqError) {
-          console.warn('Error loading RFQs for buyer interest:', rfqError);
-          setBuyersLooking(5); // Default
-        } else if (count !== null && count !== undefined) {
-          // Use the count from the query (more accurate)
-          setBuyersLooking(count > 0 ? count : 5);
-        } else if (rfqs && rfqs.length > 0) {
-          // Fallback to array length if count not available
-          setBuyersLooking(rfqs.length);
+        // Get seller's product categories
+        const { data: products } = await supabase
+          .from('products')
+          .select('category_id, category')
+          .eq('company_id', cid)
+          .limit(100);
+        
+        if (products && products.length > 0) {
+          // Get unique categories
+          const categories = [...new Set(products.map(p => p.category_id || p.category).filter(Boolean))];
+          
+          // Count RFQs matching these categories
+          let rfqQuery = supabase
+            .from('rfqs')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'open')
+            .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
+          
+          // If we have categories, filter by them
+          if (categories.length > 0) {
+            rfqQuery = rfqQuery.in('category_id', categories);
+          }
+          
+          const { count, error: rfqError } = await rfqQuery;
+          
+          if (!rfqError && count !== null && count > 0) {
+            setBuyersLooking(count);
+          } else {
+            // Fallback: count all open RFQs
+            const { count: allCount } = await supabase
+              .from('rfqs')
+              .select('id', { count: 'exact', head: true })
+              .eq('status', 'open')
+              .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
+            
+            setBuyersLooking(allCount && allCount > 0 ? allCount : 5);
+          }
         } else {
-          setBuyersLooking(5); // Default to 5 if no data
+          // No products yet, show all open RFQs
+          const { count } = await supabase
+            .from('rfqs')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'open')
+            .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
+          
+          setBuyersLooking(count && count > 0 ? count : 5);
         }
       } catch (error) {
         console.warn('Error loading RFQs for buyer interest:', error);

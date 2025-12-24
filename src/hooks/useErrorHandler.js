@@ -34,7 +34,21 @@ export function useErrorHandler() {
     }
 
     // Show toast notification
+    // GLOBAL FILTER: Suppress email confirmation errors
     if (showToast && !silent) {
+      // Check if this is an email confirmation error
+      const errorMessage = error?.message || message || '';
+      const isEmailError = 
+        errorMessage.toLowerCase().includes('confirmation email') ||
+        (errorMessage.toLowerCase().includes('error sending') && errorMessage.toLowerCase().includes('email')) ||
+        (errorMessage.toLowerCase().includes('email delivery') && errorMessage.toLowerCase().includes('error'));
+      
+      if (isEmailError) {
+        // Suppress email errors - they are non-fatal
+        console.warn('[AUTH] Suppressed email confirmation error:', errorMessage);
+        return; // Don't show toast, don't set error state
+      }
+      
       toast.error(message, {
         duration: 5000,
         action: onRetry ? {

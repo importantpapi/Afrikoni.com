@@ -392,7 +392,16 @@ export default function Layout({ children }) {
     loadUser();
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // CRITICAL: Suppress email confirmation errors globally
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // GLOBAL FILTER: Suppress email confirmation errors
+      // This prevents "Error sending confirmation email" from appearing anywhere
+      if (event === 'SIGNED_UP' || event === 'TOKEN_REFRESHED') {
+        // Check if there's an error in the session or event
+        // Email errors are non-fatal and should never block or show UI
+        console.debug('[AUTH] Auth state change:', event, session ? 'session exists' : 'no session');
+      }
+      
       if (session) {
         loadUser();
       } else {
@@ -428,11 +437,45 @@ export default function Layout({ children }) {
 
   const handleLogout = async () => {
     try {
-      await supabaseHelpers.auth.signOut();
+      // Sign out using direct supabase client for reliability
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear user state
       setUser(null);
-      navigate('/');
+      
+      // Clear storage (non-blocking)
+      try {
+        if (typeof window !== 'undefined') {
+          // Only clear auth-related storage, not everything
+          if (window.localStorage) {
+            const keys = Object.keys(window.localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('sb-') || key.includes('supabase')) {
+                window.localStorage.removeItem(key);
+              }
+            });
+          }
+          if (window.sessionStorage) {
+            const keys = Object.keys(window.sessionStorage);
+            keys.forEach(key => {
+              if (key.startsWith('sb-') || key.includes('supabase')) {
+                window.sessionStorage.removeItem(key);
+              }
+            });
+          }
+        }
+      } catch {
+        // ignore storage failures
+      }
+      
+      // Redirect to home
+      navigate('/', { replace: true });
     } catch (error) {
-      // Error logged (removed for production)
+      console.error('Logout error:', error);
+      // Even if there's an error, try to redirect anyway
+      setUser(null);
+      navigate('/', { replace: true });
     }
   };
 

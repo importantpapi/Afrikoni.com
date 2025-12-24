@@ -23,6 +23,7 @@ import {
 import { format } from 'date-fns';
 import { CardSkeleton } from '@/components/ui/skeletons';
 import { isAdmin } from '@/utils/permissions';
+import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 export default function EscrowDetailPage() {
   const { orderId } = useParams();
@@ -51,6 +52,11 @@ export default function EscrowDetailPage() {
       setIsUserAdmin(isAdmin(userData));
 
       const escrowData = await getEscrowPayment(orderId);
+      // SAFETY ASSERTION: Ensure escrow is related to the current company (if available)
+      if (escrowData && companyId && !isAdmin(userData)) {
+        await assertRowOwnedByCompany(escrowData, companyId, 'EscrowDetailPage:escrow');
+      }
+
       setEscrow(escrowData);
 
       if (escrowData) {

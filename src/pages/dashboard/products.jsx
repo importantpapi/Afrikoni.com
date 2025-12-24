@@ -25,6 +25,7 @@ import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 import VerificationUpsell from '@/components/upsell/VerificationUpsell';
 import { getCompanySubscription } from '@/services/subscriptionService';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -145,6 +146,13 @@ function DashboardProductsInner() {
           primaryImage: primaryImage || null
         };
       }).filter(Boolean) : [];
+
+      // SAFETY ASSERTION: ensure every product belongs to the current company
+      if (userCompanyId) {
+        for (const product of productsWithImages) {
+          await assertRowOwnedByCompany(product, userCompanyId, 'DashboardProducts:products');
+        }
+      }
 
       setProducts(productsWithImages);
       setPagination(prev => ({

@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 import LeaveReviewModal from '@/components/reviews/LeaveReviewModal';
+import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 function DashboardOrdersInner() {
   const { t } = useTranslation();
@@ -85,9 +86,16 @@ function DashboardOrdersInner() {
         page: pagination.page,
         pageSize: pagination.pageSize
       });
-      
-      // Remove duplicates for hybrid users viewing 'all'
+
+      // SAFETY ASSERTION: Ensure every order belongs to the current company.
       const ordersData = Array.isArray(result.data) ? result.data : [];
+      if (userCompanyId) {
+        for (const order of ordersData) {
+          await assertRowOwnedByCompany(order, userCompanyId, 'DashboardOrders:orders');
+        }
+      }
+
+      // Remove duplicates for hybrid users viewing 'all'
       if (isHybrid(normalizedRole) && viewMode === 'all') {
         const uniqueOrders = (Array.isArray(ordersData) ? ordersData : []).filter((order, index, self) =>
           order && index === self.findIndex((o) => o && order && o.id === order.id)

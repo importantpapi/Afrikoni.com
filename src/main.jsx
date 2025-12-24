@@ -6,8 +6,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { initSentry } from './utils/sentry';
 import { initGA4 } from './utils/analytics';
 import { trackPageLoad } from './utils/performance';
+import { toast } from 'sonner';
 import './i18n';
 import './index.css';
+
 
 // Import test utility for email service (available in browser console)
 if (import.meta.env.DEV) {

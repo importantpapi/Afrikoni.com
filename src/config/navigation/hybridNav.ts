@@ -16,6 +16,7 @@ import {
   Star as StarIcon,
   Sparkles,
   HelpCircle,
+  Settings,
 } from 'lucide-react';
 
 // Hybrid menu structure:
@@ -27,7 +28,7 @@ import {
 
 export const hybridNav = [
   // 🔥 PRIMARY - Core workflow (always visible, works for both buyer and seller)
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/hybrid', priority: 'primary' },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', priority: 'primary' },
   { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs', priority: 'primary' },
   { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
   { icon: ShoppingCart, label: 'Orders & Sales', path: '/dashboard/orders', priority: 'primary' },
@@ -46,7 +47,7 @@ export const hybridNav = [
       { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
       { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
       { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
-      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
+      { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team' },
     ]
   },
   
@@ -69,6 +70,7 @@ export const hybridNav = [
   { icon: Shield, label: 'Verification', path: '/verification-center', priority: 'support' },
   { icon: HelpCircle, label: 'Support Chat', path: '/dashboard/support-chat', priority: 'support' },
   { icon: Shield, label: 'Disputes', path: '/dashboard/disputes', priority: 'support' },
+  { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' },
 ];
 
 

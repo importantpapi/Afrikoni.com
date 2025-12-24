@@ -17,6 +17,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getInvoices, markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
+import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
@@ -50,6 +51,12 @@ export default function InvoicesDashboard() {
       try {
         const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
         const invoiceList = await getInvoices(userCompanyId, role, filters);
+
+        // SAFETY ASSERTION: ensure each invoice is scoped to the current company
+        for (const invoice of invoiceList || []) {
+          await assertRowOwnedByCompany(invoice, userCompanyId, 'InvoicesDashboard:invoices');
+        }
+
         setInvoices(invoiceList);
       } catch (dataError) {
         console.log('Invoices table not yet set up:', dataError.message);

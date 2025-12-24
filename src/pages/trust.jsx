@@ -282,6 +282,100 @@ export default function TrustCenter() {
             </Card>
           </section>
 
+          {/* Marketplace Rules */}
+          <section className="mb-12 md:mb-16">
+            <Card className="border-afrikoni-gold/20">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <FileText className="w-8 h-8 text-afrikoni-gold" />
+                  <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">
+                    Marketplace Rules & Guidelines
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-3">General Rules</h3>
+                    <ul className="space-y-2 text-afrikoni-deep">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span>All sellers must complete verification before listing products</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span>Products must be accurately described with clear images and specifications</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span>Prohibited items include weapons, illegal substances, and counterfeit goods</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span>All transactions must be conducted through Afrikoni's escrow system</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span>Fair pricing and transparent communication are required</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-3">Seller Responsibilities</h3>
+                    <ul className="space-y-2 text-afrikoni-deep">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <span>Respond to buyer inquiries within 24-48 hours</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <span>Ship products according to agreed delivery timelines</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <span>Provide quality products that match product descriptions</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <span>Maintain accurate inventory and update product availability</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-3">Buyer Responsibilities</h3>
+                    <ul className="space-y-2 text-afrikoni-deep">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <span>Make timely payments through the escrow system</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <span>Confirm delivery within the specified timeframe</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <span>Provide accurate shipping information</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <span>Report any issues or disputes through official channels</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div className="p-4 bg-afrikoni-gold/10 rounded-lg border border-afrikoni-gold/20">
+                    <p className="text-sm text-afrikoni-chestnut">
+                      <strong>Note:</strong> Violation of marketplace rules may result in account suspension or termination. 
+                      For questions about rules or to report violations, contact our support team.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
           {/* Complaint & Resolution Channel */}
           <section className="mb-12 md:mb-16">
             <Card className="border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-chestnut/10">
@@ -316,12 +410,12 @@ export default function TrustCenter() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link to="/contact">
-                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal w-full sm:w-auto">
+                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal w-full sm:w-auto min-h-[44px] touch-manipulation">
                       Contact Support
                     </Button>
                   </Link>
                   <Link to="/disputes">
-                    <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20 w-full sm:w-auto">
+                    <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20 w-full sm:w-auto min-h-[44px] touch-manipulation">
                       File a Dispute
                     </Button>
                   </Link>
@@ -345,12 +439,12 @@ export default function TrustCenter() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link to="/signup">
-                <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal">
+                <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal min-h-[44px] touch-manipulation w-full sm:w-auto">
                   Get Started
                 </Button>
               </Link>
               <Link to="/how-payment-works">
-                <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20">
+                <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20 min-h-[44px] touch-manipulation w-full sm:w-auto">
                   Learn About Payments
                 </Button>
               </Link>

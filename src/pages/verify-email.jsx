@@ -43,9 +43,9 @@ export default function VerifyEmail() {
       if (user.email_confirmed_at) {
         setIsVerified(true);
         setIsLoading(false);
-        // Redirect to onboarding after a short delay
+        // Redirect to PostLoginRouter after a short delay
         setTimeout(() => {
-          navigate('/onboarding', { replace: true });
+          navigate('/auth/post-login', { replace: true });
         }, 1500);
       } else {
         setIsVerified(false);

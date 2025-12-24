@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { getRFQStatusExplanation } from '@/utils/rfqStatusExplanations';
 import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
+import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 import { DealMilestoneTracker, DealMilestoneCompact } from '@/components/orders/DealMilestoneTracker';
 import { SupplierQuoteTemplates, QuoteWritingTips } from '@/components/quotes/SupplierQuoteTemplates';
 import { FirstTimeQuoteGuidance } from '@/components/onboarding/FirstTimeUserGuidance';
@@ -92,6 +93,11 @@ export default function RFQDetail() {
         toast.error('RFQ not found');
         navigate('/dashboard/rfqs');
         return;
+      }
+
+      // SAFETY ASSERTION: RFQ must belong to current company as buyer to be viewed in detail
+      if (userCompanyId) {
+        await assertRowOwnedByCompany(rfqData, userCompanyId, 'RFQDetail:rfq');
       }
 
       setRfq(rfqData);

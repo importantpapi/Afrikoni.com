@@ -1,9 +1,3 @@
-/**
- * Forgot Password Page
- * 
- * Allows users to reset their password via email.
- */
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -34,11 +28,13 @@ export default function ForgotPassword() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       setEmailSent(true);
       toast.success('Password reset email sent! Please check your inbox.');
@@ -111,50 +107,17 @@ export default function ForgotPassword() {
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      // Auto-fix common typos in afrikoni.com domain
-                      let value = e.target.value;
-                      const correctDomain = 'afrikoni.com';
-                      
-                      // Fix various typos: afrikonii.com, afriikoni.com, afrikoni.comm, etc.
-                      const typoPatterns = [
-                        /afrikonii\.com/gi,      // double 'i' at end
-                        /afriikoni\.com/gi,      // double 'i' in middle
-                        /afrikoni\.comm/gi,      // double 'm'
-                        /afrikon\.com/gi,        // missing 'i'
-                        /afrikoni\.co/gi,        // missing 'm'
-                        /afrikoni\.c/gi,         // missing 'om'
-                      ];
-                      
-                      let wasFixed = false;
-                      typoPatterns.forEach(pattern => {
-                        if (pattern.test(value)) {
-                          value = value.replace(pattern, correctDomain);
-                          wasFixed = true;
-                        }
-                      });
-                      
-                      if (wasFixed) {
-                        toast.info('Fixed email domain typo', { duration: 2000 });
-                      }
-                      
-                      setEmail(value);
-                    }}
-                    placeholder="Enter your email address"
-                    className="pl-10"
-                    required
-                    autoComplete="email"
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      className="pl-10"
+                      required
+                      autoComplete="email"
                     />
                   </div>
-                  {(email.includes('afrikonii.com') || email.includes('afriikoni.com') || email.includes('afrikoni.comm') || email.includes('afrikon.com')) && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      💡 Did you mean "afrikoni.com"?
-                    </p>
-                  )}
                 </div>
 
                 <Button
@@ -190,4 +153,3 @@ export default function ForgotPassword() {
     </div>
   );
 }
-
