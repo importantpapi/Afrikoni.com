@@ -28,6 +28,12 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    general: ''
+  });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
@@ -38,43 +44,57 @@ export default function Signup() {
     return emailRegex.test(email.trim());
   };
 
-  // Password validation helper
+  // Password validation helper (8 characters minimum)
   const isPasswordStrong = (password) => {
-    if (password.length < 6) {
-      return { valid: false, message: t('signup.passwordMinLength') || 'Password must be at least 6 characters' };
+    if (password.length < 8) {
+      return { valid: false, message: 'Password must be at least 8 characters.' };
     }
-    // Optional: Add more password strength checks
-    // if (password.length > 72) {
-    //   return { valid: false, message: 'Password must be less than 72 characters' };
-    // }
     return { valid: true };
+  };
+
+  // Clear field error when user starts typing
+  const clearFieldError = (fieldName) => {
+    setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
   };
 
   const handleSignup = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setFieldErrors({ email: '', password: '', confirmPassword: '', general: '' });
+    
+    let hasErrors = false;
+    const newErrors = { email: '', password: '', confirmPassword: '', general: '' };
+
     // Required fields validation
     if (!formData.fullName || !formData.email || !formData.password) {
-      toast.error(t('signup.fillRequired') || 'Please fill in all required fields');
-      return;
+      newErrors.general = 'Please fill in all required fields';
+      hasErrors = true;
     }
 
     // Email format validation
-    if (!isValidEmail(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
+    if (formData.email && !isValidEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address.';
+      hasErrors = true;
     }
 
     // Password confirmation validation
-    if (formData.password !== formData.confirmPassword) {
-      toast.error(t('signup.passwordMismatch') || 'Passwords do not match');
-      return;
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match.';
+      hasErrors = true;
     }
 
-    // Password strength validation
-    const passwordValidation = isPasswordStrong(formData.password);
-    if (!passwordValidation.valid) {
-      toast.error(passwordValidation.message);
+    // Password strength validation (8 characters minimum)
+    if (formData.password) {
+      const passwordValidation = isPasswordStrong(formData.password);
+      if (!passwordValidation.valid) {
+        newErrors.password = passwordValidation.message;
+        hasErrors = true;
+      }
+    }
+
+    if (hasErrors) {
+      setFieldErrors(newErrors);
       return;
     }
 
@@ -207,7 +227,7 @@ export default function Signup() {
         return;
       }
       
-      // Handle specific auth errors with user-friendly messages
+      // Handle specific auth errors with user-friendly INLINE messages
       
       // Duplicate email / User already exists
       if (errorMessage.toLowerCase().includes('user already registered') || 
@@ -217,14 +237,12 @@ export default function Signup() {
           errorMessage.toLowerCase().includes('user already exists') ||
           errorCode === 'signup_disabled' ||
           errorCode === 'email_address_not_authorized') {
-        toast.error('An account with this email already exists. Please log in instead.', {
-          duration: 5000,
-          action: {
-            label: 'Go to Login',
-            onClick: () => navigate('/login')
-          }
+        setFieldErrors({ 
+          email: 'An account with this email already exists. Please log in.',
+          password: '',
+          confirmPassword: '',
+          general: ''
         });
-        navigate('/login');
         return;
       }
       
@@ -232,15 +250,25 @@ export default function Signup() {
       if (errorMessage.toLowerCase().includes('invalid email') ||
           errorMessage.toLowerCase().includes('email format') ||
           errorCode === 'validation_failed') {
-        toast.error('Please enter a valid email address.');
+        setFieldErrors({ 
+          email: 'Please enter a valid email address.',
+          password: '',
+          confirmPassword: '',
+          general: ''
+        });
         return;
       }
       
-      // Password validation errors
+      // Password validation errors (8 characters minimum)
       if (errorMessage.toLowerCase().includes('password') ||
           errorMessage.toLowerCase().includes('weak password') ||
           errorMessage.toLowerCase().includes('password requirements')) {
-        toast.error('Password does not meet requirements. Please use at least 6 characters.');
+        setFieldErrors({ 
+          email: '',
+          password: 'Password must be at least 8 characters.',
+          confirmPassword: '',
+          general: ''
+        });
         return;
       }
       
@@ -248,12 +276,22 @@ export default function Signup() {
       if (errorMessage.toLowerCase().includes('rate limit') ||
           errorMessage.toLowerCase().includes('too many requests') ||
           errorCode === 'rate_limit_exceeded') {
-        toast.error('Too many signup attempts. Please wait a few minutes and try again.');
+        setFieldErrors({ 
+          email: '',
+          password: '',
+          confirmPassword: '',
+          general: 'Too many signup attempts. Please wait a few minutes and try again.'
+        });
         return;
       }
       
       // Generic error for actual auth failures (only if not database-related)
-      toast.error(errorMessage || t('signup.error') || 'Signup failed. Please try again.');
+      setFieldErrors({ 
+        email: '',
+        password: '',
+        confirmPassword: '',
+        general: errorMessage || 'Signup failed. Please try again.'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -325,12 +363,21 @@ export default function Signup() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, email: e.target.value }));
+                    clearFieldError('email');
+                  }}
                   placeholder={t('signup.emailPlaceholder')}
                   className="pl-10"
+                  error={!!fieldErrors.email}
                   required
                 />
               </div>
+              {fieldErrors.email && (
+                <p className="mt-1.5 text-sm text-red-600" role="alert">
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             <div>
@@ -341,9 +388,13 @@ export default function Signup() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, password: e.target.value }));
+                    clearFieldError('password');
+                  }}
                   placeholder={t('signup.passwordPlaceholder')}
                   className="pl-10 pr-10"
+                  error={!!fieldErrors.password}
                   required
                 />
                 <button
@@ -359,6 +410,11 @@ export default function Signup() {
                   )}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="mt-1.5 text-sm text-red-600" role="alert">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             <div>
@@ -369,9 +425,13 @@ export default function Signup() {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, confirmPassword: e.target.value }));
+                    clearFieldError('confirmPassword');
+                  }}
                   placeholder={t('signup.confirmPasswordPlaceholder')}
                   className="pl-10 pr-10"
+                  error={!!fieldErrors.confirmPassword}
                   required
                 />
                 <button
@@ -387,7 +447,21 @@ export default function Signup() {
                   )}
                 </button>
               </div>
+              {fieldErrors.confirmPassword && (
+                <p className="mt-1.5 text-sm text-red-600" role="alert">
+                  {fieldErrors.confirmPassword}
+                </p>
+              )}
             </div>
+
+            {/* General error message */}
+            {fieldErrors.general && (
+              <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-sm text-red-600" role="alert">
+                  {fieldErrors.general}
+                </p>
+              </div>
+            )}
 
             <Button
               type="submit"
