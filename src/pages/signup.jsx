@@ -59,17 +59,6 @@ export default function Signup() {
     return { valid: true };
   };
 
-  // Get password requirements status for real-time feedback
-  const getPasswordRequirements = (password) => {
-    if (!password) return null;
-    
-    return {
-      minLength: password.length >= 8,
-      currentLength: password.length,
-      requiredLength: 8
-    };
-  };
-
   // Clear field error when user starts typing
   const clearFieldError = (fieldName) => {
     setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
@@ -85,15 +74,13 @@ export default function Signup() {
     const newErrors = { email: '', password: '', confirmPassword: '', general: '' };
 
     // Required fields validation
-    if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
     if (!formData.fullName || !formData.email || !formData.password) {
-        newErrors.general = 'Please fill in all required fields';
-        hasErrors = true;
-      }
-      if (formData.password && !formData.confirmPassword) {
-        newErrors.confirmPassword = 'Please confirm your password.';
-        hasErrors = true;
-      }
+      newErrors.general = 'Please fill in all required fields';
+      hasErrors = true;
+    }
+    if (formData.password && !formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password.';
+      hasErrors = true;
     }
 
     // Email format validation
@@ -113,7 +100,7 @@ export default function Signup() {
 
     // Password confirmation validation (only check if password is valid)
     if (formData.password && formData.confirmPassword) {
-    if (formData.password !== formData.confirmPassword) {
+      if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match.';
         hasErrors = true;
       }
@@ -344,7 +331,7 @@ export default function Signup() {
         });
         return;
       }
-      
+
       // Invalid email format (server-side validation)
       if (errorMessage.toLowerCase().includes('invalid email') ||
           errorMessage.toLowerCase().includes('email format') ||
