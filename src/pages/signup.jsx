@@ -44,11 +44,9 @@ export default function Signup() {
     return emailRegex.test(email.trim());
   };
 
-  // Password validation helper (8 characters minimum)
+  // Password validation helper - no minimum length requirement
   const isPasswordStrong = (password) => {
-    if (password.length < 8) {
-      return { valid: false, message: 'Password must be at least 8 characters.' };
-    }
+    // Let Supabase handle password requirements
     return { valid: true };
   };
 
@@ -82,15 +80,6 @@ export default function Signup() {
     if (formData.password && formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match.';
       hasErrors = true;
-    }
-
-    // Password strength validation (8 characters minimum)
-    if (formData.password) {
-      const passwordValidation = isPasswordStrong(formData.password);
-      if (!passwordValidation.valid) {
-        newErrors.password = passwordValidation.message;
-        hasErrors = true;
-      }
     }
 
     if (hasErrors) {
@@ -259,13 +248,13 @@ export default function Signup() {
         return;
       }
       
-      // Password validation errors (8 characters minimum)
+      // Password validation errors - let Supabase handle requirements
       if (errorMessage.toLowerCase().includes('password') ||
           errorMessage.toLowerCase().includes('weak password') ||
           errorMessage.toLowerCase().includes('password requirements')) {
         setFieldErrors({ 
           email: '',
-          password: 'Password must be at least 8 characters.',
+          password: 'Password does not meet requirements. Please check and try again.',
           confirmPassword: '',
           general: ''
         });
