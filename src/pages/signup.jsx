@@ -534,6 +534,27 @@ export default function Signup() {
                   )}
                 </button>
               </div>
+              
+              {/* Real-time password requirements preview */}
+              {formData.password && formData.password.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      {formData.password.length >= 8 && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className={formData.password.length >= 8 ? 'text-green-600' : 'text-afrikoni-deep/70'}>
+                      At least 8 characters {formData.password.length >= 8 ? '' : `(${formData.password.length}/8)`}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               {fieldErrors.password && (
                 <p className="mt-1.5 text-sm text-red-600" role="alert">
                   {fieldErrors.password}
