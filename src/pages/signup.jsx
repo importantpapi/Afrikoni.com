@@ -111,7 +111,7 @@ export default function Signup() {
 
     // Password confirmation validation - show explicit inline error
     if (formData.password && formData.confirmPassword) {
-      if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match.';
         hasErrors = true;
       }
@@ -226,9 +226,41 @@ export default function Signup() {
       // Show success message immediately
       toast.success(t('signup.success') || 'Account created successfully!');
       
-      // Always redirect to PostLoginRouter - it handles profile creation
-      // PostLoginRouter is the single source of truth for profile creation
-      navigate('/auth/post-login', { replace: true });
+      // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
+      // New users may not have session immediately available in browser storage
+      // This prevents "nothing happens" / blank page for new users
+      const waitForSession = async () => {
+        // First check if session already exists in response
+        if (data.session) {
+          console.log('[Signup] Session available in response, redirecting immediately');
+          navigate('/auth/post-login', { replace: true });
+          return;
+        }
+
+        // Poll for session to become available (up to 2 seconds / 10 retries)
+        console.log('[Signup] Session not in response, waiting for session...');
+        for (let i = 0; i < 10; i++) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session) {
+            console.log('[Signup] Session available, redirecting');
+            navigate('/auth/post-login', { replace: true });
+            return;
+          }
+          // Wait 200ms before retry
+          await new Promise(res => setTimeout(res, 200));
+        }
+
+        // If session still not available after retries, show clear message
+        console.warn('[Signup] Session not available after waiting, showing message to user');
+        setFieldErrors({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          general: 'Your account was created successfully! Please refresh the page to continue.'
+        });
+      };
+
+      waitForSession();
       
       // Run background tasks (non-blocking, never throw)
       if (data.user) {
@@ -305,12 +337,39 @@ export default function Signup() {
       if (userCreated || mightBeDatabaseError) {
         // ✅ USER ACCOUNT EXISTS OR DATABASE ERROR - This is SUCCESS
         // Database errors are non-critical - profile creation handled by PostLoginRouter
-        console.log('[Signup] User account created successfully, redirecting to PostLoginRouter');
+        console.log('[Signup] User account created successfully, waiting for session before redirect');
         console.warn('[Signup] Error occurred but user exists (non-critical, suppressed):', errorMessage);
         
         // 🔒 NEVER show database errors - always show success if user exists
         toast.success(t('signup.success') || 'Account created successfully!');
-        navigate('/auth/post-login', { replace: true });
+        
+        // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
+        // New users may not have session immediately available in browser storage
+        const waitForSession = async () => {
+          // Poll for session to become available (up to 2 seconds / 10 retries)
+          console.log('[Signup] Waiting for session...');
+          for (let i = 0; i < 10; i++) {
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData?.session) {
+              console.log('[Signup] Session available, redirecting');
+              navigate('/auth/post-login', { replace: true });
+              return;
+            }
+            // Wait 200ms before retry
+            await new Promise(res => setTimeout(res, 200));
+          }
+
+          // If session still not available after retries, show clear message
+          console.warn('[Signup] Session not available after waiting, showing message to user');
+          setFieldErrors({
+            email: '',
+            password: '',
+            confirmPassword: '',
+            general: 'Your account was created successfully! Please refresh the page to continue.'
+          });
+        };
+
+        waitForSession();
         return;
       }
       
@@ -330,7 +389,7 @@ export default function Signup() {
         // Don't show error - just log it
         return;
       }
-      
+
       // Handle specific auth errors with user-friendly INLINE messages
       
       // Duplicate email / User already exists
