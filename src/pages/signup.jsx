@@ -102,15 +102,47 @@ export default function Signup() {
     try {
       // ✅ USE DIRECT SUPABASE CALL - Same fix as login
       // supabaseHelpers.auth.signUp may be outdated or misconfigured
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email.trim(), // Trim email to prevent whitespace issues
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
+      let data, error;
+      try {
+        const result = await supabase.auth.signUp({
+          email: formData.email.trim(), // Trim email to prevent whitespace issues
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+            },
           },
-        },
-      });
+        });
+        data = result.data;
+        error = result.error;
+      } catch (networkError) {
+        // Handle network/connection errors gracefully
+        console.error('[Signup] Network error:', networkError);
+        const networkErrorMessage = networkError?.message || '';
+        
+        // Check for connection/network errors
+        if (networkErrorMessage.toLowerCase().includes('load failed') ||
+            networkErrorMessage.toLowerCase().includes('network error') ||
+            networkErrorMessage.toLowerCase().includes('fetch') ||
+            networkErrorMessage.toLowerCase().includes('connection') ||
+            networkErrorMessage.toLowerCase().includes('supabase.co') ||
+            networkErrorMessage.toLowerCase().includes('failed to fetch') ||
+            networkError?.code === 'ENOTFOUND' ||
+            networkError?.code === 'ECONNREFUSED' ||
+            networkError?.code === 'ETIMEDOUT') {
+          setFieldErrors({ 
+            email: '',
+            password: '',
+            confirmPassword: '',
+            general: 'Unable to connect. Please check your internet connection and try again.'
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        // For other network errors, throw to be handled by outer catch
+        throw networkError;
+      }
 
       // 🔒 CRITICAL: Check if user was created EVEN if error exists
       // Database triggers might fail but user account is still created
@@ -284,13 +316,44 @@ export default function Signup() {
         });
         return;
       }
+
+      // Network/connection errors (Supabase URL, fetch failures, etc.)
+      if (errorMessage.toLowerCase().includes('load failed') ||
+          errorMessage.toLowerCase().includes('network error') ||
+          errorMessage.toLowerCase().includes('fetch') ||
+          errorMessage.toLowerCase().includes('connection') ||
+          errorMessage.toLowerCase().includes('supabase.co') ||
+          errorMessage.toLowerCase().includes('failed to fetch') ||
+          errorCode === 'ENOTFOUND' ||
+          errorCode === 'ECONNREFUSED' ||
+          errorCode === 'ETIMEDOUT') {
+        setFieldErrors({ 
+          email: '',
+          password: '',
+          confirmPassword: '',
+          general: 'Unable to connect. Please check your internet connection and try again.'
+        });
+        return;
+      }
       
       // Generic error for actual auth failures (only if not database-related)
+      // Never show raw error messages, URLs, or technical details to users
+      // Sanitize error message to remove technical details
+      let userFriendlyMessage = 'Signup failed. Please try again.';
+      
+      // If error message contains URLs or technical details, use generic message
+      if (errorMessage.includes('supabase.co') || 
+          errorMessage.includes('http') || 
+          errorMessage.includes('://') ||
+          errorMessage.toLowerCase().includes('load failed')) {
+        userFriendlyMessage = 'Unable to connect. Please check your internet connection and try again.';
+      }
+      
       setFieldErrors({ 
         email: '',
         password: '',
         confirmPassword: '',
-        general: errorMessage || 'Signup failed. Please try again.'
+        general: userFriendlyMessage
       });
     } finally {
       setIsLoading(false);
