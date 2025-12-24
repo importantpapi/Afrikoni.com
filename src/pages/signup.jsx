@@ -44,12 +44,6 @@ export default function Signup() {
     return emailRegex.test(email.trim());
   };
 
-  // Password validation helper - no minimum length requirement
-  const isPasswordStrong = (password) => {
-    // Let Supabase handle password requirements
-    return { valid: true };
-  };
-
   // Clear field error when user starts typing
   const clearFieldError = (fieldName) => {
     setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
