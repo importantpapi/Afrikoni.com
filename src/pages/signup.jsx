@@ -259,13 +259,13 @@ export default function Signup() {
         return;
       }
       
-      // Password validation errors - let Supabase handle requirements
+      // Password validation errors (8 characters minimum)
       if (errorMessage.toLowerCase().includes('password') ||
           errorMessage.toLowerCase().includes('weak password') ||
           errorMessage.toLowerCase().includes('password requirements')) {
         setFieldErrors({ 
           email: '',
-          password: 'Password does not meet requirements. Please check and try again.',
+          password: 'Password must be at least 8 characters.',
           confirmPassword: '',
           general: ''
         });
