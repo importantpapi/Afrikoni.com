@@ -64,6 +64,32 @@ export default function Signup() {
     setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
   };
 
+  // Helper: Wait for session to be available before redirecting
+  // Prevents blank page for new users (Supabase auth timing issue)
+  const waitForSessionAndRedirect = async () => {
+    for (let i = 0; i < 10; i++) {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        console.log('[Signup] Session available, redirecting');
+        navigate('/auth/post-login', { replace: true });
+        return true;
+      }
+      // Wait 200ms before retry
+      await new Promise(res => setTimeout(res, 200));
+    }
+
+    // If session still not available after retries, show clear message
+    console.warn('[Signup] Session not available after waiting, showing message to user');
+    setFieldErrors({
+      email: '',
+      password: '',
+      confirmPassword: '',
+      general: 'Your account was created successfully! Please refresh the page to continue.'
+    });
+
+    return false;
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
     
@@ -229,38 +255,14 @@ export default function Signup() {
       // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
       // New users may not have session immediately available in browser storage
       // This prevents "nothing happens" / blank page for new users
-      const waitForSession = async () => {
-        // First check if session already exists in response
-        if (data.session) {
-          console.log('[Signup] Session available in response, redirecting immediately');
-          navigate('/auth/post-login', { replace: true });
-          return;
-        }
-
-        // Poll for session to become available (up to 2 seconds / 10 retries)
+      // First check if session already exists in response (optimization)
+      if (data.session) {
+        console.log('[Signup] Session available in response, redirecting immediately');
+        navigate('/auth/post-login', { replace: true });
+      } else {
         console.log('[Signup] Session not in response, waiting for session...');
-        for (let i = 0; i < 10; i++) {
-          const { data: sessionData } = await supabase.auth.getSession();
-          if (sessionData?.session) {
-            console.log('[Signup] Session available, redirecting');
-            navigate('/auth/post-login', { replace: true });
-            return;
-          }
-          // Wait 200ms before retry
-          await new Promise(res => setTimeout(res, 200));
-        }
-
-        // If session still not available after retries, show clear message
-        console.warn('[Signup] Session not available after waiting, showing message to user');
-        setFieldErrors({
-          email: '',
-          password: '',
-          confirmPassword: '',
-          general: 'Your account was created successfully! Please refresh the page to continue.'
-        });
-      };
-
-      waitForSession();
+        await waitForSessionAndRedirect();
+      }
       
       // Run background tasks (non-blocking, never throw)
       if (data.user) {
@@ -345,34 +347,11 @@ export default function Signup() {
         
         // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
         // New users may not have session immediately available in browser storage
-        const waitForSession = async () => {
-          // Poll for session to become available (up to 2 seconds / 10 retries)
-          console.log('[Signup] Waiting for session...');
-          for (let i = 0; i < 10; i++) {
-            const { data: sessionData } = await supabase.auth.getSession();
-            if (sessionData?.session) {
-              console.log('[Signup] Session available, redirecting');
-              navigate('/auth/post-login', { replace: true });
-              return;
-            }
-            // Wait 200ms before retry
-            await new Promise(res => setTimeout(res, 200));
-          }
-
-          // If session still not available after retries, show clear message
-          console.warn('[Signup] Session not available after waiting, showing message to user');
-          setFieldErrors({
-            email: '',
-            password: '',
-            confirmPassword: '',
-            general: 'Your account was created successfully! Please refresh the page to continue.'
-          });
-        };
-
-        waitForSession();
+        console.log('[Signup] Waiting for session...');
+        await waitForSessionAndRedirect();
         return;
       }
-      
+
       // Only show errors if auth actually failed (user doesn't exist)
       // 🔒 CRITICAL: NEVER show database/trigger errors - they're non-critical
       const isDatabaseOrTriggerError = 
