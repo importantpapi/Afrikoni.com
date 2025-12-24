@@ -357,7 +357,7 @@ export default function Signup() {
         });
         return;
       }
-      
+
       // Password validation errors (8 characters minimum)
       if (errorMessage.toLowerCase().includes('password') ||
           errorMessage.toLowerCase().includes('weak password') ||
@@ -547,8 +547,12 @@ export default function Signup() {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => {
-                    setFormData(prev => ({ ...prev, password: e.target.value }));
-                    clearFieldError('password');
+                    const newPassword = e.target.value;
+                    setFormData(prev => ({ ...prev, password: newPassword }));
+                    // Clear password error if password now meets requirements
+                    if (newPassword.length >= 8) {
+                      clearFieldError('password');
+                    }
                   }}
                   placeholder={t('signup.passwordPlaceholder')}
                   className="pl-10 pr-10"
