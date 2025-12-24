@@ -5,17 +5,23 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Validate environment variables at initialization
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('[Supabase Client] Missing environment variables:', {
+  const errorMsg = '[Supabase Client] CRITICAL: Missing environment variables. Signup/auth will fail.';
+  console.error(errorMsg, {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
     env: import.meta.env.MODE
   });
+  // Show error to users in production if env vars are missing
+  if (import.meta.env.PROD && typeof window !== 'undefined') {
+    // Store error to show in UI
+    window.__SUPABASE_ENV_ERROR__ = errorMsg;
+  }
   // Continue with undefined - errors will be caught at request time
 }
 
 export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
+  supabaseUrl || '',
+  supabaseAnonKey || '',
   {
     auth: {
       persistSession: true,

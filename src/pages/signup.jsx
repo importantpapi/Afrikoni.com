@@ -69,6 +69,7 @@ export default function Signup() {
   const waitForSessionAndRedirect = async () => {
     for (let i = 0; i < 10; i++) {
       const { data } = await supabase.auth.getSession();
+      debugger; // ⬅️ BREAKPOINT 3: Inspect data.session (iteration: i+1)
       if (data?.session) {
         console.log('[Signup] Session available, redirecting');
         navigate('/auth/post-login', { replace: true });
@@ -91,6 +92,7 @@ export default function Signup() {
   };
 
   const handleSignup = async (e) => {
+    debugger; // ⬅️ BREAKPOINT 1: Does click fire?
     e.preventDefault();
     
     // DEBUG: Log submit click
@@ -145,18 +147,37 @@ export default function Signup() {
 
     // If validation errors exist, show them and return (don't set loading)
     if (hasErrors) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.jsx:149',message:'Validation errors - early return',data:{errors:newErrors,hasErrors},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       console.log('VALIDATION ERRORS:', newErrors);
       setFieldErrors(newErrors);
       return;
     }
 
     // Validation passed - set loading state immediately before Supabase call
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.jsx:156',message:'Validation passed - proceeding to Supabase',data:{email:formData.email},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     console.log('VALIDATION PASSED - Starting signup');
     setIsLoading(true);
     try {
       // ✅ USE DIRECT SUPABASE CALL - Same fix as login
       // supabaseHelpers.auth.signUp may be outdated or misconfigured
       let data, error;
+      
+      // Check if Supabase client is properly initialized
+      if (!formData.email || !formData.password) {
+        setFieldErrors({
+          email: formData.email ? '' : 'Email is required.',
+          password: formData.password ? '' : 'Password is required.',
+          confirmPassword: '',
+          general: ''
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       try {
         console.log('CALLING SUPABASE AUTH.SIGNUP');
         const result = await supabase.auth.signUp({
@@ -170,6 +191,10 @@ export default function Signup() {
       });
         data = result.data;
         error = result.error;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.jsx:174',message:'Supabase signUp response',data:{hasUser:!!result.data?.user,hasSession:!!result.data?.session,hasError:!!result.error,errorMessage:result.error?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        debugger; // ⬅️ BREAKPOINT 2: Inspect result.data.user, result.data.session, result.error
         // DEBUG: Log Supabase response
         console.log('SIGNUP RESPONSE', { data, error });
       } catch (networkError) {
