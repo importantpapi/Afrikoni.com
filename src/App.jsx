@@ -202,6 +202,7 @@ function App() {
         <RoleProvider>
           <ScrollToTop />
           <Toaster position="top-right" />
+          {import.meta.env.DEV && <AuthDebug />}
           <Layout>
           <Suspense fallback={<PageLoader />}>
           <Routes>
