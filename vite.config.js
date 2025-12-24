@@ -12,6 +12,14 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1000,
     minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        // Ensure content hashing for cache busting
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
+      },
+    },
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
