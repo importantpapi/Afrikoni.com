@@ -117,24 +117,46 @@ export default function Signup() {
         error = result.error;
       } catch (networkError) {
         // Handle network/connection errors gracefully
-        console.error('[Signup] Network error:', networkError);
-        const networkErrorMessage = networkError?.message || '';
+        // These are errors that occur BEFORE Supabase can respond
+        console.error('[Signup] Network-level error (before Supabase response):', {
+          message: networkError?.message,
+          code: networkError?.code,
+          name: networkError?.name,
+          // Never log full error object as it may contain URLs
+        });
         
-        // Check for connection/network errors
-        if (networkErrorMessage.toLowerCase().includes('load failed') ||
-            networkErrorMessage.toLowerCase().includes('network error') ||
-            networkErrorMessage.toLowerCase().includes('fetch') ||
-            networkErrorMessage.toLowerCase().includes('connection') ||
-            networkErrorMessage.toLowerCase().includes('supabase.co') ||
-            networkErrorMessage.toLowerCase().includes('failed to fetch') ||
-            networkError?.code === 'ENOTFOUND' ||
-            networkError?.code === 'ECONNREFUSED' ||
-            networkError?.code === 'ETIMEDOUT') {
+        const networkErrorMessage = (networkError?.message || '').toLowerCase();
+        const errorCode = networkError?.code || '';
+        const errorName = (networkError?.name || '').toLowerCase();
+        
+        // Comprehensive network error detection
+        // Catch: Load failed, fetch failures, connection errors, DNS errors, timeouts
+        const isNetworkError = 
+          networkErrorMessage.includes('load failed') ||
+          networkErrorMessage.includes('network error') ||
+          networkErrorMessage.includes('fetch') ||
+          networkErrorMessage.includes('connection') ||
+          networkErrorMessage.includes('failed to fetch') ||
+          networkErrorMessage.includes('network request failed') ||
+          networkErrorMessage.includes('networkerror') ||
+          networkErrorMessage.includes('networkerror when attempting to fetch') ||
+          networkErrorMessage.includes('supabase.co') || // Catch any Supabase URLs
+          errorCode === 'ENOTFOUND' ||
+          errorCode === 'ECONNREFUSED' ||
+          errorCode === 'ETIMEDOUT' ||
+          errorCode === 'ECONNRESET' ||
+          errorName === 'networkerror' ||
+          errorName === 'typeerror' ||
+          // Check if error message contains URL patterns (but don't expose them)
+          /https?:\/\/[\w.-]+\.supabase\.co/.test(networkErrorMessage);
+        
+        if (isNetworkError) {
+          // User-safe message that doesn't expose technical details
           setFieldErrors({ 
             email: '',
             password: '',
             confirmPassword: '',
-            general: 'Unable to connect. Please check your internet connection and try again.'
+            general: "We're having trouble connecting to our servers. Please try again in a moment."
           });
           setIsLoading(false);
           return;
@@ -318,20 +340,31 @@ export default function Signup() {
       }
 
       // Network/connection errors (Supabase URL, fetch failures, etc.)
-      if (errorMessage.toLowerCase().includes('load failed') ||
-          errorMessage.toLowerCase().includes('network error') ||
-          errorMessage.toLowerCase().includes('fetch') ||
-          errorMessage.toLowerCase().includes('connection') ||
-          errorMessage.toLowerCase().includes('supabase.co') ||
-          errorMessage.toLowerCase().includes('failed to fetch') ||
-          errorCode === 'ENOTFOUND' ||
-          errorCode === 'ECONNREFUSED' ||
-          errorCode === 'ETIMEDOUT') {
+      // These errors occur when the browser cannot reach Supabase at all
+      const normalizedErrorMessage = errorMessage.toLowerCase();
+      const isNetworkLevelError = 
+        normalizedErrorMessage.includes('load failed') ||
+        normalizedErrorMessage.includes('network error') ||
+        normalizedErrorMessage.includes('fetch') ||
+        normalizedErrorMessage.includes('connection') ||
+        normalizedErrorMessage.includes('failed to fetch') ||
+        normalizedErrorMessage.includes('network request failed') ||
+        normalizedErrorMessage.includes('networkerror') ||
+        normalizedErrorMessage.includes('networkerror when attempting to fetch') ||
+        normalizedErrorMessage.includes('supabase.co') || // Catch any Supabase URLs
+        /https?:\/\/[\w.-]+\.supabase\.co/.test(errorMessage) || // URL pattern matching
+        errorCode === 'ENOTFOUND' ||
+        errorCode === 'ECONNREFUSED' ||
+        errorCode === 'ETIMEDOUT' ||
+        errorCode === 'ECONNRESET';
+      
+      if (isNetworkLevelError) {
+        // User-safe message - never expose Supabase URLs or technical details
         setFieldErrors({ 
           email: '',
           password: '',
           confirmPassword: '',
-          general: 'Unable to connect. Please check your internet connection and try again.'
+          general: "We're having trouble connecting to our servers. Please try again in a moment."
         });
         return;
       }
@@ -342,11 +375,13 @@ export default function Signup() {
       let userFriendlyMessage = 'Signup failed. Please try again.';
       
       // If error message contains URLs or technical details, use generic message
+      // This is a fallback for any errors that slipped through previous checks
       if (errorMessage.includes('supabase.co') || 
-          errorMessage.includes('http') || 
-          errorMessage.includes('://') ||
+          errorMessage.includes('http://') || 
+          errorMessage.includes('https://') ||
+          /https?:\/\/[\w.-]+/.test(errorMessage) || // Any URL pattern
           errorMessage.toLowerCase().includes('load failed')) {
-        userFriendlyMessage = 'Unable to connect. Please check your internet connection and try again.';
+        userFriendlyMessage = "We're having trouble connecting to our servers. Please try again in a moment.";
       }
       
       setFieldErrors({ 
