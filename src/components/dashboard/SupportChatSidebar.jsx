@@ -12,26 +12,33 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 
 export default function SupportChatSidebar() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [ticketNumber, setTicketNumber] = useState(null);
   const [isSending, setIsSending] = useState(false);
-  const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadUserAndTicket();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading || !user) {
+      return;
+    }
+
+    // Now safe to load ticket
+    loadTicket();
+  }, [authReady, authLoading, user, profile]);
 
   useEffect(() => {
     if (ticketNumber && isOpen) {
@@ -61,22 +68,26 @@ export default function SupportChatSidebar() {
     return `${prefix}-${timestamp}-${random}`;
   };
 
-  const loadUserAndTicket = async () => {
+  const loadTicket = async () => {
     try {
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!userData) return;
+      // Use auth from context (no duplicate call)
+      const cid = profile?.company_id || null;
+      if (!cid) {
+        // Create company if doesn't exist
+        const createdCid = await getOrCreateCompany(supabase, user);
+        setCompanyId(createdCid);
+      } else {
+        setCompanyId(cid);
+      }
 
-      setUser(profile || userData);
-      const cid = await getOrCreateCompany(supabase, profile || userData);
-      setCompanyId(cid);
+      const finalCid = cid || profile?.company_id || null;
 
-      if (cid) {
+      if (finalCid) {
         // Find existing open ticket or create new one
         const { data: existingTicket } = await supabase
           .from('support_tickets')
           .select('ticket_number, status')
-          .eq('company_id', cid)
+          .eq('company_id', finalCid)
           .eq('status', 'open')
           .order('created_at', { ascending: false })
           .limit(1)
@@ -90,8 +101,8 @@ export default function SupportChatSidebar() {
             .from('support_tickets')
             .insert({
               ticket_number: newTicketNumber,
-              company_id: cid,
-              user_email: userData.email,
+              company_id: finalCid,
+              user_email: user?.email || '',
               subject: 'Support Request',
               status: 'open',
               priority: 'normal'

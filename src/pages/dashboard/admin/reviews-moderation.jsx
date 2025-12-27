@@ -6,7 +6,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,27 +23,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function ReviewsModerationInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [reviews, setReviews] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [filterStatus, setFilterStatus] = useState('pending');
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
   const [adminNote, setAdminNote] = useState('');
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[ReviewsModeration] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: Check admin access
+    if (!user || !profile?.is_admin) {
+      toast.error('Unauthorized access');
+      return;
+    }
+
+    // Now safe to load data
     loadReviews();
-  }, [filterStatus]);
+  }, [filterStatus, authReady, authLoading, user, profile, role]);
 
   const loadReviews = async () => {
     try {
       setIsLoading(true);
-
-      // Get user to verify admin status
-      const { user, profile } = await getCurrentUserAndRole(supabase);
-      if (!user || !profile?.is_admin) {
-        toast.error('Unauthorized access');
-        return;
-      }
+      
+      // Use auth from context (no duplicate call)
 
       // Load reviews with order and company details
       let query = supabase

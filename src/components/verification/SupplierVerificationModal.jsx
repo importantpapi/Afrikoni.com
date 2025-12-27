@@ -32,8 +32,21 @@ export default function SupplierVerificationModal({ open, onOpenChange, companyI
 
     setUploadingFiles(prev => ({ ...prev, [field]: true }));
 
+    // Validate file type
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      toast.error('Please upload an image or PDF file');
+      return;
+    }
+
+    setUploadingFiles(prev => ({ ...prev, [field]: true }));
+
     try {
-      const fileName = `verification-docs/${companyId}/${field}/${Date.now()}-${file.name}`;
+      // Generate unique filename with proper sanitization
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `verification-docs/${companyId}/${field}/${timestamp}-${randomStr}-${cleanFileName}`;
+      
       const { file_url } = await supabaseHelpers.storage.uploadFile(
         file,
         'files',
@@ -55,7 +68,7 @@ export default function SupplierVerificationModal({ open, onOpenChange, companyI
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload file');
+      toast.error(`Failed to upload file: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingFiles(prev => ({ ...prev, [field]: false }));
     }

@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Package, Building2, Truck, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { toast } from 'sonner';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -40,6 +41,8 @@ const roles = [
 ];
 
 export default function RoleSelection({ onRoleSelected }) {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading, refreshProfile } = useAuth();
   const { t } = useLanguage();
   const [selectedRole, setSelectedRole] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,20 +57,16 @@ export default function RoleSelection({ onRoleSelected }) {
       return;
     }
 
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading || !user) {
+      toast.error('Please log in first');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('User not found. Please log in again.');
-        return;
-      }
-
-      // Get user profile to create company
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      // Use auth from context (no duplicate call)
+      // Profile already loaded from AuthProvider (no need to fetch again)
 
       // Create company for the user with the selected role
       const userData = {
@@ -109,10 +108,19 @@ export default function RoleSelection({ onRoleSelected }) {
 
       toast.success('Role selected successfully!');
       
+      // Refresh auth profile to update role in context immediately
+      // This ensures the new role is available without page refresh
+      await refreshProfile();
+      
       // Notify parent component that role was selected
       if (onRoleSelected) {
         onRoleSelected(selectedRole);
       }
+      
+      // Optional: Refresh page to ensure all components see the updated role
+      // This is safer than relying on all components to react to auth changes
+      // Comment out if you want to handle role updates reactively without refresh
+      window.location.reload();
     } catch (error) {
       console.error('Error saving role:', error);
       toast.error('Failed to save role. Please try again.');

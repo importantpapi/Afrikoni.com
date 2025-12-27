@@ -14,12 +14,12 @@ import EmptyState from '@/components/ui/EmptyState';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function LogisticsContent() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const analytics = useAnalytics();
   const [logisticsPartners, setLogisticsPartners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
   const [stats, setStats] = useState({
     totalPartners: 0,
     totalShipments: 0,
@@ -37,33 +37,17 @@ function LogisticsContent() {
         console.error('Analytics error:', error);
       }
       
-      try {
-        await loadData();
-      } catch (error) {
-        console.error('Error in loadData:', error);
+      // GUARD: Wait for auth to be ready
+      if (!authReady || authLoading) {
+        return;
       }
-      
-      try {
-        await checkAuth();
-      } catch (error) {
-        console.error('Error in checkAuth:', error);
-      }
+
+      await loadData();
     };
     
     initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { user: userData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setUserRole(role);
-    } catch (error) {
-      setUser(null);
-      setUserRole(null);
-    }
-  };
+  }, [authReady, authLoading]);
 
   const loadData = async () => {
     try {
@@ -235,7 +219,7 @@ function LogisticsContent() {
   };
 
   const handleBecomePartner = () => {
-    if (user && isLogistics(userRole)) {
+    if (user && isLogistics(role)) {
       // User is already a logistics partner, go to dashboard
       navigate('/dashboard/logistics');
     } else {
@@ -245,7 +229,7 @@ function LogisticsContent() {
   };
 
   const handleRequestQuote = () => {
-    if (user && isLogistics(userRole)) {
+    if (user && isLogistics(role)) {
       navigate('/dashboard/logistics?tab=quotes');
     } else if (user) {
       navigate('/dashboard/logistics-quote');

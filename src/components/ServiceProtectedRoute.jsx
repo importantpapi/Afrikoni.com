@@ -9,45 +9,43 @@
  * @param {'buyer'|'seller'|'hybrid'|'logistics'} props.requiredRole - Required role to access this route
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 
 export default function ServiceProtectedRoute({ children, requiredRole }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasAccess, setHasAccess] = useState(false);
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAccess();
-  }, [requiredRole]);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      return;
+    }
 
-  const checkAccess = async () => {
-    try {
-      const { user, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+    // GUARD: No user → redirect to login
+    if (!user) {
+      navigate('/login', { replace: true });
+      return;
+    }
 
-      if (!user) {
-        navigate('/login', { replace: true });
-        return;
-      }
+    // Check if user has a role set
+    const userRole = role || profile?.role || null;
+    if (!userRole || !['buyer', 'seller', 'hybrid', 'logistics'].includes(userRole)) {
+      // No role set - redirect to choose-service
+      navigate('/choose-service', { replace: true });
+      return;
+    }
 
-      // Check if user has a role set
-      if (!profile?.role || !['buyer', 'seller', 'hybrid', 'logistics'].includes(profile.role)) {
-        // No role set - redirect to choose-service
-        navigate('/choose-service', { replace: true });
-        return;
-      }
+    // Check if role matches required role
+    if (userRole !== requiredRole) {
+      // Role doesn't match - redirect to choose-service (do NOT log out)
+      navigate('/choose-service', { replace: true });
+      return;
+    }
 
-      // Check if role matches required role
-      if (profile.role !== requiredRole) {
-        // Role doesn't match - redirect to choose-service (do NOT log out)
-        navigate('/choose-service', { replace: true });
-        return;
-      }
-
-      // Role matches - grant access
+    // Role matches - access granted (rendered below)
       setHasAccess(true);
     } catch (error) {
       console.error('ServiceProtectedRoute error:', error);

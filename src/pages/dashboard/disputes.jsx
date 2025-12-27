@@ -19,18 +19,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getOrCreateCompany } from '@/utils/companyHelper';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
 import { logDisputeEvent } from '@/utils/auditLogger';
 
 export default function UserDisputes() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [disputes, setDisputes] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [disputeForm, setDisputeForm] = useState({
@@ -39,26 +41,33 @@ export default function UserDisputes() {
     evidence: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[UserDisputes] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[UserDisputes] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      setUser(profile || userData);
-      const cid = await getOrCreateCompany(supabase, profile || userData);
+      // Use auth from context (no duplicate call)
+      const cid = profile?.company_id || null;
       setCompanyId(cid);
 
       if (!cid) {
@@ -145,8 +154,15 @@ export default function UserDisputes() {
 
     setIsSubmitting(true);
     try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      const cid = await getOrCreateCompany(supabase, userData);
+      // Use auth from context (no duplicate call)
+      if (!user) {
+        toast.error('User not authenticated');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { getOrCreateCompany } = await import('@/utils/companyHelper');
+      const cid = profile?.company_id || await getOrCreateCompany(supabase, user);
 
       // Determine buyer and seller company IDs
       const isBuyer = selectedOrder.buyer_company_id === cid;
@@ -257,6 +273,11 @@ export default function UserDisputes() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading disputes..." />;
+  }
 
   if (isLoading) {
     return (

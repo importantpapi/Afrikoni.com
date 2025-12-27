@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,10 +22,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import ReliabilityBadge from '@/components/intelligence/ReliabilityBadge';
 
 export default function RFQMatching() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('in_review');
   const [selectedRFQ, setSelectedRFQ] = useState(null);
@@ -40,19 +43,26 @@ export default function RFQMatching() {
   );
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RFQMatching] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: Check admin access
+    if (!user || role !== 'admin') {
+      toast.error('Admin access required');
+      navigate('/dashboard');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, [statusFilter]);
+  }, [statusFilter, authReady, authLoading, user, role, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!user || role !== 'admin') {
-        toast.error('Admin access required');
-        navigate('/dashboard');
-        return;
-      }
 
       // Load RFQs pending review or open
       const { data: rfqsData, error: rfqsError } = await supabase
@@ -126,7 +136,7 @@ export default function RFQMatching() {
 
     setIsMatching(true);
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
       
       // Store matching notes (internal - for training data and quality control)
       // This becomes institutional memory and helps with future automation decisions
@@ -200,6 +210,11 @@ export default function RFQMatching() {
       rfq.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading RFQ matching..." />;
+  }
 
   return (
     <DashboardLayout>

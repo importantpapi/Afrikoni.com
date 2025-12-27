@@ -40,17 +40,26 @@ export default function Contact() {
 
     setUploadingAttachment(true);
     try {
+      // Generate unique filename with proper sanitization
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `contact-attachments/${timestamp}-${randomStr}-${cleanFileName}`;
+      
       const { file_url } = await supabaseHelpers.storage.uploadFile(
         file, 
         'files', 
-        `contact-attachments/${Date.now()}-${file.name}`
+        fileName
       );
       setAttachments(prev => [...prev, { url: file_url, name: file.name, type: file.type }]);
       toast.success('Attachment uploaded');
     } catch (error) {
-      toast.error('Failed to upload attachment');
+      console.error('Attachment upload error:', error);
+      toast.error(`Failed to upload attachment: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingAttachment(false);
+      // Reset file input
+      if (e.target) e.target.value = '';
     }
   };
 

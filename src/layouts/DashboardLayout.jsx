@@ -7,15 +7,15 @@ import {
   User, Users, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
   AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp, Sparkles,
   Receipt, RotateCcw, Star as StarIcon, Warehouse, TrendingDown, Users as UsersIcon,
-  FileSearch, Target, MessageCircle
+  FileSearch, Target, MessageCircle, GitBranch
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { Logo } from '@/components/ui/Logo';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
 import { useTranslation } from 'react-i18next';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
@@ -29,7 +29,9 @@ import { sellerNav } from '@/config/navigation/sellerNav';
 import { hybridNav } from '@/config/navigation/hybridNav';
 import { logisticsNav } from '@/config/navigation/logisticsNav';
 import { useRole, getDashboardHomePath } from '@/context/RoleContext';
+import { getDashboardPathForRole, getUserRole } from '@/utils/roleHelpers';
 import { useDashboardRole } from '@/context/DashboardRoleContext';
+import { useUser } from '@/contexts/UserContext';
 import BuyerHeader from '@/components/headers/BuyerHeader';
 import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
@@ -37,41 +39,169 @@ import AdminHeader from '@/components/headers/AdminHeader';
 import HybridHeader from '@/components/headers/HybridHeader';
 import UserAvatar from '@/components/headers/UserAvatar';
 
+// Collapsible menu section component for items with children
+function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
+  const [isOpen, setIsOpen] = useState(!item.collapsedByDefault);
+  const Icon = item.icon;
+  
+  // Check if any child is active
+  const hasActiveChild = item.children?.some(child => 
+    location.pathname === child.path || 
+    (child.path && location.pathname.startsWith(child.path))
+  );
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          w-full flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group
+          ${hasActiveChild 
+            ? 'bg-afrikoni-gold/20 text-afrikoni-gold' 
+            : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
+          }
+        `}
+      >
+        {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
+        <span className="flex-1 text-left">{item.label}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && item.children && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="ml-4 mt-1 space-y-1 border-l-2 border-afrikoni-gold/20 pl-3">
+              {item.children.map((child, childIdx) => {
+                const ChildIcon = child.icon;
+                const isChildActive = location.pathname === child.path || 
+                                     (child.path && location.pathname.startsWith(child.path));
+                return (
+                  <Link
+                    key={`${child.path}-${childIdx}`}
+                    to={child.path}
+                    onClick={() => {
+                      if (window.innerWidth < 768) {
+                        setSidebarOpen(false);
+                      }
+                    }}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all
+                      ${isChildActive
+                        ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
+                        : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
+                      }
+                    `}
+                  >
+                    {ChildIcon && <ChildIcon className="w-3 h-3" />}
+                    {child.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const { t } = useTranslation();
   const { refreshRole } = useRole();
   const { role: dashboardRole } = useDashboardRole();
+  const { user: contextUser, profile: contextProfile, loading: userLoading, refreshProfile } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [userRole, setUserRole] = useState(dashboardRole || currentRole);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
+  const [isFounder, setIsFounder] = useState(false);
   const [activeView, setActiveView] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const userMenuButtonRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const [devSelectedRole, setDevSelectedRole] = useState(currentRole);
+  // ✅ Initialize devSelectedRole with normalized role
+  const initialRole = dashboardRole || currentRole;
+  const normalizedInitialRole = initialRole === 'logistics_partner' ? 'logistics' : initialRole;
+  const [devSelectedRole, setDevSelectedRole] = useState(normalizedInitialRole || 'buyer');
+  const [shouldShowDevSwitcher, setShouldShowDevSwitcher] = useState(false);
+  
+  // Derive companyId and role from profile
+  const profileCompanyId = contextProfile?.company_id || null;
+  const profileRole = contextProfile ? getUserRole(contextProfile) : null;
+  
+  // Merge user data with profile for display (for backward compatibility)
+  const mergedUser = contextUser && contextProfile ? {
+    ...contextUser,
+    ...contextProfile,
+    full_name: extractUserName(contextUser, contextProfile) || contextUser?.full_name || contextProfile?.full_name || null,
+    name: extractUserName(contextUser, contextProfile) || contextUser?.name || contextProfile?.name || null,
+  } : contextUser;
   
   // Get notification counts for sidebar badges
-  const notificationCounts = useNotificationCounts(user?.id, companyId);
+  const notificationCounts = useNotificationCounts(contextUser?.id, profileCompanyId);
   
   // Get live marketplace statistics
   const liveStats = useLiveStats();
 
+  // Update local state when context data changes
   useEffect(() => {
-    loadUser();
-  }, []);
+    if (profileCompanyId) {
+      setCompanyId(profileCompanyId);
+    }
+    if (profileRole) {
+      setUserRole(profileRole);
+      const normalizedRole = profileRole === 'logistics_partner' ? 'logistics' : profileRole;
+      setDevSelectedRole(normalizedRole);
+    }
+  }, [profileCompanyId, profileRole]);
 
   useEffect(() => {
     // URL-derived dashboardRole is the primary source of truth.
     if (dashboardRole && dashboardRole !== userRole) {
       setUserRole(dashboardRole);
+      // ✅ Update dev switcher to match current role (normalize logistics_partner)
+      const normalizedRole = dashboardRole === 'logistics_partner' ? 'logistics' : dashboardRole;
+      setDevSelectedRole(normalizedRole);
     }
-  }, [dashboardRole]);
+  }, [dashboardRole, userRole]);
+
+  // Update admin and founder status when user/profile changes
+  useEffect(() => {
+    if (contextUser && contextProfile) {
+      // Safe admin check
+      try {
+        const admin = isAdmin(contextUser);
+        setIsUserAdmin(admin || false);
+      } catch (adminError) {
+        console.warn('Error checking admin status:', adminError);
+        setIsUserAdmin(false);
+      }
+      
+      // Check if user is founder/CEO (youba.thiam@icloud.com)
+      const userEmail = contextUser?.email?.toLowerCase();
+      const isFounderUser = userEmail === 'youba.thiam@icloud.com';
+      setIsFounder(isFounderUser);
+      setShouldShowDevSwitcher(isFounderUser);
+      
+      // Founder is always admin
+      if (isFounderUser) {
+        setIsUserAdmin(true);
+      }
+    } else {
+      setIsUserAdmin(false);
+      setIsFounder(false);
+      setShouldShowDevSwitcher(false);
+    }
+  }, [contextUser, contextProfile]);
 
   // Calculate menu position when it opens
   useEffect(() => {
@@ -84,59 +214,14 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     }
   }, [userMenuOpen]);
 
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { extractUserName } = await import('@/utils/userHelpers');
-      const { user: userData, profile: profileData, role, companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      // Extract name using centralized utility - with null safety
-      let userName = null;
-      try {
-        userName = extractUserName(userData || null, profileData || null);
-      } catch (nameError) {
-        console.warn('Error extracting user name:', nameError);
-      }
-      
-      // Merge user data with extracted name - with comprehensive null checks
-      const mergedUser = {
-        ...(userData || {}),
-        ...(profileData || {}),
-        full_name: userName || userData?.full_name || profileData?.full_name || null,
-        name: userName || userData?.name || profileData?.name || null,
-      };
-      
-      setUser(mergedUser);
-      setProfile(profileData || null);
-      setCompanyId(cid || null);
-      if (role) setUserRole(role);
-      
-      // Safe admin check
-      try {
-        const admin = isAdmin(userData);
-        setIsUserAdmin(admin || false);
-      } catch (adminError) {
-        console.warn('Error checking admin status:', adminError);
-        setIsUserAdmin(false);
-      }
-    } catch (error) {
-      console.error('Error loading user:', error);
-      // Set safe defaults on error
-      setUser(null);
-      setProfile(null);
-      setCompanyId(null);
-      setIsUserAdmin(false);
-    }
-  };
+  // Removed loadUser - now using UserContext
 
   const handleLogout = async () => {
     try {
       // Log logout to audit log before signing out (non-blocking)
       try {
-        const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
         const { logLogoutEvent } = await import('@/utils/auditLogger');
-        const { user, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        await logLogoutEvent({ user, profile });
+        await logLogoutEvent({ user: contextUser, profile: contextProfile });
       } catch (auditError) {
         // Don't break logout if audit logging fails
         console.warn('Failed to log logout:', auditError);
@@ -147,8 +232,6 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       if (error) throw error;
       
       // Clear any local state
-      setUser(null);
-      setProfile(null);
       setCompanyId(null);
       setUserRole(null);
       
@@ -187,18 +270,36 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       { icon: FileSearch, label: 'KYB Verification', path: '/dashboard/admin/kyb' },
       { icon: UsersIcon, label: 'Disputes & Escrow', path: '/dashboard/admin/disputes' },
       { icon: MessageSquare, label: 'Support Tickets', path: '/dashboard/admin/support-tickets' },
+      { icon: GitBranch, label: 'System Architecture', path: '/dashboard/admin/architecture' },
       { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics' },
       { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
     ]
   };
 
+  // ✅ Get menu items for current role - this updates when userRole changes
+  let menuItems = sidebarItems[userRole] || sidebarItems.buyer;
+  
+  // ✅ Ensure menuItems is always an array
+  if (!Array.isArray(menuItems)) {
+    menuItems = [];
+  }
+  
   // Filter out admin-only items for non-admins
-  const menuItems = (sidebarItems[userRole] || sidebarItems.buyer).filter(item => {
+  menuItems = menuItems.filter(item => {
     if (item.adminOnly && !isUserAdmin) {
       return false;
     }
     return true;
   });
+  
+  // Add Admin Panel link to sidebar if user is founder/CEO (youba.thiam@icloud.com)
+  // This allows founder to access admin panel from any role dashboard
+  if (isFounder && userRole !== 'admin') {
+    menuItems = [
+      ...menuItems,
+      { icon: AlertTriangle, label: 'Admin Panel', path: '/dashboard/admin', isAdminSection: true }
+    ];
+  }
   const isHybrid = userRole === 'hybrid';
 
   // Role switcher options
@@ -218,7 +319,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const handleDevRoleApply = async () => {
     try {
       const targetRole = devSelectedRole || 'buyer';
-
+      
       // Use authenticated user ID to avoid relying on merged local user state
       const {
         data: { user: authUser },
@@ -231,12 +332,20 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         return;
       }
 
-      if (import.meta.env.DEV) {
+      // Founder can switch roles in production too (not just dev mode)
+      const userEmail = authUser?.email?.toLowerCase();
+      const isFounderUser = userEmail === 'youba.thiam@icloud.com';
+      
+      // ✅ Normalize role (logistics_partner -> logistics)
+      const normalizedTargetRole = targetRole === 'logistics_partner' ? 'logistics' : targetRole;
+      
+      // Allow profile update for founder in production, or in dev mode
+      if (isFounderUser || import.meta.env.DEV) {
         const { error } = await supabase
           .from('profiles')
           .update({
-            role: targetRole,
-            user_role: targetRole,
+            role: normalizedTargetRole,
+            user_role: normalizedTargetRole,
             onboarding_completed: true,
           })
           .eq('id', authUser.id);
@@ -245,15 +354,32 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           console.error('Dev role switch profile update error:', error);
           // Still allow local switch so you can test layouts even if profile write fails
           toast.warning('Profile role not updated in DB (check RLS), using local switch only');
+        } else {
+          // ✅ Wait a moment for database update to propagate before navigating
+          // This prevents race condition where Dashboard component checks role before update completes
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Refresh profile in context to get updated role
+          await refreshProfile();
         }
       }
 
-      await refreshRole();
-      setUserRole(targetRole);
-
-      const targetPath = getDashboardHomePath(targetRole);
+      // ✅ Update local state immediately so menu updates right away
+      setUserRole(normalizedTargetRole);
+      setDevSelectedRole(normalizedTargetRole);
+      
+      // Get the correct dashboard path for the role
+      const targetPath = normalizedTargetRole === 'admin' 
+        ? '/dashboard/admin' 
+        : getDashboardPathForRole(normalizedTargetRole);
+      
+      // Navigate to the correct dashboard
       navigate(targetPath, { replace: true });
-      toast.success(`Switched role to ${targetRole} (dev only)`);
+      
+      // Refresh role context to sync with URL
+      await refreshRole();
+      
+      toast.success(`Switched role to ${normalizedTargetRole}${isFounderUser ? '' : ' (dev only)'}`);
     } catch (err) {
       console.error('Dev role switch error:', err);
       toast.error('Error switching role');
@@ -307,8 +433,21 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {menuItems.map((item, idx) => {
+              // ✅ Handle items with children (collapsible sections like "Manage" and "Insights")
+              if (item.children && item.children.length > 0) {
+                return (
+                  <CollapsibleMenuSection
+                    key={`${item.label}-${idx}-${userRole}`}
+                    item={item}
+                    location={location}
+                    setSidebarOpen={setSidebarOpen}
+                  />
+                );
+              }
+
+              // ✅ Skip items without path AND without children (invalid items)
+              // Items with path null but children are handled above
               if (!item.path) {
-                console.warn('Menu item missing path:', item);
                 return null;
               }
 
@@ -319,11 +458,13 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
 
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
-                               (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products')) ||
+                               (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products') && !location.pathname.startsWith('/dashboard/admin')) ||
+                               (item.path === '/dashboard/admin' && location.pathname.startsWith('/dashboard/admin')) ||
                                (item.path === '/dashboard/risk' && location.pathname.startsWith('/dashboard/risk'));
               
-              // Check if this is a section header (Risk & Compliance)
+              // Check if this is a section header (Risk & Compliance) or admin section
               const isSection = item.isSection;
+              const isAdminSection = item.isAdminSection;
               
               return (
                 <motion.div
@@ -350,7 +491,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                         ? 'bg-afrikoni-gold text-white shadow-afrikoni-gold' 
                         : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
                       }
-                      ${isSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
+                      ${isSection || isAdminSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
+                      ${isAdminSection ? 'bg-red-50/50 border-red-200' : ''}
                     `}
                   >
                     {isActive && (
@@ -382,7 +524,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                   </Link>
                   
                   {/* Sub-menu items for Risk & Compliance - Admin Only */}
-                  {isSection && isUserAdmin && (location.pathname.startsWith('/dashboard/risk') || location.pathname.startsWith('/dashboard/compliance') || location.pathname.startsWith('/dashboard/kyc') || location.pathname.startsWith('/dashboard/anticorruption') || location.pathname.startsWith('/dashboard/crisis') || location.pathname.startsWith('/dashboard/audit')) && (
+                  {isSection && isUserAdmin && item.path === '/dashboard/risk' && (location.pathname.startsWith('/dashboard/risk') || location.pathname.startsWith('/dashboard/compliance') || location.pathname.startsWith('/dashboard/kyc') || location.pathname.startsWith('/dashboard/anticorruption') || location.pathname.startsWith('/dashboard/crisis') || location.pathname.startsWith('/dashboard/audit')) && (
                     <div className="ml-4 mt-1 space-y-1">
                       <Link
                         to="/dashboard/compliance"
@@ -391,6 +533,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
                             : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
                         }`}
+                        onClick={() => {
+                          if (window.innerWidth < 768) {
+                            setSidebarOpen(false);
+                          }
+                        }}
                       >
                         <FileCheck className="w-3 h-3" />
                         Compliance Center
@@ -402,6 +549,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
                             : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
                         }`}
+                        onClick={() => {
+                          if (window.innerWidth < 768) {
+                            setSidebarOpen(false);
+                          }
+                        }}
                       >
                         <Shield className="w-3 h-3" />
                         KYC/AML Tracker
@@ -413,6 +565,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
                             : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
                         }`}
+                        onClick={() => {
+                          if (window.innerWidth < 768) {
+                            setSidebarOpen(false);
+                          }
+                        }}
                       >
                         <Lock className="w-3 h-3" />
                         Anti-Corruption
@@ -424,6 +581,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
                             : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
                         }`}
+                        onClick={() => {
+                          if (window.innerWidth < 768) {
+                            setSidebarOpen(false);
+                          }
+                        }}
                       >
                         <AlertCircle className="w-3 h-3" />
                         Crisis Management
@@ -435,6 +597,11 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
                             : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
                         }`}
+                        onClick={() => {
+                          if (window.innerWidth < 768) {
+                            setSidebarOpen(false);
+                          }
+                        }}
                       >
                         <FileText className="w-3 h-3" />
                         Audit Logs
@@ -446,15 +613,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
             })}
           </nav>
 
-          {/* Bottom Section - Settings & Help */}
+          {/* Bottom Section - Help Only (Settings is in main menu) */}
           <div className="p-3 border-t border-afrikoni-gold/20 space-y-1">
-            <Link
-              to="/dashboard/settings"
-              className="flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-medium text-afrikoni-sand hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold transition-all"
-            >
-              <Settings className="w-5 h-5" />
-              <span>Settings</span>
-            </Link>
             <Link
               to="/dashboard/help"
               className="flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-medium text-afrikoni-sand hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold transition-all"
@@ -495,8 +655,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                     alertCount={0}
                     userAvatar={
                       <UserAvatar
-                        user={user}
-                        profile={profile}
+                        user={mergedUser}
+                        profile={contextProfile}
                         userMenuOpen={userMenuOpen}
                         setUserMenuOpen={setUserMenuOpen}
                         userMenuButtonRef={userMenuButtonRef}
@@ -510,8 +670,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               // Shared user avatar for all headers
               const userAvatarComponent = (
                 <UserAvatar
-                  user={user}
-                  profile={profile}
+                  user={mergedUser}
+                  profile={contextProfile}
                   userMenuOpen={userMenuOpen}
                   setUserMenuOpen={setUserMenuOpen}
                   userMenuButtonRef={userMenuButtonRef}
@@ -592,7 +752,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-afrikoni-gold/20">
                             <div className="font-semibold text-afrikoni-text-dark text-sm">
-                              {user?.email || profile?.email || user?.user_email || 'user@example.com'}
+                              {mergedUser?.email || contextProfile?.email || mergedUser?.user_email || 'user@example.com'}
                             </div>
                             <div className="text-xs text-afrikoni-text-dark/70 capitalize">
                               {userRole || 'user'}
@@ -607,7 +767,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             Dashboard
                           </Link>
                           <Link 
-                            to={profile?.company_id ? `/business/${profile.company_id}` : '/dashboard/settings'} 
+                            to={contextProfile?.company_id ? `/business/${contextProfile.company_id}` : '/dashboard/settings'} 
                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
@@ -720,19 +880,19 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav userRole={userRole} />
 
-      {/* Dev-only Admin Role Switcher Panel */}
-      {import.meta.env.DEV && isUserAdmin && (
+      {/* Dev-only Admin Role Switcher Panel - Original Position (Bottom Right) */}
+      {shouldShowDevSwitcher && (
         <div className="fixed bottom-20 right-4 z-40">
           <div className="bg-white border border-afrikoni-gold/40 rounded-afrikoni shadow-premium-lg px-3 py-2 text-xs w-64">
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-afrikoni-text-dark">Dev Role Switcher</span>
               <Badge className="bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/40 text-[10px]">
-                Admin · Local only
+                Dev Only
               </Badge>
             </div>
             <div className="flex items-center gap-2 mb-2">
               <select
-                value={devSelectedRole}
+                value={devSelectedRole || 'buyer'}
                 onChange={(e) => setDevSelectedRole(e.target.value)}
                 className="flex-1 border border-afrikoni-gold/30 rounded-afrikoni px-2 py-1 text-xs bg-afrikoni-offwhite focus:outline-none focus:ring-1 focus:ring-afrikoni-gold"
               >
@@ -740,6 +900,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 <option value="seller">Seller</option>
                 <option value="hybrid">Hybrid</option>
                 <option value="logistics">Logistics</option>
+                {isUserAdmin && <option value="admin">Admin</option>}
               </select>
               <Button
                 size="sm"
@@ -755,6 +916,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           </div>
         </div>
       )}
+
 
       {/* Social Proof Footer Widget */}
       <motion.div

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import { ORDER_STATUS, getStatusLabel, getNextStatuses, canTransitionTo } from '@/constants/status';
 import { buildOrderTimeline } from '@/utils/timeline';
@@ -28,6 +29,8 @@ import BuyerProtectionOption from '@/components/upsell/BuyerProtectionOption';
 import { DealMilestoneTracker } from '@/components/orders/DealMilestoneTracker';
 
 export default function OrderDetail() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -37,9 +40,9 @@ export default function OrderDetail() {
   const [shipment, setShipment] = useState(null);
   const [walletEvents, setWalletEvents] = useState([]);
   const [timeline, setTimeline] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isUpdating, setIsUpdating] = useState(false);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
   const [hasReviewed, setHasReviewed] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [existingReview, setExistingReview] = useState(null);
@@ -48,18 +51,30 @@ export default function OrderDetail() {
   const [buyerProtectionEnabled, setBuyerProtectionEnabled] = useState(false);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[OrderDetail] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[OrderDetail] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadOrderData();
-  }, [id]);
+  }, [id, authReady, authLoading, user, profile, role, navigate]);
 
   const loadOrderData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      setCurrentRole(getUserRole(profile || user));
+      
+      // Use auth from context (no duplicate call)
+      setCurrentRole(getUserRole(profile || user) || role || 'buyer');
+      const userCompanyId = profile?.company_id || null;
 
       // Load order with related data
       const { data: orderData, error: orderError } = await supabase
@@ -172,13 +187,12 @@ export default function OrderDetail() {
           await notifyOrderStatusChange(id, newStatus, order.buyer_company_id, order.seller_company_id);
         } catch (err) {
           // Fallback to direct insert
-          const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-          const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-          if (userData?.email) {
+          // Use auth from context (no duplicate call)
+          if (user?.email) {
             const { error: notifError } = await supabase.from('notifications').insert({
               company_id: otherCompanyId,
-              user_email: userData.email,
-              user_id: userData.id,
+              user_email: user.email,
+              user_id: user.id,
               title: 'Order Status Updated',
               message: `Order ${id.slice(0, 8)} status changed to ${newStatus}`,
               type: 'order',
@@ -317,6 +331,11 @@ export default function OrderDetail() {
       setIsUpdating(false);
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading order details..." />;
+  }
 
   if (isLoading) {
     return (

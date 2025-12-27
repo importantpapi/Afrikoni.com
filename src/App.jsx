@@ -9,10 +9,12 @@ import { LanguageProvider } from './i18n/LanguageContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { RoleProvider } from './context/RoleContext';
 import { DashboardRoleProvider } from './context/DashboardRoleContext';
+import { AuthProvider } from './contexts/AuthProvider';
+// Keep UserProvider for backward compatibility during migration
+import { UserProvider } from './contexts/UserContext';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
 import { useBrowserNavigation } from './hooks/useBrowserNavigation';
-import AuthDebug from './components/dev/AuthDebug';
 
 // Lightweight routes - keep as regular imports for faster initial load
 import Home from './pages/index';
@@ -91,6 +93,7 @@ const AdminSupportTickets = lazy(() => import('./pages/dashboard/admin/support-t
 const AdminTrustEngine = lazy(() => import('./pages/dashboard/admin/trust-engine'));
 const AdminGrowthMetrics = lazy(() => import('./pages/dashboard/admin/growth-metrics'));
 const AdminOnboardingTracker = lazy(() => import('./pages/dashboard/admin/onboarding-tracker'));
+const ArchitectureViewer = lazy(() => import('./pages/dashboard/architecture-viewer'));
 const SupportChat = lazy(() => import('./pages/dashboard/support-chat'));
 const UserDisputes = lazy(() => import('./pages/dashboard/disputes'));
 const SubscriptionsPage = lazy(() => import('./pages/dashboard/subscriptions'));
@@ -200,9 +203,10 @@ function App() {
     <LanguageProvider>
       <CurrencyProvider>
         <RoleProvider>
+          <AuthProvider>
+          <UserProvider>
           <ScrollToTop />
           <Toaster position="top-right" />
-          {import.meta.env.DEV && <AuthDebug />}
           <Layout>
           <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -252,7 +256,7 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute requireOnboarding={true}>
+                <ProtectedRoute>
                   <DashboardRoleProvider>
                     <Dashboard />
                   </DashboardRoleProvider>
@@ -262,7 +266,7 @@ function App() {
             <Route
               path="/dashboard/buyer"
               element={
-                <ProtectedRoute requireOnboarding={true}>
+                <ProtectedRoute>
                   <DashboardRoleProvider>
                     <Dashboard />
                   </DashboardRoleProvider>
@@ -272,7 +276,7 @@ function App() {
             <Route
               path="/dashboard/seller"
               element={
-                <ProtectedRoute requireOnboarding={true}>
+                <ProtectedRoute>
                   <DashboardRoleProvider>
                     <Dashboard />
                   </DashboardRoleProvider>
@@ -282,7 +286,7 @@ function App() {
             <Route
               path="/dashboard/hybrid"
               element={
-                <ProtectedRoute requireOnboarding={true}>
+                <ProtectedRoute>
                   <DashboardRoleProvider>
                     <Dashboard />
                   </DashboardRoleProvider>
@@ -292,7 +296,7 @@ function App() {
             <Route
               path="/dashboard/logistics"
               element={
-                <ProtectedRoute requireOnboarding={true}>
+                <ProtectedRoute>
                   <DashboardRoleProvider>
                     <Dashboard />
                   </DashboardRoleProvider>
@@ -324,6 +328,7 @@ function App() {
             <Route path="/dashboard/admin/disputes" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminDisputes /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/support-tickets" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminSupportTickets /></DashboardRoleProvider></ProtectedRoute>} />
             <Route path="/dashboard/admin/onboarding-tracker" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><AdminOnboardingTracker /></DashboardRoleProvider></ProtectedRoute>} />
+            <Route path="/dashboard/admin/architecture" element={<ProtectedRoute requireAdmin={true}><DashboardRoleProvider><ArchitectureViewer /></DashboardRoleProvider></ProtectedRoute>} />
             {/* Dashboard sub-pages (wrapped in DashboardRoleProvider so RequireDashboardRole can use the context) */}
             <Route
               path="/dashboard/orders"
@@ -770,6 +775,8 @@ function App() {
           </Routes>
         </Suspense>
       </Layout>
+          </UserProvider>
+          </AuthProvider>
       </RoleProvider>
       </CurrencyProvider>
     </LanguageProvider>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import { validateProductForm } from '@/utils/validation';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -22,6 +23,7 @@ import { AIDescriptionService } from '@/components/services/AIDescriptionService
 import { autoAssignCategory } from '@/utils/productCategoryIntelligence';
 import { checkProductLimit } from '@/utils/subscriptionLimits';
 import ProductLimitGuard from '@/components/subscription/ProductLimitGuard';
+import { AFRICAN_CURRENCIES, convertCurrency, formatCurrency } from '@/utils/currencyConverter';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -34,20 +36,22 @@ const AFRICAN_COUNTRIES = [
 ];
 
 const SHIPPING_TERMS = ['FOB', 'CIF', 'EXW', 'DDP', 'DAP', 'CFR', 'CPT'];
-const MOQ_UNITS = ['pieces', 'kg', 'tons', 'containers', 'pallets', 'boxes', 'bags', 'units'];
-const SUPPLY_UNITS = ['tons/month', 'containers/month', 'kg/month', 'pieces/month', 'units/month'];
+const MOQ_UNITS = ['pieces', 'kg', 'grams', 'liters', 'tons', 'containers', 'pallets', 'boxes', 'bags', 'units'];
+const SUPPLY_UNITS = ['tons/month', 'containers/month', 'kg/month', 'grams/month', 'liters/month', 'pieces/month', 'units/month'];
 
 export default function ProductForm() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { id: routeProductId } = useParams();
   const [searchParams] = useSearchParams();
   const queryProductId = searchParams.get('id');
   // Prefer route param over query param for better URL structure
   const productId = routeProductId || queryProductId;
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [currentRole, setCurrentRole] = useState('seller');
+  const [currentRole, setCurrentRole] = useState(role || 'seller');
   const [companyId, setCompanyId] = useState(null);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
@@ -139,56 +143,54 @@ export default function ProductForm() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
+      // Use auth from context (no duplicate call)
+      // User already checked in useEffect guard
 
-      const normalizedRole = getUserRole(profile || userData);
+      const normalizedRole = getUserRole(profile || user) || role || 'seller';
       setCurrentRole(normalizedRole);
 
       // Allow all users to create products - no role restriction
       // Role is just for display purposes
 
-      // Use companyId from getCurrentUserAndRole, or create if needed
+      // Use companyId from profile, or create if needed
+      const userCompanyId = profile?.company_id || null;
       if (!userCompanyId) {
         const { getOrCreateCompany } = await import('@/utils/companyHelper');
-        const createdCompanyId = await getOrCreateCompany(supabase, userData);
+        const createdCompanyId = await getOrCreateCompany(supabase, user);
         setCompanyId(createdCompanyId);
+        
+        // If no company exists, create a minimal one automatically
+        if (!createdCompanyId && user?.email) {
+          try {
+            const { data: newCompany, error: companyErr } = await supabase
+              .from('companies')
+              .insert({
+                company_name: profile?.company_name || profile?.full_name || user.email?.split('@')[0] || 'My Company',
+                owner_email: user.email,
+                role: role === 'hybrid' ? 'hybrid' : role || 'seller',
+                country: profile?.country || '',
+                email: user.email
+              })
+              .select('id')
+              .single();
+            
+            if (!companyErr && newCompany) {
+              // Update profile with company_id
+              await supabase
+                .from('profiles')
+                .upsert({
+                  id: user.id,
+                  company_id: newCompany.id
+                }, { onConflict: 'id' });
+              
+              setCompanyId(newCompany.id);
+            }
+          } catch (err) {
+            // Continue anyway - company is optional
+          }
+        }
       } else {
         setCompanyId(userCompanyId);
-      }
-      
-      // If no company exists, create a minimal one automatically
-      if (!userCompanyId && userData.email) {
-        try {
-          const { data: newCompany, error: companyErr } = await supabase
-            .from('companies')
-            .insert({
-              company_name: userData.company_name || userData.full_name || 'My Company',
-              owner_email: userData.email,
-              role: role === 'hybrid' ? 'hybrid' : role,
-              country: userData.country || '',
-              email: userData.email
-            })
-            .select('id')
-            .single();
-          
-          if (!companyErr && newCompany) {
-            // Update profile with company_id
-            await supabase
-              .from('profiles')
-              .upsert({
-                id: userData.id,
-                company_id: newCompany.id
-              }, { onConflict: 'id' });
-            
-            setCompanyId(newCompany.id);
-          }
-        } catch (err) {
-          // Continue anyway - company is optional
-        }
       }
 
       // Load categories
@@ -206,7 +208,8 @@ export default function ProductForm() {
 
       // If editing, load product data
       if (productId) {
-        await loadProductData(productId, userCompanyId);
+        const finalCompanyId = profile?.company_id || companyId;
+        await loadProductData(productId, finalCompanyId);
       } else {
         // If coming from supplier onboarding, pre-fill basic fields
         const fromOnboarding = searchParams.get('fromOnboarding') === '1';
@@ -636,7 +639,11 @@ export default function ProductForm() {
       }
 
       toast.success(publish ? 'Product published successfully!' : 'Product saved as draft');
-      navigate('/dashboard/products');
+      
+      // Small delay to ensure toast is visible before navigation
+      setTimeout(() => {
+        navigate('/dashboard/products');
+      }, 500);
     } catch (error) {
       console.error('Product save error:', error);
       const errorMessage = error.message || 'Failed to save product';
@@ -658,6 +665,11 @@ export default function ProductForm() {
       setIsSaving(false);
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading product form..." />;
+  }
 
   if (isLoading) {
     return (
@@ -925,7 +937,7 @@ export default function ProductForm() {
                         <SelectContent>
                           {MOQ_UNITS.map((unit) => (
                             <SelectItem key={unit} value={unit}>
-                              {unit}
+                              {unit.charAt(0).toUpperCase() + unit.slice(1)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -933,67 +945,69 @@ export default function ProductForm() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="price_min">Minimum Price *</Label>
-                      <Input
-                        id="price_min"
-                        type="number"
-                        value={formData.price_min}
-                        onChange={(e) => handleChange('price_min', e.target.value)}
-                        placeholder="0.00"
-                        className={`mt-1 ${errors.price_min ? 'border-red-500' : ''}`}
-                        min="0"
-                        step="0.01"
-                      />
-                      {errors.price_min && (
-                        <p className="text-red-500 text-sm mt-1">{errors.price_min}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="price_max">Maximum Price</Label>
-                      <Input
-                        id="price_max"
-                        type="number"
-                        value={formData.price_max}
-                        onChange={(e) => handleChange('price_max', e.target.value)}
-                        placeholder="0.00"
-                        className={`mt-1 ${errors.price_max ? 'border-red-500' : ''}`}
-                        min="0"
-                        step="0.01"
-                      />
-                      {errors.price_max && (
-                        <p className="text-red-500 text-sm mt-1">{errors.price_max}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="currency">Currency</Label>
+                  <div>
+                    <Label htmlFor="price_per_unit">Price per Unit *</Label>
+                    <div className="flex gap-2 mt-1">
                       <Select
                         value={formData.currency}
                         onValueChange={(value) => handleChange('currency', value)}
                       >
-                        <SelectTrigger className="mt-1">
+                        <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USD">USD ($)</SelectItem>
-                          <SelectItem value="EUR">EUR (€)</SelectItem>
-                          <SelectItem value="NGN">NGN (₦)</SelectItem>
-                          <SelectItem value="GHS">GHS (₵)</SelectItem>
-                          <SelectItem value="ZAR">ZAR (R)</SelectItem>
+                        <SelectContent className="max-h-[300px] overflow-y-auto">
+                          {AFRICAN_CURRENCIES.map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              {currency.code} ({currency.symbol})
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                      <Input
+                        id="price_per_unit"
+                        type="number"
+                        value={formData.price_min || ''}
+                        onChange={(e) => handleChange('price_min', e.target.value)}
+                        placeholder="0.00"
+                        className={`flex-1 ${errors.price_min ? 'border-red-500' : ''}`}
+                        min="0"
+                        step="0.01"
+                      />
                     </div>
+                    {errors.price_min && (
+                      <p className="text-red-500 text-sm mt-1">{errors.price_min}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="price_max">Maximum Price (Optional)</Label>
+                    <Input
+                      id="price_max"
+                      type="number"
+                      value={formData.price_max}
+                      onChange={(e) => handleChange('price_max', e.target.value)}
+                      placeholder="0.00"
+                      className={`mt-1 ${errors.price_max ? 'border-red-500' : ''}`}
+                      min="0"
+                      step="0.01"
+                    />
+                    {errors.price_max && (
+                      <p className="text-red-500 text-sm mt-1">{errors.price_max}</p>
+                    )}
+                    <p className="text-xs text-afrikoni-deep/70 mt-1">
+                      Leave empty if you have a fixed price per unit
+                    </p>
                   </div>
 
                   {formData.price_min && formData.price_max && (
-                    <div className="p-3 bg-afrikoni-gold/10 rounded-lg">
+                    <div className="p-3 bg-afrikoni-gold/10 rounded-lg space-y-2">
                       <p className="text-sm text-afrikoni-deep">
                         Price Range: <span className="font-semibold text-afrikoni-gold">
-                          {formData.currency} {formData.price_min} – {formData.price_max}
+                          {formatCurrency(parseFloat(formData.price_min) || 0, formData.currency || 'USD')} – {formatCurrency(parseFloat(formData.price_max) || 0, formData.currency || 'USD')}
                         </span>
+                      </p>
+                      <p className="text-xs text-afrikoni-deep/70">
+                        Buyers will see prices converted to their local currency automatically.
                       </p>
                     </div>
                   )}
@@ -1244,7 +1258,27 @@ export default function ProductForm() {
                 {currentStep === 6 ? (
                   <Button
                     variant="primary"
-                    onClick={() => handleSave(true)}
+                    onClick={async () => {
+                      // Validate before publishing
+                      const validationErrors = validateProductForm(formData);
+                      const criticalErrors = Object.keys(validationErrors).filter(key => 
+                        ['title', 'category_id', 'price_min', 'price_max', 'min_order_quantity'].includes(key)
+                      );
+                      
+                      if (criticalErrors.length > 0) {
+                        setErrors(validationErrors);
+                        toast.error('Please fix the required fields before publishing');
+                        // Go back to first step with errors
+                        if (!formData.title || !formData.category_id) {
+                          setCurrentStep(1);
+                        } else if ((!formData.price_min && !formData.price_max) || !formData.min_order_quantity) {
+                          setCurrentStep(2);
+                        }
+                        return;
+                      }
+                      
+                      await handleSave(true);
+                    }}
                     disabled={isSaving}
                   >
                     <Send className="w-4 h-4 mr-2" />

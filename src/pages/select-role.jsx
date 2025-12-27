@@ -11,47 +11,45 @@ import { toast } from 'sonner';
 import { setLastSelectedRole } from '@/lib/supabase-auth-helpers';
 
 export default function SelectRole() {
+  // Use centralized AuthProvider
+  const { user, profile, role: authRole, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const { user, profile, role: normalizedRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        if (!user) {
-          navigate('/login');
-          return;
-        }
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SelectRole] Waiting for auth to be ready...');
+      return;
+    }
 
-        // If not multi-role, just send them to their dashboard
-        if (normalizedRole !== 'hybrid') {
-          const path = getDashboardPathForRole(normalizedRole);
-          navigate(path, { replace: true });
-          return;
-        }
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
 
-        setRole(normalizedRole);
-      } catch (err) {
-        console.error('SelectRole load error:', err);
-        navigate('/dashboard');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Use role from context
+    const normalizedRole = authRole || profile?.role || 'buyer';
 
-    load();
-  }, [navigate]);
+    // If not multi-role, just send them to their dashboard
+    if (normalizedRole !== 'hybrid') {
+      const path = getDashboardPathForRole(normalizedRole);
+      navigate(path, { replace: true });
+      return;
+    }
+  }, [authReady, authLoading, user, profile, authRole, navigate]);
 
   const handleSelect = async (targetRole) => {
+    // GUARD: Check auth
+    if (!authReady || !user) {
+      navigate('/login');
+      return;
+    }
+
     setSaving(true);
     try {
-      const { user, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      // Use auth from context (no duplicate call)
 
       // Persist last selected role preference in dedicated table and profile metadata if possible
       try {
@@ -76,7 +74,8 @@ export default function SelectRole() {
     }
   };
 
-  if (loading) {
+  // Show loading while auth is initializing
+  if (!authReady || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />

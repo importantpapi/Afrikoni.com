@@ -14,8 +14,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Package, Truck, Store } from 'lucide-react';
@@ -24,56 +25,53 @@ import { Logo } from '@/components/ui/Logo';
 import { Loader2 } from 'lucide-react';
 
 export default function ChooseService() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentRole, setCurrentRole] = useState(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { user, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        
-        if (!user) {
-          navigate('/login', { replace: true });
-          return;
-        }
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[ChooseService] Waiting for auth to be ready...');
+      return;
+    }
 
-        // If user already has a role, redirect to their dashboard
-        if (profile?.role && ['buyer', 'seller', 'hybrid', 'logistics'].includes(profile.role)) {
-          const dashboardPath = `/${profile.role}/dashboard`;
-          navigate(dashboardPath, { replace: true });
-          return;
-        }
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login', { replace: true });
+      return;
+    }
 
-        setCurrentRole(profile?.role || null);
-      } catch (error) {
-        console.error('ChooseService auth check error:', error);
-        navigate('/login', { replace: true });
-      } finally {
-        setLoading(false);
-      }
-    };
+    // If user already has a role, redirect to their dashboard
+    const userRole = role || profile?.role;
+    if (userRole && ['buyer', 'seller', 'hybrid', 'logistics'].includes(userRole)) {
+      const dashboardPath = `/dashboard/${userRole}`;
+      navigate(dashboardPath, { replace: true });
+      return;
+    }
 
-    checkAuth();
-  }, [navigate]);
+    setCurrentRole(userRole || null);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
-  const handleSelectService = async (role) => {
+  const handleSelectService = async (selectedRole) => {
     if (saving) return;
+
+    // GUARD: Check auth
+    if (!authReady || !user) {
+      navigate('/login', { replace: true });
+      return;
+    }
 
     setSaving(true);
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!user) {
-        navigate('/login', { replace: true });
-        return;
-      }
+      // Use auth from context (no duplicate call)
 
       // Save role to profiles.role (single source of truth)
       const { error } = await supabase
         .from('profiles')
-        .update({ role })
+        .update({ role: selectedRole })
         .eq('id', user.id);
 
       if (error) {
@@ -92,11 +90,10 @@ export default function ChooseService() {
     }
   };
 
-  if (loading) {
+  // Show loading while auth is initializing
+  if (!authReady || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-        <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold" />
-      </div>
+      <SpinnerWithTimeout message="Loading service selection..." />
     );
   }
 

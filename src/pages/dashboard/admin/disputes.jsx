@@ -16,8 +16,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { 
   getEscrowPaymentsByCompany,
   updateEscrowStatus,
@@ -30,9 +31,11 @@ import { isAdmin } from '@/utils/permissions';
 import { logAdminEvent, logDisputeEvent } from '@/utils/auditLogger';
 
 export default function AdminDisputes() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [escrowPayments, setEscrowPayments] = useState([]);
   const [disputes, setDisputes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDispute, setSelectedDispute] = useState(null);
   const [resolutionNotes, setResolutionNotes] = useState('');
@@ -40,24 +43,27 @@ export default function AdminDisputes() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadData();
-  }, [statusFilter]);
-
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate('/dashboard');
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminDisputes] Waiting for auth to be ready...');
+      return;
     }
-  }, []);
+
+    // GUARD: Check admin access
+    if (!user || !isAdmin(user)) {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Now safe to load data
+    loadData();
+  }, [statusFilter, authReady, authLoading, user, profile, role, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!user || !isAdmin(user)) {
-        navigate('/dashboard');
-        return;
-      }
+      // Use auth from context (no duplicate call)
 
       // Load all escrow payments
       const { data: allEscrows } = await supabase
@@ -101,7 +107,7 @@ export default function AdminDisputes() {
 
   const handleEscrowAction = async (escrowId, action, amount = null) => {
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
       
       if (action === 'release') {
         await updateEscrowStatus(escrowId, 'released', amount);
@@ -145,7 +151,7 @@ export default function AdminDisputes() {
     }
 
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
       
       const { error } = await supabase
         .from('disputes')
@@ -192,13 +198,13 @@ export default function AdminDisputes() {
       }
 
       // Log admin dispute resolution to audit log
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
       await logAdminEvent({
         action: 'dispute_resolved',
         entity_type: 'dispute',
         entity_id: selectedDispute.id,
-        user: userData,
-        profile,
+        user: user,
+        profile: profile,
         metadata: {
           resolution_action: resolutionAction,
           order_id: selectedDispute.order_id,

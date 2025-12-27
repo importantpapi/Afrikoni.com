@@ -8,32 +8,16 @@ import { motion } from 'framer-motion';
 import { Truck, MapPin, Package, Globe, CheckCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 
 export default function LogisticsPlatform() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { user: userData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setUserRole(role);
-    } catch (error) {
-      // User not authenticated
-      setUser(null);
-      setUserRole(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
+  // Use role from auth context
+  const userRole = role || profile?.role || null;
 
   const handleJoinLogistics = () => {
     // Always go to logistics partner onboarding page, not signup

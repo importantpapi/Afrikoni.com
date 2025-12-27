@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 
 /**
- * Auth Debug Panel - Dev Only
+ * Auth Debug Panel - Dev Only (For Youba Only)
  * 
  * Shows real-time auth state for debugging:
  * - Session existence
@@ -10,16 +10,20 @@ import { supabase } from '@/api/supabaseClient';
  * - Session expiration
  * - Auth state change events
  * 
- * Only renders in development mode (import.meta.env.DEV)
+ * Only renders for specific user email: youba.thiam@icloud.com
  */
 export default function AuthDebug() {
   const [session, setSession] = useState(null);
   const [authEvent, setAuthEvent] = useState(null);
+  const [shouldShow, setShouldShow] = useState(false);
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session and check if we should show debug panel
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
+      // Show only for youba.thiam@icloud.com
+      const userEmail = data.session?.user?.email?.toLowerCase();
+      setShouldShow(userEmail === 'youba.thiam@icloud.com');
     });
 
     // Listen for auth state changes
@@ -28,6 +32,9 @@ export default function AuthDebug() {
         console.log('[AUTH EVENT]', event, session);
         setAuthEvent(event);
         setSession(session);
+        // Update visibility on auth changes
+        const userEmail = session?.user?.email?.toLowerCase();
+        setShouldShow(userEmail === 'youba.thiam@icloud.com');
       }
     );
 
@@ -36,8 +43,8 @@ export default function AuthDebug() {
     };
   }, []);
 
-  // Don't render in production
-  if (!import.meta.env.DEV) {
+  // Don't render if not authorized user
+  if (!shouldShow) {
     return null;
   }
 

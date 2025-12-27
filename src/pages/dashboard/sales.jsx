@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,32 +16,42 @@ import EmptyState from '@/components/ui/EmptyState';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function DashboardSalesInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentRole, setCurrentRole] = useState('seller');
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [currentRole, setCurrentRole] = useState(role || 'seller');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardSales] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardSales] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadSales();
-  }, [statusFilter]);
+  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
 
   const loadSales = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      // Get or create company
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      setIsLoading(true);
       
-      const role = userRole || userData.role || userData.user_role || 'seller';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+      // Use auth from context (no duplicate call)
+      const normalizedRole = role || 'seller';
+      setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
+      
+      const companyId = profile?.company_id || null;
 
       // Load orders where user is the seller
       if (companyId) {
@@ -93,6 +105,11 @@ function DashboardSalesInner() {
   const pendingRevenue = orders
     .filter(o => o.payment_status === 'pending')
     .reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading sales..." />;
+  }
 
   if (isLoading) {
     return (

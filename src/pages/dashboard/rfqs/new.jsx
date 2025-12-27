@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,11 +32,12 @@ const AFRICAN_COUNTRIES = [
 const UNITS = ['pieces', 'kg', 'tons', 'containers', 'pallets', 'boxes', 'bags', 'units', 'liters', 'meters'];
 
 export default function CreateRFQ() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -51,21 +54,30 @@ export default function CreateRFQ() {
   });
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[CreateRFQ] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[CreateRFQ] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      const role = userRole || userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
-      setUser(userData);
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
+      const normalizedRole = role || 'buyer';
+      setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
 
       const { data: categoriesData } = await supabase
         .from('categories')
@@ -79,14 +91,32 @@ export default function CreateRFQ() {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      e.target.value = '';
+      return;
+    }
+
     try {
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files');
+      // Generate unique filename with proper sanitization
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `rfq-attachments/${timestamp}-${randomStr}-${cleanFileName}`;
+
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
       setFormData(prev => ({ ...prev, attachments: [...prev.attachments, file_url] }));
       toast.success('File uploaded successfully');
     } catch (error) {
-      toast.error('Failed to upload file');
+      console.error('File upload error:', error);
+      toast.error(`Failed to upload file: ${error.message || 'Please try again'}`);
+    } finally {
+      // Reset file input
+      e.target.value = '';
     }
   };
 
@@ -199,6 +229,11 @@ export default function CreateRFQ() {
       setIsGenerating(false);
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading RFQ form..." />;
+  }
 
   return (
     <DashboardLayout currentRole={currentRole}>

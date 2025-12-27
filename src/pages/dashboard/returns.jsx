@@ -13,8 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getReturns, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
@@ -22,21 +23,38 @@ import { CardSkeleton } from '@/components/ui/skeletons';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function ReturnsDashboardInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [returns, setReturns] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [statusFilter, setStatusFilter] = useState('all');
   const [companyId, setCompanyId] = useState(null);
-  const [userRole, setUserRole] = useState('buyer');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[ReturnsDashboard] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[ReturnsDashboard] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, [statusFilter]);
+  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      // Use auth from context (no duplicate call)
+      const userCompanyId = profile?.company_id || null;
       
       if (!user || !userCompanyId) {
         navigate('/login');
@@ -44,7 +62,6 @@ function ReturnsDashboardInner() {
       }
 
       setCompanyId(userCompanyId);
-      setUserRole(role);
 
       // Try to load returns - table may not exist yet
       try {
@@ -93,6 +110,11 @@ function ReturnsDashboardInner() {
     if (status === 'requested' || status === 'approved') return <Clock className="w-4 h-4" />;
     return <AlertCircle className="w-4 h-4" />;
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading returns..." />;
+  }
 
   if (isLoading) {
     return (

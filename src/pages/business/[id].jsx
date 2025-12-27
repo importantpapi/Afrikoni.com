@@ -27,6 +27,8 @@ import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 
 export default function BusinessProfile() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [business, setBusiness] = useState(null);
@@ -35,7 +37,6 @@ export default function BusinessProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentUser, setCurrentUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
   const productsPerPage = 12;
@@ -47,24 +48,17 @@ export default function BusinessProfile() {
       return;
     }
     loadBusinessData();
-    // Check ownership separately - don't block page load
-    checkOwnership().catch(() => {
-      // Silent fail - ownership check is optional
-    });
   }, [id]);
 
-  const checkOwnership = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setCurrentUser(user);
+  useEffect(() => {
+    // Check ownership using auth from context
+    if (authReady && user && profile) {
+      const companyId = profile?.company_id || null;
       if (companyId === id) {
         setIsOwner(true);
       }
-    } catch (error) {
-      // Silent fail - not critical
     }
-  };
+  }, [authReady, user, profile, id]);
 
   const loadBusinessData = async () => {
     try {

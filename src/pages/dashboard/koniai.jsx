@@ -31,10 +31,11 @@ import KoniAIHero from '@/components/koni/KoniAIHero';
 import { useTranslation } from 'react-i18next';
 
 export default function KoniAIHub() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -69,20 +70,25 @@ export default function KoniAIHub() {
   const hasApiKey = !!import.meta.env.VITE_OPENAI_API_KEY;
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[KoniAIHub] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, profile, navigate]);
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      setUser(userData);
+      // Use auth from context (no duplicate call)
 
       // Load company
       if (profile?.company_id) {

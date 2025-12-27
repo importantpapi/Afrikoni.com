@@ -98,6 +98,137 @@ export const supabaseHelpers = {
       return data;
     },
     
+    uploadFile: async (file, bucket, path, options = {}) => {
+      // Validate file
+      if (!file) {
+        throw new Error('No file provided');
+      }
+
+      if (!bucket || !path) {
+        throw new Error('Bucket and path are required');
+      }
+
+      // Validate Supabase client is initialized
+      if (!supabase) {
+        throw new Error('Supabase client not initialized. Check environment variables.');
+      }
+
+      // Default options
+      const uploadOptions = {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || 'application/octet-stream',
+        ...options
+      };
+
+      try {
+        // Upload file
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .upload(path, file, uploadOptions);
+
+        if (error) {
+          console.error('[Storage Upload Error]', {
+            bucket,
+            path,
+            error: error.message,
+            code: error.statusCode,
+            details: error
+          });
+          
+          // Provide user-friendly error messages
+          if (error.message?.includes('Bucket not found')) {
+            throw new Error(`Storage bucket "${bucket}" not found. Please contact support.`);
+          } else if (error.message?.includes('The resource already exists')) {
+            // Try with upsert if file exists
+            const { data: upsertData, error: upsertError } = await supabase.storage
+              .from(bucket)
+              .update(path, file, { ...uploadOptions, upsert: true });
+            
+            if (upsertError) {
+              throw new Error(`File already exists and update failed: ${upsertError.message}`);
+            }
+            
+            // Get URL for updated file
+            const { data: { publicUrl } } = supabase.storage
+              .from(bucket)
+              .getPublicUrl(upsertData.path);
+            
+            const fileUrl = publicUrl || `${supabaseUrl}/storage/v1/object/public/${bucket}/${upsertData.path}`;
+            
+            return {
+              file_url: fileUrl,
+              path: upsertData.path,
+              id: upsertData.id
+            };
+          } else if (error.message?.includes('JWT')) {
+            throw new Error('Authentication required. Please log in and try again.');
+          } else if (error.message?.includes('permission') || error.message?.includes('denied')) {
+            throw new Error('Permission denied. You may not have access to upload files.');
+          } else {
+            throw new Error(`Upload failed: ${error.message || 'Unknown error'}`);
+          }
+        }
+
+        if (!data || !data.path) {
+          throw new Error('Upload succeeded but no data returned');
+        }
+
+        // Get public URL - try multiple methods
+        let fileUrl = null;
+        
+        // Method 1: Use getPublicUrl (preferred)
+        const { data: urlData, error: urlError } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(data.path);
+
+        if (!urlError && urlData?.publicUrl) {
+          fileUrl = urlData.publicUrl;
+        }
+
+        // Method 2: Construct manually if getPublicUrl fails
+        if (!fileUrl && supabaseUrl) {
+          fileUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${data.path}`;
+        }
+
+        if (!fileUrl) {
+          console.error('[Storage URL Error]', {
+            bucket,
+            path: data.path,
+            urlData,
+            urlError,
+            supabaseUrl
+          });
+          throw new Error('Failed to generate file URL. Upload succeeded but URL cannot be generated.');
+        }
+
+        console.log('[Storage Upload Success]', {
+          bucket,
+          path: data.path,
+          url: fileUrl,
+          size: file.size,
+          type: file.type
+        });
+
+        return {
+          file_url: fileUrl,
+          path: data.path,
+          id: data.id
+        };
+      } catch (error) {
+        console.error('[Storage Upload Exception]', {
+          bucket,
+          path,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          error: error.message,
+          stack: error.stack
+        });
+        throw error;
+      }
+    },
+    
     download: async (bucket, path) => {
       const { data, error } = await supabase.storage.from(bucket).download(path);
       if (error) throw error;

@@ -15,10 +15,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TARGET_COUNTRY, COUNTRY_CONFIG } from '@/config/countryConfig';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { isAdmin } from '@/utils/permissions';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 
 const FUNNEL_STAGES = [
@@ -29,30 +30,38 @@ const FUNNEL_STAGES = [
 ];
 
 export default function OnboardingTracker() {
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Local loading state
   const [selectedCountry, setSelectedCountry] = useState(TARGET_COUNTRY);
   const [funnelData, setFunnelData] = useState(null);
   const [stuckUsers, setStuckUsers] = useState([]);
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[OnboardingTracker] Waiting for auth to be ready...');
+      return;
+    }
 
-  useEffect(() => {
-    if (hasAccess) {
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setLoading(false);
+    
+    if (admin) {
       loadFunnelData();
       loadStuckUsers();
     }
-  }, [hasAccess, selectedCountry]);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
+  }, [authReady, authLoading, user, profile, role, selectedCountry]);
       setHasAccess(false);
     } finally {
       setLoading(false);
@@ -183,6 +192,11 @@ export default function OnboardingTracker() {
       toast.error('Failed to send reminder');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading onboarding tracker..." />;
+  }
 
   if (loading) {
     return (

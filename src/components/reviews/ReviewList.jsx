@@ -4,27 +4,31 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 import ReviewForm from './ReviewForm';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller, product, supplier, onUpdate }) {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [user, setUser] = useState(null);
-  const [userCompanyId, setUserCompanyId] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [existingReview, setExistingReview] = useState(null);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      return;
+    }
+
+    // Now safe to check review
     loadUserAndCheckReview();
-  }, [product?.id, userCompanyId]);
+  }, [product?.id, profile?.company_id, authReady, authLoading]);
 
   const loadUserAndCheckReview = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setUserCompanyId(companyId);
+      const companyId = profile?.company_id || null;
 
       if (companyId && product?.id) {
         // Check if user has already reviewed this product

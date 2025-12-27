@@ -1,33 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { Button } from './button';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { toast } from 'sonner';
 
 export default function SaveButton({ itemId, itemType, className = '' }) {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      return;
+    }
+
+    // Now safe to check saved status
     checkSavedStatus();
-  }, [itemId, itemType]);
+  }, [itemId, itemType, authReady, authLoading, user]);
 
   const checkSavedStatus = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
+      if (!user) {
         setIsSaved(false);
         return;
       }
       
-      setUserId(userData.id);
-      
       const { data, error } = await supabase
         .from('saved_items')
         .select('id')
-        .eq('user_id', userData.id)
+        .eq('user_id', user.id)
         .eq('item_id', itemId)
         .eq('item_type', itemType)
         .maybeSingle();
@@ -48,7 +52,7 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!userId) {
+    if (!user) {
       toast.error('Please log in to save items');
       return;
     }
@@ -60,7 +64,7 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
         const { error, count } = await supabase
           .from('saved_items')
           .delete()
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .eq('item_id', itemId)
           .eq('item_type', itemType)
           .select('id', { count: 'exact' });
@@ -73,7 +77,7 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
         const { data: existing } = await supabase
           .from('saved_items')
           .select('id')
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .eq('item_id', itemId)
           .eq('item_type', itemType)
           .maybeSingle();
@@ -88,7 +92,7 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
         const { error } = await supabase
           .from('saved_items')
           .insert({
-            user_id: userId,
+            user_id: user.id,
             item_id: itemId,
             item_type: itemType
           })

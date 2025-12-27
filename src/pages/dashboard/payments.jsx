@@ -13,8 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import {
   getWalletAccount,
   getWalletTransactions,
@@ -27,23 +28,40 @@ import { CardSkeleton } from '@/components/ui/skeletons';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function PaymentsDashboardInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [escrowPayments, setEscrowPayments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [activeTab, setActiveTab] = useState('wallet');
   const [companyId, setCompanyId] = useState(null);
-  const [userRole, setUserRole] = useState('buyer');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[PaymentsDashboard] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[PaymentsDashboard] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      // Use auth from context (no duplicate call)
+      const userCompanyId = profile?.company_id || null;
       
       if (!user || !userCompanyId) {
         navigate('/login');
@@ -51,7 +69,6 @@ function PaymentsDashboardInner() {
       }
 
       setCompanyId(userCompanyId);
-      setUserRole(role);
 
       // Try to load payment data - tables may not exist yet
       try {
@@ -104,6 +121,11 @@ function PaymentsDashboardInner() {
     if (status === 'failed' || status === 'refunded') return <XCircle className="w-4 h-4" />;
     return null;
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading payments..." />;
+  }
 
   if (isLoading) {
     return (

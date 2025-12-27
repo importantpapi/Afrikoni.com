@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip } from '@/components/ui/tooltip';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { notifyNewMessage } from '@/services/notificationService';
@@ -29,7 +31,7 @@ export default function MessagesPremium() {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
+  // Use user from auth context (no local state needed)
   const [companyId, setCompanyId] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -312,17 +314,10 @@ export default function MessagesPremium() {
   const loadUserAndConversations = async () => {
     try {
       setIsLoading(true);
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      setCurrentUser(userData);
-
+      
+      // Use auth from context (no duplicate call)
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const userCompanyId = await getOrCreateCompany(supabase, userData);
+      const userCompanyId = profile?.company_id || await getOrCreateCompany(supabase, user);
       setCompanyId(userCompanyId);
 
       // Load conversations
@@ -532,23 +527,73 @@ export default function MessagesPremium() {
     
     setUploadingFile(true);
     try {
+      // Use Promise.allSettled to handle individual failures
       const uploadPromises = validFiles.map(async (file) => {
-        const { file_url } = await supabaseHelpers.storage.uploadFile(
-          file,
-          'messages',
-          `${selectedConversation}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-        );
-        return {
-          url: file_url,
-          name: file.name,
-          type: file.type,
-          size: file.size
-        };
+        try {
+          const timestamp = Date.now();
+          const randomStr = Math.random().toString(36).substring(2, 9);
+          const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const fileName = `${selectedConversation}/${timestamp}-${randomStr}-${cleanFileName}`;
+
+          const { file_url } = await supabaseHelpers.storage.uploadFile(
+            file,
+            'messages',
+            fileName
+          );
+          return {
+            success: true,
+            url: file_url,
+            name: file.name,
+            type: file.type,
+            size: file.size
+          };
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error);
+          return {
+            success: false,
+            name: file.name,
+            error: error.message
+          };
+        }
       });
       
-      const uploadedFiles = await Promise.all(uploadPromises);
-      setAttachments(prev => [...prev, ...uploadedFiles]);
-      toast.success(t('messages.filesAttached', { count: uploadedFiles.length }) || `${uploadedFiles.length} file(s) attached`);
+      const results = await Promise.allSettled(uploadPromises);
+      
+      // Process results
+      const uploadedFiles = [];
+      const failedFiles = [];
+
+      results.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value.success) {
+          uploadedFiles.push({
+            url: result.value.url,
+            name: result.value.name,
+            type: result.value.type,
+            size: result.value.size
+          });
+        } else {
+          const fileName = result.status === 'fulfilled' 
+            ? result.value.name 
+            : 'unknown';
+          failedFiles.push(fileName);
+        }
+      });
+
+      // Update state with successful uploads
+      if (uploadedFiles.length > 0) {
+        setAttachments(prev => [...prev, ...uploadedFiles]);
+        toast.success(t('messages.filesAttached', { count: uploadedFiles.length }) || `${uploadedFiles.length} file(s) attached`);
+      }
+
+      // Show errors for failed uploads
+      if (failedFiles.length > 0) {
+        toast.error(`Failed to upload ${failedFiles.length} file(s): ${failedFiles.join(', ')}`);
+      }
+
+      // If all failed, show generic error
+      if (uploadedFiles.length === 0 && failedFiles.length > 0) {
+        toast.error('Failed to upload files. Please try again.');
+      }
     } catch (error) {
       toast.error(t('messages.uploadError') || 'Failed to upload file(s)');
       console.error('File upload error:', error);
@@ -623,7 +668,7 @@ export default function MessagesPremium() {
           conversation_id: selectedConversation,
           sender_company_id: companyId,
           receiver_company_id: receiverCompanyId,
-          sender_user_email: currentUser.email,
+          sender_user_email: user?.email || '',
           content: newMessage.trim() || (attachments.length > 0 ? `Sent ${attachments.length} file(s)` : ''),
           payload: payload,
           read: false

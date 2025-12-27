@@ -10,34 +10,38 @@ import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 
 export default function RFQManagement() {
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [rfqs, setRfqs] = useState([]);
   const [activeTab, setActiveTab] = useState('active');
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadData();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RFQManagement] Waiting for auth to be ready...');
+      return;
+    }
 
-  useEffect(() => {
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate(createPageUrl('Login'));
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, [activeTab]);
+  }, [authReady, authLoading, user, navigate, activeTab]);
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-
-      if (!userData) {
-        navigate(createPageUrl('Login'));
-        return;
-      }
+      setIsLoading(true);
+      // Use auth from context (no duplicate call)
 
       // Get or create company
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const companyId = profile?.company_id || await getOrCreateCompany(supabase, user);
 
       // Company is optional - continue even without it
       // If no company, just show empty state

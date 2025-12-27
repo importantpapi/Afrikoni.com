@@ -1,30 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, ShoppingBag, Package, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '../utils';
 
 export default function Analytics() {
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
     totalProducts: 0,
     totalCompanies: 0
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[Analytics] Waiting for auth to be ready...');
+      return;
+    }
+
+    // Now safe to load analytics
     loadAnalytics();
-  }, []);
+  }, [authReady, authLoading]);
 
   const loadAnalytics = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
+      setIsLoading(true);
+      // Use auth from context (no duplicate call)
 
       const [ordersRes, productsRes, companiesRes, categoriesRes] = await Promise.all([
         supabase.from('orders').select('*'),
@@ -60,6 +69,11 @@ export default function Analytics() {
       setIsLoading(false);
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading analytics..." />;
+  }
 
   if (isLoading) {
     return (

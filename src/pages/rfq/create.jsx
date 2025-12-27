@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,10 +40,11 @@ const ORDER_VALUE_RANGES = [
 const BUYER_ROLES = ['Procurement', 'Founder', 'Buyer', 'Other'];
 
 export default function CreateRFQ() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
-  const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,20 +77,27 @@ export default function CreateRFQ() {
   });
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[CreateRFQ] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/signup?redirect=/rfq/create');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, navigate]);
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!userData) {
-        navigate('/signup?redirect=/rfq/create');
-        return;
-      }
-
-      setUser(userData);
+      setIsLoading(true);
+      // Use auth from context (no duplicate call)
+      const companyId = profile?.company_id || null;
       
       if (companyId) {
         const { data: companyData } = await supabase

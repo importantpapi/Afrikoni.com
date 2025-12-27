@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,11 +61,12 @@ const STEPS = [
 ];
 
 export default function SupplierOnboarding() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [completedSteps, setCompletedSteps] = useState([]);
   
@@ -108,23 +110,35 @@ export default function SupplierOnboarding() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SupplierOnboarding] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Use company_id from profile
+    const userCompanyId = profile?.company_id || null;
+    setCompanyId(userCompanyId);
+
+    // Now safe to load data
     checkUserAndLoadData();
-  }, []);
+  }, [authReady, authLoading, user, profile, navigate]);
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    if (authReady) {
+      loadCategories();
+    }
+  }, [authReady]);
 
   const checkUserAndLoadData = async () => {
     try {
-      const { user: userData, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      setUser(userData);
-      setCompanyId(userCompanyId);
+      setIsLoading(true);
 
       // Load existing company data if available
       if (userCompanyId) {
@@ -283,26 +297,38 @@ export default function SupplierOnboarding() {
 
   const handleFileUpload = async (field, file) => {
     if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      toast.error('Please upload an image or PDF file');
+      return;
+    }
+
+    // Validate file size
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
     
     try {
+      const { supabaseHelpers } = await import('@/api/supabaseClient');
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${field}_${Date.now()}.${fileExt}`;
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `${user.id}/${field}_${timestamp}-${randomStr}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
-        .from('verification-documents')
-        .upload(fileName, file);
+      const { file_url } = await supabaseHelpers.storage.uploadFile(
+        file,
+        'files', // Use 'files' bucket for consistency
+        `verification-documents/${fileName}`
+      );
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('verification-documents')
-        .getPublicUrl(fileName);
-
-      handleChange(field, publicUrl);
+      handleChange(field, file_url);
       toast.success('Document uploaded successfully');
     } catch (error) {
-      toast.error('Failed to upload document');
       console.error('Upload error:', error);
+      toast.error(`Failed to upload document: ${error.message || 'Please try again'}`);
     }
   };
 

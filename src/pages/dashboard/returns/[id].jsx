@@ -11,34 +11,44 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getReturn, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
 import { CardSkeleton } from '@/components/ui/skeletons';
 
 export default function ReturnDetailPage() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [returnItem, setReturnItem] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState('buyer');
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[ReturnDetailPage] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[ReturnDetailPage] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadReturn();
-  }, [id]);
+  }, [id, authReady, authLoading, user, profile, role, navigate]);
 
   const loadReturn = async () => {
     try {
       setIsLoading(true);
-      const { user, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      setUserRole(role);
+      // Use auth from context (no duplicate call)
 
       const returnData = await getReturn(id);
       setReturnItem(returnData);
@@ -61,6 +71,11 @@ export default function ReturnDetailPage() {
       toast.error('Failed to update return status');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading return details..." />;
+  }
 
   if (isLoading) {
     return (

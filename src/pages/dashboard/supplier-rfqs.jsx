@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole, canViewSellerFeatures } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,35 +20,47 @@ import EmptyState from '@/components/ui/EmptyState';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function SupplierRFQsInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('matched');
   const [companyId, setCompanyId] = useState(null);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SupplierRFQs] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Check seller access
+    const normalizedRole = getUserRole(profile || user) || role || 'buyer';
+    if (!canViewSellerFeatures(normalizedRole)) {
+      toast.error('Supplier access required');
+      navigate('/dashboard');
+      return;
+    }
+
+    // Use company_id from profile
+    const userCompanyId = profile?.company_id || null;
+    setCompanyId(userCompanyId);
+
+    // Now safe to load data
     loadRFQs();
-  }, [statusFilter]);
+  }, [statusFilter, authReady, authLoading, user, profile, role, navigate]);
 
   const loadRFQs = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      const normalizedRole = getUserRole(profile || user);
-      if (!canViewSellerFeatures(normalizedRole)) {
-        toast.error('Supplier access required');
-        navigate('/dashboard');
-        return;
-      }
-
-      setCompanyId(userCompanyId);
 
       // Load RFQs that are matched AND supplier is in shortlist
       // Note: Buyer identity is NOT shown - only RFQ details

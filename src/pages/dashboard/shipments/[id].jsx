@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import { SHIPMENT_STATUS, getStatusLabel, getNextStatuses } from '@/constants/status';
 import { buildShipmentTimeline } from '@/utils/timeline';
@@ -21,28 +22,41 @@ import RealTimeTracking from '@/components/logistics/RealTimeTracking';
 import CustomsClearance from '@/components/logistics/CustomsClearance';
 
 export default function ShipmentDetail() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [shipment, setShipment] = useState(null);
   const [order, setOrder] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isUpdating, setIsUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState('');
-  const [currentRole, setCurrentRole] = useState('logistics');
+  const [currentRole, setCurrentRole] = useState(role || 'logistics');
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[ShipmentDetail] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[ShipmentDetail] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadShipmentData();
-  }, [id]);
+  }, [id, authReady, authLoading, user, profile, role, navigate]);
 
   const loadShipmentData = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      setCurrentRole(getUserRole(profile || user));
+      
+      // Use auth from context (no duplicate call)
+      setCurrentRole(getUserRole(profile || user) || role || 'logistics');
 
       // Load shipment with order and related data
       const { data: shipmentData, error: shipmentError } = await supabase

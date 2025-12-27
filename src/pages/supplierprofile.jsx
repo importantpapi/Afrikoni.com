@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,29 +17,27 @@ import OptimizedImage from '@/components/OptimizedImage';
 import { isValidUUID } from '@/utils/security';
 
 export default function SupplierProfile() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [supplier, setSupplier] = useState(null);
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const { trackPageView } = useAnalytics();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadData();
-    loadUser();
-    trackPageView('Supplier Profile');
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-    } catch (error) {
-      setUser(null);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SupplierProfile] Waiting for auth to be ready...');
+      return;
     }
-  };
+
+    // Now safe to load data (public page, user optional)
+    loadData();
+    trackPageView('Supplier Profile');
+  }, [authReady, authLoading]);
 
   const loadData = async () => {
     const urlParams = new URLSearchParams(window.location.search);

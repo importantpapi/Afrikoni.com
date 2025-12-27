@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { 
   getEscrowPayment, 
   getEscrowEvents,
@@ -26,34 +27,44 @@ import { isAdmin } from '@/utils/permissions';
 import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 export default function EscrowDetailPage() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [escrow, setEscrow] = useState(null);
   const [events, setEvents] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isUserAdmin, setIsUserAdmin] = useState(false);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[EscrowDetailPage] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[EscrowDetailPage] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadEscrow();
-  }, [orderId]);
+  }, [orderId, authReady, authLoading, user, profile, role, navigate]);
 
   const loadEscrow = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      setUser(userData);
-      setIsUserAdmin(isAdmin(userData));
+      // Use auth from context (no duplicate call)
+      setIsUserAdmin(isAdmin(user));
+      const companyId = profile?.company_id || null;
 
       const escrowData = await getEscrowPayment(orderId);
       // SAFETY ASSERTION: Ensure escrow is related to the current company (if available)
-      if (escrowData && companyId && !isAdmin(userData)) {
+      if (escrowData && companyId && !isUserAdmin) {
         await assertRowOwnedByCompany(escrowData, companyId, 'EscrowDetailPage:escrow');
       }
 

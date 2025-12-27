@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -12,10 +12,11 @@ import { isValidUUID } from '@/utils/security';
 import { logPaymentEvent } from '@/utils/auditLogger';
 
 export default function PaymentGateway() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [order, setOrder] = useState(null);
   const [selectedMethod, setSelectedMethod] = useState('card');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const flutterwavePublicKey = import.meta.env.VITE_FLW_PUBLIC_KEY;
 
@@ -42,30 +43,21 @@ export default function PaymentGateway() {
   };
 
   useEffect(() => {
-    loadOrder();
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (userData) {
-        // Get company_id from profile or create company
-        const cid = await getOrCreateCompany(supabase, profile || userData);
-        setUser({
-          ...userData,
-          ...profile,
-          company_id: cid || profile?.company_id || userData.company_id
-        });
-      }
-    } catch (error) {
-      console.error('Error loading user:', error);
-      setUser(null);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[PaymentGateway] Waiting for auth to be ready...');
+      return;
     }
-  };
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load order
+    loadOrder();
+  }, [authReady, authLoading, user, navigate]);
 
   const loadOrder = async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -119,7 +111,8 @@ export default function PaymentGateway() {
     }
 
     // Security: Verify user is the buyer of this order
-    if (!user || !user.company_id || user.company_id !== order.buyer_company_id) {
+    const userCompanyId = profile?.company_id || user?.company_id || null;
+    if (!user || !userCompanyId || userCompanyId !== order.buyer_company_id) {
       toast.error('Unauthorized: Only the order buyer can process payment');
       return;
     }
@@ -152,7 +145,7 @@ export default function PaymentGateway() {
         },
         meta: {
           order_id: order.id,
-          buyer_company_id: user.company_id,
+          buyer_company_id: profile?.company_id || user?.company_id,
         },
         customizations: {
           title: 'Afrikoni Trade Shield',
@@ -226,7 +219,7 @@ export default function PaymentGateway() {
 
               await supabase.from('notifications').insert({
                 user_email: user.email,
-                company_id: user.company_id,
+                company_id: profile?.company_id || user?.company_id,
                 title: 'Payment Confirmed',
                 message: `Payment of $${order.total_amount} confirmed for Order #${order.id.slice(0, 8)}`,
                 type: 'payment',
@@ -235,17 +228,16 @@ export default function PaymentGateway() {
               });
 
               // Log payment success to audit log
-              const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-              const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+              // Use auth from context (no duplicate call)
               await logPaymentEvent({
                 order_id: order.id,
                 amount: order.total_amount,
                 currency: order.currency || 'USD',
                 payment_method: 'flutterwave',
                 status: 'success',
-                user: userData,
-                profile,
-                company_id: user.company_id,
+                user: user,
+                profile: profile,
+                company_id: profile?.company_id || user?.company_id,
                 metadata: {
                   transaction_id: response.transaction_id || response.tx_ref || txRef,
                   payment_method_selected: selectedMethod
@@ -256,17 +248,16 @@ export default function PaymentGateway() {
               navigate(createPageUrl('OrderDetail') + '?id=' + order.id);
             } else {
               // Log payment failure to audit log
-              const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-              const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+              // Use auth from context (no duplicate call)
               await logPaymentEvent({
                 order_id: order.id,
                 amount: order.total_amount,
                 currency: order.currency || 'USD',
                 payment_method: 'flutterwave',
                 status: 'failed',
-                user: userData,
-                profile,
-                company_id: user.company_id,
+                user: user,
+                profile: profile,
+                company_id: profile?.company_id || user?.company_id,
                 metadata: {
                   failure_reason: response.message || 'Payment not completed',
                   payment_method_selected: selectedMethod

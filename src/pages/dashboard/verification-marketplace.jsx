@@ -11,24 +11,41 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function VerificationMarketplaceInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [companyId, setCompanyId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isProcessing, setIsProcessing] = useState(false);
   const [company, setCompany] = useState(null);
   const [hasExistingPurchase, setHasExistingPurchase] = useState(false);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[VerificationMarketplace] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → exit
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, profile]);
 
   const loadData = async () => {
     try {
-      const { companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use company_id from profile
+      const cid = profile?.company_id || null;
       if (!cid) {
         toast.error('Company not found');
         return;

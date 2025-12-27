@@ -11,15 +11,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { useNavigate } from 'react-router-dom';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function RevenueDashboard() {
-  const [isLoading, setIsLoading] = useState(true);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [timeRange, setTimeRange] = useState('month'); // 'week', 'month', 'year'
   const [revenueData, setRevenueData] = useState({
@@ -37,33 +40,28 @@ export default function RevenueDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuthAndLoad();
-  }, [timeRange]);
-
-  const checkAuthAndLoad = async () => {
-    try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      const admin = isAdmin(user);
-      if (!admin) {
-        toast.error('Unauthorized: Admin access required');
-        navigate('/dashboard');
-        return;
-      }
-
-      setIsAuthorized(true);
-      await loadRevenueData();
-    } catch (error) {
-      console.error('Error checking auth:', error);
-      toast.error('Failed to load dashboard');
-    } finally {
-      setIsLoading(false);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RevenueDashboard] Waiting for auth to be ready...');
+      return;
     }
-  };
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setIsAuthorized(admin);
+    
+    if (admin) {
+      loadRevenueData();
+    } else {
+      navigate('/dashboard');
+    }
+  }, [timeRange, authReady, authLoading, user, profile, role, navigate]);
 
   const loadRevenueData = async () => {
     try {

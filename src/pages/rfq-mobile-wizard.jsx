@@ -16,9 +16,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { sanitizeString } from '@/utils/security';
 import { format } from 'date-fns';
 import MobileStickyCTA from '@/components/ui/MobileStickyCTA';
@@ -31,10 +32,11 @@ const DRAFT_STORAGE_KEY = 'afrikoni_rfq_draft';
 const STEPS = ['need', 'quantity', 'urgency', 'confirm'];
 
 export default function RFQMobileWizard() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(0);
-  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   
@@ -69,31 +71,35 @@ export default function RFQMobileWizard() {
   });
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RFQMobileWizard] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login?redirect=/rfq/create-mobile');
+      return;
+    }
+
+    // Now safe to load data
     loadInitialData();
     // Auto-save draft on form changes
     return () => {
       saveDraft();
     };
-  }, [formData]);
+  }, [authReady, authLoading, user, navigate, formData]);
 
   const loadInitialData = async () => {
     try {
-      const [userResult, catsRes] = await Promise.all([
-        getCurrentUserAndRole(supabase, supabaseHelpers),
-        supabase.from('categories').select('*')
-      ]);
+      // Use auth from context (no duplicate call)
+      const catsRes = await supabase.from('categories').select('*');
       
-      const { user: userData } = userResult;
-      if (!userData) {
-        navigate('/login?redirect=/rfq/create-mobile');
-        return;
-      }
-
-      setUser(userData);
       setCategories(catsRes.data || []);
       
       // Load draft from Supabase if exists
-      await loadDraftFromSupabase(userData.id);
+      await loadDraftFromSupabase(user.id);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load. Please try again.');

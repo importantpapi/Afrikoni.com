@@ -9,7 +9,8 @@ import { useDebounce } from '@/hooks/useDebounce';
 import AICopilotButton from '@/components/ai/AICopilotButton';
 import AISuggestionCard from '@/components/ai/AISuggestionCard';
 import { suggestProductsForBuyer } from '@/ai/aiFunctions';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import {
   Search,
   Filter,
@@ -154,8 +155,7 @@ export default function Marketplace() {
   const [showSaveSearch, setShowSaveSearch] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [currentCompanyId, setCurrentCompanyId] = useState(null);
+  // Use user and companyId from AuthProvider context (no local state needed)
 
   // Helper: log search analytics to Supabase (non-blocking)
   const logSearchEvent = async ({ resultCount }) => {
@@ -203,18 +203,8 @@ export default function Marketplace() {
     loadProducts();
     loadSavedSearches();
     
-    // Load current user for tracking
-    const loadUser = async () => {
-      try {
-        const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-        const { user, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        setCurrentUser(user);
-        setCurrentCompanyId(companyId);
-      } catch (error) {
-        // Silent fail - user tracking is optional
-      }
-    };
-    loadUser();
+    // Use auth from context (no separate loadUser needed)
+    // User and companyId available from AuthProvider
   }, []);
 
   const loadSavedSearches = () => {
@@ -610,11 +600,11 @@ export default function Marketplace() {
       });
       
       // Track product view in database
-      if (currentUser?.id || currentCompanyId) {
+      if (user?.id || profile?.company_id) {
         try {
           await trackProductView(product.id, {
-            profile_id: currentUser?.id,
-            company_id: currentCompanyId,
+            profile_id: user?.id,
+            company_id: profile?.company_id,
             source_page: 'marketplace'
           });
         } catch (error) {
@@ -1680,8 +1670,7 @@ export default function Marketplace() {
                     if (!Array.isArray(filteredProducts) || filteredProducts.length === 0) return;
                     setAiBestMatchLoading(true);
                     try {
-                      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-                      const { profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+                      // Use auth from context
                       if (!profile) {
                         setAiBestMatch(null);
                         return;

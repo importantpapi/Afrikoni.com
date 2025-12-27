@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, TrendingUp, CheckCircle, DollarSign } from 'lucide-react';
@@ -9,6 +10,8 @@ import { toast } from 'sonner';
 import { RFQ_STATUS } from '@/constants/status';
 
 export default function RFQAnalytics() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState({
     posted: 0,
@@ -16,22 +19,31 @@ export default function RFQAnalytics() {
     converted: 0,
     totalValue: 0
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RFQAnalytics] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: Check admin access
+    if (!user || role !== 'admin') {
+      toast.error('Admin access required');
+      navigate('/dashboard');
+      return;
+    }
+
+    // Now safe to load data
     loadAnalytics();
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadAnalytics = async () => {
     try {
       setIsLoading(true);
-      const { user, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!user || role !== 'admin') {
-        toast.error('Admin access required');
-        navigate('/dashboard');
-        return;
-      }
+      // Use auth from context (no duplicate call)
 
       // RFQs Posted (all RFQs)
       const { count: postedCount } = await supabase

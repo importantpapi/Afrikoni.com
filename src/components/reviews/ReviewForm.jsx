@@ -4,10 +4,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { toast } from 'sonner';
 
 export default function ReviewForm({ order, product, company, onSuccess, onCancel }) {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady } = useAuth();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -22,14 +25,20 @@ export default function ReviewForm({ order, product, company, onSuccess, onCance
       return;
     }
 
+    // GUARD: Wait for auth to be ready
+    if (!authReady || !user) {
+      toast.error('Please login first');
+      return;
+    }
+
+    const companyId = profile?.company_id || null;
+    if (!companyId) {
+      toast.error('Please complete onboarding first');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user || !companyId) {
-        toast.error('Please login first');
-        return;
-      }
 
       // Check if user already reviewed this product
       if (product?.id) {

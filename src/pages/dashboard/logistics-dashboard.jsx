@@ -7,8 +7,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,8 +44,10 @@ import { format } from 'date-fns';
 function LogisticsDashboardInner() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
 
-  const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
@@ -67,39 +69,105 @@ function LogisticsDashboardInner() {
   const [partners, setPartners] = useState([]);
 
   useEffect(() => {
-    loadDashboardData();
-  }, [shipmentStatusFilter]);
+    let isMounted = true;
+    let timeoutId = null;
 
-  const loadDashboardData = async () => {
-    try {
-      setIsLoading(true);
-
-      const { user: userData, companyId: cid } =
-        await getCurrentUserAndRole(supabase, supabaseHelpers);
-      
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      setUser(userData);
-      setCompanyId(cid);
-
-      if (!cid) {
-        toast.info('Complete your company profile to access logistics features.');
-        return;
-      }
-
-        await loadKPIs(cid);
-        await loadRecentShipments(cid);
-        await loadPartners(cid);
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to load logistics dashboard');
-    } finally {
-      setIsLoading(false);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[LogisticsDashboard] Waiting for auth to be ready...');
+      return;
     }
-  };
+
+    // GUARD: No queries until auth is ready
+    if (!user || !role) {
+      console.warn('[LogisticsDashboard] No user or role → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Safety timeout: Force loading to false after 15 seconds
+    timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn('[LogisticsDashboard] Loading timeout - forcing loading to false');
+        setIsLoading(false);
+      }
+    }, 15000);
+
+    const loadDashboardData = async () => {
+      try {
+        console.log('[LogisticsDashboard] Starting loadDashboardData...');
+        setIsLoading(true);
+
+        // Get company ID from profile
+        const cid = profile?.company_id || null;
+        console.log('[LogisticsDashboard] Company ID:', cid);
+        
+        if (!isMounted) {
+          console.warn('[LogisticsDashboard] Component unmounted during load');
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          return;
+        }
+
+        setCompanyId(cid);
+
+        if (!cid) {
+          console.warn('[LogisticsDashboard] No company ID found');
+          if (isMounted) {
+            clearTimeout(timeoutId);
+            setIsLoading(false);
+            toast.info('Complete your company profile to access logistics features.');
+          }
+          return;
+        }
+
+        console.log('[LogisticsDashboard] Loading data in parallel for company:', cid);
+        const dataStartTime = Date.now();
+        // Load data in parallel with error handling for each
+        const results = await Promise.allSettled([
+          loadKPIs(cid).catch(err => {
+            console.warn('[LogisticsDashboard] Error loading KPIs:', err);
+            return null;
+          }),
+          loadRecentShipments(cid).catch(err => {
+            console.warn('[LogisticsDashboard] Error loading shipments:', err);
+            return null;
+          }),
+          loadPartners(cid).catch(err => {
+            console.warn('[LogisticsDashboard] Error loading partners:', err);
+            return null;
+          })
+        ]);
+        const dataLoadTime = Date.now() - dataStartTime;
+        console.log(`[LogisticsDashboard] Data loading completed in ${dataLoadTime}ms`, {
+          kpis: results[0].status,
+          shipments: results[1].status,
+          partners: results[2].status
+        });
+      } catch (err) {
+        console.error('[LogisticsDashboard] Fatal error in loadDashboardData:', err);
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          toast.error('Failed to load logistics dashboard. Please refresh the page.');
+        }
+      } finally {
+        // Safety net: Always clear timeout and set loading to false
+        console.log('[LogisticsDashboard] Setting isLoading to false in finally block');
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadDashboardData();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [authReady, authLoading, user, profile, role, navigate]); // Only run when auth is ready
 
   const loadKPIs = async (cid) => {
     const { data } = await supabase
@@ -289,11 +357,12 @@ function LogisticsDashboardInner() {
   const quotesAwaitingCount = 0; // placeholder until wired to real data
   const commissionMTD = kpis.totalRevenue || 0; // placeholder using existing metric
 
-  if (isLoading) {
+  // Show loading state with timeout protection
+  if (isLoading || !authReady || authLoading) {
     return (
       <div className="flex justify-center py-20">
         <div className="animate-spin h-12 w-12 border-b-2 border-afrikoni-gold rounded-full" />
-        </div>
+      </div>
     );
   }
 
@@ -866,6 +935,8 @@ function LogisticsDashboardInner() {
 }
 
 export default function LogisticsDashboard() {
+  // Note: This component is wrapped by DashboardLayout in Dashboard component
+  // when accessed through LogisticsHome -> Dashboard component
   return (
     <RequireDashboardRole allow={['logistics']}>
       <LogisticsDashboardInner />

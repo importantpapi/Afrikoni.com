@@ -11,8 +11,10 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole, isEmailVerified } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { isEmailVerified } from '@/utils/authHelpers';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { isSeller, isHybrid } from '@/utils/roleHelpers';
 import { toast } from 'sonner';
@@ -72,11 +74,11 @@ const verificationSteps = [
 ];
 
 export default function VerificationCenter() {
-  const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [companyId, setCompanyId] = useState(null);
   const [verification, setVerification] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [uploading, setUploading] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [businessIdNumber, setBusinessIdNumber] = useState('');
@@ -86,6 +88,15 @@ export default function VerificationCenter() {
   const [submittingStep, setSubmittingStep] = useState(null);
   const [stepSubmissions, setStepSubmissions] = useState({}); // Track which steps have been submitted
   const [expandedSteps, setExpandedSteps] = useState(new Set()); // Track which steps are expanded (progressive disclosure)
+  
+  // ✅ Bank Account Information Fields
+  const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [accountHolderName, setAccountHolderName] = useState('');
+  const [swiftCode, setSwiftCode] = useState('');
+  const [bankCountry, setBankCountry] = useState('');
+  const [bankAddress, setBankAddress] = useState('');
+  
   const navigate = useNavigate();
   
   const AFRICAN_COUNTRIES = [
@@ -100,8 +111,25 @@ export default function VerificationCenter() {
   ];
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[VerificationCenter] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Use company_id from profile
+    const cid = profile?.company_id || null;
+    setCompanyId(cid);
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, profile, navigate]);
 
   // Auto-save business info with debounce
   useEffect(() => {
@@ -143,12 +171,7 @@ export default function VerificationCenter() {
         const currentVerified = user?.email_verified || user?.email_confirmed_at;
         
         if (emailVerified !== !!currentVerified) {
-          // Only update email verification status, don't trigger full reload
-          setUser(prev => ({ 
-            ...prev, 
-            email_verified: emailVerified,
-            email_confirmed_at: emailVerified ? new Date().toISOString() : null
-          }));
+        // Email verification status tracked in auth context - no local state needed
         }
         
         // Silently refresh verification status from database (no loading state)
@@ -177,25 +200,19 @@ export default function VerificationCenter() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, profile, companyId: cid, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
       
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
       // Check if user is supplier or hybrid - only they can verify
-      if (!isSeller(role) && !isHybrid(role)) {
+      const userRole = role || profile?.role || 'buyer';
+      if (!isSeller(userRole) && !isHybrid(userRole)) {
         toast.error('Verification is only available for suppliers and hybrid accounts.');
         navigate('/dashboard');
         return;
       }
-
-      setUser(profile || userData);
-      setUserRole(role);
       
       // Get or create company
-      const finalCompanyId = cid || await getOrCreateCompany(supabase, profile || userData);
+      const cid = profile?.company_id || null;
+      const finalCompanyId = cid || await getOrCreateCompany(supabase, user);
       
       if (!finalCompanyId) {
         toast.error('Unable to create company profile. Please select your role first.');
@@ -230,7 +247,7 @@ export default function VerificationCenter() {
         const emailVerified = await isEmailVerified(supabase);
         if (emailVerified && userData) {
           // Update user state to reflect email verification
-          setUser(prev => ({ ...prev, email_verified: true, email_confirmed_at: userData.email_confirmed_at }));
+          // Email verification status tracked in auth context - no local state needed
         }
 
         // Load verification status from verifications table
@@ -249,7 +266,25 @@ export default function VerificationCenter() {
         if (verificationData) {
           setVerification(verificationData);
           if (verificationData.documents && typeof verificationData.documents === 'object') {
-            setUploadedFiles(verificationData.documents);
+            // ✅ Extract document URLs (for backward compatibility)
+            const docUrls = {};
+            Object.keys(verificationData.documents).forEach(key => {
+              if (key !== 'bank_account_info' && typeof verificationData.documents[key] === 'string') {
+                docUrls[key] = verificationData.documents[key];
+              }
+            });
+            setUploadedFiles(docUrls);
+            
+            // ✅ Load bank account information from documents JSONB
+            if (verificationData.documents.bank_account_info) {
+              const bankInfo = verificationData.documents.bank_account_info;
+              setBankAccountNumber(bankInfo.account_number || '');
+              setBankName(bankInfo.bank_name || '');
+              setAccountHolderName(bankInfo.account_holder_name || '');
+              setSwiftCode(bankInfo.swift_code || '');
+              setBankCountry(bankInfo.bank_country || '');
+              setBankAddress(bankInfo.bank_address || '');
+            }
           }
           if (verificationData.business_id_number) {
             setBusinessIdNumber(verificationData.business_id_number);
@@ -320,11 +355,26 @@ export default function VerificationCenter() {
     }
 
     try {
+      // ✅ Preserve existing documents structure including bank_account_info
+      let documentsData = uploadedFiles || {};
+      if (verification?.documents && typeof verification.documents === 'object') {
+        // Preserve bank_account_info if it exists
+        if (verification.documents.bank_account_info) {
+          documentsData.bank_account_info = verification.documents.bank_account_info;
+        }
+        // Preserve other document URLs
+        Object.keys(verification.documents).forEach(key => {
+          if (key !== 'bank_account_info' && typeof verification.documents[key] === 'string' && !documentsData[key]) {
+            documentsData[key] = verification.documents[key];
+          }
+        });
+      }
+      
       const verificationData = {
         company_id: companyId,
         business_id_number: businessIdNumber || null,
         country_of_registration: countryOfRegistration || null,
-        documents: uploadedFiles || {},
+        documents: documentsData,
         status: verification?.status || 'pending'
       };
 
@@ -404,10 +454,24 @@ export default function VerificationCenter() {
       const filePath = `verifications/${companyId}/${step.docType}_${Date.now()}_${file.name}`;
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', filePath);
       
+      // ✅ For bank statement, include bank account info in documents structure
       const newFiles = {
         ...uploadedFiles,
         [step.docType]: file_url
       };
+      
+      // ✅ If this is bank statement upload, include bank account information
+      if (step.docType === 'bank_statement') {
+        newFiles.bank_account_info = {
+          account_number: bankAccountNumber || null,
+          bank_name: bankName || null,
+          account_holder_name: accountHolderName || null,
+          swift_code: swiftCode || null,
+          bank_country: bankCountry || null,
+          bank_address: bankAddress || null
+        };
+      }
+      
       setUploadedFiles(newFiles);
 
       // AI Verification
@@ -491,9 +555,26 @@ export default function VerificationCenter() {
         setVerifying(prev => ({ ...prev, [stepId]: false }));
       }
 
+      // ✅ Prepare documents structure with all information
+      const documentsData = {
+        ...newFiles
+      };
+      
+      // ✅ Ensure bank account info is included if we have it
+      if (step.docType === 'bank_statement' || (verification?.documents?.bank_account_info)) {
+        documentsData.bank_account_info = {
+          account_number: bankAccountNumber || verification?.documents?.bank_account_info?.account_number || null,
+          bank_name: bankName || verification?.documents?.bank_account_info?.bank_name || null,
+          account_holder_name: accountHolderName || verification?.documents?.bank_account_info?.account_holder_name || null,
+          swift_code: swiftCode || verification?.documents?.bank_account_info?.swift_code || null,
+          bank_country: bankCountry || verification?.documents?.bank_account_info?.bank_country || null,
+          bank_address: bankAddress || verification?.documents?.bank_account_info?.bank_address || null
+        };
+      }
+      
       const verificationData = {
         company_id: companyId,
-        documents: newFiles,
+        documents: documentsData,
         business_id_number: businessIdNumber || null,
         country_of_registration: countryOfRegistration || null,
         step_submissions: stepSubmissions || {},
@@ -835,9 +916,27 @@ export default function VerificationCenter() {
         [`${step.id}_submitted_at`]: new Date().toISOString()
       };
 
+      // ✅ Prepare documents with bank account info if this is bank step
+      let documentsData = verification?.documents || uploadedFiles || {};
+      if (step.docType === 'bank_statement') {
+        documentsData = {
+          ...documentsData,
+          bank_statement: uploadedFiles.bank_statement || documentsData.bank_statement,
+          bank_account_info: {
+            account_number: bankAccountNumber || documentsData.bank_account_info?.account_number || null,
+            bank_name: bankName || documentsData.bank_account_info?.bank_name || null,
+            account_holder_name: accountHolderName || documentsData.bank_account_info?.account_holder_name || null,
+            swift_code: swiftCode || documentsData.bank_account_info?.swift_code || null,
+            bank_country: bankCountry || documentsData.bank_account_info?.bank_country || null,
+            bank_address: bankAddress || documentsData.bank_account_info?.bank_address || null
+          }
+        };
+      }
+      
       // Update verification record
       const updateData = {
         step_submissions: newSubmissions,
+        documents: documentsData,
         status: 'pending'
       };
 
@@ -849,6 +948,22 @@ export default function VerificationCenter() {
 
         if (error) throw error;
       } else {
+        // ✅ Prepare documents with bank account info if this is bank step
+        let initialDocuments = uploadedFiles || {};
+        if (step.docType === 'bank_statement') {
+          initialDocuments = {
+            ...initialDocuments,
+            bank_account_info: {
+              account_number: bankAccountNumber || null,
+              bank_name: bankName || null,
+              account_holder_name: accountHolderName || null,
+              swift_code: swiftCode || null,
+              bank_country: bankCountry || null,
+              bank_address: bankAddress || null
+            }
+          };
+        }
+        
         // Create verification record if it doesn't exist
         const { data: newVerification, error } = await supabase
           .from('verifications')
@@ -857,7 +972,7 @@ export default function VerificationCenter() {
             step_submissions: newSubmissions,
             business_id_number: businessIdNumber || null,
             country_of_registration: countryOfRegistration || null,
-            documents: uploadedFiles || {},
+            documents: initialDocuments,
             status: 'pending'
           })
           .select()
@@ -916,6 +1031,17 @@ export default function VerificationCenter() {
               <h3>Document Submitted</h3>
               <p><strong>Document Type:</strong> ${step.docType}</p>
               <p><strong>Document URL:</strong> ${uploadedFiles[step.docType] ? `<a href="${uploadedFiles[step.docType]}">View Document</a>` : 'N/A'}</p>
+              
+              ${step.docType === 'bank_statement' && verification?.documents?.bank_account_info ? `
+              <h3>Bank Account Information</h3>
+              <ul>
+                ${verification.documents.bank_account_info.account_number ? `<li><strong>Account Number:</strong> ${verification.documents.bank_account_info.account_number}</li>` : ''}
+                ${verification.documents.bank_account_info.bank_name ? `<li><strong>Bank Name:</strong> ${verification.documents.bank_account_info.bank_name}</li>` : ''}
+                ${verification.documents.bank_account_info.account_holder_name ? `<li><strong>Account Holder:</strong> ${verification.documents.bank_account_info.account_holder_name}</li>` : ''}
+                ${verification.documents.bank_account_info.swift_code ? `<li><strong>SWIFT Code:</strong> ${verification.documents.bank_account_info.swift_code}</li>` : ''}
+                ${verification.documents.bank_account_info.bank_country ? `<li><strong>Bank Country:</strong> ${verification.documents.bank_account_info.bank_country}</li>` : ''}
+              </ul>
+              ` : ''}
             ` : ''}
             
             <p><strong>Action Required:</strong> Review this verification step in the admin dashboard.</p>
@@ -1035,12 +1161,24 @@ export default function VerificationCenter() {
             
             <h3>Documents Submitted</h3>
             <ul>
-              ${Object.keys(uploadedFiles).map(docType => `
+              ${Object.keys(uploadedFiles).filter(key => key !== 'bank_account_info').map(docType => `
                 <li><strong>${docType}:</strong> <a href="${uploadedFiles[docType]}">View Document</a></li>
               `).join('')}
             </ul>
             
-            <p><strong>Action Required:</strong> Review all verification documents and approve or request changes.</p>
+            ${verification?.documents?.bank_account_info ? `
+            <h3>Bank Account Information</h3>
+            <ul>
+              ${verification.documents.bank_account_info.account_number ? `<li><strong>Account Number:</strong> ${verification.documents.bank_account_info.account_number}</li>` : ''}
+              ${verification.documents.bank_account_info.bank_name ? `<li><strong>Bank Name:</strong> ${verification.documents.bank_account_info.bank_name}</li>` : ''}
+              ${verification.documents.bank_account_info.account_holder_name ? `<li><strong>Account Holder:</strong> ${verification.documents.bank_account_info.account_holder_name}</li>` : ''}
+              ${verification.documents.bank_account_info.swift_code ? `<li><strong>SWIFT Code:</strong> ${verification.documents.bank_account_info.swift_code}</li>` : ''}
+              ${verification.documents.bank_account_info.bank_country ? `<li><strong>Bank Country:</strong> ${verification.documents.bank_account_info.bank_country}</li>` : ''}
+              ${verification.documents.bank_account_info.bank_address ? `<li><strong>Bank Address:</strong> ${verification.documents.bank_account_info.bank_address}</li>` : ''}
+            </ul>
+            ` : ''}
+            
+            <p><strong>Action Required:</strong> Review all verification documents and information, then approve or request changes.</p>
             <p><a href="https://afrikoni.com/dashboard/admin/verification-review?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Complete Verification</a></p>
           `
         }
@@ -1536,6 +1674,114 @@ export default function VerificationCenter() {
                           </div>
 
                           <div className="mt-3 space-y-2">
+                            {/* ✅ Bank Account Information Form Fields - Show for bank verification step */}
+                            {!isCompleted && step.docType === 'bank_statement' && canAccessStep(idx) && (
+                              <Card className="mb-4 border-afrikoni-gold/30 bg-afrikoni-cream">
+                                <CardHeader className="pb-3">
+                                  <CardTitle className="text-lg font-semibold text-afrikoni-chestnut">
+                                    Bank Account Details
+                                  </CardTitle>
+                                  <p className="text-sm text-afrikoni-chestnut/70">
+                                    Please provide your bank account information. All fields are required.
+                                  </p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <Label htmlFor="bank_account_number" className="mb-2">
+                                        Account Number <span className="text-red-500">*</span>
+                                      </Label>
+                                      <Input
+                                        id="bank_account_number"
+                                        type="text"
+                                        placeholder="Enter account number"
+                                        value={bankAccountNumber}
+                                        onChange={(e) => setBankAccountNumber(e.target.value)}
+                                        className="border-afrikoni-gold/30"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="bank_name" className="mb-2">
+                                        Bank Name <span className="text-red-500">*</span>
+                                      </Label>
+                                      <Input
+                                        id="bank_name"
+                                        type="text"
+                                        placeholder="Enter bank name"
+                                        value={bankName}
+                                        onChange={(e) => setBankName(e.target.value)}
+                                        className="border-afrikoni-gold/30"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="account_holder_name" className="mb-2">
+                                        Account Holder Name <span className="text-red-500">*</span>
+                                      </Label>
+                                      <Input
+                                        id="account_holder_name"
+                                        type="text"
+                                        placeholder="Enter account holder name"
+                                        value={accountHolderName}
+                                        onChange={(e) => setAccountHolderName(e.target.value)}
+                                        className="border-afrikoni-gold/30"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="swift_code" className="mb-2">
+                                        SWIFT/BIC Code <span className="text-red-500">*</span>
+                                      </Label>
+                                      <Input
+                                        id="swift_code"
+                                        type="text"
+                                        placeholder="Enter SWIFT code"
+                                        value={swiftCode}
+                                        onChange={(e) => setSwiftCode(e.target.value.toUpperCase())}
+                                        className="border-afrikoni-gold/30"
+                                        maxLength={11}
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="bank_country" className="mb-2">
+                                        Bank Country <span className="text-red-500">*</span>
+                                      </Label>
+                                      <Select
+                                        value={bankCountry}
+                                        onValueChange={setBankCountry}
+                                      >
+                                        <SelectTrigger id="bank_country" className="border-afrikoni-gold/30">
+                                          <SelectValue placeholder="Select bank country" />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-[300px]">
+                                          {AFRICAN_COUNTRIES.map((country) => (
+                                            <SelectItem key={country} value={country}>
+                                              {country}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="bank_address" className="mb-2">
+                                        Bank Address
+                                      </Label>
+                                      <Input
+                                        id="bank_address"
+                                        type="text"
+                                        placeholder="Enter bank address (optional)"
+                                        value={bankAddress}
+                                        onChange={(e) => setBankAddress(e.target.value)}
+                                        className="border-afrikoni-gold/30"
+                                      />
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+                            
                             {!isCompleted && step.docType && canAccessStep(idx) && (
                               <>
                               <label className="cursor-pointer inline-block">
@@ -1576,12 +1822,21 @@ export default function VerificationCenter() {
                                 </Button>
                               </label>
                                 
-                                {/* Submit for Review Button - Show after document is uploaded */}
+                                {/* Submit for Review Button - Show after document is uploaded (and bank info if bank step) */}
                                 {hasFile && !isStepSubmitted(step.id) && (
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    onClick={() => handleSubmitStep(step)}
+                                    onClick={() => {
+                                      // ✅ Validate bank account fields if this is bank step
+                                      if (step.docType === 'bank_statement') {
+                                        if (!bankAccountNumber || !bankName || !accountHolderName || !swiftCode || !bankCountry) {
+                                          toast.error('Please fill in all required bank account fields');
+                                          return;
+                                        }
+                                      }
+                                      handleSubmitStep(step);
+                                    }}
                                     disabled={submittingStep === step.id || !canAccessStep(idx)}
                                     className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white ml-2 min-h-[44px] touch-manipulation"
                                   >

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { addToViewHistory, getViewHistory } from '@/utils/viewHistory';
 import { getSimilarProducts, getRecommendedProducts } from '@/utils/recommendations';
 import { getProductRecommendations } from '@/lib/supabaseQueries/ai';
@@ -46,11 +47,12 @@ import MobileStickyCTA from '@/components/ui/MobileStickyCTA';
  * Changes require founder approval.
  */
 export default function ProductDetail() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady } = useAuth();
   const { t } = useLanguage();
   const [product, setProduct] = useState(null);
   const [supplier, setSupplier] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -74,19 +76,10 @@ export default function ProductDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     setFromSellerCreate(urlParams.get('from') === 'seller_create');
     loadData();
-    loadUser();
     trackPageView('Product Details');
   }, []);
 
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-    } catch (error) {
-      setUser(null);
-    }
-  };
+  // User loaded from AuthProvider context (no separate loadUser needed)
 
   const loadData = async () => {
     // Support both /product/:slug and /product?id=uuid

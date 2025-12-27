@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,29 +13,19 @@ import ReviewForm from '../components/reviews/ReviewForm';
 import { isValidUUID } from '@/utils/security';
 
 export default function OrderDetail() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady } = useAuth();
   const [order, setOrder] = useState(null);
   const [buyer, setBuyer] = useState(null);
   const [seller, setSeller] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
-    loadUser();
   }, []);
-
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-    } catch (error) {
-      setUser(null);
-    }
-  };
 
   const loadData = async () => {
     const urlParams = new URLSearchParams(window.location.search);

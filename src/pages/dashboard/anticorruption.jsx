@@ -27,13 +27,16 @@ import {
   riskProfiles, regionalRiskZones, zeroBribePolicy, activeCases
 } from '@/data/antiCorruptionDemo';
 import { isAdmin } from '@/utils/permissions';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
 import AccessDenied from '@/components/AccessDenied';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 
 export default function AntiCorruption() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  
   // All hooks must be at the top - before any conditional returns
-  const [user, setUser] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reportFilter, setReportFilter] = useState({ severity: 'all', status: 'all', category: 'all' });
@@ -45,27 +48,29 @@ export default function AntiCorruption() {
   const [showCaseModal, setShowCaseModal] = useState(null);
 
   useEffect(() => {
-    checkAccess();
-  }, []);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AntiCorruption] Waiting for auth to be ready...');
+      return;
     }
-  };
 
-  if (loading) {
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user) || profile?.is_admin || false;
+    setHasAccess(admin);
+    setLoading(false);
+  }, [authReady, authLoading, user, profile, role]);
+
+  if (loading || !authReady || authLoading) {
     return (
       <DashboardLayout currentRole="admin">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-afrikoni-text-dark/70">Loading...</div>
-        </div>
+        <SpinnerWithTimeout message="Loading Anti-Corruption Dashboard..." />
       </DashboardLayout>
     );
   }

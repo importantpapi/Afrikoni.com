@@ -19,20 +19,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
 import { isAdmin } from '@/utils/permissions';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function AdminSupportTickets() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [replyMessage, setReplyMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSending, setIsSending] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,14 +44,36 @@ export default function AdminSupportTickets() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    checkAccessAndLoad();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminSupportTickets] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setIsLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setIsLoading(false);
+    
+    if (admin) {
+      loadTickets();
+    }
+  }, [authReady, authLoading, user, profile, role]);
 
   useEffect(() => {
     if (statusFilter || searchQuery) {
-      loadTickets();
+      if (hasAccess && authReady) {
+        loadTickets();
+      }
     }
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, searchQuery, hasAccess, authReady]);
 
   useEffect(() => {
     const ticketParam = searchParams.get('ticket');
@@ -70,22 +95,6 @@ export default function AdminSupportTickets() {
       };
     }
   }, [selectedTicket]);
-
-  const checkAccessAndLoad = async () => {
-    try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      const admin = isAdmin(user);
-      setHasAccess(admin);
-      if (admin) {
-        await loadTickets();
-      }
-    } catch (error) {
-      console.error('Access check error:', error);
-      setHasAccess(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const loadTickets = async () => {
     try {
@@ -225,7 +234,7 @@ export default function AdminSupportTickets() {
 
     setIsSending(true);
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
 
       // Create admin reply message
       const { error: messageError } = await supabase
@@ -284,7 +293,7 @@ export default function AdminSupportTickets() {
 
   const handleUpdateStatus = async (ticketNumber, newStatus) => {
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
       
       const { error } = await supabase
         .from('support_tickets')

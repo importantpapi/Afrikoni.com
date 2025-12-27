@@ -26,33 +26,43 @@ import {
   pepScreening, riskScoreBreakdown, requiredDocuments, verificationTimeline
 } from '@/data/kycDemo';
 import { isAdmin } from '@/utils/permissions';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function KYCTracker() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   // All hooks must be at the top - before any conditional returns
-  const [user, setUser] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Local loading state
   const [showOcrPreview, setShowOcrPreview] = useState(false);
   const [showBusinessDoc, setShowBusinessDoc] = useState(false);
 
   useEffect(() => {
-    checkAccess();
-  }, []);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[KYCTracker] Waiting for auth to be ready...');
+      return;
     }
-  };
+
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    setHasAccess(isAdmin(user));
+    setLoading(false);
+  }, [authReady, authLoading, user, profile, role]);
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading KYC tracker..." />;
+  }
 
   if (loading) {
     return (

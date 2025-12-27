@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,16 +20,16 @@ import { checkProductLimit } from '@/utils/subscriptionLimits';
 import ProductLimitGuard from '@/components/subscription/ProductLimitGuard';
 
 export default function AddProduct() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showLimitGuard, setShowLimitGuard] = useState(false);
-  const [companyId, setCompanyId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -43,27 +45,36 @@ export default function AddProduct() {
   });
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AddProduct] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, navigate]);
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const [userResult, catsRes] = await Promise.all([
-        getCurrentUserAndRole(supabase, supabaseHelpers),
-        supabase.from('categories').select('*')
-      ]);
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
+      const catsRes = await supabase.from('categories').select('*');
 
       if (catsRes.error) throw catsRes.error;
 
-      const { user: userData } = userResult;
-      setUser(userData);
       setCategories(catsRes.data || []);
 
       // Get or create company (non-blocking)
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const cid = await getOrCreateCompany(supabase, userData);
-      setCompanyId(cid);
+      const companyId = profile?.company_id || await getOrCreateCompany(supabase, user);
       
       if (cid) {
         const { data: companyData, error } = await supabase

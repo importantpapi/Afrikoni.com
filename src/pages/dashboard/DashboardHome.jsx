@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { StatCardSkeleton, CardSkeleton } from '@/components/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import OnboardingProgressTracker from '@/components/dashboard/OnboardingProgressTracker';
 import { getActivityMetrics, getSearchAppearanceCount } from '@/services/activityTracking';
 import { toast } from 'sonner';
@@ -25,8 +26,9 @@ import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
 
 export default function DashboardHome({ currentRole = 'buyer', activeView = 'all' }) {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [companyId, setCompanyId] = useState(null);
   const [kpis, setKpis] = useState([]);
@@ -105,60 +107,52 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
 
   useEffect(() => {
     let isMounted = true;
+    let timeoutId = null;
+
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardHome] Waiting for auth to be ready...');
+      setIsLoading(false); // Don't show spinner while waiting for auth
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardHome] No user → redirecting to login');
+      setIsLoading(false);
+      navigate('/login');
+      return;
+    }
+
+    // Safety timeout: Force loading to false after 15 seconds
+    timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn('[DashboardHome] Loading timeout - forcing loading to false');
+        setIsLoading(false);
+      }
+    }, 15000);
 
     const load = async () => {
       try {
         setIsLoading(true);
 
-        const { user: authUser, profile, companyId: cid } = await getCurrentUserAndRole(
-          supabase,
-          supabaseHelpers
-        );
-
-        if (!authUser) {
-          navigate('/login');
-          return;
-        }
+        // Use auth from context (no duplicate call)
+        const cid = profile?.company_id || null;
 
         if (!isMounted) {
+          clearTimeout(timeoutId);
           setIsLoading(false);
           return;
         }
 
-        setIsUserAdmin(isAdmin(authUser, profile));
+        setIsUserAdmin(isAdmin(user, profile));
+        setCompanyId(cid);
 
-        // Merge profile and authUser to ensure we have all available data
-        // Debug: Log what we're getting
-        if (import.meta.env.DEV) {
-          console.log('[Dashboard] authUser:', authUser);
-          console.log('[Dashboard] profile:', profile);
-        }
-        
-        // Use centralized utility for name extraction
-        let userName = null;
-        try {
-          const { extractUserName } = await import('@/utils/userHelpers');
-          userName = extractUserName(authUser || null, profile || null);
-        } catch (nameError) {
-          console.warn('Error extracting user name:', nameError);
-        }
-        
-        // Merge user data with extracted name - with null safety
-        const mergedUser = {
-          ...(authUser || {}),
-          ...(profile || {}),
-          full_name: userName || authUser?.full_name || profile?.full_name || null,
-          name: userName || authUser?.name || profile?.name || null,
-        };
-        
-        setUser(mergedUser);
-        setCompanyId(cid || null);
-        
-        // Initialize activity metrics with defaults
-        setSearchAppearances(3);
-        setBuyersLooking(5);
+        // ✅ Initialize activity metrics to 0 (will be updated with real data)
+        setSearchAppearances(0);
+        setBuyersLooking(0);
 
-        // Load all data in parallel
+        // Load all data in parallel (GUARDED: auth is ready, user exists)
         const results = await Promise.allSettled([
           loadKPIs(currentRole, cid),
           loadChartData(currentRole, cid),
@@ -166,7 +160,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
           loadRecentRFQs(cid),
           loadRecentMessages(cid),
           loadApprovalSummary(cid),
-          loadActivityMetrics(authUser?.id, cid)
+          loadActivityMetrics(user?.id, cid)
         ]);
         
         // Check for failures (but don't show errors - defaults are acceptable)
@@ -179,6 +173,7 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
         console.error('Error loading dashboard data:', error);
         // Set default values on error
         if (isMounted) {
+          clearTimeout(timeoutId);
           setKpis(getDefaultKPIs(currentRole));
           setSalesChartData([]);
           setRfqChartData([]);
@@ -186,23 +181,30 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
           setRecentRFQs([]);
           setRecentMessages([]);
           setApprovalSummary(null);
-          setSearchAppearances(3);
-          setBuyersLooking(5);
+          setSearchAppearances(0);
+          setBuyersLooking(0);
+          setIsLoading(false);
           // Don't show error toast - defaults are acceptable
         }
       } finally {
+        // Safety net: Always clear timeout and set loading to false
         if (isMounted) {
+          clearTimeout(timeoutId);
           setIsLoading(false);
         }
       }
     };
 
-    load();
+    // Only load data when auth is ready
+    if (authReady && !authLoading && user) {
+      load();
+    }
 
     return () => {
       isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [currentRole, navigate]);
+  }, [authReady, authLoading, user, profile?.company_id, role, currentRole, navigate]); // Use profile?.company_id to prevent re-renders on profile updates
 
   // Real-time data updates
   const handleRealTimeUpdate = useCallback((payload) => {
@@ -227,9 +229,9 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
     }
   }, [currentRole, companyId]);
 
-  // Subscribe to real-time updates
+  // Subscribe to real-time updates (only if companyId is valid)
   const { subscriptions } = useRealTimeDashboardData(
-    companyId,
+    companyId && typeof companyId === 'string' && companyId.trim() !== '' ? companyId : null,
     user?.id,
     handleRealTimeUpdate
   );
@@ -688,8 +690,8 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
   const loadActivityMetrics = async (userId, cid) => {
     try {
       if (!userId || !cid) {
-        setSearchAppearances(3);
-        setBuyersLooking(5);
+        setSearchAppearances(0);
+        setBuyersLooking(0);
         return;
       }
       
@@ -715,18 +717,17 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
             .in('entity_id', productIds)
             .gte('created_at', today.toISOString());
           
-          if (!activityError && count !== null && count > 0) {
+          if (!activityError && count !== null) {
             setSearchAppearances(count);
           } else {
-            // Default to 3 if no real data
-            setSearchAppearances(3);
+            setSearchAppearances(0); // No views today for THIS client
           }
         } else {
-          setSearchAppearances(3); // Default for sellers with no products
+          setSearchAppearances(0); // No products yet for THIS client
         }
       } catch (error) {
         console.warn('Error getting search appearances:', error);
-        setSearchAppearances(3); // Default
+        setSearchAppearances(0); // No data for THIS client
       }
       
       // Get buyers looking for similar products - count all open RFQs that match seller's product categories
@@ -758,36 +759,23 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
           
           const { count, error: rfqError } = await rfqQuery;
           
-          if (!rfqError && count !== null && count > 0) {
+          if (!rfqError && count !== null) {
             setBuyersLooking(count);
           } else {
-            // Fallback: count all open RFQs
-            const { count: allCount } = await supabase
-              .from('rfqs')
-              .select('id', { count: 'exact', head: true })
-              .eq('status', 'open')
-              .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
-            
-            setBuyersLooking(allCount && allCount > 0 ? allCount : 5);
+            setBuyersLooking(0); // No matching RFQs for THIS client's categories
           }
         } else {
-          // No products yet, show all open RFQs
-          const { count } = await supabase
-            .from('rfqs')
-            .select('id', { count: 'exact', head: true })
-            .eq('status', 'open')
-            .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
-          
-          setBuyersLooking(count && count > 0 ? count : 5);
+          // No products yet, show 0 (don't show other clients' RFQs)
+          setBuyersLooking(0);
         }
       } catch (error) {
         console.warn('Error loading RFQs for buyer interest:', error);
-        setBuyersLooking(5); // Default
+        setBuyersLooking(0); // No data for THIS client
       }
     } catch (error) {
       console.error('Error loading activity metrics:', error);
-      setSearchAppearances(3);
-      setBuyersLooking(5);
+      setSearchAppearances(0);
+      setBuyersLooking(0);
     }
   };
 
@@ -839,6 +827,13 @@ export default function DashboardHome({ currentRole = 'buyer', activeView = 'all
 
   const actions = quickActions[currentRole] || quickActions.buyer;
 
+  // If auth isn't ready, Dashboard.jsx will handle it - just return null here
+  // This prevents cascading spinners (Dashboard shows one spinner for auth)
+  if (!authReady || authLoading) {
+    return null;
+  }
+
+  // Only show loading skeleton if we're actively loading data (not auth)
   if (isLoading) {
     return (
       <div className="space-y-6">

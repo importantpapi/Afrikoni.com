@@ -21,15 +21,17 @@ import {
 } from 'recharts';
 // Removed mock data imports - using real database queries
 import { isAdmin } from '@/utils/permissions';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function ComplianceCenter() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   // All hooks must be at the top - before any conditional returns
-  const [user, setUser] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Local loading state
   const [docFilter, setDocFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
   const [taskSort, setTaskSort] = useState('dueDate');
@@ -51,26 +53,29 @@ export default function ComplianceCenter() {
   const [certificates, setCertificates] = useState([]);
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[ComplianceCenter] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    setHasAccess(isAdmin(user));
+    setLoading(false);
+  }, [authReady, authLoading, user, profile, role]);
 
   useEffect(() => {
-    if (hasAccess) {
+    if (hasAccess && authReady) {
       loadComplianceData();
     }
-  }, [hasAccess]);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [hasAccess, authReady]);
 
   const loadComplianceData = async () => {
     try {

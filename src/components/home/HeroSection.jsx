@@ -8,6 +8,7 @@ import { Logo } from '@/components/ui/Logo';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 
@@ -105,7 +106,8 @@ export default function HeroSection({ categories = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider (for consistency, even though this is public)
+  const { user, authReady } = useAuth();
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef(null);
@@ -136,36 +138,8 @@ export default function HeroSection({ categories = [] }) {
     return [...popular, ...others];
   }, [categories, categorySearchQuery]);
 
-  useEffect(() => {
-    let isMounted = true;
-    
-    // Check if user is logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isMounted) {
-        setUser(session?.user || null);
-      }
-    });
-
-    // Listen for auth changes
-    // CRITICAL: Suppress email confirmation errors globally
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // GLOBAL FILTER: Suppress email confirmation errors
-      // Email delivery errors are non-fatal and must never show UI
-      if (event === 'SIGNED_UP') {
-        // Signup event - suppress email errors
-        console.debug('[AUTH] Signup event - email errors suppressed');
-      }
-      
-      if (isMounted) {
-        setUser(session?.user || null);
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
+  // User loaded from AuthProvider context (no separate useEffect needed)
+  // AuthProvider handles all auth state changes
 
   const handleSearch = () => {
     if (searchQuery.trim()) {

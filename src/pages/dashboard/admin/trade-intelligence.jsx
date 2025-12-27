@@ -31,32 +31,38 @@ import {
   useHighValueDealsNeedingAttention
 } from '@/hooks/useTradeIntelligence';
 import { isAdmin } from '@/utils/permissions';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 import { toast } from 'sonner';
 
 export default function TradeIntelligenceDashboard() {
-  const [loading, setLoading] = useState(true);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(false); // Local loading state
   const [hasAccess, setHasAccess] = useState(false);
   const [timeRange, setTimeRange] = useState('30d');
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    const checkAccess = async () => {
-      try {
-        const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        const admin = isAdmin(user);
-        setHasAccess(admin);
-      } catch (error) {
-        setHasAccess(false);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[TradeIntelligenceDashboard] Waiting for auth to be ready...');
+      return;
+    }
 
-    checkAccess();
-  }, []);
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user) || profile?.is_admin || false;
+    setHasAccess(admin);
+    setLoading(false);
+  }, [authReady, authLoading, user, profile, role]);
 
   // Calculate date range
   const getDateRange = () => {
@@ -97,21 +103,7 @@ export default function TradeIntelligenceDashboard() {
   const { data: highRiskCompanies, loading: highRiskLoading } = useHighRiskCompanies();
   const { data: highValueDeals, loading: highValueLoading } = useHighValueDealsNeedingAttention();
 
-  useEffect(() => {
-    const checkAccess = async () => {
-      try {
-        const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        const admin = isAdmin(user);
-        setHasAccess(admin);
-      } catch (error) {
-        setHasAccess(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAccess();
-  }, []);
+  // Access checking handled in first useEffect above (using AuthProvider)
 
   if (loading) {
     return (

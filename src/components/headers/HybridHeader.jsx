@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/notificationbell';
 import HeaderShell from './HeaderShell';
+import { RoleSwitcher } from '@/components/dashboard/RoleSwitcher';
 import { motion } from 'framer-motion';
 
 /**
@@ -47,9 +48,14 @@ export default function HybridHeader({
 
       {/* RIGHT — Properly structured actions with role switcher */}
       <div className="ml-auto flex items-center gap-6 overflow-visible">
+        {/* Role Switcher for Buyer/Seller Navigation */}
+        <div className="hidden md:block">
+          <RoleSwitcher />
+        </div>
+        
         {/* Hybrid segmented switcher + Primary Action */}
         <div className="flex items-center gap-3 shrink-0">
-          {/* Hybrid role switcher */}
+          {/* Hybrid view switcher (all/buyer/seller views) */}
           <div className="hidden lg:flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-afrikoni-gold/20 shadow-sm relative">
           {['all', 'buyer', 'seller'].map(view => (
             <button

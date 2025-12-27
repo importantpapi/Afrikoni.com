@@ -12,8 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
@@ -51,34 +52,45 @@ function SupplierAnalyticsInner() {
   const [engagementData, setEngagementData] = useState([]);
 
   useEffect(() => {
-    loadUserAndData();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SupplierAnalytics] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → exit
+    if (!user) {
+      toast.error('Please log in to view analytics');
+      setLoading(false);
+      return;
+    }
+
+    // Use company_id from profile or create company
+    const loadCompany = async () => {
+      try {
+        const cid = profile?.company_id || null;
+        if (!cid) {
+          const company = await getOrCreateCompany(supabase, user);
+          setCompanyId(company);
+        } else {
+          setCompanyId(cid);
+        }
+      } catch (error) {
+        toast.error('Failed to load company data');
+        console.error('Company load error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCompany();
+  }, [authReady, authLoading, user, profile]);
 
   useEffect(() => {
-    if (companyId) {
+    if (companyId && authReady) {
       loadAnalytics();
     }
-  }, [companyId, timeRange]);
-
-  const loadUserAndData = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      
-      if (!userData) {
-        toast.error('Please log in to view analytics');
-        return;
-      }
-
-      const company = await getOrCreateCompany(supabase, userData);
-      setCompanyId(company);
-    } catch (error) {
-      toast.error('Failed to load user data');
-      console.error('User load error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [companyId, timeRange, authReady]);
 
   const getDateRange = (range) => {
     const now = new Date();

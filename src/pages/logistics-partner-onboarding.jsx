@@ -18,8 +18,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { TARGET_COUNTRY, getCountryConfig } from '@/config/countryConfig';
 import { AFRICAN_COUNTRIES } from '@/constants/countries';
 import Layout from '@/layout';
@@ -46,30 +47,32 @@ export default function LogisticsPartnerOnboarding() {
 
   const config = getCountryConfig();
 
+  // Use centralized AuthProvider
+  const { user: authUser, profile, role: authRole, authReady, loading: authLoading } = useAuth();
+  
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { user: userData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setUserRole(role);
-      
-      // If user is already a logistics partner, redirect to dashboard
-      if (userData && (role === 'logistics' || role === 'logistics_partner')) {
-        navigate('/dashboard/logistics');
-        return;
-      }
-      
-      // Pre-fill email if user is logged in
-      if (userData?.email) {
-        setFormData(prev => ({ ...prev, email: userData.email }));
-      }
-    } catch (error) {
-      // User not logged in, continue with form
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      return;
     }
-  };
+
+    // Use auth from context
+    const userData = authUser;
+    const role = authRole || profile?.role || null;
+    setUser(userData);
+    setUserRole(role);
+    
+    // If user is already a logistics partner, redirect to dashboard
+    if (userData && (role === 'logistics' || role === 'logistics_partner')) {
+      navigate('/dashboard/logistics');
+      return;
+    }
+    
+    // Pre-fill email if user is logged in
+    if (userData?.email) {
+      setFormData(prev => ({ ...prev, email: userData.email }));
+    }
+  }, [authReady, authLoading, authUser, profile, authRole, navigate]);
 
   const services = [
     'Sea Freight',

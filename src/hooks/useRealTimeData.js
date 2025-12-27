@@ -85,60 +85,89 @@ export function useRealTimeDashboardData(companyId, userId, onDataChange) {
   });
 
   useEffect(() => {
-    if (!companyId || !onDataChange) return;
+    // GUARD: Don't subscribe if companyId is null/undefined/invalid or onDataChange is missing
+    if (!companyId || !onDataChange || typeof companyId !== 'string' || companyId.trim() === '') {
+      console.log('[Dashboard Real-time] Skipping subscription: companyId or onDataChange missing/invalid', { 
+        hasCompanyId: !!companyId, 
+        companyIdType: typeof companyId,
+        companyIdValue: companyId,
+        hasOnDataChange: !!onDataChange 
+      });
+      return;
+    }
 
     const channels = [];
     const newSubscriptions = {};
 
-    // Helper to create subscription
+    // Helper to create subscription with validation
     const createSubscription = (table, filterColumn, filterValue) => {
+      // Validate filterValue before creating subscription
+      if (!filterValue || typeof filterValue !== 'string' || filterValue.trim() === '') {
+        console.warn(`[Dashboard Real-time] Skipping ${table} subscription: invalid filterValue`, filterValue);
+        return null;
+      }
+
       const channelName = `dashboard-${table}-${filterValue}`;
       
-      const channel = supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: table,
-            filter: `${filterColumn}=eq.${filterValue}`
-          },
-          (payload) => {
-            console.log(`[Dashboard Real-time] ${table} updated:`, payload.eventType);
-            onDataChange({ table, event: payload.eventType, data: payload });
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log(`[Dashboard] Subscribed to ${table}`);
-            newSubscriptions[table] = true;
-            setSubscriptions(prev => ({ ...prev, [table]: true }));
-          }
-        });
+      try {
+        const channel = supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: table,
+              filter: `${filterColumn}=eq.${filterValue}`
+            },
+            (payload) => {
+              console.log(`[Dashboard Real-time] ${table} updated:`, payload.eventType);
+              onDataChange({ table, event: payload.eventType, data: payload });
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log(`[Dashboard] Subscribed to ${table}`);
+              newSubscriptions[table] = true;
+              setSubscriptions(prev => ({ ...prev, [table]: true }));
+            } else if (status === 'CHANNEL_ERROR') {
+              console.warn(`[Dashboard Real-time] Error subscribing to ${table}:`, status);
+            }
+          });
 
-      return channel;
+        return channel;
+      } catch (error) {
+        console.error(`[Dashboard Real-time] Error creating ${table} subscription:`, error);
+        return null;
+      }
     };
 
     try {
-      // Subscribe to orders
-      channels.push(createSubscription('orders', 'buyer_company_id', companyId));
-      channels.push(createSubscription('orders', 'seller_company_id', companyId));
+      // Subscribe to orders (only if companyId is valid)
+      const orderBuyerChannel = createSubscription('orders', 'buyer_company_id', companyId);
+      const orderSellerChannel = createSubscription('orders', 'seller_company_id', companyId);
+      if (orderBuyerChannel) channels.push(orderBuyerChannel);
+      if (orderSellerChannel) channels.push(orderSellerChannel);
 
       // Subscribe to RFQs
-      channels.push(createSubscription('rfqs', 'company_id', companyId));
+      const rfqChannel = createSubscription('rfqs', 'company_id', companyId);
+      if (rfqChannel) channels.push(rfqChannel);
 
       // Subscribe to products
-      channels.push(createSubscription('products', 'company_id', companyId));
+      const productChannel = createSubscription('products', 'company_id', companyId);
+      if (productChannel) channels.push(productChannel);
 
       // Subscribe to notifications (by user or company)
-      if (userId) {
-        channels.push(createSubscription('notifications', 'user_id', userId));
+      if (userId && typeof userId === 'string' && userId.trim() !== '') {
+        const notificationUserChannel = createSubscription('notifications', 'user_id', userId);
+        if (notificationUserChannel) channels.push(notificationUserChannel);
       }
-      channels.push(createSubscription('notifications', 'company_id', companyId));
+      const notificationCompanyChannel = createSubscription('notifications', 'company_id', companyId);
+      if (notificationCompanyChannel) channels.push(notificationCompanyChannel);
 
       // Subscribe to messages
-      channels.push(createSubscription('messages', 'receiver_company_id', companyId));
+      const messageChannel = createSubscription('messages', 'receiver_company_id', companyId);
+      if (messageChannel) channels.push(messageChannel);
 
     } catch (error) {
       console.error('[Dashboard Real-time] Error setting up subscriptions:', error);

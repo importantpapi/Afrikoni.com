@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,39 +16,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 
 export default function NotificationsCenter() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNotifications, setSelectedNotifications] = useState([]);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[NotificationsCenter] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[NotificationsCenter] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
     loadNotifications();
     
-    // Subscribe to real-time updates only after user context is available
+    // Subscribe to real-time updates
     let channel = null;
     const setupSubscription = async () => {
       try {
-        const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-        const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        if (!userData) return;
-
-        const { getOrCreateCompany } = await import('@/utils/companyHelper');
-        const companyId = await getOrCreateCompany(supabase, userData);
+        // Use auth from context (no duplicate call)
+        const companyId = profile?.company_id || null;
         
         // Only subscribe if we have a filter (company_id, user_id, or user_email)
-        if (!companyId && !userData.id && !userData.email) return;
+        if (!companyId && !user?.id && !user?.email) return;
 
         // Build filter for realtime subscription
-        let filter = '';
+        let filterStr = '';
         if (companyId) {
-          filter = `company_id=eq.${companyId}`;
-        } else if (userData.id) {
-          filter = `user_id=eq.${userData.id}`;
-        } else if (userData.email) {
-          filter = `user_email=eq.${userData.email}`;
+          filterStr = `company_id=eq.${companyId}`;
+        } else if (user?.id) {
+          filterStr = `user_id=eq.${user.id}`;
+        } else if (user?.email) {
+          filterStr = `user_email=eq.${user.email}`;
         }
 
         channel = supabase
@@ -55,7 +68,7 @@ export default function NotificationsCenter() {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: filter
+            filter: filterStr
           }, () => {
             loadNotifications();
           })
@@ -72,64 +85,44 @@ export default function NotificationsCenter() {
         supabase.removeChannel(channel);
       }
     };
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadNotifications = async () => {
     try {
       setIsLoading(true);
       
-      // Ensure session is ready before querying (RLS requires auth.uid())
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        navigate('/login');
-        return;
-      }
+      // Use auth from context (no duplicate call)
+      const normalizedRole = role || 'buyer';
+      setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
       
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      const role = userRole || userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
-
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const companyId = profile?.company_id || null;
 
       // If company_id was created, verify profile has it set (RLS requires this)
-      if (companyId && userData.id) {
+      if (companyId && user?.id) {
         try {
           const { data: profileCheck } = await supabase
             .from('profiles')
             .select('company_id')
-            .eq('id', userData.id)
+            .eq('id', user.id)
             .maybeSingle();
 
           // If profile doesn't have company_id, update it (RLS requires this match)
           if (profileCheck?.company_id !== companyId) {
             await supabase
               .from('profiles')
-              .upsert({ id: userData.id, company_id: companyId }, { onConflict: 'id' });
+              .upsert({ id: user.id, company_id: companyId }, { onConflict: 'id' });
           }
         } catch (err) {
           console.debug('Error updating profile company_id:', err);
         }
       }
 
-      // Verify session is still valid (already checked above, but double-check for RLS)
-      const { data: { session: currentSession }, error: currentSessionError } = await supabase.auth.getSession();
-      if (currentSessionError || !currentSession) {
-        console.debug('No active session for notifications query');
-        setNotifications([]);
-        setIsLoading(false);
-        return;
-      }
+      // Session already verified via useAuth() hook - user from context is sufficient
+      // No need for duplicate getSession() call
 
       // Always require at least one filter to pass RLS
       // Prefer user_id over company_id for RLS matching (more reliable)
-      if (!userData.id && !userData.email && !companyId) {
+      if (!user?.id && !user?.email && !companyId) {
         setNotifications([]);
         setIsLoading(false);
         return;
@@ -141,12 +134,12 @@ export default function NotificationsCenter() {
         .order('created_at', { ascending: false });
 
       // Prefer user_id first (most reliable for RLS), then company_id, then user_email
-      if (userData.id) {
-        query = query.eq('user_id', userData.id);
+      if (user?.id) {
+        query = query.eq('user_id', user.id);
       } else if (companyId) {
         query = query.eq('company_id', companyId);
-      } else if (userData.email) {
-        query = query.eq('user_email', userData.email);
+      } else if (user?.email) {
+        query = query.eq('user_email', user.email);
       }
 
       const { data, error } = await query;
@@ -343,6 +336,11 @@ export default function NotificationsCenter() {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading notifications..." />;
+  }
 
   if (isLoading) {
     return (

@@ -13,8 +13,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { generateProductListing, autoDetectProductLocation } from '@/ai/aiFunctions';
 import { AFRICAN_COUNTRIES } from '@/constants/countries';
@@ -75,6 +76,8 @@ const calculateShipping = (originCountry, destinationCountry, weight, dimensions
 };
 
 export default function AddProductAlibaba() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { id: productId } = useParams();
@@ -90,7 +93,6 @@ export default function AddProductAlibaba() {
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -121,8 +123,22 @@ export default function AddProductAlibaba() {
 
   // Load initial data
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AddProductAlibaba] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      console.log('[AddProductAlibaba] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadInitialData();
-  }, []);
+  }, [authReady, authLoading, user, profile, navigate]);
 
   // Load product for editing after user and company are loaded
   useEffect(() => {
@@ -134,15 +150,10 @@ export default function AddProductAlibaba() {
   const loadInitialData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-      setUser(userData);
+      // Use auth from context (no duplicate call)
 
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const companyId = profile?.company_id || await getOrCreateCompany(supabase, user);
       if (companyId) {
         const { data: companyData } = await supabase
           .from('companies')
@@ -971,6 +982,17 @@ Contact us for more information, custom specifications, or to request samples.`;
         </div>
       </DashboardLayout>
     );
+  }
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading product form..." />;
+  }
+
+  // Redirect if not authenticated
+  if (!user) {
+    navigate('/login');
+    return <SpinnerWithTimeout message="Redirecting to login..." />;
   }
 
   return (

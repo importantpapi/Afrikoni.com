@@ -11,8 +11,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import ConversationList from '@/components/inbox/ConversationList';
@@ -22,25 +23,37 @@ import { ArrowLeft, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function InboxMobile() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadUser();
-  }, []);
+  // Use company_id from profile
+  const companyId = profile?.company_id || null;
 
   useEffect(() => {
-    if (currentUser && companyId) {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[InboxMobile] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login?redirect=/inbox-mobile');
+      return;
+    }
+
+    // Now safe to load conversations
+    if (companyId) {
       loadConversations();
       subscribeToConversations();
     }
-  }, [currentUser, companyId]);
+  }, [authReady, authLoading, user, companyId, navigate]);
 
   // Handle RFQ and conversation parameters
   useEffect(() => {
@@ -62,20 +75,7 @@ export default function InboxMobile() {
     }
   }, [searchParams, conversations]);
 
-  const loadUser = async () => {
-    try {
-      const { user, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        navigate('/login?redirect=/inbox-mobile');
-        return;
-      }
-      setCurrentUser(user);
-      setCompanyId(userCompanyId);
-    } catch (error) {
-      console.error('Error loading user:', error);
-      navigate('/login');
-    }
-  };
+  // User loaded from AuthProvider context (no need for separate loadUser)
 
   const loadConversations = async () => {
     try {

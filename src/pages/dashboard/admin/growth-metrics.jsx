@@ -25,29 +25,39 @@ import AccessDenied from '@/components/AccessDenied';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function GrowthMetricsDashboard() {
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Local loading state
   const [selectedCountry, setSelectedCountry] = useState(TARGET_COUNTRY);
   const [metrics, setMetrics] = useState([]);
   const [funnel, setFunnel] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[GrowthMetricsDashboard] Waiting for auth to be ready...');
+      return;
+    }
 
-  useEffect(() => {
-    if (hasAccess) {
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setLoading(false);
+    
+    if (admin) {
       loadMetrics();
       loadFunnel();
     }
-  }, [hasAccess, selectedCountry]);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
+  }, [authReady, authLoading, user, profile, role, selectedCountry]);
       setHasAccess(isAdmin(userData));
     } catch (error) {
       setHasAccess(false);

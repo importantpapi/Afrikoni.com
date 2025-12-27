@@ -11,8 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { 
   getCompanySubscription, 
   createSubscription, 
@@ -22,20 +23,39 @@ import {
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function SubscriptionsPageInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [companyId, setCompanyId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isUpgrading, setIsUpgrading] = useState(false);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SubscriptionsPage] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → show error
+    if (!user) {
+      toast.error('Please log in to continue');
+      return;
+    }
+
+    // Now safe to load data
     loadSubscription();
-  }, []);
+  }, [authReady, authLoading, user, profile, role]);
 
   const loadSubscription = async () => {
     try {
-      const { companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
+      const cid = profile?.company_id || null;
       if (!cid) {
         toast.error('Company not found');
+        setIsLoading(false);
         return;
       }
       

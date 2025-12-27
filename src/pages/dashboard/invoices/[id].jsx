@@ -11,28 +11,46 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getInvoice, markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
 import { format } from 'date-fns';
 import { CardSkeleton } from '@/components/ui/skeletons';
 
 export default function InvoiceDetailPage() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [companyId, setCompanyId] = useState(null);
-  const [userRole, setUserRole] = useState('buyer');
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[InvoiceDetailPage] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[InvoiceDetailPage] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadInvoice();
-  }, [id]);
+  }, [id, authReady, authLoading, user, profile, role, navigate]);
 
   const loadInvoice = async () => {
     try {
       setIsLoading(true);
-      const { user, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      // Use auth from context (no duplicate call)
+      const userCompanyId = profile?.company_id || null;
       
       if (!user || !userCompanyId) {
         navigate('/login');
@@ -40,7 +58,6 @@ export default function InvoiceDetailPage() {
       }
 
       setCompanyId(userCompanyId);
-      setUserRole(role);
 
       const invoiceData = await getInvoice(id);
       setInvoice(invoiceData);
@@ -70,6 +87,11 @@ export default function InvoiceDetailPage() {
       toast.error('Failed to pay invoice');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading invoice..." />;
+  }
 
   if (isLoading) {
     return (

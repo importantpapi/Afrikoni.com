@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,31 +17,41 @@ import EmptyState from '@/components/ui/EmptyState';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function DashboardProtectionInner() {
-  const [currentRole, setCurrentRole] = useState('buyer');
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
   const [protectionData, setProtectionData] = useState(null);
   const [protectedOrders, setProtectedOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadUserAndProtection();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardProtection] Waiting for auth to be ready...');
+      return;
+    }
 
-  const loadUserAndProtection = async () => {
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Use role from context
+    const normalizedRole = role || 'buyer';
+    setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
+
+    // Now safe to load data
+    loadProtection();
+  }, [authReady, authLoading, user, profile, role, navigate]);
+
+  const loadProtection = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData, profile, role: userRole } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      const role = userRole || userData.role || userData.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
 
       // Get or create company
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const companyId = await getOrCreateCompany(supabase, user);
 
       // Load protection data for buyers and sellers
       if (companyId) {

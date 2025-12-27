@@ -5,8 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -36,10 +37,11 @@ const TEAM_ROLES = [
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function TeamMembersInner() {
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [companyId, setCompanyId] = useState(null);
-  const [currentRole, setCurrentRole] = useState('buyer');
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [teamMembers, setTeamMembers] = useState([]);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('free');
@@ -57,22 +59,30 @@ function TeamMembersInner() {
   });
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[TeamMembers] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → show error
+    if (!user) {
+      toast.error('Please log in to continue');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, profile, role]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, profile, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!userData) {
-        toast.error('Please log in to continue');
-        return;
-      }
-
-      setUser(userData);
+      // Use auth from context (no duplicate call)
+      const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
-      setCurrentRole(getUserRole(profile || userData));
+      setCurrentRole(getUserRole(profile || user) || role || 'buyer');
 
       // Load subscription status
       if (userCompanyId) {
@@ -227,6 +237,11 @@ function TeamMembersInner() {
 
   const activeMembersCount = teamMembers.filter(m => m.status === 'active').length;
   const maxMembers = currentPlan === 'free' ? 1 : currentPlan === 'growth' ? 3 : 999;
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading team members..." />;
+  }
 
   if (isLoading) {
     return (

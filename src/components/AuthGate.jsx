@@ -9,37 +9,23 @@
  * ❌ NO redirects except to /login
  */
 
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import PostLoginRouter from '@/auth/PostLoginRouter';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 
 export default function AuthGate({ children }) {
-  const [checking, setChecking] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
   const navigate = useNavigate();
+  // Use centralized AuthProvider (no duplicate getSession calls)
+  const { user, authReady, loading: authLoading } = useAuth();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (error || !data?.session?.user) {
-        setAuthenticated(false);
-        setChecking(false);
-      } else {
-        setAuthenticated(true);
-        setChecking(false);
-      }
-    });
-  }, []);
-
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Checking authentication..." />;
   }
 
-  if (!authenticated) {
+  // If not authenticated, show public content
+  if (!user) {
     return <>{children}</>;
   }
 

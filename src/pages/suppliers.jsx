@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,13 +20,16 @@ const AFRICAN_COUNTRIES = [
 ];
 
 export default function Suppliers() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [suppliers, setSuppliers] = useState([]);
   const [supplierStats, setSupplierStats] = useState({}); // Store real stats for each supplier
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [selectedBusinessType, setSelectedBusinessType] = useState('all');
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  // ✅ Note: verifiedOnly filter removed - all suppliers on this page are verified
+  // Suppliers must be approved by admin before appearing here
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [buyerCountry, setBuyerCountry] = useState(null);
 
@@ -38,23 +41,24 @@ export default function Suppliers() {
   );
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready (optional - can load suppliers without auth)
+    if (!authReady || authLoading) {
+      // Still load suppliers, just skip buyer country
+      loadSuppliers();
+      return;
+    }
+
+    // Load buyer country from profile if available
+    if (profile?.country) {
+      setBuyerCountry(profile.country);
+    }
+
     loadSuppliers();
-    loadBuyerCountry();
-  }, []);
+  }, [authReady, authLoading, profile]);
 
   useEffect(() => {
     applyFilters();
-  }, [selectedCountry, selectedBusinessType, verifiedOnly, searchQuery]);
-
-  // Load buyer's country for location-based ranking boost
-  const loadBuyerCountry = async () => {
-    try {
-      const { profile } = await getCurrentUserAndRole(supabase);
-      setBuyerCountry(profile?.country || null);
-    } catch (error) {
-      // Silent fail - country is optional
-    }
-  };
+  }, [selectedCountry, selectedBusinessType, searchQuery]);
 
   const loadSuppliers = async () => {
     setIsLoading(true);
@@ -63,6 +67,9 @@ export default function Suppliers() {
         .from('companies')
         .select('*')
         .eq('role', 'seller')
+        // ✅ CRITICAL: Only show verified suppliers - admin must approve before they appear
+        .eq('verified', true)
+        .eq('verification_status', 'verified')
         // ✅ Initial sort by trust_score (fallback)
         .order('trust_score', { ascending: false })
         .limit(100);
@@ -226,6 +233,9 @@ export default function Suppliers() {
         .from('companies')
         .select('*')
         .eq('role', 'seller')
+        // ✅ CRITICAL: Only show verified suppliers - admin must approve before they appear
+        .eq('verified', true)
+        .eq('verification_status', 'verified')
         // ✅ Initial sort by trust_score (ranking hook will refine)
         .order('trust_score', { ascending: false });
 
@@ -250,9 +260,8 @@ export default function Suppliers() {
         filtered = filtered.filter(s => s?.business_type === selectedBusinessType);
       }
 
-      if (verifiedOnly) {
-        filtered = filtered.filter(s => s?.verified);
-      }
+      // ✅ Note: verifiedOnly filter removed - all suppliers on this page are already verified
+      // (The filter was client-side only and is no longer needed since we filter at DB level)
 
       // ✅ Trust-based ranking happens in useSupplierRanking hook
       setSuppliers(filtered);

@@ -18,44 +18,103 @@ export default function ProductImageUploader({
 
     setUploading(true);
     try {
-      const uploadPromises = files.map(async (file) => {
-        // Validate file type
+      // Validate files first
+      const validFiles = [];
+      const invalidFiles = [];
+
+      files.forEach(file => {
         if (!file.type.startsWith('image/')) {
-          throw new Error(`${file.name} is not an image file`);
+          invalidFiles.push(`${file.name} is not an image file`);
+          return;
         }
-
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`${file.name} is too large (max 5MB)`);
+          invalidFiles.push(`${file.name} is too large (max 5MB)`);
+          return;
         }
-
-        // Generate unique filename
-        const fileExt = file.name.split('.').pop();
-        const timestamp = Date.now();
-        const randomStr = Math.random().toString(36).substring(2, 9);
-        const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const fileName = productId 
-          ? `${productId}/${timestamp}-${randomStr}-${cleanFileName}`
-          : `${timestamp}-${randomStr}-${cleanFileName}`;
-
-        const result = await supabaseHelpers.storage.uploadFile(
-          file,
-          'product-images',
-          fileName
-        );
-
-        return {
-          url: result.file_url,
-          alt_text: file.name,
-          is_primary: images.length === 0,
-          sort_order: images.length
-        };
+        validFiles.push(file);
       });
 
-      const newImages = await Promise.all(uploadPromises);
-      onImagesChange([...images, ...newImages]);
-      toast.success(`${files.length} image(s) uploaded successfully`);
+      // Show errors for invalid files
+      if (invalidFiles.length > 0) {
+        invalidFiles.forEach(msg => toast.error(msg));
+      }
+
+      if (validFiles.length === 0) {
+        setUploading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        return;
+      }
+
+      // Use Promise.allSettled to handle individual failures
+      const uploadPromises = validFiles.map(async (file, index) => {
+        try {
+          // Generate unique filename
+          const fileExt = file.name.split('.').pop();
+          const timestamp = Date.now();
+          const randomStr = Math.random().toString(36).substring(2, 9);
+          const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const fileName = productId 
+            ? `${productId}/${timestamp}-${randomStr}-${cleanFileName}`
+            : `${timestamp}-${randomStr}-${cleanFileName}`;
+
+          const result = await supabaseHelpers.storage.uploadFile(
+            file,
+            'product-images',
+            fileName
+          );
+
+          return {
+            success: true,
+            url: result.file_url,
+            alt_text: file.name,
+            is_primary: images.length === 0 && index === 0,
+            sort_order: images.length + index
+          };
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error);
+          return {
+            success: false,
+            fileName: file.name,
+            error: error.message
+          };
+        }
+      });
+
+      const results = await Promise.allSettled(uploadPromises);
       
+      // Process results
+      const newImages = [];
+      const failedUploads = [];
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value.success) {
+          newImages.push({
+            url: result.value.url,
+            alt_text: result.value.alt_text,
+            is_primary: result.value.is_primary,
+            sort_order: result.value.sort_order
+          });
+        } else {
+          const fileName = result.status === 'fulfilled' 
+            ? result.value.fileName 
+            : validFiles[index]?.name || 'unknown';
+          failedUploads.push(fileName);
+        }
+      });
+
+      // Update images with successful uploads
+      if (newImages.length > 0) {
+        onImagesChange([...images, ...newImages]);
+        toast.success(`${newImages.length} image(s) uploaded successfully`);
+      }
+
+      // Show errors for failed uploads
+      if (failedUploads.length > 0) {
+        toast.error(`Failed to upload ${failedUploads.length} image(s): ${failedUploads.join(', ')}`);
+      }
+
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';

@@ -12,28 +12,12 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import SEO from '@/components/SEO';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 
 export default function LogisticsService() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady } = useAuth();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { user: userData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setUserRole(role);
-    } catch (error) {
-      setUser(null);
-      setUserRole(null);
-    }
-  };
 
   const handleJoinLogistics = () => {
     // Always go to logistics partner onboarding page, not signup

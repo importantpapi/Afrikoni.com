@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { getUserRole, isHybrid, canViewBuyerFeatures, canViewSellerFeatures, isLogistics } from '@/utils/roleHelpers';
 import { ORDER_STATUS, getStatusLabel } from '@/constants/status';
 import { buildOrderQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { TableSkeleton } from '@/components/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,9 +33,11 @@ import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 function DashboardOrdersInner() {
   const { t } = useTranslation();
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
@@ -52,9 +55,23 @@ function DashboardOrdersInner() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardOrders] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardOrders] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadUserAndOrders();
     loadTemplates();
-  }, [viewMode, statusFilter, dateRangeFilter]);
+  }, [authReady, authLoading, user, profile, role, viewMode, statusFilter, dateRangeFilter, navigate]);
 
   useEffect(() => {
     setShowBulkActions(selectedOrders.length > 0);
@@ -63,15 +80,16 @@ function DashboardOrdersInner() {
   const loadUserAndOrders = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      // Use auth from context (no duplicate call)
       if (!user) {
         navigate('/login');
         return;
       }
 
-      const userData = profile || user;
-      const normalizedRole = getUserRole(userData);
+      const normalizedRole = getUserRole(profile || user);
       setCurrentRole(normalizedRole);
+      const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
 
       // Build query based on role
@@ -436,6 +454,11 @@ function DashboardOrdersInner() {
       isAmount: true
     }
   ];
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading orders..." />;
+  }
 
   if (isLoading) {
     return (

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,14 +30,16 @@ import { SupplierQuoteTemplates, QuoteWritingTips } from '@/components/quotes/Su
 import { FirstTimeQuoteGuidance } from '@/components/onboarding/FirstTimeUserGuidance';
 
 export default function RFQDetail() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [rfq, setRfq] = useState(null);
   const [quotes, setQuotes] = useState([]);
   const [buyerCompany, setBuyerCompany] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
   const [companyId, setCompanyId] = useState(null);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -62,20 +65,31 @@ export default function RFQDetail() {
   const [koniaiLoading, setKoniaiLoading] = useState(false);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RFQDetail] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[RFQDetail] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadRFQData();
-  }, [id]);
+  }, [id, authReady, authLoading, user, profile, role, navigate]);
 
   const loadRFQData = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      const normalizedRole = getUserRole(profile || userData);
+      
+      // Use auth from context (no duplicate call)
+      const normalizedRole = getUserRole(profile || user) || role || 'buyer';
       setCurrentRole(normalizedRole);
+      const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
 
       // Load RFQ with related data
@@ -351,9 +365,15 @@ export default function RFQDetail() {
   const handleAwardRFQ = async (quoteId) => {
     if (!rfq) return;
 
+    // GUARD: Check auth
+    if (!user) {
+      toast.error('User not authenticated');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
       
       // Update RFQ status and awarded_to (awarded_to should be company_id, not quote_id)
       const quote = quotes.find(q => q.id === quoteId);

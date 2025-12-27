@@ -17,16 +17,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isAdmin } from '@/utils/permissions';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function AdminReviews() {
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Local loading state
   const [reviews, setReviews] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [ratingFilter, setRatingFilter] = useState('all');
@@ -39,27 +41,29 @@ export default function AdminReviews() {
   });
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminReviews] Waiting for auth to be ready...');
+      return;
+    }
 
-  useEffect(() => {
-    if (hasAccess) {
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setLoading(false);
+    
+    if (admin) {
       loadReviews();
       loadStats();
     }
-  }, [hasAccess, ratingFilter, statusFilter]);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [authReady, authLoading, user, profile, role, ratingFilter, statusFilter]);
 
   const loadStats = async () => {
     try {

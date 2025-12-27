@@ -8,6 +8,7 @@ import { RFQ_STATUS, RFQ_STATUS_LABELS, getStatusLabel } from '@/constants/statu
 import { buildRFQQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,11 +38,13 @@ const AFRICAN_COUNTRIES = [
 
 function DashboardRFQsInner() {
   const { t } = useTranslation();
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [rfqs, setRfqs] = useState([]);
   const [quotes, setQuotes] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [currentRole, setCurrentRole] = useState(role || 'buyer');
   const [activeTab, setActiveTab] = useState('sent');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -54,21 +57,36 @@ function DashboardRFQsInner() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardRFQs] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardRFQs] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadUserAndRFQs();
-  }, [activeTab]);
+  }, [authReady, authLoading, user, profile, role, activeTab, navigate]);
 
   const loadUserAndRFQs = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      // Use auth from context (no duplicate call)
       if (!user) {
         navigate('/login');
         return;
       }
 
-      const userData = profile || user;
-      const normalizedRole = getUserRole(userData);
+      const normalizedRole = getUserRole(profile || user);
       setCurrentRole(normalizedRole);
+      const companyId = profile?.company_id || null;
       
       // Load subscription and verification status
       if (companyId) {

@@ -12,29 +12,17 @@ import {
   Store, ShoppingBag, Truck, ArrowRight, 
   Shield, Globe, TrendingUp, CheckCircle 
 } from 'lucide-react';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { isLogistics } from '@/utils/roleHelpers';
 
 export default function ServicesOverview() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady } = useAuth();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { user: userData, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setUserRole(role);
-    } catch (error) {
-      setUser(null);
-      setUserRole(null);
-    }
-  };
+  
+  // Use role from auth context
+  const userRole = role || profile?.role || null;
 
   const handleLogisticsClick = (e) => {
     e.preventDefault();

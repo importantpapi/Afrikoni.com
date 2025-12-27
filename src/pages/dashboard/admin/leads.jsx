@@ -14,8 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { 
   getMarketingLeads, 
   updateMarketingLead,
@@ -27,33 +28,39 @@ import { CardSkeleton } from '@/components/ui/skeletons';
 import { isAdmin } from '@/utils/permissions';
 
 export default function AdminLeads() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [leads, setLeads] = useState([]);
   const [channelStats, setChannelStats] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadData();
-  }, [statusFilter, sourceFilter]);
-
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate('/dashboard');
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminLeads] Waiting for auth to be ready...');
+      return;
     }
-  }, []);
+
+    // GUARD: Check admin access
+    if (!user || !isAdmin(user)) {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Now safe to load data
+    loadData();
+  }, [statusFilter, sourceFilter, authReady, authLoading, user, profile, role, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!user || !isAdmin(user)) {
-        navigate('/dashboard');
-        return;
-      }
+      // Use auth from context (no duplicate call)
+      // User already checked in useEffect guard
 
       const filters = {};
       if (statusFilter !== 'all') filters.status = statusFilter;

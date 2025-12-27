@@ -12,33 +12,38 @@ export function initGA4() {
   const ga4Id = import.meta.env.VITE_GA4_ID;
   
   if (!ga4Id) {
-    if (import.meta.env.DEV) {
-      console.log('[GA4] VITE_GA4_ID not set. Analytics disabled.');
-    }
+    // Silently return - GA4 ID not configured is expected in some environments
     return;
   }
 
-  // Initialize dataLayer
-  window.dataLayer = window.dataLayer || [];
-  function gtag() {
-    window.dataLayer.push(arguments);
-  }
-  window.gtag = gtag;
-  gtag('js', new Date());
-  gtag('config', ga4Id, {
-    page_path: window.location.pathname,
-  });
+  try {
+    // Initialize dataLayer
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      window.dataLayer.push(arguments);
+    }
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', ga4Id, {
+      page_path: window.location.pathname,
+    });
 
-  // Load GA4 script
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${ga4Id}`;
-  document.head.appendChild(script);
+    // Load GA4 script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${ga4Id}`;
+    script.onerror = () => {
+      console.warn('[GA4] Failed to load analytics script');
+    };
+    document.head.appendChild(script);
 
-  ga4Initialized = true;
-  
-  if (import.meta.env.DEV) {
-    console.log('[GA4] Initialized with ID:', ga4Id);
+    ga4Initialized = true;
+    
+    if (import.meta.env.DEV) {
+      console.info('[GA4] Analytics enabled');
+    }
+  } catch (error) {
+    console.warn('[GA4] Failed to initialize:', error);
   }
 }
 

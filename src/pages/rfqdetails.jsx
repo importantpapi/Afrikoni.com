@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,11 +16,12 @@ import { format } from 'date-fns';
 import { isValidUUID } from '@/utils/security';
 
 export default function RFQDetail() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [rfq, setRfq] = useState(null);
   const [buyer, setBuyer] = useState(null);
   const [quotes, setQuotes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [quoteForm, setQuoteForm] = useState({
     price_per_unit: '',
@@ -28,19 +31,15 @@ export default function RFQDetail() {
   });
 
   useEffect(() => {
-    loadData();
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-    } catch (error) {
-      setUser(null);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RFQDetail] Waiting for auth to be ready...');
+      return;
     }
-  };
+
+    // Now safe to load data (public page, user optional)
+    loadData();
+  }, [authReady, authLoading]);
 
   const navigate = useNavigate();
 

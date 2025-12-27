@@ -14,15 +14,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 
 export default function NewShipmentPage() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
   
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isCreating, setIsCreating] = useState(false);
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(orderId || '');
@@ -39,10 +42,11 @@ export default function NewShipmentPage() {
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { companyId: cid, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      // Use auth from context (no duplicate call)
+      const cid = profile?.company_id || null;
       if (!cid) {
         toast.error('Company ID not found');
-        // Use setTimeout to avoid navigation during render
         setTimeout(() => navigate('/dashboard/shipments'), 100);
         return;
       }
@@ -66,9 +70,10 @@ export default function NewShipmentPage() {
         .limit(50);
 
       // Filter by role
-      if (role === 'seller' || role === 'hybrid') {
+      const userRole = role || 'buyer';
+      if (userRole === 'seller' || userRole === 'hybrid') {
         query = query.eq('seller_company_id', cid);
-      } else if (role === 'buyer') {
+      } else if (userRole === 'buyer') {
         query = query.eq('buyer_company_id', cid);
       }
 
@@ -98,7 +103,7 @@ export default function NewShipmentPage() {
       setIsLoading(false);
       // Don't navigate on error to avoid loops - just show error
     }
-  }, [navigate, orderId]);
+  }, [navigate, orderId, profile, role]);
 
   useEffect(() => {
     loadData();

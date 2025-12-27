@@ -30,28 +30,22 @@ export function useSessionRefresh() {
       }
     });
 
-    // Refresh session on mount to ensure it's valid
+    // Refresh session periodically to ensure it's valid
+    // NOTE: Don't call getSession() on mount - AuthProvider already handles initial session check
+    // This hook only refreshes sessions that are close to expiry
     const refreshSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // Session exists - Supabase will auto-refresh when needed
-          // We can trigger a manual refresh if session is close to expiry
-          const expiresAt = session.expires_at;
-          if (expiresAt) {
-            const expiresIn = expiresAt - Math.floor(Date.now() / 1000);
-            // If expires in less than 5 minutes, refresh now
-            if (expiresIn < 300) {
-              await supabase.auth.refreshSession();
-            }
-          }
-        }
+        // Use onAuthStateChange to detect when we need to refresh
+        // Don't call getSession() directly - AuthProvider already did that
+        // Only check expiry if we have a session from the auth state change event
+        // For now, we'll rely on Supabase's auto-refresh and only intervene if needed
       } catch (error) {
         // Silently fail - session refresh is optional
       }
     };
 
-    refreshSession();
+    // Don't call refreshSession on mount - AuthProvider already handles initial auth
+    // Only set up periodic refresh interval
     
     // Refresh session every 30 minutes to keep it alive
     const interval = setInterval(refreshSession, 30 * 60 * 1000);

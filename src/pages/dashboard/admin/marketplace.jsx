@@ -62,36 +62,38 @@ export default function AdminMarketplace() {
   });
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminMarketplace] Waiting for auth to be ready...');
+      return;
+    }
 
-  useEffect(() => {
-    if (hasAccess) {
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setLoading(false);
+    
+    if (admin) {
       loadData();
     }
-  }, [hasAccess, activeTab]);
+  }, [authReady, authLoading, user, profile, role]);
 
   useEffect(() => {
-    if (hasAccess && activeTab === 'products') {
+    if (hasAccess && authReady && activeTab === 'products') {
       loadProducts();
-    } else if (hasAccess && activeTab === 'suppliers') {
+    } else if (hasAccess && authReady && activeTab === 'suppliers') {
       loadSuppliers();
-    } else if (hasAccess && activeTab === 'orders') {
+    } else if (hasAccess && authReady && activeTab === 'orders') {
       loadOrders();
     }
-  }, [hasAccess, activeTab, productStatusFilter, productCategoryFilter, productCountryFilter, supplierStatusFilter, supplierCountryFilter, orderStatusFilter]);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [hasAccess, authReady, activeTab, productStatusFilter, productCategoryFilter, productCountryFilter, supplierStatusFilter, supplierCountryFilter, orderStatusFilter]);
 
   const loadData = async () => {
     await Promise.all([
@@ -328,6 +330,11 @@ export default function AdminMarketplace() {
       toast.error('Failed to reject supplier');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading marketplace..." />;
+  }
 
   if (loading) {
     return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,10 +22,11 @@ import { RFQQualityHelper } from '@/components/rfq/RFQQualityHelper';
 import { FirstTimeRFQGuidance } from '@/components/onboarding/FirstTimeUserGuidance';
 
 export default function CreateRFQ() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -47,28 +48,40 @@ export default function CreateRFQ() {
   });
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[CreateRFQ] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, navigate]);
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const [userResult, catsRes] = await Promise.all([
-        getCurrentUserAndRole(supabase, supabaseHelpers),
-        supabase.from('categories').select('*')
-      ]);
-      const { user: userData } = userResult;
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
+      const catsRes = await supabase.from('categories').select('*');
 
       if (catsRes.error) throw catsRes.error;
 
-      setUser(userData);
       setCategories(catsRes.data || []);
 
       // Company is optional - continue even without it
       // RFQs can be created without company
     } catch (error) {
-      // Error logged (removed for production)
-      supabaseHelpers.auth.redirectToLogin();
+      console.error('Error loading data:', error);
+      toast.error('Failed to load data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,15 +90,39 @@ export default function CreateRFQ() {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      toast.error('Please upload an image or PDF file');
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      e.target.value = '';
+      return;
+    }
+
     try {
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files');
+      // Generate unique filename with proper sanitization
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `rfq-attachments/${timestamp}-${randomStr}-${cleanFileName}`;
+      
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
       setFormData(prev => ({ ...prev, attachments: [...prev.attachments, file_url] }));
       toast.success('File uploaded successfully');
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to upload file');
+      console.error('File upload error:', error);
+      toast.error(`Failed to upload file: ${error.message || 'Please try again'}`);
+    } finally {
+      // Reset file input
+      if (e.target) e.target.value = '';
     }
   };
 

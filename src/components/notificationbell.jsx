@@ -1,112 +1,87 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { Bell, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { createPageUrl } from '@/utils';
+import { getOrCreateCompany } from '@/utils/companyHelper'; // Import at the top
 
 export default function NotificationBell() {
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    loadUser();
-  }, []);
-
-  useEffect(() => {
-      if (user) {
-        loadNotifications();
-        
-        const setupSubscription = async () => {
-          try {
-            const { getOrCreateCompany } = await import('@/utils/companyHelper');
-            const companyId = await getOrCreateCompany(supabase, user);
-            
-            if (!companyId && !user.id && !user.email) {
-              return null;
-            }
-            
-            let filter = '';
-            if (companyId) {
-              filter = `company_id=eq.${companyId}`;
-            } else if (user.id) {
-              filter = `user_id=eq.${user.id}`;
-            } else if (user.email) {
-              filter = `user_email=eq.${user.email}`;
-            }
-            
-            const channel = supabase
-              .channel(`notifications-${user.id || user.email}`)
-              .on('postgres_changes', {
-                event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-                schema: 'public',
-                table: 'notifications',
-                filter: filter
-              }, (payload) => {
-                console.log('[NotificationBell] Real-time update:', payload.eventType);
-                // Instantly reload notifications on any change
-                loadNotifications();
-              })
-              .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                  console.log('[NotificationBell] Real-time subscribed');
-                } else if (status === 'CHANNEL_ERROR') {
-                  console.debug('Notification subscription error');
-                }
-              });
-
-            return () => {
-              if (channel) {
-                console.log('[NotificationBell] Unsubscribing');
-                supabase.removeChannel(channel);
-              }
-            };
-          } catch (error) {
-            return null;
-          }
-        };
-
-        let cleanup;
-        setupSubscription().then(cleanupFn => {
-          cleanup = cleanupFn;
-        });
-
-        return () => {
-          if (cleanup) cleanup();
-        };
-      }
-    }, [user]);
-
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-    } catch (error) {
-      console.debug('Error loading user for notifications:', error);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading || !user) {
+      return;
     }
-  };
+
+    // Now safe to load notifications
+    loadNotifications();
+    
+    // Setup real-time subscription
+    const setupSubscription = async () => {
+      try {
+        // Use company_id from profile first (no need to call getOrCreateCompany if we already have it)
+        const companyId = profile?.company_id || null;
+        
+        if (!companyId && !user.id && !user.email) {
+          return null;
+        }
+        
+        let filter = '';
+        if (companyId) {
+          filter = `company_id=eq.${companyId}`;
+        } else if (user.id) {
+          filter = `user_id=eq.${user.id}`;
+        } else if (user.email) {
+          filter = `user_email=eq.${user.email}`;
+        }
+        
+        const channel = supabase
+          .channel(`notifications-${user.id || user.email}`)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: filter
+          }, (payload) => {
+            console.log('[NotificationBell] Real-time update:', payload.eventType);
+            loadNotifications();
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('[NotificationBell] Real-time subscribed');
+            }
+          });
+
+        return channel;
+      } catch (error) {
+        console.debug('Error setting up subscription:', error);
+        return null;
+      }
+    };
+
+    let channelCleanup = null;
+    setupSubscription().then(channel => {
+      channelCleanup = channel;
+    });
+
+    return () => {
+      if (channelCleanup) {
+        console.log('[NotificationBell] Unsubscribing');
+        supabase.removeChannel(channelCleanup);
+      }
+    };
+  }, [user?.id, user?.email, authReady, authLoading]); // More specific dependencies
 
   const loadNotifications = async () => {
     if (!user) return;
     
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        setNotifications([]);
-        setUnreadCount(0);
-        return;
-      }
-    } catch (error) {
-      setNotifications([]);
-      setUnreadCount(0);
-      return;
-    }
-    
-    try {
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
+      // Use company_id from profile first (avoid unnecessary getOrCreateCompany calls)
+      let companyId = profile?.company_id || null;
 
       if (companyId && user.id) {
         try {
@@ -165,20 +140,63 @@ export default function NotificationBell() {
   };
 
   const markAsRead = async (notificationId) => {
+    if (!notificationId) return;
+    
     try {
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
         .eq('id', notificationId);
 
-      if (error) throw error;
-      loadNotifications();
+      if (!error) {
+        loadNotifications();
+      }
     } catch (error) {
-      // Error logged (removed for production)
+      console.debug('Error marking notification as read:', error);
     }
   };
 
-  // ALWAYS render the bell - clean, ungrouped, balanced
+  const handleNotificationClick = (notification) => {
+    if (!notification) return;
+    
+    markAsRead(notification.id);
+    setIsOpen(false);
+    
+    // Determine the URL to navigate to
+    let url = notification.link;
+    
+    if (!url) {
+      switch (notification.type) {
+        case 'order':
+          url = `/dashboard/orders/${notification.related_id}`;
+          break;
+        case 'rfq':
+          url = `/dashboard/rfqs/${notification.related_id}`;
+          break;
+        case 'message':
+          url = `/messages?conversation=${notification.related_id}`;
+          break;
+        case 'verification':
+          url = `/verification-center`;
+          break;
+        case 'product':
+          url = `/dashboard/products/new?id=${notification.related_id}`;
+          break;
+        case 'support':
+        case 'support_ticket':
+          url = `/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`;
+          break;
+        case 'dispute':
+          url = `/dashboard/disputes/${notification.related_id}`;
+          break;
+      }
+    }
+    
+    if (url) {
+      window.location.href = url;
+    }
+  };
+
   return (
     <button
       onClick={() => {
@@ -219,10 +237,6 @@ export default function NotificationBell() {
                 setIsOpen(false);
               }
             }}
-            style={{
-              position: 'fixed',
-              zIndex: 9998,
-            }}
           />
           {/* Notification Dropdown */}
           <Card 
@@ -256,41 +270,15 @@ export default function NotificationBell() {
                         className={`p-4 hover:bg-afrikoni-offwhite cursor-pointer transition-colors ${
                           !notification.read ? 'bg-amber-50/50 border-l-2 border-amber-400' : ''
                         }`}
-                        onClick={() => {
-                          markAsRead(notification.id);
-                          setIsOpen(false);
-                          
-                          if (notification.link) {
-                            window.location.href = notification.link;
-                          } else if (notification.type === 'order' && notification.related_id) {
-                            window.location.href = `/dashboard/orders/${notification.related_id}`;
-                          } else if (notification.type === 'rfq' && notification.related_id) {
-                            window.location.href = `/dashboard/rfqs/${notification.related_id}`;
-                          } else if (notification.type === 'message' && notification.related_id) {
-                            window.location.href = `/messages?conversation=${notification.related_id}`;
-                          } else if (notification.type === 'verification' && notification.related_id) {
-                            window.location.href = `/verification-center`;
-                          } else if (notification.type === 'product' && notification.related_id) {
-                            window.location.href = `/dashboard/products/new?id=${notification.related_id}`;
-                          } else if (notification.type === 'support' || notification.type === 'support_ticket') {
-                            // Open support chat sidebar or navigate to support chat
-                            if (notification.link) {
-                              window.location.href = notification.link;
-                            } else {
-                              window.location.href = `/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`;
-                            }
-                          } else if (notification.type === 'dispute' && notification.related_id) {
-                            window.location.href = `/dashboard/disputes/${notification.related_id}`;
-                          }
-                        }}
+                        onClick={() => handleNotificationClick(notification)}
                       >
                         <div className="flex items-start gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-sm text-afrikoni-chestnut mb-1 break-words line-clamp-2">
-                              {notification.title}
+                              {notification.title || 'Notification'}
                             </div>
                             <div className="text-xs text-afrikoni-deep mt-1 break-words whitespace-normal leading-relaxed line-clamp-3">
-                              {notification.message}
+                              {notification.message || ''}
                             </div>
                             <div className="text-xs text-afrikoni-deep/70 mt-2 flex items-center gap-2 flex-wrap">
                               <span>{new Date(notification.created_at).toLocaleDateString()}</span>
@@ -300,19 +288,13 @@ export default function NotificationBell() {
                                 </span>
                               )}
                             </div>
-                            {/* Quick Reply Button for Support/Messages */}
+                            {/* Quick Reply Button */}
                             {(notification.type === 'support' || notification.type === 'support_ticket' || notification.type === 'message') && (
                               <div className="mt-2 pt-2 border-t border-afrikoni-gold/10">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    markAsRead(notification.id);
-                                    setIsOpen(false);
-                                    if (notification.type === 'support' || notification.type === 'support_ticket') {
-                                      window.location.href = `/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`;
-                                    } else if (notification.type === 'message' && notification.related_id) {
-                                      window.location.href = `/messages?conversation=${notification.related_id}`;
-                                    }
+                                    handleNotificationClick(notification);
                                   }}
                                   className="w-full text-left text-xs font-medium text-afrikoni-gold hover:text-afrikoni-gold/80 flex items-center gap-1"
                                 >
@@ -336,10 +318,7 @@ export default function NotificationBell() {
                   <a
                     href="/dashboard/notifications"
                     className="text-xs text-afrikoni-gold hover:underline font-medium text-center block"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsOpen(false);
-                    }}
+                    onClick={() => setIsOpen(false)}
                   >
                     View all notifications →
                   </a>

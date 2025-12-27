@@ -21,13 +21,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 import { toast } from 'sonner';
 
 export default function AdminReview() {
-  const [loading, setLoading] = useState(true);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(false); // Local loading state
   const [hasAccess, setHasAccess] = useState(false);
   const [pendingSuppliers, setPendingSuppliers] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
@@ -35,40 +38,44 @@ export default function AdminReview() {
   const [openDisputes, setOpenDisputes] = useState([]);
 
   useEffect(() => {
-    checkAccessAndLoad();
-  }, []);
-
-  const checkAccessAndLoad = async () => {
-    try {
-      const { user } = await getCurrentUserAndRole(
-        supabase,
-        // dynamic import already used elsewhere; reuse here for safety
-        await import('@/api/supabaseClient').then((m) => m.supabaseHelpers)
-      );
-      const admin = isAdmin(user);
-      setHasAccess(admin);
-      if (admin) {
-        await Promise.all([
-          loadSuppliers(),
-          loadProducts(),
-          loadRFQs(),
-          loadDisputes(),
-        ]);
-      }
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminReview] Waiting for auth to be ready...');
+      return;
     }
-  };
+
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setLoading(false);
+    
+    if (admin) {
+      Promise.all([
+        loadSuppliers(),
+        loadProducts(),
+        loadRFQs(),
+        loadDisputes(),
+      ]);
+    }
+  }, [authReady, authLoading, user, profile, role]);
 
   const loadSuppliers = async () => {
+    // ✅ Load all unverified/pending suppliers (sellers) awaiting admin approval
+    // These suppliers will NOT appear on the verified suppliers page until approved
     const { data, error } = await supabase
       .from('companies')
       .select('*')
+      .eq('role', 'seller') // Only show sellers
       .in('verification_status', ['pending', 'unverified'])
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(100); // Increased limit to show more pending suppliers
     if (!error) setPendingSuppliers(data || []);
   };
 
@@ -204,6 +211,11 @@ export default function AdminReview() {
       toast.error('Failed to update dispute');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading admin review..." />;
+  }
 
   if (loading) {
     return (

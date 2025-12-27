@@ -13,8 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { 
   getOrderFulfillment,
   updateFulfillmentStatus,
@@ -26,41 +27,105 @@ import { CardSkeleton } from '@/components/ui/skeletons';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function FulfillmentDashboardInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [fulfillments, setFulfillments] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[FulfillmentDashboard] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      console.warn('[FulfillmentDashboard] No user found, redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, [statusFilter]);
+  }, [authReady, authLoading, user, profile, role, navigate, statusFilter]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const { user, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      console.log('[FulfillmentDashboard] Starting loadData...');
       
-      if (!user || !userCompanyId) {
-        navigate('/login');
+      // Use auth from context (no duplicate call)
+      const userCompanyId = profile?.company_id || null;
+
+      // Allow logistics users even without companyId (they might be viewing all fulfillments)
+      if (!userCompanyId && role !== 'logistics') {
+        console.warn('[FulfillmentDashboard] No company ID found for non-logistics user');
+        toast.info('Complete your company profile to access fulfillment features.');
+        setIsLoading(false);
         return;
       }
 
-      setCompanyId(userCompanyId);
-
       // Load orders with fulfillment status
-      const { data: orders } = await supabase
+      // For logistics users, show orders they're handling logistics for
+      // For sellers, show their own orders
+      let ordersQuery = supabase
         .from('orders')
         .select(`
           *,
           fulfillment:order_fulfillment(*),
           buyer_company:companies!orders_buyer_company_id_fkey(*)
-        `)
-        .eq('seller_company_id', userCompanyId)
+        `);
+
+      if (role === 'logistics' && userCompanyId) {
+        // Logistics: show orders where they're the logistics partner
+        // Check via shipments table
+        const { data: shipments } = await supabase
+          .from('shipments')
+          .select('order_id')
+          .eq('logistics_partner_id', userCompanyId);
+
+        if (shipments && shipments.length > 0) {
+          const orderIds = shipments.map(s => s.order_id).filter(Boolean);
+          if (orderIds.length > 0) {
+            ordersQuery = ordersQuery.in('id', orderIds);
+          } else {
+            // No shipments yet, return empty
+            setFulfillments([]);
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          // No shipments for this logistics company
+          setFulfillments([]);
+          setIsLoading(false);
+          return;
+        }
+      } else if (userCompanyId) {
+        // Seller/Hybrid: show their own orders
+        ordersQuery = ordersQuery.eq('seller_company_id', userCompanyId);
+      } else {
+        // No company ID and not logistics - show empty
+        setFulfillments([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: orders, error: ordersError } = await ordersQuery
         .order('created_at', { ascending: false });
 
-      if (orders) {
+      if (ordersError) {
+        console.error('[FulfillmentDashboard] Error loading orders:', ordersError);
+        toast.error('Failed to load orders');
+        setFulfillments([]);
+        setIsLoading(false);
+        return;
+      }
+
+      if (orders && Array.isArray(orders)) {
         const fulfillmentsList = orders
           .filter(order => order.fulfillment)
           .map(order => ({
@@ -70,24 +135,35 @@ function FulfillmentDashboardInner() {
           .filter(f => statusFilter === 'all' || f.status === statusFilter);
         
         setFulfillments(fulfillmentsList);
+        console.log('[FulfillmentDashboard] Loaded fulfillments:', fulfillmentsList.length);
+      } else {
+        setFulfillments([]);
+        console.log('[FulfillmentDashboard] No orders found or orders is not an array');
       }
 
-      // Load warehouses (non-blocking, fail-safe)
-      const warehousesList = await getWarehouseLocations(userCompanyId).catch((err) => {
-        if (import.meta.env.DEV) {
-          console.warn('getWarehouseLocations failed (non-blocking):', err);
-        }
-        return [];
-      });
-      setWarehouses(Array.isArray(warehousesList) ? warehousesList : []);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error loading fulfillment data:', error);
+      // Load warehouses (non-blocking, fail-safe) - only for sellers/hybrid with company
+      if (userCompanyId && role !== 'logistics') {
+        const warehousesList = await getWarehouseLocations(userCompanyId).catch((err) => {
+          if (import.meta.env.DEV) {
+            console.warn('getWarehouseLocations failed (non-blocking):', err);
+          }
+          return [];
+        });
+        setWarehouses(Array.isArray(warehousesList) ? warehousesList : []);
+      } else {
+        // Logistics users don't need warehouses (they manage shipments, not fulfillment)
+        setWarehouses([]);
       }
+
+      console.log('[FulfillmentDashboard] Data loaded successfully');
+    } catch (error) {
+      console.error('[FulfillmentDashboard] Error loading fulfillment data:', error);
+      toast.error('Failed to load fulfillment data. Please try again.');
       // In production, quietly show empty states instead of an error toast
       setFulfillments([]);
       setWarehouses([]);
     } finally {
+      console.log('[FulfillmentDashboard] Setting isLoading to false');
       setIsLoading(false);
     }
   };
@@ -318,7 +394,7 @@ function FulfillmentDashboardInner() {
 
 export default function FulfillmentDashboard() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    <RequireDashboardRole allow={['seller', 'hybrid', 'logistics']}>
       <FulfillmentDashboardInner />
     </RequireDashboardRole>
   );

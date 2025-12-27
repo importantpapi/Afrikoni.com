@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileSearch, CheckCircle, XCircle, Clock, Building2, FileText, Eye, Download,
   AlertTriangle, Shield, User, Mail, Phone, Globe, Hash, Calendar, MessageSquare,
-  ExternalLink, RefreshCw, Filter, Search
+  ExternalLink, RefreshCw, Filter, Search, CreditCard
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,17 +20,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
 import { isAdmin } from '@/utils/permissions';
 import { format } from 'date-fns';
 import EmptyState from '@/components/ui/EmptyState';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function AdminVerificationReview() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [verifications, setVerifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [selectedVerification, setSelectedVerification] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
@@ -40,30 +43,36 @@ export default function AdminVerificationReview() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAccessAndLoad();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminVerificationReview] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setIsLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setIsLoading(false);
+    
+    if (admin) {
+      loadVerifications();
+    }
+  }, [authReady, authLoading, user, profile, role]);
 
   useEffect(() => {
     if (filterStatus || searchQuery) {
-      loadVerifications();
-    }
-  }, [filterStatus, searchQuery]);
-
-  const checkAccessAndLoad = async () => {
-    try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      const admin = isAdmin(user);
-      setHasAccess(admin);
-      if (admin) {
-        await loadVerifications();
+      if (hasAccess && authReady) {
+        loadVerifications();
       }
-    } catch (error) {
-      console.error('Access check error:', error);
-      setHasAccess(false);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [filterStatus, searchQuery, hasAccess, authReady]);
 
   const loadVerifications = async () => {
     try {
@@ -141,7 +150,11 @@ export default function AdminVerificationReview() {
     }
 
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
       
       // Update verification status
       const { error: verifError } = await supabase
@@ -167,6 +180,27 @@ export default function AdminVerificationReview() {
         .eq('id', companyId);
 
       if (companyError) throw companyError;
+
+      // ✅ Log admin action to audit trail
+      try {
+        const { logAdminEvent } = await import('@/utils/auditLogger');
+        // Use auth from context (no duplicate call)
+        await logAdminEvent({
+          action: 'approve_verification',
+          entity_type: 'verification',
+          entity_id: verificationId,
+          user: user,
+          profile: profile,
+          metadata: {
+            company_id: companyId,
+            review_notes: reviewNotes || null,
+            status: 'verified'
+          }
+        });
+      } catch (auditError) {
+        console.error('Failed to log audit event:', auditError);
+        // Don't block the approval if audit logging fails
+      }
 
       toast.success('Verification approved successfully');
       setSelectedVerification(null);
@@ -194,7 +228,11 @@ export default function AdminVerificationReview() {
     }
 
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
       
       // Update verification status
       const { error: verifError } = await supabase
@@ -219,6 +257,27 @@ export default function AdminVerificationReview() {
         .eq('id', companyId);
 
       if (companyError) throw companyError;
+
+      // ✅ Log admin action to audit trail
+      try {
+        const { logAdminEvent } = await import('@/utils/auditLogger');
+        // Use auth from context (no duplicate call)
+        await logAdminEvent({
+          action: 'reject_verification',
+          entity_type: 'verification',
+          entity_id: verificationId,
+          user: user,
+          profile: profile,
+          metadata: {
+            company_id: companyId,
+            rejection_reason: rejectionReason,
+            status: 'rejected'
+          }
+        });
+      } catch (auditError) {
+        console.error('Failed to log audit event:', auditError);
+        // Don't block the rejection if audit logging fails
+      }
 
       toast.success('Verification rejected');
       setSelectedVerification(null);
@@ -663,7 +722,7 @@ export default function AdminVerificationReview() {
                         Verification Details
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">Business ID Number</p>
@@ -684,6 +743,54 @@ export default function AdminVerificationReview() {
                           </p>
                         </div>
                       </div>
+                      
+                      {/* ✅ Bank Account Information - Show if available */}
+                      {verification.documents && typeof verification.documents === 'object' && verification.documents.bank_account_info && (
+                        <div className="mt-4 pt-4 border-t border-afrikoni-gold/20">
+                          <h4 className="text-base font-semibold text-afrikoni-chestnut mb-3 flex items-center gap-2">
+                            <CreditCard className="w-5 h-5" />
+                            Bank Account Information
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {verification.documents.bank_account_info.account_number && (
+                              <div>
+                                <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">Account Number</p>
+                                <p className="text-afrikoni-chestnut font-mono">{verification.documents.bank_account_info.account_number}</p>
+                              </div>
+                            )}
+                            {verification.documents.bank_account_info.bank_name && (
+                              <div>
+                                <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">Bank Name</p>
+                                <p className="text-afrikoni-chestnut">{verification.documents.bank_account_info.bank_name}</p>
+                              </div>
+                            )}
+                            {verification.documents.bank_account_info.account_holder_name && (
+                              <div>
+                                <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">Account Holder Name</p>
+                                <p className="text-afrikoni-chestnut">{verification.documents.bank_account_info.account_holder_name}</p>
+                              </div>
+                            )}
+                            {verification.documents.bank_account_info.swift_code && (
+                              <div>
+                                <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">SWIFT/BIC Code</p>
+                                <p className="text-afrikoni-chestnut font-mono">{verification.documents.bank_account_info.swift_code}</p>
+                              </div>
+                            )}
+                            {verification.documents.bank_account_info.bank_country && (
+                              <div>
+                                <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">Bank Country</p>
+                                <p className="text-afrikoni-chestnut">{verification.documents.bank_account_info.bank_country}</p>
+                              </div>
+                            )}
+                            {verification.documents.bank_account_info.bank_address && (
+                              <div className="md:col-span-2">
+                                <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">Bank Address</p>
+                                <p className="text-afrikoni-chestnut">{verification.documents.bank_account_info.bank_address}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       {verification.reviewed_at && (
                         <div className="mt-4 pt-4 border-t">
                           <p className="text-sm font-semibold text-afrikoni-deep/70 mb-1">Reviewed</p>

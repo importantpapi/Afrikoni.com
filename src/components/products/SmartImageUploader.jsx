@@ -13,7 +13,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, GripVertical, Sparkles, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -198,20 +198,19 @@ export default function SmartImageUploader({
       const randomStr = Math.random().toString(36).substring(2, 9);
       const path = `products/${userId}/${timestamp}-${randomStr}.jpg`; // Always .jpg after crop
 
-      // Upload main image
-      const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(path, fileToUpload, {
+      // Upload main image using helper for consistent error handling
+      const uploadResult = await supabaseHelpers.storage.uploadFile(
+        fileToUpload,
+        'product-images',
+        path,
+        {
           cacheControl: '3600',
-          upsert: false
-        });
+          upsert: false,
+          contentType: 'image/jpeg'
+        }
+      );
 
-      if (error) throw error;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(data.path);
+      const publicUrl = uploadResult.file_url;
 
       // Generate thumbnail (300x300) for first image
       let thumbnailUrl = publicUrl;
@@ -219,29 +218,30 @@ export default function SmartImageUploader({
         try {
           const thumbnailFile = await cropAndCenterImage(file, 300, 0.85);
           const thumbPath = `products/${userId}/${timestamp}-${randomStr}-thumb.jpg`;
-          const { data: thumbData, error: thumbError } = await supabase.storage
-            .from('product-images')
-            .upload(thumbPath, thumbnailFile, {
+          const thumbResult = await supabaseHelpers.storage.uploadFile(
+            thumbnailFile,
+            'product-images',
+            thumbPath,
+            {
               cacheControl: '3600',
-              upsert: false
-            });
+              upsert: false,
+              contentType: 'image/jpeg'
+            }
+          );
           
-          if (!thumbError && thumbData) {
-            const { data: { publicUrl: thumbPublicUrl } } = supabase.storage
-              .from('product-images')
-              .getPublicUrl(thumbData.path);
-            thumbnailUrl = thumbPublicUrl;
+          if (thumbResult?.file_url) {
+            thumbnailUrl = thumbResult.file_url;
           }
         } catch (thumbError) {
           // Thumbnail generation is optional, continue with main image
-          // Silently fail - thumbnail is optional
+          console.warn('Thumbnail generation failed (optional):', thumbError);
         }
       }
 
       return {
         url: publicUrl,
         thumbnail_url: thumbnailUrl,
-        path: data.path,
+        path: uploadResult.path,
         is_primary: images.length === 0,
         sort_order: images.length
       };

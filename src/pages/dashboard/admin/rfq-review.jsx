@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +17,8 @@ import { sendRFQNotification } from '@/utils/rfqNotifications';
 import { logRFQAdminAction } from '@/utils/rfqAuditLog';
 
 export default function AdminRFQReview() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);
@@ -25,27 +29,28 @@ export default function AdminRFQReview() {
   const [internalNotes, setInternalNotes] = useState('');
   const [selectedSuppliers, setSelectedSuppliers] = useState([]);
   const [confidenceScore, setConfidenceScore] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [pastRFQs, setPastRFQs] = useState([]);
-  const [adminUser, setAdminUser] = useState(null);
 
   useEffect(() => {
-    loadAdminUser();
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminRFQReview] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Now safe to load data
     loadRFQs();
     if (id) {
       loadRFQDetail(id);
     }
-  }, [id, filterStatus]);
-
-  const loadAdminUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setAdminUser(user);
-    } catch (error) {
-      console.error('Failed to load admin user:', error);
-    }
-  };
+  }, [id, filterStatus, authReady, authLoading, user, profile, role, navigate]);
 
   useEffect(() => {
     loadSuppliers();

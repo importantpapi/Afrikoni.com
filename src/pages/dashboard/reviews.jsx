@@ -6,7 +6,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,9 +19,11 @@ import { motion } from 'framer-motion';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function ReviewsDashboardInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [company, setCompany] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [stats, setStats] = useState({
     trustScore: 50,
     averageRating: 0,
@@ -29,16 +32,30 @@ function ReviewsDashboardInner() {
   });
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[ReviewsDashboard] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → return early
+    if (!user) {
+      console.log('[ReviewsDashboard] No user');
+      return;
+    }
+
+    // Now safe to load data
     loadReviewsData();
-  }, []);
+  }, [authReady, authLoading, user, profile, role]);
 
   const loadReviewsData = async () => {
     try {
       setIsLoading(true);
       
-      // Get user's company
-      const { companyId } = await getCurrentUserAndRole(supabase);
+      // Use auth from context (no duplicate call)
+      const companyId = profile?.company_id || null;
       if (!companyId) {
+        setIsLoading(false);
         return;
       }
 
@@ -102,6 +119,11 @@ function ReviewsDashboardInner() {
       setIsLoading(false);
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading reviews..." />;
+  }
 
   if (isLoading) {
     return (

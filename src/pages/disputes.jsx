@@ -3,39 +3,31 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FileText, Clock, Shield, CheckCircle, AlertCircle, MessageSquare } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { SystemPageHero, SystemPageSection, SystemPageCard, SystemPageTimeline, SystemPageCTA } from '@/components/system/SystemPageLayout';
 
 export default function Disputes() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        if (userData) {
-          setUser(userData);
-          // Redirect authenticated users to dashboard disputes
-          navigate('/dashboard/disputes', { replace: true });
-        }
-      } catch (error) {
-        // User not logged in, show public page
-      } finally {
-        setChecking(false);
-      }
-    };
-    checkAuth();
-  }, [navigate]);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      return;
+    }
 
-  if (checking) {
-    return (
-      <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
+    // Redirect authenticated users to dashboard disputes
+    if (user) {
+      navigate('/dashboard/disputes', { replace: true });
+    }
+  }, [authReady, authLoading, user, navigate]);
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading..." />;
   }
 
   const disputeFlowSteps = [

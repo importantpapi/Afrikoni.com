@@ -1,32 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingBag, Package, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Orders() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[Orders] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect (optional - can be public page)
+    // For now, allow loading but show empty state if no user
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, navigate]);
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
+      setIsLoading(true);
+      // Use auth from context (no duplicate call)
 
       // Get or create company
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const companyId = profile?.company_id || (user ? await getOrCreateCompany(supabase, user) : null);
 
       const [ordersRes, companiesRes] = await Promise.all([
         supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(100),
@@ -70,11 +82,9 @@ export default function Orders() {
     return colors[status] || 'bg-afrikoni-cream text-afrikoni-deep';
   };
 
-  if (isLoading) {
+  if (isLoading || !authReady || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <SpinnerWithTimeout message="Loading orders..." />
     );
   }
 

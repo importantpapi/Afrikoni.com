@@ -32,6 +32,34 @@
 
 **Note:** Without this key, KoniAI features will show a banner but won't function.
 
+### VITE_SENTRY_DSN
+**Required:** No  
+**Description:** Sentry DSN for error tracking and performance monitoring  
+**Format:** `https://xxxxx@xxxxx.ingest.sentry.io/xxxxx`  
+**Where to Set:**
+- Vercel: Dashboard → Project → Settings → Environment Variables
+- Local: `.env` file in root directory
+
+**Note:** Without this key, error tracking is disabled. No warnings are shown. To enable:
+1. Sign up at https://sentry.io (free tier available)
+2. Create a project and get your DSN
+3. Add to environment variables
+4. Restart dev server or redeploy
+
+### VITE_GA4_ID
+**Required:** No  
+**Description:** Google Analytics 4 tracking ID  
+**Format:** `G-XXXXXXXXXX`  
+**Where to Set:**
+- Vercel: Dashboard → Project → Settings → Environment Variables
+- Local: `.env` file in root directory
+
+**Note:** Without this key, analytics tracking is disabled. No warnings are shown. To enable:
+1. Create a GA4 property at https://analytics.google.com
+2. Get your Measurement ID (format: G-XXXXXXXXXX)
+3. Add to environment variables
+4. Restart dev server or redeploy
+
 ---
 
 ## Local Development Setup
@@ -39,9 +67,14 @@
 ### Create `.env` file in root directory:
 
 ```env
+# Required
 VITE_SUPABASE_URL=https://qkeeufeiaphqylsnfhza.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrZWV1ZmVpYXBocXlsc25maHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MzYwNjYsImV4cCI6MjA4MDAxMjA2Nn0.CaGKQ3C5rz-XP-5r2I8xrHZ7F-5w4Z-1yzxtclddQus
-VITE_OPENAI_API_KEY=sk-proj-... (optional)
+
+# Optional
+VITE_OPENAI_API_KEY=sk-proj-... (for KoniAI features)
+VITE_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx (for error tracking)
+VITE_GA4_ID=G-XXXXXXXXXX (for analytics)
 ```
 
 ### Verify Setup:
@@ -125,6 +158,8 @@ console.log(import.meta.env.VITE_SUPABASE_ANON_KEY)
 | `VITE_SUPABASE_URL` | ✅ Yes | Database, Auth, Storage |
 | `VITE_SUPABASE_ANON_KEY` | ✅ Yes | Database, Auth, Storage |
 | `VITE_OPENAI_API_KEY` | ❌ No | KoniAI features |
+| `VITE_SENTRY_DSN` | ❌ No | Error tracking & performance monitoring |
+| `VITE_GA4_ID` | ❌ No | Google Analytics 4 tracking |
 
 ---
 

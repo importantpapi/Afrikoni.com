@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 // import LoadingState from '@/components/LoadingState'; // Component doesn't exist
 // import ErrorState from '@/components/ErrorState'; // Component doesn't exist
@@ -71,14 +72,30 @@ export default function VerificationStatus() {
   const [profileStrength, setProfileStrength] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
 
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[VerificationStatus] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → exit
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Now safe to load data
     loadVerificationStatus();
-  }, []);
+  }, [authReady, authLoading, user, profile]);
 
   const loadVerificationStatus = async () => {
     try {
-      const { user } = await getCurrentUserAndRole(supabase);
-      const companyId = user?.user_metadata?.company_id || user?.company_id;
+      // Use company_id from profile
+      const companyId = profile?.company_id || null;
 
       // Load company data
       const { data: companyData, error: companyError } = await supabase
@@ -171,12 +188,10 @@ export default function VerificationStatus() {
   const status = getVerificationStatus();
   const StatusIcon = status.icon;
 
-  if (loading) {
+  if (loading || !authReady || authLoading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
+        <SpinnerWithTimeout message="Loading verification status..." />
       </DashboardLayout>
     );
   }

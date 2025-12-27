@@ -10,34 +10,46 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useSupplierIntelligence, useTrustEvolution, useRiskSignals } from '@/hooks/useTradeIntelligence';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Shield, TrendingUp, AlertTriangle, CheckCircle, Clock, XCircle, Package, DollarSign } from 'lucide-react';
 import TrustHistoryTimeline from '@/components/intelligence/TrustHistoryTimeline';
 
 export default function SellerIntelligence() {
-  const [loading, setLoading] = useState(true);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(false); // Local loading state
   const [companyId, setCompanyId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    const loadCompany = async () => {
-      try {
-        const { companyId: cid } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        setCompanyId(cid);
-      } catch (error) {
-        console.error('Error loading company:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SellerIntelligence] Waiting for auth to be ready...');
+      return;
+    }
 
-    loadCompany();
-  }, []);
+    // GUARD: No user → exit
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Use company_id from profile
+    const cid = profile?.company_id || null;
+    setCompanyId(cid);
+    setLoading(false);
+  }, [authReady, authLoading, user, profile]);
 
   const { data: supplierIntelligence, loading: supplierLoading } = useSupplierIntelligence(companyId);
   const { data: trustEvolution, loading: trustLoading } = useTrustEvolution(companyId);
   const { data: riskSignals, loading: riskLoading } = useRiskSignals();
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading seller intelligence..." />;
+  }
 
   if (loading) {
     return (

@@ -17,8 +17,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isAdmin } from '@/utils/permissions';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
@@ -27,9 +28,10 @@ import { toast } from 'sonner';
 const COLORS = ['#D4A937', '#8140FF', '#3AB795', '#E85D5D', '#C9A961'];
 
 export default function AdminAnalytics() {
-  const [user, setUser] = useState(null);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Local loading state
   const [timeRange, setTimeRange] = useState('30d');
   const [metrics, setMetrics] = useState({
     gmv: 0,
@@ -55,26 +57,28 @@ export default function AdminAnalytics() {
   });
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminAnalytics] Waiting for auth to be ready...');
+      return;
+    }
 
-  useEffect(() => {
-    if (hasAccess) {
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setLoading(false);
+    
+    if (admin) {
       loadAnalytics();
     }
-  }, [hasAccess, timeRange]);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [authReady, authLoading, user, profile, role, timeRange]);
 
   const getDateRange = () => {
     const now = new Date();
@@ -609,6 +613,11 @@ export default function AdminAnalytics() {
     // Mock PDF generation - in production, this would call a backend service
     toast.info('PDF report generation is in development. For now, please use CSV or JSON exports.');
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading analytics..." />;
+  }
 
   if (loading) {
     return (

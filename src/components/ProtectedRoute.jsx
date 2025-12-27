@@ -1,85 +1,52 @@
-import React, { useEffect, useState } from 'react';
+/**
+ * ProtectedRoute - Uses centralized AuthProvider
+ * 
+ * GUARANTEES:
+ * - Waits for authReady before checking auth
+ * - Uses auth context (no duplicate auth calls)
+ * - Always terminates loading (via SpinnerWithTimeout)
+ */
+
+import React from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { requireAuth, getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
+import { toast } from 'sonner';
+import { SpinnerWithTimeout } from './ui/SpinnerWithTimeout';
 import AccessDenied from './AccessDenied';
 
 export default function ProtectedRoute({ 
   children, 
-  requireOnboarding: needsOnboarding = false,
   requireAdmin: needsAdmin = false 
 }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [accessDenied, setAccessDenied] = useState(false);
+  const { user, profile, role, authReady, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    checkAuth();
-    // We intentionally only depend on needsOnboarding and needsAdmin here; Supabase clients are stable singletons.
-  }, [needsOnboarding, needsAdmin]);
-
-  const checkAuth = async () => {
-    try {
-      // Check if admin access is required
-      if (needsAdmin) {
-        const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        if (!userData) {
-          navigate('/login');
-          return;
-        }
-
-        const hasAdminAccess = isAdmin(userData, profile);
-        if (!hasAdminAccess) {
-          console.warn('❌ Access denied: Admin-only page');
-          setAccessDenied(true);
-          setIsLoading(false);
-          return;
-        }
-
-        setIsAuthorized(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // Onboarding is no longer required anywhere. We only check auth.
-      const result = await requireAuth(supabase);
-      if (!result) {
-        // Preserve current location as "from" state for redirect after login
-        const next = searchParams.get('next') || location.pathname + location.search;
-        navigate(`/login?next=${encodeURIComponent(next)}`);
-        return;
-      }
-      setIsAuthorized(true);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('ProtectedRoute auth error:', error);
-      }
-      navigate('/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
+  // Wait for auth to be ready
+  if (!authReady || loading) {
+    return <SpinnerWithTimeout message="Checking authentication..." />;
   }
 
-  if (accessDenied) {
-    return <AccessDenied />;
-  }
-
-  if (!isAuthorized) {
+  // If no user → redirect to login
+  if (!user) {
+    const next = searchParams.get('next') || location.pathname + location.search;
+    navigate(`/login?next=${encodeURIComponent(next)}`);
+    toast.error('Please log in to continue', { duration: 3000 });
     return null;
   }
 
+  // Check admin access if required
+  if (needsAdmin) {
+    const hasAdminAccess = isAdmin(user, profile);
+    if (!hasAdminAccess) {
+      console.warn('[ProtectedRoute] ❌ Access denied: Admin-only page');
+      return <AccessDenied />;
+    }
+  }
+
+  // User is authenticated and authorized
   return <>{children}</>;
 }
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import { buildShipmentQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
@@ -20,27 +21,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 
 export default function DashboardShipments() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [shipments, setShipments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [pagination, setPagination] = useState(createPaginationState());
-  const [currentRole, setCurrentRole] = useState('logistics');
+  const [currentRole, setCurrentRole] = useState(role || 'logistics');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardShipments] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardShipments] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadShipments();
-  }, [statusFilter]);
+  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
 
   const loadShipments = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      setCurrentRole(getUserRole(profile || user));
+      
+      // Use auth from context (no duplicate call)
+      const normalizedRole = getUserRole(profile || user) || 'logistics';
+      setCurrentRole(normalizedRole);
+      const companyId = profile?.company_id || null;
 
       // Use query builder
       const query = buildShipmentQuery({
@@ -151,6 +167,11 @@ export default function DashboardShipments() {
         </div>
       </DashboardLayout>
     );
+  }
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading shipments..." />;
   }
 
   return (

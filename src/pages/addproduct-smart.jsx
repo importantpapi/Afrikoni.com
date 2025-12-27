@@ -11,7 +11,9 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,12 +49,13 @@ const STEPS = [
 ];
 
 export default function AddProductSmart() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { id: productId } = useParams();
   const isEditing = !!productId;
   const [currentStep, setCurrentStep] = useState(1);
-  const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,8 +94,21 @@ export default function AddProductSmart() {
 
   // Load data first
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AddProductSmart] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-  }, []);
+  }, [authReady, authLoading, user, navigate]);
   
   // Restore draft or load product for editing after data is loaded
   useEffect(() => {
@@ -214,20 +230,17 @@ export default function AddProductSmart() {
 
   const loadData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const [userResult, catsRes] = await Promise.all([
-        getCurrentUserAndRole(supabase, supabaseHelpers),
-        supabase.from('categories').select('*').order('name')
-      ]);
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
+      const catsRes = await supabase.from('categories').select('*').order('name');
 
       if (catsRes.error) throw catsRes.error;
 
-      const { user: userData } = userResult;
-      setUser(userData);
       setCategories(catsRes.data || []);
 
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const companyId = profile?.company_id || await getOrCreateCompany(supabase, user);
       
       if (companyId) {
         const [companyRes, productsRes] = await Promise.all([
@@ -251,7 +264,7 @@ export default function AddProductSmart() {
       }
     } catch (error) {
       // Error logged (removed for production)
-      supabaseHelpers.auth.redirectToLogin();
+      navigate('/login');
     }
   };
 

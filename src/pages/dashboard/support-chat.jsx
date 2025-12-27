@@ -17,28 +17,43 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getOrCreateCompany } from '@/utils/companyHelper';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { format } from 'date-fns';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function SupportChatInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [ticketNumber, setTicketNumber] = useState(null);
   const [ticketStatus, setTicketStatus] = useState('open');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSending, setIsSending] = useState(false);
-  const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [showTicketInfo, setShowTicketInfo] = useState(false);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[SupportChat] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[SupportChat] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadUserAndTicket();
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   useEffect(() => {
     if (ticketNumber) {
@@ -68,15 +83,9 @@ function SupportChatInner() {
   const loadUserAndTicket = async () => {
     try {
       setIsLoading(true);
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      setUser(profile || userData);
-      const cid = await getOrCreateCompany(supabase, profile || userData);
+      // Use auth from context (no duplicate call)
+      const cid = profile?.company_id || null;
       setCompanyId(cid);
 
       // Always create a new unique ticket for each user session
@@ -89,7 +98,7 @@ function SupportChatInner() {
             .insert({
               ticket_number: newTicketNumber,
               company_id: cid,
-              user_email: userData.email,
+              user_email: user.email,
               subject: 'Support Request',
               status: 'open',
               priority: 'normal'
@@ -333,6 +342,11 @@ function SupportChatInner() {
       toast.success('Ticket number copied to clipboard');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading support chat..." />;
+  }
 
   if (isLoading) {
     return (

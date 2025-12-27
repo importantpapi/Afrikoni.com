@@ -13,8 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import {
   calculateShippingQuote,
   saveLogisticsQuote,
@@ -47,16 +48,26 @@ function LogisticsQuoteInner() {
   const [existingQuotes, setExistingQuotes] = useState([]);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[LogisticsQuote] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId]);
+  }, [orderId, authReady, authLoading, user, profile, role, navigate]);
 
   const loadData = async () => {
     try {
-      const { companyId: cid } = await getCurrentUserAndRole(
-        supabase,
-        supabaseHelpers
-      );
+      // Use company_id from profile
+      const cid = profile?.company_id || null;
 
       if (!cid) {
         toast.error('Company ID not found.');

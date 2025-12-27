@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,28 +17,41 @@ import { format, subDays, startOfDay } from 'date-fns';
 import RequireDashboardRole from '@/guards/RequireDashboardRole';
 
 function DashboardAnalyticsInner() {
-  const [currentRole, setCurrentRole] = useState('buyer');
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [analytics, setAnalytics] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [period, setPeriod] = useState('30');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const navigate = useNavigate();
+  const currentRole = getUserRole(profile || user) || role || 'buyer';
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardAnalytics] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardAnalytics] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadUserAndAnalytics();
-  }, [period, viewMode]);
+  }, [authReady, authLoading, user, profile, role, period, viewMode, navigate]);
 
   const loadUserAndAnalytics = async () => {
     try {
-      const { user: userData, profile, role, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
-
-      const normalizedRole = getUserRole(profile || userData);
-      setCurrentRole(normalizedRole);
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
+      const normalizedRole = getUserRole(profile || user) || role || 'buyer';
+      const companyId = profile?.company_id || null;
 
       const days = parseInt(period);
       const startDate = startOfDay(subDays(new Date(), days)).toISOString();
@@ -288,6 +302,11 @@ function DashboardAnalyticsInner() {
         </div>
       </DashboardLayout>
     );
+  }
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading analytics..." />;
   }
 
   return (

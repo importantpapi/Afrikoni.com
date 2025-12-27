@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,31 +17,44 @@ import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
 
 function DashboardSavedInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [savedProducts, setSavedProducts] = useState([]);
   const [savedSuppliers, setSavedSuppliers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [activeTab, setActiveTab] = useState('products');
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardSaved] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardSaved] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadSavedItems();
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadSavedItems = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) {
-        navigate('/login');
-        return;
-      }
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
 
       // Load saved products - Manual join (more reliable)
       const { data: savedItems, error: savedItemsError } = await supabase
         .from('saved_items')
         .select('*')
-        .eq('user_id', userData.id)
+        .eq('user_id', user.id)
         .eq('item_type', 'product')
         .order('created_at', { ascending: false });
 
@@ -108,7 +123,7 @@ function DashboardSavedInner() {
       const { data: savedSupplierItems, error: savedSupplierItemsError } = await supabase
         .from('saved_items')
         .select('*')
-        .eq('user_id', userData.id)
+        .eq('user_id', user.id)
         .eq('item_type', 'supplier')
         .order('created_at', { ascending: false });
 
@@ -276,14 +291,13 @@ function DashboardSavedInner() {
 
   const handleUnsave = async (itemId, itemType) => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!userData) return;
+      // Use auth from context (no duplicate call)
+      if (!user) return;
 
       const { error } = await supabase
         .from('saved_items')
         .delete()
-        .eq('user_id', userData.id)
+        .eq('user_id', user.id)
         .eq('item_id', itemId)
         .eq('item_type', itemType);
 
@@ -294,6 +308,11 @@ function DashboardSavedInner() {
       toast.error('Failed to remove item');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading saved items..." />;
+  }
 
   if (isLoading) {
     return (

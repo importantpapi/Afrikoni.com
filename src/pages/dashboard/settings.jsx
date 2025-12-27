@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { LogOut } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,32 +73,39 @@ export default function DashboardSettings() {
   const [showCookieModal, setShowCookieModal] = useState(false);
   const navigate = useNavigate();
 
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardSettings] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardSettings] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadUserData();
-  }, []);
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadUserData = async () => {
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      const role = user.role || user.user_role || 'buyer';
-      setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+      setIsLoading(true);
+      
+      // Use auth from context (no duplicate call)
+      const normalizedRole = role || 'buyer';
+      setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
 
       setUserData(user);
       
-      // Load profile data
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      const profile = profileData || {};
+      // Use profile from context (already loaded)
+      const profileData = profile || {};
       
       setFormData({
         full_name: profile.name || user.full_name || user.name || '',
@@ -151,15 +160,31 @@ export default function DashboardSettings() {
       return;
     }
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      e.target.value = '';
+      return;
+    }
+
     setUploadingAvatar(true);
     try {
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', `avatars/${Date.now()}-${file.name}`);
+      // Generate unique filename with proper sanitization
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `avatars/${timestamp}-${randomStr}-${cleanFileName}`;
+
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
       setAvatarUrl(file_url);
       toast.success('Avatar uploaded successfully');
     } catch (error) {
-      toast.error('Failed to upload avatar');
+      console.error('Avatar upload error:', error);
+      toast.error(`Failed to upload avatar: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingAvatar(false);
+      // Reset file input
+      e.target.value = '';
     }
   };
 
@@ -206,11 +231,15 @@ export default function DashboardSettings() {
   const generateApiKey = async () => {
     if (!confirm('Regenerating API key will invalidate the current key. Continue?')) return;
 
+    // GUARD: Check auth
+    if (!authReady || !user) {
+      toast.error('User not authenticated');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) return;
+      // Use auth from context (no duplicate call)
 
       const newApiKey = `afk_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       
@@ -231,14 +260,15 @@ export default function DashboardSettings() {
   };
 
   const handleSave = async (tab = 'profile') => {
+    // GUARD: Check auth
+    if (!authReady || !user) {
+      toast.error('User not authenticated');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (!user) {
-        toast.error('User not found');
-        return;
-      }
+      // Use auth from context (no duplicate call)
 
       if (tab === 'profile') {
         // Update profile with name and avatar
@@ -301,6 +331,11 @@ export default function DashboardSettings() {
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading settings..." />;
+  }
 
   if (isLoading) {
     return (

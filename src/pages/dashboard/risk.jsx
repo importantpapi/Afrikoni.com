@@ -31,10 +31,11 @@ import { useRealTimeSubscription } from '@/hooks/useRealTimeData';
 import { toast } from 'sonner';
 
 export default function RiskManagementDashboard() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   // All hooks must be at the top - before any conditional returns
-  const [user, setUser] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Local loading state
   const [alertFilter, setAlertFilter] = useState('all'); // all, critical, high, medium, low
   const [riskKPIs, setRiskKPIs] = useState({
     platformRiskScore: 0,
@@ -79,20 +80,42 @@ export default function RiskManagementDashboard() {
   const [contactSubmissions, setContactSubmissions] = useState([]); // Contact form submissions
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[RiskDashboard] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → set no access
+    if (!user) {
+      setHasAccess(false);
+      setLoading(false);
+      return;
+    }
+
+    // Check admin access
+    const admin = isAdmin(user);
+    setHasAccess(admin);
+    setLoading(false);
+    
+    if (admin) {
+      console.log('✅ Admin access granted for:', user.email);
+    } else {
+      console.log('❌ Access denied for:', user.email);
+    }
+  }, [authReady, authLoading, user, profile, role]);
 
   useEffect(() => {
-    if (hasAccess) {
+    if (hasAccess && authReady) {
       loadRiskData();
       loadNewRegistrations();
       loadAllUsers(); // Also load all users
     }
-  }, [hasAccess]);
+  }, [hasAccess, authReady]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
-    if (!hasAccess || !autoRefresh) return;
+    if (!hasAccess || !autoRefresh || !authReady) return;
 
     const interval = setInterval(() => {
       console.log('[Risk Dashboard] Auto-refreshing data...');
@@ -102,32 +125,7 @@ export default function RiskManagementDashboard() {
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [hasAccess, autoRefresh]);
-
-  const checkAccess = async () => {
-    try {
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      if (userData) {
-        setUser(userData);
-        // Check admin access - CEO email always works (case-insensitive)
-        const admin = isAdmin(userData);
-        setHasAccess(admin);
-        if (admin) {
-          console.log('✅ Admin access granted for:', userData.email);
-        } else {
-          console.log('❌ Access denied for:', userData.email);
-        }
-      } else {
-        console.log('❌ No user data found');
-        setHasAccess(false);
-      }
-    } catch (error) {
-      console.error('❌ Error checking access:', error);
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [hasAccess, autoRefresh, authReady]);
 
   // Load ALL users (no time filter) for search and complete visibility
   const loadAllUsers = async () => {
@@ -135,6 +133,7 @@ export default function RiskManagementDashboard() {
       setIsLoadingUsers(true);
       console.log('[Risk Dashboard] Loading ALL users...');
 
+      // Query profiles - using public read policy (should work for all authenticated users)
       const { data: allUsersData, error: allUsersError } = await supabase
         .from('profiles')
         .select(`
@@ -143,19 +142,60 @@ export default function RiskManagementDashboard() {
             id,
             company_name,
             country,
+            city,
+            phone,
+            email,
             verification_status,
+            verified,
             created_at
           )
         `)
         .order('created_at', { ascending: false })
-        .limit(100); // Limit to 100 most recent for performance
+        .limit(5000); // Increased limit to show all users
 
       if (allUsersError) {
-        console.error('Error fetching all users:', allUsersError);
-        throw allUsersError;
+        console.error('❌ Error fetching all users:', allUsersError);
+        console.error('Error details:', {
+          message: allUsersError.message,
+          code: allUsersError.code,
+          details: allUsersError.details,
+          hint: allUsersError.hint
+        });
+        
+        // Show user-friendly error message
+        if (allUsersError.message?.includes('infinite recursion')) {
+          toast.error('Database policy error. Please refresh the page.', {
+            description: 'If the issue persists, contact support.'
+          });
+        } else if (allUsersError.code === '42501' || allUsersError.message?.includes('permission')) {
+          toast.error('Permission denied. Admin access required to view all users.', {
+            description: 'Please ensure you have admin privileges.'
+          });
+        } else {
+          toast.error('Failed to load users', {
+            description: allUsersError.message || 'Unknown error occurred'
+          });
+        }
+        setAllUsers([]);
+        setIsLoadingUsers(false);
+        return; // Don't throw - just return empty array
       }
 
-      console.log(`[Risk Dashboard] Found ${allUsersData?.length || 0} total users`);
+      console.log(`[Risk Dashboard] ✅ Found ${allUsersData?.length || 0} total users from profiles table`);
+      
+      // Debug: Log all user emails to verify we're getting all users
+      if (allUsersData && allUsersData.length > 0) {
+        console.log('📋 All user emails from database:', allUsersData.map(u => ({
+          email: u.email || 'No email',
+          id: u.id,
+          created: u.created_at,
+          role: u.role
+        })));
+        console.log(`✅ Successfully loaded ${allUsersData.length} users from Supabase`);
+      } else {
+        console.warn('⚠️ No users found in profiles table - this might be an RLS issue');
+        toast.warning('No users found. Check RLS policies or admin access.');
+      }
 
       // Process users with activity
       const processedUsers = await Promise.all((allUsersData || []).map(async (user) => {
@@ -165,23 +205,42 @@ export default function RiskManagementDashboard() {
 
         try {
           if (user.company_id) {
+            // Get orders count
             const { count: orders } = await supabase
               .from('orders')
               .select('*', { count: 'exact', head: true })
               .or(`buyer_company_id.eq.${user.company_id},seller_company_id.eq.${user.company_id}`);
             orderCount = orders || 0;
 
+            // RFQs use buyer_company_id, not company_id
             const { count: rfqs } = await supabase
               .from('rfqs')
               .select('*', { count: 'exact', head: true })
-              .eq('company_id', user.company_id);
+              .eq('buyer_company_id', user.company_id);
             rfqCount = rfqs || 0;
 
+            // Get products count
             const { count: products } = await supabase
               .from('products')
               .select('*', { count: 'exact', head: true })
               .eq('company_id', user.company_id);
             productCount = products || 0;
+          } else {
+            // If no company_id, check RFQs by buyer email (for RFQs created without company)
+            try {
+              if (user.email) {
+                const { count: rfqsByEmail } = await supabase
+                  .from('rfqs')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('buyer_email', user.email);
+                if (rfqsByEmail && rfqsByEmail > 0) {
+                  rfqCount = rfqsByEmail;
+                }
+              }
+            } catch (emailRfqError) {
+              // Ignore - not all RFQs have buyer_email
+              console.debug('No RFQs found by email:', emailRfqError);
+            }
           }
         } catch (activityError) {
           console.warn('Error fetching user activity:', activityError);
@@ -189,19 +248,21 @@ export default function RiskManagementDashboard() {
 
         return {
           id: user.id,
-          email: user.email,
+          email: user.email || 'No email',
           fullName: user.full_name || user.email?.split('@')[0] || 'Unknown User',
           companyId: user.company_id,
-          companyName: user.companies?.company_name || 'No company yet',
-          country: user.companies?.country || 'Not specified',
+          companyName: user.companies?.company_name || user.company_name || 'No company yet',
+          country: user.companies?.country || user.country || 'Not specified',
+          city: user.companies?.city || user.city || 'Not specified',
           verificationStatus: user.companies?.verification_status || 'unverified',
+          isVerified: user.companies?.verified || false,
           createdAt: user.created_at,
           role: user.role || 'buyer',
           orderCount,
           rfqCount,
           productCount,
           totalActivity: orderCount + rfqCount + productCount,
-          phone: user.phone || 'N/A',
+          phone: user.companies?.phone || user.phone || 'N/A',
           isAdmin: user.is_admin || false
         };
       }));
@@ -238,6 +299,7 @@ export default function RiskManagementDashboard() {
       console.log('[Risk Dashboard] Loading registrations since:', thirtyDaysAgo.toISOString());
 
       // Get users from last 30 days (with LEFT join to companies)
+      // Use auth.users joined with profiles for complete user data
       const { data: recentUsers, error: usersError } = await supabase
         .from('profiles')
         .select(`
@@ -246,19 +308,38 @@ export default function RiskManagementDashboard() {
             id,
             company_name,
             country,
+            city,
+            phone,
+            email,
             verification_status,
+            verified,
             created_at
           )
         `)
         .gte('created_at', thirtyDaysAgo.toISOString())
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(1000); // Increased limit to get all users
 
       if (usersError) {
         console.error('Error fetching registrations:', usersError);
         throw usersError;
       }
 
-      console.log(`[Risk Dashboard] Found ${recentUsers?.length || 0} registrations`);
+      console.log(`[Risk Dashboard] ✅ Found ${recentUsers?.length || 0} registrations from last 30 days`);
+      
+      // Debug: Log all user emails to verify we're getting all users
+      if (recentUsers && recentUsers.length > 0) {
+        console.log('📋 User emails from database (last 30 days):', recentUsers.map(u => ({
+          email: u.email || 'No email',
+          id: u.id,
+          created: u.created_at,
+          role: u.role
+        })));
+        console.log(`✅ Successfully loaded ${recentUsers.length} recent users from Supabase`);
+      } else {
+        console.warn('⚠️ No users found in last 30 days. This might be normal if all users are older.');
+        // Don't show warning toast for this - it's expected if users are older than 30 days
+      }
 
       // Get user activity (orders, RFQs, products)
       const registrations = await Promise.all((recentUsers || []).map(async (user) => {
@@ -268,19 +349,19 @@ export default function RiskManagementDashboard() {
         let productCount = 0;
 
         try {
+          // Get orders count (check both buyer and seller company IDs)
           if (user.company_id) {
-            // Get orders count
             const { count: orders } = await supabase
               .from('orders')
               .select('*', { count: 'exact', head: true })
               .or(`buyer_company_id.eq.${user.company_id},seller_company_id.eq.${user.company_id}`);
             orderCount = orders || 0;
 
-            // Get RFQs count
+            // Get RFQs count - RFQs use buyer_company_id, not company_id
             const { count: rfqs } = await supabase
               .from('rfqs')
               .select('*', { count: 'exact', head: true })
-              .eq('company_id', user.company_id);
+              .eq('buyer_company_id', user.company_id);
             rfqCount = rfqs || 0;
 
             // Get products count
@@ -289,6 +370,20 @@ export default function RiskManagementDashboard() {
               .select('*', { count: 'exact', head: true })
               .eq('company_id', user.company_id);
             productCount = products || 0;
+          } else {
+            // If no company_id, check RFQs by buyer email (for RFQs created without company)
+            // This handles users who created RFQs before company creation
+            try {
+              const { count: rfqsByEmail } = await supabase
+                .from('rfqs')
+                .select('*', { count: 'exact', head: true })
+                .eq('buyer_email', user.email || '');
+              if (rfqsByEmail > 0) {
+                rfqCount = rfqsByEmail;
+              }
+            } catch (emailRfqError) {
+              // Ignore - not all RFQs have buyer_email
+            }
           }
         } catch (activityError) {
           console.warn('Error fetching user activity:', activityError);
@@ -296,12 +391,14 @@ export default function RiskManagementDashboard() {
 
         return {
           id: user.id,
-          email: user.email,
+          email: user.email || 'No email',
           fullName: user.full_name || user.email?.split('@')[0] || 'Unknown User',
           companyId: user.company_id,
-          companyName: user.companies?.company_name || 'No company yet',
-          country: user.companies?.country || 'Not specified',
+          companyName: user.companies?.company_name || user.company_name || 'No company yet',
+          country: user.companies?.country || user.country || 'Not specified',
+          city: user.companies?.city || user.city || 'Not specified',
           verificationStatus: user.companies?.verification_status || 'unverified',
+          isVerified: user.companies?.verified || false,
           createdAt: user.created_at,
           role: user.role || 'buyer',
           // Activity stats
@@ -310,7 +407,7 @@ export default function RiskManagementDashboard() {
           productCount,
           totalActivity: orderCount + rfqCount + productCount,
           // Additional info
-          phone: user.phone || 'N/A',
+          phone: user.companies?.phone || user.phone || 'N/A',
           isAdmin: user.is_admin || false
         };
       }));

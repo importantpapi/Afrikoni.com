@@ -18,9 +18,7 @@ export function initSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   
   if (!dsn) {
-    if (import.meta.env.DEV) {
-      console.log('[Sentry] VITE_SENTRY_DSN not set. Error tracking disabled.');
-    }
+    // Silently return - DSN not configured is expected in some environments
     return;
   }
 
@@ -48,20 +46,24 @@ export function initSentry() {
     }
   }
 
-  Sentry.init({
-    dsn: dsn,
-    environment: import.meta.env.MODE,
-    integrations: integrations,
-    // Performance Monitoring
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in production, 100% in dev
-    // Web Vitals tracking
-    enableTracing: true,
-    // Track long tasks (performance bottlenecks)
-    enableLongTask: true,
-  });
+  try {
+    Sentry.init({
+      dsn: dsn,
+      environment: import.meta.env.MODE,
+      integrations: integrations,
+      // Performance Monitoring
+      tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in production, 100% in dev
+      // Web Vitals tracking
+      enableTracing: true,
+      // Track long tasks (performance bottlenecks)
+      enableLongTask: true,
+    });
 
-  if (import.meta.env.DEV) {
-    console.log('[Sentry] Initialized with performance monitoring');
+    if (import.meta.env.DEV) {
+      console.info('[Sentry] Error tracking enabled');
+    }
+  } catch (error) {
+    console.warn('[Sentry] Failed to initialize:', error);
   }
 }
 

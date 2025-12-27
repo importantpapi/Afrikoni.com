@@ -1,8 +1,8 @@
       import React, { useState } from 'react';
       import { useNavigate, useSearchParams, Link } from 'react-router-dom';
       import { motion } from 'framer-motion';
-      import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-      import { getCurrentUserAndRole } from '@/utils/authHelpers';
+      import { supabase } from '@/api/supabaseClient';
+      import { useAuth } from '@/contexts/AuthProvider';
       import { Button } from '@/components/ui/button';
       import { Input } from '@/components/ui/input';
       import { Label } from '@/components/ui/label';
@@ -111,15 +111,24 @@
       }
 
       // Audit logging (non-blocking)
+      // Note: AuthProvider will update after successful login, so we use the response directly
       try {
-      const { user: userData, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      await logLoginEvent({
-      user: userData,
-      profile,
-      success: true
-      });
+        // Use auth response directly for audit logging
+        const { data: { user: userData } } = await supabase.auth.getUser();
+        // Profile will be loaded by AuthProvider, but we can fetch it here if needed
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userData?.id)
+          .maybeSingle();
+        
+        await logLoginEvent({
+          user: userData,
+          profile: profileData || null,
+          success: true
+        });
       } catch (auditError) {
-      console.warn('[Login] Failed to log audit event:', auditError);
+        console.warn('[Login] Failed to log audit event:', auditError);
       }
       } catch (postLoginError) {
       // Don't break login flow if post-login tasks fail

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -81,10 +82,11 @@ const COUNTRIES = [
 ];
 
 export default function RFQStart() {
+  // Use centralized AuthProvider (this is a public page, user can be null)
+  const { user, profile, role, authReady } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     productName: searchParams.get('product') || '',
@@ -92,20 +94,7 @@ export default function RFQStart() {
     estimatedQuantity: searchParams.get('quantity') || '',
   });
 
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-    } catch (error) {
-      // User not logged in - that's fine, we'll handle it on continue
-      setUser(null);
-    }
-  };
+  // User loaded from AuthProvider context (no separate checkUser needed)
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));

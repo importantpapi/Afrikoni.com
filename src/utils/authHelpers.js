@@ -140,12 +140,22 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
       };
     }
 
-    // 4. Get or create company
+    // 4. Get or create company (with timeout to prevent hanging)
     let companyId = null;
     try {
-      companyId = await getOrCreateCompany(supabase, profile);
+      // Add timeout to prevent hanging on company queries
+      const companyPromise = getOrCreateCompany(supabase, profile);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Company fetch timeout')), 5000)
+      );
+      
+      companyId = await Promise.race([companyPromise, timeoutPromise]).catch(err => {
+        console.warn('[getCurrentUserAndRole] Company fetch failed or timed out:', err.message);
+        return null; // Return null on timeout/error
+      });
     } catch (companyError) {
       // Continue without company ID - non-blocking
+      console.warn('[getCurrentUserAndRole] Company error (non-blocking):', companyError?.message || companyError);
     }
 
     // 5. Normalize role

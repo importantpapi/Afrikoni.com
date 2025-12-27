@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { getUserRole } from '@/utils/roleHelpers';
 import { PRODUCT_STATUS, getStatusLabel } from '@/constants/status';
 import { buildProductQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { CardSkeleton } from '@/components/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,10 +39,12 @@ const AFRICAN_COUNTRIES = [
 ];
 
 function DashboardProductsInner() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentRole, setCurrentRole] = useState('seller');
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [currentRole, setCurrentRole] = useState(role || 'seller');
   const [companyId, setCompanyId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -53,18 +56,35 @@ function DashboardProductsInner() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[DashboardProducts] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect to login
+    if (!user) {
+      console.log('[DashboardProducts] No user → redirecting to login');
+      navigate('/login');
+      return;
+    }
+
+    // Now safe to load data
     loadUserAndProducts();
-  }, [statusFilter]);
+  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
 
   const loadUserAndProducts = async () => {
     try {
       setIsLoading(true);
-      const { user, profile, role, companyId: userCompanyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      
+      // Use auth from context (no duplicate call)
       if (!user) {
         navigate('/login');
         return;
       }
+      
       setCurrentRole(getUserRole(profile || user));
+      const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
 
       // Load categories
@@ -228,6 +248,11 @@ function DashboardProductsInner() {
     totalViews: products.reduce((sum, p) => sum + (p.views || 0), 0),
     inquiries: products.reduce((sum, p) => sum + (p.inquiries || 0), 0)
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading products..." />;
+  }
 
   if (isLoading) {
     return (

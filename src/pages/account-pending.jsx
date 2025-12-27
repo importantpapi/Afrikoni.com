@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { getBusinessProfile } from '@/lib/supabase-auth-helpers';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
@@ -9,18 +10,29 @@ import { Loader2, ShieldCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AccountPending() {
+  // Use centralized AuthProvider
+  const { user, profile, role: authRole, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null);
 
   useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AccountPending] Waiting for auth to be ready...');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     const loadStatus = async () => {
       try {
-        const { user, profile, role, companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-        if (!user) {
-          navigate('/login');
-          return;
-        }
+        // Use auth from context
+        const role = authRole || profile?.role || 'buyer';
+        const companyId = profile?.company_id || null;
 
         // 1) Prefer new enterprise business_profiles table for seller/logistics
         try {
@@ -34,7 +46,6 @@ export default function AccountPending() {
               country: businessProfile.country,
               role: role || profile?.role || 'seller',
             });
-            setLoading(false);
             return;
           }
 
@@ -82,15 +93,20 @@ export default function AccountPending() {
         console.error('AccountPending load error:', err);
         toast.error('Unable to load account status. Please try again.');
         navigate('/dashboard');
-      } finally {
-        setLoading(false);
       }
     };
 
     loadStatus();
-  }, [navigate]);
+  }, [authReady, authLoading, user, profile, authRole, navigate]);
 
-  if (loading) {
+  // Show loading while auth is initializing
+  if (!authReady || authLoading) {
+    return (
+      <SpinnerWithTimeout message="Loading account status..." />
+    );
+  }
+
+  if (!status) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
         <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold" />

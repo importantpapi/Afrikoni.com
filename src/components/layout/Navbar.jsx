@@ -21,12 +21,12 @@ import { Logo } from '@/components/ui/Logo';
 import NotificationBell from '@/components/notificationbell';
 import { createPageUrl } from '@/utils';
 import { useTranslation } from 'react-i18next';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry } from '@/utils/geoDetection';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 import { isSeller } from '@/utils/roleHelpers';
 import { useNavigate } from 'react-router-dom';
 
@@ -209,28 +209,25 @@ export default function Navbar({ user, onLogout }) {
     detectPreferences();
   }, []);
 
+  // Use centralized AuthProvider
+  const { profile: authProfile, role: authRole } = useAuth();
+
   // Load user profile to get company_id for profile link
   useEffect(() => {
-    const loadUserProfile = async () => {
-      if (user?.id) {
-        try {
-          const { profile, role } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-          if (profile) {
-            setUserProfile(profile);
-          }
-          if (role) {
-            setUserRole(role);
-          }
-        } catch (error) {
-          // Silently fail
-        }
-      } else {
-        setUserRole(null);
-        setUserProfile(null);
-      }
-    };
-    loadUserProfile();
-  }, [user]);
+    // Use auth from context if available
+    if (authProfile) {
+      setUserProfile(authProfile);
+    }
+    if (authRole) {
+      setUserRole(authRole);
+    }
+    
+    // Fallback to prop user if auth context not available
+    if (!user?.id) {
+      setUserRole(null);
+      setUserProfile(null);
+    }
+  }, [user, authProfile, authRole]);
 
   // Load categories for mega dropdown
   useEffect(() => {

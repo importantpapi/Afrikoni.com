@@ -13,8 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { supabase } from '@/api/supabaseClient';
+import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
 import { 
   getAllPendingKYBDocuments,
   updateKYBDocumentStatus
@@ -25,31 +26,36 @@ import { CardSkeleton } from '@/components/ui/skeletons';
 import { isAdmin } from '@/utils/permissions';
 
 export default function AdminKYB() {
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [documents, setDocuments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadDocuments();
-  }, []);
-
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate('/dashboard');
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading) {
+      console.log('[AdminKYB] Waiting for auth to be ready...');
+      return;
     }
-  }, []);
+
+    // GUARD: Check admin access
+    if (!user || !isAdmin(user)) {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Now safe to load data
+    loadDocuments();
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const loadDocuments = async () => {
     try {
       setIsLoading(true);
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
       
-      if (!user || !isAdmin(user)) {
-        navigate('/dashboard');
-        return;
-      }
+      // Use auth from context (no duplicate call)
 
       const docs = await getAllPendingKYBDocuments();
       setDocuments(docs);
@@ -63,7 +69,11 @@ export default function AdminKYB() {
 
   const handleReviewDocument = async (documentId, status) => {
     try {
-      const { user } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+      // Use auth from context (no duplicate call)
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
       await updateKYBDocumentStatus(documentId, status, user.id, reviewNotes);
       toast.success(`Document ${status} successfully`);
       setSelectedDoc(null);

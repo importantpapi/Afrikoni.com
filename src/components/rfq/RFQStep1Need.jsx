@@ -52,16 +52,24 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
 
     setIsUploading(true);
     try {
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'rfq-attachments');
+      // Generate unique filename with proper sanitization
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `rfq-attachments/${timestamp}-${randomStr}-${cleanFileName}`;
+      
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
       updateFormData({ 
         attachments: [...(formData.attachments || []), file_url] 
       });
       toast.success('Photo uploaded');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload photo');
+      toast.error(`Failed to upload photo: ${error.message || 'Please try again'}`);
     } finally {
       setIsUploading(false);
+      // Reset file input
+      if (e.target) e.target.value = '';
     }
   };
 

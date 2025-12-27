@@ -54,9 +54,10 @@ const validateCompanyForm = (formData) => {
 export default function CompanyInfo() {
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
-  const [isLoading, setIsLoading] = useState(true);
+  // Use centralized AuthProvider
+  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
   const [isSaving, setIsSaving] = useState(false);
-  const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -87,20 +88,38 @@ export default function CompanyInfo() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file size
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Logo file size must be less than 5MB');
+      e.target.value = '';
       return;
     }
 
     setUploadingLogo(true);
     try {
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', `company-logos/${Date.now()}-${file.name}`);
+      // Generate unique filename with proper sanitization
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `company-logos/${timestamp}-${randomStr}-${cleanFileName}`;
+
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
       setLogoUrl(file_url);
-        toast.success('Logo uploaded successfully');
-      } catch (error) {
-        toast.error('Failed to upload logo');
+      toast.success('Logo uploaded successfully');
+    } catch (error) {
+      console.error('Logo upload error:', error);
+      toast.error(`Failed to upload logo: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingLogo(false);
+      // Reset file input
+      e.target.value = '';
     }
   };
 
@@ -108,20 +127,39 @@ export default function CompanyInfo() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file size
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Cover image size must be less than 10MB');
+      e.target.value = '';
       return;
     }
 
     setUploadingCover(true);
     try {
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', `company-covers/${Date.now()}-${file.name}`);
+      // Generate unique filename with proper sanitization
+      const fileExt = file.name.split('.').pop();
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(2, 9);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `company-covers/${timestamp}-${randomStr}-${cleanFileName}`;
+
+      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
       setCoverUrl(file_url);
       toast.success('Cover image uploaded successfully');
     } catch (error) {
-      toast.error('Failed to upload cover image');
+      console.error('Cover upload error:', error);
+      toast.error(`Failed to upload cover image: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingCover(false);
+      // Reset file input
+      e.target.value = '';
     }
   };
 
@@ -129,39 +167,165 @@ export default function CompanyInfo() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    // Validate file count
     if (galleryImages.length + files.length > 10) {
       toast.error('Maximum 10 gallery images allowed');
       return;
     }
 
+    // Validate file types and sizes before uploading
+    const validFiles = [];
+    const invalidFiles = [];
+
+    files.forEach(file => {
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        invalidFiles.push(`${file.name} is not an image file`);
+        return;
+      }
+
+      // Check file size
+      if (file.size > 10 * 1024 * 1024) {
+        invalidFiles.push(`${file.name} is too large (max 10MB)`);
+        return;
+      }
+
+      validFiles.push(file);
+    });
+
+    // Show errors for invalid files
+    if (invalidFiles.length > 0) {
+      invalidFiles.forEach(msg => toast.error(msg));
+    }
+
+    if (validFiles.length === 0) {
+      return;
+    }
+
     setUploadingGallery(true);
     try {
-      const uploadPromises = files.map(file => {
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error(`${file.name} is too large (max 10MB)`);
-          return null;
+      // Use Promise.allSettled to handle individual failures
+      const uploadPromises = validFiles.map(async (file) => {
+        try {
+          // Generate unique filename with proper sanitization
+          const fileExt = file.name.split('.').pop();
+          const timestamp = Date.now();
+          const randomStr = Math.random().toString(36).substring(2, 9);
+          const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const fileName = `company-gallery/${timestamp}-${randomStr}-${cleanFileName}`;
+
+          const result = await supabaseHelpers.storage.uploadFile(
+            file, 
+            'files', 
+            fileName
+          );
+
+          // Debug logging
+          console.log('Upload result:', result);
+          
+          if (!result || !result.file_url) {
+            console.error('Upload succeeded but file_url is missing:', result);
+            throw new Error('Upload succeeded but file URL is missing');
+          }
+
+          return { success: true, url: result.file_url, fileName: file.name };
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error);
+          return { success: false, fileName: file.name, error: error.message };
         }
-        return supabaseHelpers.storage.uploadFile(
-          file, 
-          'files', 
-          `company-gallery/${Date.now()}-${Math.random()}-${file.name}`
-        );
       });
 
-      const results = await Promise.all(uploadPromises);
-      const successfulUploads = results
-        .filter(r => r && r.file_url)
-        .map(r => r.file_url);
+      const results = await Promise.allSettled(uploadPromises);
       
+      // Process results
+      const successfulUploads = [];
+      const failedUploads = [];
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value.success && result.value.url) {
+          console.log(`Upload ${index + 1} successful:`, result.value.url);
+          successfulUploads.push(result.value.url);
+        } else {
+          const fileName = result.status === 'fulfilled' 
+            ? result.value.fileName 
+            : validFiles[index]?.name || 'unknown';
+          console.error(`Upload ${index + 1} failed for:`, fileName, result);
+          failedUploads.push(fileName);
+        }
+      });
+      
+      console.log('Upload summary:', {
+        successful: successfulUploads.length,
+        failed: failedUploads.length,
+        successfulUrls: successfulUploads
+      });
+
+      // Update gallery with successful uploads
       if (successfulUploads.length > 0) {
-        setGalleryImages(prev => [...prev, ...successfulUploads]);
-        toast.success(`${successfulUploads.length} image(s) uploaded successfully`);
+        console.log('Adding images to gallery:', successfulUploads);
+        
+        // Filter out any null/undefined URLs
+        const validUrls = successfulUploads.filter(url => url && typeof url === 'string' && url.trim().length > 0);
+        
+        if (validUrls.length === 0) {
+          console.error('No valid URLs in successful uploads:', successfulUploads);
+          toast.error('Images uploaded but URLs are invalid. Please try again.');
+          // Reset file input and clear uploading state
+          if (e.target) e.target.value = '';
+          setUploadingGallery(false);
+          return;
+        }
+        
+        // Update state and get the updated value for auto-save
+        let updatedGalleryImages;
+        setGalleryImages(prev => {
+          updatedGalleryImages = [...prev, ...validUrls];
+          console.log('Updated gallery images state:', updatedGalleryImages);
+          return updatedGalleryImages;
+        });
+        
+        // Auto-save gallery images to database immediately (don't wait for form submission)
+        if (companyId && updatedGalleryImages) {
+          try {
+            const { error: saveError } = await supabase
+              .from('companies')
+              .update({
+                gallery_images: updatedGalleryImages
+              })
+              .eq('id', companyId);
+            
+            if (saveError) {
+              console.error('Failed to save gallery images to database:', saveError);
+              // Don't show error to user - images are in state, just not persisted yet
+            } else {
+              console.log('Gallery images saved to database');
+            }
+          } catch (saveErr) {
+            console.error('Error auto-saving gallery images:', saveErr);
+          }
+        }
+        
+        toast.success(`${validUrls.length} image(s) uploaded and displayed successfully`);
+      } else {
+        console.warn('No successful uploads, but no failures either');
+      }
+
+      // Show errors for failed uploads
+      if (failedUploads.length > 0) {
+        toast.error(`Failed to upload ${failedUploads.length} image(s): ${failedUploads.join(', ')}`);
+      }
+
+      // If all failed, show generic error
+      if (successfulUploads.length === 0 && failedUploads.length > 0) {
+        toast.error('Failed to upload gallery images. Please check file sizes and try again.');
       }
     } catch (error) {
       console.error('Gallery upload error:', error);
-      toast.error('Failed to upload gallery images');
+      toast.error('Failed to upload gallery images. Please try again.');
     } finally {
       setUploadingGallery(false);
+      // Reset file input to allow re-uploading the same file
+      e.target.value = '';
     }
   };
 
@@ -171,27 +335,33 @@ export default function CompanyInfo() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    let isMounted = true;
+    let timeoutId = null;
 
-  const loadData = async () => {
+    // Safety timeout: Force loading to false after 15 seconds
+    timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn('[CompanyInfo] Loading timeout - forcing loading to false');
+        setIsLoading(false);
+      }
+    }, 15000);
+
+    const loadData = async () => {
     try {
       setIsLoading(true);
       
-      // Get current user
-      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !authUser) {
-        navigate('/login');
+      // Use auth from context (no duplicate call)
+      if (!user) {
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          navigate('/login');
+        }
         return;
       }
-      setUser(authUser);
 
-      // Get user profile to find company_id
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('company_id, role, company_name, business_type, country, city, phone, business_email, website, year_established, company_size, company_description')
-        .eq('id', authUser.id)
-        .maybeSingle();
+      // Use profile from context
+      const profileData = profile;
 
       // If profile has company_id, load company data
       if (profileData?.company_id) {
@@ -210,7 +380,7 @@ export default function CompanyInfo() {
             country: companyData.country || profileData.country || '',
             city: companyData.city || profileData.city || '',
             phone: companyData.phone || profileData.phone || '',
-            business_email: companyData.email || profileData.business_email || authUser.email || '',
+            business_email: companyData.email || profileData.business_email || user.email || '',
             website: companyData.website || profileData.website || '',
             year_established: companyData.year_established || profileData.year_established || '',
             company_size: companyData.employee_count || profileData.company_size || '1-10',
@@ -231,9 +401,9 @@ export default function CompanyInfo() {
           setTeamMembers(teamData || []);
         }
         
-        // Set current role
-        const role = profileData.role || authUser.user_metadata?.role || 'buyer';
-        setCurrentRole(role === 'logistics_partner' ? 'logistics' : role);
+        // Set current role from context
+        const normalizedRole = role || 'buyer';
+        setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
       } else if (profileData) {
         // Load from profile if no company yet
         setFormData({
@@ -256,11 +426,28 @@ export default function CompanyInfo() {
         }));
       }
     } catch (error) {
-      toast.error('Failed to load company information');
+      console.error('Error loading company info:', error);
+      if (isMounted) {
+        toast.error('Failed to load company information');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted) {
+        clearTimeout(timeoutId);
+        setIsLoading(false);
+      }
     }
-  };
+    };
+
+    // Only load data when auth is ready
+    if (authReady && !authLoading && user) {
+      loadData();
+    }
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [authReady, authLoading, user, profile, role, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -275,19 +462,30 @@ export default function CompanyInfo() {
     
     setErrors({});
     setIsSaving(true);
+    
+    // Add timeout wrapper to prevent infinite hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Save operation timed out after 30 seconds')), 30000);
+    });
+    
     try {
+      console.log('🔄 Starting save operation...');
+      
       if (!user) {
         toast.error('User not found. Please log in again.');
+        setIsSaving(false);
         navigate('/login');
         return;
       }
 
+      console.log('✅ User found:', user.id);
       let finalCompanyId = companyId;
 
-      // Create or update company
+      // Create or update company with timeout
       if (companyId) {
+        console.log('🔄 Updating existing company:', companyId);
         // Update existing company
-        const { error: updateErr } = await supabase
+        const updatePromise = supabase
           .from('companies')
           .update({
             company_name: formData.company_name,
@@ -306,39 +504,60 @@ export default function CompanyInfo() {
           })
           .eq('id', companyId);
 
-        if (updateErr) throw updateErr;
+        const { error: updateErr } = await Promise.race([updatePromise, timeoutPromise]);
+
+        if (updateErr) {
+          console.error('❌ Update company error:', updateErr);
+          throw new Error(`Failed to update company: ${updateErr.message || 'Unknown error'}`);
+        }
+        console.log('✅ Company updated successfully');
       } else {
+        console.log('🔄 Creating new company...');
         // Create new company
-        const { data: newCompany, error: companyErr } = await supabase
+        // ✅ CRITICAL: All new companies start as unverified - admin must approve before they appear on verified suppliers page
+        const insertData = {
+          company_name: formData.company_name,
+          owner_email: user.email,
+          business_type: formData.business_type,
+          country: formData.country,
+          city: formData.city,
+          phone: formData.phone,
+          email: formData.business_email || user.email,
+          website: formData.website,
+          year_established: formData.year_established,
+          employee_count: formData.company_size,
+          description: formData.company_description,
+          logo_url: logoUrl,
+          cover_image_url: coverUrl,
+          gallery_images: galleryImages,
+          verified: false,
+          verification_status: 'unverified'
+        };
+        
+        console.log('📝 Insert data:', insertData);
+        
+        const insertPromise = supabase
           .from('companies')
-          .insert({
-            company_name: formData.company_name,
-            owner_email: user.email,
-            business_type: formData.business_type,
-            country: formData.country,
-            city: formData.city,
-            phone: formData.phone,
-            email: formData.business_email || user.email,
-            website: formData.website,
-            year_established: formData.year_established,
-            employee_count: formData.company_size,
-            description: formData.company_description,
-            logo_url: logoUrl,
-            cover_image_url: coverUrl,
-            cover_url: coverUrl,
-            gallery_images: galleryImages
-          })
+          .insert(insertData)
           .select('id')
           .single();
 
-        if (companyErr) throw companyErr;
-        if (newCompany) {
-          finalCompanyId = newCompany.id;
-          setCompanyId(newCompany.id);
+        const { data: newCompany, error: companyErr } = await Promise.race([insertPromise, timeoutPromise]);
+
+        if (companyErr) {
+          console.error('❌ Create company error:', companyErr);
+          throw new Error(`Failed to create company: ${companyErr.message || 'Unknown error'}`);
         }
+        if (!newCompany || !newCompany.id) {
+          throw new Error('Company was created but ID is missing');
+        }
+        finalCompanyId = newCompany.id;
+        setCompanyId(newCompany.id);
+        console.log('✅ Company created successfully:', finalCompanyId);
       }
 
       // Update profile with company information
+      console.log('🔄 Updating profile with company_id:', finalCompanyId);
       const profileUpdate = {
         company_id: finalCompanyId,
         company_name: formData.company_name,
@@ -353,41 +572,36 @@ export default function CompanyInfo() {
         company_description: formData.company_description
       };
 
-      const { error: profileErr } = await supabase
+      const profilePromise = supabase
         .from('profiles')
         .upsert({
           id: user.id,
           ...profileUpdate
         }, { onConflict: 'id' });
 
-      if (profileErr) {
-        throw new Error(`Failed to save profile: ${profileErr.message}`);
-      }
+      const { error: profileErr } = await Promise.race([profilePromise, timeoutPromise]);
 
-      toast.success('Company information saved successfully!');
-      
-      // Invalidate supplier page cache by triggering a refresh
-      // This ensures supplier page shows updated data
-      if (finalCompanyId) {
-        // Clear any cached company data
-        try {
-          await supabase
-            .from('companies')
-            .select('id')
-            .eq('id', finalCompanyId)
-            .single();
-        } catch (e) {
-          // Ignore - just triggering a refresh
-        }
+      if (profileErr) {
+        console.error('❌ Profile update error:', profileErr);
+        throw new Error(`Failed to save profile: ${profileErr.message || 'Unknown error'}`);
       }
+      console.log('✅ Profile updated successfully');
+
+      console.log('✅ All data saved successfully');
+      toast.success('Company information saved successfully!');
       
       // Redirect back to where user came from, or to dashboard
       // Small delay to show success message
+      console.log('🔄 Redirecting to:', returnUrl);
       setTimeout(() => {
+        setIsSaving(false);
         navigate(returnUrl);
       }, 800);
     } catch (error) {
-      toast.error(error?.message || 'Failed to save company information. Please try again.');
+      console.error('Save error:', error);
+      const errorMessage = error?.message || error?.error?.message || 'Failed to save company information. Please try again.';
+      toast.error(errorMessage);
+      setIsSaving(false); // Ensure saving state is cleared on error
     } finally {
       setIsSaving(false);
     }
@@ -439,6 +653,11 @@ export default function CompanyInfo() {
       toast.error('Failed to remove team member');
     }
   };
+
+  // Wait for auth to be ready
+  if (!authReady || authLoading) {
+    return <SpinnerWithTimeout message="Loading company information..." />;
+  }
 
   if (isLoading) {
     return (
@@ -833,23 +1052,47 @@ export default function CompanyInfo() {
                       {/* Gallery Grid */}
                       {galleryImages.length > 0 && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                          {galleryImages.map((imageUrl, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={imageUrl}
-                                alt={`Gallery ${index + 1}`}
-                                className="w-full h-32 object-cover rounded-lg border border-afrikoni-gold/20"
-                                loading="lazy"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeGalleryImage(index)}
-                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
+                          {galleryImages.map((imageUrl, index) => {
+                            // Ensure imageUrl is a valid string
+                            if (!imageUrl || typeof imageUrl !== 'string') {
+                              console.warn('Invalid image URL at index', index, ':', imageUrl);
+                              return null;
+                            }
+                            
+                            return (
+                              <div key={`gallery-${index}-${imageUrl}`} className="relative group">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Gallery ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg border border-afrikoni-gold/20"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    console.error('Failed to load image:', imageUrl);
+                                    e.target.style.display = 'none';
+                                    toast.error(`Failed to load image ${index + 1}`);
+                                  }}
+                                  onLoad={() => {
+                                    console.log('Successfully loaded image:', imageUrl);
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeGalleryImage(index)}
+                                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                  aria-label="Remove image"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Debug info in development */}
+                      {import.meta.env.DEV && galleryImages.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Debug: {galleryImages.length} image(s) in gallery
                         </div>
                       )}
 
