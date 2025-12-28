@@ -62,11 +62,6 @@ export default function OnboardingTracker() {
       loadStuckUsers();
     }
   }, [authReady, authLoading, user, profile, role, selectedCountry]);
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadFunnelData = async () => {
     try {

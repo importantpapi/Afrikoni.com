@@ -98,10 +98,12 @@ export default function TradeFinancing() {
       if (user?.email) {
         // Email sending logic would go here if implemented
         console.log('Trade financing application submitted for:', user.email);
+        const emailPayload = {
+          subject: 'Trade Financing Application Submitted',
+          body: `Your trade financing application for $${formData.requested_amount} has been submitted.`
+        };
+        // emailPayload would be used here when email service is implemented
       }
-        subject: 'Trade Financing Application Submitted',
-        body: `Your trade financing application for $${formData.requested_amount} has been submitted.`
-      });
 
       toast.success('Application submitted successfully!');
       setFormData({ requested_amount: '', purpose: '', order_id: null });

@@ -325,7 +325,7 @@ export default function AdminVerificationReview() {
 
   const verification = selectedVerification;
   const company = verification?.companies;
-  const profile = verification?.profiles;
+  const verificationProfile = verification?.profiles;
 
   return (
     <DashboardLayout currentRole="admin">

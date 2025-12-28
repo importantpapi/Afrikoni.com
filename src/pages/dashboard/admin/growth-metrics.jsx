@@ -20,7 +20,7 @@ import { getCountryMetrics, updateCountryMetrics, getOnboardingFunnel } from '@/
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { isAdmin } from '@/utils/permissions';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 import AccessDenied from '@/components/AccessDenied';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -58,13 +58,6 @@ export default function GrowthMetricsDashboard() {
       loadFunnel();
     }
   }, [authReady, authLoading, user, profile, role, selectedCountry]);
-      setHasAccess(isAdmin(userData));
-    } catch (error) {
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadMetrics = async () => {
     try {
