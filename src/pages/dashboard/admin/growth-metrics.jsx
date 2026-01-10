@@ -11,10 +11,10 @@ import {
   Target, Zap, CheckCircle
 } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import { TARGET_COUNTRY, getCountryConfig, COUNTRY_CONFIG } from '@/config/countryConfig';
 import { getCountryMetrics, updateCountryMetrics, getOnboardingFunnel } from '@/services/acquisitionService';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';

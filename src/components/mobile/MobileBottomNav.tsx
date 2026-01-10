@@ -34,32 +34,38 @@ export default function MobileBottomNav({ user, userRole = 'buyer' }: MobileBott
   const isTranslationsReady = i18n.isInitialized;
 
   // Core navigation items for main site
+  // Use unique keys to prevent React duplicate key warnings
   const navItems = [
     { 
+      key: 'bottom-nav-home',
       icon: Home, 
       label: isTranslationsReady ? (t('nav.home') || 'Home') : 'Home', 
       path: '/',
       ariaLabel: 'Go to homepage'
     },
     { 
+      key: 'bottom-nav-marketplace',
       icon: ShoppingBag, 
       label: isTranslationsReady ? (t('nav.marketplace') || 'Marketplace') : 'Marketplace', 
       path: '/marketplace',
       ariaLabel: 'Browse marketplace'
     },
     { 
+      key: 'bottom-nav-rfq',
       icon: FileText, 
       label: isTranslationsReady ? (t('nav.rfq') || 'RFQ') : 'RFQ', 
       path: '/rfq/create-mobile',
       ariaLabel: 'Create RFQ'
     },
     { 
+      key: 'bottom-nav-messages',
       icon: MessageSquare, 
       label: isTranslationsReady ? (t('nav.messages') || 'Messages') : 'Messages', 
       path: user ? '/inbox-mobile' : '/login',
       ariaLabel: 'View messages'
     },
     { 
+      key: 'bottom-nav-profile',
       icon: User, 
       label: user 
         ? (isTranslationsReady ? (t('nav.profile') || 'Profile') : 'Profile')
@@ -89,7 +95,7 @@ export default function MobileBottomNav({ user, userRole = 'buyer' }: MobileBott
           
           return (
             <Link
-              key={item.path}
+              key={item.key}
               to={item.path}
               aria-label={item.ariaLabel}
               className={`

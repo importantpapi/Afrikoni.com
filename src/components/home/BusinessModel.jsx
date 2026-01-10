@@ -10,9 +10,9 @@ import {
   TrendingUp, Users, Target, Zap, AlertCircle,
   Calculator, BarChart3, Lightbulb, Heart
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
+import { Button } from '@/components/shared/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 export default function BusinessModel() {

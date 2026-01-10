@@ -7,10 +7,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { 
   Building2, MapPin, Star, Shield, Phone, Mail, Globe, 
   CheckCircle, Package, Calendar, Users, Award, 
@@ -25,6 +25,7 @@ import { isValidUUID } from '@/utils/security';
 import { motion } from 'framer-motion';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
+import { useAuth } from '@/contexts/AuthProvider';
 
 export default function BusinessProfile() {
   // Use centralized AuthProvider

@@ -6,18 +6,18 @@ import {
   Shield, CheckCircle, CheckCircle2, Clock, User, Verified, Star, X, File, Image as ImageIcon,
   FileText, Download, Eye, Loader2, Sparkles, Globe, ShoppingCart, Receipt, Truck, Languages, ArrowLeft
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Input } from '@/components/shared/ui/input';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Tooltip } from '@/components/shared/ui/tooltip';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { notifyNewMessage } from '@/services/notificationService';
-import VirtualList from '@/components/ui/VirtualList';
+import VirtualList from '@/components/shared/ui/VirtualList';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { generateBuyerInquiry } from '@/ai/aiFunctions';
@@ -316,8 +316,11 @@ export default function MessagesPremium() {
       setIsLoading(true);
       
       // Use auth from context (no duplicate call)
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const userCompanyId = profile?.company_id || await getOrCreateCompany(supabase, user);
+      const userCompanyId = profile?.company_id || null;
+      if (!userCompanyId) {
+        navigate('/onboarding/company', { replace: true });
+        return;
+      }
       setCompanyId(userCompanyId);
 
       // Load conversations

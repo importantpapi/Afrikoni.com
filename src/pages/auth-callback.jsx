@@ -4,7 +4,7 @@ import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
+import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function AuthCallback() {

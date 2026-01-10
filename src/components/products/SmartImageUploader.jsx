@@ -12,7 +12,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, GripVertical, Sparkles, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { useLanguage } from '@/i18n/LanguageContext';

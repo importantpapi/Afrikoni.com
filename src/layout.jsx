@@ -3,15 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabaseHelpers, supabase } from '@/api/supabaseClient';
 import { createPageUrl } from './utils';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 import { Mail, Phone, MapPin, Lock, Shield, Award, CheckCircle, Linkedin, Twitter, Facebook, Instagram, Youtube, ChevronDown, MessageCircle } from 'lucide-react';
 // Note: TikTok and Pinterest icons may need to be added via custom SVG or icon library
 import Navbar from './components/layout/Navbar';
-import { Logo } from '@/components/ui/Logo';
-import WhatsAppButton from './components/ui/WhatsAppButton';
-import CookieBanner from './components/ui/CookieBanner';
-import NewsletterPopup from './components/ui/NewsletterPopup';
-import MobileTrustBadge from './components/ui/MobileTrustBadge';
+import { Logo } from '@/components/shared/ui/Logo';
+import WhatsAppButton from '@/components/shared/ui/WhatsAppButton';
+import CookieBanner from '@/components/shared/ui/CookieBanner';
+import NewsletterPopup from '@/components/shared/ui/NewsletterPopup';
 import MobileMainNav from './components/layout/MobileMainNav';
 
 // Lazy load MobileLayout outside component to prevent re-creation on every render
@@ -513,9 +512,6 @@ export default function Layout({ children }) {
 
           {/* Newsletter Popup */}
           <NewsletterPopup />
-
-          {/* Mobile Trust Badge */}
-          <MobileTrustBadge />
         </div>
       );
     } catch (error) {
@@ -548,9 +544,6 @@ export default function Layout({ children }) {
 
       {/* Newsletter Popup */}
       <NewsletterPopup />
-
-      {/* Mobile Trust Badge */}
-      <MobileTrustBadge />
     </div>
   );
 }

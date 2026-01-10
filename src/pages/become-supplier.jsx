@@ -7,9 +7,9 @@ import {
   ArrowRight, Sparkles, Building2, MapPin, Clock, CheckCircle
 } from 'lucide-react';
 import SEO from '@/components/SEO';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { supabase } from '@/api/supabaseClient';
 
 export default function BecomeSupplier() {

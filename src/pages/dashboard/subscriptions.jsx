@@ -7,20 +7,20 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles, Crown, Zap, ArrowRight } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { 
   getCompanySubscription, 
   createSubscription, 
   SUBSCRIPTION_PLANS,
   getPlanDetails 
 } from '@/services/subscriptionService';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 function SubscriptionsPageInner() {
   // Use centralized AuthProvider
@@ -270,9 +270,10 @@ function SubscriptionsPageInner() {
 
 export default function SubscriptionsPage() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    {/* PHASE 5B: Subscriptions requires sell capability (approved) */}
+    <RequireCapability canSell={true} requireApproved={true}>
       <SubscriptionsPageInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

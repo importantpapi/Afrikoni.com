@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FileText, Clock, Shield, CheckCircle, AlertCircle, MessageSquare } from 'lucide-react';
 import SEO from '@/components/SEO';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { SystemPageHero, SystemPageSection, SystemPageCard, SystemPageTimeline, SystemPageCTA } from '@/components/system/SystemPageLayout';
 
 export default function Disputes() {

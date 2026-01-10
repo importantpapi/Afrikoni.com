@@ -5,14 +5,14 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
+import { Badge } from '@/components/shared/ui/badge';
+import { Progress } from '@/components/shared/ui/progress';
 import { useSupplierIntelligence, useTrustEvolution, useRiskSignals } from '@/hooks/useTradeIntelligence';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { Shield, TrendingUp, AlertTriangle, CheckCircle, Clock, XCircle, Package, DollarSign } from 'lucide-react';
 import TrustHistoryTimeline from '@/components/intelligence/TrustHistoryTimeline';
 
@@ -40,7 +40,7 @@ export default function SellerIntelligence() {
     const cid = profile?.company_id || null;
     setCompanyId(cid);
     setLoading(false);
-  }, [authReady, authLoading, user, profile]);
+  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
 
   const { data: supplierIntelligence, loading: supplierLoading } = useSupplierIntelligence(companyId);
   const { data: trustEvolution, loading: trustLoading } = useTrustEvolution(companyId);

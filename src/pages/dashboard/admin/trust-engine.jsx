@@ -7,17 +7,17 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
 import { 
   Shield, TrendingUp, Award, AlertCircle, Search,
   Eye, BarChart3, CheckCircle, XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+// PHASE 5B: Admin pages use route-level admin check (ProtectedRoute requireAdmin)
 
 function TrustEngineInner() {
   const [suppliers, setSuppliers] = useState([]);
@@ -280,10 +280,7 @@ function TrustEngineInner() {
 }
 
 export default function TrustEngine() {
-  return (
-    <RequireDashboardRole allow={['admin']}>
-      <TrustEngineInner />
-    </RequireDashboardRole>
-  );
+  // PHASE 5B: Admin check done at route level with ProtectedRoute requireAdmin
+  return <TrustEngineInner />;
 }
 

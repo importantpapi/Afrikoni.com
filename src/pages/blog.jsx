@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { FileText, Calendar, ArrowRight, MessageCircle } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';

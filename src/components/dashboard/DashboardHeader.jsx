@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPageUrl } from '@/utils';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/shared/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Search, Bell, MessageCircle, User } from 'lucide-react';
 import NotificationBell from '@/components/notificationbell';
 

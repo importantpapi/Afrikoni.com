@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import SEO from '@/components/SEO';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { Check, X, Calculator, TrendingUp, Shield, Zap, Users, Building2, Star, Award, FileText, Sparkles, DollarSign, Package } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 

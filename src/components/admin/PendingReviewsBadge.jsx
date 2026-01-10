@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shared/ui/badge';
 import { usePendingReviewsCount } from '@/hooks/usePendingReviewsCount';
 
 export default function PendingReviewsBadge({ className = '' }) {

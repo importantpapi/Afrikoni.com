@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
-import { useDashboardRole } from '@/context/DashboardRoleContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import RequireCapability from '@/guards/RequireCapability';
+import { useCapability } from '@/context/CapabilityContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Badge } from '@/components/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import {
   MessageCircle,
   Mail,
@@ -26,7 +26,13 @@ export default function DashboardHelp() {
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState(null);
   const navigate = useNavigate();
-  const { role: currentRole } = useDashboardRole();
+  // PHASE 5B: Use capabilities instead of role
+  const capabilities = useCapability();
+  // PHASE 5B: Derive visibility from capabilities, not role
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+  const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
+  const isHybrid = isBuyer && isSeller;
 
   const buyerFaqs = [
     {
@@ -175,7 +181,8 @@ export default function DashboardHelp() {
   };
 
   return (
-    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid', 'logistics']}>
+    {/* PHASE 5B: Help page is universal (any capability) */}
+    <RequireCapability>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -273,20 +280,25 @@ export default function DashboardHelp() {
             <CardTitle>Frequently Asked Questions</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue={currentRole === 'seller' ? 'seller' : currentRole === 'logistics' ? 'logistics' : 'buyer'}>
+            {/* PHASE 5B: Use capabilities for tab selection */}
+            <Tabs defaultValue={isSeller ? 'seller' : isLogistics ? 'logistics' : 'buyer'}>
               <TabsList>
-                {(currentRole === 'buyer' || currentRole === 'hybrid') && (
+                {/* PHASE 5B: Show buyer tab if can_buy */}
+                {(isBuyer || isHybrid) && (
                   <TabsTrigger value="buyer">For Buyers</TabsTrigger>
                 )}
-                {(currentRole === 'seller' || currentRole === 'hybrid') && (
+                {/* PHASE 5B: Show seller tab if can_sell and approved */}
+                {(isSeller || isHybrid) && (
                   <TabsTrigger value="seller">For Sellers</TabsTrigger>
                 )}
-                {currentRole === 'logistics' && (
+                {/* PHASE 5B: Show logistics tab if can_logistics and approved */}
+                {isLogistics && (
                   <TabsTrigger value="logistics">For Logistics</TabsTrigger>
                 )}
               </TabsList>
 
-              {(currentRole === 'buyer' || currentRole === 'hybrid') && (
+              {/* PHASE 5B: Show buyer content if can_buy */}
+              {(isBuyer || isHybrid) && (
                 <TabsContent value="buyer" className="space-y-3 mt-4">
                   {filteredFaqs(buyerFaqs).length === 0 ? (
                     <div className="text-center py-8 text-afrikoni-deep/70">
@@ -340,7 +352,8 @@ export default function DashboardHelp() {
                 </TabsContent>
               )}
 
-              {(currentRole === 'seller' || currentRole === 'hybrid') && (
+              {/* PHASE 5B: Show seller content if can_sell and approved */}
+              {(isSeller || isHybrid) && (
                 <TabsContent value="seller" className="space-y-3 mt-4">
                   {filteredFaqs(sellerFaqs).length === 0 ? (
                     <div className="text-center py-8 text-afrikoni-deep/70">
@@ -394,7 +407,8 @@ export default function DashboardHelp() {
                 </TabsContent>
               )}
 
-              {currentRole === 'logistics' && (
+              {/* PHASE 5B: Show logistics content if can_logistics and approved */}
+              {isLogistics && (
                 <TabsContent value="logistics" className="space-y-3 mt-4">
                   {filteredFaqs(logisticsFaqs).length === 0 ? (
                     <div className="text-center py-8 text-afrikoni-deep/70">

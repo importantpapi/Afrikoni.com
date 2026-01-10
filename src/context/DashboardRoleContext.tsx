@@ -48,31 +48,17 @@ function normalizeRoleFromPath(pathname: string): DashboardRole {
   return 'buyer';
 }
 
+// PHASE 5B: DashboardRoleProvider DISABLED - Replaced with CapabilityContext
+// This file is kept for reference but should not be used
+// All role-based logic has been replaced with capability-based logic
 export function DashboardRoleProvider({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-
-  const value = useMemo<DashboardRoleContextValue>(() => {
-    const role = normalizeRoleFromPath(location.pathname);
-    return {
-      role,
-      isBuyer: role === 'buyer',
-      isSeller: role === 'seller',
-      isHybrid: role === 'hybrid',
-      isLogistics: role === 'logistics',
-    };
-  }, [location.pathname]);
-
-  return (
-    <DashboardRoleContext.Provider value={value}>
-      {children}
-    </DashboardRoleContext.Provider>
-  );
+  // PHASE 5B: This provider is disabled - use CapabilityContext instead
+  console.warn('[DashboardRoleContext] DashboardRoleProvider is deprecated. Use CapabilityContext instead.');
+  return <>{children}</>;
 }
 
+// PHASE 5B: useDashboardRole DISABLED - Throws error to catch any remaining usages
 export function useDashboardRole(): DashboardRoleContextValue {
-  const ctx = useContext(DashboardRoleContext);
-  if (!ctx) {
-    throw new Error('useDashboardRole must be used within a DashboardRoleProvider');
-  }
-  return ctx;
+  // PHASE 5B: This hook is disabled - use useCapability() from CapabilityContext instead
+  throw new Error('useDashboardRole is deprecated. Use useCapability() from CapabilityContext instead. All role-based logic has been replaced with capability-based logic.');
 }

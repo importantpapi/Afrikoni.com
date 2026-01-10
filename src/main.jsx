@@ -76,43 +76,10 @@ if (!rootElement) {
           </ErrorBoundary>
         </React.StrictMode>,
       );
-    } catch (error) {
-      console.error('[React Render] Error during render:', error);
-      // Show fallback UI
-      rootElement.innerHTML = `
-        <div style="min-height: 100vh; display: flex; align-items: center; justify-center; flex-direction: column; font-family: system-ui; padding: 20px;">
-          <div style="width: 48px; height: 48px; border: 4px solid #f3f4f6; border-top-color: #d97706; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <p style="margin-top: 16px; color: #6b7280;">Loading Afrikoni...</p>
-          <style>
-            @keyframes spin {
-              to { transform: rotate(360deg); }
-            }
-          </style>
-        </div>
-      `;
-      
-      // Retry after a delay
-      setTimeout(() => {
-        try {
-          const root = ReactDOM.createRoot(rootElement);
-          root.render(
-            <React.StrictMode>
-              <ErrorBoundary>
-                <BrowserRouter
-                  future={{
-                    v7_startTransition: true,
-                    v7_relativeSplatPath: true
-                  }}
-                >
-                  <App />
-                </BrowserRouter>
-              </ErrorBoundary>
-            </React.StrictMode>,
-          );
-        } catch (retryError) {
-          console.error('[React Render] Retry also failed:', retryError);
-        }
-      }, 500);
+    } catch (e) {
+      console.error('[React Render] Error during render:', e);
+      document.body.innerHTML = '<pre>App failed to start. Check console.</pre>';
+      console.error(e);
     }
   };
 

@@ -7,16 +7,16 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { 
   Star, TrendingUp, Award, Calendar, Package, MessageSquare,
   Shield, Heart, CheckCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 function ReviewsDashboardInner() {
   // Use centralized AuthProvider
@@ -420,8 +420,9 @@ function ReviewsDashboardInner() {
 
 export default function ReviewsDashboard() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    {/* PHASE 5B: Reviews requires sell capability (approved) */}
+    <RequireCapability canSell={true} requireApproved={true}>
       <ReviewsDashboardInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }

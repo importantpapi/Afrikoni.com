@@ -1,12 +1,14 @@
+// SelectRole.jsx - FIXED VERSION
+// Added missing useAuth import
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { getDashboardPathForRole, getValidViewModes } from '@/utils/roleHelpers';
-import { Logo } from '@/components/ui/Logo';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, Package, Truck } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthProvider'; // ← ADDED THIS IMPORT
+import { getDashboardPathForRole } from '@/utils/roleHelpers';
+import { Logo } from '@/components/shared/ui/Logo';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { ShoppingCart, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { setLastSelectedRole } from '@/lib/supabase-auth-helpers';
 
@@ -49,16 +51,14 @@ export default function SelectRole() {
 
     setSaving(true);
     try {
-      // Use auth from context (no duplicate call)
-
-      // Persist last selected role preference in dedicated table and profile metadata if possible
+      // Persist last selected role preference
       try {
         await setLastSelectedRole(user.id, targetRole);
       } catch (prefError) {
-        console.warn('Failed to save last_selected_role in preferences:', prefError);
+        console.warn('Failed to save last_selected_role:', prefError);
       }
 
-      // Also store locally for quick client-side decisions
+      // Store locally for quick client-side decisions
       try {
         localStorage.setItem('afr_last_selected_role', targetRole);
       } catch {
@@ -83,7 +83,7 @@ export default function SelectRole() {
     );
   }
 
-  if (!role) return null;
+  if (!authRole) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
@@ -94,7 +94,7 @@ export default function SelectRole() {
           </div>
           <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Choose how you want to use Afrikoni today</h1>
           <p className="text-afrikoni-deep/80">
-            You have a hybrid account. Select whether you’re acting as a buyer or a seller for this session.
+            You have a hybrid account. Select whether you're acting as a buyer or a seller for this session.
           </p>
         </div>
 
@@ -161,5 +161,3 @@ export default function SelectRole() {
     </div>
   );
 }
-
-

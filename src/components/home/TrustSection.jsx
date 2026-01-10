@@ -1,6 +1,6 @@
 import React from 'react';
 import { Lock, Shield, CheckCircle, Award } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 
 export default function TrustSection() {
   return (

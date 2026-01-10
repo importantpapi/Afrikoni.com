@@ -12,10 +12,10 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Logo } from '@/components/ui/Logo';
+import { Logo } from '@/components/shared/ui/Logo';
 import { User, Globe, Menu, X } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 
 interface MobileHeaderProps {
   user?: any;

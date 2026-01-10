@@ -2,11 +2,11 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, CheckCircle, Users, Globe, Shield, Lock, TrendingUp, ArrowRight, Store, ShoppingBag, Truck, FileText } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Logo } from '@/components/ui/Logo';
+import { Input } from '@/components/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Logo } from '@/components/shared/ui/Logo';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
@@ -31,11 +31,18 @@ function SocialProofSection() {
           .in('role', ['seller', 'hybrid'])
           .eq('verification_status', 'verified');
 
-        // Get unique countries from products
-        const { data: productsData } = await supabase
+        // Get unique countries from products (anonymous-friendly query)
+        // Fixed: Simplified query for anonymous access
+        const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('country_of_origin')
-          .eq('status', 'active');
+          .eq('status', 'active')
+          .limit(100); // Limit to avoid large queries
+        
+        // Silently handle errors - show zeros if query fails
+        if (productsError) {
+          console.debug('[HeroSection] Products query failed (non-critical):', productsError);
+        }
         
         const uniqueCountries = new Set(
           productsData?.map(p => p.country_of_origin).filter(Boolean) || []
@@ -328,19 +335,17 @@ export default function HeroSection({ categories = [] }) {
                   {/* Mobile: FULL-WIDTH, HEAVIER, DARKER - THE ENGINE */}
                   <div
                     className={`
-                      flex items-center gap-3
-                      bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-deep to-afrikoni-chestnut
-                      rounded-lg
-                      shadow-2xl
-                      border border-afrikoni-gold/40
-                      px-4 py-4
+                      flex items-center gap-2 md:gap-3
+                      bg-white/98 md:bg-white/95
+                      rounded-2xl md:rounded-full
+                      shadow-xl md:shadow-lg
+                      border-2 md:border border-afrikoni-gold/30 md:border-afrikoni-gold/20
+                      px-3 md:px-4 py-2.5 md:py-3
                       transition-all duration-300
-                      ${searchFocused ? 'border-afrikoni-gold shadow-[0_0_24px_rgba(212,169,55,0.5)]' : 'border-afrikoni-gold/40'}
+                      focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-afrikoni-gold/40 md:focus-within:ring-afrikoni-gold/30 focus-within:shadow-2xl md:focus-within:shadow-xl
+                      ${searchFocused ? 'shadow-2xl md:shadow-xl border-afrikoni-gold/40 md:border-afrikoni-gold/30' : ''}
                     `}
                   >
-                    {/* Search Icon - Gold, prominent */}
-                    <Search className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
-                    
                     {/* Main Search Input - DOMINANT, HIGH CONTRAST */}
                     <input
                       id="hero-search-input"
@@ -365,7 +370,7 @@ export default function HeroSection({ categories = [] }) {
                           setSearchFocused(false);
                         }, 200);
                       }}
-                      className="flex-1 text-base px-2 py-2 focus:outline-none placeholder:text-afrikoni-cream/70 text-afrikoni-cream bg-transparent min-h-[52px] font-semibold"
+                      className="flex-1 text-sm md:text-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-afrikoni-gold/50 md:focus:border-afrikoni-gold/40 transition-all duration-200"
                     />
 
                     {/* Clear button */}
@@ -377,20 +382,20 @@ export default function HeroSection({ categories = [] }) {
                           setSearchQuery('');
                           setShowSuggestions(false);
                         }}
-                        className="p-1.5 rounded-full hover:bg-afrikoni-gold/20 text-afrikoni-cream/80 hover:text-afrikoni-gold transition-colors"
+                        className="p-1.5 rounded-full hover:bg-afrikoni-gold/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
                         aria-label="Clear search"
                       >
                         <X className="w-4 h-4" />
                       </motion.button>
                     )}
 
-                    {/* Search Button - Clear value proposition */}
+                    {/* Search Button - Desktop */}
                     <button
                       onClick={handleSearch}
-                      className="flex items-center gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-bold px-5 py-3 rounded-lg hover:bg-afrikoni-gold/90 active:scale-95 transition-all duration-200 min-h-[52px] touch-manipulation shadow-lg"
+                      className="flex items-center gap-1.5 md:gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-xl md:rounded-full hover:bg-afrikoni-gold/90 md:hover:bg-afrikoni-gold/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
                     >
-                      <Search className="w-5 h-5" />
-                      <span className="text-sm font-bold">Find suppliers</span>
+                      <Search className="w-4.5 h-4.5 md:w-4 md:h-4" />
+                      <span className="hidden sm:inline text-sm md:text-base">Search</span>
                     </button>
                   </div>
 
@@ -415,38 +420,6 @@ export default function HeroSection({ categories = [] }) {
                     )}
                   </AnimatePresence>
                 </div>
-              </motion.div>
-
-              {/* SECONDARY CTA - RFQ Card with Clear Explanation */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.15, ease: 'easeOut' }}
-                className="bg-afrikoni-cream/30 border border-afrikoni-chestnut/20 rounded-lg p-4 space-y-3 relative z-10"
-              >
-                {/* RFQ Explanation - ONE clear line */}
-                <p className="text-sm text-afrikoni-chestnut/90 font-medium leading-relaxed">
-                  <span className="font-bold text-afrikoni-chestnut">RFQ = </span>
-                  Tell us what you need. Verified suppliers send you quotes.
-                </p>
-                
-                {/* RFQ Button - Clear wording, proper touch target */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate('/dashboard/rfqs/new');
-                  }}
-                  className="w-full flex items-center justify-center gap-3 bg-afrikoni-chestnut/10 hover:bg-afrikoni-chestnut/20 active:bg-afrikoni-chestnut/30 border-2 border-afrikoni-chestnut/30 text-afrikoni-chestnut font-semibold px-6 py-4 rounded-lg active:scale-[0.98] transition-all duration-200 min-h-[52px] touch-manipulation cursor-pointer z-10 relative"
-                  type="button"
-                  aria-label="Post a Trade Request (RFQ)"
-                >
-                  <FileText className="w-5 h-5 flex-shrink-0" />
-                  <div className="flex flex-col items-start flex-1 min-w-0">
-                    <span className="text-base font-bold text-left">Post a Trade Request (RFQ)</span>
-                    <span className="text-xs text-afrikoni-chestnut/70 font-normal text-left">Suppliers come to you</span>
-                  </div>
-                </button>
               </motion.div>
             </div>
 

@@ -74,19 +74,29 @@ export async function preloadDashboardData(role = 'buyer') {
 
 /**
  * Preload product data for marketplace
+ * Fixed: Remove authenticated joins for anonymous access
  */
 export async function preloadMarketplaceData() {
   try {
-    // Preload categories and top products
+    // Don't preload on signup/login pages - user hasn't signed up yet
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      if (currentPath === '/signup' || currentPath === '/login' || currentPath.startsWith('/auth/')) {
+        return; // Skip preloading on auth pages
+      }
+    }
+
+    // Preload categories and top products (anonymous-friendly queries)
     const preloadPromises = [
       supabase
         .from('categories')
         .select('*')
         .limit(12),
       
+      // Fixed: Remove companies join for anonymous access
       supabase
         .from('products')
-        .select('*, companies!company_id(*), categories(*), product_images(*)')
+        .select('id, title, description, price_min, price_max, currency, status, country_of_origin, created_at, categories(*), product_images(id, url, is_primary)')
         .eq('status', 'active')
         .order('views', { ascending: false })
         .limit(20)
@@ -94,8 +104,9 @@ export async function preloadMarketplaceData() {
 
     await Promise.allSettled(preloadPromises);
   } catch (error) {
+    // Silently fail - preloading is optional
     if (import.meta.env.DEV) {
-      console.debug('Marketplace preload failed:', error);
+      console.debug('Marketplace preload failed (non-critical):', error);
     }
   }
 }
@@ -138,9 +149,18 @@ export function setupLinkPreloading() {
 
 /**
  * Use browser idle time to preload data
+ * Fixed: Don't preload on auth pages
  */
 export function useIdlePreloading() {
-  if (typeof window === 'undefined' || !('requestIdleCallback' in window)) {
+  if (typeof window === 'undefined') return;
+  
+  // Don't preload on signup/login pages
+  const currentPath = window.location.pathname;
+  if (currentPath === '/signup' || currentPath === '/login' || currentPath.startsWith('/auth/')) {
+    return; // Skip preloading on auth pages
+  }
+
+  if (!('requestIdleCallback' in window)) {
     // Fallback for browsers without requestIdleCallback
     setTimeout(() => {
       preloadMarketplaceData();

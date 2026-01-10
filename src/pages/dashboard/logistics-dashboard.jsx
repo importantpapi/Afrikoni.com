@@ -5,20 +5,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import EmptyState from '@/components/ui/EmptyState';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import EmptyState from '@/components/shared/ui/EmptyState';
 import RealTimeTracking from '@/components/logistics/RealTimeTracking';
 
 import { 
@@ -938,8 +938,9 @@ export default function LogisticsDashboard() {
   // Note: This component is wrapped by DashboardLayout in Dashboard component
   // when accessed through LogisticsHome -> Dashboard component
   return (
-    <RequireDashboardRole allow={['logistics']}>
+    {/* PHASE 5B: Logistics dashboard requires logistics capability (approved) */}
+    <RequireCapability canLogistics={true} requireApproved={true}>
       <LogisticsDashboardInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }

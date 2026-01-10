@@ -8,22 +8,62 @@ import { supabase } from '@/api/supabaseClient';
 // ============ PRODUCT RECOMMENDATIONS ============
 
 export async function getProductRecommendations(productId, limit = 10) {
-  const { data, error } = await supabase
-    .from('product_recommendations')
-    .select(`
-      *,
-      recommended_product:products!product_recommendations_recommended_product_id_fkey(
-        *,
-        product_images(*),
-        companies!company_id(*)
-      )
-    `)
-    .eq('source_product_id', productId)
-    .order('score', { ascending: false })
-    .limit(limit);
-  
-  if (error) throw error;
-  return data.map(rec => rec.recommended_product).filter(Boolean);
+  try {
+    // Simplified query - PostgREST friendly
+    const { data: recommendations, error: recError } = await supabase
+      .from('product_recommendations')
+      .select('recommended_product_id, score')
+      .eq('source_product_id', productId)
+      .order('score', { ascending: false })
+      .limit(limit);
+    
+    if (recError) throw recError;
+    
+    if (!recommendations || recommendations.length === 0) {
+      return [];
+    }
+    
+    // Load products separately
+    const productIds = recommendations.map(r => r.recommended_product_id).filter(Boolean);
+    const { data: productsData, error: productsError } = await supabase
+      .from('products')
+      .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, product_images(*)')
+      .in('id', productIds);
+    
+    if (productsError) throw productsError;
+    
+    // Load companies separately if needed
+    let companiesMap = new Map();
+    if (productsData && productsData.length > 0) {
+      const companyIds = [...new Set(productsData.map(p => p.company_id).filter(Boolean))];
+      if (companyIds.length > 0) {
+        try {
+          const { data: companies } = await supabase
+            .from('companies')
+            .select('id, company_name, country, verification_status, verified')
+            .in('id', companyIds);
+          
+          if (companies) {
+            companies.forEach(c => companiesMap.set(c.id, c));
+          }
+        } catch (err) {
+          console.warn('Error loading companies for recommendations:', err);
+          // Continue without company data
+        }
+      }
+    }
+    
+    // Merge company data with products
+    const productsWithCompanies = (productsData || []).map(product => ({
+      ...product,
+      companies: companiesMap.get(product.company_id) || null
+    }));
+    
+    return productsWithCompanies;
+  } catch (error) {
+    console.error('Error getting product recommendations:', error);
+    return [];
+  }
 }
 
 export async function createProductRecommendation(recommendationData) {

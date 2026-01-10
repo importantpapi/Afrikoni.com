@@ -7,15 +7,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Truck, Package, Sparkles } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import {
   calculateShippingQuote,
   saveLogisticsQuote,
@@ -23,7 +23,7 @@ import {
   getLogisticsQuotes,
 } from '@/services/logisticsService';
 import { recordLogisticsRevenue } from '@/services/revenueService';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 function LogisticsQuoteInner() {
   const { orderId } = useParams();
@@ -260,8 +260,9 @@ function LogisticsQuoteInner() {
 
 export default function LogisticsQuotePage() {
   return (
-    <RequireDashboardRole allow={['logistics']}>
+    {/* PHASE 5B: Logistics quote page requires logistics capability (approved) */}
+    <RequireCapability canLogistics={true} requireApproved={true}>
       <LogisticsQuoteInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }

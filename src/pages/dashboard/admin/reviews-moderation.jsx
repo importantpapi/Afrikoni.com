@@ -7,20 +7,21 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Textarea } from '@/components/shared/ui/textarea';
 import { 
   Star, CheckCircle, XCircle, AlertTriangle, Eye, DollarSign, 
   Calendar, Building2, User, Package, Filter
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+// PHASE 5B: Admin pages use route-level admin check (ProtectedRoute requireAdmin)
+// Component-level capability check not needed for admin pages
 
 function ReviewsModerationInner() {
   // Use centralized AuthProvider
@@ -424,11 +425,10 @@ function ReviewsModerationInner() {
   );
 }
 
+// PHASE 5B: Admin pages use route-level admin check (ProtectedRoute requireAdmin)
+// Component-level capability check removed - admin is user-level, not company-level
 export default function ReviewsModeration() {
-  return (
-    <RequireDashboardRole allow={['admin']}>
-      <ReviewsModerationInner />
-    </RequireDashboardRole>
-  );
+  // Admin check is done at route level in App.jsx with ProtectedRoute requireAdmin
+  return <ReviewsModerationInner />;
 }
 

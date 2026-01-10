@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { Shield, TrendingUp, AlertTriangle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/shared/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shared/ui/tooltip';
 
 export default function ReliabilityBadge({ 
   reliabilityScore, 

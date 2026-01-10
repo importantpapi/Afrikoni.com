@@ -6,8 +6,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
 
 export default function AccessDenied() {
   return (

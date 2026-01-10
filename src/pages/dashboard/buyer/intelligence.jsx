@@ -5,13 +5,13 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
+import { Badge } from '@/components/shared/ui/badge';
 import { useBuyerIntelligence, useTrustEvolution } from '@/hooks/useTradeIntelligence';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { ShoppingBag, TrendingUp, DollarSign, MessageCircle, Package, CheckCircle, Clock } from 'lucide-react';
 
 export default function BuyerIntelligence() {
@@ -38,7 +38,7 @@ export default function BuyerIntelligence() {
     const cid = profile?.company_id || null;
     setCompanyId(cid);
     setLoading(false);
-  }, [authReady, authLoading, user, profile]);
+  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
 
   const { data: buyerIntelligence, loading: buyerLoading } = useBuyerIntelligence(companyId);
   const { data: trustEvolution, loading: trustLoading } = useTrustEvolution(companyId);

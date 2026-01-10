@@ -7,13 +7,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ChevronLeft, ChevronRight, Package } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import OptimizedImage from '@/components/OptimizedImage';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import { getProductRecommendations } from '@/lib/supabaseQueries/ai';
 import { trackProductView } from '@/lib/supabaseQueries/products';
-import EmptyState from '@/components/ui/EmptyState';
+import EmptyState from '@/components/shared/ui/EmptyState';
 
 export default function ProductRecommendations({ productId, currentUserId, currentCompanyId }) {
   const [recommendations, setRecommendations] = useState([]);

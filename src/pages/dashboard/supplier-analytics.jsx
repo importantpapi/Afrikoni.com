@@ -7,19 +7,19 @@ import {
   Calendar, Filter, Download, RefreshCw
 } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import { toast } from 'sonner';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 const COLORS = ['#D4A937', '#8140FF', '#3AB795', '#E85D5D', '#C9A961', '#5A5A5A'];
 
@@ -84,7 +84,7 @@ function SupplierAnalyticsInner() {
     };
 
     loadCompany();
-  }, [authReady, authLoading, user, profile]);
+  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
 
   useEffect(() => {
     if (companyId && authReady) {
@@ -979,9 +979,10 @@ function SupplierAnalyticsInner() {
 
 export default function SupplierAnalytics() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    {/* PHASE 5B: Supplier analytics requires sell capability (approved) */}
+    <RequireCapability canSell={true} requireApproved={true}>
       <SupplierAnalyticsInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingDown, Package } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 export default function BulkPricingTiers({ product }) {

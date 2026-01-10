@@ -10,16 +10,16 @@ import {
   Clock, CheckCircle, XCircle, TrendingUp, Send
 } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { TARGET_COUNTRY, COUNTRY_CONFIG } from '@/config/countryConfig';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { isAdmin } from '@/utils/permissions';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 
 const FUNNEL_STAGES = [

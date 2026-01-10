@@ -14,13 +14,13 @@ import {
   Sparkles, Copy, CheckCircle, Loader2, AlertCircle,
   Package, Search, MessageSquare, ExternalLink, Users, Target, Bell, ArrowRight
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { generateProductListing, suggestSuppliers, generateSupplierReply } from '@/ai/aiFunctions';

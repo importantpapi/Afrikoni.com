@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { TrendingUp, TrendingDown, Minus, Shield, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTrustEvolution } from '@/hooks/useTradeIntelligence';

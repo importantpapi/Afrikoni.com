@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, ArrowLeft, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/ui/Logo';
+import { Button } from '@/components/shared/ui/button';
+import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function NotFound() {

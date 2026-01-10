@@ -10,22 +10,22 @@ import {
   MessageSquare, Send, Hash, Clock, CheckCircle, XCircle, Search, Filter,
   Mail, User, Building2, Calendar, AlertCircle, Copy, ExternalLink
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Badge } from '@/components/shared/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { isAdmin } from '@/utils/permissions';
 import { format } from 'date-fns';
-import EmptyState from '@/components/ui/EmptyState';
-import { CardSkeleton } from '@/components/ui/skeletons';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function AdminSupportTickets() {

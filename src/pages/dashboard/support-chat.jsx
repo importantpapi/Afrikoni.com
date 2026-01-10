@@ -9,19 +9,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, X, Clock, CheckCircle, AlertCircle, Hash, Copy, ExternalLink
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Badge } from '@/components/shared/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { format } from 'date-fns';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 function SupportChatInner() {
   // Use centralized AuthProvider
@@ -602,9 +602,10 @@ function SupportChatInner() {
 
 export default function SupportChat() {
   return (
-    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid', 'logistics']}>
+    {/* PHASE 5B: Support chat is universal (any capability) */}
+    <RequireCapability>
       <SupportChatInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

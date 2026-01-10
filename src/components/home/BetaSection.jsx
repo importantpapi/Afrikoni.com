@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { Sparkles, CheckCircle, Target, Shield } from 'lucide-react';
 
 export default function BetaSection() {

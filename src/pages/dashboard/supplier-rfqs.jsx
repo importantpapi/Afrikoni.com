@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getUserRole, canViewSellerFeatures } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Input } from '@/components/shared/ui/input';
 import { 
   FileText, Search, MapPin, Package, DollarSign, 
   Calendar, ArrowRight, Filter, Clock
@@ -16,8 +16,8 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
-import EmptyState from '@/components/ui/EmptyState';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import RequireCapability from '@/guards/RequireCapability';
 
 function SupplierRFQsInner() {
   // Use centralized AuthProvider
@@ -266,9 +266,10 @@ function SupplierRFQsInner() {
 
 export default function SupplierRFQs() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    {/* PHASE 5B: Supplier RFQs page requires sell capability (approved) */}
+    <RequireCapability canSell={true} requireApproved={true}>
       <SupplierRFQsInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

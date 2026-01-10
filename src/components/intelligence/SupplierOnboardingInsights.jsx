@@ -4,9 +4,9 @@
  */
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
 import { Target, MapPin, Package, TrendingUp, AlertCircle } from 'lucide-react';
 import { useSupplyGapInsights } from '@/hooks/useTradeIntelligence';
 

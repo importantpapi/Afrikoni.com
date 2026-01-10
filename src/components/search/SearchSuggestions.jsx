@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, TrendingUp, Clock, ArrowRight } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/api/supabaseClient';
 

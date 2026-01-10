@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
 import { Search, FileText, Shield, CreditCard, Truck, MessageSquare } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { SystemPageHero, SystemPageSection, SystemPageCard, SystemPageCTA } from '@/components/system/SystemPageLayout';

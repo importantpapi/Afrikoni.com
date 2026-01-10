@@ -3,17 +3,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { DataTable, StatusChip } from '@/components/ui/data-table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Input } from '@/components/shared/ui/input';
+import { DataTable, StatusChip } from '@/components/shared/ui/data-table';
 import { ShoppingCart, DollarSign, TrendingUp, Package, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import EmptyState from '@/components/ui/EmptyState';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardSalesInner() {
   // Use centralized AuthProvider
@@ -286,10 +286,13 @@ function DashboardSalesInner() {
 }
 
 export default function DashboardSales() {
-  return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
-      <DashboardSalesInner />
-    </RequireDashboardRole>
-  );
+    return (
+      <>
+        {/* PHASE 5B: Sales page requires sell capability (approved) */}
+        <RequireCapability canSell={true} requireApproved={true}>
+          <DashboardSalesInner />
+        </RequireCapability>
+      </>
+    );
 }
 

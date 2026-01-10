@@ -12,7 +12,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider';
 import PostLoginRouter from '@/auth/PostLoginRouter';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 export default function AuthGate({ children }) {
   const navigate = useNavigate();

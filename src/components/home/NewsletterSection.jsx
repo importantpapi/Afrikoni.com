@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
 import { Mail, TrendingUp, Gift, Users, Package, ShoppingCart, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 

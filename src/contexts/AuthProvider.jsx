@@ -1,210 +1,204 @@
-/**
- * CENTRALIZED AUTH PROVIDER - Single Source of Truth for Authentication
- * 
- * ENFORCES STRICT SEQUENTIAL FLOW:
- * 1. getSession() → Check if user exists
- * 2. If no user → authReady = true (user is null)
- * 3. If user → fetch profile
- * 4. If profile exists → resolve role
- * 5. role must NEVER be null (fallback = "buyer")
- * 6. authReady = true only after role is known
- * 
- * NO QUERY MAY RUN UNTIL authReady === true
- */
-
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
-import { getUserRole } from '@/utils/roleHelpers';
 
 const AuthContext = createContext(null);
 
+/**
+ * AuthProvider - Manages authentication state
+ * 
+ * CRITICAL STABILITY RULES:
+ * 1. Once authReady is true, it NEVER goes back to false
+ * 2. Loading only flickers on INITIAL load, not on refresh
+ * 3. SIGNED_IN/TOKEN_REFRESHED events do silent refresh (no loading state change)
+ * 4. This prevents child components from unmounting during token refresh
+ */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [role, setRole] = useState(null); // NEVER null after authReady
-  const [authReady, setAuthReady] = useState(false); // True when auth state is fully resolved
+  const [role, setRole] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  // ✅ FIX: Track if initial auth has completed
+  const hasInitializedRef = useRef(false);
 
-  /**
-   * Strict sequential auth resolution
-   * STEP 1: Get session
-   * STEP 2: If no user → mark ready
-   * STEP 3: If user → fetch profile
-   * STEP 4: Resolve role (never null)
-   * STEP 5: Mark ready
-   */
+  // ✅ FIX: Separate function for silent refresh (no loading state change)
+  const silentRefresh = useCallback(async () => {
+    try {
+      console.log('[Auth] Silent refresh...');
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        console.log('[Auth] Silent refresh - no session');
+        setUser(null);
+        setProfile(null);
+        setRole(null);
+        return;
+      }
+      
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      setUser(session.user);
+      setProfile(profileData);
+      setRole(profileData?.role || null);
+      
+      console.log('[Auth] Silent refresh complete');
+    } catch (err) {
+      console.error('[Auth] Silent refresh error:', err);
+      // Don't clear state on error during silent refresh
+    }
+  }, []);
+
+  // Initial auth resolution (shows loading state)
   const resolveAuth = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      console.log('[AUTH PROVIDER] Step 1: Getting session...');
+      console.log('[Auth] Resolving...');
       
-      // STEP 1: Get session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('[AUTH PROVIDER] Session error:', sessionError);
-        throw sessionError;
+      // ✅ FIX: Only set loading on INITIAL auth, not on refresh
+      if (!hasInitializedRef.current) {
+        setLoading(true);
       }
 
-      // STEP 2: If no session/user → mark ready
-      if (!session || !session.user) {
-        console.log('[AUTH PROVIDER] No session found → authReady = true, role = null');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        console.log('[Auth] No session - guest mode');
         setUser(null);
         setProfile(null);
         setRole(null);
         setAuthReady(true);
         setLoading(false);
+        hasInitializedRef.current = true;
         return;
       }
 
-      const authUser = session.user;
-      console.log('[AUTH PROVIDER] User found:', authUser.id);
-
-      // STEP 3: Fetch profile
-      console.log('[AUTH PROVIDER] Step 2: Fetching profile...');
+      console.log('[Auth] User found:', session.user.id);
       
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', authUser.id)
-        .maybeSingle(); // Use maybeSingle to handle missing profiles gracefully
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned, which is OK for new users
-        console.error('[AUTH PROVIDER] Profile error:', profileError);
-        // Continue with null profile - user can still proceed
-      }
-
-      const resolvedProfile = profileData || null;
-      
-      if (resolvedProfile) {
-        console.log('[AUTH PROVIDER] Profile found:', resolvedProfile.id);
-      } else {
-        console.log('[AUTH PROVIDER] No profile found (new user)');
-      }
-
-      // STEP 4: Resolve role (NEVER null)
-      let resolvedRole = null;
-      if (resolvedProfile) {
-        resolvedRole = getUserRole(resolvedProfile);
-      }
-      
-      // Fallback to "buyer" if role is still null
-      if (!resolvedRole) {
-        resolvedRole = 'buyer';
-        console.log('[AUTH PROVIDER] Role resolved to default: buyer');
-      } else {
-        console.log('[AUTH PROVIDER] Role resolved:', resolvedRole);
-      }
-
-      // STEP 5: Set state and mark ready
-      setUser(authUser);
-      setProfile(resolvedProfile);
-      setRole(resolvedRole);
+      setUser(session.user);
+      setProfile(profileData);
+      setRole(profileData?.role || null);
       setAuthReady(true);
       setLoading(false);
+      hasInitializedRef.current = true;
 
-      console.log('[AUTH PROVIDER] ✅ AUTH READY - User:', authUser.id, 'Role:', resolvedRole);
-
+      console.log('[Auth] ✅ Resolved:', { role: profileData?.role || 'none' });
     } catch (err) {
-      console.error('[AUTH PROVIDER] Fatal error in resolveAuth:', err);
-      setError(err.message || 'Authentication error');
+      console.error('[Auth] Error:', err);
       setUser(null);
       setProfile(null);
-      setRole('buyer'); // Even on error, provide a default role
-      setAuthReady(true); // Mark ready even on error so app doesn't hang
+      setRole(null);
+      setAuthReady(true);
       setLoading(false);
+      hasInitializedRef.current = true;
     }
   }, []);
 
-  /**
-   * Refresh profile (for when profile is updated)
-   */
-  const refreshProfile = useCallback(async () => {
-    if (!user?.id || !authReady) {
-      console.warn('[AUTH PROVIDER] Cannot refresh profile: no user or auth not ready');
-      return;
-    }
-
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.warn('[AUTH PROVIDER] Error refreshing profile:', profileError);
+  useEffect(() => {
+    let isMounted = true;
+    let timeoutId = null;
+    
+    // Safety timeout - force loading to false after 10 seconds
+    timeoutId = setTimeout(() => {
+      if (isMounted && loading && !hasInitializedRef.current) {
+        console.warn('[Auth] Loading timeout - forcing to false');
+        setAuthReady(true);
+        setLoading(false);
+        hasInitializedRef.current = true;
+      }
+    }, 10000);
+    
+    const initAuth = async () => {
+      // ✅ FIX: Better duplicate prevention
+      if (hasInitializedRef.current) {
+        console.log('[Auth] Already initialized, skipping');
         return;
       }
-
-      const resolvedProfile = profileData || null;
-      setProfile(resolvedProfile);
-
-      // Re-resolve role if profile changed
-      let resolvedRole = 'buyer';
-      if (resolvedProfile) {
-        resolvedRole = getUserRole(resolvedProfile) || 'buyer';
+      
+      try {
+        await resolveAuth();
+      } catch (err) {
+        if (isMounted) {
+          console.error('[Auth] Init error:', err);
+          setAuthReady(true);
+          setLoading(false);
+          hasInitializedRef.current = true;
+        }
+      } finally {
+        if (isMounted && timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
-      setRole(resolvedRole);
+    };
 
-      console.log('[AUTH PROVIDER] Profile refreshed, role:', resolvedRole);
-    } catch (err) {
-      console.error('[AUTH PROVIDER] Error refreshing profile:', err);
-    }
-  }, [user?.id, authReady]);
+    initAuth();
 
-  /**
-   * Listen for auth state changes
-   * Only set up after initial auth resolution
-   */
-  useEffect(() => {
-    // Initial auth resolution
-    resolveAuth();
-
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[AUTH PROVIDER] Auth state change:', event);
+      async (event) => {
+        if (!isMounted) return;
+        console.log('[Auth] Event:', event);
         
-        if (event === 'SIGNED_OUT' || !session) {
+        if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
           setRole(null);
-          setAuthReady(true); // Mark ready even when signed out
+          // ✅ Keep authReady true - we're still "ready", just no user
+          setAuthReady(true);
           setLoading(false);
-          console.log('[AUTH PROVIDER] Signed out → authReady = true');
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-          // Re-resolve auth on sign in or token refresh
-          await resolveAuth();
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          // ✅ FIX: Use silent refresh for these events
+          // This prevents loading state from flickering and causing child unmounts
+          if (hasInitializedRef.current) {
+            // Already initialized - do silent refresh
+            await silentRefresh();
+          } else {
+            // First time - do full resolve
+            await resolveAuth();
+          }
         }
       }
     );
 
     return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [resolveAuth]);
+  }, []); // Empty deps - only run once
 
-  const value = {
-    // Auth state
-    user,
-    profile,
-    role, // NEVER null after authReady (fallback = "buyer")
-    authReady, // True when auth state is fully resolved
-    loading, // True during initial auth resolution
-    error,
+  const refreshProfile = useCallback(async () => {
+    if (!user?.id) return;
     
-    // Actions
-    refreshProfile,
-    refreshAuth: resolveAuth,
-  };
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    setProfile(data);
+    setRole(data?.role || null);
+  }, [user?.id]);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user,
+      profile,
+      role,
+      authReady,
+      loading,
+      refreshProfile,
+      refreshAuth: resolveAuth,
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -212,9 +206,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 }
-

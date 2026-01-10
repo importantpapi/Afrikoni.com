@@ -5,7 +5,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/shared/ui/tooltip";
 
 /**
  * Verification Badge with detailed explainer

@@ -2,15 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Package, ChevronRight, Grid, List } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Input } from '@/components/shared/ui/input';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import { B2B_CATEGORIES, CATEGORY_GROUPS, searchCategories } from '@/constants/b2bCategories';
 import { supabase } from '@/api/supabaseClient';
 import SEO from '@/components/SEO';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import Breadcrumb from '@/components/ui/Breadcrumb';
+import Breadcrumb from '@/components/shared/ui/Breadcrumb';
 
 export default function Categories() {
   const [searchQuery, setSearchQuery] = useState('');

@@ -9,10 +9,10 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Input } from '@/components/shared/ui/input';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import { Camera, Mic, X, Upload } from 'lucide-react';
 import { supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';

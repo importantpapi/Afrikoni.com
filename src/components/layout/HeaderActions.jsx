@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, ShoppingCart, ChevronDown, LogOut, User, LayoutDashboard, MessageSquare, Package, FileText, Settings } from 'lucide-react';
 import { createPageUrl } from '@/utils';

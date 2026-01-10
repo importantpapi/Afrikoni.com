@@ -2,10 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import BushidoManifesto from '@/components/home/BushidoManifesto';
 import SEO from '@/components/SEO';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 
 export default function AfrikoniCode() {
   return (

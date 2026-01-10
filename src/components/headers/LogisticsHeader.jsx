@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Calendar, MessageSquare, Menu } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/shared/ui/input';
 import NotificationBell from '@/components/notificationbell';
 import HeaderShell from './HeaderShell';
 

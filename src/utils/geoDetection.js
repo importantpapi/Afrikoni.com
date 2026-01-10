@@ -162,12 +162,12 @@ export async function detectCountry() {
   try {
     // Try to get country from IP
     const response = await fetch('https://ipapi.co/json/');
-    if (response.ok) {
-      const data = await response.json();
-      return data.country_code || 'DEFAULT';
-    }
+    if (!response.ok) throw new Error('IP API failed');
+    const data = await response.json();
+    return data.country_code || 'DEFAULT';
   } catch (error) {
-    console.warn('Failed to detect country from IP:', error);
+    // Silently fail - CORS error on localhost is expected, user will select country manually
+    console.debug('[IP Detection] Failed (non-critical):', error.message || 'CORS or network error');
   }
   
   // Fallback: try to detect from browser timezone

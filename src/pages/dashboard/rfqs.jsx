@@ -7,23 +7,23 @@ import { getUserRole, canViewBuyerFeatures, canViewSellerFeatures, isHybrid, isL
 import { RFQ_STATUS, RFQ_STATUS_LABELS, getStatusLabel } from '@/constants/status';
 import { buildRFQQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
-import { CardSkeleton } from '@/components/ui/skeletons';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Input } from '@/components/shared/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 import { FileText, Search, Plus, MessageSquare, Calendar, DollarSign, Package, TrendingUp, Sparkles, Clock, Target, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-import EmptyState from '@/components/ui/EmptyState';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { useTranslation } from 'react-i18next';
 import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 import VerificationUpsell from '@/components/upsell/VerificationUpsell';
 import { getCompanySubscription } from '@/services/subscriptionService';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 const AFRICAN_COUNTRIES = [
@@ -680,8 +680,8 @@ function DashboardRFQsInner() {
 
 export default function DashboardRFQs() {
   return (
-    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+    <RequireCapability canBuy={true}>
       <DashboardRFQsInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }

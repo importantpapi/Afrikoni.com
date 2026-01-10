@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,12 +9,12 @@ import {
   Receipt, RotateCcw, Star as StarIcon, Warehouse, TrendingDown, Users as UsersIcon,
   FileSearch, Target, MessageCircle, GitBranch
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Badge } from '@/components/shared/ui/badge';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
-import { Logo } from '@/components/ui/Logo';
+import { Logo } from '@/components/shared/ui/Logo';
 import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
 import { useTranslation } from 'react-i18next';
@@ -24,14 +24,20 @@ import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { useNotificationCounts } from '@/hooks/useNotificationCounts';
 import { useLiveStats } from '@/hooks/useLiveStats';
 import { getUserInitial, extractUserName } from '@/utils/userHelpers';
-import { buyerNav } from '@/config/navigation/buyerNav';
-import { sellerNav } from '@/config/navigation/sellerNav';
-import { hybridNav } from '@/config/navigation/hybridNav';
-import { logisticsNav } from '@/config/navigation/logisticsNav';
-import { useRole, getDashboardHomePath } from '@/context/RoleContext';
-import { getDashboardPathForRole, getUserRole } from '@/utils/roleHelpers';
-import { useDashboardRole } from '@/context/DashboardRoleContext';
+// REMOVED: Realtime is now owned by DashboardRealtimeManager in WorkspaceDashboard
+// import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
+// PHASE 5B: Removed role-based nav imports - sidebar built dynamically from capabilities
+// useAuth is already imported above (line 18)
+// import { buyerNav } from '@/config/navigation/buyerNav'; // Removed
+// import { sellerNav } from '@/config/navigation/sellerNav'; // Removed
+// import { hybridNav } from '@/config/navigation/hybridNav'; // Removed
+// import { logisticsNav } from '@/config/navigation/logisticsNav'; // Removed
+// PHASE 5B: Removed role helper imports - capabilities are the only authority
+// import { useRole } from '@/context/RoleContext'; // Removed
+// import { getDashboardPathForRole, getUserRole } from '@/utils/roleHelpers'; // Removed
+import { useCapability } from '@/context/CapabilityContext';
 import { useUser } from '@/contexts/UserContext';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import BuyerHeader from '@/components/headers/BuyerHeader';
 import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
@@ -53,18 +59,26 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
   return (
     <div className="space-y-1">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !item.locked && setIsOpen(!isOpen)}
+        disabled={item.locked}
         className={`
           w-full flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group
-          ${hasActiveChild 
+          ${item.locked 
+            ? 'text-afrikoni-sand/40 cursor-not-allowed'
+            : hasActiveChild 
             ? 'bg-afrikoni-gold/20 text-afrikoni-gold' 
             : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
           }
         `}
+        title={item.locked ? (item.lockReason || 'Locked') : undefined}
       >
         {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
         <span className="flex-1 text-left">{item.label}</span>
+        {item.locked ? (
+          <Lock className="w-4 h-4" />
+        ) : (
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        )}
       </button>
       
       <AnimatePresence>
@@ -81,6 +95,22 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
                 const ChildIcon = child.icon;
                 const isChildActive = location.pathname === child.path || 
                                      (child.path && location.pathname.startsWith(child.path));
+                const isLocked = child.locked || child.disabled;
+                
+                if (isLocked) {
+                  return (
+                    <div
+                      key={`${child.path}-${childIdx}`}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-afrikoni-sand/40 cursor-not-allowed"
+                      title={child.lockReason || 'Locked'}
+                    >
+                      {ChildIcon && <ChildIcon className="w-3 h-3" />}
+                      <span>{child.label}</span>
+                      <Lock className="w-3 h-3 ml-auto" />
+                    </div>
+                  );
+                }
+                
                 return (
                   <Link
                     key={`${child.path}-${childIdx}`}
@@ -111,16 +141,57 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
   );
 }
 
-export default function DashboardLayout({ children, currentRole = 'buyer' }) {
+/**
+ * PHASE 5B: DashboardLayout - Capability-based layout guard
+ * 
+ * RULES:
+ * - Checks capability.ready ONCE before first mount
+ * - Once mounted, NEVER unmounts children (even if capability changes)
+ * - Does NOT check auth/role state (handled by RequireCapability route guard)
+ * - Does NOT conditionally unmount after first mount
+ */
+export default function DashboardLayout({ 
+  children, 
+  currentRole, // PHASE 5B: Legacy prop - IGNORED (capabilities are the only authority)
+  capabilities = null // PHASE 5B: Capability-based access (required)
+}) {
   const { t } = useTranslation();
-  const { refreshRole } = useRole();
-  const { role: dashboardRole } = useDashboardRole();
+  // PHASE 5B: Removed useRole and refreshRole - capabilities are the only authority
+  // PHASE 5B: Use capabilities from context instead of DashboardRoleContext
+  const capabilitiesFromContext = useCapability();
+  
+  // PHASE 5B: Track if layout has been mounted once (to prevent unmounting)
+  const hasMountedRef = useRef(false);
+  
+  // PHASE 5B: Check capability.ready ONCE before first mount
+  // If capabilities not ready and not mounted yet, show loading
+  // Once mounted, NEVER unmount (even if capabilities change)
+  if (!hasMountedRef.current) {
+    if (!capabilitiesFromContext.ready) {
+      return <SpinnerWithTimeout message="Preparing your workspace..." ready={capabilitiesFromContext.ready} />;
+    }
+    // PHASE 5B: Mark as mounted once capabilities are ready (only runs once)
+    hasMountedRef.current = true;
+  }
+  
+  // PHASE 5B: Get capabilities data (use prop or context)
+  const capabilitiesData = capabilities || (capabilitiesFromContext.ready ? {
+    can_buy: capabilitiesFromContext.can_buy,
+    can_sell: capabilitiesFromContext.can_sell,
+    can_logistics: capabilitiesFromContext.can_logistics,
+    sell_status: capabilitiesFromContext.sell_status,
+    logistics_status: capabilitiesFromContext.logistics_status,
+  } : null);
   const { user: contextUser, profile: contextProfile, loading: userLoading, refreshProfile } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [companyId, setCompanyId] = useState(null);
-  const [userRole, setUserRole] = useState(dashboardRole || currentRole);
+  // PHASE 5B: Derive capability flags from capabilities (NO role variables)
+  const isBuyer = capabilitiesData?.can_buy === true;
+  const isSeller = capabilitiesData?.can_sell === true && capabilitiesData?.sell_status === 'approved';
+  const isLogistics = capabilitiesData?.can_logistics === true && capabilitiesData?.logistics_status === 'approved';
+  const isHybridCapability = isBuyer && isSeller;
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [isFounder, setIsFounder] = useState(false);
   const [activeView, setActiveView] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
@@ -128,15 +199,10 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   const userMenuButtonRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  // ✅ Initialize devSelectedRole with normalized role
-  const initialRole = dashboardRole || currentRole;
-  const normalizedInitialRole = initialRole === 'logistics_partner' ? 'logistics' : initialRole;
-  const [devSelectedRole, setDevSelectedRole] = useState(normalizedInitialRole || 'buyer');
-  const [shouldShowDevSwitcher, setShouldShowDevSwitcher] = useState(false);
+  // PHASE 5B: Dev switcher completely removed - capabilities are company-level
   
-  // Derive companyId and role from profile
+  // Derive companyId from profile
   const profileCompanyId = contextProfile?.company_id || null;
-  const profileRole = contextProfile ? getUserRole(contextProfile) : null;
   
   // Merge user data with profile for display (for backward compatibility)
   const mergedUser = contextUser && contextProfile ? {
@@ -151,35 +217,40 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
   
   // Get live marketplace statistics
   const liveStats = useLiveStats();
+  
+  // ==========================================================================
+  // REALTIME - REMOVED (Owned by DashboardRealtimeManager in WorkspaceDashboard)
+  // ==========================================================================
+  //
+  // ARCHITECTURAL NOTE:
+  // Realtime subscriptions are NOW owned by DashboardRealtimeManager
+  // which is rendered in WorkspaceDashboard.jsx (above the Outlet).
+  //
+  // DO NOT ADD REALTIME HERE - It creates duplicate channels and
+  // "binding mismatch" errors when combined with DashboardRealtimeManager.
+  //
+  // Single owner: src/components/dashboard/DashboardRealtimeManager.jsx
+  // ==========================================================================
 
-  // Update local state when context data changes
+  // PHASE 5B: Update local state when context data changes (no role dependency)
   useEffect(() => {
     if (profileCompanyId) {
       setCompanyId(profileCompanyId);
     }
-    if (profileRole) {
-      setUserRole(profileRole);
-      const normalizedRole = profileRole === 'logistics_partner' ? 'logistics' : profileRole;
-      setDevSelectedRole(normalizedRole);
-    }
-  }, [profileCompanyId, profileRole]);
-
-  useEffect(() => {
-    // URL-derived dashboardRole is the primary source of truth.
-    if (dashboardRole && dashboardRole !== userRole) {
-      setUserRole(dashboardRole);
-      // ✅ Update dev switcher to match current role (normalize logistics_partner)
-      const normalizedRole = dashboardRole === 'logistics_partner' ? 'logistics' : dashboardRole;
-      setDevSelectedRole(normalizedRole);
-    }
-  }, [dashboardRole, userRole]);
+    // PHASE 5B: No role dependency - capabilities are the only authority
+  }, [profileCompanyId]);
 
   // Update admin and founder status when user/profile changes
+  // ✅ FIXED: Extract primitives to prevent object identity issues
+  const contextUserId = contextUser?.id || null;
+  const contextUserEmail = contextUser?.email?.toLowerCase() || null;
+  const contextProfileId = contextProfile?.id || null;
+  
   useEffect(() => {
-    if (contextUser && contextProfile) {
-      // Safe admin check
+    if (contextUserId && contextProfileId) {
+      // ✅ FIXED: Pass both user and profile to isAdmin for proper check
       try {
-        const admin = isAdmin(contextUser);
+        const admin = isAdmin(contextUser, contextProfile);
         setIsUserAdmin(admin || false);
       } catch (adminError) {
         console.warn('Error checking admin status:', adminError);
@@ -187,21 +258,19 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       }
       
       // Check if user is founder/CEO (youba.thiam@icloud.com)
-      const userEmail = contextUser?.email?.toLowerCase();
-      const isFounderUser = userEmail === 'youba.thiam@icloud.com';
+      const isFounderUser = contextUserEmail === 'youba.thiam@icloud.com';
       setIsFounder(isFounderUser);
-      setShouldShowDevSwitcher(isFounderUser);
+      // PHASE 5B: Dev switcher removed - capabilities are company-level
       
-      // Founder is always admin
+      // ✅ Founder is always admin (isAdmin already checks this, but ensure it's set)
       if (isFounderUser) {
         setIsUserAdmin(true);
       }
     } else {
       setIsUserAdmin(false);
       setIsFounder(false);
-      setShouldShowDevSwitcher(false);
     }
-  }, [contextUser, contextProfile]);
+  }, [contextUserId, contextUserEmail, contextProfileId, contextUser, contextProfile]); // ✅ Include user/profile for isAdmin check
 
   // Calculate menu position when it opens
   useEffect(() => {
@@ -233,7 +302,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
       
       // Clear any local state
       setCompanyId(null);
-      setUserRole(null);
+      // PHASE 5B: Removed setUserRole - no role state exists
       
       // Show success message
       toast.success('Logged out successfully');
@@ -248,36 +317,137 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     }
   };
 
-  const sidebarItems = {
-    buyer: buyerNav,
-    seller: sellerNav,
-    // Hybrid users get both buyer and seller features
-    hybrid: hybridNav,
-    logistics: logisticsNav,
-    admin: [
-      { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/admin' },
-      { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics' },
-      { icon: Shield, label: 'Trust Engine', path: '/dashboard/admin/trust-engine' },
-      { icon: DollarSign, label: 'Revenue & Finance', path: '/dashboard/admin/revenue' },
-      { icon: TrendingUp, label: 'Growth Metrics', path: '/dashboard/admin/growth-metrics' },
-      { icon: UsersIcon, label: 'Onboarding Tracker', path: '/dashboard/admin/onboarding-tracker' },
-      { icon: Package, label: 'Marketplace', path: '/dashboard/admin/marketplace' },
-      { icon: UsersIcon, label: 'Supplier Management', path: '/dashboard/admin/supplier-management' },
-      { icon: FileCheck, label: 'Approvals Center', path: '/dashboard/admin/review' },
-      { icon: Shield, label: 'Verification Review', path: '/dashboard/admin/verification-review' },
-      { icon: Star, label: 'Reviews Moderation', path: '/dashboard/admin/reviews-moderation' },
-      { icon: Target, label: 'Marketing Leads', path: '/dashboard/admin/leads' },
-      { icon: FileSearch, label: 'KYB Verification', path: '/dashboard/admin/kyb' },
-      { icon: UsersIcon, label: 'Disputes & Escrow', path: '/dashboard/admin/disputes' },
-      { icon: MessageSquare, label: 'Support Tickets', path: '/dashboard/admin/support-tickets' },
-      { icon: GitBranch, label: 'System Architecture', path: '/dashboard/admin/architecture' },
-      { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics' },
-      { icon: AlertTriangle, label: 'Risk & Compliance', path: '/dashboard/risk', isSection: true, adminOnly: true }
-    ]
+  // PHASE 5B: Removed sidebarItems object - capabilities are the only authority
+  // Sidebar is built dynamically from capabilities, not from static role-based nav arrays
+
+  // PHASE 5B: Build sidebar from capabilities (capability-based access - ONLY source of truth)
+  const buildSidebarFromCapabilities = (caps) => {
+    if (!caps) return null;
+    
+    const menuItems = [];
+    
+    // Always show: Overview, Messages, Settings
+    menuItems.push(
+      { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
+      { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' }
+    );
+    
+    // If can_buy → show Buy section
+    if (caps.can_buy) {
+      menuItems.push(
+        { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs', priority: 'primary' },
+        { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders', priority: 'primary' },
+        { icon: Wallet, label: 'Payments', path: '/dashboard/payments', priority: 'primary' }
+      );
+      
+      // Buy section manage items
+      menuItems.push({
+        icon: Building2,
+        label: 'Manage',
+        path: null,
+        priority: 'secondary',
+        isSection: true,
+        children: [
+          { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
+          { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+          { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team' },
+          { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
+          { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
+        ]
+      });
+    }
+    
+    // If can_sell → show Sell section (locked if status != 'approved')
+    if (caps.can_sell) {
+      const isApproved = caps.sell_status === 'approved';
+      const sellItems = [
+        { icon: Package, label: 'Products', path: '/dashboard/products' },
+        { icon: ShoppingCart, label: 'Sales', path: '/dashboard/sales' },
+        { icon: FileText, label: 'RFQs Received', path: '/dashboard/supplier-rfqs' },
+      ];
+      
+      // Add lock indicator if pending
+      if (!isApproved) {
+        sellItems.forEach(item => {
+          item.disabled = true;
+          item.locked = true;
+          item.lockReason = caps.sell_status === 'pending' ? 'Pending approval' : 'Disabled';
+        });
+      }
+      
+      menuItems.push({
+        icon: Package,
+        label: 'Sell',
+        path: null,
+        priority: 'secondary',
+        isSection: true,
+        locked: !isApproved,
+        lockReason: !isApproved ? (caps.sell_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
+        children: sellItems
+      });
+    }
+    
+    // If can_logistics → show Logistics section (locked if status != 'approved')
+    if (caps.can_logistics) {
+      const isApproved = caps.logistics_status === 'approved';
+      const logisticsItems = [
+        { icon: Truck, label: 'Shipments', path: '/dashboard/shipments' },
+        { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment' },
+      ];
+      
+      // Add lock indicator if pending
+      if (!isApproved) {
+        logisticsItems.forEach(item => {
+          item.disabled = true;
+          item.locked = true;
+          item.lockReason = caps.logistics_status === 'pending' ? 'Pending approval' : 'Disabled';
+        });
+      }
+      
+      menuItems.push({
+        icon: Truck,
+        label: 'Logistics',
+        path: null,
+        priority: 'secondary',
+        isSection: true,
+        locked: !isApproved,
+        lockReason: !isApproved ? (caps.logistics_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
+        children: logisticsItems
+      });
+    }
+    
+    // Always show: Settings, Help at bottom
+    menuItems.push(
+      { icon: HelpCircle, label: 'Support Chat', path: '/dashboard/support-chat', priority: 'support' },
+      { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
+    );
+    
+    return menuItems;
   };
 
-  // ✅ Get menu items for current role - this updates when userRole changes
-  let menuItems = sidebarItems[userRole] || sidebarItems.buyer;
+  // PHASE 5B: Always use capabilities - no role-based fallback
+  let menuItems;
+  if (capabilitiesData) {
+    // Capability-based sidebar (only source of truth)
+    menuItems = buildSidebarFromCapabilities(capabilitiesData);
+    if (!menuItems || !Array.isArray(menuItems)) {
+      // PHASE 5B: If capabilities build fails, show minimal safe sidebar
+      console.error('[DashboardLayout] Capabilities build failed, showing minimal sidebar');
+      menuItems = [
+        { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
+        { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+        { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
+      ];
+    }
+  } else {
+    // PHASE 5B: If capabilities not ready, show minimal safe sidebar (shouldn't happen - RequireCapability should block)
+    console.warn('[DashboardLayout] Capabilities not ready, showing minimal sidebar');
+    menuItems = [
+      { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
+      { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+      { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
+    ];
+  }
   
   // ✅ Ensure menuItems is always an array
   if (!Array.isArray(menuItems)) {
@@ -292,99 +462,19 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
     return true;
   });
   
-  // Add Admin Panel link to sidebar if user is founder/CEO (youba.thiam@icloud.com)
-  // This allows founder to access admin panel from any role dashboard
-  if (isFounder && userRole !== 'admin') {
+  // ✅ FIXED: Add Admin Panel link to sidebar if user is admin (founder OR is_admin flag)
+  // This allows admins to access admin panel from any capability dashboard
+  if (isUserAdmin && !location.pathname.startsWith('/dashboard/admin')) {
     menuItems = [
       ...menuItems,
       { icon: AlertTriangle, label: 'Admin Panel', path: '/dashboard/admin', isAdminSection: true }
     ];
   }
-  const isHybrid = userRole === 'hybrid';
+  // PHASE 5B: isHybrid derived from capabilities, not role string
+  const isHybrid = isHybridCapability;
 
-  // Role switcher options
-  const roleOptions = [
-    { value: 'buyer', label: 'Buyer', icon: ShoppingCart },
-    { value: 'seller', label: 'Seller', icon: Package },
-    { value: 'hybrid', label: 'Hybrid', icon: LayoutDashboard },
-    { value: 'logistics', label: 'Logistics', icon: Truck }
-  ];
-
-  const handleRoleSwitch = (newRole) => {
-    const dashboardPath = `/dashboard/${newRole}`;
-    navigate(dashboardPath, { replace: true });
-    setUserRole(newRole);
-  };
-
-  const handleDevRoleApply = async () => {
-    try {
-      const targetRole = devSelectedRole || 'buyer';
-      
-      // Use authenticated user ID to avoid relying on merged local user state
-      const {
-        data: { user: authUser },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !authUser) {
-        console.error('Dev role switch auth error:', authError);
-        toast.error('Could not load current user');
-        return;
-      }
-
-      // Founder can switch roles in production too (not just dev mode)
-      const userEmail = authUser?.email?.toLowerCase();
-      const isFounderUser = userEmail === 'youba.thiam@icloud.com';
-      
-      // ✅ Normalize role (logistics_partner -> logistics)
-      const normalizedTargetRole = targetRole === 'logistics_partner' ? 'logistics' : targetRole;
-      
-      // Allow profile update for founder in production, or in dev mode
-      if (isFounderUser || import.meta.env.DEV) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            role: normalizedTargetRole,
-            user_role: normalizedTargetRole,
-            onboarding_completed: true,
-          })
-          .eq('id', authUser.id);
-
-        if (error) {
-          console.error('Dev role switch profile update error:', error);
-          // Still allow local switch so you can test layouts even if profile write fails
-          toast.warning('Profile role not updated in DB (check RLS), using local switch only');
-        } else {
-          // ✅ Wait a moment for database update to propagate before navigating
-          // This prevents race condition where Dashboard component checks role before update completes
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Refresh profile in context to get updated role
-          await refreshProfile();
-        }
-      }
-
-      // ✅ Update local state immediately so menu updates right away
-      setUserRole(normalizedTargetRole);
-      setDevSelectedRole(normalizedTargetRole);
-      
-      // Get the correct dashboard path for the role
-      const targetPath = normalizedTargetRole === 'admin' 
-        ? '/dashboard/admin' 
-        : getDashboardPathForRole(normalizedTargetRole);
-      
-      // Navigate to the correct dashboard
-      navigate(targetPath, { replace: true });
-      
-      // Refresh role context to sync with URL
-      await refreshRole();
-      
-      toast.success(`Switched role to ${normalizedTargetRole}${isFounderUser ? '' : ' (dev only)'}`);
-    } catch (err) {
-      console.error('Dev role switch error:', err);
-      toast.error('Error switching role');
-    }
-  };
+  // PHASE 5B: All role-switching code removed - capabilities are the only authority
+  // Capabilities are managed at company level in Settings, not per-user session
 
   return (
     <div className="flex min-h-screen w-full bg-afrikoni-ivory relative">
@@ -437,7 +527,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               if (item.children && item.children.length > 0) {
                 return (
                   <CollapsibleMenuSection
-                    key={`${item.label}-${idx}-${userRole}`}
+                    key={`${item.label}-${idx}-capabilities`}
                     item={item}
                     location={location}
                     setSidebarOpen={setSidebarOpen}
@@ -457,14 +547,36 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
               }
 
               const Icon = item.icon;
-              const isActive = location.pathname === item.path || 
+              const isLocked = item.locked || item.disabled;
+              const isActive = !isLocked && (
+                location.pathname === item.path || 
                                (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products') && !location.pathname.startsWith('/dashboard/admin')) ||
                                (item.path === '/dashboard/admin' && location.pathname.startsWith('/dashboard/admin')) ||
-                               (item.path === '/dashboard/risk' && location.pathname.startsWith('/dashboard/risk'));
+                (item.path === '/dashboard/risk' && location.pathname.startsWith('/dashboard/risk'))
+              );
               
               // Check if this is a section header (Risk & Compliance) or admin section
               const isSection = item.isSection;
               const isAdminSection = item.isAdminSection;
+              
+              // Render locked item (disabled)
+              if (isLocked) {
+                return (
+                  <div
+                    key={`${item.path}-${idx}`}
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative cursor-not-allowed
+                      text-afrikoni-sand/40
+                      ${isSection || isAdminSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
+                    `}
+                    title={item.lockReason || 'Locked'}
+                  >
+                    {Icon && <Icon className="w-5 h-5 flex-shrink-0 text-afrikoni-sand/40" />}
+                    <span className="flex-1">{item.label || 'Menu Item'}</span>
+                    <Lock className="w-4 h-4 text-afrikoni-sand/40" />
+                  </div>
+                );
+              }
               
               return (
                 <motion.div
@@ -641,7 +753,7 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
           {/* Header Content - Direct child, no wrapper */}
           <div className="relative h-full w-full">
             {(() => {
-              // Role-based headers: Only show what helps complete the task
+              // PHASE 5B: Capability-based headers (no role variables)
               // Admin header ONLY for admin dashboard paths
               const isAdminPath = location.pathname.startsWith('/dashboard/admin');
               
@@ -679,9 +791,10 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                 />
               );
 
-              // Role-based headers for buyers/sellers/logistics
-              switch (dashboardRole) {
-                case 'seller':
+              // PHASE 5B: Capability-based headers (NO role variables)
+              // Use capability flags to determine which header to show
+              if (isSeller && !isLogistics) {
+                // Seller-only (approved)
                   return (
                     <SellerHeader
                       t={t}
@@ -691,7 +804,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       userAvatar={userAvatarComponent}
                     />
                   );
-                case 'logistics':
+              } else if (isLogistics && !isSeller) {
+                // Logistics-only (approved)
                   return (
                     <LogisticsHeader
                       t={t}
@@ -700,7 +814,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       userAvatar={userAvatarComponent}
                     />
                   );
-                case 'hybrid':
+              } else if (isHybridCapability) {
+                // Hybrid: Buyer + Seller (both approved)
                   return (
                     <HybridHeader
                       t={t}
@@ -713,8 +828,8 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                       userAvatar={userAvatarComponent}
                     />
                   );
-                case 'buyer':
-                default:
+              } else {
+                // Buyer-only (default - everyone can buy)
                   return (
                     <BuyerHeader
                       t={t}
@@ -754,8 +869,9 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
                             <div className="font-semibold text-afrikoni-text-dark text-sm">
                               {mergedUser?.email || contextProfile?.email || mergedUser?.user_email || 'user@example.com'}
                             </div>
+                            {/* PHASE 5B: Capability-based role display */}
                             <div className="text-xs text-afrikoni-text-dark/70 capitalize">
-                              {userRole || 'user'}
+                              {isHybridCapability ? 'Hybrid' : isSeller ? 'Seller' : isLogistics ? 'Logistics' : 'Buyer'}
                             </div>
                           </div>
                           <Link 
@@ -877,45 +993,15 @@ export default function DashboardLayout({ children, currentRole = 'buyer' }) {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userRole={userRole} />
+      {/* PHASE 5B: Mobile Bottom Navigation - pass capability flags instead of role */}
+      <MobileBottomNav 
+        isBuyer={isBuyer}
+        isSeller={isSeller}
+        isLogistics={isLogistics}
+        isHybrid={isHybridCapability}
+      />
 
-      {/* Dev-only Admin Role Switcher Panel - Original Position (Bottom Right) */}
-      {shouldShowDevSwitcher && (
-        <div className="fixed bottom-20 right-4 z-40">
-          <div className="bg-white border border-afrikoni-gold/40 rounded-afrikoni shadow-premium-lg px-3 py-2 text-xs w-64">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-afrikoni-text-dark">Dev Role Switcher</span>
-              <Badge className="bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/40 text-[10px]">
-                Dev Only
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <select
-                value={devSelectedRole || 'buyer'}
-                onChange={(e) => setDevSelectedRole(e.target.value)}
-                className="flex-1 border border-afrikoni-gold/30 rounded-afrikoni px-2 py-1 text-xs bg-afrikoni-offwhite focus:outline-none focus:ring-1 focus:ring-afrikoni-gold"
-              >
-                <option value="buyer">Buyer</option>
-                <option value="seller">Seller</option>
-                <option value="hybrid">Hybrid</option>
-                <option value="logistics">Logistics</option>
-                {isUserAdmin && <option value="admin">Admin</option>}
-              </select>
-              <Button
-                size="sm"
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal px-2 py-1 text-[11px]"
-                onClick={handleDevRoleApply}
-              >
-                Apply
-              </Button>
-            </div>
-            <p className="text-[10px] text-afrikoni-text-dark/60">
-              Changes your profile role and reloads the matching dashboard. Use only on test accounts.
-            </p>
-          </div>
-        </div>
-      )}
+      {/* PHASE 5B: Dev role switcher UI completely removed - capabilities are company-level */}
 
 
       {/* Social Proof Footer Widget */}

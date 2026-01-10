@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shared/ui/badge';
 import { Building2, CheckCircle } from 'lucide-react';
 
 export default function ConversationList({ conversations, onSelectConversation, currentUserId }) {

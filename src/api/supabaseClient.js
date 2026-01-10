@@ -5,7 +5,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Validate environment variables at initialization
 if (!supabaseUrl || !supabaseAnonKey) {
-  const errorMsg = '[Supabase Client] CRITICAL: Missing environment variables. Signup/auth will fail.';
+  const errorMsg = '❌ Supabase ENV variables are missing';
   console.error(errorMsg, {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,

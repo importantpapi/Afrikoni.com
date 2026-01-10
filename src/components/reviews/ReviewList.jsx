@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Plus } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
 import { CheckCircle } from 'lucide-react';
 import ReviewForm from './ReviewForm';
 import { supabase } from '@/api/supabaseClient';

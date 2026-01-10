@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, ChevronDown, ChevronUp, Copy, CheckCircle2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { toast } from 'sonner';
 
 /**

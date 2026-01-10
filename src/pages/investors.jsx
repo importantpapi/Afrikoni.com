@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { Mail, Phone, MapPin, AlertTriangle, TrendingUp, Shield, Target, DollarSign, Users, Globe, CheckCircle, XCircle } from 'lucide-react';
 import SEO from '@/components/SEO';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/shared/ui/input';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 import { supabase } from '@/api/supabaseClient';

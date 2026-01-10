@@ -8,8 +8,8 @@
  */
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { Shield, CheckCircle, Star, MapPin, Package, Clock, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { Search, Users, FileText, Package, Truck, Shield, BarChart3, Star, TrendingUp, Zap, CheckCircle } from 'lucide-react';
 
 export default function QuickActions() {

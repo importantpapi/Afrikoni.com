@@ -7,27 +7,27 @@ import { getUserRole, isHybrid, canViewBuyerFeatures, canViewSellerFeatures, isL
 import { ORDER_STATUS, getStatusLabel } from '@/constants/status';
 import { buildOrderQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
-import { TableSkeleton } from '@/components/ui/skeletons';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { TableSkeleton } from '@/components/shared/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { DataTable, StatusChip } from '@/components/ui/data-table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Input } from '@/components/shared/ui/input';
+import { DataTable, StatusChip } from '@/components/shared/ui/data-table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
+import { Label } from '@/components/shared/ui/label';
+import { Textarea } from '@/components/shared/ui/textarea';
 import { 
   ShoppingCart, Search, Filter, Package, DollarSign, Calendar, TrendingUp, Truck, CheckCircle,
   Download, FileText, Copy, MoreVertical, Trash2, Edit, Save, RotateCcw, CheckSquare, Square, Star
 } from 'lucide-react';
 import { toast } from 'sonner';
-import EmptyState from '@/components/ui/EmptyState';
+import EmptyState from '@/components/shared/ui/EmptyState';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 import LeaveReviewModal from '@/components/reviews/LeaveReviewModal';
 import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
@@ -740,9 +740,10 @@ function DashboardOrdersInner() {
 }
 
 export default function DashboardOrders() {
+  // PHASE 5B: Orders page requires buy capability
   return (
-    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+    <RequireCapability canBuy={true}>
       <DashboardOrdersInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }

@@ -7,6 +7,12 @@ import RFQCard from '@/components/home/RFQCard';
 import PartnerLogos from '@/components/home/PartnerLogos';
 import LiveTradeTicker from '@/components/community/LiveTradeTicker';
 import BetaSection from '@/components/home/BetaSection';
+import StickySearchBar from '@/components/home/StickySearchBar';
+import CategoryChips from '@/components/home/CategoryChips';
+import CountryQuickFilters from '@/components/home/CountryQuickFilters';
+import VerifiedSuppliersSection from '@/components/home/VerifiedSuppliersSection';
+import TrendingProductsSection from '@/components/home/TrendingProductsSection';
+import MobileProductGrid from '@/components/home/MobileProductGrid';
 import { motion } from 'framer-motion';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
@@ -14,11 +20,13 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 
 export default function Home() {
   const [categories, setCategories] = useState([]);
+  const [detectedCountry, setDetectedCountry] = useState(null);
   const { trackPageView } = useAnalytics();
 
   useEffect(() => {
     // Only load data once on mount
     loadData();
+    detectUserCountry();
     trackPageView('Home');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -39,6 +47,38 @@ export default function Home() {
     }
   };
 
+  const detectUserCountry = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      if (!response.ok) throw new Error('IP API failed');
+      const data = await response.json();
+      const countryCode = data?.country_code;
+      const codeToName = {
+        'NG': 'Nigeria', 'KE': 'Kenya', 'GH': 'Ghana', 'ZA': 'South Africa',
+        'ET': 'Ethiopia', 'TZ': 'Tanzania', 'UG': 'Uganda', 'EG': 'Egypt',
+        'MA': 'Morocco', 'DZ': 'Algeria', 'TN': 'Tunisia', 'SN': 'Senegal',
+        'CI': "Côte d'Ivoire", 'CM': 'Cameroon', 'ZW': 'Zimbabwe', 'MZ': 'Mozambique',
+        'MG': 'Madagascar', 'ML': 'Mali', 'BF': 'Burkina Faso', 'NE': 'Niger',
+        'RW': 'Rwanda', 'BJ': 'Benin', 'GN': 'Guinea', 'TD': 'Chad',
+        'ZM': 'Zambia', 'MW': 'Malawi', 'SO': 'Somalia', 'BI': 'Burundi',
+        'TG': 'Togo', 'SL': 'Sierra Leone', 'LY': 'Libya', 'MR': 'Mauritania',
+        'ER': 'Eritrea', 'GM': 'Gambia', 'BW': 'Botswana', 'NA': 'Namibia',
+        'GA': 'Gabon', 'LS': 'Lesotho', 'GW': 'Guinea-Bissau', 'LR': 'Liberia',
+        'CF': 'Central African Republic', 'CG': 'Congo', 'CD': 'DR Congo',
+        'ST': 'São Tomé and Príncipe', 'SC': 'Seychelles', 'CV': 'Cape Verde',
+        'KM': 'Comoros', 'MU': 'Mauritius', 'GQ': 'Equatorial Guinea',
+        'SZ': 'Eswatini', 'SS': 'South Sudan', 'AO': 'Angola'
+      };
+      const countryName = codeToName[countryCode];
+      if (countryName) {
+        setDetectedCountry(countryName);
+      }
+    } catch (err) {
+      // Silently fail - country detection is optional (CORS error on localhost is expected)
+      console.debug('[IP Detection] Failed (non-critical):', err.message || 'CORS or network error');
+    }
+  };
+
   return (
     <>
       <SEO 
@@ -52,10 +92,63 @@ export default function Home() {
         {/* Live Trade Ticker */}
         <LiveTradeTicker />
         
-        {/* Hero Section */}
-        <section className="relative overflow-visible">
+        {/* Sticky Search Bar - Phase 1.1 */}
+        <StickySearchBar />
+        
+        {/* Category Chips - Phase 1.2 - Mobile Only */}
+        <section className="md:hidden py-3 bg-afrikoni-offwhite">
+          <div className="max-w-[1440px] mx-auto px-4">
+            <CategoryChips />
+          </div>
+        </section>
+        
+        {/* Country Quick Filters - Phase 1.3 - Mobile Only */}
+        <section className="md:hidden py-2 bg-afrikoni-offwhite border-b border-afrikoni-gold/10">
+          <div className="max-w-[1440px] mx-auto px-4">
+            <CountryQuickFilters />
+          </div>
+        </section>
+        
+        {/* Mobile Product Grids - Infinite Discovery Flow (Phase 4) - Mobile Only */}
+        <section className="md:hidden">
+          {/* Primary: Country-Specific Products */}
+          {detectedCountry && (
+            <MobileProductGrid 
+              country={detectedCountry} 
+              limit={8}
+              showHeader={true}
+            />
+          )}
+          
+          {/* Secondary: All Popular Products (if no country or as backup) */}
+          {!detectedCountry && (
+            <MobileProductGrid 
+              country={null} 
+              limit={8}
+              title="Popular products"
+              showHeader={true}
+            />
+          )}
+          
+          {/* Tertiary: Additional discovery sections */}
+          <MobileProductGrid 
+            country={null} 
+            limit={6}
+            title="Explore more products"
+            showHeader={true}
+          />
+        </section>
+        
+        {/* Hero Section - Desktop Only (Mobile uses StickySearchBar + MobileProductGrid) */}
+        <section className="hidden md:block relative overflow-visible">
           <HeroSection categories={categories} />
         </section>
+
+        {/* Verified Suppliers Section - Phase 2.1 */}
+        <VerifiedSuppliersSection />
+
+        {/* Trending Products Section - Phase 2.2 */}
+        <TrendingProductsSection />
 
         {/* Trust Counters - Compact - Hidden per request */}
         {/* <TrustCounters /> */}

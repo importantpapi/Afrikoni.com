@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { BarChart3, TrendingUp, DollarSign, ShoppingCart, Package, Users, FileText, MessageSquare, CheckCircle, Clock, Sparkles, Target, MapPin, Image as ImageIcon, Shield } from 'lucide-react';
 import { toast } from 'sonner';
-import EmptyState from '@/components/ui/EmptyState';
+import EmptyState from '@/components/shared/ui/EmptyState';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfDay } from 'date-fns';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardAnalyticsInner() {
   // Use centralized AuthProvider
@@ -755,9 +755,10 @@ function DashboardAnalyticsInner() {
 
 export default function DashboardAnalytics() {
   return (
-    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+    {/* PHASE 5B: Analytics requires buy capability */}
+    <RequireCapability canBuy={true}>
       <DashboardAnalyticsInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

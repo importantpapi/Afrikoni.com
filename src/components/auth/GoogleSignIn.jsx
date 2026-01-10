@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 import { FcGoogle } from 'react-icons/fc';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, Lock, CheckCircle2, Globe, Users, TrendingUp } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 
 /**
  * Platform Security & Trust Indicators

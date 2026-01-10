@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { Shield, AlertCircle, CheckCircle, Lightbulb } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useLanguage } from '@/i18n/LanguageContext';

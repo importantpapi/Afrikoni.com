@@ -6,13 +6,20 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 
-export default function MobileBottomNav({ userRole = 'buyer' }) {
+// PHASE 5B: MobileBottomNav uses capability flags instead of role
+export default function MobileBottomNav({ 
+  isBuyer = true, 
+  isSeller = false, 
+  isLogistics = false, 
+  isHybrid = false 
+}) {
   const location = useLocation();
   const { t } = useLanguage();
 
-  // Simplified navigation items for mobile bottom nav
+  // PHASE 5B: Simplified navigation items based on capabilities (not role)
   const getNavItems = () => {
-    if (userRole === 'seller' || userRole === 'hybrid') {
+    // If seller or hybrid (buyer + seller), show seller-focused nav
+    if (isSeller || isHybrid) {
       return [
         { icon: LayoutDashboard, label: t('dashboard.title') || 'Dashboard', path: '/dashboard' },
         { icon: Package, label: t('dashboard.products') || 'Products', path: '/dashboard/products' },
@@ -21,6 +28,7 @@ export default function MobileBottomNav({ userRole = 'buyer' }) {
         { icon: MessageSquare, label: t('dashboard.messages') || 'Messages', path: '/messages' }
       ];
     } else {
+      // Buyer-only or logistics-only (default buyer nav)
       return [
         { icon: LayoutDashboard, label: t('dashboard.title') || 'Dashboard', path: '/dashboard' },
         { icon: ShoppingCart, label: t('dashboard.orders') || 'Orders', path: '/dashboard/orders' },

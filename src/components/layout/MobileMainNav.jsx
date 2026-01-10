@@ -28,32 +28,38 @@ export default function MobileMainNav({ user }) {
   const { t } = useLanguage();
 
   // Core navigation items for main site
+  // Use unique keys to prevent React duplicate key warnings
   const navItems = [
     { 
+      key: 'main-nav-home',
       icon: Home, 
       label: t('nav.home') || 'Home', 
       path: '/',
       ariaLabel: 'Go to homepage'
     },
     { 
+      key: 'main-nav-marketplace',
       icon: ShoppingBag, 
       label: t('nav.marketplace') || 'Marketplace', 
       path: '/marketplace',
       ariaLabel: 'Browse marketplace'
     },
     { 
+      key: 'main-nav-rfq',
       icon: FileText, 
       label: t('nav.rfq') || 'RFQ', 
       path: '/rfq/create-mobile',
       ariaLabel: 'Create RFQ'
     },
     { 
+      key: 'main-nav-messages',
       icon: MessageSquare, 
       label: t('nav.messages') || 'Messages', 
       path: user ? '/inbox-mobile' : '/login',
       ariaLabel: 'View messages'
     },
     { 
+      key: 'main-nav-profile',
       icon: User, 
       label: user ? (t('nav.profile') || 'Profile') : (t('nav.login') || 'Login'), 
       path: user ? '/dashboard' : '/login',
@@ -80,7 +86,7 @@ export default function MobileMainNav({ user }) {
           
           return (
             <Link
-              key={item.path}
+              key={item.key}
               to={item.path}
               aria-label={item.ariaLabel}
               className={`

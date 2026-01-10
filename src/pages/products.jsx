@@ -5,15 +5,15 @@ import { supabase } from '@/api/supabaseClient';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { hasFastResponse, isReadyToShip } from '@/utils/marketplaceHelpers';
 import { addToViewHistory } from '@/utils/viewHistory';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Search, Filter, Package, TrendingUp } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
-import FilterChip from '@/components/ui/FilterChip';
-import SaveButton from '@/components/ui/SaveButton';
+import FilterChip from '@/components/shared/ui/FilterChip';
+import SaveButton from '@/components/shared/ui/SaveButton';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -53,11 +53,12 @@ export default function Products() {
   const loadData = async () => {
     setIsLoading(true);
     try {
+      // Fixed: Remove companies join for anonymous access (public products page)
       const [productsResult, categoriesRes] = await Promise.all([
         paginateQuery(
           supabase
             .from('products')
-            .select('*, companies!company_id(*), categories(*)')
+            .select('*, categories(*)')
             .eq('status', 'active'),
           { page: pagination.page, pageSize: 20, orderBy: 'created_at', ascending: false }
         ),
@@ -88,9 +89,10 @@ export default function Products() {
   const applyFilters = async () => {
     setIsLoading(true);
     try {
+      // Fixed: Remove companies join for anonymous access
       let query = supabase
         .from('products')
-        .select('*, companies(*), categories(*)')
+        .select('*, categories(*)')
         .eq('status', 'active');
 
       // Apply sorting

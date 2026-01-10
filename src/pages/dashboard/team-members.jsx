@@ -7,23 +7,23 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getUserRole } from '@/utils/roleHelpers';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Badge } from '@/components/shared/ui/badge';
+import { Switch } from '@/components/shared/ui/switch';
 import { 
   Users, UserPlus, Mail, Shield, DollarSign, Package, 
   FileText, Truck, X, CheckCircle, Clock, AlertCircle,
   Crown, Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shared/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { getCompanySubscription } from '@/services/subscriptionService';
 import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 
@@ -34,7 +34,7 @@ const TEAM_ROLES = [
   { value: 'member', label: 'Team Member', icon: Users, description: 'General team access' }
 ];
 
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 function TeamMembersInner() {
   // Use centralized AuthProvider
@@ -607,8 +607,9 @@ function TeamMembersInner() {
 
 export default function TeamMembers() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    {/* PHASE 5B: Team members requires sell capability (approved) */}
+    <RequireCapability canSell={true} requireApproved={true}>
       <TeamMembersInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }

@@ -15,18 +15,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
-import { getOrCreateCompany } from '@/utils/companyHelper';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { generateProductListing, autoDetectProductLocation } from '@/ai/aiFunctions';
 import { AFRICAN_COUNTRIES } from '@/constants/countries';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Progress } from '@/components/shared/ui/progress';
+import { Badge } from '@/components/shared/ui/badge';
 import { 
   Package, Image as ImageIcon, DollarSign, Truck, Globe, Sparkles,
   ArrowLeft, ArrowRight, Save, Loader2, Trash2, Edit, CheckCircle,
@@ -152,8 +151,11 @@ export default function AddProductAlibaba() {
       setIsLoading(true);
       // Use auth from context (no duplicate call)
 
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = profile?.company_id || await getOrCreateCompany(supabase, user);
+      const companyId = profile?.company_id || null;
+      if (!companyId) {
+        navigate('/onboarding/company', { replace: true });
+        return;
+      }
       if (companyId) {
         const { data: companyData } = await supabase
           .from('companies')
@@ -557,11 +559,10 @@ Contact us for more information, custom specifications, or to request samples.`;
 
     setIsSaving(true);
     try {
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
-      
+      const companyId = profile?.company_id || null;
       if (!companyId) {
-        throw new Error('Unable to create or find your company. Please complete your profile first.');
+        navigate('/onboarding/company', { replace: true });
+        return;
       }
 
       const productData = {
@@ -940,12 +941,15 @@ Contact us for more information, custom specifications, or to request samples.`;
     }
 
     try {
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
-      
+      const companyId = profile?.company_id || null;
+      if (!companyId) {
+        navigate('/onboarding/company', { replace: true });
+        return;
+      }
+
       // Delete images first
       await supabase.from('product_images').delete().eq('product_id', productId);
-      
+
       // Delete product (this removes it from marketplace automatically due to status change)
       const { error } = await supabase
         .from('products')
@@ -1342,7 +1346,7 @@ Contact us for more information, custom specifications, or to request samples.`;
                             <CheckCircle className="w-5 h-5" />
                             <div>
                               <p className="font-semibold">✅ {t('addProductAlibaba.imagesUploaded', { count: formData.images.length })}</p>
-                              {formData.images.some(img => {
+                              {formData.images && Array.isArray(formData.images) && formData.images.some(img => {
                                 if (typeof img === 'string') return formData.images.indexOf(img) === 0;
                                 return img.is_primary || formData.images.indexOf(img) === 0;
                               }) && (

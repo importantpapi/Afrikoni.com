@@ -11,6 +11,9 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ✅ Extract primitive userId to avoid object identity issues
+  const userId = user?.id || null;
+  
   useEffect(() => {
     // GUARD: Wait for auth to be ready
     if (!authReady || authLoading) {
@@ -19,7 +22,7 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
 
     // Now safe to check saved status
     checkSavedStatus();
-  }, [itemId, itemType, authReady, authLoading, user]);
+  }, [itemId, itemType, authReady, authLoading, userId]); // ✅ userId is primitive, not user object
 
   const checkSavedStatus = async () => {
     try {

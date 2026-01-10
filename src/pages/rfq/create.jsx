@@ -3,14 +3,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Checkbox } from '@/components/shared/ui/checkbox';
 import { CheckCircle, ArrowRight, ArrowLeft, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { AFRICAN_COUNTRIES } from '@/constants/countries';
@@ -215,8 +215,11 @@ export default function CreateRFQ() {
 
     setIsLoading(true);
     try {
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
+      const companyId = profile?.company_id || null;
+      if (!companyId) {
+        navigate('/onboarding/company', { replace: true });
+        return;
+      }
 
       const rfqData = {
         title: formData.productName.trim(),

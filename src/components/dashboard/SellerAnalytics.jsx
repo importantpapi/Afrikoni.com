@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { ArrowLeft, TrendingUp, DollarSign, Package, ShoppingBag } from 'lucide-react';
 
 export default function SellerAnalytics({ data, onBack }) {

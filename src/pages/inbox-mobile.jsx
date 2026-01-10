@@ -13,14 +13,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import ConversationList from '@/components/inbox/ConversationList';
 import ConversationView from '@/components/inbox/ConversationView';
-import BrandClarityBanner from '@/components/ui/BrandClarityBanner';
+import BrandClarityBanner from '@/components/shared/ui/BrandClarityBanner';
 import { ArrowLeft, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/shared/ui/input';
 
 export default function InboxMobile() {
   // Use centralized AuthProvider

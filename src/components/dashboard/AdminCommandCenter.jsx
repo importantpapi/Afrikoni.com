@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Users, Package, ShoppingBag, TrendingUp } from 'lucide-react';
 
 export default function AdminCommandCenter({ data }) {

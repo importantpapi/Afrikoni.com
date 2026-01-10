@@ -4,9 +4,9 @@
  */
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
 import { AlertTriangle, DollarSign, Shield, Clock, X } from 'lucide-react';
 import { useHighRiskCompanies, useHighValueDealsNeedingAttention } from '@/hooks/useTradeIntelligence';
 import { useNavigate } from 'react-router-dom';

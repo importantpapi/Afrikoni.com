@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Truck, MapPin, Package, Globe, CheckCircle, Plane, Ship, Car, ArrowRight, Star, Users, TrendingUp, Shield, Clock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import SEO from '@/components/SEO';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { isLogistics } from '@/utils/roleHelpers';
-import EmptyState from '@/components/ui/EmptyState';
+import EmptyState from '@/components/shared/ui/EmptyState';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function LogisticsContent() {

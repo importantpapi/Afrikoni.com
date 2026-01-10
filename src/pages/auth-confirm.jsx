@@ -10,9 +10,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Logo } from '@/components/shared/ui/Logo';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { sendWelcomeEmail } from '@/services/emailService';
 import { logAuthEvent } from '@/lib/supabase-auth-helpers';
 

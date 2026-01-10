@@ -3,16 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 // Removed Radix Tabs - using plain conditionals instead
 import { Heart, Package, Users, Search, Bookmark, FileText, X } from 'lucide-react';
 import { toast } from 'sonner';
-import EmptyState from '@/components/ui/EmptyState';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import RequireCapability from '@/guards/RequireCapability';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
 
@@ -70,20 +70,32 @@ function DashboardSavedInner() {
           return;
         }
         
+        // Simplified query - PostgREST friendly (no complex joins)
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select(`
-            *,
-            product_images(*),
-            companies!company_id (
-              id,
-              company_name,
-              country,
-              verification_status,
-              verified
-            )
-          `)
+          .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, product_images(*)')
           .in('id', productIds);
+        
+        // Load companies separately if needed
+        let companiesMap = new Map();
+        if (productsData && productsData.length > 0) {
+          const companyIds = [...new Set(productsData.map(p => p.company_id).filter(Boolean))];
+          if (companyIds.length > 0) {
+            try {
+              const { data: companies } = await supabase
+                .from('companies')
+                .select('id, company_name, country, verification_status, verified')
+                .in('id', companyIds);
+              
+              if (companies) {
+                companies.forEach(c => companiesMap.set(c.id, c));
+              }
+            } catch (err) {
+              console.warn('Error loading companies for saved products:', err);
+              // Continue without company data
+            }
+          }
+        }
         
         if (productsError) {
           console.error('Error loading products:', productsError);
@@ -103,12 +115,14 @@ function DashboardSavedInner() {
               // Get primary image from product_images
               const primaryImage = getPrimaryImageFromProduct(product);
               
-              // Product data is logged in useEffect (prevents render loop)
+              // Merge company data
+              const company = companiesMap.get(product.company_id);
               
               return { 
                 ...product, 
                 saved_item_id: item.id,
-                primaryImage: primaryImage || null
+                primaryImage: primaryImage || null,
+                companies: company || null
               };
             })
             .filter(Boolean);
@@ -624,9 +638,10 @@ function DashboardSavedInner() {
 
 export default function DashboardSaved() {
   return (
-    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+    {/* PHASE 5B: Saved page requires buy capability */}
+    <RequireCapability canBuy={true}>
       <DashboardSavedInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

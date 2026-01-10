@@ -13,15 +13,15 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Progress } from '@/components/shared/ui/progress';
+import { Badge } from '@/components/shared/ui/badge';
 import { 
   Sparkles, Image as ImageIcon, DollarSign, Truck, Shield, CheckCircle, 
   ArrowLeft, ArrowRight, Save, Loader2, Lightbulb, FileText,
@@ -31,7 +31,7 @@ import SmartImageUploader from '@/components/products/SmartImageUploader';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { generateProductListing } from '@/ai/aiFunctions';
 import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { validateNumeric, sanitizeString } from '@/utils/security';

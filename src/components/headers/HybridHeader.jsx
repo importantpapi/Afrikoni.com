@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, MessageCircle, Search, Calendar, MessageSquare, Plus } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Button } from '@/components/shared/ui/button';
 import NotificationBell from '@/components/notificationbell';
 import HeaderShell from './HeaderShell';
 import { RoleSwitcher } from '@/components/dashboard/RoleSwitcher';

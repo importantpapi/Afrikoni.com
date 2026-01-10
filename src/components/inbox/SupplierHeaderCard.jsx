@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { CheckCircle, MapPin, Clock, Building2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shared/ui/badge';
 
 export default function SupplierHeaderCard({ company }) {
   return (

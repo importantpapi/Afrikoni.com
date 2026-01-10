@@ -16,8 +16,8 @@ import {
   MapPin,
   Check
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/ui/Logo';
+import { Button } from '@/components/shared/ui/button';
+import { Logo } from '@/components/shared/ui/Logo';
 import NotificationBell from '@/components/notificationbell';
 import { createPageUrl } from '@/utils';
 import { useTranslation } from 'react-i18next';

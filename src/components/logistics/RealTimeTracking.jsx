@@ -8,8 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Clock, Package, CheckCircle, AlertCircle, Truck, Globe } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Card, CardContent } from '@/components/shared/ui/card';
 
 const EVENT_ICONS = {
   created: Package,

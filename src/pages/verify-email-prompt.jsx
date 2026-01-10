@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
-import { Logo } from '@/components/ui/Logo';
-import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/shared/ui/Logo';
+import { Button } from '@/components/shared/ui/button';
 import { MailCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 

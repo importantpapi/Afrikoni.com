@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { AlertTriangle, Shield, ExternalLink } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
 import { motion } from 'framer-motion';
 
 export default function OffPlatformDisclaimer({ variant = 'default', className = '' }) {

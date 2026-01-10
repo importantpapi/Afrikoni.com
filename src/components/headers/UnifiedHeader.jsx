@@ -20,9 +20,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, Menu, MessageSquare, Plus, Globe, Home, ChevronRight } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/ui/Logo';
+import { Input } from '@/components/shared/ui/input';
+import { Button } from '@/components/shared/ui/button';
+import { Logo } from '@/components/shared/ui/Logo';
 import NotificationBell from '@/components/notificationbell';
 import { useTranslation } from 'react-i18next';
 

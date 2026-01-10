@@ -1,4 +1,0 @@
-{"location":"signup.jsx:156","message":"Validation passed - proceeding to Supabase","data":{"email":"afrikoni@outlook.com"},"timestamp":1766579430105,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
-{"location":"signup.jsx:174","message":"Supabase signUp response","data":{"hasUser":false,"hasSession":false,"hasError":true,"errorMessage":"User already registered"},"timestamp":1766579430341,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
-{"location":"signup.jsx:156","message":"Validation passed - proceeding to Supabase","data":{"email":"afrikoni4@outlook.com"},"timestamp":1766579442437,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
-{"location":"signup.jsx:174","message":"Supabase signUp response","data":{"hasUser":true,"hasSession":true,"hasError":false},"timestamp":1766579442787,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}

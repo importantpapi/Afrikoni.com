@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Truck, Package, Clock, CheckCircle } from 'lucide-react';
 
 export default function LogisticsCommandCenter({ data }) {

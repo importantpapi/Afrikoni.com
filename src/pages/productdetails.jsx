@@ -12,13 +12,13 @@ import AISummaryBox from '@/components/ai/AISummaryBox';
 import AICopilotButton from '@/components/ai/AICopilotButton';
 import { rewriteDescription } from '@/ai/aiRewrite';
 import { generateRFQFromProduct } from '@/ai/aiFunctions';
-import SaveButton from '@/components/ui/SaveButton';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SaveButton from '@/components/shared/ui/SaveButton';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { Package, MapPin, Star, Shield, Building2, MessageCircle, FileText, CheckCircle, Clock } from 'lucide-react';
-import TrustBadge from '@/components/ui/TrustBadge';
+import TrustBadge from '@/components/shared/ui/TrustBadge';
 import { toast } from 'sonner';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import ReviewList from '@/components/reviews/ReviewList';
@@ -34,11 +34,11 @@ import BulkPricingTiers from '@/components/products/BulkPricingTiers';
 import { GitCompare } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
-import Breadcrumb from '@/components/ui/Breadcrumb';
-import Price, { PriceRange } from '@/components/ui/Price';
+import Breadcrumb from '@/components/shared/ui/Breadcrumb';
+import Price, { PriceRange } from '@/components/shared/ui/Price';
 import { PaymentProtectionBanner } from '@/components/trust/PaymentProtectionBanner';
 import { VerificationBadgeTooltip } from '@/components/trust/VerificationBadgeTooltip';
-import MobileStickyCTA from '@/components/ui/MobileStickyCTA';
+import MobileStickyCTA from '@/components/shared/ui/MobileStickyCTA';
 
 /**
  * ⚠️ INSTITUTIONAL PRODUCT PAGE

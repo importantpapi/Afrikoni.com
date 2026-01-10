@@ -5,8 +5,8 @@ import {
   Grid3x3, ShoppingBag, Store, Truck, Shield, FileText,
   HelpCircle, Globe, ChevronDown, X
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/ui/Logo';
+import { Button } from '@/components/shared/ui/button';
+import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Navigation({ user, onLogout }) {

@@ -6,8 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Users, Shield, TrendingUp, ArrowRight, QrCode } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import SEO from '@/components/SEO';
 import { openWhatsAppCommunity, generateWhatsAppQRCode } from '@/utils/whatsappCommunity';
 import { useAnalytics } from '@/hooks/useAnalytics';

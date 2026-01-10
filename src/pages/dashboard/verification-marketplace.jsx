@@ -7,14 +7,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, CheckCircle, Sparkles, ArrowRight, Crown } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import RequireCapability from '@/guards/RequireCapability';
 
 function VerificationMarketplaceInner() {
   // Use centralized AuthProvider
@@ -40,7 +40,7 @@ function VerificationMarketplaceInner() {
 
     // Now safe to load data
     loadData();
-  }, [authReady, authLoading, user, profile]);
+  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
 
   const loadData = async () => {
     try {
@@ -376,9 +376,10 @@ function VerificationMarketplaceInner() {
 
 export default function VerificationMarketplace() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    {/* PHASE 5B: Verification marketplace requires sell capability (approved) */}
+    <RequireCapability canSell={true} requireApproved={true}>
       <VerificationMarketplaceInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

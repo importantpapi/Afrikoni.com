@@ -7,20 +7,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { RotateCcw, Package, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getReturns, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
-import EmptyState from '@/components/ui/EmptyState';
-import { CardSkeleton } from '@/components/ui/skeletons';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import RequireCapability from '@/guards/RequireCapability';
 
 function ReturnsDashboardInner() {
   // Use centralized AuthProvider
@@ -295,9 +295,10 @@ function ReturnsDashboardInner() {
 
 export default function ReturnsDashboard() {
   return (
-    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid']}>
+    {/* PHASE 5B: Returns requires buy or sell capability */}
+    <RequireCapability canBuy={true} canSell={true}>
       <ReturnsDashboardInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

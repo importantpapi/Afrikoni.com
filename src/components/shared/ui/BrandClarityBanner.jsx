@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { Shield, MessageSquare } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 
 export default function BrandClarityBanner({ variant = 'default' }) {
   const message = 'Afrikoni uses WhatsApp for notifications. All trade happens securely on Afrikoni.';

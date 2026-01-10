@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, CheckCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Card, CardContent } from '@/components/shared/ui/card';
 
 export default function ProductVariants({ variants = [], onVariantSelect, selectedVariantId = null }) {
   const [selectedVariant, setSelectedVariant] = useState(null);

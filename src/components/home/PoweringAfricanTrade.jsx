@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { Globe, TrendingUp, Users, DollarSign } from 'lucide-react';
 
 export default function PoweringAfricanTrade() {

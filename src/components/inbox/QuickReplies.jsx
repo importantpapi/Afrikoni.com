@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 import { FileText, DollarSign, Package, Hand } from 'lucide-react';
 
 const QUICK_REPLIES = [

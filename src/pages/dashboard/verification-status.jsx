@@ -4,13 +4,13 @@ import {
   Shield, CheckCircle2, Clock, AlertCircle, Upload, 
   Building2, FileCheck, Award, TrendingUp, ChevronRight 
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Progress } from '@/components/shared/ui/progress';
+import { Badge } from '@/components/shared/ui/badge';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 // import LoadingState from '@/components/LoadingState'; // Component doesn't exist
 // import ErrorState from '@/components/ErrorState'; // Component doesn't exist
@@ -90,7 +90,7 @@ export default function VerificationStatus() {
 
     // Now safe to load data
     loadVerificationStatus();
-  }, [authReady, authLoading, user, profile]);
+  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
 
   const loadVerificationStatus = async () => {
     try {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { Package, TrendingUp, Eye, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 

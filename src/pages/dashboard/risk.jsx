@@ -13,10 +13,10 @@ import {
   ArrowRight, Filter, Search, Eye, ExternalLink, RefreshCw, UserPlus,
   Users, Bell
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis,

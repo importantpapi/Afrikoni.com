@@ -35,25 +35,25 @@ import {
   Smile,
   Sparkles,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Badge } from '@/components/shared/ui/badge';
+import { Tooltip } from '@/components/shared/ui/tooltip';
 import { VerificationBadgeTooltip } from '@/components/trust/VerificationBadgeTooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Drawer } from '@/components/ui/drawer';
-import FilterChip from '@/components/ui/FilterChip';
-import SaveButton from '@/components/ui/SaveButton';
-import { PaginationFooter } from '@/components/ui/reusable/PaginationFooter';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shared/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Drawer } from '@/components/shared/ui/drawer';
+import FilterChip from '@/components/shared/ui/FilterChip';
+import SaveButton from '@/components/shared/ui/SaveButton';
+import { PaginationFooter } from '@/components/shared/ui/reusable/PaginationFooter';
 import OptimizedImage from '@/components/OptimizedImage';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import SearchHistory from '@/components/search/SearchHistory';
-import Price from '@/components/ui/Price';
-import TrustBadge from '@/components/ui/TrustBadge';
+import Price from '@/components/shared/ui/Price';
+import TrustBadge from '@/components/shared/ui/TrustBadge';
 import { toast } from 'sonner';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
@@ -61,13 +61,15 @@ import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries'
 import { useTranslation } from 'react-i18next';
 import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 import { trackProductView } from '@/lib/supabaseQueries/products';
-import { Logo } from '@/components/ui/Logo';
+import { Logo } from '@/components/shared/ui/Logo';
+import ProductCard from '@/components/products/ProductCard';
 
 export default function Marketplace() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { trackPageView } = useAnalytics();
+  const { profile } = useAuth();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -285,12 +287,10 @@ export default function Marketplace() {
         country: selectedFilters.country || null
       });
       
-      // Rebuild query to include companies (buildProductQuery already includes product_images)
+      // Fixed: Remove companies join for anonymous access (public marketplace)
       // NOTE: product_images is the single source of truth for product images
-      // We rebuild the query to ensure companies are included
       const selectString = `
         *,
-        companies!company_id(*),
         categories(*),
         product_images(
           id,
@@ -301,7 +301,7 @@ export default function Marketplace() {
         )
       `;
       
-      // Build query from scratch to ensure proper structure
+      // Build query from scratch to ensure proper structure (without companies join)
       query = supabase
         .from('products')
         .select(selectString);
@@ -559,493 +559,6 @@ export default function Marketplace() {
     }
     return '';
   };
-
-  const ProductCard = React.memo(({ product, priority = false }) => {
-    const [quickViewOpen, setQuickViewOpen] = useState(false);
-    const [activeImage, setActiveImage] = useState(product.primaryImage || null);
-
-    const allImages = Array.isArray(product.allImages) ? product.allImages.filter(Boolean) : [];
-
-    const goToPrevImage = (e) => {
-      e.stopPropagation();
-      if (!allImages.length) return;
-      setActiveImage((current) => {
-        if (!current) return allImages[0];
-        const currentIndex = allImages.indexOf(current);
-        const prevIndex = currentIndex <= 0 ? allImages.length - 1 : currentIndex - 1;
-        return allImages[prevIndex];
-      });
-    };
-
-    const goToNextImage = (e) => {
-      e.stopPropagation();
-      if (!allImages.length) return;
-      setActiveImage((current) => {
-        if (!current) return allImages[0];
-        const currentIndex = allImages.indexOf(current);
-        const nextIndex = currentIndex === -1 || currentIndex >= allImages.length - 1 ? 0 : currentIndex + 1;
-        return allImages[nextIndex];
-      });
-    };
-    const handleCardClick = async (e) => {
-      // Don't navigate if clicking on buttons or links
-      if (e.target.closest('button, a, [role="button"]')) {
-        return;
-      }
-      
-      addToViewHistory(product.id, 'product', {
-        title: product.title || product.name,
-        category_id: product.category_id,
-        country: product.country_of_origin
-      });
-      
-      // Track product view in database
-      if (user?.id || profile?.company_id) {
-        try {
-          await trackProductView(product.id, {
-            profile_id: user?.id,
-            company_id: profile?.company_id,
-            source_page: 'marketplace'
-          });
-        } catch (error) {
-          // Silent fail - tracking is non-critical
-        }
-      }
-      
-      // Navigate to product page
-      navigate(`/product?id=${product.id}`);
-    };
-
-    return (
-      <div className="h-full">
-          <Card 
-            className="h-full cursor-pointer border border-afrikoni-gold/20 shadow-md overflow-hidden"
-            onClick={handleCardClick}
-          >
-            <div className="relative h-56 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10 rounded-t-xl overflow-hidden">
-              {activeImage ? (
-                <OptimizedImage
-                  src={activeImage}
-                  alt={product.title || product.name || 'Product'}
-                  className="w-full h-full object-cover"
-                  width={400}
-                  height={300}
-                  priority={priority}
-                  quality={85}
-                  placeholder="/product-placeholder.svg"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-cream flex items-center justify-center">
-                  <Package className="w-12 h-12 text-afrikoni-gold/50" />
-                </div>
-              )}
-              {allImages.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/80 text-white w-10 h-10 md:w-7 md:h-7 rounded-full flex items-center justify-center touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-lg md:text-base"
-                    onClick={goToPrevImage}
-                    aria-label="Previous image"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 active:bg-black/80 text-white w-10 h-10 md:w-7 md:h-7 rounded-full flex items-center justify-center touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-lg md:text-base"
-                    onClick={goToNextImage}
-                    aria-label="Next image"
-                  >
-                    ›
-                  </button>
-                </>
-              )}
-              {product.featured && (
-                <div className="absolute top-2 left-2">
-                  <Badge variant="primary" className="text-xs">⭐ {t('marketplace.featured')}</Badge>
-                </div>
-              )}
-              {/* Save Button - Top Right */}
-              <div className="absolute top-2 right-2 z-20">
-                <SaveButton itemId={product.id} itemType="product" />
-              </div>
-              {/* Supplier verification / trust badge */}
-              {product.companies?.verification_status === 'verified' && (
-                <div className="absolute top-12 right-2 flex items-center gap-1 bg-black/65 text-white px-2 py-1 rounded-full shadow-sm">
-                  <Logo type="icon" size="sm" link={false} className="w-5 h-5" />
-                  <Smile className="w-3 h-3 text-afrikoni-gold" />
-                </div>
-              )}
-              {Array.isArray(product.allImages) && product.allImages.length > 1 && (
-                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-                  {product.allImages.length} photos
-                </div>
-              )}
-            </div>
-            <CardContent className="p-5 bg-white" style={{ overflow: 'visible' }}>
-              {/* Product Name - Highest Priority */}
-              <h3 className="font-bold text-afrikoni-chestnut mb-3 line-clamp-2 text-lg md:text-xl leading-tight group-hover:text-afrikoni-gold transition-colors">
-                {product.title || product.name}
-              </h3>
-              
-              {/* City + Country - Second Priority */}
-              <div className="flex items-center gap-1 flex-wrap mb-3">
-                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-deep/70 flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-afrikoni-deep/80 font-medium flex items-center gap-1">
-                  {(() => {
-                    const city =
-                      product?.city ||
-                      product?.companies?.city ||
-                      product?.companies?.town ||
-                      '';
-                    const country =
-                      product?.country_of_origin ||
-                      product?.companies?.country ||
-                      '';
-                    const flag = getCountryFlagEmoji(country);
-                    if (city && country) return `${city}, ${country}`;
-                    if (country) return country;
-                    return 'N/A';
-                  })()}
-                  {(() => {
-                    const country =
-                      product?.country_of_origin ||
-                      product?.companies?.country ||
-                      '';
-                    const flag = getCountryFlagEmoji(country);
-                    return flag ? <span className="ml-0.5">{flag}</span> : null;
-                  })()}
-                </span>
-              </div>
-
-              {/* Price Range - Core info */}
-              <div className="flex items-center gap-2 mb-3">
-                {product.price_min && product.price_max ? (
-                  <Price
-                    amount={product.price_min}
-                    fromCurrency={product.currency || 'USD'}
-                    unit={product.unit || 'kg'}
-                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                  />
-                ) : product.price_min ? (
-                  <Price
-                    amount={product.price_min}
-                    fromCurrency={product.currency || 'USD'}
-                    unit={product.unit || 'kg'}
-                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                  />
-                ) : product.price ? (
-                  <Price
-                    amount={product.price}
-                    fromCurrency={product.currency || 'USD'}
-                    unit={product.unit || 'kg'}
-                    className="text-lg sm:text-xl font-bold text-afrikoni-gold"
-                  />
-                ) : (
-                  <div className="text-sm text-afrikoni-deep/70">{t('marketplace.priceOnRequest')}</div>
-                )}
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs sm:text-sm min-h-[44px] md:min-h-0 px-4 md:px-3 touch-manipulation active:scale-95 md:active:scale-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setQuickViewOpen(true);
-                  }}
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Quick view</span>
-                  <span className="sm:hidden">View</span>
-                </Button>
-              </div>
-            </CardContent>
-            {/* Quick View Dialog */}
-            <Dialog open={quickViewOpen} onOpenChange={(open) => setQuickViewOpen(open)}>
-              <DialogContent
-                className="max-w-3xl w-[95vw] md:w-full max-h-[90vh] md:max-h-[85vh] overflow-y-auto p-4 md:p-6"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <DialogHeader>
-                  <DialogTitle className="flex flex-col gap-1">
-                    <span className="text-xl md:text-2xl font-bold text-afrikoni-chestnut leading-snug">
-                      {product.title || product.name}
-                    </span>
-                    <span className="text-xs md:text-sm text-afrikoni-deep/80 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-afrikoni-gold flex-shrink-0" />
-                      {(() => {
-                        const city =
-                          product?.city ||
-                          product?.companies?.city ||
-                          product?.companies?.town ||
-                          '';
-                        const country =
-                          product?.country_of_origin ||
-                          product?.companies?.country ||
-                          '';
-                        if (city && country) return `${city}, ${country}`;
-                        if (country) return country;
-                        return 'Location not specified';
-                      })()}
-                      {(() => {
-                        const country =
-                          product?.country_of_origin ||
-                          product?.companies?.country ||
-                          '';
-                        const flag = getCountryFlagEmoji(country);
-                        return flag ? <span className="ml-0.5">{flag}</span> : null;
-                      })()}
-                    </span>
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-                  <div className="space-y-3">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-afrikoni-cream">
-                      {activeImage ? (
-                        <OptimizedImage
-                          src={activeImage}
-                          alt={product.title || product.name || 'Product'}
-                          className="w-full h-full object-cover"
-                          width={600}
-                          height={400}
-                          quality={85}
-                          placeholder="/product-placeholder.svg"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-12 h-12 text-afrikoni-gold/60" />
-                        </div>
-                      )}
-                    </div>
-                    {Array.isArray(product.allImages) && product.allImages.length > 1 && (
-                      <div className="flex gap-2 overflow-x-auto">
-                        {product.allImages.map((img, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            className="w-16 h-16 md:w-16 md:h-16 rounded-md overflow-hidden border border-afrikoni-gold/30 flex-shrink-0 touch-manipulation active:scale-95 min-w-[64px] min-h-[64px]"
-                            onClick={() => setActiveImage(img)}
-                            aria-label={`View image ${idx + 1}`}
-                          >
-                            <OptimizedImage
-                              src={img}
-                              alt={`${product.title || product.name} - Image ${idx + 1}`}
-                              className="w-full h-full object-cover"
-                              width={64}
-                              height={64}
-                              quality={75}
-                              priority={idx < 3} // Load first 3 thumbnails immediately
-                              placeholder="/product-placeholder.svg"
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-3">
-                    {/* Pricing & MOQ */}
-                    <div className="text-lg font-semibold text-afrikoni-chestnut">
-                      {product.price_min || product.price || product.price_max ? (
-                        <>
-                          <Price
-                            amount={product.price_min || product.price}
-                            fromCurrency={product.currency || 'USD'}
-                            unit={product.unit || 'kg'}
-                            className="text-xl font-bold text-afrikoni-gold"
-                          />
-                        </>
-                      ) : (
-                        <span className="text-sm text-afrikoni-deep/70">
-                          {t('marketplace.priceOnRequest')}
-                        </span>
-                      )}
-                    </div>
-                    {product.min_order_quantity && (
-                      <div className="text-sm text-afrikoni-deep/80">
-                        {t('marketplace.moq')}:{' '}
-                        <span className="font-medium">
-                          {product.min_order_quantity} {product.moq_unit || product.unit || t('marketplace.units')}
-                        </span>
-                      </div>
-                    )}
-                    {/* Product overview */}
-                    <div className="mt-3 space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
-                        Product overview
-                      </p>
-                      <p className="text-sm md:text-[0.95rem] leading-relaxed text-afrikoni-deep/80">
-                        {product.short_description ||
-                          product.description ||
-                          'Supplier has not added a detailed description yet.'}
-                      </p>
-                    </div>
-                    {/* Trust & compliance badges */}
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <VerificationBadgeTooltip
-                        verified={product.companies?.verification_status === 'verified' || product.companies?.verified}
-                        verificationStatus={product.companies?.verification_status}
-                        companyName={product.companies?.company_name || 'This supplier'}
-                        size="sm"
-                      />
-                      {(product.companies?.verification_status !== 'verified' && !product.companies?.verified) && (
-                        <Badge className="text-xs bg-gray-50 text-gray-600 border-gray-200">
-                          <Shield className="w-3 h-3 mr-1" />
-                          {t('marketplace.tradeShieldEligible')}
-                        </Badge>
-                      )}
-                    </div>
-                    {/* Why buyers trust this supplier */}
-                    {(product?.companies ||
-                      (Array.isArray(product?.certifications) && product.certifications.length > 0)) && (
-                      <div className="mt-4 space-y-2">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
-                          {t('marketplace.whyBuyersTrust')}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {product.companies?.verification_status === 'verified' && (
-                            <Badge
-                              variant="outline"
-                              className="text-[0.7rem] bg-white text-afrikoni-deep border-green-200"
-                            >
-                              <Shield className="w-3 h-3 mr-1 text-green-600" />
-                              {t('marketplace.afrikoniVerified')}
-                            </Badge>
-                          )}
-                          {hasFastResponse(product?.companies) && (
-                            <Badge
-                              variant="outline"
-                              className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
-                            >
-                              <Clock className="w-3 h-3 mr-1 text-afrikoni-gold" />
-                              {t('marketplace.fastResponse')}
-                            </Badge>
-                          )}
-                          {isReadyToShip(product) && (
-                            <Badge
-                              variant="outline"
-                              className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
-                            >
-                              <Package className="w-3 h-3 mr-1 text-afrikoni-gold" />
-                              {t('marketplace.readyToShip')}
-                            </Badge>
-                          )}
-                          {Array.isArray(product?.certifications) &&
-                            product.certifications.slice(0, 4).map((cert) => (
-                              <Badge
-                                key={cert}
-                                variant="outline"
-                                className="text-[0.7rem] bg-white text-afrikoni-deep border-afrikoni-gold/40"
-                              >
-                                <Award className="w-3 h-3 mr-1 text-afrikoni-gold" />
-                                {cert}
-                              </Badge>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                    {/* Typical use cases */}
-                    {(Array.isArray(product?.use_cases) && product.use_cases.length > 0) ||
-                    (Array.isArray(product?.tags) && product.tags.length > 0) ? (
-                      <div className="mt-3 space-y-1">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-afrikoni-deep/60">
-                          {t('marketplace.typicalUseCases')}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(Array.isArray(product?.use_cases) && product.use_cases.length > 0
-                            ? product.use_cases
-                            : product.tags
-                          )
-                            .slice(0, 6)
-                            .map((useCase) => (
-                              <span
-                                key={useCase}
-                                className="text-[0.7rem] px-2 py-1 rounded-full bg-afrikoni-offwhite text-afrikoni-deep/80"
-                              >
-                                {useCase}
-                              </span>
-                            ))}
-                        </div>
-                      </div>
-                    ) : null}
-                    {/* CTA hierarchy */}
-                    <div className="mt-5 space-y-3">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="w-full md:w-auto md:min-w-[220px] h-11 text-sm font-semibold shadow-lg bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/90 hover:from-afrikoni-gold/90 hover:to-afrikoni-gold"
-                        onClick={() => navigate(`/dashboard/rfqs/new?product=${product.id}`)}
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        {t('marketplace.requestDetailedQuote')}
-                      </Button>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs md:text-sm"
-                          onClick={() => {
-                            if (product?.id) {
-                              sessionStorage.setItem(
-                                'contactProductContext',
-                                JSON.stringify({
-                                  productId: product.id,
-                                  productTitle: product.title,
-                                  productPrice: product.price || product.price_min,
-                                  productCurrency: product.currency,
-                                  productMOQ: product.moq || product.min_order_quantity,
-                                  supplierName: product?.companies?.company_name || t('marketplace.supplier'),
-                                  supplierCountry:
-                                    product?.country_of_origin || product?.companies?.country,
-                                }),
-                              );
-                            }
-                            navigate(
-                              `/messages?recipient=${
-                                product?.companies?.id ||
-                                product?.supplier_id ||
-                                product?.company_id ||
-                                ''
-                              }&product=${product?.id || ''}&productTitle=${encodeURIComponent(
-                                product?.title || '',
-                              )}`,
-                            );
-                          }}
-                        >
-                          <MessageSquare className="w-4 h-4 mr-1" />
-                          {t('marketplace.contactSupplier')}
-                        </Button>
-                        {product?.companies?.id && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs md:text-sm"
-                            onClick={() => navigate(`/business/${product.companies.id}`)}
-                          >
-                            <Building2 className="w-4 h-4 mr-1" />
-                            {t('marketplace.viewSupplierProfile')}
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs md:text-sm text-afrikoni-chestnut"
-                          onClick={() =>
-                            navigate(`/dashboard/rfqs/new?product=${product.id}&mode=ai`)
-                          }
-                        >
-                          <Sparkles className="w-4 h-4 mr-1 text-afrikoni-gold" />
-                          {t('marketplace.generateRFQWithAI')}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </Card>
-      </div>
-    );
-  });
 
   return (
     <>

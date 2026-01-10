@@ -7,15 +7,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Wallet, ArrowUpRight, ArrowDownLeft, Shield, Clock, CheckCircle, XCircle, DollarSign, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import {
   getWalletAccount,
   getWalletTransactions,
@@ -23,9 +23,9 @@ import {
   getEscrowEvents,
 } from '@/lib/supabaseQueries/payments';
 import { format } from 'date-fns';
-import EmptyState from '@/components/ui/EmptyState';
-import { CardSkeleton } from '@/components/ui/skeletons';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import RequireCapability from '@/guards/RequireCapability';
 
 function PaymentsDashboardInner() {
   // Use centralized AuthProvider
@@ -397,9 +397,12 @@ function PaymentsDashboardInner() {
 }
 
 export default function PaymentsDashboard() {
-  return (
-    <RequireDashboardRole allow={['buyer', 'seller', 'hybrid']}>
-      <PaymentsDashboardInner />
-    </RequireDashboardRole>
-  );
+    return (
+      <>
+        {/* PHASE 5B: Payments requires buy or sell capability */}
+        <RequireCapability canBuy={true} canSell={true}>
+          <PaymentsDashboardInner />
+        </RequireCapability>
+      </>
+    );
 }

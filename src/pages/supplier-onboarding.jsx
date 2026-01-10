@@ -3,23 +3,23 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Progress } from '@/components/shared/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Textarea } from '@/components/shared/ui/textarea';
 import { 
   CheckCircle, ArrowRight, ArrowLeft, Building2, Shield, Package, 
   DollarSign, FileText, Upload, Globe, Phone, Mail, MapPin, 
   Calendar, Users, Award, Loader2, X
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Logo } from '@/components/ui/Logo';
+import { Logo } from '@/components/shared/ui/Logo';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -270,20 +270,31 @@ export default function SupplierOnboarding() {
         });
         setCompanyId(newCompanyId);
       } else {
+        // Convert year_established to integer or null (database expects integer, not empty string)
+        let yearEstablished = null;
+        if (formData.year_established) {
+          const year = typeof formData.year_established === 'string' 
+            ? parseInt(formData.year_established.trim(), 10) 
+            : formData.year_established;
+          if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
+            yearEstablished = year;
+          }
+        }
+        
         const { error } = await supabase
           .from('companies')
           .update({
             company_name: formData.company_name,
             business_type: formData.business_type,
-            country: formData.country,
-            city: formData.city,
-            address: formData.address,
-            phone: formData.phone,
-            business_email: formData.business_email,
-            website: formData.website,
-            year_established: formData.year_established,
-            company_size: formData.company_size,
-            company_description: formData.company_description,
+            country: formData.country || null,
+            city: formData.city || null,
+            address: formData.address || null,
+            phone: formData.phone || null,
+            email: formData.business_email || null,
+            website: formData.website || null,
+            year_established: yearEstablished, // INTEGER: null or valid year
+            employee_count: formData.company_size || '1-10',
+            description: formData.company_description || null,
           })
           .eq('id', companyId);
 

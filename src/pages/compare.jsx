@@ -6,9 +6,9 @@ import {
   Clock, Building2, ShoppingCart, MessageCircle, FileText,
   CheckCircle, AlertCircle
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -35,24 +35,47 @@ export default function CompareProducts() {
         return;
       }
 
-      // Fetch product details from Supabase
+      // Fetch product details from Supabase - Simplified query
       const productIds = compareList.map(p => p.id);
       const { data: productsData, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          categories(*),
-          product_images(*),
-          companies!company_id(*)
-        `)
+        .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, moq, min_order_quantity, moq_unit, lead_time_min_days, lead_time_max_days, delivery_time, supply_ability_qty, supply_ability_unit, certifications, unit, product_images(*)')
         .in('id', productIds)
         .eq('status', 'active');
+      
+      // Load companies separately if needed
+      let companiesMap = new Map();
+      if (productsData && productsData.length > 0) {
+        const companyIds = [...new Set(productsData.map(p => p.company_id).filter(Boolean))];
+        if (companyIds.length > 0) {
+          try {
+            const { data: companies } = await supabase
+              .from('companies')
+              .select('id, company_name, country, verification_status, verified')
+              .in('id', companyIds);
+            
+            if (companies) {
+              companies.forEach(c => companiesMap.set(c.id, c));
+            }
+          } catch (err) {
+            console.warn('Error loading companies for comparison:', err);
+            // Continue without company data
+          }
+        }
+      }
 
       if (error) throw error;
 
-      // Merge with comparison list to preserve order
+      // Merge with comparison list to preserve order and add company data
       const orderedProducts = compareList
-        .map(item => productsData?.find(p => p.id === item.id))
+        .map(item => {
+          const product = productsData?.find(p => p.id === item.id);
+          if (!product) return null;
+          return {
+            ...product,
+            companies: companiesMap.get(product.company_id) || null
+          };
+        })
         .filter(Boolean);
 
       setProducts(orderedProducts);

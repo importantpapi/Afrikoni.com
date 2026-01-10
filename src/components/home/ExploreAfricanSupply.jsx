@@ -2,15 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { ArrowRight, MapPin, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Sprout, Shirt, HardHat, Heart, Home, Smartphone } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import Price from '@/components/ui/Price';
+import Price from '@/components/shared/ui/Price';
 import { matchProductToPopularCategory } from '@/utils/productCategoryIntelligence';
-import SaveButton from '@/components/ui/SaveButton';
+import SaveButton from '@/components/shared/ui/SaveButton';
 import OptimizedImage from '@/components/OptimizedImage';
 
 // All 54 African countries with flags

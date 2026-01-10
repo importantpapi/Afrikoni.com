@@ -6,8 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Circle, Shield, Building2, Package, MessageSquare, Sparkles } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 

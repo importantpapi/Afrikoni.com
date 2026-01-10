@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useAuth } from '../contexts/AuthProvider';
 
 export type UserRole = 'buyer' | 'seller' | 'hybrid' | 'logistics';
 
@@ -16,51 +15,19 @@ type RoleContextValue = {
 
 const RoleContext = createContext<RoleContextValue | undefined>(undefined);
 
-function normalizeRole(rawRole: string | null | undefined): UserRole | null {
-  if (!rawRole) return null;
-  const value = rawRole.toLowerCase();
-  if (value === 'buyer') return 'buyer';
-  if (value === 'seller') return 'seller';
-  if (value === 'hybrid') return 'hybrid';
-  if (value === 'logistics' || value === 'logistics_partner') return 'logistics';
-  return null;
-}
-
 export function RoleProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { role: authRole, loading: authLoading, refreshProfile } = useAuth();
 
-  const loadRole = async () => {
-    try {
-      const { role: rawRole, profile } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      const normalized =
-        normalizeRole(rawRole) ||
-        normalizeRole((profile as any)?.role) ||
-        normalizeRole((profile as any)?.user_role);
-      setRole(normalized);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('RoleProvider: failed to load role', error);
-      }
-      setRole(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadRole();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const normalizedRole = authRole as UserRole | null;
 
   const value: RoleContextValue = {
-    role,
-    loading,
-    refreshRole: loadRole,
-    isBuyer: role === 'buyer',
-    isSeller: role === 'seller',
-    isHybrid: role === 'hybrid',
-    isLogistics: role === 'logistics',
+    role: normalizedRole,
+    loading: authLoading,
+    refreshRole: refreshProfile,
+    isBuyer: normalizedRole === 'buyer',
+    isSeller: normalizedRole === 'seller',
+    isHybrid: normalizedRole === 'hybrid',
+    isLogistics: normalizedRole === 'logistics',
   };
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
@@ -68,33 +35,10 @@ export function RoleProvider({ children }: { children: ReactNode }) {
 
 export function useRole() {
   const ctx = useContext(RoleContext);
-  if (!ctx) {
-    throw new Error('useRole must be used within a RoleProvider');
-  }
+  if (!ctx) throw new Error('useRole must be used within RoleProvider');
   return ctx;
 }
 
 export function getDashboardHomePath(role: UserRole | null): string {
-  switch (role) {
-    case 'buyer':
-      return '/dashboard';
-    case 'seller':
-      return '/dashboard';
-    case 'hybrid':
-      return '/dashboard';
-    case 'logistics':
-      return '/dashboard';
-    default:
-      return '/dashboard';
-  }
+  return '/dashboard';
 }
-
-
-
-
-
-
-
-
-
-

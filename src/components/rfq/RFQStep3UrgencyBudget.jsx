@@ -8,11 +8,11 @@
  */
 
 import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Badge } from '@/components/shared/ui/badge';
+import { Calendar } from '@/components/shared/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/shared/ui/popover';
 import { CalendarIcon, Clock, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 

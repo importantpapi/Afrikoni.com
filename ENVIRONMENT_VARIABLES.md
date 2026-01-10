@@ -1,167 +1,145 @@
-# 🔐 Environment Variables Guide
+# 🔐 ENVIRONMENT VARIABLES FOR VERCEL
 
-## Required Variables
+**Quick Reference Guide** - Copy and paste these into Vercel Dashboard
 
-### VITE_SUPABASE_URL
-**Required:** Yes  
-**Description:** Your Supabase project URL  
+---
+
+## ✅ REQUIRED VARIABLES
+
+### 1. VITE_SUPABASE_URL
+
+**Key:** `VITE_SUPABASE_URL`  
 **Value:** `https://qkeeufeiaphqylsnfhza.supabase.co`  
-**Where to Set:**
-- Vercel: Dashboard → Project → Settings → Environment Variables
-- Local: `.env` file in root directory
+**Environments:** ✅ Production, ✅ Preview, ✅ Development
 
-### VITE_SUPABASE_ANON_KEY
-**Required:** Yes  
-**Description:** Your Supabase anonymous/public key  
+**How to Get:**
+1. Go to: https://supabase.com/dashboard/project/qkeeufeiaphqylsnfhza/settings/api
+2. Copy **Project URL**
+
+---
+
+### 2. VITE_SUPABASE_ANON_KEY
+
+**Key:** `VITE_SUPABASE_ANON_KEY`  
 **Value:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrZWV1ZmVpYXBocXlsc25maHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MzYwNjYsImV4cCI6MjA4MDAxMjA2Nn0.CaGKQ3C5rz-XP-5r2I8xrHZ7F-5w4Z-1yzxtclddQus`  
-**Where to Set:**
-- Vercel: Dashboard → Project → Settings → Environment Variables
-- Local: `.env` file in root directory
+**Environments:** ✅ Production, ✅ Preview, ✅ Development
+
+**How to Get:**
+1. Go to: https://supabase.com/dashboard/project/qkeeufeiaphqylsnfhza/settings/api
+2. Copy **anon/public** key
 
 ---
 
-## Optional Variables
+## ⚠️ OPTIONAL VARIABLES
 
-### VITE_OPENAI_API_KEY
-**Required:** No  
-**Description:** OpenAI API key for KoniAI features  
-**Format:** `sk-proj-...`  
-**Where to Set:**
-- Vercel: Dashboard → Project → Settings → Environment Variables
-- Local: `.env` file in root directory
+### 3. VITE_OPENAI_API_KEY (Optional - For KoniAI)
 
-**Note:** Without this key, KoniAI features will show a banner but won't function.
+**Key:** `VITE_OPENAI_API_KEY`  
+**Value:** `sk-proj-...` (your OpenAI API key)  
+**Environments:** ✅ Production, ✅ Preview, ✅ Development
 
-### VITE_SENTRY_DSN
-**Required:** No  
-**Description:** Sentry DSN for error tracking and performance monitoring  
-**Format:** `https://xxxxx@xxxxx.ingest.sentry.io/xxxxx`  
-**Where to Set:**
-- Vercel: Dashboard → Project → Settings → Environment Variables
-- Local: `.env` file in root directory
+**How to Get:**
+1. Go to: https://platform.openai.com/api-keys
+2. Create new API key
+3. Copy key
 
-**Note:** Without this key, error tracking is disabled. No warnings are shown. To enable:
-1. Sign up at https://sentry.io (free tier available)
-2. Create a project and get your DSN
-3. Add to environment variables
-4. Restart dev server or redeploy
+**Note:** Without this, KoniAI features will show a banner but won't function.
 
-### VITE_GA4_ID
-**Required:** No  
-**Description:** Google Analytics 4 tracking ID  
-**Format:** `G-XXXXXXXXXX`  
-**Where to Set:**
-- Vercel: Dashboard → Project → Settings → Environment Variables
-- Local: `.env` file in root directory
+---
 
-**Note:** Without this key, analytics tracking is disabled. No warnings are shown. To enable:
-1. Create a GA4 property at https://analytics.google.com
+### 4. VITE_SENTRY_DSN (Optional - For Error Tracking)
+
+**Key:** `VITE_SENTRY_DSN`  
+**Value:** `https://xxxxx@xxxxx.ingest.sentry.io/xxxxx`  
+**Environments:** ✅ Production, ✅ Preview, ✅ Development
+
+**How to Get:**
+1. Sign up at: https://sentry.io (free tier available)
+2. Create a project
+3. Get your DSN from project settings
+
+**Note:** Without this, error tracking is disabled. No warnings shown.
+
+---
+
+### 5. VITE_GA4_ID (Optional - For Analytics)
+
+**Key:** `VITE_GA4_ID`  
+**Value:** `G-XXXXXXXXXX`  
+**Environments:** ✅ Production, ✅ Preview, ✅ Development
+
+**How to Get:**
+1. Create GA4 property at: https://analytics.google.com
 2. Get your Measurement ID (format: G-XXXXXXXXXX)
-3. Add to environment variables
-4. Restart dev server or redeploy
+
+**Note:** Without this, analytics tracking is disabled. No warnings shown.
 
 ---
 
-## Local Development Setup
+## 📋 HOW TO ADD IN VERCEL
 
-### Create `.env` file in root directory:
+### Step-by-Step:
 
-```env
-# Required
-VITE_SUPABASE_URL=https://qkeeufeiaphqylsnfhza.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrZWV1ZmVpYXBocXlsc25maHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MzYwNjYsImV4cCI6MjA4MDAxMjA2Nn0.CaGKQ3C5rz-XP-5r2I8xrHZ7F-5w4Z-1yzxtclddQus
+1. **Go to:** https://vercel.com/YOUR_USERNAME/afrikoni-marketplace/settings/environment-variables
+   (Replace YOUR_USERNAME with your Vercel username)
 
-# Optional
-VITE_OPENAI_API_KEY=sk-proj-... (for KoniAI features)
-VITE_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx (for error tracking)
-VITE_GA4_ID=G-XXXXXXXXXX (for analytics)
-```
+2. **For each variable:**
+   - Click **"Add New"**
+   - Enter **Key** (e.g., `VITE_SUPABASE_URL`)
+   - Enter **Value** (e.g., `https://qkeeufeiaphqylsnfhza.supabase.co`)
+   - Select **Environments:** Check all three (Production, Preview, Development)
+   - Click **"Save"**
 
-### Verify Setup:
-```bash
-# Check if variables are loaded
-npm run dev
-# Check browser console - should not show "VITE_SUPABASE_URL not set" warnings
-```
+3. **After adding all variables:**
+   - Go to **Deployments** tab
+   - Click **"Redeploy"** on the latest deployment
+   - This ensures new variables are loaded
 
 ---
 
-## Vercel Deployment Setup
+## ✅ VERIFICATION
 
-### Steps:
-1. Go to: https://vercel.com/youbas-projects/afrikoni-marketplace/settings/environment-variables
-2. Click "Add New"
-3. Add each variable:
-   - Key: `VITE_SUPABASE_URL`
-   - Value: `https://qkeeufeiaphqylsnfhza.supabase.co`
-   - Environment: Production, Preview, Development (select all)
-4. Repeat for `VITE_SUPABASE_ANON_KEY`
-5. (Optional) Add `VITE_OPENAI_API_KEY` if using KoniAI
-6. Click "Save"
-7. Redeploy: `vercel --prod` or push to GitHub
+### After Adding Variables:
 
----
-
-## Verification
-
-### Check if variables are set:
-```javascript
-// In browser console
-console.log(import.meta.env.VITE_SUPABASE_URL)
-console.log(import.meta.env.VITE_SUPABASE_ANON_KEY)
-```
-
-### Expected Output:
-- `VITE_SUPABASE_URL`: Should show the Supabase URL
-- `VITE_SUPABASE_ANON_KEY`: Should show the key (not undefined)
+1. **Trigger a new deployment** (or redeploy existing)
+2. **Check build logs** - Should not show "VITE_SUPABASE_URL not set"
+3. **Test in browser:**
+   ```javascript
+   // Open browser console (F12)
+   console.log(import.meta.env.VITE_SUPABASE_URL)
+   // Should show: https://qkeeufeiaphqylsnfhza.supabase.co
+   ```
 
 ---
 
-## Troubleshooting
+## 🔒 SECURITY NOTES
 
-### Issue: "VITE_SUPABASE_URL not set"
-**Solution:**
-1. Check `.env` file exists in root directory
-2. Verify variable names start with `VITE_`
-3. Restart dev server: `npm run dev`
-4. For Vercel: Check environment variables in dashboard
-
-### Issue: "Cannot connect to Supabase"
-**Solution:**
-1. Verify `VITE_SUPABASE_URL` is correct
-2. Verify `VITE_SUPABASE_ANON_KEY` is correct
-3. Check Supabase project is active
-4. Check network/firewall settings
-
-### Issue: "Storage bucket not found"
-**Solution:**
-1. Go to Supabase Dashboard → Storage
-2. Verify `product-images` bucket exists
-3. Verify bucket is PUBLIC
-4. Check storage policies allow public read
-
----
-
-## Security Notes
-
-- ✅ `VITE_SUPABASE_ANON_KEY` is safe to expose (it's public)
-- ✅ `VITE_SUPABASE_URL` is safe to expose (it's public)
+- ✅ `VITE_SUPABASE_ANON_KEY` is **safe to expose** (it's public)
+- ✅ `VITE_SUPABASE_URL` is **safe to expose** (it's public)
 - ⚠️ `VITE_OPENAI_API_KEY` should be kept secret (but Vite prefixes with VITE_ make it public in client code)
 - 💡 For production, consider using Supabase Edge Functions for sensitive operations
 
 ---
 
-## Quick Reference
+## 📝 QUICK COPY-PASTE FOR VERCEL
 
-| Variable | Required | Used For |
-|----------|----------|----------|
-| `VITE_SUPABASE_URL` | ✅ Yes | Database, Auth, Storage |
-| `VITE_SUPABASE_ANON_KEY` | ✅ Yes | Database, Auth, Storage |
-| `VITE_OPENAI_API_KEY` | ❌ No | KoniAI features |
-| `VITE_SENTRY_DSN` | ❌ No | Error tracking & performance monitoring |
-| `VITE_GA4_ID` | ❌ No | Google Analytics 4 tracking |
+### Required Variables (Copy these):
+
+```
+VITE_SUPABASE_URL=https://qkeeufeiaphqylsnfhza.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrZWV1ZmVpYXBocXlsc25maHphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MzYwNjYsImV4cCI6MjA4MDAxMjA2Nn0.CaGKQ3C5rz-XP-5r2I8xrHZ7F-5w4Z-1yzxtclddQus
+```
+
+### Optional Variables (Add if you have them):
+
+```
+VITE_OPENAI_API_KEY=sk-proj-...
+VITE_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
+VITE_GA4_ID=G-XXXXXXXXXX
+```
 
 ---
 
-**Status:** ✅ All environment variables documented and ready
+**Status:** ✅ **READY TO ADD TO VERCEL**
 
+Copy the values above and add them to your Vercel project settings!

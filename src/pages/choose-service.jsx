@@ -1,14 +1,13 @@
 /**
  * Choose Service Page - MANDATORY Service Selection
- * 
+ *
  * Users must choose exactly ONE service role:
  * - buyer
  * - seller
  * - hybrid
  * - logistics
- * 
+ *
  * This choice determines their dashboard and available tools.
- * Only ONE role is active at a time.
  */
 
 import React, { useEffect, useState } from 'react';
@@ -16,188 +15,147 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, Package, Truck, Store } from 'lucide-react';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { ShoppingCart, Package, Truck, Store, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Logo } from '@/components/ui/Logo';
-import { Loader2 } from 'lucide-react';
+import { Logo } from '@/components/shared/ui/Logo';
 
 export default function ChooseService() {
-  // Use centralized AuthProvider
   const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
-  const [currentRole, setCurrentRole] = useState(null);
 
+  // ─────────────────────────────────────────────
+  // AUTH GUARD
+  // ─────────────────────────────────────────────
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[ChooseService] Waiting for auth to be ready...');
-      return;
-    }
+    if (!authReady || authLoading) return;
 
-    // GUARD: No user → redirect
     if (!user) {
       navigate('/login', { replace: true });
       return;
     }
 
-    // If user already has a role, redirect to their dashboard
-    const userRole = role || profile?.role;
-    if (userRole && ['buyer', 'seller', 'hybrid', 'logistics'].includes(userRole)) {
-      const dashboardPath = `/dashboard/${userRole}`;
-      navigate(dashboardPath, { replace: true });
-      return;
+    const existingRole = role || profile?.role;
+    if (existingRole && ['buyer', 'seller', 'hybrid', 'logistics'].includes(existingRole)) {
+      navigate(`/dashboard/${existingRole}`, { replace: true });
     }
+  }, [authReady, authLoading, user, role, profile, navigate]);
 
-    setCurrentRole(userRole || null);
-  }, [authReady, authLoading, user, profile, role, navigate]);
-
+  // ─────────────────────────────────────────────
+  // 🔥 FINAL ROLE SAVE (RPC — SAFE & IDEMPOTENT)
+  // ─────────────────────────────────────────────
   const handleSelectService = async (selectedRole) => {
     if (saving) return;
 
-    // GUARD: Check auth
     if (!authReady || !user) {
       navigate('/login', { replace: true });
       return;
     }
 
     setSaving(true);
+
     try {
-      // Use auth from context (no duplicate call)
+      const { data, error } = await supabase.rpc('set_user_role', {
+        new_role: selectedRole,
+      });
 
-      // Save role to profiles.role (single source of truth)
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: selectedRole })
-        .eq('id', user.id);
-
-      if (error) {
-        throw error;
+      if (error || !data?.ok) {
+        console.error('[ChooseService] Role save failed:', error || data);
+        throw new Error('Role save failed');
       }
 
-      toast.success('Service selected successfully!');
+      toast.success('Service selected successfully');
+      navigate(`/dashboard/${selectedRole}`, { replace: true });
 
-      // Immediately redirect to role-specific dashboard
-      const dashboardPath = `/${role}/dashboard`;
-      navigate(dashboardPath, { replace: true });
-    } catch (error) {
-      console.error('ChooseService save error:', error);
+    } catch (err) {
+      console.error('[ChooseService] Error:', err);
       toast.error('Failed to save service selection. Please try again.');
       setSaving(false);
     }
   };
 
-  // Show loading while auth is initializing
+  // ─────────────────────────────────────────────
+  // LOADING STATE
+  // ─────────────────────────────────────────────
   if (!authReady || authLoading) {
-    return (
-      <SpinnerWithTimeout message="Loading service selection..." />
-    );
+    return <SpinnerWithTimeout message="Loading service selection..." />;
   }
 
+  // ─────────────────────────────────────────────
+  // SERVICES CONFIG
+  // ─────────────────────────────────────────────
   const services = [
     {
       id: 'buyer',
       title: 'Buyer',
       icon: ShoppingCart,
-      description: 'Source products from verified African suppliers. Place orders with Trade Shield protection.',
-      features: [
-        'Search and compare suppliers',
-        'Post RFQs and receive quotes',
-        'Place protected orders',
-        'Track shipments and payments'
-      ]
+      description: 'Source products from verified African suppliers.',
     },
     {
       id: 'seller',
       title: 'Seller',
       icon: Package,
-      description: 'Sell your products and services. Respond to RFQs from buyers across Africa.',
-      features: [
-        'List products in catalog',
-        'Respond to buyer RFQs',
-        'Manage orders and fulfillment',
-        'Track sales and payments'
-      ]
+      description: 'Sell products and respond to buyer RFQs.',
     },
     {
       id: 'hybrid',
       title: 'Hybrid',
       icon: Store,
-      description: 'Buy from other suppliers and sell your own products. One account for both buying and selling.',
-      features: [
-        'Access buyer and seller tools',
-        'Source products and sell yours',
-        'Unified order management',
-        'Complete B2B marketplace access'
-      ]
+      description: 'Buy and sell using one unified account.',
     },
     {
       id: 'logistics',
       title: 'Logistics Partner',
       icon: Truck,
-      description: 'Provide shipping, customs clearance, and delivery services to buyers and sellers.',
-      features: [
-        'Offer shipping services',
-        'Handle customs clearance',
-        'Manage deliveries',
-        'Track shipments in real-time'
-      ]
-    }
+      description: 'Provide shipping and logistics services.',
+    },
   ];
 
+  // ─────────────────────────────────────────────
+  // UI
+  // ─────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
-            <Logo type="full" size="lg" link={true} showTagline={true} />
+            <Logo type="full" size="lg" showTagline />
           </div>
           <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
             Choose how you want to use Afrikoni
           </h1>
-          <p className="text-lg text-afrikoni-deep/80">
-            This defines your dashboard and available tools.
-            <br />
-            You can change this later, but only one mode is active at a time.
+          <p className="text-afrikoni-deep/80">
+            This determines your dashboard and tools.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {services.map((service) => {
+          {services.map((service, index) => {
             const Icon = service.icon;
             return (
               <motion.div
                 key={service.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: services.indexOf(service) * 0.1 }}
+                transition={{ delay: index * 0.08 }}
               >
                 <Card
-                  className="border-afrikoni-gold/30 hover:border-afrikoni-gold shadow-lg bg-afrikoni-offwhite cursor-pointer transition-all h-full"
-                  onClick={() => !saving && handleSelectService(service.id)}
+                  className="cursor-pointer border-afrikoni-gold/30 hover:border-afrikoni-gold bg-afrikoni-offwhite shadow-lg transition-all"
+                  onClick={() => handleSelectService(service.id)}
                 >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-3 text-afrikoni-chestnut">
-                      <div className="p-3 rounded-lg bg-afrikoni-cream">
-                        <Icon className="w-6 h-6 text-afrikoni-gold" />
-                      </div>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <Icon className="w-6 h-6 text-afrikoni-gold" />
                       {service.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm text-afrikoni-deep/80 mb-4">
-                      {service.description}
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-xs text-afrikoni-deep/70 mb-4">
-                      {service.features.map((feature, idx) => (
-                        <li key={idx}>{feature}</li>
-                      ))}
-                    </ul>
+                  <CardContent>
+                    <p className="text-sm mb-4">{service.description}</p>
                     <Button
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold"
+                      className="w-full bg-afrikoni-gold text-afrikoni-chestnut"
                       disabled={saving}
                     >
                       {saving ? (
@@ -216,11 +174,10 @@ export default function ChooseService() {
           })}
         </div>
 
-        <p className="text-center text-sm text-afrikoni-deep/70 mt-6">
-          You can change your service mode anytime from your account settings.
+        <p className="text-center text-sm text-afrikoni-deep/70 mt-8">
+          You can change this later in your account settings.
         </p>
       </div>
     </div>
   );
 }
-

@@ -17,20 +17,31 @@ export async function getOrCreateCompany(supabase, userData) {
   const role = userData.role || userData.user_role || 'buyer';
   
   try {
+    // Convert year_established to integer or null (database expects integer, not empty string)
+    let yearEstablished = null;
+    if (userData.year_established) {
+      const year = typeof userData.year_established === 'string' 
+        ? parseInt(userData.year_established.trim(), 10) 
+        : userData.year_established;
+      if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
+        yearEstablished = year;
+      }
+    }
+
     const { data: newCompany, error } = await supabase
       .from('companies')
       .insert({
         company_name: userData.company_name || userData.full_name || 'My Company',
-        owner_email: userData.email || userData.business_email,
-        role: role === 'hybrid' ? 'hybrid' : role === 'logistics_partner' ? 'logistics' : role,
-        country: userData.country || '',
-        city: userData.city || '',
-        phone: userData.phone || '',
-        email: userData.business_email || userData.email,
-        website: userData.website || '',
-        year_established: userData.year_established || '',
+        owner_email: userData.email || userData.business_email || null,
+        role: role === 'hybrid' ? 'hybrid' : role === 'logistics_partner' ? 'logistics' : role || null,
+        country: userData.country || null,
+        city: userData.city || null,
+        phone: userData.phone || null,
+        email: userData.business_email || userData.email || null,
+        website: userData.website || null,
+        year_established: yearEstablished, // INTEGER: null or valid year
         employee_count: userData.company_size || '1-10',
-        description: userData.company_description || '',
+        description: userData.company_description || null,
         // ✅ CRITICAL: All new companies start as unverified - admin must approve before they appear on verified suppliers page
         verified: false,
         verification_status: 'unverified'

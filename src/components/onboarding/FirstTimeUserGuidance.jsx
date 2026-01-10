@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronRight, CheckCircle2, Lightbulb, Shield, FileText, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
 
 /**
  * First-Time User Guidance

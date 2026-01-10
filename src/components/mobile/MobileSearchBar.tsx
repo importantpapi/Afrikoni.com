@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/shared/ui/input';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 interface MobileSearchBarProps {

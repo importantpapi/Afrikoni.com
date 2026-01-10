@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
 import { UserCheck, Package, MessageCircle, TrendingUp, Star, Box, Leaf, Shirt } from 'lucide-react';
 import { createPageUrl } from '../utils';
 

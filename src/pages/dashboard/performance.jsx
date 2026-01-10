@@ -7,20 +7,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, Package, AlertTriangle, Star, BarChart3 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { 
   getSupplierPerformance,
   calculateSupplierPerformance
 } from '@/lib/supabaseQueries/products';
 import { toast } from 'sonner';
-import { CardSkeleton } from '@/components/ui/skeletons';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 
 function PerformanceDashboardInner() {
   // Use centralized AuthProvider
@@ -212,9 +212,10 @@ function PerformanceDashboardInner() {
 
 export default function PerformanceDashboard() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    {/* PHASE 5B: Performance requires sell capability (approved) */}
+    <RequireCapability canSell={true} requireApproved={true}>
       <PerformanceDashboardInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

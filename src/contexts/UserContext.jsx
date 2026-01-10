@@ -1,129 +1,51 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../api/supabaseClient';
+/**
+ * UserContext - Backward compatibility wrapper for AuthProvider
+ * 
+ * This context simply re-exports AuthProvider data for backward compatibility
+ * during migration. It prevents AuthSessionMissingError by using AuthProvider
+ * instead of calling Supabase auth directly.
+ * 
+ * TODO: Remove this file once all components migrate to useAuth() directly
+ */
+
+import { createContext, useContext } from 'react';
+import { useAuth } from './AuthProvider';
 
 const UserContext = createContext(null);
 
+/**
+ * UserProvider - Wraps AuthProvider for backward compatibility
+ * 
+ * Simply consumes AuthProvider and re-exports its data.
+ * This prevents duplicate auth calls and AuthSessionMissingError for guests.
+ */
 export function UserProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Use AuthProvider instead of duplicating auth logic
+  const auth = useAuth();
 
-  // Fetch user + profile once
-  const fetchUserData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) throw userError;
-
-      if (!authUser) {
-        setUser(null);
-        setProfile(null);
-        setLoading(false);
-        return;
-      }
-
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-
-      if (profileError) {
-        // Profile might not exist yet (new user), set user but no profile
-        console.warn('Profile not found for user:', profileError);
-        setUser(authUser);
-        setProfile(null);
-        setLoading(false);
-        return;
-      }
-
-      setUser(authUser);
-      setProfile(profileData);
-    } catch (err) {
-      console.error('Error fetching user data:', err);
-      setError(err.message);
-      setUser(null);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Refresh function for when profile is updated
-  const refreshProfile = useCallback(async () => {
-    if (!user?.id) {
-      // If no user, fetch everything
-      await fetchUserData();
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.warn('Error refreshing profile:', error);
-        return;
-      }
-      
-      if (data) {
-        setProfile(data);
-      }
-    } catch (err) {
-      console.error('Error refreshing profile:', err);
-    }
-  }, [user?.id, fetchUserData]);
-
-  // Refresh user data (both user and profile)
-  const refreshUserData = useCallback(async () => {
-    await fetchUserData();
-  }, [fetchUserData]);
-
-  useEffect(() => {
-    fetchUserData();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        await fetchUserData();
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setProfile(null);
-        setError(null);
-      } else if (event === 'USER_UPDATED') {
-        // User metadata updated, refresh user data
-        await fetchUserData();
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [fetchUserData]);
+  // Map AuthProvider data to UserContext format for backward compatibility
+  const value = {
+    user: auth.user,
+    profile: auth.profile,
+    loading: auth.loading,
+    error: auth.error,
+    refreshProfile: auth.refreshProfile,
+    refreshUserData: auth.refreshAuth, // Map refreshAuth to refreshUserData
+  };
 
   return (
-    <UserContext.Provider 
-      value={{ 
-        user, 
-        profile, 
-        loading, 
-        error, 
-        refreshProfile,
-        refreshUserData 
-      }}
-    >
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );
 }
 
+/**
+ * useUser - Backward compatibility hook
+ * 
+ * Simply re-exports AuthProvider data.
+ * Prefer useAuth() for new code.
+ */
 export function useUser() {
   const context = useContext(UserContext);
   if (!context) {

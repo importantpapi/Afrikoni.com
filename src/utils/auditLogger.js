@@ -30,7 +30,8 @@ export async function getClientIPAndCountry() {
       region: data.region || null
     };
   } catch (error) {
-    console.warn('Failed to get IP/country:', error);
+    // Silently fail - CORS error on localhost is expected, use fallback values
+    console.debug('[IP Detection] Failed (non-critical):', error.message || 'CORS or network error');
     // Fallback values
     return {
       ip_address: 'unknown',

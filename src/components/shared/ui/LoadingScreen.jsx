@@ -5,13 +5,17 @@
 
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
+import { Logo } from '@/components/shared/ui/Logo';
+import { useAuth } from '@/contexts/AuthProvider';
 
-export default function LoadingScreen({ 
+/**
+ * Full-screen loading indicator shown during app initialization
+ */
+export const LoadingScreen = ({ 
   message = 'Loading...', 
   showLogo = true,
   size = 'lg'
-}) {
+}) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md text-center">
@@ -25,4 +29,20 @@ export default function LoadingScreen({
       </div>
     </div>
   );
-}
+};
+
+/**
+ * Auth-aware loading guard
+ * Shows loading screen until auth is ready
+ */
+export const AuthLoadingGuard = ({ children }) => {
+  const { authReady } = useAuth();
+
+  if (!authReady) {
+    return <LoadingScreen message="Connecting..." />;
+  }
+
+  return children;
+};
+
+export default LoadingScreen;

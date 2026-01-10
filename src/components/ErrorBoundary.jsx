@@ -1,11 +1,9 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -13,58 +11,22 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({ errorInfo });
-    
-    // Log error to error reporting service
-    import('@/utils/sentry').then(({ captureException }) => {
-      captureException(error, { 
-        componentStack: errorInfo.componentStack,
-        errorBoundary: true
-      });
-    }).catch(() => {
-      // Silently fail if Sentry not available
-    });
-    
-    // Development: Also log to console
-    if (import.meta.env.DEV) {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
-    }
+    console.error('Error caught by boundary:', error, errorInfo);
   }
-
-  handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
-  };
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[400px] flex items-center justify-center bg-afrikoni-offwhite p-4">
-          <div className="max-w-md w-full text-center bg-white rounded-lg shadow-lg p-8 border border-afrikoni-gold/20">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-2">Something went wrong</h1>
-            <p className="text-afrikoni-deep mb-6">
-              {this.props.fallbackMessage || "We're sorry, but something unexpected happened. Please try again."}
-            </p>
-            {import.meta.env.DEV && this.state.error && (
-              <details className="text-left mb-4 p-3 bg-afrikoni-cream rounded text-xs">
-                <summary className="cursor-pointer font-semibold mb-2">Error Details (Dev Only)</summary>
-                <pre className="whitespace-pre-wrap overflow-auto">{this.state.error.toString()}</pre>
-              </details>
-            )}
-            <div className="flex gap-3 justify-center">
-              <Button
-                onClick={this.handleReset}
-                variant="primary"
-              >
-                Retry
-              </Button>
-              <Button
-                onClick={() => window.location.href = '/'}
-                variant="outline"
-              >
-                Go Home
-              </Button>
-            </div>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Oops! Something went wrong</h2>
+            <p className="text-gray-600 mb-4">We're sorry, but something unexpected happened.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Reload Page
+            </button>
           </div>
         </div>
       );
@@ -75,4 +37,3 @@ class ErrorBoundary extends React.Component {
 }
 
 export default ErrorBoundary;
-

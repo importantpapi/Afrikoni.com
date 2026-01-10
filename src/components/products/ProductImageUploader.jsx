@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, ArrowUp, ArrowDown, Image as ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shared/ui/button';
 import { supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 

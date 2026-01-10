@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 import { Shield, CheckCircle, AlertTriangle, Lock, FileText, DollarSign, Eye, Truck, Package, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { DataTable, StatusChip } from '@/components/ui/data-table';
-import EmptyState from '@/components/ui/EmptyState';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import { DataTable, StatusChip } from '@/components/shared/ui/data-table';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardProtectionInner() {
   // Use centralized AuthProvider
@@ -524,9 +524,10 @@ function DashboardProtectionInner() {
 
 export default function DashboardProtection() {
   return (
-    <RequireDashboardRole allow={['buyer', 'hybrid']}>
+    {/* PHASE 5B: Protection requires buy capability */}
+    <RequireCapability canBuy={true}>
       <DashboardProtectionInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

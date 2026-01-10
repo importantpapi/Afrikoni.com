@@ -6,9 +6,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, CheckCircle, Sparkles } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
 
 export default function VerificationUpsell({ 
   isVerified = false,

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/shared/ui/radio-group';
+import { Label } from '@/components/shared/ui/label';
 import { CreditCard, DollarSign, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '../utils';

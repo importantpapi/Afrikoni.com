@@ -9,7 +9,7 @@ import {
   Shield, Zap, Heart, Lightbulb, 
   Award, Target, Users, CheckCircle 
 } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
+import { Logo } from '@/components/shared/ui/Logo';
 
 export default function BushidoManifesto() {
   const principles = [

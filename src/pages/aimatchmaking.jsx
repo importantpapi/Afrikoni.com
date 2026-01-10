@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Label } from '@/components/shared/ui/label';
 import { Sparkles, Building2, MapPin, Star, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { AIMatchingService } from '@/components/services/AIMatchingService';

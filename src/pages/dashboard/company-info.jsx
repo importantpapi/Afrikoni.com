@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthProvider';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Label } from '@/components/shared/ui/label';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Badge } from '@/components/shared/ui/badge';
 import { Building2, Save, CheckCircle, AlertCircle, Upload, X, Image as ImageIcon, Users, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 import DashboardLayout from '@/layouts/DashboardLayout';
 
 const AFRICAN_COUNTRIES = [
@@ -485,22 +486,33 @@ export default function CompanyInfo() {
       if (companyId) {
         console.log('🔄 Updating existing company:', companyId);
         // Update existing company
+        // Convert year_established to integer or null (database expects integer, not empty string)
+        let yearEstablished = null;
+        if (formData.year_established) {
+          const year = typeof formData.year_established === 'string' 
+            ? parseInt(formData.year_established.trim(), 10) 
+            : formData.year_established;
+          if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
+            yearEstablished = year;
+          }
+        }
+        
         const updatePromise = supabase
           .from('companies')
           .update({
             company_name: formData.company_name,
             business_type: formData.business_type,
-            country: formData.country,
-            city: formData.city,
-            phone: formData.phone,
-            email: formData.business_email || user.email,
-            website: formData.website,
-            year_established: formData.year_established,
-            employee_count: formData.company_size,
-            description: formData.company_description,
-            logo_url: logoUrl,
-            cover_image_url: coverUrl,
-            gallery_images: galleryImages
+            country: formData.country || null,
+            city: formData.city || null,
+            phone: formData.phone || null,
+            email: formData.business_email || user.email || null,
+            website: formData.website || null,
+            year_established: yearEstablished, // INTEGER: null or valid year
+            employee_count: formData.company_size || '1-10',
+            description: formData.company_description || null,
+            logo_url: logoUrl || null,
+            cover_image_url: coverUrl || null,
+            gallery_images: galleryImages || null
           })
           .eq('id', companyId);
 
@@ -515,21 +527,33 @@ export default function CompanyInfo() {
         console.log('🔄 Creating new company...');
         // Create new company
         // ✅ CRITICAL: All new companies start as unverified - admin must approve before they appear on verified suppliers page
+        
+        // Convert year_established to integer or null (database expects integer, not empty string)
+        let yearEstablished = null;
+        if (formData.year_established) {
+          const year = typeof formData.year_established === 'string' 
+            ? parseInt(formData.year_established.trim(), 10) 
+            : formData.year_established;
+          if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
+            yearEstablished = year;
+          }
+        }
+        
         const insertData = {
           company_name: formData.company_name,
           owner_email: user.email,
           business_type: formData.business_type,
-          country: formData.country,
-          city: formData.city,
-          phone: formData.phone,
-          email: formData.business_email || user.email,
-          website: formData.website,
-          year_established: formData.year_established,
-          employee_count: formData.company_size,
-          description: formData.company_description,
-          logo_url: logoUrl,
-          cover_image_url: coverUrl,
-          gallery_images: galleryImages,
+          country: formData.country || null,
+          city: formData.city || null,
+          phone: formData.phone || null,
+          email: formData.business_email || user.email || null,
+          website: formData.website || null,
+          year_established: yearEstablished, // INTEGER: null or valid year
+          employee_count: formData.company_size || '1-10',
+          description: formData.company_description || null,
+          logo_url: logoUrl || null,
+          cover_image_url: coverUrl || null,
+          gallery_images: galleryImages || null,
           verified: false,
           verification_status: 'unverified'
         };

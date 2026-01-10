@@ -7,25 +7,25 @@ import { getUserRole } from '@/utils/roleHelpers';
 import { PRODUCT_STATUS, getStatusLabel } from '@/constants/status';
 import { buildProductQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
-import { CardSkeleton } from '@/components/ui/skeletons';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Input } from '@/components/shared/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Package, Plus, Search, Edit, Trash2, Eye, Pause, Play, Star, TrendingUp, Users, Sparkles, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-import EmptyState from '@/components/ui/EmptyState';
+import EmptyState from '@/components/shared/ui/EmptyState';
 import ProductStatsBar from '@/components/products/ProductStatsBar';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
 import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
 import VerificationUpsell from '@/components/upsell/VerificationUpsell';
 import { getCompanySubscription } from '@/services/subscriptionService';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import RequireCapability from '@/guards/RequireCapability';
 import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 const AFRICAN_COUNTRIES = [
@@ -605,10 +605,11 @@ function DashboardProductsInner() {
 }
 
 export default function DashboardProducts() {
+  // PHASE 5B: Products page requires sell capability (approved)
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid']}>
+    <RequireCapability canSell={true} requireApproved={true}>
       <DashboardProductsInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

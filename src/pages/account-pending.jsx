@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getBusinessProfile } from '@/lib/supabase-auth-helpers';
-import { Logo } from '@/components/ui/Logo';
-import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/shared/ui/Logo';
+import { Button } from '@/components/shared/ui/button';
 import { Loader2, ShieldCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 

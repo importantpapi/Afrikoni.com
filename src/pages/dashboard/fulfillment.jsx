@@ -7,24 +7,24 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Warehouse, Package, Truck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Badge } from '@/components/shared/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/ui/SpinnerWithTimeout';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { 
   getOrderFulfillment,
   updateFulfillmentStatus,
   getWarehouseLocations
 } from '@/lib/supabaseQueries/logistics';
 import { format } from 'date-fns';
-import EmptyState from '@/components/ui/EmptyState';
-import { CardSkeleton } from '@/components/ui/skeletons';
-import RequireDashboardRole from '@/guards/RequireDashboardRole';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import RequireCapability from '@/guards/RequireCapability';
 
 function FulfillmentDashboardInner() {
   // Use centralized AuthProvider
@@ -394,9 +394,10 @@ function FulfillmentDashboardInner() {
 
 export default function FulfillmentDashboard() {
   return (
-    <RequireDashboardRole allow={['seller', 'hybrid', 'logistics']}>
+    {/* PHASE 5B: Fulfillment requires sell or logistics capability (approved) */}
+    <RequireCapability canSell={true} canLogistics={true} requireApproved={true}>
       <FulfillmentDashboardInner />
-    </RequireDashboardRole>
+    </RequireCapability>
   );
 }
 

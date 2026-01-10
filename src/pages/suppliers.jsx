@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/shared/ui/button';
+import { Input } from '@/components/shared/ui/input';
+import { Card, CardContent } from '@/components/shared/ui/card';
+import { Badge } from '@/components/shared/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Search, Filter, Building2, MapPin, Star, Shield, Package, Users, MessageCircle, Globe, Bookmark } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useSupplierRanking } from '@/hooks/useSupplierRanking';
@@ -54,7 +54,7 @@ export default function Suppliers() {
     }
 
     loadSuppliers();
-  }, [authReady, authLoading, profile]);
+  }, [authReady, authLoading, profile?.country]); // ✅ Primitive only - prevents reload on token refresh
 
   useEffect(() => {
     applyFilters();

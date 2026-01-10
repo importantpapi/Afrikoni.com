@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/shared/ui/button';
+import { Card, CardContent } from '@/components/shared/ui/card';
 import { 
   Building2, Users, Shield, TrendingUp, CheckCircle, ArrowRight, 
   Zap, Globe, Lock, BarChart3, HeadphonesIcon, FileText, 
