@@ -8,6 +8,12 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { initExtensionProtection } from './utils/extensionProtection';
 initExtensionProtection();
 
+// ✅ TOTAL SYSTEM SYNC: Clear legacy cache on app initialization
+import { clearLegacyCache } from './utils/cacheCleanup';
+if (typeof window !== 'undefined') {
+  clearLegacyCache();
+}
+
 import { initSentry } from './utils/sentry';
 import { initGA4 } from './utils/analytics';
 import { trackPageLoad } from './utils/performance';

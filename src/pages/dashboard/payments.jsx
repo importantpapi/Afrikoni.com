@@ -3,8 +3,9 @@
  * Shows wallet balance, transactions, and escrow payments
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { motion } from 'framer-motion';
 import { Wallet, ArrowUpRight, ArrowDownLeft, Shield, Clock, CheckCircle, XCircle, DollarSign, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -12,7 +13,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -26,10 +27,12 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import RequireCapability from '@/guards/RequireCapability';
+import { useCapability } from '@/context/CapabilityContext';
 
 function PaymentsDashboardInner() {
   // Use centralized AuthProvider
   const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [escrowPayments, setEscrowPayments] = useState([]);
@@ -37,6 +40,27 @@ function PaymentsDashboardInner() {
   const [activeTab, setActiveTab] = useState('wallet');
   const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+  
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const profileCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -45,16 +69,38 @@ function PaymentsDashboardInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[PaymentsDashboard] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[PaymentsDashboard] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadData();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+    // GUARD: No company_id → cannot load payments
+    if (!profileCompanyId) {
+      console.log('[PaymentsDashboard] No company_id - cannot load payments');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[PaymentsDashboard] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadData();
+    } else {
+      console.log('[PaymentsDashboard] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
     try {
@@ -88,16 +134,25 @@ function PaymentsDashboardInner() {
         // Load escrow payments
         const escrows = await getEscrowPaymentsByCompany(userCompanyId, role);
         setEscrowPayments(escrows);
+        
+        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+        // Only mark fresh if we got actual data (not an error)
+        if (walletAccount || transactions.length > 0 || escrows.length > 0) {
+          lastLoadTimeRef.current = Date.now();
+          markFresh();
+        }
       } catch (dataError) {
         console.log('Payment tables not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setWallet(null);
         setTransactions([]);
         setEscrowPayments([]);
+        // ❌ DO NOT mark fresh on error - let it retry on next navigation
       }
     } catch (error) {
       console.error('Error loading payments data:', error);
       navigate('/dashboard');
+      // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
     }
@@ -128,11 +183,7 @@ function PaymentsDashboardInner() {
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <CardSkeleton count={3} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={3} />;
   }
 
   const totalInflow = transactions
@@ -152,7 +203,7 @@ function PaymentsDashboardInner() {
     .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
   return (
-    <DashboardLayout currentRole={userRole === 'seller' ? 'seller' : 'buyer'}>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -392,7 +443,7 @@ function PaymentsDashboardInner() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { useCapability } from '@/context/CapabilityContext';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -18,6 +18,8 @@ import { format } from 'date-fns';
 import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { logError } from '@/utils/errorLogger';
 
 function SupplierRFQsInner() {
   // Use centralized AuthProvider
@@ -25,11 +27,22 @@ function SupplierRFQsInner() {
   // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
   const capabilities = useCapability();
   const navigate = useNavigate();
+  const location = useLocation();
   const [rfqs, setRfqs] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('matched');
   const [companyId, setCompanyId] = useState(null);
+
+  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const userCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -38,17 +51,19 @@ function SupplierRFQsInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[SupplierRFQs] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect
-    if (!user) {
+    if (!userId) {
       navigate('/login');
       return;
     }
 
     // ✅ FOUNDATION FIX: Check capabilities instead of role
-    if (!capabilities.ready) {
-      return; // Will retry when capabilities load
-    }
-    
     const isSellerApproved = capabilities.can_sell === true && capabilities.sell_status === 'approved';
     if (!isSellerApproved) {
       toast.error('Supplier access required');
@@ -56,13 +71,19 @@ function SupplierRFQsInner() {
       return;
     }
 
-    // Use company_id from profile
-    const userCompanyId = profile?.company_id || null;
-    setCompanyId(userCompanyId);
-
-    // Now safe to load data
-    loadRFQs();
-  }, [statusFilter, authReady, authLoading, user, profile, capabilities.ready, navigate]);
+    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[SupplierRFQs] Data is stale or first load - refreshing');
+      setCompanyId(userCompanyId);
+      loadRFQs();
+    } else {
+      console.log('[SupplierRFQs] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
 
   const loadRFQs = async () => {
     try {
@@ -79,7 +100,16 @@ function SupplierRFQsInner() {
         .eq('status', 'matched')
         .order('created_at', { ascending: false });
 
-      if (rfqsError) throw rfqsError;
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      if (rfqsError) {
+        logError('loadRFQs', rfqsError, {
+          table: 'rfqs',
+          companyId: userCompanyId,
+          userId: userId
+        });
+        toast.error('Failed to load RFQs');
+        return; // Don't mark fresh on error
+      }
       
       // Filter to only RFQs where this supplier is in matched_supplier_ids
       const matchedRFQs = (rfqsData || []).filter(rfq => {
@@ -90,8 +120,16 @@ function SupplierRFQsInner() {
       });
       
       setRfqs(matchedRFQs);
+      
+      // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
     } catch (error) {
-      console.error('Error loading RFQs:', error);
+      logError('loadRFQs', error, {
+        table: 'rfqs',
+        companyId: userCompanyId,
+        userId: userId
+      });
       toast.error('Failed to load RFQs');
     } finally {
       setIsLoading(false);
@@ -107,7 +145,7 @@ function SupplierRFQsInner() {
   });
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -266,7 +304,7 @@ function SupplierRFQsInner() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

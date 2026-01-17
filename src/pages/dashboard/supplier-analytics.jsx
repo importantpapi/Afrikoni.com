@@ -6,7 +6,7 @@ import {
   Package, ArrowUp, ArrowDown, Target, Award, Globe, Clock,
   Calendar, Filter, Download, RefreshCw
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -431,41 +431,37 @@ function SupplierAnalyticsInner() {
 
   if (loading) {
     return (
-      <DashboardLayout currentRole="seller">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
   if (!companyId) {
     return (
-      <DashboardLayout currentRole="seller">
-        <div className="flex items-center justify-center min-h-screen">
-          <Card className="max-w-md">
-            <CardContent className="p-8 text-center">
-              <Package className="w-16 h-16 text-afrikoni-gold mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
-                Company Setup Required
-              </h2>
-              <p className="text-afrikoni-deep/70 mb-6">
-                Please complete your company profile to view analytics.
-              </p>
-              <Link to="/dashboard/company-info">
-                <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
-                  Complete Setup
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md">
+          <CardContent className="p-8 text-center">
+            <Package className="w-16 h-16 text-afrikoni-gold mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
+              Company Setup Required
+            </h2>
+            <p className="text-afrikoni-deep/70 mb-6">
+              Please complete your company profile to view analytics.
+            </p>
+            <Link to="/dashboard/company-info">
+              <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                Complete Setup
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout currentRole="seller">
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -973,7 +969,7 @@ function SupplierAnalyticsInner() {
           </Card>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

@@ -190,9 +190,7 @@ export default function VerificationStatus() {
 
   if (loading || !authReady || authLoading) {
     return (
-      <DashboardLayout>
-        <SpinnerWithTimeout message="Loading verification status..." />
-      </DashboardLayout>
+      <SpinnerWithTimeout message="Loading verification status..." />
     );
   }
 

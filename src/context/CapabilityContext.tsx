@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 
@@ -17,7 +17,7 @@ export type CapabilityData = {
 };
 
 type CapabilityContextValue = CapabilityData & {
-  refreshCapabilities: () => Promise<void>;
+  refreshCapabilities: (forceRefresh?: boolean) => Promise<void>;
 };
 
 const CapabilityContext = createContext<CapabilityContextValue | undefined>(undefined);
@@ -69,20 +69,28 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     }
   }, [profile?.company_id]);
 
-  const fetchCapabilities = async () => {
+  const fetchCapabilities = async (forceRefresh = false) => {
     // ✅ CRITICAL FIX: Safe access with optional chaining
     const targetCompanyId = profile?.company_id;
     
     // =========================================================================
-    // GUARD 1: IDEMPOTENCY - Already fetched for this company_id
+    // GUARD 1: IDEMPOTENCY - Already fetched for this company_id (unless force refresh)
     // =========================================================================
     if (
+      !forceRefresh &&
       hasFetchedRef.current &&
       fetchedCompanyIdRef.current === targetCompanyId &&
       capabilities?.ready
     ) {
       console.log('[CapabilityContext] Already fetched for company_id:', targetCompanyId, '- skipping');
       return;
+    }
+    
+    // If force refresh, reset the fetch flags
+    if (forceRefresh) {
+      console.log('[CapabilityContext] 🔄 Force refresh requested - resetting fetch flags');
+      hasFetchedRef.current = false;
+      fetchedCompanyIdRef.current = null;
     }
 
     // =========================================================================
@@ -313,9 +321,15 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   }, [authReady, currentUserId, currentCompanyId]); // ✅ Primitives only
 
   // ✅ CRITICAL FIX: Safe value with defaults
+  // refreshCapabilities now supports force refresh
+  const refreshCapabilities = useCallback(async (forceRefresh = false) => {
+    console.log('[CapabilityContext] refreshCapabilities called, forceRefresh:', forceRefresh);
+    await fetchCapabilities(forceRefresh);
+  }, []); // Stable reference - fetchCapabilities uses current profile via closure
+
   const value: CapabilityContextValue = {
     ...capabilities,
-    refreshCapabilities: fetchCapabilities,
+    refreshCapabilities,
   };
 
   // ✅ CRITICAL FIX: Always render children, even if context fails

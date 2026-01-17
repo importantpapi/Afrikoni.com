@@ -13,7 +13,7 @@ import {
   ChevronDown, ChevronUp, Upload, BarChart3, MapPin, UserCheck,
   ExternalLink, AlertCircle, Flag, Building2
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -68,11 +68,7 @@ export default function AntiCorruption() {
   }, [authReady, authLoading, user, profile, role]);
 
   if (loading || !authReady || authLoading) {
-    return (
-      <DashboardLayout currentRole="admin">
-        <SpinnerWithTimeout message="Loading Anti-Corruption Dashboard..." />
-      </DashboardLayout>
-    );
+    return <SpinnerWithTimeout message="Loading Anti-Corruption Dashboard..." />;
   }
 
   if (!hasAccess) {
@@ -154,7 +150,7 @@ export default function AntiCorruption() {
   }, []);
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Premium Header - v2.5 */}
         <motion.div
@@ -1071,6 +1067,6 @@ export default function AntiCorruption() {
           </motion.div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

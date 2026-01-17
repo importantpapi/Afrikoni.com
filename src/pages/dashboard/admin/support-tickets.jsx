@@ -18,7 +18,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { isAdmin } from '@/utils/permissions';
@@ -334,9 +334,9 @@ export default function AdminSupportTickets() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <CardSkeleton count={3} />
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -347,7 +347,7 @@ export default function AdminSupportTickets() {
   const ticket = selectedTicket;
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -628,7 +628,7 @@ export default function AdminSupportTickets() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

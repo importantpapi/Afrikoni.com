@@ -13,7 +13,7 @@ import {
   Search, Eye, ChevronDown, ChevronUp, Download, Send, FileText,
   Phone, Mail, Users, TrendingUp, Activity, XCircle, MapPin
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -66,11 +66,7 @@ export default function CrisisManagement() {
   }, [authReady, authLoading, user, profile, role]);
 
   if (loading || !authReady || authLoading) {
-    return (
-      <DashboardLayout currentRole="admin">
-        <SpinnerWithTimeout message="Loading Crisis Management Center..." />
-      </DashboardLayout>
-    );
+    return <SpinnerWithTimeout message="Loading Crisis Management Center..." />;
   }
 
   if (!hasAccess) {
@@ -147,7 +143,7 @@ export default function CrisisManagement() {
   }));
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Premium Header - v2.5 */}
         <motion.div
@@ -973,6 +969,6 @@ export default function CrisisManagement() {
           </motion.div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

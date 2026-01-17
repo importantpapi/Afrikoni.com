@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -190,7 +190,7 @@ function ReviewsModerationInner() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-afrikoni-chestnut">Reviews Moderation</h1>
@@ -199,12 +199,12 @@ function ReviewsModerationInner() {
             <p className="text-afrikoni-deep/60">Loading reviews...</p>
           </div>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -421,7 +421,7 @@ function ReviewsModerationInner() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

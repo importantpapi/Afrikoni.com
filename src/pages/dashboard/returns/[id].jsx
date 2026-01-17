@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -78,30 +78,24 @@ export default function ReturnDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <CardSkeleton count={3} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={3} />;
   }
 
   if (!returnItem) {
     return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <p className="text-afrikoni-text-dark/70">Return not found</p>
-          <Link to="/dashboard/returns">
-            <Button variant="outline" className="mt-4">
-              Back to Returns
-            </Button>
-          </Link>
-        </div>
-      </DashboardLayout>
+      <div className="text-center py-12">
+        <p className="text-afrikoni-text-dark/70">Return not found</p>
+        <Link to="/dashboard/returns">
+          <Button variant="outline" className="mt-4">
+            Back to Returns
+          </Button>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -242,7 +236,7 @@ export default function ReturnDetailPage() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

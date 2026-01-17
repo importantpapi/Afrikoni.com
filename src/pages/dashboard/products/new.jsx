@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { useCapability } from '@/context/CapabilityContext';
 import { validateProductForm } from '@/utils/validation';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -674,11 +674,9 @@ export default function ProductForm() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
@@ -692,7 +690,7 @@ export default function ProductForm() {
   ];
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-4">
         {/* Header */}
         <motion.div
@@ -1314,7 +1312,7 @@ export default function ProductForm() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }
 

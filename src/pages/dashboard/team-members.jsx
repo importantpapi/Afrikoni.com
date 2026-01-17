@@ -3,13 +3,16 @@
  * Allows suppliers to add team members with specific permissions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { useCapability } from '@/context/CapabilityContext';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { logError } from '@/utils/errorLogger';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -41,6 +44,7 @@ function TeamMembersInner() {
   const { user, profile, authReady, loading: authLoading } = useAuth();
   // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
   const capabilities = useCapability();
+  const location = useLocation();
   const [companyId, setCompanyId] = useState(null);
   // Derive role from capabilities for display purposes
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
@@ -50,6 +54,16 @@ function TeamMembersInner() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('free');
   const [isInviting, setIsInviting] = useState(false);
+  
+  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const userCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
   
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -69,22 +83,35 @@ function TeamMembersInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[TeamMembers] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → show error
-    if (!user) {
+    if (!userId) {
       toast.error('Please log in to continue');
       return;
     }
 
-    // Now safe to load data
-    loadData();
-  }, [authReady, authLoading, user, profile, capabilities.ready]);
+    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[TeamMembers] Data is stale or first load - refreshing');
+      loadData();
+    } else {
+      console.log('[TeamMembers] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
       
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
       // Role derived from capabilities above
 
@@ -94,7 +121,11 @@ function TeamMembersInner() {
           const subscription = await getCompanySubscription(userCompanyId);
           setCurrentPlan(subscription?.plan_type || 'free');
         } catch (error) {
-          console.error('Error loading subscription:', error);
+          // ✅ GLOBAL HARDENING: Enhanced error logging
+          logError('loadData-subscription', error, {
+            companyId: userCompanyId,
+            userId: userId
+          });
         }
 
         // Load team members - Fix: Better error handling
@@ -105,21 +136,39 @@ function TeamMembersInner() {
             .eq('company_id', userCompanyId)
             .order('created_at', { ascending: false });
 
+          // ✅ GLOBAL HARDENING: Enhanced error logging
           if (teamError) {
-            console.error('Team members query error:', teamError);
+            logError('loadData-team', teamError, {
+              table: 'company_team',
+              companyId: userCompanyId,
+              userId: userId
+            });
             // Don't throw - just log and set empty array
             setTeamMembers([]);
+            return; // Don't mark fresh on error
           } else {
             setTeamMembers(teamData || []);
           }
         } catch (teamLoadError) {
-          console.error('Error loading team members:', teamLoadError);
+          logError('loadData-team', teamLoadError, {
+            table: 'company_team',
+            companyId: userCompanyId,
+            userId: userId
+          });
           setTeamMembers([]);
-          // Don't show error toast here - it's not critical
+          return; // Don't mark fresh on error
         }
+        
+        // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
       }
     } catch (error) {
-      console.error('Error loading data:', error);
+      logError('loadData', error, {
+        table: 'company_team',
+        companyId: userCompanyId,
+        userId: userId
+      });
       toast.error('Failed to load team members');
     } finally {
       setIsLoading(false);
@@ -180,7 +229,12 @@ function TeamMembersInner() {
       });
       loadData();
     } catch (error) {
-      console.error('Error inviting member:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('handleInviteMember', error, {
+        table: 'company_team',
+        companyId: companyId,
+        userId: userId
+      });
       toast.error('Failed to send invitation');
     } finally {
       setIsInviting(false);
@@ -198,7 +252,12 @@ function TeamMembersInner() {
       toast.success('Permissions updated');
       loadData();
     } catch (error) {
-      console.error('Error updating permissions:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('handleUpdatePermissions', error, {
+        table: 'company_team',
+        companyId: companyId,
+        userId: userId
+      });
       toast.error('Failed to update permissions');
     }
   };
@@ -216,7 +275,12 @@ function TeamMembersInner() {
       toast.success('Team member removed');
       loadData();
     } catch (error) {
-      console.error('Error removing member:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('handleRemoveMember', error, {
+        table: 'company_team',
+        companyId: companyId,
+        userId: userId
+      });
       toast.error('Failed to remove team member');
     }
   };
@@ -249,16 +313,14 @@ function TeamMembersInner() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -605,7 +667,7 @@ function TeamMembersInner() {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

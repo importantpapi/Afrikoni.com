@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -344,16 +344,14 @@ export default function NotificationsCenter() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -542,7 +540,7 @@ export default function NotificationsCenter() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

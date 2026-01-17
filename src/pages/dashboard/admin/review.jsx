@@ -16,7 +16,7 @@ import {
   XCircle,
   Scale,
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -219,11 +219,11 @@ export default function AdminReview() {
 
   if (loading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-afrikoni-text-dark/70">Loading...</div>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -232,7 +232,7 @@ export default function AdminReview() {
   }
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-8">
         {/* Header */}
         <motion.div
@@ -488,7 +488,7 @@ export default function AdminReview() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

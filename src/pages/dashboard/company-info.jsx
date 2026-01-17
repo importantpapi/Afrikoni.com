@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useCapability } from '@/context/CapabilityContext';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { logError } from '@/utils/errorLogger';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
@@ -13,7 +16,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Building2, Save, CheckCircle, AlertCircle, Upload, X, Image as ImageIcon, Users, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -56,11 +59,24 @@ export default function CompanyInfo() {
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const userCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
   const [isSaving, setIsSaving] = useState(false);
   const [companyId, setCompanyId] = useState(null);
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     company_name: '',
     business_type: 'manufacturer',
@@ -115,7 +131,12 @@ export default function CompanyInfo() {
       setLogoUrl(file_url);
       toast.success('Logo uploaded successfully');
     } catch (error) {
-      console.error('Logo upload error:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('handleLogoUpload', error, {
+        table: 'companies',
+        companyId: companyId,
+        userId: userId
+      });
       toast.error(`Failed to upload logo: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingLogo(false);
@@ -155,7 +176,12 @@ export default function CompanyInfo() {
       setCoverUrl(file_url);
       toast.success('Cover image uploaded successfully');
     } catch (error) {
-      console.error('Cover upload error:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('handleCoverUpload', error, {
+        table: 'companies',
+        companyId: companyId,
+        userId: userId
+      });
       toast.error(`Failed to upload cover image: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingCover(false);
@@ -225,13 +251,24 @@ export default function CompanyInfo() {
           console.log('Upload result:', result);
           
           if (!result || !result.file_url) {
-            console.error('Upload succeeded but file_url is missing:', result);
+            // ✅ GLOBAL HARDENING: Enhanced error logging
+            logError('handleGalleryUpload-missingUrl', new Error('Upload succeeded but file_url is missing'), {
+              table: 'companies',
+              companyId: companyId,
+              userId: userId,
+              result: result
+            });
             throw new Error('Upload succeeded but file URL is missing');
           }
 
           return { success: true, url: result.file_url, fileName: file.name };
         } catch (error) {
-          console.error(`Failed to upload ${file.name}:`, error);
+          logError('handleGalleryUpload-file', error, {
+            table: 'companies',
+            companyId: companyId,
+            userId: userId,
+            fileName: file.name
+          });
           return { success: false, fileName: file.name, error: error.message };
         }
       });
@@ -250,7 +287,12 @@ export default function CompanyInfo() {
           const fileName = result.status === 'fulfilled' 
             ? result.value.fileName 
             : validFiles[index]?.name || 'unknown';
-          console.error(`Upload ${index + 1} failed for:`, fileName, result);
+          logError('handleGalleryUpload-fileFailed', result.reason || new Error('Upload failed'), {
+            table: 'companies',
+            companyId: companyId,
+            userId: userId,
+            fileName: fileName
+          });
           failedUploads.push(fileName);
         }
       });
@@ -269,7 +311,12 @@ export default function CompanyInfo() {
         const validUrls = successfulUploads.filter(url => url && typeof url === 'string' && url.trim().length > 0);
         
         if (validUrls.length === 0) {
-          console.error('No valid URLs in successful uploads:', successfulUploads);
+          logError('handleGalleryUpload-invalidUrls', new Error('No valid URLs in successful uploads'), {
+            table: 'companies',
+            companyId: companyId,
+            userId: userId,
+            successfulUploads: successfulUploads
+          });
           toast.error('Images uploaded but URLs are invalid. Please try again.');
           // Reset file input and clear uploading state
           if (e.target) e.target.value = '';
@@ -296,13 +343,21 @@ export default function CompanyInfo() {
               .eq('id', companyId);
             
             if (saveError) {
-              console.error('Failed to save gallery images to database:', saveError);
-              // Don't show error to user - images are in state, just not persisted yet
-            } else {
-              console.log('Gallery images saved to database');
-            }
-          } catch (saveErr) {
-            console.error('Error auto-saving gallery images:', saveErr);
+            logError('autoSaveGallery', saveError, {
+              table: 'companies',
+              companyId: companyId,
+              userId: userId
+            });
+            // Don't show error to user - images are in state, just not persisted yet
+          } else {
+            console.log('Gallery images saved to database');
+          }
+        } catch (saveErr) {
+          logError('autoSaveGallery', saveErr, {
+            table: 'companies',
+            companyId: companyId,
+            userId: userId
+          });
           }
         }
         
@@ -321,7 +376,12 @@ export default function CompanyInfo() {
         toast.error('Failed to upload gallery images. Please check file sizes and try again.');
       }
     } catch (error) {
-      console.error('Gallery upload error:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('handleGalleryUpload', error, {
+        table: 'companies',
+        companyId: companyId,
+        userId: userId
+      });
       toast.error('Failed to upload gallery images. Please try again.');
     } finally {
       setUploadingGallery(false);
@@ -368,11 +428,21 @@ export default function CompanyInfo() {
       if (profileData?.company_id) {
         setCompanyId(profileData.company_id);
         
-        const { data: companyData } = await supabase
+        const { data: companyData, error: companyError } = await supabase
           .from('companies')
           .select('*')
           .eq('id', profileData.company_id)
           .maybeSingle();
+
+        // ✅ GLOBAL HARDENING: Enhanced error logging
+        if (companyError) {
+          logError('loadData-companies', companyError, {
+            table: 'companies',
+            companyId: profileData.company_id,
+            userId: userId
+          });
+          // Continue with profile data if company query fails
+        }
 
         if (companyData) {
           setFormData({
@@ -394,17 +464,33 @@ export default function CompanyInfo() {
         
         // Load team members
         if (profileData.company_id) {
-          const { data: teamData } = await supabase
+          const { data: teamData, error: teamError } = await supabase
             .from('company_team')
             .select('*')
             .eq('company_id', profileData.company_id)
             .order('created_at', { ascending: false });
+          
+          // ✅ GLOBAL HARDENING: Enhanced error logging
+          if (teamError) {
+            logError('loadData-team', teamError, {
+              table: 'company_team',
+              companyId: profileData.company_id,
+              userId: userId
+            });
+          }
+          
           setTeamMembers(teamData || []);
         }
         
-        // Set current role from context
-        const normalizedRole = role || 'buyer';
-        setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
+        // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
+        
+        // ✅ GLOBAL HARDENING: Derive role from capabilities instead of role prop
+        const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
+        const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+        const normalizedRole = isLogistics ? 'logistics' : (isSeller ? 'seller' : 'buyer');
+        setCurrentRole(normalizedRole);
       } else if (profileData) {
         // Load from profile if no company yet
         setFormData({
@@ -427,7 +513,12 @@ export default function CompanyInfo() {
         }));
       }
     } catch (error) {
-      console.error('Error loading company info:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('loadData', error, {
+        table: 'companies',
+        companyId: userCompanyId,
+        userId: userId
+      });
       if (isMounted) {
         toast.error('Failed to load company information');
       }
@@ -439,16 +530,30 @@ export default function CompanyInfo() {
     }
     };
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[CompanyInfo] Waiting for capabilities to be ready...');
+      return;
+    }
+
+    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
     // Only load data when auth is ready
-    if (authReady && !authLoading && user) {
+    if (authReady && !authLoading && userId && shouldRefresh) {
+      console.log('[CompanyInfo] Data is stale or first load - refreshing');
       loadData();
+    } else if (!shouldRefresh) {
+      console.log('[CompanyInfo] Data is fresh - skipping reload');
     }
 
     return () => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [authReady, authLoading, user, profile, role, navigate]);
+  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -519,7 +624,11 @@ export default function CompanyInfo() {
         const { error: updateErr } = await Promise.race([updatePromise, timeoutPromise]);
 
         if (updateErr) {
-          console.error('❌ Update company error:', updateErr);
+          logError('updateCompany', updateErr, {
+            table: 'companies',
+            companyId: companyId,
+            userId: userId
+          });
           throw new Error(`Failed to update company: ${updateErr.message || 'Unknown error'}`);
         }
         console.log('✅ Company updated successfully');
@@ -569,7 +678,11 @@ export default function CompanyInfo() {
         const { data: newCompany, error: companyErr } = await Promise.race([insertPromise, timeoutPromise]);
 
         if (companyErr) {
-          console.error('❌ Create company error:', companyErr);
+          logError('createCompany', companyErr, {
+            table: 'companies',
+            companyId: companyId,
+            userId: userId
+          });
           throw new Error(`Failed to create company: ${companyErr.message || 'Unknown error'}`);
         }
         if (!newCompany || !newCompany.id) {
@@ -606,7 +719,11 @@ export default function CompanyInfo() {
       const { error: profileErr } = await Promise.race([profilePromise, timeoutPromise]);
 
       if (profileErr) {
-        console.error('❌ Profile update error:', profileErr);
+        logError('updateProfile', profileErr, {
+          table: 'profiles',
+          companyId: companyId,
+          userId: userId
+        });
         throw new Error(`Failed to save profile: ${profileErr.message || 'Unknown error'}`);
       }
       console.log('✅ Profile updated successfully');
@@ -622,7 +739,11 @@ export default function CompanyInfo() {
         navigate(returnUrl);
       }, 800);
     } catch (error) {
-      console.error('Save error:', error);
+      logError('saveCompanyInfo', error, {
+        table: 'companies',
+        companyId: companyId,
+        userId: userId
+      });
       const errorMessage = error?.message || error?.error?.message || 'Failed to save company information. Please try again.';
       toast.error(errorMessage);
       setIsSaving(false); // Ensure saving state is cleared on error
@@ -685,11 +806,9 @@ export default function CompanyInfo() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
-      </DashboardLayout>
     );
   }
 
@@ -697,7 +816,7 @@ export default function CompanyInfo() {
   const requiredFieldsFilled = true; // Always allow save
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
     <div className="space-y-3">
       {/* Header */}
       <motion.div
@@ -1273,7 +1392,7 @@ export default function CompanyInfo() {
           </TabsContent>
         </Tabs>
     </div>
-    </DashboardLayout>
+    </>
   );
 }
 

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useCapability } from '@/context/CapabilityContext';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -18,12 +20,34 @@ import RequireCapability from '@/guards/RequireCapability';
 function DashboardSalesInner() {
   // Use centralized AuthProvider
   const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
   const [currentRole, setCurrentRole] = useState(role || 'seller');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+  
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const profileCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -32,16 +56,38 @@ function DashboardSalesInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[DashboardSales] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[DashboardSales] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadSales();
-  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
+    // GUARD: No company_id → cannot load sales
+    if (!profileCompanyId) {
+      console.log('[DashboardSales] No company_id - cannot load sales');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[DashboardSales] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadSales();
+    } else {
+      console.log('[DashboardSales] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
 
   const loadSales = async () => {
     try {
@@ -62,10 +108,18 @@ function DashboardSalesInner() {
           .order('created_at', { ascending: false });
 
         setOrders(salesOrders || []);
+        
+        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+        // Only mark fresh if we got actual data (not an error)
+        if (salesOrders && Array.isArray(salesOrders)) {
+          lastLoadTimeRef.current = Date.now();
+          markFresh();
+        }
       }
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to load sales');
+      // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
     }
@@ -113,16 +167,14 @@ function DashboardSalesInner() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-6">
         {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
@@ -281,7 +333,7 @@ function DashboardSalesInner() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

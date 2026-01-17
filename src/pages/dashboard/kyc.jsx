@@ -13,7 +13,7 @@ import {
   TrendingUp, TrendingDown, UserCheck, BarChart3, CheckCircle2,
   Upload as UploadIcon, FileCheck, Lock, Globe, AlertCircle
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -66,11 +66,11 @@ export default function KYCTracker() {
 
   if (loading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-afrikoni-text-dark/70">Loading...</div>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -139,7 +139,7 @@ export default function KYCTracker() {
   ];
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Premium Header - v2.5 */}
         <motion.div
@@ -860,6 +860,6 @@ export default function KYCTracker() {
           </Card>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { useCapability } from '@/context/CapabilityContext';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
@@ -27,10 +28,32 @@ function DashboardAnalyticsInner() {
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+  
   // Derive role from capabilities for display purposes
   const isBuyer = capabilities.can_buy === true;
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
   const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
+  
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const profileCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -39,16 +62,38 @@ function DashboardAnalyticsInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[DashboardAnalytics] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[DashboardAnalytics] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadUserAndAnalytics();
-  }, [authReady, authLoading, user, profile, capabilities.ready, period, viewMode, navigate]);
+    // GUARD: No company_id → cannot load analytics
+    if (!profileCompanyId) {
+      console.log('[DashboardAnalytics] No company_id - cannot load analytics');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[DashboardAnalytics] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadUserAndAnalytics();
+    } else {
+      console.log('[DashboardAnalytics] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, period, viewMode, location.pathname, isStale, navigate]);
 
   const loadUserAndAnalytics = async () => {
     try {
@@ -289,11 +334,20 @@ function DashboardAnalyticsInner() {
           avgDeliveryTime: Math.round(avgDeliveryTime),
           shipmentsByStatus: Object.entries(shipmentsByStatus)
         });
+        
+        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+        // Only mark fresh if we got actual analytics data (not an error)
+        if (analytics !== null || chartData.length > 0) {
+          lastLoadTimeRef.current = Date.now();
+          markFresh();
+        }
       }
     } catch (error) {
       // Fail gracefully - treat as no data instead of error
+      console.error('[DashboardAnalytics] Error loading analytics:', error);
       setAnalytics(null);
       setChartData([]);
+      // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
     }
@@ -301,11 +355,9 @@ function DashboardAnalyticsInner() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
@@ -315,7 +367,7 @@ function DashboardAnalyticsInner() {
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-6">
         {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
@@ -754,7 +806,7 @@ function DashboardAnalyticsInner() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

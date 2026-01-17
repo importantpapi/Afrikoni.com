@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useAuth } from '@/contexts/AuthProvider';
 import { useCapability } from '@/context/CapabilityContext';
 import { RFQ_STATUS, RFQ_STATUS_LABELS, getStatusLabel } from '@/constants/status';
 import { buildRFQQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -61,6 +63,27 @@ function DashboardRFQsInner() {
   const [isVerified, setIsVerified] = useState(false);
   const [matchCount, setMatchCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh, refresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const companyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -69,16 +92,38 @@ function DashboardRFQsInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[DashboardRFQs] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[DashboardRFQs] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadUserAndRFQs();
-  }, [authReady, authLoading, user, profile, capabilities.ready, activeTab, navigate]);
+    // GUARD: No company_id → cannot load RFQs
+    if (!companyId) {
+      console.log('[DashboardRFQs] No company_id - cannot load RFQs');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[DashboardRFQs] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadUserAndRFQs();
+    } else {
+      console.log('[DashboardRFQs] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, companyId, capabilitiesReady, capabilitiesLoading, activeTab, location.pathname, isStale, navigate]);
 
   const loadUserAndRFQs = async () => {
     try {
@@ -161,6 +206,13 @@ function DashboardRFQsInner() {
         ...result,
         isLoading: false
       }));
+      
+      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+      // Only mark fresh if we got actual data (not an error)
+      if (rfqsWithQuotes && Array.isArray(rfqsWithQuotes)) {
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
+      }
 
       // ✅ FOUNDATION FIX: Calculate match count for suppliers using capabilities
       if (isSeller) {
@@ -229,15 +281,11 @@ function DashboardRFQsInner() {
   });
 
   if (isLoading) {
-    return (
-      <DashboardLayout currentRole={currentRole}>
-        <CardSkeleton count={6} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={6} />;
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-6 pb-8">
         {/* Professional Header with Gradient Background */}
         <motion.div
@@ -682,7 +730,7 @@ function DashboardRFQsInner() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

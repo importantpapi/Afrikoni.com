@@ -19,7 +19,7 @@ import { Input } from '@/components/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { isAdmin } from '@/utils/permissions';
@@ -313,9 +313,9 @@ export default function AdminVerificationReview() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <CardSkeleton count={3} />
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -328,7 +328,7 @@ export default function AdminVerificationReview() {
   const verificationProfile = verification?.profiles;
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -893,7 +893,7 @@ export default function AdminVerificationReview() {
           )}
         </AnimatePresence>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

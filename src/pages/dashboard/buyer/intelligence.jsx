@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 import { Badge } from '@/components/shared/ui/badge';
@@ -50,11 +50,9 @@ export default function BuyerIntelligence() {
 
   if (loading) {
     return (
-      <DashboardLayout currentRole="buyer">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
@@ -62,7 +60,7 @@ export default function BuyerIntelligence() {
   const trust = trustEvolution?.[0] || null;
 
   return (
-    <DashboardLayout currentRole="buyer">
+    <>
       <div className="space-y-6 p-6">
         {/* Header */}
         <div>
@@ -327,7 +325,7 @@ export default function BuyerIntelligence() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

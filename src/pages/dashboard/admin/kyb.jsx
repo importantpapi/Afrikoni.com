@@ -12,7 +12,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -87,14 +87,14 @@ export default function AdminKYB() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <>
         <CardSkeleton count={3} />
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -243,7 +243,7 @@ export default function AdminKYB() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

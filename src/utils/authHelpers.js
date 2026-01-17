@@ -10,10 +10,9 @@
 
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getOrCreateCompany } from './companyHelper';
-// ✅ FOUNDATION FIX: Deprecated - getUserRole kept for backward compatibility
-// Note: This utility function is used in non-React contexts
-// For React components, use useCapability() hook instead
-import { getUserRole } from './roleHelpers';
+// ✅ OS RESTORATION FIX: getUserRole import removed - deprecated
+// React components use useCapability() hook instead
+// This utility is for non-React contexts only
 
 /**
  * Get current authenticated user with full profile and role
@@ -21,7 +20,8 @@ import { getUserRole } from './roleHelpers';
  * 
  * @param {Object} supabase - Supabase client instance
  * @param {Object} supabaseHelpers - Supabase helpers object
- * @returns {Promise<{user: Object|null, profile: Object|null, role: string, companyId: string|null, onboardingCompleted: boolean}>}
+ * @returns {Promise<{user: Object|null, profile: Object|null, companyId: string|null, onboardingCompleted: boolean}>}
+ * @deprecated role field removed - use useCapability() hook in React components
  */
 export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
   
@@ -161,8 +161,9 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
       console.warn('[getCurrentUserAndRole] Company error (non-blocking):', companyError?.message || companyError);
     }
 
-    // 5. Normalize role
-    const role = getUserRole(profile);
+    // 5. Role is deprecated - React components use useCapability() hook instead
+    // This utility is for non-React contexts only
+    // const role = null; // Deprecated - removed from return object
 
     // 6. Check onboarding status
     const onboardingCompleted = profile.onboarding_completed === true;
@@ -170,7 +171,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
     return {
       user: authUser,
       profile,
-      role,
+      // role removed - deprecated, use useCapability() hook in React components
       companyId,
       onboardingCompleted
     };
@@ -179,7 +180,7 @@ export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
     return {
       user: null,
       profile: null,
-      role: null,
+      // role removed - deprecated
       companyId: null,
       onboardingCompleted: false
     };
@@ -250,7 +251,8 @@ export async function requireAuth(supabase) {
  * 
  * @param {Object} supabase - Supabase client instance
  * @param {Object} supabaseHelpers - Supabase helpers object
- * @returns {Promise<{user: Object, profile: Object, role: string, companyId: string|null, onboardingCompleted: boolean}|null>}
+ * @returns {Promise<{user: Object, profile: Object, companyId: string|null, onboardingCompleted: boolean}|null>}
+ * @deprecated role field removed - use useCapability() hook in React components
  */
 export async function requireOnboarding(supabase, supabaseHelpers) {
   const result = await getCurrentUserAndRole(supabase, supabaseHelpers);
@@ -299,7 +301,8 @@ export async function isEmailVerified(supabase) {
  * 
  * @param {Object} supabase - Supabase client instance
  * @param {Object} supabaseHelpers - Supabase helpers object
- * @returns {Promise<{user: Object, profile: Object, role: string, emailVerified: boolean}|null>}
+ * @returns {Promise<{user: Object, profile: Object, emailVerified: boolean}|null>}
+ * @deprecated role field removed - use useCapability() hook in React components
  */
 export async function requireEmailVerification(supabase, supabaseHelpers) {
   const result = await getCurrentUserAndRole(supabase, supabaseHelpers);

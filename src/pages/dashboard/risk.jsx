@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
@@ -835,11 +835,9 @@ export default function RiskManagementDashboard() {
   // Show loading state
   if (loading) {
     return (
-      <DashboardLayout currentRole="admin">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-afrikoni-text-dark/70">Loading...</div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-afrikoni-text-dark/70">Loading...</div>
+      </div>
     );
   }
 
@@ -886,7 +884,7 @@ export default function RiskManagementDashboard() {
   };
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Premium Header - v2.5 */}
         <motion.div
@@ -1869,7 +1867,7 @@ export default function RiskManagementDashboard() {
           </Card>
         </motion.div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

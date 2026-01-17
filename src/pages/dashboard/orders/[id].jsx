@@ -7,7 +7,7 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { useCapability } from '@/context/CapabilityContext';
 import { ORDER_STATUS, getStatusLabel, getNextStatuses, canTransitionTo } from '@/constants/status';
 import { buildOrderTimeline } from '@/utils/timeline';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -55,6 +55,20 @@ export default function OrderDetail() {
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [buyerProtectionEnabled, setBuyerProtectionEnabled] = useState(false);
 
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const companyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  useEffect(() => {
+    if (capabilitiesLoading && !capabilitiesReady) {
+      // Capabilities are loading - show spinner
+      return;
+    }
+  }, [capabilitiesLoading, capabilitiesReady]);
+
   useEffect(() => {
     // GUARD: Wait for auth to be ready
     if (!authReady || authLoading) {
@@ -62,16 +76,29 @@ export default function OrderDetail() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[OrderDetail] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[OrderDetail] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
+    // GUARD: No order ID → redirect to orders list
+    if (!id) {
+      console.log('[OrderDetail] No order ID → redirecting to orders');
+      navigate('/dashboard/orders');
+      return;
+    }
+
     // Now safe to load data
     loadOrderData();
-  }, [id, authReady, authLoading, user, profile, capabilities.ready, navigate]);
+  }, [id, authReady, authLoading, userId, companyId, capabilitiesReady, capabilitiesLoading, navigate]);
 
   const loadOrderData = async () => {
     try {
@@ -344,50 +371,46 @@ export default function OrderDetail() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
   if (!order) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="space-y-4">
-          <Card className="border-red-200 bg-red-50/50">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold text-afrikoni-chestnut mb-2">Order Failed to Load</h2>
-              <p className="text-afrikoni-deep/80 mb-4">
-                We couldn't load the order details, but you can still manage it below.
-              </p>
-              <div className="flex gap-3">
-                <Button onClick={loadOrderData} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
-                  Retry Loading
-                </Button>
-                <Button variant="outline" onClick={() => navigate('/dashboard/orders')}>
-                  Back to Orders
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          {/* Allow editing even when order fails to load */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Edit Order {id?.slice(0, 8).toUpperCase()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-afrikoni-deep/70 mb-4">
-                Enter order details manually or retry loading above.
-              </p>
+      <div className="space-y-4">
+        <Card className="border-red-200 bg-red-50/50">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold text-afrikoni-chestnut mb-2">Order Failed to Load</h2>
+            <p className="text-afrikoni-deep/80 mb-4">
+              We couldn't load the order details, but you can still manage it below.
+            </p>
+            <div className="flex gap-3">
               <Button onClick={loadOrderData} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
-                Retry Loading Order
+                Retry Loading
               </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
+              <Button variant="outline" onClick={() => navigate('/dashboard/orders')}>
+                Back to Orders
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Allow editing even when order fails to load */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Order {id?.slice(0, 8).toUpperCase()}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-afrikoni-deep/70 mb-4">
+              Enter order details manually or retry loading above.
+            </p>
+            <Button onClick={loadOrderData} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+              Retry Loading Order
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -397,7 +420,7 @@ export default function OrderDetail() {
                             order.status === 'delivered';
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -966,7 +989,7 @@ export default function OrderDetail() {
           </motion.div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

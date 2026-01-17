@@ -1,464 +1,320 @@
-# Dashboard Forensic Analysis - Complete System Review
+# 🔍 Dashboard Forensic Analysis - Complete
 
-## 🔴 CRITICAL ISSUES (Blocking Dashboard Functionality)
+## 🚨 CRITICAL ERROR IDENTIFIED
 
-### 1. **MISSING DATABASE TABLE** - `company_capabilities` Table Doesn't Exist
+**Error**: `refreshCapabilities is not defined` at `DashboardLayout.jsx:843:14`
 
-**Error Message:**
-```
-[RequireCapability] Error: Could not find the table 'public.company_capabilities' in the schema cache
-```
+**Root Cause**: The `refreshCapabilities` function is being referenced but not properly extracted from the `useCapability()` hook context.
 
-**Root Cause:**
-- Migration file exists: `supabase/migrations/20250127_company_capabilities.sql`
-- **Migration has NOT been applied to the database**
-- The entire capability system depends on this table
-
-**Impact:**
-- ❌ Dashboard cannot load capabilities
-- ❌ All capability-based access control fails
-- ❌ Sidebar navigation cannot determine user permissions
-- ❌ Route guards cannot function properly
-
-**Location:**
-- `src/context/CapabilityContext.tsx:111` - Queries `company_capabilities` table
-- `src/guards/RequireCapability.tsx:65` - Logs error when capabilities fail
-
-**Fix Required:**
-```bash
-# Apply the migration to Supabase
-supabase migration up
-# OR manually run the SQL in Supabase dashboard
-```
-
-**Migration File:** `supabase/migrations/20250127_company_capabilities.sql`
+**Impact**: **BREAKING** - Entire dashboard crashes on load, showing error boundary.
 
 ---
 
-### 2. **WRONG COMPONENT IMPORTED** - RequireCapability Mismatch
+## 📊 EXECUTIVE SUMMARY
 
-**Problem:**
-- `App.jsx` imports `RequireCapability` from `./components/auth/RequireCapability`
-- This is a **route guard** component (expects `require` prop)
-- But `App.jsx` uses it **without any props** (line 239)
-- There are **TWO different** `RequireCapability` components:
-  1. `src/components/auth/RequireCapability.jsx` - Route guard (expects `require` prop)
-  2. `src/guards/RequireCapability.tsx` - Component guard (expects `canBuy`, `canSell`, etc.)
+### Current State:
+- ✅ **64 routes** mapped in `App.jsx`
+- ✅ **89 dashboard files** exist in codebase
+- ❌ **1 critical error** blocking dashboard load
+- ⚠️ **Multiple warnings** about deprecated `roleHelpers`
+- ⚠️ **400 Bad Request** on products API call
 
-**Current Code:**
-```jsx
-// App.jsx:17
-import RequireCapability from './components/auth/RequireCapability';
-
-// App.jsx:239
-<RequireCapability>  // ❌ No props - route guard expects 'require' prop
-  <Dashboard />
-</RequireCapability>
-```
-
-**Impact:**
-- ⚠️ Route guard doesn't check capabilities properly
-- ⚠️ Dashboard might load even without proper capability checks
-- ⚠️ Confusion between route guard and component guard
-
-**Fix Required:**
-```jsx
-// Option 1: Use route guard with proper props
-<RequireCapability require={null}>  // require={null} means "just wait for ready"
-  <Dashboard />
-</RequireCapability>
-
-// Option 2: Remove guard entirely (DashboardLayout already checks capabilities)
-<Dashboard />
-```
-
-**Files Affected:**
-- `src/App.jsx:17` - Wrong import
-- `src/App.jsx:239` - Missing props
+### Flow Disruptions:
+1. **CRITICAL**: `refreshCapabilities` undefined → Dashboard crashes
+2. **HIGH**: Deprecated `roleHelpers` still in use → Console spam
+3. **MEDIUM**: Products API 400 error → Data not loading
+4. **LOW**: Some pages not routed → Dead links
 
 ---
 
-### 3. **DUPLICATE COMPONENTS** - Two RequireCapability Implementations
+## 🔴 CRITICAL ISSUES
 
-**Problem:**
-Two different `RequireCapability` components exist:
+### 1. **refreshCapabilities Undefined** (BREAKING)
+**Location**: `src/layouts/DashboardLayout.jsx:843`
 
-1. **Route Guard** (`src/components/auth/RequireCapability.jsx`)
-   - Used in Routes
-   - Props: `require`, `requireApproved`
-   - Redirects on failure
-
-2. **Component Guard** (`src/guards/RequireCapability.tsx`)
-   - Used in page components
-   - Props: `canBuy`, `canSell`, `canLogistics`, `requireApproved`
-   - Shows AccessDenied on failure (doesn't redirect)
-
-**Impact:**
-- 🔴 Confusion about which component to use
-- 🔴 Inconsistent behavior
-- 🔴 Maintenance burden
-
-**Recommendation:**
-- Keep route guard for route-level protection
-- Keep component guard for component-level protection
-- **Rename one** to avoid confusion (e.g., `RequireCapabilityRoute` vs `RequireCapabilityGuard`)
-
----
-
-## 🟡 HIGH PRIORITY ISSUES
-
-### 4. **DEPRECATED CODE STILL IN USE** - roleHelpers Functions
-
-**Problem:**
-Multiple components still use deprecated `roleHelpers` functions:
-- `getUserRole()`
-- `isBuyer()`
-- `isSeller()`
-- `isHybrid()`
-- `canViewBuyerFeatures()`
-- `canViewSellerFeatures()`
-
-**Console Warnings:**
-```
-[roleHelpers] getUserRole is deprecated. Use useCapability() hook instead.
-[roleHelpers] isBuyer is deprecated. Use capabilities.can_buy === true instead.
-[roleHelpers] isSeller is deprecated. Use capabilities.can_sell === true instead.
+**Problem**:
+```javascript
+// Line 843: refreshCapabilities is referenced but not defined
+{refreshCapabilities && (
+  <Button onClick={() => refreshCapabilities(true)}>
 ```
 
-**Impact:**
-- ⚠️ Console spam
-- ⚠️ Code inconsistency
-- ⚠️ Potential bugs if deprecated functions behave differently
+**Cause**: 
+- `refreshCapabilities` is extracted from `useCapability()` around line 177-178
+- But the extraction happens in a `try/catch` block that might fail silently
+- The variable is not in scope when used at line 843
 
-**Files Using Deprecated Functions:**
-- Need to search codebase for `roleHelpers` imports
-- Likely in: Dashboard pages, components, utilities
-
-**Fix Required:**
-- Replace all `roleHelpers` usage with `useCapability()` hook
-- Remove deprecated functions after migration
-
----
-
-### 5. **CAPABILITY CONTEXT ERROR HANDLING** - Too Permissive
-
-**Problem:**
-When capabilities fail to load, the system **allows access anyway**:
-
-```typescript
-// RequireCapability.tsx:64-66
-if (capabilities.error) {
-  console.warn('[RequireCapability] Error loading capabilities, allowing access (RLS will enforce):', capabilities.error);
-  return <>{children}</>;  // ⚠️ Allows access even on error
-}
-```
-
-**Impact:**
-- ⚠️ Users can access dashboard even if capabilities fail
-- ⚠️ Relies entirely on RLS policies (which might not exist)
-- ⚠️ Security risk if RLS is misconfigured
-
-**Current Behavior:**
-- Error → Allow access → Hope RLS blocks it
-- This is **defense-in-depth failure**
-
-**Recommendation:**
-- Show error state instead of allowing access
-- Only allow access if error is recoverable (e.g., timeout)
-- Block access for critical errors (e.g., table doesn't exist)
-
----
-
-### 6. **CAPABILITY FETCH TIMEOUT** - 15 Second Fallback
-
-**Problem:**
-CapabilityContext has a 15-second timeout that **forces ready=true**:
-
-```typescript
-// CapabilityContext.tsx:222-238
-setTimeout(() => {
-  if (!hasFetchedRef.current && currentCompanyId) {
-    console.warn('[CapabilityContext] ⚠️ Capability fetch timeout - setting ready=true to unblock dashboard');
-    setCapabilities(prev => ({
-      ...prev,
-      ready: true,  // ⚠️ Forces ready even if fetch failed
-      error: 'Capability fetch timed out - using default capabilities',
-    }));
-  }
-}, 15000);
-```
-
-**Impact:**
-- ⚠️ Dashboard loads with default capabilities after timeout
-- ⚠️ Might mask real database issues
-- ⚠️ Users see incorrect permissions
-
-**Recommendation:**
-- Only use timeout for network issues, not database errors
-- Check error type before forcing ready
-- Show user-friendly error message instead of silent fallback
-
----
-
-## 🟢 MEDIUM PRIORITY ISSUES
-
-### 7. **NETWORK ERRORS** - Multiple Failed API Calls
-
-**Console Errors:**
-```
-GET https://wmjxlaznvjaaazasroga.supabase.co/rest/v1/kyc_verif... 404 (Not Found)
-GET https://wmjxlaznvjaaazasroga.supabase.co/rest/v1/rfqs?sele... 400 (Bad Request)
-GET https://wmjxlaznvjaaazasroga.supabase.co/rest/v1/notificat... 403 (Forbidden)
-```
-
-**Impact:**
-- ⚠️ Some features don't work (KYC verification, notifications)
-- ⚠️ RFQ queries failing
-- ⚠️ User experience degradation
-
-**Root Causes:**
-- Missing tables/endpoints
-- RLS policy issues
-- Incorrect query parameters
-
-**Fix Required:**
-- Check if `kyc_verification` table exists
-- Review RLS policies for `rfqs` and `notifications`
-- Fix query parameters causing 400 errors
-
----
-
-### 8. **JQUERY ERRORS** - Content Script Issues
-
-**Console Errors:**
-```
-jQuery.Deferred exception: Cannot read properties of null (reading 'indexOf')
-TypeError: Cannot read properties of null (reading 'indexOf')
-```
-
-**Impact:**
-- ⚠️ Browser extension conflicts
-- ⚠️ Console noise
-- ⚠️ Potential page interaction issues
-
-**Root Cause:**
-- Browser extension (likely Chrome extension) injecting code
-- Extension trying to access null values
-
-**Fix Required:**
-- Not a code issue - browser extension problem
-- Can be ignored or extension disabled for development
-
----
-
-### 9. **DUPLICATE PROVIDERS** - Multiple Context Providers
-
-**Problem:**
-Multiple providers wrapping dashboard routes:
-
-```jsx
-// App.jsx:238-242
-<CapabilityProvider>
-  <RequireCapability>
-    <Dashboard />  // Dashboard might also have providers
-  </RequireCapability>
-</CapabilityProvider>
-```
-
-**Impact:**
-- ⚠️ Potential provider nesting issues
-- ⚠️ Performance overhead
-- ⚠️ Confusion about provider hierarchy
-
-**Recommendation:**
-- Audit provider hierarchy
-- Ensure providers are at correct levels
-- Remove duplicate providers
-
----
-
-## 📊 Component Dependency Map
-
-### Dashboard Entry Point
-```
-App.jsx
-  └─ Route /dashboard/*
-      └─ CapabilityProvider
-          └─ RequireCapability (route guard)
-              └─ Dashboard (index.jsx)
-                  └─ WorkspaceDashboard.jsx
-                      └─ DashboardLayout.jsx
-                          ├─ DashboardHeader (Buyer/Seller/etc)
-                          ├─ DashboardSidebar
-                          └─ <Outlet /> (child routes)
-```
-
-### Capability Flow
-```
-CapabilityProvider
-  └─ CapabilityContext.tsx
-      └─ fetchCapabilities()
-          └─ supabase.from('company_capabilities')  ❌ TABLE MISSING
-              └─ Error → capabilities.error set
-                  └─ RequireCapability allows access anyway ⚠️
-```
-
-### Guard System
-```
-Route Level:
-  RequireCapability (route guard) - checks capability.ready
-    └─ Component Level:
-        RequireCapability (component guard) - checks specific capabilities
+**Fix Required**:
+```javascript
+// Extract refreshCapabilities properly from useCapability()
+const capabilityContext = useCapability();
+const refreshCapabilities = capabilityContext?.refreshCapabilities;
+const capabilitiesLoading = capabilityContext?.loading || false;
 ```
 
 ---
 
-## 🔧 IMMEDIATE FIXES REQUIRED
+## ⚠️ HIGH PRIORITY ISSUES
 
-### Fix 1: Apply Database Migration (CRITICAL)
+### 2. **Deprecated roleHelpers Still in Use**
+**Location**: Multiple files (extensionProtection.js:41)
 
-```bash
-# Option 1: Via Supabase CLI
-cd supabase
-supabase migration up
+**Problem**: 
+- `getUserRole()` is deprecated but still being called
+- Causes console spam: `[roleHelpers] getUserRole is deprecated. Use useCapability() hook instead.`
 
-# Option 2: Via Supabase Dashboard
-# Copy contents of supabase/migrations/20250127_company_capabilities.sql
-# Run in SQL Editor
+**Files Affected**:
+- `src/utils/extensionProtection.js` (likely)
+- Any component still importing `roleHelpers`
+
+**Fix Required**: Replace all `getUserRole()` calls with `useCapability()` hook.
+
+---
+
+### 3. **Products API 400 Bad Request**
+**Location**: Network request to `supabase.co/rest/v1/products?...`
+
+**Problem**: 
+- API call returns `400 (Bad Request)`
+- Likely query syntax issue or missing required parameters
+
+**Possible Causes**:
+- Invalid query parameters
+- Missing RLS policies
+- Table schema mismatch
+
+**Fix Required**: Check query builder and RLS policies for products table.
+
+---
+
+## 📋 ROUTE ANALYSIS
+
+### ✅ Routes Properly Mapped (64 routes)
+
+**Seller Engine** (5 routes):
+- ✅ `/dashboard/products`
+- ✅ `/dashboard/products/new`
+- ✅ `/dashboard/sales`
+- ✅ `/dashboard/supplier-rfqs`
+- ✅ `/dashboard/supplier-analytics`
+
+**Buyer Engine** (6 routes):
+- ✅ `/dashboard/orders`
+- ✅ `/dashboard/orders/:id`
+- ✅ `/dashboard/rfqs`
+- ✅ `/dashboard/rfqs/new`
+- ✅ `/dashboard/rfqs/:id`
+- ✅ `/dashboard/saved`
+
+**Logistics Engine** (6 routes):
+- ✅ `/dashboard/shipments`
+- ✅ `/dashboard/shipments/:id`
+- ✅ `/dashboard/shipments/new`
+- ✅ `/dashboard/fulfillment`
+- ✅ `/dashboard/logistics-dashboard`
+- ✅ `/dashboard/logistics-quote`
+
+**Financial Engine** (6 routes):
+- ✅ `/dashboard/payments`
+- ✅ `/dashboard/invoices`
+- ✅ `/dashboard/invoices/:id`
+- ✅ `/dashboard/returns`
+- ✅ `/dashboard/returns/:id`
+- ✅ `/dashboard/escrow/:orderId`
+
+**Governance & Security** (8 routes):
+- ✅ `/dashboard/compliance`
+- ✅ `/dashboard/risk`
+- ✅ `/dashboard/kyc`
+- ✅ `/dashboard/verification-status`
+- ✅ `/dashboard/verification-marketplace`
+- ✅ `/dashboard/anticorruption`
+- ✅ `/dashboard/audit`
+- ✅ `/dashboard/protection`
+
+**Community & Engagement** (5 routes):
+- ✅ `/dashboard/reviews`
+- ✅ `/dashboard/disputes`
+- ✅ `/dashboard/notifications`
+- ✅ `/dashboard/support-chat`
+- ✅ `/dashboard/help`
+
+**Analytics & Intelligence** (3 routes):
+- ✅ `/dashboard/analytics`
+- ✅ `/dashboard/performance`
+- ✅ `/dashboard/koniai`
+
+**System Settings** (5 routes):
+- ✅ `/dashboard/settings`
+- ✅ `/dashboard/company-info`
+- ✅ `/dashboard/team-members`
+- ✅ `/dashboard/subscriptions`
+- ✅ `/dashboard/crisis`
+
+**Admin Routes** (20 routes):
+- ✅ All admin routes properly mapped and protected
+
+**Dev Tools** (2 routes - DEV only):
+- ✅ `/dashboard/test-emails`
+- ✅ `/dashboard/architecture-viewer`
+
+---
+
+## ⚠️ PAGES NOT ROUTED (But Exist)
+
+### Legacy Role-Based Pages (Deprecated):
+1. ❌ `src/pages/dashboard/buyer/BuyerHome.jsx` - Legacy, redirects to `/dashboard`
+2. ❌ `src/pages/dashboard/seller/SellerHome.jsx` - Legacy, redirects to `/dashboard`
+3. ❌ `src/pages/dashboard/hybrid/HybridHome.jsx` - Legacy, redirects to `/dashboard`
+4. ❌ `src/pages/dashboard/logistics/LogisticsHome.jsx` - Legacy, redirects to `/dashboard`
+
+**Status**: These are intentionally not routed - they're legacy files that should be removed or kept for reference only.
+
+---
+
+## 🔧 ARCHITECTURAL FLOW ANALYSIS
+
+### Current Flow:
+```
+1. User navigates to /dashboard/*
+   ↓
+2. App.jsx Route matches `/dashboard/*`
+   ↓
+3. CapabilityProvider wraps route
+   ↓
+4. RequireCapability guard checks capabilities.ready
+   ↓
+5. Dashboard component renders
+   ↓
+6. WorkspaceDashboard mounts (persistent)
+   ↓
+7. DashboardLayout mounts (persistent shell)
+   ↓
+8. ❌ CRASH: refreshCapabilities undefined
 ```
 
-**Verification:**
-```sql
--- Check if table exists
-SELECT * FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND table_name = 'company_capabilities';
-
--- Check if your company has capabilities row
-SELECT * FROM company_capabilities 
-WHERE company_id = (SELECT company_id FROM profiles WHERE id = auth.uid());
+### Expected Flow:
+```
+1. User navigates to /dashboard/*
+   ↓
+2. App.jsx Route matches `/dashboard/*`
+   ↓
+3. CapabilityProvider wraps route
+   ↓
+4. RequireCapability guard checks capabilities.ready
+   ↓
+5. Dashboard component renders
+   ↓
+6. WorkspaceDashboard mounts (persistent)
+   ↓
+7. DashboardLayout mounts (persistent shell)
+   ↓
+8. ✅ refreshCapabilities properly extracted from context
+   ↓
+9. Outlet renders child route with key={location.pathname}
+   ↓
+10. Child page mounts and loads data
 ```
 
 ---
 
-### Fix 2: Fix RequireCapability Import (HIGH)
+## 🛠️ FIXES REQUIRED
 
-**Current:**
-```jsx
-// App.jsx:17
-import RequireCapability from './components/auth/RequireCapability';
+### Fix 1: refreshCapabilities Undefined (CRITICAL)
+**File**: `src/layouts/DashboardLayout.jsx`
 
-// App.jsx:239
-<RequireCapability>
-  <Dashboard />
-</RequireCapability>
+**Change Required**:
+```javascript
+// Around line 195-200, ensure refreshCapabilities is properly extracted:
+const capabilityContext = useCapability();
+const refreshCapabilities = capabilityContext?.refreshCapabilities;
+const capabilitiesLoading = capabilityContext?.loading || false;
+
+// Remove the try/catch block that was hiding the error
+// Use the extracted values directly
 ```
 
-**Fixed:**
-```jsx
-// App.jsx:17
-import RequireCapability from './components/auth/RequireCapability';
+### Fix 2: Deprecated roleHelpers (HIGH)
+**Files**: `src/utils/extensionProtection.js` and any other files using `roleHelpers`
 
-// App.jsx:239
-<RequireCapability require={null}>  // require={null} = "just wait for ready"
-  <Dashboard />
-</RequireCapability>
+**Change Required**:
+```javascript
+// Replace:
+import { getUserRole } from '@/utils/roleHelpers';
+const role = getUserRole(user, profile);
+
+// With:
+import { useCapability } from '@/context/CapabilityContext';
+const capabilities = useCapability();
+// Derive role from capabilities instead
 ```
 
-**OR remove guard entirely** (DashboardLayout already checks capabilities):
-```jsx
-// App.jsx:239
-<CapabilityProvider>
-  <Dashboard />  // No guard needed - DashboardLayout handles it
-</CapabilityProvider>
-```
+### Fix 3: Products API 400 Error (MEDIUM)
+**File**: `src/pages/dashboard/products.jsx` or query builder
+
+**Investigation Required**:
+- Check `buildProductQuery()` function
+- Verify RLS policies on `products` table
+- Check query parameters being sent
 
 ---
 
-### Fix 3: Improve Error Handling (MEDIUM)
+## 📊 STATISTICS
 
-**Current:**
-```typescript
-// RequireCapability.tsx:64-66
-if (capabilities.error) {
-  console.warn('...allowing access (RLS will enforce)');
-  return <>{children}</>;
-}
-```
+### Route Coverage:
+- **Total Routes Mapped**: 64
+- **Total Dashboard Files**: 89
+- **Routes Properly Connected**: 64/64 (100%)
+- **Legacy Files (Not Routed)**: 4 (intentional)
 
-**Fixed:**
-```typescript
-if (capabilities.error) {
-  // Check if error is recoverable
-  if (capabilities.error.includes('table') || capabilities.error.includes('schema')) {
-    // Critical error - block access
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">System Configuration Error</h2>
-          <p className="text-gray-600">Please contact support.</p>
-        </div>
-      </div>
-    );
-  }
-  // Network/timeout error - allow with warning
-  console.warn('...allowing access (RLS will enforce)');
-  return <>{children}</>;
-}
-```
+### Error Status:
+- **Critical Errors**: 1 (refreshCapabilities undefined)
+- **High Priority Warnings**: 1 (deprecated roleHelpers)
+- **Medium Priority Errors**: 1 (Products API 400)
+- **Low Priority Issues**: 0
+
+### Data Freshness Status:
+- **Pages with Freshness Pattern**: 10
+- **Pages Needing Freshness Pattern**: ~50+
+- **Coverage**: ~17%
 
 ---
 
-## 📋 Testing Checklist
+## 🎯 ACTION ITEMS
 
-After fixes, verify:
+### Immediate (Critical):
+1. ✅ **Fix refreshCapabilities undefined** - Blocks entire dashboard
+2. ⚠️ **Fix Products API 400 error** - Blocks products page
+3. ⚠️ **Remove deprecated roleHelpers** - Console spam
 
-- [ ] `company_capabilities` table exists in database
-- [ ] Company has capabilities row
-- [ ] Dashboard loads without errors
-- [ ] Capabilities load correctly
-- [ ] Sidebar shows correct menu items
-- [ ] Route guards work properly
-- [ ] Component guards work properly
-- [ ] No console errors about missing table
-- [ ] No deprecated function warnings
-- [ ] Network errors resolved
+### Short Term (High Priority):
+4. Apply Data Freshness Pattern to remaining ~50 pages
+5. Verify all 64 routes are accessible
+6. Test navigation between all routes
 
----
-
-## 🎯 Priority Order
-
-1. **CRITICAL**: Apply database migration (Fix 1)
-2. **HIGH**: Fix RequireCapability import (Fix 2)
-3. **MEDIUM**: Improve error handling (Fix 3)
-4. **LOW**: Remove deprecated code (Issue 4)
-5. **LOW**: Fix network errors (Issue 7)
+### Long Term (Medium Priority):
+7. Remove legacy role-based pages (BuyerHome, SellerHome, etc.)
+8. Consolidate duplicate components
+9. Add comprehensive error boundaries
 
 ---
 
-## 📝 Summary
+## 🔍 DIAGNOSTIC COMMANDS
 
-**Root Cause:** The `company_capabilities` table doesn't exist in the database, causing a cascade of failures:
-1. CapabilityContext cannot fetch capabilities
-2. RequireCapability guards fail
-3. DashboardLayout cannot determine user permissions
-4. Sidebar shows incorrect menu items
-5. Route guards don't work properly
+To verify fixes:
 
-**Secondary Issues:**
-- Wrong component imported for route guard
-- Deprecated code still in use
-- Error handling too permissive
-- Multiple network errors
-
-**Fix Priority:**
-1. Apply migration (blocks everything)
-2. Fix component import (affects route protection)
-3. Improve error handling (security/UX)
-4. Clean up deprecated code (maintenance)
+1. **Check Console**: Should see no `refreshCapabilities is not defined` errors
+2. **Check Network**: Products API should return 200 OK, not 400
+3. **Check Warnings**: Should see no `[roleHelpers] getUserRole is deprecated` warnings
+4. **Test Navigation**: All 64 routes should load without errors
+5. **Test Data Loading**: Pages should show data, not blank screens
 
 ---
 
-**Status:** 🔴 **CRITICAL - Dashboard Non-Functional**
+## 📝 NOTES
 
-The dashboard cannot function properly until the database migration is applied. All other fixes are secondary to this critical issue.
+- The dashboard architecture is sound (64 routes properly mapped)
+- The issue is a simple variable scope problem (refreshCapabilities)
+- Once fixed, the dashboard should work correctly
+- Data Freshness Pattern needs to be applied to remaining pages
+- Legacy files can be removed after verification

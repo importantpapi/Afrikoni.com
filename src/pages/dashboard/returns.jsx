@@ -12,7 +12,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -117,11 +117,7 @@ function ReturnsDashboardInner() {
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <CardSkeleton count={3} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={3} />;
   }
 
   const totalRefunded = returns
@@ -129,7 +125,7 @@ function ReturnsDashboardInner() {
     .reduce((sum, r) => sum + (Number(r.refund_amount) || 0), 0);
 
   return (
-    <DashboardLayout currentRole={userRole === 'seller' ? 'seller' : 'buyer'}>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -289,7 +285,7 @@ function ReturnsDashboardInner() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

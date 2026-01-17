@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -9,7 +10,7 @@ import { buildOrderQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { TableSkeleton } from '@/components/shared/ui/skeletons';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -59,6 +60,27 @@ function DashboardOrdersInner() {
   const [orderReviewStatus, setOrderReviewStatus] = useState({});
   const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh, refresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const profileCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -67,17 +89,39 @@ function DashboardOrdersInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[DashboardOrders] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[DashboardOrders] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadUserAndOrders();
-    loadTemplates();
-  }, [authReady, authLoading, user, profile, capabilities.ready, viewMode, statusFilter, dateRangeFilter, navigate]);
+    // GUARD: No company_id → cannot load orders
+    if (!profileCompanyId) {
+      console.log('[DashboardOrders] No company_id - cannot load orders');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[DashboardOrders] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadUserAndOrders();
+      loadTemplates();
+    } else {
+      console.log('[DashboardOrders] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, viewMode, statusFilter, dateRangeFilter, location.pathname, isStale, navigate]);
 
   useEffect(() => {
     setShowBulkActions(selectedOrders.length > 0);
@@ -140,6 +184,13 @@ function DashboardOrdersInner() {
       if (shouldLoadBuyerData && userCompanyId) {
         await loadReviewStatus(ordersData, userCompanyId);
       }
+      
+      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+      // Only mark fresh if we got actual data (not an error)
+      if (ordersData && Array.isArray(ordersData)) {
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
+      }
     } catch (error) {
       console.error('Error loading orders:', error);
       toast.error(error?.message || 'Failed to load orders. Please try again.');
@@ -150,6 +201,7 @@ function DashboardOrdersInner() {
         totalPages: 1,
         isLoading: false
       }));
+      // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
     }
@@ -468,15 +520,11 @@ function DashboardOrdersInner() {
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout currentRole={currentRole}>
-        <TableSkeleton rows={10} columns={6} />
-      </DashboardLayout>
-    );
+    return <TableSkeleton rows={10} columns={6} />;
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-6">
         {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
@@ -742,7 +790,7 @@ function DashboardOrdersInner() {
           buyerCompanyId={companyId}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }
 

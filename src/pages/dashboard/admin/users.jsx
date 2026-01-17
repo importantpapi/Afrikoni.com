@@ -10,7 +10,7 @@ import {
   Users, ArrowLeft, Shield, Search, Filter, UserCheck, UserX,
   Mail, Calendar, CheckCircle, XCircle, AlertTriangle, RefreshCw, Eye, ExternalLink
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -284,11 +284,11 @@ export default function AdminUsers() {
 
   if (loading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-afrikoni-text-dark/70">Loading...</div>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -297,7 +297,7 @@ export default function AdminUsers() {
   }
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Premium Header */}
         <motion.div
@@ -579,7 +579,7 @@ export default function AdminUsers() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

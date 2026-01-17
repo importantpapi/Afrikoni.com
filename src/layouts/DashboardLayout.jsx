@@ -33,9 +33,9 @@ import { getUserInitial, extractUserName } from '@/utils/userHelpers';
 // import { hybridNav } from '@/config/navigation/hybridNav'; // Removed
 // import { logisticsNav } from '@/config/navigation/logisticsNav'; // Removed
 // PHASE 5B: Removed role helper imports - capabilities are the only authority
-// import { useRole } from '@/context/RoleContext'; // Removed
-// import { getDashboardPathForRole, getUserRole } from '@/utils/roleHelpers'; // Removed
+// ✅ FINAL HARDENING: Removed all commented role helper imports
 import { useCapability } from '@/context/CapabilityContext';
+import { RefreshCw } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import UserAvatar from '@/components/headers/UserAvatar';
@@ -190,6 +190,10 @@ export default function DashboardLayout({
     error: null,
   };
   
+  // ✅ CRITICAL FIX: Extract refreshCapabilities and loading state for Global Sync button
+  const refreshCapabilities = capabilitiesFromContext?.refreshCapabilities || null;
+  const capabilitiesLoading = capabilitiesFromContext?.loading || false;
+  
   // PHASE 5B: Track if layout has been mounted once (to prevent unmounting)
   const hasMountedRef = useRef(false);
   
@@ -207,20 +211,33 @@ export default function DashboardLayout({
   
   // ✅ CRITICAL FIX: Safe access with optional chaining
   // PHASE 5B: Get capabilities data (use prop or context)
+  // ✅ STABILIZATION: Capability override for development - Full Visibility mode
+  const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development';
   const capabilitiesData = capabilities || (safeCapabilities?.ready ? {
     can_buy: safeCapabilities?.can_buy ?? true,
     can_sell: safeCapabilities?.can_sell ?? false,
     can_logistics: safeCapabilities?.can_logistics ?? false,
     sell_status: safeCapabilities?.sell_status ?? 'disabled',
     logistics_status: safeCapabilities?.logistics_status ?? 'disabled',
+  } : (isDevelopment ? {
+    // ✅ STABILIZATION: Development fallback - Full Visibility mode
+    can_buy: true,
+    can_sell: true,
+    can_logistics: true,
+    sell_status: 'approved',
+    logistics_status: 'approved',
   } : {
     can_buy: true,
     can_sell: false,
     can_logistics: false,
     sell_status: 'disabled',
     logistics_status: 'disabled',
-  });
+  }));
   const { user: contextUser, profile: contextProfile, loading: userLoading, refreshProfile } = useUser();
+  // ✅ CRITICAL FIX: Declare profileCompanyId IMMEDIATELY after contextProfile
+  // This must be declared BEFORE it's used in useNotificationCounts (line 255)
+  const profileCompanyId = contextProfile?.company_id || null;
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -238,9 +255,6 @@ export default function DashboardLayout({
   const location = useLocation();
   const navigate = useNavigate();
   // PHASE 5B: Dev switcher completely removed - capabilities are company-level
-  
-  // Derive companyId from profile
-  const profileCompanyId = contextProfile?.company_id || null;
   
   // Merge user data with profile for display (for backward compatibility)
   const mergedUser = contextUser && contextProfile ? {
@@ -283,6 +297,44 @@ export default function DashboardLayout({
   const contextUserId = contextUser?.id || null;
   const contextUserEmail = contextUser?.email?.toLowerCase() || null;
   const contextProfileId = contextProfile?.id || null;
+  
+  // ✅ TOTAL SYSTEM SYNC: Kernel logging - track Persistent Shell state
+  // NOTE: Must be AFTER contextUserId, contextUserEmail, contextProfileId declarations
+  useEffect(() => {
+    const capabilitiesReadyState = safeCapabilities?.ready ?? false;
+    const currentPathname = location.pathname;
+    
+    console.group('🏠 Dashboard Kernel Sync');
+    console.log('📊 Auth State:', {
+      authReady: contextUser ? true : false,
+      userId: contextUserId || 'null',
+      userEmail: contextUserEmail || 'null',
+    });
+    console.log('🔐 Capabilities State:', {
+      capabilitiesReady: capabilitiesReadyState,
+      can_buy: safeCapabilities?.can_buy ?? false,
+      can_sell: safeCapabilities?.can_sell ?? false,
+      can_logistics: safeCapabilities?.can_logistics ?? false,
+      sell_status: safeCapabilities?.sell_status ?? 'unknown',
+      logistics_status: safeCapabilities?.logistics_status ?? 'unknown',
+    });
+    console.log('📍 Navigation State:', {
+      currentPathname,
+      sidebarOpen,
+      userMenuOpen,
+    });
+    console.log('🏢 Company State:', {
+      companyId: profileCompanyId || 'null',
+      profileId: contextProfileId || 'null',
+      profileCompanyId: profileCompanyId || 'null', // ✅ STABILIZATION: Explicit logging for verification
+    });
+    console.log('🔧 Stabilization State:', {
+      isDevelopment: isDevelopment,
+      capabilitiesDataReady: !!capabilitiesData,
+      capabilitiesData: capabilitiesData,
+    });
+    console.groupEnd();
+  }, [location.pathname, safeCapabilities?.ready, contextUserId, contextUserEmail, profileCompanyId, contextProfileId, sidebarOpen, userMenuOpen, contextUser, safeCapabilities, isDevelopment, capabilitiesData]);
   
   useEffect(() => {
     if (contextUserId && contextProfileId) {
@@ -359,8 +411,10 @@ export default function DashboardLayout({
   // Sidebar is built dynamically from capabilities, not from static role-based nav arrays
 
   // PHASE 5B: Build sidebar from capabilities (capability-based access - ONLY source of truth)
+  // ✅ STABILIZATION: Global error boundary around sidebar building
   const buildSidebarFromCapabilities = (caps) => {
-    if (!caps) return null;
+    try {
+      if (!caps) return null;
     
     const menuItems = [];
     
@@ -496,25 +550,63 @@ export default function DashboardLayout({
     );
     
     return menuItems;
-  };
-
-  // PHASE 5B: Always use capabilities - no role-based fallback
-  let menuItems;
-  if (capabilitiesData) {
-    // Capability-based sidebar (only source of truth)
-    menuItems = buildSidebarFromCapabilities(capabilitiesData);
-    if (!menuItems || !Array.isArray(menuItems)) {
-      // PHASE 5B: If capabilities build fails, show minimal safe sidebar
-      console.error('[DashboardLayout] Capabilities build failed, showing minimal sidebar');
-      menuItems = [
+    } catch (error) {
+      // ✅ STABILIZATION: Global error boundary - prevent entire Dashboard crash
+      console.error('[DashboardLayout] Error building sidebar from capabilities:', error);
+      console.error('[DashboardLayout] Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        capabilities: caps,
+      });
+      // Return minimal safe sidebar instead of crashing
+      return [
         { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
         { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
         { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
       ];
     }
-  } else {
-    // PHASE 5B: If capabilities not ready, show minimal safe sidebar (shouldn't happen - RequireCapability should block)
-    console.warn('[DashboardLayout] Capabilities not ready, showing minimal sidebar');
+  };
+
+  // PHASE 5B: Always use capabilities - no role-based fallback
+  // ✅ STABILIZATION: Capability override for development + error boundary
+  let menuItems;
+  try {
+    if (capabilitiesData) {
+      // Capability-based sidebar (only source of truth)
+      menuItems = buildSidebarFromCapabilities(capabilitiesData);
+      if (!menuItems || !Array.isArray(menuItems)) {
+        // PHASE 5B: If capabilities build fails, show minimal safe sidebar
+        console.error('[DashboardLayout] Capabilities build returned invalid data, showing minimal sidebar');
+        menuItems = [
+          { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
+          { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+          { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
+        ];
+      }
+    } else {
+      // ✅ STABILIZATION: If capabilities not ready, use Full Visibility mode in development
+      if (isDevelopment) {
+        console.warn('[DashboardLayout] Capabilities not ready in DEV mode - using Full Visibility fallback');
+        menuItems = buildSidebarFromCapabilities({
+          can_buy: true,
+          can_sell: true,
+          can_logistics: true,
+          sell_status: 'approved',
+          logistics_status: 'approved',
+        });
+      } else {
+        // PHASE 5B: If capabilities not ready, show minimal safe sidebar (shouldn't happen - RequireCapability should block)
+        console.warn('[DashboardLayout] Capabilities not ready, showing minimal sidebar');
+        menuItems = [
+          { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
+          { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+          { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
+        ];
+      }
+    }
+  } catch (error) {
+    // ✅ STABILIZATION: Global error boundary - prevent entire Dashboard crash
+    console.error('[DashboardLayout] Critical error building sidebar:', error);
     menuItems = [
       { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
       { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
@@ -837,9 +929,22 @@ export default function DashboardLayout({
           style={{ zIndex: zIndex.header }}
         >
           {/* Header Content - Direct child, no wrapper */}
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full flex items-center gap-2 px-4">
+            {/* ✅ ARCHITECTURAL FIX: Global Sync Button (Founder's Control) */}
+            {refreshCapabilities && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refreshCapabilities(true)}
+                className={`${capabilitiesLoading ? 'animate-spin' : ''}`}
+                title="Force refresh all data"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            )}
+            
             {(() => {
-              // Shared user avatar for all headers
+              {/* Shared user avatar for all headers */}
               const userAvatarComponent = (
                 <UserAvatar
                   user={mergedUser}

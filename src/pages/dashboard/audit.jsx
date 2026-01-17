@@ -13,7 +13,7 @@ import {
   Activity, Lock, FileJson, FileSpreadsheet, FileCheck, XCircle, MapPin,
   Clock, Hash, ExternalLink
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -305,11 +305,9 @@ export default function AuditLogs() {
 
   if (loading) {
     return (
-      <DashboardLayout currentRole="admin">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-afrikoni-text-dark/70">Loading...</div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-afrikoni-text-dark/70">Loading...</div>
+      </div>
     );
   }
 
@@ -319,7 +317,7 @@ export default function AuditLogs() {
   }
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Premium Header - v2.5 */}
         <motion.div
@@ -1035,6 +1033,6 @@ export default function AuditLogs() {
           </>
         )}
       </AnimatePresence>
-    </DashboardLayout>
+    </>
   );
 }

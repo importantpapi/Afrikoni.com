@@ -9,7 +9,7 @@ import {
   Users, Mail, UserCheck, Package, ArrowRight, 
   Clock, CheckCircle, XCircle, TrendingUp, Send
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -195,11 +195,11 @@ export default function OnboardingTracker() {
 
   if (loading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -213,7 +213,7 @@ export default function OnboardingTracker() {
   };
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -335,6 +335,6 @@ export default function OnboardingTracker() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

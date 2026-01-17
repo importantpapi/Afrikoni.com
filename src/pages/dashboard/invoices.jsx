@@ -3,8 +3,10 @@
  * Manage invoices for buyers and sellers
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useCapability } from '@/context/CapabilityContext';
 import { motion } from 'framer-motion';
 import { Receipt, FileText, DollarSign, Clock, CheckCircle, XCircle, Download, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -13,7 +15,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -26,11 +28,33 @@ import { CardSkeleton } from '@/components/shared/ui/skeletons';
 export default function InvoicesDashboard() {
   // Use centralized AuthProvider
   const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [statusFilter, setStatusFilter] = useState('all');
   const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+  
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const profileCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -39,16 +63,38 @@ export default function InvoicesDashboard() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[InvoicesDashboard] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[InvoicesDashboard] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadData();
-  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
+    // GUARD: No company_id → cannot load invoices
+    if (!profileCompanyId) {
+      console.log('[InvoicesDashboard] No company_id - cannot load invoices');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[InvoicesDashboard] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadData();
+    } else {
+      console.log('[InvoicesDashboard] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
     try {
@@ -75,14 +121,23 @@ export default function InvoicesDashboard() {
         }
 
         setInvoices(invoiceList);
+        
+        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+        // Only mark fresh if we got actual data (not an error)
+        if (invoiceList && Array.isArray(invoiceList)) {
+          lastLoadTimeRef.current = Date.now();
+          markFresh();
+        }
       } catch (dataError) {
         console.log('Invoices table not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setInvoices([]);
+        // ❌ DO NOT mark fresh on error - let it retry on next navigation
       }
     } catch (error) {
       console.error('Error loading invoices:', error);
       navigate('/dashboard');
+      // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
     }
@@ -136,15 +191,11 @@ export default function InvoicesDashboard() {
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <CardSkeleton count={3} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={3} />;
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -310,7 +361,7 @@ export default function InvoicesDashboard() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

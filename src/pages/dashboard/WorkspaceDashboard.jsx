@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useCapability } from '@/context/CapabilityContext';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -35,6 +35,7 @@ export default function WorkspaceDashboard() {
   
   const { user, profile, authReady } = useAuth();
   const capabilities = useCapability();
+  const location = useLocation();
   
   // Memoize capabilities data for child components
   const capabilitiesData = useMemo(() => ({
@@ -104,8 +105,9 @@ export default function WorkspaceDashboard() {
       />
       
       <ErrorBoundary fallbackMessage="Failed to load dashboard. Please try again.">
-        {/* Outlet renders child routes - they may unmount freely */}
-        <Outlet />
+        {/* ✅ REACTIVE READINESS FIX: Force component re-boot on navigation */}
+        {/* Outlet renders child routes - key forces re-mount on route change */}
+        <Outlet key={location.pathname} />
       </ErrorBoundary>
     </DashboardLayout>
   );

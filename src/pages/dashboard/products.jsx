@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -9,7 +10,7 @@ import { buildProductQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -49,7 +50,7 @@ function DashboardProductsInner() {
   // Derive role from capabilities for display purposes
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
   const currentRole = isSeller ? 'seller' : 'buyer';
-  const [companyId, setCompanyId] = useState(null);
+  const [companyIdState, setCompanyIdState] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -58,6 +59,27 @@ function DashboardProductsInner() {
   const [currentPlan, setCurrentPlan] = useState('free');
   const [isVerified, setIsVerified] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh, refresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const companyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -66,16 +88,53 @@ function DashboardProductsInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[DashboardProducts] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[DashboardProducts] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadUserAndProducts();
-  }, [authReady, authLoading, user, profile, capabilities.ready, statusFilter, navigate]);
+    // GUARD: No company_id → cannot load products
+    if (!profileCompanyId) {
+      console.log('[DashboardProducts] No company_id - cannot load products');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    // ✅ TOTAL SYSTEM SYNC: Dependency audit - log useEffect trigger
+    console.log('[DashboardProducts] useEffect triggered:', {
+      authReady,
+      authLoading,
+      userId,
+      profileCompanyId,
+      capabilitiesReady,
+      capabilitiesLoading,
+      statusFilter,
+      pathname: location.pathname,
+      isStale,
+      shouldRefresh,
+      lastLoadTime: lastLoadTimeRef.current ? new Date(lastLoadTimeRef.current).toISOString() : 'never',
+    });
+    
+    if (shouldRefresh) {
+      console.log('[DashboardProducts] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadUserAndProducts();
+    } else {
+      console.log('[DashboardProducts] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
 
   const loadUserAndProducts = async () => {
     try {
@@ -88,7 +147,7 @@ function DashboardProductsInner() {
       }
       
       const userCompanyId = profile?.company_id || null;
-      setCompanyId(userCompanyId);
+      setCompanyIdState(userCompanyId);
 
       // Load categories
       const { data: categoriesData, error: categoriesError } = await supabase
@@ -141,11 +200,33 @@ function DashboardProductsInner() {
         selectOverride: selectString
       });
       
+      // ✅ FINAL HARDENING: Enhanced error logging for RLS detection
       if (result.error) {
-        console.error('Error loading products:', result.error);
+        console.error('❌ Error loading products:', {
+          message: result.error.message,
+          code: result.error.code,
+          details: result.error.details,
+          hint: result.error.hint,
+          // RLS-specific detection
+          isRLSError: result.error.code === 'PGRST116' || result.error.message?.includes('permission denied'),
+          fullError: result.error
+        });
+        
+        // Additional RLS-specific logging
+        if (result.error.code === 'PGRST116' || result.error.message?.includes('permission denied')) {
+          console.error('🔒 RLS BLOCK DETECTED:', {
+            table: 'products',
+            companyId: userCompanyId,
+            userId: user?.id,
+            error: result.error
+          });
+        }
+        // ✅ SUCCESS-ONLY FRESHNESS: Do NOT mark fresh if there's an error
+        return; // Exit early - don't process data or mark fresh
       }
 
       // Transform products to include primary image from product_images table
+      // ✅ SUCCESS-ONLY FRESHNESS: Only process data if result.error is null
       const productsWithImages = Array.isArray(result.data) ? result.data.map(product => {
         if (!product) return null;
         
@@ -183,8 +264,21 @@ function DashboardProductsInner() {
         ...result,
         isLoading: false
       }));
+      
+      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+      // Only mark fresh if we got actual data (not an error)
+      if (productsWithImages && Array.isArray(productsWithImages)) {
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
+      }
     } catch (error) {
-      console.error('Error loading products:', error);
+      // ✅ QA FIX: Enhanced error logging for catch block
+      console.error('❌ Exception loading products:', {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
+        fullError: error
+      });
       // Fail gracefully - treat as no data instead of error
       setProducts([]);
       setCategories([]);
@@ -258,15 +352,11 @@ function DashboardProductsInner() {
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout currentRole={currentRole}>
-        <CardSkeleton count={6} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={6} />;
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <ErrorBoundary fallbackMessage="Failed to load products. Please try again.">
       <div className="space-y-6">
         {/* v2.5: Premium Header with Improved Spacing */}
@@ -603,7 +693,7 @@ function DashboardProductsInner() {
         )}
       </div>
         </ErrorBoundary>
-    </DashboardLayout>
+    </>
   );
 }
 

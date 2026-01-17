@@ -3,8 +3,8 @@
  * Manage order fulfillment and warehouse locations
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Warehouse, Package, Truck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -12,7 +12,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -25,15 +25,31 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import RequireCapability from '@/guards/RequireCapability';
+import { useCapability } from '@/context/CapabilityContext';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { logError } from '@/utils/errorLogger';
 
 function FulfillmentDashboardInner() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [fulfillments, setFulfillments] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  const navigate = useNavigate();
+
+  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const userCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  const canLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -42,27 +58,39 @@ function FulfillmentDashboardInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[FulfillmentDashboard] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect
-    if (!user) {
+    if (!userId) {
       console.warn('[FulfillmentDashboard] No user found, redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadData();
-  }, [authReady, authLoading, user, profile, role, navigate, statusFilter]);
+    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[FulfillmentDashboard] Data is stale or first load - refreshing');
+      loadData();
+    } else {
+      console.log('[FulfillmentDashboard] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
       console.log('[FulfillmentDashboard] Starting loadData...');
       
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
-
       // Allow logistics users even without companyId (they might be viewing all fulfillments)
-      if (!userCompanyId && role !== 'logistics') {
+      if (!userCompanyId && !canLogistics) {
         console.warn('[FulfillmentDashboard] No company ID found for non-logistics user');
         toast.info('Complete your company profile to access fulfillment features.');
         setIsLoading(false);
@@ -80,13 +108,22 @@ function FulfillmentDashboardInner() {
           buyer_company:companies!orders_buyer_company_id_fkey(*)
         `);
 
-      if (role === 'logistics' && userCompanyId) {
+      if (canLogistics && userCompanyId) {
         // Logistics: show orders where they're the logistics partner
         // Check via shipments table
-        const { data: shipments } = await supabase
+        const { data: shipments, error: shipmentsError } = await supabase
           .from('shipments')
           .select('order_id')
           .eq('logistics_partner_id', userCompanyId);
+
+        // ✅ GLOBAL HARDENING: Enhanced error logging
+        if (shipmentsError) {
+          logError('loadData-shipments', shipmentsError, {
+            table: 'shipments',
+            companyId: userCompanyId,
+            userId: userId
+          });
+        }
 
         if (shipments && shipments.length > 0) {
           const orderIds = shipments.map(s => s.order_id).filter(Boolean);
@@ -117,12 +154,17 @@ function FulfillmentDashboardInner() {
       const { data: orders, error: ordersError } = await ordersQuery
         .order('created_at', { ascending: false });
 
+      // ✅ GLOBAL HARDENING: Enhanced error logging
       if (ordersError) {
-        console.error('[FulfillmentDashboard] Error loading orders:', ordersError);
+        logError('loadData-orders', ordersError, {
+          table: 'orders',
+          companyId: userCompanyId,
+          userId: userId
+        });
         toast.error('Failed to load orders');
         setFulfillments([]);
         setIsLoading(false);
-        return;
+        return; // Don't mark fresh on error
       }
 
       if (orders && Array.isArray(orders)) {
@@ -142,11 +184,12 @@ function FulfillmentDashboardInner() {
       }
 
       // Load warehouses (non-blocking, fail-safe) - only for sellers/hybrid with company
-      if (userCompanyId && role !== 'logistics') {
+      if (userCompanyId && !canLogistics) {
         const warehousesList = await getWarehouseLocations(userCompanyId).catch((err) => {
-          if (import.meta.env.DEV) {
-            console.warn('getWarehouseLocations failed (non-blocking):', err);
-          }
+          logError('loadData-warehouses', err, {
+            companyId: userCompanyId,
+            userId: userId
+          });
           return [];
         });
         setWarehouses(Array.isArray(warehousesList) ? warehousesList : []);
@@ -155,9 +198,15 @@ function FulfillmentDashboardInner() {
         setWarehouses([]);
       }
 
+      // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
       console.log('[FulfillmentDashboard] Data loaded successfully');
     } catch (error) {
-      console.error('[FulfillmentDashboard] Error loading fulfillment data:', error);
+      logError('loadData', error, {
+        companyId: userCompanyId,
+        userId: userId
+      });
       toast.error('Failed to load fulfillment data. Please try again.');
       // In production, quietly show empty states instead of an error toast
       setFulfillments([]);
@@ -208,15 +257,11 @@ function FulfillmentDashboardInner() {
   };
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <CardSkeleton count={3} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={3} />;
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -388,7 +433,7 @@ function FulfillmentDashboardInner() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

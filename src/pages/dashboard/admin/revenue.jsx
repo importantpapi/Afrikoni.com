@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { DollarSign, TrendingUp, Users, ShoppingCart, Truck, Shield, Sparkles, Calendar } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
@@ -210,11 +210,11 @@ export default function RevenueDashboard() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -223,7 +223,7 @@ export default function RevenueDashboard() {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -380,6 +380,6 @@ export default function RevenueDashboard() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

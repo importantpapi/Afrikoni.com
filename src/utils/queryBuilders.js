@@ -30,9 +30,10 @@ export function buildProductQuery(filters = {}) {
       product_images(*)
     `);
   
-  // Filter by company
+  // Filter by company (using standard company_id field)
+  // ✅ OS RESTORATION FIX: Use single company_id field (matches products.jsx pattern)
   if (companyId) {
-    query = query.or(`supplier_id.eq.${companyId},company_id.eq.${companyId}`);
+    query = query.eq('company_id', companyId);
   }
   
   // Filter by status

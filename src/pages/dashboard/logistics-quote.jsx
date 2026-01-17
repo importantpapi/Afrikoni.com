@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Truck, Package, Sparkles } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -204,16 +204,14 @@ function LogisticsQuoteInner() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex justify-center py-20">
-          <div className="animate-spin h-10 w-10 border-b-2 border-afrikoni-gold rounded-full" />
-        </div>
-      </DashboardLayout>
+      <div className="flex justify-center py-20">
+        <div className="animate-spin h-10 w-10 border-b-2 border-afrikoni-gold rounded-full" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Request Shipping Quote</h1>
 
@@ -254,7 +252,7 @@ function LogisticsQuoteInner() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

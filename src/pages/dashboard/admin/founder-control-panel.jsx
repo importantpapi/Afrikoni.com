@@ -4,7 +4,7 @@ import {
   TrendingUp, AlertTriangle, CheckCircle, Clock, DollarSign, 
   Users, Package, FileText, ArrowRight, Filter, Download, RefreshCw
 } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -212,7 +212,7 @@ export default function FounderControlPanel() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -361,7 +361,7 @@ export default function FounderControlPanel() {
           </Card>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

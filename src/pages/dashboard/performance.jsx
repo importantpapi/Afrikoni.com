@@ -3,13 +3,15 @@
  * View performance metrics and analytics
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useCapability } from '@/context/CapabilityContext';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, Package, AlertTriangle, Star, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -25,10 +27,32 @@ import RequireCapability from '@/guards/RequireCapability';
 function PerformanceDashboardInner() {
   // Use centralized AuthProvider
   const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
   const [performance, setPerformance] = useState(null);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+  
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const profileCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -37,16 +61,38 @@ function PerformanceDashboardInner() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[PerformanceDashboard] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[PerformanceDashboard] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadData();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+    // GUARD: No company_id → cannot load performance
+    if (!profileCompanyId) {
+      console.log('[PerformanceDashboard] No company_id - cannot load performance');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[PerformanceDashboard] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadData();
+    } else {
+      console.log('[PerformanceDashboard] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
     try {
@@ -66,20 +112,24 @@ function PerformanceDashboardInner() {
       await calculateSupplierPerformance(userCompanyId);
       const perf = await getSupplierPerformance(userCompanyId);
       setPerformance(perf);
+      
+      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
+      // Only mark fresh if we got actual data (not an error)
+      if (perf && typeof perf === 'object') {
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
+      }
     } catch (error) {
       console.error('Error loading performance data:', error);
       toast.error('Failed to load performance data');
+      // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
     }
   };
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <CardSkeleton count={3} />
-      </DashboardLayout>
-    );
+    return <CardSkeleton count={3} />;
   }
 
   const metrics = [
@@ -118,7 +168,7 @@ function PerformanceDashboardInner() {
   ];
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <motion.div
@@ -206,7 +256,7 @@ function PerformanceDashboardInner() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

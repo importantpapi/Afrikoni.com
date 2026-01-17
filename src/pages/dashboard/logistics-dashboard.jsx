@@ -2,13 +2,16 @@
  * Logistics Dashboard - Comprehensive dashboard for logistics partners and 3PL providers
  */
 
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import RequireCapability from '@/guards/RequireCapability';
 
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useCapability } from '@/context/CapabilityContext';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { logError } from '@/utils/errorLogger';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -44,9 +47,22 @@ import { format } from 'date-fns';
 function LogisticsDashboardInner() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
+
+  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const userCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  const canLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
 
   const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,12 +94,37 @@ function LogisticsDashboardInner() {
       return;
     }
 
-    // GUARD: No queries until auth is ready
-    if (!user || !role) {
-      console.warn('[LogisticsDashboard] No user or role → redirecting to login');
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[LogisticsDashboard] Waiting for capabilities to be ready...');
+      return;
+    }
+
+    // GUARD: Check logistics capability
+    if (!canLogistics) {
+      console.warn('[LogisticsDashboard] No logistics capability → redirecting to dashboard');
+      navigate('/dashboard');
+      return;
+    }
+
+    // GUARD: No user → redirect
+    if (!userId) {
+      console.warn('[LogisticsDashboard] No user → redirecting to login');
       navigate('/login');
       return;
     }
+
+    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (!shouldRefresh) {
+      console.log('[LogisticsDashboard] Data is fresh - skipping reload');
+      return;
+    }
+
+    console.log('[LogisticsDashboard] Data is stale or first load - refreshing');
 
     // Safety timeout: Force loading to false after 15 seconds
     timeoutId = setTimeout(() => {
@@ -99,7 +140,7 @@ function LogisticsDashboardInner() {
         setIsLoading(true);
 
         // Get company ID from profile
-        const cid = profile?.company_id || null;
+        const cid = userCompanyId;
         console.log('[LogisticsDashboard] Company ID:', cid);
         
         if (!isMounted) {
@@ -126,15 +167,15 @@ function LogisticsDashboardInner() {
         // Load data in parallel with error handling for each
         const results = await Promise.allSettled([
           loadKPIs(cid).catch(err => {
-            console.warn('[LogisticsDashboard] Error loading KPIs:', err);
+            logError('loadKPIs', err, { companyId: cid, userId: userId });
             return null;
           }),
           loadRecentShipments(cid).catch(err => {
-            console.warn('[LogisticsDashboard] Error loading shipments:', err);
+            logError('loadRecentShipments', err, { companyId: cid, userId: userId });
             return null;
           }),
           loadPartners(cid).catch(err => {
-            console.warn('[LogisticsDashboard] Error loading partners:', err);
+            logError('loadPartners', err, { companyId: cid, userId: userId });
             return null;
           })
         ]);
@@ -144,8 +185,12 @@ function LogisticsDashboardInner() {
           shipments: results[1].status,
           partners: results[2].status
         });
+        
+        // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
       } catch (err) {
-        console.error('[LogisticsDashboard] Fatal error in loadDashboardData:', err);
+        logError('loadDashboardData', err, { companyId: cid, userId: userId });
         if (isMounted) {
           clearTimeout(timeoutId);
           setIsLoading(false);
@@ -167,7 +212,7 @@ function LogisticsDashboardInner() {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [authReady, authLoading, user, profile, role, navigate]); // Only run when auth is ready
+  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
 
   const loadKPIs = async (cid) => {
     const { data } = await supabase

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -8,7 +9,7 @@ import { useCapability } from '@/context/CapabilityContext';
 import { buildShipmentQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { TableSkeleton } from '@/components/shared/ui/skeletons';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -34,6 +35,27 @@ export default function DashboardShipments() {
   const isLogisticsApproved = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
   const currentRole = isLogisticsApproved ? 'logistics' : 'buyer';
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const companyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
+  if (capabilitiesLoading && !capabilitiesReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -42,16 +64,38 @@ export default function DashboardShipments() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[DashboardShipments] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[DashboardShipments] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadShipments();
-  }, [authReady, authLoading, user, profile, capabilities.ready, statusFilter, navigate]);
+    // GUARD: No company_id → cannot load shipments
+    if (!companyId) {
+      console.log('[DashboardShipments] No company_id - cannot load shipments');
+      return;
+    }
+
+    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[DashboardShipments] Data is stale or first load - refreshing');
+      // Now safe to load data
+      loadShipments();
+    } else {
+      console.log('[DashboardShipments] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, companyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
 
   const loadShipments = async () => {
     try {
@@ -98,6 +142,10 @@ export default function DashboardShipments() {
         ...result,
         isLoading: false
       }));
+      
+      // ✅ ARCHITECTURAL FIX: Mark data as fresh after successful load
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
     } catch (error) {
       // Fail gracefully - treat as no data instead of error
       setShipments([]);
@@ -164,11 +212,9 @@ export default function DashboardShipments() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole="logistics">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
@@ -178,7 +224,7 @@ export default function DashboardShipments() {
   }
 
   return (
-    <DashboardLayout currentRole="logistics">
+    <>
       <div className="space-y-6">
         {/* v2.5: Premium Header with Improved Spacing */}
         <motion.div
@@ -334,7 +380,7 @@ export default function DashboardShipments() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

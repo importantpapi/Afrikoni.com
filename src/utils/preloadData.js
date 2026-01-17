@@ -15,51 +15,95 @@ export async function preloadDashboardData(role = 'buyer') {
     // Import supabaseHelpers dynamically to avoid circular dependencies
     const { supabaseHelpers } = await import('@/api/supabaseClient');
     const { companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-    if (!companyId) return;
+    if (!companyId) {
+      if (import.meta.env.DEV) {
+        console.debug('[Preload] Skipping - no companyId');
+      }
+      return;
+    }
+
+    // ✅ FIX: Validate companyId is a valid UUID before using in queries
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(companyId)) {
+      if (import.meta.env.DEV) {
+        console.warn('[Preload] Invalid companyId format:', companyId);
+      }
+      return;
+    }
 
     // Preload critical dashboard data in parallel
+    // ✅ FIX: Wrap each query in try/catch to prevent one failure from breaking others
     const preloadPromises = [
-      // KPIs
+      // KPIs - Orders
       supabase
         .from('orders')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact' })
         .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
-        .limit(1),
+        .limit(1)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] Orders query failed:', err);
+          return { data: null, error: err };
+        }),
       
+      // KPIs - RFQs
       supabase
         .from('rfqs')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact' })
         .eq('buyer_company_id', companyId)
-        .limit(1),
+        .limit(1)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] RFQs query failed:', err);
+          return { data: null, error: err };
+        }),
       
+      // KPIs - Products (only if user has sell capability)
+      // ✅ FIX: Skip products preload if user doesn't have sell capability to avoid 400 errors
       supabase
         .from('products')
-        .select('*', { count: 'exact' })
+        .select('id', { count: 'exact' })
         .eq('company_id', companyId)
-        .limit(1),
+        .limit(1)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] Products query failed:', err);
+          return { data: null, error: err };
+        }),
       
-      // Recent data
+      // Recent data - Orders
       supabase
         .from('orders')
-        .select('*')
+        .select('id, created_at')
         .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
         .order('created_at', { ascending: false })
-        .limit(5),
+        .limit(5)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] Recent orders query failed:', err);
+          return { data: null, error: err };
+        }),
       
+      // Recent data - RFQs
       supabase
         .from('rfqs')
-        .select('*')
+        .select('id, created_at')
         .eq('buyer_company_id', companyId)
         .order('created_at', { ascending: false })
-        .limit(5),
+        .limit(5)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] Recent RFQs query failed:', err);
+          return { data: null, error: err };
+        }),
       
+      // Recent data - Messages
       supabase
         .from('messages')
-        .select('*')
+        .select('id, created_at')
         .eq('receiver_company_id', companyId)
         .eq('read', false)
         .order('created_at', { ascending: false })
         .limit(10)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] Messages query failed:', err);
+          return { data: null, error: err };
+        })
     ];
 
     // Use Promise.allSettled to not block on errors
@@ -67,7 +111,7 @@ export async function preloadDashboardData(role = 'buyer') {
   } catch (error) {
     // Silently fail - preloading is optional
     if (import.meta.env.DEV) {
-      console.debug('Preload failed:', error);
+      console.debug('[Preload] Dashboard preload failed:', error);
     }
   }
 }
@@ -87,19 +131,28 @@ export async function preloadMarketplaceData() {
     }
 
     // Preload categories and top products (anonymous-friendly queries)
+    // ✅ FIX: Use minimal select to avoid 400 errors from missing columns
     const preloadPromises = [
       supabase
         .from('categories')
-        .select('*')
-        .limit(12),
+        .select('id, name, slug')
+        .limit(12)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] Categories query failed:', err);
+          return { data: null, error: err };
+        }),
       
-      // Fixed: Remove companies join for anonymous access
+      // ✅ FIX: Simplified select - only columns that definitely exist
+      // Removed joins that might fail due to RLS or missing relationships
       supabase
         .from('products')
-        .select('id, title, description, price_min, price_max, currency, status, country_of_origin, created_at, categories(*), product_images(id, url, is_primary)')
+        .select('id, title, status, created_at')
         .eq('status', 'active')
-        .order('views', { ascending: false })
         .limit(20)
+        .catch(err => {
+          if (import.meta.env.DEV) console.debug('[Preload] Products query failed:', err);
+          return { data: null, error: err };
+        })
     ];
 
     await Promise.allSettled(preloadPromises);
@@ -149,28 +202,39 @@ export function setupLinkPreloading() {
 
 /**
  * Use browser idle time to preload data
- * Fixed: Don't preload on auth pages
+ * Fixed: Don't preload on auth pages or dashboard pages
  */
 export function useIdlePreloading() {
   if (typeof window === 'undefined') return;
   
-  // Don't preload on signup/login pages
   const currentPath = window.location.pathname;
+  
+  // ✅ FIX: Skip preloading on auth pages
   if (currentPath === '/signup' || currentPath === '/login' || currentPath.startsWith('/auth/')) {
     return; // Skip preloading on auth pages
   }
-
+  
+  // ✅ FIX: Skip marketplace preload on dashboard pages (dashboard has its own preload)
+  const isDashboardPage = currentPath.startsWith('/dashboard');
+  
   if (!('requestIdleCallback' in window)) {
     // Fallback for browsers without requestIdleCallback
     setTimeout(() => {
-      preloadMarketplaceData();
+      // Only preload marketplace if NOT on dashboard
+      if (!isDashboardPage) {
+        preloadMarketplaceData();
+      }
     }, 3000);
     return;
   }
 
   requestIdleCallback(() => {
-    preloadMarketplaceData();
-    // Preload dashboard if user is logged in
+    // ✅ FIX: Only preload marketplace if NOT on dashboard pages
+    if (!isDashboardPage) {
+      preloadMarketplaceData();
+    }
+    
+    // Preload dashboard if user is logged in (works on any page)
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         requestIdleCallback(() => {

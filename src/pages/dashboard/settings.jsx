@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { LogOut } from 'lucide-react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -18,6 +18,16 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/shared/ui/switch';
 import { useTranslation } from 'react-i18next';
 import CookieSettingsModal from '@/components/shared/ui/CookieSettingsModal';
+import { useCapability } from '@/context/CapabilityContext';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { logError } from '@/utils/errorLogger';
+
+// Helper function to safely get translations with fallback
+const getTranslation = (t, key, fallback) => {
+  const translation = t(key);
+  // If translation equals the key, it means translation is missing, use fallback
+  return translation === key ? fallback : translation;
+};
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -31,6 +41,12 @@ const AFRICAN_COUNTRIES = [
 
 export default function DashboardSettings() {
   const { t } = useTranslation();
+  // Helper function to safely get translations with fallback
+  const translate = (key, fallback) => {
+    const translation = t(key);
+    // If translation equals the key, it means translation is missing, use fallback
+    return translation === key ? fallback : translation;
+  };
   const [currentRole, setCurrentRole] = useState('buyer');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -72,9 +88,21 @@ export default function DashboardSettings() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [showCookieModal, setShowCookieModal] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  const capabilities = useCapability();
+
+  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
+
+  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const userCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -83,24 +111,56 @@ export default function DashboardSettings() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[DashboardSettings] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[DashboardSettings] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Now safe to load data
-    loadUserData();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    // ✅ TOTAL SYSTEM SYNC: Dependency audit - log useEffect trigger
+    console.log('[DashboardSettings] useEffect triggered:', {
+      authReady,
+      authLoading,
+      userId,
+      userCompanyId,
+      capabilitiesReady,
+      capabilitiesLoading,
+      pathname: location.pathname,
+      isStale,
+      shouldRefresh,
+      lastLoadTime: lastLoadTimeRef.current ? new Date(lastLoadTimeRef.current).toISOString() : 'never',
+    });
+    
+    if (shouldRefresh) {
+      console.log('[DashboardSettings] Data is stale or first load - refreshing');
+      loadUserData();
+    } else {
+      console.log('[DashboardSettings] Data is fresh - skipping reload');
+    }
+  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
 
   const loadUserData = async () => {
     try {
       setIsLoading(true);
       
       // Use auth from context (no duplicate call)
-      const normalizedRole = role || 'buyer';
-      setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
+      // ✅ GLOBAL HARDENING: Derive role from capabilities instead of role prop
+      const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
+      const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+      const normalizedRole = isLogistics ? 'logistics' : (isSeller ? 'seller' : 'buyer');
+      setCurrentRole(normalizedRole);
 
       setUserData(user);
       
@@ -143,8 +203,17 @@ export default function DashboardSettings() {
           payments: prefs.payments !== false
         });
       }
+      
+      // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
     } catch (error) {
-      // Error logged (removed for production)
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('loadUserData', error, {
+        table: 'profiles',
+        companyId: userCompanyId,
+        userId: userId
+      });
       toast.error('Failed to load settings');
     } finally {
       setIsLoading(false);
@@ -179,7 +248,12 @@ export default function DashboardSettings() {
       setAvatarUrl(file_url);
       toast.success('Avatar uploaded successfully');
     } catch (error) {
-      console.error('Avatar upload error:', error);
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      logError('handleAvatarUpload', error, {
+        table: 'profiles',
+        companyId: userCompanyId,
+        userId: userId
+      });
       toast.error(`Failed to upload avatar: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingAvatar(false);
@@ -339,16 +413,14 @@ export default function DashboardSettings() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-8">
         {/* Premium Header with Improved Typography */}
         <motion.div
@@ -379,25 +451,25 @@ export default function DashboardSettings() {
               value="profile" 
               className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
-              {t('settings.profile') || 'Profile'}
+              {translate('settings.profile', 'Profile')}
             </TabsTrigger>
             <TabsTrigger 
               value="company" 
               className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
-              {t('settings.company') || 'Company'}
+              {translate('settings.company', 'Company')}
             </TabsTrigger>
             <TabsTrigger 
               value="notifications" 
               className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
-              {t('settings.notifications') || 'Notifications'}
+              {translate('settings.notifications', 'Notifications')}
             </TabsTrigger>
             <TabsTrigger 
               value="security" 
               className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
-              {t('settings.security') || 'Security'}
+              {translate('settings.security', 'Security')}
             </TabsTrigger>
           </TabsList>
 
@@ -409,13 +481,13 @@ export default function DashboardSettings() {
                   <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <User className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  {t('settings.personalInformation') || 'Personal Information'}
+                  {translate('settings.personalInformation', 'Personal Information')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
                 {/* Avatar Upload */}
                 <div>
-                  <Label>{t('settings.profilePicture')}</Label>
+                  <Label>{translate('settings.profilePicture', 'Profile Picture')}</Label>
                   <div className="mt-2 flex items-center gap-4">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
@@ -436,7 +508,7 @@ export default function DashboardSettings() {
                       <label htmlFor="avatar-upload">
                         <Button type="button" variant="outline" size="sm" disabled={uploadingAvatar} asChild>
                           <span>
-                            {uploadingAvatar ? t('settings.uploading') : avatarUrl ? t('settings.changeAvatar') : t('settings.uploadAvatar')}
+                            {uploadingAvatar ? translate('settings.uploading', 'Uploading...') : avatarUrl ? translate('settings.changeAvatar', 'Change Avatar') : translate('settings.uploadAvatar', 'Upload Avatar')}
                           </span>
                         </Button>
                       </label>
@@ -456,16 +528,16 @@ export default function DashboardSettings() {
                 </div>
 
                 <div>
-                  <Label htmlFor="name">{t('settings.fullName') || 'Full Name'}</Label>
+                  <Label htmlFor="name">{translate('settings.fullName', 'Full Name')}</Label>
                   <Input
                     id="name"
                     value={formData.name || formData.full_name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder={t('settings.fullNamePlaceholder') || 'Your full name'}
+                    placeholder={translate('settings.fullNamePlaceholder', 'Your full name')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email">{t('auth.email')}</Label>
+                  <Label htmlFor="email">{translate('auth.email', 'Email')}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -473,11 +545,11 @@ export default function DashboardSettings() {
                     disabled
                     className="bg-afrikoni-cream"
                   />
-                  <p className="text-xs text-afrikoni-text-dark/70 mt-1">{t('settings.emailCannotChange') || 'Email cannot be changed'}</p>
+                  <p className="text-xs text-afrikoni-text-dark/70 mt-1">{translate('settings.emailCannotChange', 'Email cannot be changed')}</p>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="language">{t('common.language') || 'Language'}</Label>
+                    <Label htmlFor="language">{translate('common.language', 'Language')}</Label>
                     <Select value={preferences.language} onValueChange={(v) => setPreferences({ ...preferences, language: v })}>
                       <SelectTrigger className="mt-1 min-h-[44px] md:min-h-0">
                         <SelectValue />
@@ -492,7 +564,7 @@ export default function DashboardSettings() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="currency">{t('common.currency') || 'Currency'}</Label>
+                    <Label htmlFor="currency">{translate('common.currency', 'Currency')}</Label>
                     <Select value={preferences.currency} onValueChange={(v) => setPreferences({ ...preferences, currency: v })}>
                       <SelectTrigger className="mt-1 min-h-[44px] md:min-h-0">
                         <SelectValue />
@@ -510,13 +582,13 @@ export default function DashboardSettings() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="phone">{t('settings.phone') || 'Phone'}</Label>
+                  <Label htmlFor="phone">{translate('settings.phone', 'Phone')}</Label>
                   <Input
                     id="phone"
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
-                    placeholder={t('settings.phonePlaceholder') || '+234 800 000 0000'}
+                    placeholder={translate('settings.phonePlaceholder', '+234 800 000 0000')}
                     className="mt-1"
                   />
                 </div>
@@ -526,7 +598,7 @@ export default function DashboardSettings() {
                   className="bg-afrikoni-gold hover:bg-afrikoni-goldDark min-h-[44px] touch-manipulation w-full md:w-auto"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
+                  {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
                 </Button>
               </CardContent>
             </Card>
@@ -539,7 +611,7 @@ export default function DashboardSettings() {
                   <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <Building2 className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  {t('settings.companyInformation') || 'Company Information'}
+                  {translate('settings.companyInformation', 'Company Information')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
@@ -548,7 +620,7 @@ export default function DashboardSettings() {
                   <h3 className="text-base font-semibold text-afrikoni-chestnut border-b border-afrikoni-gold/20 pb-2.5">Basic Information</h3>
                   
                   <div>
-                    <Label htmlFor="company_name">{t('settings.companyName')} <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="company_name">{translate('settings.companyName', 'Company Name')} <span className="text-red-500">*</span></Label>
                     <Input
                       id="company_name"
                       value={formData.company_name}
@@ -560,10 +632,10 @@ export default function DashboardSettings() {
                   
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="business_type">{t('settings.businessType')}</Label>
+                      <Label htmlFor="business_type">{translate('settings.businessType', 'Business Type')}</Label>
                       <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('settings.selectBusinessType')} />
+                          <SelectValue placeholder={translate('settings.selectBusinessType', 'Select business type')} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="manufacturer">{t('onboarding.businessType.manufacturer')}</SelectItem>
@@ -620,7 +692,7 @@ export default function DashboardSettings() {
                   
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="business_email">{t('settings.businessEmail')}</Label>
+                      <Label htmlFor="business_email">{translate('settings.businessEmail', 'Business Email')}</Label>
                       <Input
                         id="business_email"
                         type="email"
@@ -720,7 +792,7 @@ export default function DashboardSettings() {
                     className="w-full md:w-auto min-h-[44px] touch-manipulation"
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
+                    {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
                   </Button>
                 </div>
               </CardContent>
@@ -734,7 +806,7 @@ export default function DashboardSettings() {
                   <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <Bell className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  {t('settings.notifications') || 'Notification Preferences'}
+                  {translate('settings.notifications', 'Notification Preferences')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
@@ -820,7 +892,7 @@ export default function DashboardSettings() {
                   className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full min-h-[44px] touch-manipulation"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
+                  {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
                 </Button>
               </CardContent>
             </Card>
@@ -833,7 +905,7 @@ export default function DashboardSettings() {
                   <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
                     <Shield className="w-5 h-5 text-afrikoni-gold" />
                   </div>
-                  {t('settings.security') || 'Security Settings'}
+                  {translate('settings.security', 'Security Settings')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
@@ -956,7 +1028,7 @@ export default function DashboardSettings() {
                   className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full md:w-auto min-h-[44px] touch-manipulation"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? (t('settings.saving') || 'Saving...') : (t('settings.saveChanges') || 'Save Changes')}
+                  {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
                 </Button>
               </CardContent>
             </Card>
@@ -973,7 +1045,7 @@ export default function DashboardSettings() {
           }}
         />
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

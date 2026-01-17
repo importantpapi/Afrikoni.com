@@ -5,7 +5,7 @@ import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { useCapability } from '@/context/CapabilityContext';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -69,6 +69,20 @@ export default function RFQDetail() {
   });
   const [koniaiLoading, setKoniaiLoading] = useState(false);
 
+  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
+  const userId = user?.id || null;
+  const profileCompanyId = profile?.company_id || null;
+  const capabilitiesReady = capabilities?.ready || false;
+  const capabilitiesLoading = capabilities?.loading || false;
+  
+  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
+  useEffect(() => {
+    if (capabilitiesLoading && !capabilitiesReady) {
+      // Capabilities are loading - show spinner
+      return;
+    }
+  }, [capabilitiesLoading, capabilitiesReady]);
+
   useEffect(() => {
     // GUARD: Wait for auth to be ready
     if (!authReady || authLoading) {
@@ -76,16 +90,29 @@ export default function RFQDetail() {
       return;
     }
 
+    // GUARD: Wait for capabilities to be ready
+    if (!capabilitiesReady || capabilitiesLoading) {
+      console.log('[RFQDetail] Waiting for capabilities to be ready...');
+      return;
+    }
+
     // GUARD: No user → redirect to login
-    if (!user) {
+    if (!userId) {
       console.log('[RFQDetail] No user → redirecting to login');
       navigate('/login');
       return;
     }
 
+    // GUARD: No RFQ ID → redirect to RFQs list
+    if (!id) {
+      console.log('[RFQDetail] No RFQ ID → redirecting to RFQs');
+      navigate('/dashboard/rfqs');
+      return;
+    }
+
     // Now safe to load data
     loadRFQData();
-  }, [id, authReady, authLoading, user, profile, capabilities.ready, navigate]);
+  }, [id, authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, navigate]);
 
   const loadRFQData = async () => {
     try {
@@ -682,20 +709,14 @@ export default function RFQDetail() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole={currentRole}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
   if (!rfq) {
-    return (
-      <DashboardLayout currentRole={currentRole}>
-        <EmptyState type="rfqs" title="RFQ not found" description="The RFQ you're looking for doesn't exist" />
-      </DashboardLayout>
-    );
+    return <EmptyState type="rfqs" title="RFQ not found" description="The RFQ you're looking for doesn't exist" />;
   }
 
   const isOwner = (currentRole === 'buyer' || currentRole === 'hybrid') && 
@@ -712,7 +733,7 @@ export default function RFQDetail() {
     !quotes.some(q => q.supplier_company_id === companyId && q.status === 'quote_submitted');
 
   return (
-    <DashboardLayout currentRole={currentRole}>
+    <>
       <div className="space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -1314,7 +1335,7 @@ export default function RFQDetail() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

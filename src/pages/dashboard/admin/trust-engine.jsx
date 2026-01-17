@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
-import DashboardLayout from '@/layouts/DashboardLayout';
+// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
@@ -97,16 +97,16 @@ function TrustEngineInner() {
 
   if (isLoading) {
     return (
-      <DashboardLayout currentRole="admin">
+      <>
         <div className="p-8">
           <p className="text-afrikoni-deep/60">Loading trust engine data...</p>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout currentRole="admin">
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -275,7 +275,7 @@ function TrustEngineInner() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 
