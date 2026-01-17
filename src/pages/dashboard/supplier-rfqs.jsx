@@ -272,10 +272,12 @@ function SupplierRFQsInner() {
 
 export default function SupplierRFQs() {
   return (
-    {/* PHASE 5B: Supplier RFQs page requires sell capability (approved) */}
-    <RequireCapability canSell={true} requireApproved={true}>
-      <SupplierRFQsInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Supplier RFQs page requires sell capability (approved) */}
+      <RequireCapability canSell={true} requireApproved={true}>
+        <SupplierRFQsInner />
+      </RequireCapability>
+    </>
   );
 }
 

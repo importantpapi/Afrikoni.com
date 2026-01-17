@@ -938,9 +938,11 @@ export default function LogisticsDashboard() {
   // Note: This component is wrapped by DashboardLayout in Dashboard component
   // when accessed through LogisticsHome -> Dashboard component
   return (
-    {/* PHASE 5B: Logistics dashboard requires logistics capability (approved) */}
-    <RequireCapability canLogistics={true} requireApproved={true}>
-      <LogisticsDashboardInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Logistics dashboard requires logistics capability (approved) */}
+      <RequireCapability canLogistics={true} requireApproved={true}>
+        <LogisticsDashboardInner />
+      </RequireCapability>
+    </>
   );
 }

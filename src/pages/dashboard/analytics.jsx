@@ -760,10 +760,12 @@ function DashboardAnalyticsInner() {
 
 export default function DashboardAnalytics() {
   return (
-    {/* PHASE 5B: Analytics requires buy capability */}
-    <RequireCapability canBuy={true}>
-      <DashboardAnalyticsInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Analytics requires buy capability */}
+      <RequireCapability canBuy={true}>
+        <DashboardAnalyticsInner />
+      </RequireCapability>
+    </>
   );
 }
 

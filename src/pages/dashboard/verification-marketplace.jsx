@@ -376,10 +376,12 @@ function VerificationMarketplaceInner() {
 
 export default function VerificationMarketplace() {
   return (
-    {/* PHASE 5B: Verification marketplace requires sell capability (approved) */}
-    <RequireCapability canSell={true} requireApproved={true}>
-      <VerificationMarketplaceInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Verification marketplace requires sell capability (approved) */}
+      <RequireCapability canSell={true} requireApproved={true}>
+        <VerificationMarketplaceInner />
+      </RequireCapability>
+    </>
   );
 }
 

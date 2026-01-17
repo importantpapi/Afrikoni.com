@@ -524,10 +524,12 @@ function DashboardProtectionInner() {
 
 export default function DashboardProtection() {
   return (
-    {/* PHASE 5B: Protection requires buy capability */}
-    <RequireCapability canBuy={true}>
-      <DashboardProtectionInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Protection requires buy capability */}
+      <RequireCapability canBuy={true}>
+        <DashboardProtectionInner />
+      </RequireCapability>
+    </>
   );
 }
 

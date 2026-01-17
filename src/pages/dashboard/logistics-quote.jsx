@@ -260,9 +260,11 @@ function LogisticsQuoteInner() {
 
 export default function LogisticsQuotePage() {
   return (
-    {/* PHASE 5B: Logistics quote page requires logistics capability (approved) */}
-    <RequireCapability canLogistics={true} requireApproved={true}>
-      <LogisticsQuoteInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Logistics quote page requires logistics capability (approved) */}
+      <RequireCapability canLogistics={true} requireApproved={true}>
+        <LogisticsQuoteInner />
+      </RequireCapability>
+    </>
   );
 }

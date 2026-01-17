@@ -638,10 +638,12 @@ function DashboardSavedInner() {
 
 export default function DashboardSaved() {
   return (
-    {/* PHASE 5B: Saved page requires buy capability */}
-    <RequireCapability canBuy={true}>
-      <DashboardSavedInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Saved page requires buy capability */}
+      <RequireCapability canBuy={true}>
+        <DashboardSavedInner />
+      </RequireCapability>
+    </>
   );
 }
 

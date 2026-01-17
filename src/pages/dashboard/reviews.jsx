@@ -420,9 +420,11 @@ function ReviewsDashboardInner() {
 
 export default function ReviewsDashboard() {
   return (
-    {/* PHASE 5B: Reviews requires sell capability (approved) */}
-    <RequireCapability canSell={true} requireApproved={true}>
-      <ReviewsDashboardInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Reviews requires sell capability (approved) */}
+      <RequireCapability canSell={true} requireApproved={true}>
+        <ReviewsDashboardInner />
+      </RequireCapability>
+    </>
   );
 }

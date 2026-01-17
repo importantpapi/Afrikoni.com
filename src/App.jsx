@@ -41,14 +41,75 @@ import Dashboard from './pages/dashboard';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import PostLoginRouter from './auth/PostLoginRouter';
 
-/* ===== Lazy dashboard pages ===== */
+/* ===== AFRIKONI OS KERNEL - Dashboard Pages ===== */
+/* Organized by Engine: Seller, Buyer, Logistics, Governance, System */
+
+// 0. SYSTEM HOME
+// (DashboardHome imported eagerly above)
+
+// 1. SELLER ENGINE (Supply Chain)
+const ProductsPage = lazy(() => import('./pages/dashboard/products'));
+const ProductsNewPage = lazy(() => import('./pages/dashboard/products/new'));
+const SalesPage = lazy(() => import('./pages/dashboard/sales'));
+const SupplierRFQsPage = lazy(() => import('./pages/dashboard/supplier-rfqs'));
+const SupplierAnalyticsPage = lazy(() => import('./pages/dashboard/supplier-analytics'));
+
+// 2. BUYER ENGINE (Sourcing)
 const OrdersPage = lazy(() => import('./pages/dashboard/orders'));
+const OrderDetailPage = lazy(() => import('./pages/dashboard/orders/[id]'));
 const RFQsPage = lazy(() => import('./pages/dashboard/rfqs'));
 const RFQsNewPage = lazy(() => import('./pages/dashboard/rfqs/new'));
-const ProductsPage = lazy(() => import('./pages/dashboard/products'));
-const SalesPage = lazy(() => import('./pages/dashboard/sales'));
+const RFQDetailPage = lazy(() => import('./pages/dashboard/rfqs/[id]'));
+const SavedItemsPage = lazy(() => import('./pages/dashboard/saved'));
+
+// 3. LOGISTICS ENGINE (Fulfillment)
+const ShipmentsPage = lazy(() => import('./pages/dashboard/shipments'));
+const ShipmentDetailPage = lazy(() => import('./pages/dashboard/shipments/[id]'));
+const ShipmentNewPage = lazy(() => import('./pages/dashboard/shipments/new'));
+const FulfillmentPage = lazy(() => import('./pages/dashboard/fulfillment'));
+const LogisticsDashboardPage = lazy(() => import('./pages/dashboard/logistics-dashboard'));
+const LogisticsQuotePage = lazy(() => import('./pages/dashboard/logistics-quote'));
+
+// 4. FINANCIAL ENGINE
 const PaymentsPage = lazy(() => import('./pages/dashboard/payments'));
+const InvoicesPage = lazy(() => import('./pages/dashboard/invoices'));
+const InvoiceDetailPage = lazy(() => import('./pages/dashboard/invoices/[id]'));
+const ReturnsPage = lazy(() => import('./pages/dashboard/returns'));
+const ReturnDetailPage = lazy(() => import('./pages/dashboard/returns/[id]'));
+const EscrowPage = lazy(() => import('./pages/dashboard/escrow/[orderId]'));
+
+// 5. GOVERNANCE & SECURITY (The Firewall)
+const CompliancePage = lazy(() => import('./pages/dashboard/compliance'));
+const RiskPage = lazy(() => import('./pages/dashboard/risk'));
+const KYCPage = lazy(() => import('./pages/dashboard/kyc'));
+const VerificationStatusPage = lazy(() => import('./pages/dashboard/verification-status'));
+const VerificationMarketplacePage = lazy(() => import('./pages/dashboard/verification-marketplace'));
+const AnticorruptionPage = lazy(() => import('./pages/dashboard/anticorruption'));
+const AuditPage = lazy(() => import('./pages/dashboard/audit'));
+const ProtectionPage = lazy(() => import('./pages/dashboard/protection'));
+
+// 6. COMMUNITY & ENGAGEMENT
+const ReviewsPage = lazy(() => import('./pages/dashboard/reviews'));
+const DisputesPage = lazy(() => import('./pages/dashboard/disputes'));
+const NotificationsPage = lazy(() => import('./pages/dashboard/notifications'));
+const SupportChatPage = lazy(() => import('./pages/dashboard/support-chat'));
+const HelpPage = lazy(() => import('./pages/dashboard/help'));
+
+// 7. ANALYTICS & INTELLIGENCE
+const AnalyticsPage = lazy(() => import('./pages/dashboard/analytics'));
+const PerformancePage = lazy(() => import('./pages/dashboard/performance'));
+const KoniAIPage = lazy(() => import('./pages/dashboard/koniai'));
+
+// 8. SYSTEM SETTINGS & UTILITIES
 const SettingsPage = lazy(() => import('./pages/dashboard/settings'));
+const CompanyInfoPage = lazy(() => import('./pages/dashboard/company-info'));
+const TeamMembersPage = lazy(() => import('./pages/dashboard/team-members'));
+const SubscriptionsPage = lazy(() => import('./pages/dashboard/subscriptions'));
+const CrisisPage = lazy(() => import('./pages/dashboard/crisis'));
+
+// 9. DEV TOOLS (Development only)
+const TestEmailsPage = lazy(() => import('./pages/dashboard/test-emails'));
+const ArchitectureViewerPage = lazy(() => import('./pages/dashboard/architecture-viewer'));
 
 /* ===== Lazy admin pages ===== */
 const AdminUsersPage = lazy(() => import('./pages/dashboard/admin/users'));
@@ -228,10 +289,16 @@ function AppContent() {
             }
           />
 
-          {/* ✅ PHASE 6: Capability-based dashboard routes with persistent layout */}
-          {/* 🚨 CRITICAL: Dashboard requires company_id and capability.ready */}
-          {/* Wrap with CapabilityProvider so RequireCapability can access capabilities */}
-          {/* DashboardLayout stays mounted - only child routes change via <Outlet /> */}
+          {/* ============================================================ */}
+          {/* ✅ AFRIKONI OS KERNEL - Unified Dashboard Router */}
+          {/* ============================================================ */}
+          {/* 🏛️ INFRASTRUCTURE ARCHITECTURE: */}
+          {/* - DashboardLayout stays mounted (persistent shell) */}
+          {/* - CapabilityProvider wraps entire dashboard (single source of truth) */}
+          {/* - RequireCapability guards entry (ensures capabilities.ready) */}
+          {/* - All routes are nested under /dashboard/* (unified tree) */}
+          {/* - <Outlet /> swaps pages while layout persists */}
+          {/* ============================================================ */}
           <Route
             path="/dashboard/*"
             element={
@@ -242,17 +309,98 @@ function AppContent() {
               </CapabilityProvider>
             }
           >
-            {/* ✅ Nested routes - DashboardLayout (in WorkspaceDashboard) stays mounted */}
+            {/* 0. SYSTEM HOME */}
             <Route index element={<DashboardHome />} />
+
+            {/* 1. SELLER ENGINE (Supply Chain) */}
+            <Route path="products" element={<ProductsPage />} />
+            <Route path="products/new" element={<ProductsNewPage />} />
+            <Route path="sales" element={<SalesPage />} />
+            <Route path="supplier-rfqs" element={<SupplierRFQsPage />} />
+            <Route path="supplier-analytics" element={<SupplierAnalyticsPage />} />
+
+            {/* 2. BUYER ENGINE (Sourcing) */}
             <Route path="orders" element={<OrdersPage />} />
+            <Route path="orders/:id" element={<OrderDetailPage />} />
             <Route path="rfqs" element={<RFQsPage />} />
             <Route path="rfqs/new" element={<RFQsNewPage />} />
-            <Route path="products" element={<ProductsPage />} />
-            <Route path="sales" element={<SalesPage />} />
+            <Route path="rfqs/:id" element={<RFQDetailPage />} />
+            <Route path="saved" element={<SavedItemsPage />} />
+
+            {/* 3. LOGISTICS ENGINE (Fulfillment) */}
+            <Route path="shipments" element={<ShipmentsPage />} />
+            <Route path="shipments/:id" element={<ShipmentDetailPage />} />
+            <Route path="shipments/new" element={<ShipmentNewPage />} />
+            <Route path="fulfillment" element={<FulfillmentPage />} />
+            <Route path="logistics-dashboard" element={<LogisticsDashboardPage />} />
+            <Route path="logistics-quote" element={<LogisticsQuotePage />} />
+
+            {/* 4. FINANCIAL ENGINE */}
             <Route path="payments" element={<PaymentsPage />} />
+            <Route path="invoices" element={<InvoicesPage />} />
+            <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+            <Route path="returns" element={<ReturnsPage />} />
+            <Route path="returns/:id" element={<ReturnDetailPage />} />
+            <Route path="escrow/:orderId" element={<EscrowPage />} />
+
+            {/* 5. GOVERNANCE & SECURITY (The Firewall) */}
+            <Route path="compliance" element={
+              <ProtectedRoute requireAdmin={true}>
+                <CompliancePage />
+              </ProtectedRoute>
+            } />
+            <Route path="risk" element={
+              <ProtectedRoute requireAdmin={true}>
+                <RiskPage />
+              </ProtectedRoute>
+            } />
+            <Route path="kyc" element={<KYCPage />} />
+            <Route path="verification-status" element={<VerificationStatusPage />} />
+            <Route path="verification-marketplace" element={<VerificationMarketplacePage />} />
+            <Route path="anticorruption" element={
+              <ProtectedRoute requireAdmin={true}>
+                <AnticorruptionPage />
+              </ProtectedRoute>
+            } />
+            <Route path="audit" element={
+              <ProtectedRoute requireAdmin={true}>
+                <AuditPage />
+              </ProtectedRoute>
+            } />
+            <Route path="protection" element={<ProtectionPage />} />
+
+            {/* 6. COMMUNITY & ENGAGEMENT */}
+            <Route path="reviews" element={<ReviewsPage />} />
+            <Route path="disputes" element={<DisputesPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="support-chat" element={<SupportChatPage />} />
+            <Route path="help" element={<HelpPage />} />
+
+            {/* 7. ANALYTICS & INTELLIGENCE */}
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="performance" element={<PerformancePage />} />
+            <Route path="koniai" element={<KoniAIPage />} />
+
+            {/* 8. SYSTEM SETTINGS & UTILITIES */}
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="company-info" element={<CompanyInfoPage />} />
+            <Route path="team-members" element={<TeamMembersPage />} />
+            <Route path="subscriptions" element={<SubscriptionsPage />} />
+            <Route path="crisis" element={
+              <ProtectedRoute requireAdmin={true}>
+                <CrisisPage />
+              </ProtectedRoute>
+            } />
+
+            {/* 9. DEV TOOLS (Development only - hidden in production) */}
+            {import.meta.env.DEV && (
+              <>
+                <Route path="test-emails" element={<TestEmailsPage />} />
+                <Route path="architecture-viewer" element={<ArchitectureViewerPage />} />
+              </>
+            )}
             
-            {/* ✅ Admin Routes - Protected by admin check in ProtectedRoute */}
+            {/* ✅ ADMIN ROUTES - Protected by admin check in ProtectedRoute */}
             <Route path="admin/users" element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminUsersPage />

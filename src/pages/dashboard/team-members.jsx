@@ -611,9 +611,11 @@ function TeamMembersInner() {
 
 export default function TeamMembers() {
   return (
-    {/* PHASE 5B: Team members requires sell capability (approved) */}
-    <RequireCapability canSell={true} requireApproved={true}>
-      <TeamMembersInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Team members requires sell capability (approved) */}
+      <RequireCapability canSell={true} requireApproved={true}>
+        <TeamMembersInner />
+      </RequireCapability>
+    </>
   );
 }

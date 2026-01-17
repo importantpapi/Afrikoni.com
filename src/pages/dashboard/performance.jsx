@@ -212,10 +212,12 @@ function PerformanceDashboardInner() {
 
 export default function PerformanceDashboard() {
   return (
-    {/* PHASE 5B: Performance requires sell capability (approved) */}
-    <RequireCapability canSell={true} requireApproved={true}>
-      <PerformanceDashboardInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Performance requires sell capability (approved) */}
+      <RequireCapability canSell={true} requireApproved={true}>
+        <PerformanceDashboardInner />
+      </RequireCapability>
+    </>
   );
 }
 

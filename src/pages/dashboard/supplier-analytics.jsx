@@ -978,11 +978,13 @@ function SupplierAnalyticsInner() {
 }
 
 export default function SupplierAnalytics() {
-  return (
-    {/* PHASE 5B: Supplier analytics requires sell capability (approved) */}
-    <RequireCapability canSell={true} requireApproved={true}>
-      <SupplierAnalyticsInner />
-    </RequireCapability>
-  );
+    return (
+      <>
+        {/* PHASE 5B: Supplier analytics requires sell capability (approved) */}
+        <RequireCapability canSell={true} requireApproved={true}>
+          <SupplierAnalyticsInner />
+        </RequireCapability>
+      </>
+    );
 }
 

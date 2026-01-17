@@ -181,9 +181,10 @@ export default function DashboardHelp() {
   };
 
   return (
-    {/* PHASE 5B: Help page is universal (any capability) */}
-    <RequireCapability>
-      <div className="space-y-6">
+    <>
+      {/* PHASE 5B: Help page is universal (any capability) */}
+      <RequireCapability>
+        <div className="space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -488,8 +489,9 @@ export default function DashboardHelp() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </RequireDashboardRole>
+        </div>
+      </RequireCapability>
+    </>
   );
 }
 

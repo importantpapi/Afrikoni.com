@@ -602,10 +602,12 @@ function SupportChatInner() {
 
 export default function SupportChat() {
   return (
-    {/* PHASE 5B: Support chat is universal (any capability) */}
-    <RequireCapability>
-      <SupportChatInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Support chat is universal (any capability) */}
+      <RequireCapability>
+        <SupportChatInner />
+      </RequireCapability>
+    </>
   );
 }
 

@@ -270,10 +270,12 @@ function SubscriptionsPageInner() {
 
 export default function SubscriptionsPage() {
   return (
-    {/* PHASE 5B: Subscriptions requires sell capability (approved) */}
-    <RequireCapability canSell={true} requireApproved={true}>
-      <SubscriptionsPageInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Subscriptions requires sell capability (approved) */}
+      <RequireCapability canSell={true} requireApproved={true}>
+        <SubscriptionsPageInner />
+      </RequireCapability>
+    </>
   );
 }
 

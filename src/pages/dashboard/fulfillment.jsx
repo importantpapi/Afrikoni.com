@@ -393,11 +393,13 @@ function FulfillmentDashboardInner() {
 }
 
 export default function FulfillmentDashboard() {
-  return (
-    {/* PHASE 5B: Fulfillment requires sell or logistics capability (approved) */}
-    <RequireCapability canSell={true} canLogistics={true} requireApproved={true}>
-      <FulfillmentDashboardInner />
-    </RequireCapability>
-  );
+    return (
+      <>
+        {/* PHASE 5B: Fulfillment requires sell or logistics capability (approved) */}
+        <RequireCapability canSell={true} canLogistics={true} requireApproved={true}>
+          <FulfillmentDashboardInner />
+        </RequireCapability>
+      </>
+    );
 }
 

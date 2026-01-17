@@ -388,11 +388,17 @@ export default function DashboardLayout({
         children: [
           { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
           { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
-          { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team' },
+          { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
           { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
           { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
         ]
       });
+      
+      // Analytics & Intelligence
+      menuItems.push(
+        { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics', priority: 'secondary' },
+        { icon: TrendingUp, label: 'Performance', path: '/dashboard/performance', priority: 'secondary' }
+      );
     }
     
     // If can_sell → show Sell section (locked if status != 'approved')
@@ -423,6 +429,13 @@ export default function DashboardLayout({
         lockReason: !isApproved ? (caps.sell_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
         children: sellItems
       });
+      
+      // Seller Analytics (only if approved)
+      if (isApproved) {
+        menuItems.push(
+          { icon: BarChart3, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics', priority: 'secondary' }
+        );
+      }
     }
     
     // If can_logistics → show Logistics section (locked if status != 'approved')
@@ -452,11 +465,33 @@ export default function DashboardLayout({
         lockReason: !isApproved ? (caps.logistics_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
         children: logisticsItems
       });
+      
+      // Logistics Dashboard & Quote (only if approved)
+      if (isApproved) {
+        menuItems.push(
+          { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics-dashboard', priority: 'secondary' },
+          { icon: FileText, label: 'Logistics Quote', path: '/dashboard/logistics-quote', priority: 'secondary' }
+        );
+      }
     }
+    
+    // Community & Engagement
+    menuItems.push(
+      { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews', priority: 'secondary' },
+      { icon: AlertCircle, label: 'Disputes', path: '/dashboard/disputes', priority: 'secondary' },
+      { icon: Bell, label: 'Notifications', path: '/dashboard/notifications', priority: 'secondary' }
+    );
+    
+    // Verification & Security
+    menuItems.push(
+      { icon: Shield, label: 'Verification Status', path: '/dashboard/verification-status', priority: 'secondary' },
+      { icon: FileCheck, label: 'KYC', path: '/dashboard/kyc', priority: 'secondary' }
+    );
     
     // Always show: Settings, Help at bottom
     menuItems.push(
       { icon: HelpCircle, label: 'Support Chat', path: '/dashboard/support-chat', priority: 'support' },
+      { icon: HelpCircle, label: 'Help', path: '/dashboard/help', priority: 'support' },
       { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
     );
     

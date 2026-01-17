@@ -295,10 +295,12 @@ function ReturnsDashboardInner() {
 
 export default function ReturnsDashboard() {
   return (
-    {/* PHASE 5B: Returns requires buy or sell capability */}
-    <RequireCapability canBuy={true} canSell={true}>
-      <ReturnsDashboardInner />
-    </RequireCapability>
+    <>
+      {/* PHASE 5B: Returns requires buy or sell capability */}
+      <RequireCapability canBuy={true} canSell={true}>
+        <ReturnsDashboardInner />
+      </RequireCapability>
+    </>
   );
 }
 
