@@ -27,7 +27,7 @@ import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
 import { useAuth } from '@/contexts/AuthProvider';
-import { isSeller } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { useNavigate } from 'react-router-dom';
 
 // Country code to country name mapping
@@ -211,6 +211,8 @@ export default function Navbar({ user, onLogout }) {
 
   // Use centralized AuthProvider
   const { profile: authProfile, role: authRole } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
 
   // Load user profile to get company_id for profile link
   useEffect(() => {
@@ -867,10 +869,11 @@ How It Works
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
               <Link to="/become-supplier" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
               <Link 
-                to={user && userRole && isSeller(userRole) ? "/dashboard" : "/become-supplier"} 
+                to={user && capabilities.ready && capabilities.can_sell && capabilities.sell_status === 'approved' ? "/dashboard" : "/become-supplier"} 
                 onClick={() => {
                   setMegaOpen(false);
-                  if (!user || !userRole || !isSeller(userRole)) {
+                  const isSellerApproved = capabilities.ready && capabilities.can_sell && capabilities.sell_status === 'approved';
+                  if (!user || !isSellerApproved) {
                     navigate('/become-supplier');
                   }
                 }}

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -31,7 +31,9 @@ import { FirstTimeQuoteGuidance } from '@/components/onboarding/FirstTimeUserGui
 
 export default function RFQDetail() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const { id } = useParams();
   const navigate = useNavigate();
   const [rfq, setRfq] = useState(null);
@@ -39,7 +41,10 @@ export default function RFQDetail() {
   const [buyerCompany, setBuyerCompany] = useState(null);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  // Derive role from capabilities for display purposes
+  const isBuyer = capabilities.can_buy === true;
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
   const [companyId, setCompanyId] = useState(null);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -80,14 +85,14 @@ export default function RFQDetail() {
 
     // Now safe to load data
     loadRFQData();
-  }, [id, authReady, authLoading, user, profile, role, navigate]);
+  }, [id, authReady, authLoading, user, profile, capabilities.ready, navigate]);
 
   const loadRFQData = async () => {
     try {
       setIsLoading(true);
       
       // Use auth from context (no duplicate call)
-      const normalizedRole = getUserRole(profile || user) || role || 'buyer';
+      // Role derived from capabilities above
       setCurrentRole(normalizedRole);
       const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);

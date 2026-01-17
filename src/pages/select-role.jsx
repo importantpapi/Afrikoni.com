@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider'; // ← ADDED THIS IMPORT
-import { getDashboardPathForRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { Logo } from '@/components/shared/ui/Logo';
 import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -14,9 +14,18 @@ import { setLastSelectedRole } from '@/lib/supabase-auth-helpers';
 
 export default function SelectRole() {
   // Use centralized AuthProvider
-  const { user, profile, role: authRole, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  
+  // Helper function to get dashboard path based on capabilities
+  const getDashboardPath = (mode) => {
+    if (mode === 'buyer') return '/dashboard';
+    if (mode === 'seller') return '/dashboard/products';
+    return '/dashboard';
+  };
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -31,16 +40,29 @@ export default function SelectRole() {
       return;
     }
 
-    // Use role from context
-    const normalizedRole = authRole || profile?.role || 'buyer';
-
-    // If not multi-role, just send them to their dashboard
-    if (normalizedRole !== 'hybrid') {
-      const path = getDashboardPathForRole(normalizedRole);
-      navigate(path, { replace: true });
+    // ✅ FOUNDATION FIX: Check capabilities instead of role
+    // Wait for capabilities to be ready
+    if (!capabilities.ready) {
+      return; // Will retry when capabilities load
+    }
+    
+    // Check if user is hybrid (can buy AND can sell)
+    const isHybridCapability = capabilities.can_buy === true && 
+                               capabilities.can_sell === true && 
+                               capabilities.sell_status === 'approved';
+    
+    // If not hybrid, redirect to appropriate dashboard
+    if (!isHybridCapability) {
+      if (capabilities.can_buy) {
+        navigate('/dashboard', { replace: true });
+      } else if (capabilities.can_sell && capabilities.sell_status === 'approved') {
+        navigate('/dashboard/products', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
       return;
     }
-  }, [authReady, authLoading, user, profile, authRole, navigate]);
+  }, [authReady, authLoading, user, profile, capabilities.ready, navigate]);
 
   const handleSelect = async (targetRole) => {
     // GUARD: Check auth
@@ -65,7 +87,7 @@ export default function SelectRole() {
         // ignore
       }
 
-      const path = getDashboardPathForRole(targetRole);
+      const path = getDashboardPath(targetRole);
       navigate(path, { replace: true });
     } catch (err) {
       console.error('SelectRole save error:', err);
@@ -83,7 +105,21 @@ export default function SelectRole() {
     );
   }
 
-  if (!authRole) return null;
+  // ✅ FOUNDATION FIX: Check capabilities instead of role
+  if (!capabilities.ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
+    );
+  }
+  
+  // Check if user is hybrid (can buy AND can sell)
+  const isHybridCapability = capabilities.can_buy === true && 
+                             capabilities.can_sell === true && 
+                             capabilities.sell_status === 'approved';
+  
+  if (!isHybridCapability) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">

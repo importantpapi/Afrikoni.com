@@ -38,12 +38,11 @@ import { getUserInitial, extractUserName } from '@/utils/userHelpers';
 import { useCapability } from '@/context/CapabilityContext';
 import { useUser } from '@/contexts/UserContext';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import BuyerHeader from '@/components/headers/BuyerHeader';
-import SellerHeader from '@/components/headers/SellerHeader';
-import LogisticsHeader from '@/components/headers/LogisticsHeader';
-import AdminHeader from '@/components/headers/AdminHeader';
-import HybridHeader from '@/components/headers/HybridHeader';
 import UserAvatar from '@/components/headers/UserAvatar';
+// Layout configuration and utilities
+import { zIndex } from '@/config/zIndex';
+import { layoutConfig } from '@/config/layout';
+import { getHeaderComponent } from '@/config/headerMapping';
 
 // Collapsible menu section component for items with children
 function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
@@ -158,30 +157,69 @@ export default function DashboardLayout({
   const { t } = useTranslation();
   // PHASE 5B: Removed useRole and refreshRole - capabilities are the only authority
   // PHASE 5B: Use capabilities from context instead of DashboardRoleContext
-  const capabilitiesFromContext = useCapability();
+  // ✅ CRITICAL FIX: Safe access with try/catch and defaults
+  let capabilitiesFromContext;
+  try {
+    capabilitiesFromContext = useCapability();
+  } catch (error) {
+    console.warn('[DashboardLayout] Error accessing capabilities, using defaults:', error);
+    capabilitiesFromContext = {
+      can_buy: true,
+      can_sell: false,
+      can_logistics: false,
+      sell_status: 'disabled',
+      logistics_status: 'disabled',
+      company_id: null,
+      loading: false,
+      ready: true,
+      error: null,
+      refreshCapabilities: async () => {},
+    };
+  }
+  
+  // ✅ CRITICAL FIX: Safe access with optional chaining
+  const safeCapabilities = capabilitiesFromContext || {
+    can_buy: true,
+    can_sell: false,
+    can_logistics: false,
+    sell_status: 'disabled',
+    logistics_status: 'disabled',
+    company_id: null,
+    loading: false,
+    ready: true,
+    error: null,
+  };
   
   // PHASE 5B: Track if layout has been mounted once (to prevent unmounting)
   const hasMountedRef = useRef(false);
   
+  // ✅ CRITICAL FIX: Safe access with optional chaining
   // PHASE 5B: Check capability.ready ONCE before first mount
   // If capabilities not ready and not mounted yet, show loading
   // Once mounted, NEVER unmount (even if capabilities change)
   if (!hasMountedRef.current) {
-    if (!capabilitiesFromContext.ready) {
-      return <SpinnerWithTimeout message="Preparing your workspace..." ready={capabilitiesFromContext.ready} />;
+    if (!safeCapabilities?.ready) {
+      return <SpinnerWithTimeout message="Preparing your workspace..." ready={safeCapabilities?.ready ?? true} />;
     }
     // PHASE 5B: Mark as mounted once capabilities are ready (only runs once)
     hasMountedRef.current = true;
   }
   
+  // ✅ CRITICAL FIX: Safe access with optional chaining
   // PHASE 5B: Get capabilities data (use prop or context)
-  const capabilitiesData = capabilities || (capabilitiesFromContext.ready ? {
-    can_buy: capabilitiesFromContext.can_buy,
-    can_sell: capabilitiesFromContext.can_sell,
-    can_logistics: capabilitiesFromContext.can_logistics,
-    sell_status: capabilitiesFromContext.sell_status,
-    logistics_status: capabilitiesFromContext.logistics_status,
-  } : null);
+  const capabilitiesData = capabilities || (safeCapabilities?.ready ? {
+    can_buy: safeCapabilities?.can_buy ?? true,
+    can_sell: safeCapabilities?.can_sell ?? false,
+    can_logistics: safeCapabilities?.can_logistics ?? false,
+    sell_status: safeCapabilities?.sell_status ?? 'disabled',
+    logistics_status: safeCapabilities?.logistics_status ?? 'disabled',
+  } : {
+    can_buy: true,
+    can_sell: false,
+    can_logistics: false,
+    sell_status: 'disabled',
+    logistics_status: 'disabled',
+  });
   const { user: contextUser, profile: contextProfile, loading: userLoading, refreshProfile } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -480,8 +518,9 @@ export default function DashboardLayout({
     <div className="flex min-h-screen w-full bg-afrikoni-ivory relative">
       {/* Premium African Geometric Background Pattern - v2.5 */}
       <div 
-        className="fixed inset-0 opacity-[0.05] pointer-events-none z-0"
+        className="fixed inset-0 opacity-[0.05] pointer-events-none"
         style={{
+          zIndex: zIndex.background,
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A937' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       />
@@ -493,7 +532,8 @@ export default function DashboardLayout({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            className="fixed inset-0 bg-black/50 md:hidden"
+            style={{ zIndex: zIndex.overlay }}
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -504,9 +544,12 @@ export default function DashboardLayout({
         initial={false}
         animate={{ 
           x: sidebarOpen ? 0 : '-100%',
-          width: sidebarOpen ? '16rem' : '0'
         }}
-        className="fixed left-0 top-0 h-screen z-50 bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:w-[260px] md:shadow-none md:z-auto transition-all overflow-hidden shrink-0"
+        className="fixed left-0 top-0 h-screen bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:shadow-none transition-all shrink-0"
+        style={{
+          zIndex: zIndex.sidebar,
+          width: sidebarOpen ? 'var(--sidebar-current-width)' : '0',
+        }}
       >
         <div className="flex flex-col min-h-screen relative">
           {/* Logo Section */}
@@ -521,7 +564,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          <nav className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1">
             {menuItems.map((item, idx) => {
               // ✅ Handle items with children (collapsible sections like "Manage" and "Insights")
               if (item.children && item.children.length > 0) {
@@ -747,38 +790,20 @@ export default function DashboardLayout({
       </motion.aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 w-full md:ml-[260px] min-h-screen relative z-10 overflow-visible">
+      <div 
+        className="flex flex-col flex-1 w-full min-h-screen relative overflow-visible md:ml-[var(--sidebar-width)]"
+        style={{
+          zIndex: zIndex.content,
+        }}
+      >
         {/* Premium Top Bar - Enterprise Pattern (headers render their own <header> tag) */}
-        <div className="sticky top-0 z-50 bg-afrikoni-ivory shadow-sm">
+        <div 
+          className="sticky top-0 bg-afrikoni-ivory shadow-sm"
+          style={{ zIndex: zIndex.header }}
+        >
           {/* Header Content - Direct child, no wrapper */}
           <div className="relative h-full w-full">
             {(() => {
-              // PHASE 5B: Capability-based headers (no role variables)
-              // Admin header ONLY for admin dashboard paths
-              const isAdminPath = location.pathname.startsWith('/dashboard/admin');
-              
-              if (isAdminPath && isUserAdmin) {
-                return (
-                  <AdminHeader
-                    t={t}
-                    setSidebarOpen={setSidebarOpen}
-                    setSearchOpen={setSearchOpen}
-                    navigate={navigate}
-                    alertCount={0}
-                    userAvatar={
-                      <UserAvatar
-                        user={mergedUser}
-                        profile={contextProfile}
-                        userMenuOpen={userMenuOpen}
-                        setUserMenuOpen={setUserMenuOpen}
-                        userMenuButtonRef={userMenuButtonRef}
-                        getUserInitial={getUserInitial}
-                      />
-                    }
-                  />
-                );
-              }
-
               // Shared user avatar for all headers
               const userAvatarComponent = (
                 <UserAvatar
@@ -791,55 +816,40 @@ export default function DashboardLayout({
                 />
               );
 
-              // PHASE 5B: Capability-based headers (NO role variables)
-              // Use capability flags to determine which header to show
-              if (isSeller && !isLogistics) {
-                // Seller-only (approved)
-                  return (
-                    <SellerHeader
-                      t={t}
-                      setSidebarOpen={setSidebarOpen}
-                      setSearchOpen={setSearchOpen}
-                      navigate={navigate}
-                      userAvatar={userAvatarComponent}
-                    />
-                  );
-              } else if (isLogistics && !isSeller) {
-                // Logistics-only (approved)
-                  return (
-                    <LogisticsHeader
-                      t={t}
-                      setSidebarOpen={setSidebarOpen}
-                      setSearchOpen={setSearchOpen}
-                      userAvatar={userAvatarComponent}
-                    />
-                  );
-              } else if (isHybridCapability) {
-                // Hybrid: Buyer + Seller (both approved)
-                  return (
-                    <HybridHeader
-                      t={t}
-                      openWhatsAppCommunity={openWhatsAppCommunity}
-                      setSidebarOpen={setSidebarOpen}
-                      setSearchOpen={setSearchOpen}
-                      navigate={navigate}
-                      activeView={activeView}
-                      setActiveView={setActiveView}
-                      userAvatar={userAvatarComponent}
-                    />
-                  );
-              } else {
-                // Buyer-only (default - everyone can buy)
-                  return (
-                    <BuyerHeader
-                      t={t}
-                      setSidebarOpen={setSidebarOpen}
-                      setSearchOpen={setSearchOpen}
-                      navigate={navigate}
-                      userAvatar={userAvatarComponent}
-                    />
-                  );
+              // Determine header component using centralized mapping
+              const headerConfig = getHeaderComponent({
+                isAdminPath: location.pathname.startsWith('/dashboard/admin'),
+                isUserAdmin,
+                isSeller,
+                isLogistics,
+                isHybridCapability,
+              });
+
+              const HeaderComponent = headerConfig.component;
+              
+              // Build props based on header requirements
+              const headerProps = {
+                t,
+                setSidebarOpen,
+                setSearchOpen,
+                navigate,
+                userAvatar: userAvatarComponent,
+              };
+
+              // Add alertCount for admin header
+              if (headerConfig.requiresAlertCount) {
+                headerProps.alertCount = 0;
               }
+
+              // Add hybrid-specific props for hybrid header
+              if (headerConfig.requiresHybridProps) {
+                headerProps.activeView = activeView;
+                headerProps.setActiveView = setActiveView;
+                headerProps.openWhatsAppCommunity = openWhatsAppCommunity;
+              }
+
+              // Render the selected header component
+              return <HeaderComponent {...headerProps} />;
             })()}
           </div>
         </div>
@@ -848,7 +858,8 @@ export default function DashboardLayout({
         {userMenuOpen && (
           <>
             <div
-              className="fixed inset-0 z-[9998] bg-transparent"
+              className="fixed inset-0 bg-transparent"
+              style={{ zIndex: zIndex.modalBackdrop }}
               onClick={() => setUserMenuOpen(false)}
               onTouchStart={() => setUserMenuOpen(false)}
             />
@@ -857,10 +868,11 @@ export default function DashboardLayout({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="fixed w-56 bg-white border-2 border-afrikoni-gold/30 rounded-afrikoni shadow-2xl z-[9999]"
+              className="fixed w-56 bg-white border-2 border-afrikoni-gold/30 rounded-afrikoni shadow-2xl"
               style={{ 
                 top: `${menuPosition.top}px`,
-                right: `${menuPosition.right}px`
+                right: `${menuPosition.right}px`,
+                zIndex: zIndex.dropdown,
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -988,7 +1000,13 @@ export default function DashboardLayout({
         )}
 
         {/* Page Content - Mobile optimized padding */}
-        <main className="relative z-10 flex-1 w-full px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6 bg-afrikoni-ivory overflow-x-hidden overflow-y-auto min-h-[calc(100vh-80px)]">
+        <main 
+          className="relative flex-1 w-full bg-afrikoni-ivory overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6"
+          style={{
+            zIndex: zIndex.content,
+            minHeight: 'var(--content-min-height-mobile)',
+          }}
+        >
           {children}
         </main>
       </div>
@@ -1009,7 +1027,8 @@ export default function DashboardLayout({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.5 }}
-        className="fixed bottom-0 left-0 right-0 z-30 bg-afrikoni-chestnut/95 backdrop-blur-sm border-t border-afrikoni-gold/30 px-4 py-2 hidden md:block"
+        className="fixed bottom-0 left-0 right-0 bg-afrikoni-chestnut/95 backdrop-blur-sm border-t border-afrikoni-gold/30 px-4 py-2 hidden md:block"
+        style={{ zIndex: zIndex.footer }}
       >
         <div className="w-full px-4 md:px-6 lg:px-8 flex items-center gap-6 text-xs text-afrikoni-sand">
           <div className="flex items-center gap-2">

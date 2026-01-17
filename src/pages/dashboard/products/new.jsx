@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { validateProductForm } from '@/utils/validation';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -41,7 +41,9 @@ const SUPPLY_UNITS = ['tons/month', 'containers/month', 'kg/month', 'grams/month
 
 export default function ProductForm() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const { id: routeProductId } = useParams();
   const [searchParams] = useSearchParams();
   const queryProductId = searchParams.get('id');
@@ -146,8 +148,7 @@ export default function ProductForm() {
       // Use auth from context (no duplicate call)
       // User already checked in useEffect guard
 
-      const normalizedRole = getUserRole(profile || user) || role || 'seller';
-      setCurrentRole(normalizedRole);
+      // Role derived from capabilities above
 
       // Allow all users to create products - no role restriction
       // Role is just for display purposes

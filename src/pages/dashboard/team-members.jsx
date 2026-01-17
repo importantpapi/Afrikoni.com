@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -38,9 +38,13 @@ import RequireCapability from '@/guards/RequireCapability';
 
 function TeamMembersInner() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const [companyId, setCompanyId] = useState(null);
-  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  // Derive role from capabilities for display purposes
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const currentRole = isSeller ? 'seller' : 'buyer';
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [teamMembers, setTeamMembers] = useState([]);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -73,7 +77,7 @@ function TeamMembersInner() {
 
     // Now safe to load data
     loadData();
-  }, [authReady, authLoading, user, profile, role]);
+  }, [authReady, authLoading, user, profile, capabilities.ready]);
 
   const loadData = async () => {
     try {
@@ -82,7 +86,7 @@ function TeamMembersInner() {
       // Use auth from context (no duplicate call)
       const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
-      setCurrentRole(getUserRole(profile || user) || role || 'buyer');
+      // Role derived from capabilities above
 
       // Load subscription status
       if (userCompanyId) {

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole, canViewSellerFeatures } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -21,7 +21,9 @@ import RequireCapability from '@/guards/RequireCapability';
 
 function SupplierRFQsInner() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
@@ -42,9 +44,13 @@ function SupplierRFQsInner() {
       return;
     }
 
-    // Check seller access
-    const normalizedRole = getUserRole(profile || user) || role || 'buyer';
-    if (!canViewSellerFeatures(normalizedRole)) {
+    // ✅ FOUNDATION FIX: Check capabilities instead of role
+    if (!capabilities.ready) {
+      return; // Will retry when capabilities load
+    }
+    
+    const isSellerApproved = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+    if (!isSellerApproved) {
       toast.error('Supplier access required');
       navigate('/dashboard');
       return;
@@ -56,7 +62,7 @@ function SupplierRFQsInner() {
 
     // Now safe to load data
     loadRFQs();
-  }, [statusFilter, authReady, authLoading, user, profile, role, navigate]);
+  }, [statusFilter, authReady, authLoading, user, profile, capabilities.ready, navigate]);
 
   const loadRFQs = async () => {
     try {

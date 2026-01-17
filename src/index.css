@@ -2,6 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   DASHBOARD LAYOUT CSS VARIABLES
+   Centralized configuration for easy customization
+   ============================================ */
+:root {
+  /* Sidebar Dimensions */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
+  --sidebar-mobile-width: 16rem;
+  
+  /* Responsive sidebar width - use CSS classes */
+  --sidebar-current-width: var(--sidebar-mobile-width);
+  
+  @media (min-width: 768px) {
+    --sidebar-current-width: var(--sidebar-width);
+  }
+  
+  /* Header Dimensions */
+  --header-height: 64px;
+  --header-height-mobile: 56px;
+  
+  /* Footer Dimensions */
+  --footer-height: 48px;
+  --mobile-bottom-nav-height: 72px;
+  
+  /* Content Spacing */
+  --content-padding-x-mobile: 0.75rem;  /* 12px */
+  --content-padding-x-tablet: 1rem;      /* 16px */
+  --content-padding-x-desktop: 1.5rem;  /* 24px */
+  --content-padding-y-mobile: 1rem;     /* 16px */
+  --content-padding-y-desktop: 1.5rem;  /* 24px */
+  
+  /* Content Min Heights */
+  --content-min-height-mobile: calc(100vh - var(--header-height-mobile) - var(--mobile-bottom-nav-height));
+  --content-min-height-desktop: calc(100vh - var(--header-height));
+  
+  /* Z-Index Scale - Centralized for consistency */
+  --z-background: 0;
+  --z-content: 10;
+  --z-footer: 30;
+  --z-overlay: 40;
+  --z-sidebar: 50;
+  --z-header: 100;
+  --z-modal-backdrop: 9998;
+  --z-modal: 9999;
+  --z-dropdown: 9999;
+  
+  /* Layout Breakpoints (matching Tailwind) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
 /* Global overflow protection to avoid horizontal scroll / white space */
 html, body {
   overflow-x: hidden;

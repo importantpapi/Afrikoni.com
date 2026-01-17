@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { buildShipmentQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { TableSkeleton } from '@/components/shared/ui/skeletons';
@@ -22,13 +22,17 @@ import { format } from 'date-fns';
 
 export default function DashboardShipments() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const [shipments, setShipments] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [pagination, setPagination] = useState(createPaginationState());
-  const [currentRole, setCurrentRole] = useState(role || 'logistics');
+  // Derive role from capabilities for display purposes
+  const isLogisticsApproved = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
+  const currentRole = isLogisticsApproved ? 'logistics' : 'buyer';
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,15 +51,14 @@ export default function DashboardShipments() {
 
     // Now safe to load data
     loadShipments();
-  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
+  }, [authReady, authLoading, user, profile, capabilities.ready, statusFilter, navigate]);
 
   const loadShipments = async () => {
     try {
       setIsLoading(true);
       
       // Use auth from context (no duplicate call)
-      const normalizedRole = getUserRole(profile || user) || 'logistics';
-      setCurrentRole(normalizedRole);
+      // Role derived from capabilities above
       const companyId = profile?.company_id || null;
 
       // Use query builder

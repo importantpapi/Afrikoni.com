@@ -14,19 +14,23 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { isLogistics } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 
 export default function ServicesOverview() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady } = useAuth();
+  const { user, authReady } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const navigate = useNavigate();
-  
-  // Use role from auth context
-  const userRole = role || profile?.role || null;
 
   const handleLogisticsClick = (e) => {
     e.preventDefault();
-    if (user && isLogistics(userRole)) {
+    // ✅ FOUNDATION FIX: Check capabilities instead of role
+    const isLogisticsApproved = capabilities.ready && 
+                                 capabilities.can_logistics === true && 
+                                 capabilities.logistics_status === 'approved';
+    
+    if (user && isLogisticsApproved) {
       // User is logged in and is a logistics partner, go to dashboard
       navigate('/dashboard/logistics');
     } else {

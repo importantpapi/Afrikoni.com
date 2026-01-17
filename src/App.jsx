@@ -236,7 +236,7 @@ function AppContent() {
             path="/dashboard/*"
             element={
               <CapabilityProvider>
-                <RequireCapability>
+                <RequireCapability require={null}>
                   <Dashboard />
                 </RequireCapability>
               </CapabilityProvider>

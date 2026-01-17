@@ -9,13 +9,15 @@ import SEO from '@/components/SEO';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { isLogistics } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 function LogisticsContent() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const navigate = useNavigate();
   const analytics = useAnalytics();
   const [logisticsPartners, setLogisticsPartners] = useState([]);
@@ -219,7 +221,12 @@ function LogisticsContent() {
   };
 
   const handleBecomePartner = () => {
-    if (user && isLogistics(role)) {
+    // ✅ FOUNDATION FIX: Check capabilities instead of role
+    const isLogisticsApproved = capabilities.ready && 
+                                 capabilities.can_logistics === true && 
+                                 capabilities.logistics_status === 'approved';
+    
+    if (user && isLogisticsApproved) {
       // User is already a logistics partner, go to dashboard
       navigate('/dashboard/logistics');
     } else {
@@ -229,7 +236,12 @@ function LogisticsContent() {
   };
 
   const handleRequestQuote = () => {
-    if (user && isLogistics(role)) {
+    // ✅ FOUNDATION FIX: Check capabilities instead of role
+    const isLogisticsApproved = capabilities.ready && 
+                                 capabilities.can_logistics === true && 
+                                 capabilities.logistics_status === 'approved';
+    
+    if (user && isLogisticsApproved) {
       navigate('/dashboard/logistics?tab=quotes');
     } else if (user) {
       navigate('/dashboard/logistics-quote');

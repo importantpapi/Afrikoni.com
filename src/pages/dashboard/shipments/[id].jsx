@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { SHIPMENT_STATUS, getStatusLabel, getNextStatuses } from '@/constants/status';
 import { buildShipmentTimeline } from '@/utils/timeline';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -23,7 +23,9 @@ import CustomsClearance from '@/components/logistics/CustomsClearance';
 
 export default function ShipmentDetail() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const { id } = useParams();
   const navigate = useNavigate();
   const [shipment, setShipment] = useState(null);
@@ -31,7 +33,9 @@ export default function ShipmentDetail() {
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isUpdating, setIsUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState('');
-  const [currentRole, setCurrentRole] = useState(role || 'logistics');
+  // Derive role from capabilities for display purposes
+  const isLogisticsApproved = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
+  const currentRole = isLogisticsApproved ? 'logistics' : 'buyer';
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -49,14 +53,14 @@ export default function ShipmentDetail() {
 
     // Now safe to load data
     loadShipmentData();
-  }, [id, authReady, authLoading, user, profile, role, navigate]);
+  }, [id, authReady, authLoading, user, profile, capabilities.ready, navigate]);
 
   const loadShipmentData = async () => {
     try {
       setIsLoading(true);
       
       // Use auth from context (no duplicate call)
-      setCurrentRole(getUserRole(profile || user) || role || 'logistics');
+      // Role derived from capabilities above
 
       // Load shipment with order and related data
       const { data: shipmentData, error: shipmentError } = await supabase

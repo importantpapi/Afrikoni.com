@@ -9,15 +9,18 @@
  * 
  * ALL headers MUST use this wrapper.
  */
+import { zIndex } from '@/config/zIndex';
+
 export default function HeaderShell({ children }) {
   return (
     <header
       className="
-        sticky top-0 z-[100]
+        sticky top-0
         w-full
         bg-afrikoni-offwhite
         border-b border-afrikoni-gold/20
       "
+      style={{ zIndex: zIndex.header }}
     >
       <div
         className="

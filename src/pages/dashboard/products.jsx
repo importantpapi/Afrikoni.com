@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { PRODUCT_STATUS, getStatusLabel } from '@/constants/status';
 import { buildProductQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
@@ -40,11 +40,15 @@ const AFRICAN_COUNTRIES = [
 
 function DashboardProductsInner() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
-  const [currentRole, setCurrentRole] = useState(role || 'seller');
+  // Derive role from capabilities for display purposes
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const currentRole = isSeller ? 'seller' : 'buyer';
   const [companyId, setCompanyId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -71,7 +75,7 @@ function DashboardProductsInner() {
 
     // Now safe to load data
     loadUserAndProducts();
-  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
+  }, [authReady, authLoading, user, profile, capabilities.ready, statusFilter, navigate]);
 
   const loadUserAndProducts = async () => {
     try {
@@ -83,7 +87,6 @@ function DashboardProductsInner() {
         return;
       }
       
-      setCurrentRole(getUserRole(profile || user));
       const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
 

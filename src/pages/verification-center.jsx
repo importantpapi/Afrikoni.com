@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { isEmailVerified } from '@/utils/authHelpers';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
-import { isSeller, isHybrid } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { toast } from 'sonner';
 import { logVerificationEvent } from '@/utils/auditLogger';
 import SEO from '@/components/SEO';
@@ -75,7 +75,9 @@ const verificationSteps = [
 
 export default function VerificationCenter() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const [companyId, setCompanyId] = useState(null);
   const [verification, setVerification] = useState(null);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
@@ -129,7 +131,7 @@ export default function VerificationCenter() {
 
     // Now safe to load data
     loadData();
-  }, [authReady, authLoading, user, profile, navigate]);
+  }, [authReady, authLoading, user, profile, capabilities.ready, navigate]);
 
   // Auto-save business info with debounce
   useEffect(() => {
@@ -202,9 +204,18 @@ export default function VerificationCenter() {
       setIsLoading(true);
       // Use auth from context (no duplicate call)
       
-      // Check if user is supplier or hybrid - only they can verify
-      const userRole = role || profile?.role || 'buyer';
-      if (!isSeller(userRole) && !isHybrid(userRole)) {
+      // ✅ FOUNDATION FIX: Check capabilities instead of role
+      // Wait for capabilities to be ready
+      if (!capabilities.ready) {
+        setIsLoading(false);
+        return; // Will retry when capabilities load
+      }
+      
+      // Only sellers (approved) or hybrid users can verify
+      const isSellerApproved = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+      const isHybridCapability = capabilities.can_buy === true && isSellerApproved;
+      
+      if (!isSellerApproved && !isHybridCapability) {
         toast.error('Verification is only available for suppliers and hybrid accounts.');
         navigate('/dashboard');
         return;

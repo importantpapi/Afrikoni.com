@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
@@ -18,14 +18,19 @@ import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardAnalyticsInner() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const [analytics, setAnalytics] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [period, setPeriod] = useState('30');
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const navigate = useNavigate();
-  const currentRole = getUserRole(profile || user) || role || 'buyer';
+  // Derive role from capabilities for display purposes
+  const isBuyer = capabilities.can_buy === true;
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -43,14 +48,14 @@ function DashboardAnalyticsInner() {
 
     // Now safe to load data
     loadUserAndAnalytics();
-  }, [authReady, authLoading, user, profile, role, period, viewMode, navigate]);
+  }, [authReady, authLoading, user, profile, capabilities.ready, period, viewMode, navigate]);
 
   const loadUserAndAnalytics = async () => {
     try {
       setIsLoading(true);
       
       // Use auth from context (no duplicate call)
-      const normalizedRole = getUserRole(profile || user) || role || 'buyer';
+      // Role derived from capabilities above
       const companyId = profile?.company_id || null;
 
       const days = parseInt(period);

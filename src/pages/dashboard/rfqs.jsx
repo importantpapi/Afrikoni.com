@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { getUserRole, canViewBuyerFeatures, canViewSellerFeatures, isHybrid, isLogistics } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { RFQ_STATUS, RFQ_STATUS_LABELS, getStatusLabel } from '@/constants/status';
 import { buildRFQQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
@@ -39,12 +39,18 @@ const AFRICAN_COUNTRIES = [
 function DashboardRFQsInner() {
   const { t } = useTranslation();
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const [rfqs, setRfqs] = useState([]);
   const [quotes, setQuotes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
-  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  // Derive role from capabilities for display purposes
+  const isBuyer = capabilities.can_buy === true;
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const isHybridCapability = isBuyer && isSeller;
+  const currentRole = isHybridCapability ? 'hybrid' : isSeller ? 'seller' : 'buyer';
   const [activeTab, setActiveTab] = useState('sent');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -72,7 +78,7 @@ function DashboardRFQsInner() {
 
     // Now safe to load data
     loadUserAndRFQs();
-  }, [authReady, authLoading, user, profile, role, activeTab, navigate]);
+  }, [authReady, authLoading, user, profile, capabilities.ready, activeTab, navigate]);
 
   const loadUserAndRFQs = async () => {
     try {
@@ -84,8 +90,6 @@ function DashboardRFQsInner() {
         return;
       }
 
-      const normalizedRole = getUserRole(profile || user);
-      setCurrentRole(normalizedRole);
       const companyId = profile?.company_id || null;
       
       // Load subscription and verification status
@@ -106,9 +110,9 @@ function DashboardRFQsInner() {
         }
       }
 
-      // Build query based on role and tab
+      // ✅ FOUNDATION FIX: Build query based on capabilities instead of role
       const query = buildRFQQuery({
-        buyerCompanyId: (activeTab === 'sent' || activeTab === 'all') && canViewBuyerFeatures(normalizedRole) ? companyId : null,
+        buyerCompanyId: (activeTab === 'sent' || activeTab === 'all') && isBuyer ? companyId : null,
         status: activeTab === 'received' || activeTab === 'quotes' ? RFQ_STATUS.OPEN : null,
         categoryId: categoryFilter || null,
         country: countryFilter || null
@@ -158,19 +162,23 @@ function DashboardRFQsInner() {
         isLoading: false
       }));
 
-      // Calculate match count for suppliers (RFQs matching their products)
-      if (canViewSellerFeatures(normalizedRole)) {
-        // Fix: Use proper .or() syntax with URL-encoded date
+      // ✅ FOUNDATION FIX: Calculate match count for suppliers using capabilities
+      if (isSeller) {
+        // ✅ FIX: Proper RFQ query syntax to avoid 400 errors
         const now = new Date().toISOString();
-        const { count, error: rfqCountError } = await supabase
+        let rfqQuery = supabase
           .from('rfqs')
-          .select('id', { count: 'exact' })
-          .limit(0)
-          .eq('status', 'open')
-          .or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'open');
+        
+        // ✅ FIX: Use .or() with proper syntax - check if expires_at is null OR >= now
+        rfqQuery = rfqQuery.or(`expires_at.is.null,expires_at.gte.${now}`);
+        
+        const { count, error: rfqCountError } = await rfqQuery;
         
         if (rfqCountError) {
           console.error('Error counting RFQs:', rfqCountError);
+          // Don't throw - just log and continue
         } else {
           setMatchCount(count || 0);
         }
@@ -183,8 +191,8 @@ function DashboardRFQsInner() {
         .order('name');
       setCategories(categoriesData || []);
 
-      // Load quotes
-      if ((normalizedRole === 'seller' || normalizedRole === 'hybrid') && companyId) {
+      // ✅ FOUNDATION FIX: Load quotes using capabilities
+      if (isSeller && companyId) {
         const { data: myQuotes } = await supabase
           .from('quotes')
           .select('*, rfqs(*)')
@@ -333,7 +341,7 @@ function DashboardRFQsInner() {
         </Card>
 
         {/* Professional Match Notification for Suppliers */}
-        {canViewSellerFeatures(currentRole) && matchCount > 0 && (
+        {isSeller && matchCount > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -379,7 +387,7 @@ function DashboardRFQsInner() {
                 Sent RFQs
               </TabsTrigger>
             )}
-            {canViewSellerFeatures(currentRole) && (
+            {isSeller && (
               <TabsTrigger 
                 value="received"
                 className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
@@ -387,7 +395,7 @@ function DashboardRFQsInner() {
                 Received RFQs
               </TabsTrigger>
             )}
-            {canViewSellerFeatures(currentRole) && (
+            {isSeller && (
               <TabsTrigger 
                 value="quotes"
                 className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
@@ -497,7 +505,7 @@ function DashboardRFQsInner() {
                                     </Badge>
                                   )}
                                   {/* Fast Response Badge */}
-                                  {canViewSellerFeatures(currentRole) && rfq.created_at && (
+                                  {isSeller && rfq.created_at && (
                                     (() => {
                                       const hoursSinceCreated = (new Date() - new Date(rfq.created_at)) / (1000 * 60 * 60);
                                       if (hoursSinceCreated < 24) {

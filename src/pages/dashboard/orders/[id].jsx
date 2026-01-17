@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getUserRole } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { ORDER_STATUS, getStatusLabel, getNextStatuses, canTransitionTo } from '@/constants/status';
 import { buildOrderTimeline } from '@/utils/timeline';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -30,7 +30,9 @@ import { DealMilestoneTracker } from '@/components/orders/DealMilestoneTracker';
 
 export default function OrderDetail() {
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -42,7 +44,10 @@ export default function OrderDetail() {
   const [timeline, setTimeline] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isUpdating, setIsUpdating] = useState(false);
-  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  // Derive role from capabilities for display purposes
+  const isBuyer = capabilities.can_buy === true;
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
   const [hasReviewed, setHasReviewed] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [existingReview, setExistingReview] = useState(null);
@@ -66,14 +71,14 @@ export default function OrderDetail() {
 
     // Now safe to load data
     loadOrderData();
-  }, [id, authReady, authLoading, user, profile, role, navigate]);
+  }, [id, authReady, authLoading, user, profile, capabilities.ready, navigate]);
 
   const loadOrderData = async () => {
     try {
       setIsLoading(true);
       
       // Use auth from context (no duplicate call)
-      setCurrentRole(getUserRole(profile || user) || role || 'buyer');
+      // Role derived from capabilities above
       const userCompanyId = profile?.company_id || null;
 
       // Load order with related data

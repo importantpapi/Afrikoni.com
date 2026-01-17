@@ -40,44 +40,62 @@ export function useNotificationCounts(userId, companyId) {
           }
         }
 
-        // Pending RFQs (for suppliers - RFQs they should respond to)
-        // Fix: Use proper .or() syntax - need to filter by status first, then use or() for expires_at
+        // ✅ FOUNDATION FIX: Pending RFQs (for suppliers - RFQs they should respond to)
+        // Fix: Use proper .or() syntax to avoid 400 errors
         let rfqCount = 0;
         let rfqError = null;
         try {
           const now = new Date().toISOString();
-          // Fix: Build query properly - filter status first, then use or() for date conditions
-          const rfqQuery = supabase
+          // ✅ FIX: Build query properly - filter status first, then use or() for date conditions
+          let rfqQuery = supabase
             .from('rfqs')
-            .select('id', { count: 'exact' })
-            .limit(0)
+            .select('id', { count: 'exact', head: true })
             .eq('status', 'open');
           
-          // Use or() for expires_at conditions - proper syntax
-          const { count, error } = await rfqQuery.or(`expires_at.gte.${encodeURIComponent(now)},expires_at.is.null`);
+          // ✅ FIX: Use .or() with proper syntax - check if expires_at is null OR >= now
+          rfqQuery = rfqQuery.or(`expires_at.is.null,expires_at.gte.${now}`);
+          
+          const { count, error } = await rfqQuery;
           rfqCount = count || 0;
           rfqError = error;
+          
+          if (rfqError) {
+            console.debug('Error loading RFQ count:', rfqError);
+            // Don't throw - just log and continue with 0 count
+            rfqError = null; // Reset to allow other counts to load
+          }
         } catch (err) {
           rfqError = err;
           console.debug('Error loading RFQ count:', err);
+          // Don't throw - just log and continue
+          rfqError = null; // Reset to allow other counts to load
         }
 
-        // Pending approvals (KYC, product approvals, etc.)
+        // ✅ FOUNDATION FIX: Pending approvals (KYC, product approvals, etc.)
+        // Table should exist after migration - handle gracefully if not
         let approvalCount = 0;
         let approvalError = null;
         if (companyId) {
           try {
             const { count, error } = await supabase
               .from('kyc_verifications')
-              .select('id', { count: 'exact' })
-              .limit(0)
+              .select('id', { count: 'exact', head: true })
               .eq('company_id', companyId)
               .eq('status', 'pending');
             approvalCount = count || 0;
             approvalError = error;
+            
+            // ✅ FIX: If table doesn't exist (404), just return 0 count
+            if (approvalError && (approvalError.code === 'PGRST116' || approvalError.message?.includes('does not exist'))) {
+              console.debug('KYC verifications table not found - returning 0 count');
+              approvalError = null; // Reset to allow other counts to load
+              approvalCount = 0;
+            }
           } catch (err) {
             approvalError = err;
             console.debug('Error loading approval count:', err);
+            // Don't throw - just log and continue
+            approvalError = null; // Reset to allow other counts to load
           }
         }
         // Only set counts if no errors (table might not exist yet)

@@ -10,6 +10,9 @@
 
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getOrCreateCompany } from './companyHelper';
+// ✅ FOUNDATION FIX: Deprecated - getUserRole kept for backward compatibility
+// Note: This utility function is used in non-React contexts
+// For React components, use useCapability() hook instead
 import { getUserRole } from './roleHelpers';
 
 /**

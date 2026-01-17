@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { getUserRole, isHybrid, canViewBuyerFeatures, canViewSellerFeatures, isLogistics } from '@/utils/roleHelpers';
+import { useCapability } from '@/context/CapabilityContext';
 import { ORDER_STATUS, getStatusLabel } from '@/constants/status';
 import { buildOrderQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
@@ -34,10 +34,16 @@ import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 function DashboardOrdersInner() {
   const { t } = useTranslation();
   // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
+  const capabilities = useCapability();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
-  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  // Derive role from capabilities for display purposes
+  const isBuyer = capabilities.can_buy === true;
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const isHybridCapability = isBuyer && isSeller;
+  const currentRole = isHybridCapability ? 'hybrid' : isSeller ? 'seller' : 'buyer';
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
@@ -71,7 +77,7 @@ function DashboardOrdersInner() {
     // Now safe to load data
     loadUserAndOrders();
     loadTemplates();
-  }, [authReady, authLoading, user, profile, role, viewMode, statusFilter, dateRangeFilter, navigate]);
+  }, [authReady, authLoading, user, profile, capabilities.ready, viewMode, statusFilter, dateRangeFilter, navigate]);
 
   useEffect(() => {
     setShowBulkActions(selectedOrders.length > 0);
@@ -87,15 +93,16 @@ function DashboardOrdersInner() {
         return;
       }
 
-      const normalizedRole = getUserRole(profile || user);
-      setCurrentRole(normalizedRole);
       const userCompanyId = profile?.company_id || null;
       setCompanyId(userCompanyId);
 
-      // Build query based on role
+      // ✅ FOUNDATION FIX: Build query based on capabilities instead of role
+      const shouldLoadBuyerData = isBuyer && (viewMode === 'all' || viewMode === 'buyer');
+      const shouldLoadSellerData = isSeller && (viewMode === 'all' || viewMode === 'seller');
+      
       let query = buildOrderQuery({
-        buyerCompanyId: canViewBuyerFeatures(normalizedRole, viewMode) ? userCompanyId : null,
-        sellerCompanyId: canViewSellerFeatures(normalizedRole, viewMode) ? userCompanyId : null,
+        buyerCompanyId: shouldLoadBuyerData ? userCompanyId : null,
+        sellerCompanyId: shouldLoadSellerData ? userCompanyId : null,
         status: statusFilter === 'all' ? null : statusFilter
       });
       
@@ -113,8 +120,8 @@ function DashboardOrdersInner() {
         }
       }
 
-      // Remove duplicates for hybrid users viewing 'all'
-      if (isHybrid(normalizedRole) && viewMode === 'all') {
+      // ✅ FOUNDATION FIX: Remove duplicates for hybrid users viewing 'all'
+      if (isHybridCapability && viewMode === 'all') {
         const uniqueOrders = (Array.isArray(ordersData) ? ordersData : []).filter((order, index, self) =>
           order && index === self.findIndex((o) => o && order && o.id === order.id)
         );
@@ -129,8 +136,8 @@ function DashboardOrdersInner() {
         isLoading: false
       }));
 
-      // Load review status for buyer's completed orders
-      if (canViewBuyerFeatures(normalizedRole, viewMode) && userCompanyId) {
+      // ✅ FOUNDATION FIX: Load review status for buyer's completed orders using capabilities
+      if (shouldLoadBuyerData && userCompanyId) {
         await loadReviewStatus(ordersData, userCompanyId);
       }
     } catch (error) {
@@ -492,7 +499,7 @@ function DashboardOrdersInner() {
             </p>
           </div>
           {/* v2.5: Premium Segmented Role Switcher */}
-          {isHybrid(currentRole) && (
+          {isHybridCapability && (
             <div className="flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-afrikoni-gold/20 shadow-premium relative">
               {['all', 'buyer', 'seller'].map((mode) => (
                 <button

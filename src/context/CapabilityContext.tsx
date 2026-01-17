@@ -31,11 +31,25 @@ const CapabilityContext = createContext<CapabilityContextValue | undefined>(unde
  * 3. Re-fetches are silent (no loading state change)
  */
 export function CapabilityProvider({ children }: { children: ReactNode }) {
-  const { user, profile, authReady } = useAuth();
+  // ✅ CRITICAL FIX: Wrap useAuth in try/catch to prevent blocking
+  let user, profile, authReady;
+  try {
+    const auth = useAuth();
+    user = auth?.user;
+    profile = auth?.profile;
+    authReady = auth?.authReady ?? false;
+  } catch (error) {
+    console.warn('[CapabilityContext] Auth context error, using defaults:', error);
+    user = null;
+    profile = null;
+    authReady = false;
+  }
+  
   const hasFetchedRef = useRef(false);
   const fetchedCompanyIdRef = useRef<string | null>(null);
   const isFetchingRef = useRef(false); // ✅ Track if fetch is in progress (not loading state)
   
+  // ✅ CRITICAL FIX: Start with ready=true and safe defaults to allow rendering
   const [capabilities, setCapabilities] = useState<CapabilityData>({
     can_buy: true,
     can_sell: false,
@@ -43,8 +57,8 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     sell_status: 'disabled',
     logistics_status: 'disabled',
     company_id: null,
-    loading: true,
-    ready: false,
+    loading: false, // ✅ Start with false to allow immediate rendering
+    ready: true, // ✅ CRITICAL: Start with true to allow rendering even without user
     error: null,
   });
 
@@ -56,6 +70,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   }, [profile?.company_id]);
 
   const fetchCapabilities = async () => {
+    // ✅ CRITICAL FIX: Safe access with optional chaining
     const targetCompanyId = profile?.company_id;
     
     // =========================================================================
@@ -64,23 +79,23 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     if (
       hasFetchedRef.current &&
       fetchedCompanyIdRef.current === targetCompanyId &&
-      capabilities.ready
+      capabilities?.ready
     ) {
       console.log('[CapabilityContext] Already fetched for company_id:', targetCompanyId, '- skipping');
       return;
     }
 
     // =========================================================================
-    // GUARD 2: Prerequisites not ready
+    // GUARD 2: Prerequisites not ready - ALLOW RENDERING WITH DEFAULTS
     // =========================================================================
     if (!authReady || !user || !targetCompanyId) {
       console.log('[CapabilityContext] Prerequisites not ready - authReady:', authReady, 'user:', !!user, 'companyId:', targetCompanyId);
-      // ✅ FIX: Keep ready true if it was already true (prevents child unmounts)
+      // ✅ CRITICAL FIX: Always keep ready=true to allow rendering, even without user
       setCapabilities(prev => ({
         ...prev,
         loading: false,
-        ready: prev.ready ? true : false,
-        company_id: prev.company_id,
+        ready: true, // ✅ ALWAYS true - never block rendering
+        company_id: prev?.company_id ?? null,
       }));
       return;
     }
@@ -104,14 +119,29 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       const isInitialFetch = !hasFetchedRef.current;
       
       if (isInitialFetch) {
-        setCapabilities(prev => ({ ...prev, loading: true, error: null }));
+        setCapabilities(prev => ({ 
+          ...prev, 
+          loading: true, 
+          error: null,
+          ready: true, // ✅ Keep ready=true even during loading
+        }));
       }
 
-      const { data, error } = await supabase
-        .from('company_capabilities')
-        .select('*')
-        .eq('company_id', targetCompanyId)
-        .single();
+      // ✅ CRITICAL FIX: Wrap database call in try/catch
+      let data, error;
+      try {
+        const result = await supabase
+          .from('company_capabilities')
+          .select('*')
+          .eq('company_id', targetCompanyId)
+          .single();
+        data = result?.data;
+        error = result?.error;
+      } catch (dbError: any) {
+        console.error('[CapabilityContext] Database query error:', dbError);
+        error = dbError;
+        data = null;
+      }
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -169,14 +199,37 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       }
     } catch (err: any) {
       console.error('[CapabilityContext] Error fetching capabilities:', err);
-      // ✅ FIX: On error, set ready to true if we have a companyId (allow dashboard to load)
-      // This prevents infinite loading if capabilities table has issues
+      
+      // ✅ FOUNDATION FIX: Fail-safe error handling
+      // Check if error is due to missing table (critical database sync issue)
+      const errorMessage = err.message || 'Failed to load capabilities';
+      const isTableMissing = errorMessage.includes('table') || 
+                            errorMessage.includes('does not exist') ||
+                            errorMessage.includes('schema cache');
+      
+      if (isTableMissing) {
+        // Critical error: Table missing - but STILL ALLOW RENDERING
+        console.error('[CapabilityContext] 🔴 CRITICAL: Database table missing. Using defaults.');
+        setCapabilities(prev => ({
+          ...prev,
+          loading: false,
+          ready: true, // ✅ CRITICAL: Still allow rendering with defaults
+          error: 'Database sync error: Required tables are missing. Please contact support or run database migrations.',
+        }));
+        // Mark as fetched to prevent retry loops
+        hasFetchedRef.current = true;
+        fetchedCompanyIdRef.current = targetCompanyId;
+        return;
+      }
+      
+      // Network/timeout error - allow access with warning (RLS will enforce)
       setCapabilities(prev => ({
         ...prev,
         loading: false,
-        ready: targetCompanyId ? true : prev.ready, // Set ready if we have companyId
-        error: err.message || 'Failed to load capabilities',
+        ready: true, // ✅ CRITICAL: Always allow rendering
+        error: errorMessage,
       }));
+      
       // Still mark as fetched to prevent retry loops
       if (targetCompanyId) {
         hasFetchedRef.current = true;
@@ -210,53 +263,95 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   // CAPABILITY FETCH EFFECT WITH TIMEOUT FALLBACK
   // =========================================================================
   useEffect(() => {
-    // Only fetch if we have prerequisites
-    if (!authReady || !currentCompanyId) {
-      return;
-    }
-
-    fetchCapabilities();
-
-    // ✅ SAFETY: If capabilities don't load within 15 seconds, set ready=true to unblock dashboard
-    // This prevents infinite loading if there's a database issue
-    const timeoutId = setTimeout(() => {
-      // Use ref to check current state without dependency issues
-      if (!hasFetchedRef.current && currentCompanyId) {
-        console.warn('[CapabilityContext] ⚠️ Capability fetch timeout - setting ready=true to unblock dashboard');
-        setCapabilities(prev => {
-          if (prev.ready) return prev; // Don't override if already ready
-          return {
-            ...prev,
-            loading: false,
-            ready: true, // Force ready to unblock dashboard
-            company_id: currentCompanyId,
-            error: prev.error || 'Capability fetch timed out - using default capabilities',
-          };
-        });
-        hasFetchedRef.current = true;
-        fetchedCompanyIdRef.current = currentCompanyId;
+    // ✅ CRITICAL FIX: Wrap in try/catch to prevent blocking
+    try {
+      // Only fetch if we have prerequisites
+      if (!authReady || !currentCompanyId) {
+        // ✅ CRITICAL: Ensure ready=true even without prerequisites
+        setCapabilities(prev => ({
+          ...prev,
+          ready: true, // Always allow rendering
+          loading: false,
+        }));
+        return;
       }
-    }, 15000); // 15 second timeout
 
-    return () => clearTimeout(timeoutId);
+      fetchCapabilities();
+
+      // ✅ SAFETY: If capabilities don't load within 10 seconds, set ready=true to unblock dashboard
+      // This prevents infinite loading if there's a database issue
+      const timeoutId = setTimeout(() => {
+        // Use ref to check current state without dependency issues
+        if (!hasFetchedRef.current && currentCompanyId) {
+          console.warn('[CapabilityContext] ⚠️ Capability fetch timeout - setting ready=true to unblock dashboard');
+          setCapabilities(prev => {
+            if (prev?.ready) return prev; // Don't override if already ready
+            return {
+              ...prev,
+              loading: false,
+              ready: true, // Force ready to unblock dashboard
+              company_id: currentCompanyId,
+              error: prev?.error || 'Capability fetch timed out - using default capabilities',
+            };
+          });
+          hasFetchedRef.current = true;
+          fetchedCompanyIdRef.current = currentCompanyId;
+        }
+      }, 10000); // 10 second timeout
+
+      return () => clearTimeout(timeoutId);
+    } catch (error) {
+      console.error('[CapabilityContext] Effect error:', error);
+      // ✅ CRITICAL: Always allow rendering even on error
+      setCapabilities(prev => ({
+        ...prev,
+        ready: true,
+        loading: false,
+        error: 'Capability initialization error - using defaults',
+      }));
+    }
   }, [authReady, currentUserId, currentCompanyId]); // ✅ Primitives only
 
+  // ✅ CRITICAL FIX: Safe value with defaults
   const value: CapabilityContextValue = {
     ...capabilities,
     refreshCapabilities: fetchCapabilities,
   };
 
-  return (
-    <CapabilityContext.Provider value={value}>
-      {children}
-    </CapabilityContext.Provider>
-  );
+  // ✅ CRITICAL FIX: Always render children, even if context fails
+  try {
+    return (
+      <CapabilityContext.Provider value={value}>
+        {children}
+      </CapabilityContext.Provider>
+    );
+  } catch (error) {
+    console.error('[CapabilityContext] Provider render error:', error);
+    // ✅ CRITICAL: Still render children even if provider fails
+    return <>{children}</>;
+  }
 }
 
 export function useCapability(): CapabilityContextValue {
+  // ✅ CRITICAL FIX: Safe access with defaults instead of throwing
   const ctx = useContext(CapabilityContext);
   if (!ctx) {
-    throw new Error('useCapability must be used within a CapabilityProvider');
+    console.warn('[useCapability] Used outside CapabilityProvider - returning defaults');
+    // ✅ CRITICAL: Return safe defaults instead of throwing
+    return {
+      can_buy: true,
+      can_sell: false,
+      can_logistics: false,
+      sell_status: 'disabled',
+      logistics_status: 'disabled',
+      company_id: null,
+      loading: false,
+      ready: true, // ✅ Always ready to allow rendering
+      error: null,
+      refreshCapabilities: async () => {
+        console.warn('[useCapability] refreshCapabilities called outside provider');
+      },
+    };
   }
   return ctx;
 }
