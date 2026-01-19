@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import { TableSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { buildShipmentQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
-import { TableSkeleton } from '@/components/shared/ui/skeletons';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -22,64 +22,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 
 export default function DashboardShipments() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [shipments, setShipments] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [pagination, setPagination] = useState(createPaginationState());
   // Derive role from capabilities for display purposes
   const isLogisticsApproved = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
-  const currentRole = isLogisticsApproved ? 'logistics' : 'buyer';
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const companyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
   
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading shipments..." ready={isSystemReady} />
       </div>
     );
   }
 
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardShipments] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[DashboardShipments] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[DashboardShipments] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load shipments
-    if (!companyId) {
-      console.log('[DashboardShipments] No company_id - cannot load shipments');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[DashboardShipments] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
@@ -90,24 +66,25 @@ export default function DashboardShipments() {
     
     if (shouldRefresh) {
       console.log('[DashboardShipments] Data is stale or first load - refreshing');
-      // Now safe to load data
       loadShipments();
     } else {
       console.log('[DashboardShipments] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, companyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
   const loadShipments = async () => {
+    if (!profileCompanyId) {
+      console.log('[DashboardShipments] No company_id - cannot load shipments');
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      // Role derived from capabilities above
-      const companyId = profile?.company_id || null;
-
-      // Use query builder
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       const query = buildShipmentQuery({
-        logisticsCompanyId: role === 'logistics' ? companyId : null,
+        logisticsCompanyId: isLogisticsApproved ? profileCompanyId : null,
         status: statusFilter === 'all' ? null : statusFilter
       });
       
@@ -116,6 +93,8 @@ export default function DashboardShipments() {
         page: pagination.page,
         pageSize: pagination.pageSize
       });
+
+      if (result.error) throw result.error;
 
       // Transform shipments data
       const transformedShipments = Array.isArray(result.data) ? result.data.map(shipment => {
@@ -146,8 +125,9 @@ export default function DashboardShipments() {
       // ✅ ARCHITECTURAL FIX: Mark data as fresh after successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
-    } catch (error) {
-      // Fail gracefully - treat as no data instead of error
+    } catch (err) {
+      console.error('[DashboardShipments] Error loading shipments:', err);
+      setError(err.message || 'Failed to load shipments');
       setShipments([]);
       setPagination(prev => ({
         ...prev,
@@ -155,6 +135,7 @@ export default function DashboardShipments() {
         totalPages: 1,
         isLoading: false
       }));
+      toast.error('Failed to load shipments');
     } finally {
       setIsLoading(false);
     }
@@ -210,17 +191,19 @@ export default function DashboardShipments() {
     }
   ];
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
+    return <TableSkeleton />;
   }
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading shipments..." />;
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadShipments}
+      />
+    );
   }
 
   return (

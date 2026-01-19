@@ -16,10 +16,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
@@ -28,10 +29,10 @@ import { toast } from 'sonner';
 const COLORS = ['#D4A937', '#8140FF', '#3AB795', '#E85D5D', '#C9A961'];
 
 export default function AdminAnalytics() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const [hasAccess, setHasAccess] = useState(false);
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [loading, setLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('30d');
   const [metrics, setMetrics] = useState({
     gmv: 0,
@@ -56,29 +57,29 @@ export default function AdminAnalytics() {
     topFilters: []
   });
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading admin analytics..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminAnalytics] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setHasAccess(admin);
-    setLoading(false);
     
-    if (admin) {
-      loadAnalytics();
-    }
-  }, [authReady, authLoading, user, profile, role, timeRange]);
+    loadAnalytics();
+  }, [canLoadData, timeRange]);
 
   const getDateRange = () => {
     const now = new Date();
@@ -97,7 +98,13 @@ export default function AdminAnalytics() {
   };
 
   const loadAnalytics = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setLoading(true);
+      setError(null);
       const { start, end } = getDateRange();
       const startISO = start.toISOString();
       const endISO = end.toISOString();
@@ -238,7 +245,11 @@ export default function AdminAnalytics() {
       setCountryData(countryDataArray);
 
     } catch (error) {
+      console.error('Error loading analytics:', error);
+      setError(error?.message || 'Failed to load analytics');
       toast.error('Failed to load analytics');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -614,11 +625,6 @@ export default function AdminAnalytics() {
     toast.info('PDF report generation is in development. For now, please use CSV or JSON exports.');
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading analytics..." />;
-  }
-
   if (loading) {
     return (
       <>
@@ -628,9 +634,18 @@ export default function AdminAnalytics() {
       </>
     );
   }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadAnalytics();
+        }}
+      />
+    );
   }
 
   const disputeResolutionRate = metrics.disputes > 0 

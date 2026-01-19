@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -16,27 +18,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/shared/ui/input';
 
 export default function NotificationsCenter() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNotifications, setSelectedNotifications] = useState([]);
-  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  const [currentRole, setCurrentRole] = useState(capabilities?.role || 'buyer');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[NotificationsCenter] Waiting for auth to be ready...');
-      return;
-    }
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading notifications..." ready={isSystemReady} />
+      </div>
+    );
+  }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[NotificationsCenter] No user → redirecting to login');
-      navigate('/login');
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
+  useEffect(() => {
+    if (!canLoadData) {
       return;
     }
 
@@ -46,20 +57,16 @@ export default function NotificationsCenter() {
     let channel = null;
     const setupSubscription = async () => {
       try {
-        // Use auth from context (no duplicate call)
-        const companyId = profile?.company_id || null;
-        
-        // Only subscribe if we have a filter (company_id, user_id, or user_email)
-        if (!companyId && !user?.id && !user?.email) return;
+        // ✅ KERNEL MIGRATION: Use profileCompanyId and userId from kernel
+        // Only subscribe if we have a filter (company_id, user_id)
+        if (!profileCompanyId && !userId) return;
 
         // Build filter for realtime subscription
         let filterStr = '';
-        if (companyId) {
-          filterStr = `company_id=eq.${companyId}`;
-        } else if (user?.id) {
-          filterStr = `user_id=eq.${user.id}`;
-        } else if (user?.email) {
-          filterStr = `user_email=eq.${user.email}`;
+        if (profileCompanyId) {
+          filterStr = `company_id=eq.${profileCompanyId}`;
+        } else if (userId) {
+          filterStr = `user_id=eq.${userId}`;
         }
 
         channel = supabase
@@ -85,44 +92,20 @@ export default function NotificationsCenter() {
         supabase.removeChannel(channel);
       }
     };
-  }, [authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData, profileCompanyId, userId]);
 
   const loadNotifications = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      const normalizedRole = role || 'buyer';
+      // ✅ KERNEL MIGRATION: Use capabilities and profileCompanyId from kernel
+      const normalizedRole = capabilities?.role || 'buyer';
       setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
-      
-      const companyId = profile?.company_id || null;
-
-      // If company_id was created, verify profile has it set (RLS requires this)
-      if (companyId && user?.id) {
-        try {
-          const { data: profileCheck } = await supabase
-            .from('profiles')
-            .select('company_id')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          // If profile doesn't have company_id, update it (RLS requires this match)
-          if (profileCheck?.company_id !== companyId) {
-            await supabase
-              .from('profiles')
-              .upsert({ id: user.id, company_id: companyId }, { onConflict: 'id' });
-          }
-        } catch (err) {
-          console.debug('Error updating profile company_id:', err);
-        }
-      }
-
-      // Session already verified via useAuth() hook - user from context is sufficient
-      // No need for duplicate getSession() call
 
       // Always require at least one filter to pass RLS
       // Prefer user_id over company_id for RLS matching (more reliable)
-      if (!user?.id && !user?.email && !companyId) {
+      if (!userId && !profileCompanyId) {
         setNotifications([]);
         setIsLoading(false);
         return;
@@ -133,13 +116,11 @@ export default function NotificationsCenter() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Prefer user_id first (most reliable for RLS), then company_id, then user_email
-      if (user?.id) {
-        query = query.eq('user_id', user.id);
-      } else if (companyId) {
-        query = query.eq('company_id', companyId);
-      } else if (user?.email) {
-        query = query.eq('user_email', user.email);
+      // ✅ KERNEL MIGRATION: Prefer user_id first (most reliable for RLS), then company_id
+      if (userId) {
+        query = query.eq('user_id', userId);
+      } else if (profileCompanyId) {
+        query = query.eq('company_id', profileCompanyId);
       }
 
       const { data, error } = await query;
@@ -337,16 +318,18 @@ export default function NotificationsCenter() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading notifications..." />;
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
-  if (isLoading) {
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadNotifications}
+      />
     );
   }
 

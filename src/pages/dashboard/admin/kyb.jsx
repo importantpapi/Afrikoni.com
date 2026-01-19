@@ -13,9 +13,10 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { 
   getAllPendingKYBDocuments,
   updateKYBDocumentStatus
@@ -23,7 +24,7 @@ import {
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 
 export default function AdminKYB() {
   // Use centralized AuthProvider
@@ -41,8 +42,8 @@ export default function AdminKYB() {
       return;
     }
 
-    // GUARD: Check admin access
-    if (!user || !isAdmin(user)) {
+    // GUARD: Check admin access - route-level protection ensures admin, but check profile for consistency
+    if (!user || !(profile?.is_admin === true)) {
       navigate('/dashboard');
       return;
     }
@@ -90,6 +91,19 @@ export default function AdminKYB() {
       <>
         <CardSkeleton count={3} />
       </>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadDocuments();
+        }}
+      />
     );
   }
 

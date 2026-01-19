@@ -6,31 +6,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, Package, AlertTriangle, Star, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { 
   getSupplierPerformance,
   calculateSupplierPerformance
 } from '@/lib/supabaseQueries/products';
 import { toast } from 'sonner';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import RequireCapability from '@/guards/RequireCapability';
 
 function PerformanceDashboardInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [performance, setPerformance] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
-  const [companyId, setCompanyId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -38,45 +38,22 @@ function PerformanceDashboardInner() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const profileCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
-  
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading performance..." ready={isSystemReady} />
       </div>
     );
   }
 
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[PerformanceDashboard] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[PerformanceDashboard] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[PerformanceDashboard] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load performance
-    if (!profileCompanyId) {
-      console.log('[PerformanceDashboard] No company_id - cannot load performance');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[PerformanceDashboard] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
@@ -87,49 +64,55 @@ function PerformanceDashboardInner() {
     
     if (shouldRefresh) {
       console.log('[PerformanceDashboard] Data is stale or first load - refreshing');
-      // Now safe to load data
       loadData();
     } else {
       console.log('[PerformanceDashboard] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
+    if (!profileCompanyId) {
+      console.log('[PerformanceDashboard] No company_id - cannot load performance');
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
-      
-      if (!user || !userCompanyId) {
-        navigate('/login');
-        return;
-      }
-
-      setCompanyId(userCompanyId);
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Calculate and get performance
-      await calculateSupplierPerformance(userCompanyId);
-      const perf = await getSupplierPerformance(userCompanyId);
+      await calculateSupplierPerformance(profileCompanyId);
+      const perf = await getSupplierPerformance(profileCompanyId);
       setPerformance(perf);
       
-      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
-      // Only mark fresh if we got actual data (not an error)
+      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
       if (perf && typeof perf === 'object') {
         lastLoadTimeRef.current = Date.now();
         markFresh();
       }
-    } catch (error) {
-      console.error('Error loading performance data:', error);
+    } catch (err) {
+      console.error('[PerformanceDashboard] Error loading performance data:', err);
+      setError(err.message || 'Failed to load performance data');
       toast.error('Failed to load performance data');
-      // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadData}
+      />
+    );
   }
 
   const metrics = [

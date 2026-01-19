@@ -15,10 +15,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import AccessDenied from '@/components/AccessDenied';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { toast } from 'sonner';
 
 // Mock user data - in production, this would come from Supabase
@@ -81,40 +84,40 @@ const availableRoles = [
 ];
 
 export default function AdminUsers() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const navigate = useNavigate();
-  const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [editingUser, setEditingUser] = useState(null);
   const [selectedRole, setSelectedRole] = useState('user');
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading user management..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminUsers] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setHasAccess(admin);
-    setLoading(false);
     
-    if (admin) {
-      loadUsers();
-    }
-  }, [authReady, authLoading, user, profile, role]);
+    loadUsers();
+  }, [canLoadData]);
 
   const loadUsers = async () => {
     try {
@@ -170,9 +173,9 @@ export default function AdminUsers() {
 
       console.log(`[User Management] ✅ Found ${profilesData?.length || 0} users from profiles table`);
 
-      // Get last sign-in data from auth.users (if available)
+      // ✅ KERNEL MIGRATION: Use userId from kernel instead of supabase.auth.getUser()
       // Note: We can't directly query auth.users from the client, so we'll use created_at as fallback
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      // userId is already available from useDashboardKernel() hook
       
       // Process users with company data
       const usersWithCompanies = (profilesData || []).map(profile => {
@@ -224,6 +227,8 @@ export default function AdminUsers() {
       }, {});
       console.log('[User Management] 📊 Real-time role distribution:', roleCounts);
     } catch (error) {
+      console.error('Error loading users:', error);
+      setError(error?.message || 'Failed to load users');
       console.error('❌ Error loading users:', error);
       toast.error('Failed to load users', {
         description: error.message || 'Unknown error occurred'

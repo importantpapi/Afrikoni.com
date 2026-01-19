@@ -17,43 +17,51 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { format } from 'date-fns';
 import RequireCapability from '@/guards/RequireCapability';
 
 function SupportChatInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [ticketNumber, setTicketNumber] = useState(null);
   const [ticketStatus, setTicketStatus] = useState('open');
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [isSending, setIsSending] = useState(false);
-  const [companyId, setCompanyId] = useState(null);
   const [showTicketInfo, setShowTicketInfo] = useState(false);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[SupportChat] Waiting for auth to be ready...');
-      return;
-    }
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading support chat..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[SupportChat] No user → redirecting to login');
-      navigate('/login');
+  useEffect(() => {
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData || !profileCompanyId) {
       return;
     }
 
     // Now safe to load data
     loadUserAndTicket();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData, profileCompanyId, userId, navigate]);
 
   useEffect(() => {
     if (ticketNumber) {
@@ -81,16 +89,29 @@ function SupportChatInner() {
   };
 
   const loadUserAndTicket = async () => {
+    if (!canLoadData || !profileCompanyId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      const cid = profile?.company_id || null;
-      setCompanyId(cid);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const cid = profileCompanyId;
 
       // Always create a new unique ticket for each user session
       // This ensures each person gets their own ticket, not shared tickets
       if (cid) {
+        // ✅ KERNEL MIGRATION: Get user email from Supabase
+        let userEmail = '';
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          userEmail = user?.email || '';
+        } catch (err) {
+          // Silently fail - email is optional
+        }
+        
         // Create new ticket - each user gets their own unique ticket
         const newTicketNumber = generateTicketNumber();
           const { data: newTicket, error } = await supabase
@@ -98,7 +119,7 @@ function SupportChatInner() {
             .insert({
               ticket_number: newTicketNumber,
               company_id: cid,
-              user_email: user.email,
+              user_email: userEmail,
               subject: 'Support Request',
               status: 'open',
               priority: 'normal'
@@ -132,7 +153,7 @@ function SupportChatInner() {
                     company_id: null,
                     user_email: admin.email || 'hello@afrikoni.com',
                     title: `New Support Ticket Created - ${newTicketNumber}`,
-                    message: `A new support ticket has been created by ${userData.email || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
+                    message: `A new support ticket has been created. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
                     type: 'support',
                     link: `/dashboard/admin/support-tickets?ticket=${newTicketNumber}`,
                     sendEmail: true
@@ -164,7 +185,7 @@ function SupportChatInner() {
           .insert({
             ticket_number: newTicketNumber,
             company_id: null,
-            user_email: userData.email,
+            user_email: userEmail || '',
             subject: 'Support Request',
             status: 'open',
             priority: 'normal'
@@ -183,6 +204,7 @@ function SupportChatInner() {
       }
     } catch (error) {
       console.error('Error loading user:', error);
+      setError(error?.message || 'Failed to load support chat');
       toast.error('Failed to load support chat');
     } finally {
       setIsLoading(false);
@@ -249,21 +271,30 @@ function SupportChatInner() {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !ticketNumber || !companyId) {
+    if (!newMessage.trim() || !ticketNumber || !profileCompanyId) {
       toast.error('Please enter a message');
       return;
     }
 
     setIsSending(true);
     try {
+      // ✅ KERNEL MIGRATION: Get user email from Supabase
+      let userEmail = '';
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        userEmail = user?.email || '';
+      } catch (err) {
+        // Silently fail - email is optional
+      }
+      
       // Create support message
       const { error: messageError } = await supabase
         .from('support_messages')
         .insert({
           ticket_number: ticketNumber,
-          company_id: companyId,
+          company_id: profileCompanyId,
           sender_type: 'user',
-          sender_email: user.email,
+          sender_email: userEmail,
           message: newMessage.trim(),
           read: false
         });
@@ -297,7 +328,7 @@ function SupportChatInner() {
               company_id: null,
               user_email: admin.email || 'hello@afrikoni.com',
               title: `New Support Message - ${ticketNumber}`,
-              message: `New message from ${user.email || 'User'}: ${newMessage.trim().substring(0, 100)}...`,
+              message: `New message from user: ${newMessage.trim().substring(0, 100)}...`,
               type: 'support',
               link: `/dashboard/admin/support-tickets?ticket=${ticketNumber}`,
               sendEmail: true
@@ -343,16 +374,24 @@ function SupportChatInner() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading support chat..." />;
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadUserAndTicket();
+        }}
+      />
     );
   }
 

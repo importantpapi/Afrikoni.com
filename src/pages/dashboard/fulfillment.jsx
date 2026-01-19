@@ -13,9 +13,11 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { 
   getOrderFulfillment,
   updateFulfillmentStatus,
@@ -23,51 +25,45 @@ import {
 } from '@/lib/supabaseQueries/logistics';
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import RequireCapability from '@/guards/RequireCapability';
-import { useCapability } from '@/context/CapabilityContext';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
 
 function FulfillmentDashboardInner() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [fulfillments, setFulfillments] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
 
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
 
-  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const userCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
+  // Derive logistics capability from kernel
   const canLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading fulfillment..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[FulfillmentDashboard] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[FulfillmentDashboard] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect
-    if (!userId) {
-      console.warn('[FulfillmentDashboard] No user found, redirecting to login');
-      navigate('/login');
+    if (!canLoadData) {
+      if (!userId) {
+        console.warn('[FulfillmentDashboard] No user found, redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
@@ -82,21 +78,22 @@ function FulfillmentDashboardInner() {
     } else {
       console.log('[FulfillmentDashboard] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
+    if (!profileCompanyId && !canLogistics) {
+      console.warn('[FulfillmentDashboard] No company ID found for non-logistics user');
+      toast.info('Complete your company profile to access fulfillment features.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       console.log('[FulfillmentDashboard] Starting loadData...');
       
-      // Allow logistics users even without companyId (they might be viewing all fulfillments)
-      if (!userCompanyId && !canLogistics) {
-        console.warn('[FulfillmentDashboard] No company ID found for non-logistics user');
-        toast.info('Complete your company profile to access fulfillment features.');
-        setIsLoading(false);
-        return;
-      }
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load orders with fulfillment status
       // For logistics users, show orders they're handling logistics for
       // For sellers, show their own orders
@@ -108,19 +105,19 @@ function FulfillmentDashboardInner() {
           buyer_company:companies!orders_buyer_company_id_fkey(*)
         `);
 
-      if (canLogistics && userCompanyId) {
+      if (canLogistics && profileCompanyId) {
         // Logistics: show orders where they're the logistics partner
         // Check via shipments table
         const { data: shipments, error: shipmentsError } = await supabase
           .from('shipments')
           .select('order_id')
-          .eq('logistics_partner_id', userCompanyId);
+          .eq('logistics_partner_id', profileCompanyId);
 
         // ✅ GLOBAL HARDENING: Enhanced error logging
         if (shipmentsError) {
           logError('loadData-shipments', shipmentsError, {
             table: 'shipments',
-            companyId: userCompanyId,
+            companyId: profileCompanyId,
             userId: userId
           });
         }
@@ -141,9 +138,9 @@ function FulfillmentDashboardInner() {
           setIsLoading(false);
           return;
         }
-      } else if (userCompanyId) {
+      } else if (profileCompanyId) {
         // Seller/Hybrid: show their own orders
-        ordersQuery = ordersQuery.eq('seller_company_id', userCompanyId);
+        ordersQuery = ordersQuery.eq('seller_company_id', profileCompanyId);
       } else {
         // No company ID and not logistics - show empty
         setFulfillments([]);
@@ -158,13 +155,10 @@ function FulfillmentDashboardInner() {
       if (ordersError) {
         logError('loadData-orders', ordersError, {
           table: 'orders',
-          companyId: userCompanyId,
+          companyId: profileCompanyId,
           userId: userId
         });
-        toast.error('Failed to load orders');
-        setFulfillments([]);
-        setIsLoading(false);
-        return; // Don't mark fresh on error
+        throw ordersError; // Let catch block handle it
       }
 
       if (orders && Array.isArray(orders)) {
@@ -256,8 +250,19 @@ function FulfillmentDashboardInner() {
     return flow[currentStatus];
   };
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadData}
+      />
+    );
   }
 
   return (

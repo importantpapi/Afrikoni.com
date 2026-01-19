@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -30,10 +30,8 @@ import { SupplierQuoteTemplates, QuoteWritingTips } from '@/components/quotes/Su
 import { FirstTimeQuoteGuidance } from '@/components/onboarding/FirstTimeUserGuidance';
 
 export default function RFQDetail() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
   const [rfq, setRfq] = useState(null);
@@ -41,11 +39,11 @@ export default function RFQDetail() {
   const [buyerCompany, setBuyerCompany] = useState(null);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Derive role from capabilities for display purposes
-  const isBuyer = capabilities.can_buy === true;
-  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const [error, setError] = useState(null);
+  // ✅ KERNEL MIGRATION: Derive role from capabilities
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
-  const [companyId, setCompanyId] = useState(null);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [quoteViewMode, setQuoteViewMode] = useState('list'); // 'list' or 'compare'
@@ -68,36 +66,30 @@ export default function RFQDetail() {
     confirmed: false
   });
   const [koniaiLoading, setKoniaiLoading] = useState(false);
-
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const profileCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
   
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  useEffect(() => {
-    if (capabilitiesLoading && !capabilitiesReady) {
-      // Capabilities are loading - show spinner
-      return;
-    }
-  }, [capabilitiesLoading, capabilitiesReady]);
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading RFQ details..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[RFQDetail] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[RFQDetail] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
+    // GUARD: No RFQ ID → redirect to RFQs list
+    if (!id) {
       console.log('[RFQDetail] No user → redirecting to login');
       navigate('/login');
       return;
@@ -112,17 +104,19 @@ export default function RFQDetail() {
 
     // Now safe to load data
     loadRFQData();
-  }, [id, authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, navigate]);
+  }, [id, canLoadData, userId, profileCompanyId, navigate]);
 
   const loadRFQData = async () => {
+    if (!profileCompanyId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      // Role derived from capabilities above
-      setCurrentRole(normalizedRole);
-      const userCompanyId = profile?.company_id || null;
-      setCompanyId(userCompanyId);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const userCompanyId = profileCompanyId;
 
       // Load RFQ with related data
       const { data: rfqData, error: rfqError } = await supabase
@@ -158,9 +152,10 @@ export default function RFQDetail() {
 
       // Load buyer company - ONLY if user is the buyer or admin
       // Suppliers should NOT see buyer identity
-      const isBuyer = normalizedRole === 'buyer' || normalizedRole === 'hybrid';
-      const isAdmin = normalizedRole === 'admin';
-      if (rfqData.buyer_company_id && (isBuyer || isAdmin)) {
+      // ✅ KERNEL MIGRATION: Use currentRole (derived from capabilities) and isAdmin from kernel
+      const isBuyerRole = currentRole === 'buyer' || currentRole === 'hybrid';
+      const isAdmin = profile?.is_admin === true;
+      if (rfqData.buyer_company_id && (isBuyerRole || isAdmin)) {
         if (userCompanyId === rfqData.buyer_company_id || isAdmin) {
           const { data: buyerData } = await supabase
             .from('companies')
@@ -184,6 +179,9 @@ export default function RFQDetail() {
       setQuotes(Array.isArray(quotesData) ? quotesData : []);
 
     } catch (error) {
+      // ✅ KERNEL MIGRATION: Enhanced error logging and state
+      console.error('Error loading RFQ:', error);
+      setError(error?.message || 'Failed to load RFQ details');
       toast.error('Failed to load RFQ details');
       navigate('/dashboard/rfqs');
     } finally {
@@ -193,7 +191,7 @@ export default function RFQDetail() {
 
   const handleSubmitQuote = async (e) => {
     e.preventDefault();
-    if (!companyId) {
+    if (!profileCompanyId) {
       toast.error('Company information required to submit quotes');
       navigate('/dashboard/company-info');
       return;
@@ -225,7 +223,7 @@ export default function RFQDetail() {
         .from('quotes')
         .insert({
           rfq_id: id,
-          supplier_company_id: companyId,
+          supplier_company_id: profileCompanyId,
           price_per_unit: parseFloat(quoteForm.price_per_unit),
           total_price: totalPrice,
           currency: quoteForm.currency,
@@ -244,13 +242,26 @@ export default function RFQDetail() {
       if (rfq.buyer_company_id && companyId) {
         try {
           // Check if conversation already exists
-          const { data: existingConv } = await supabase
+          const { data: existingConv, error: convCheckError } = await supabase
             .from('conversations')
             .select('id')
             .or(`and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${companyId}),and(buyer_company_id.eq.${companyId},seller_company_id.eq.${rfq.buyer_company_id})`)
             .maybeSingle();
 
-          if (!existingConv) {
+          // ✅ FORENSIC RECOVERY: Handle missing table gracefully
+          if (convCheckError) {
+            const isTableMissing = convCheckError.code === 'PGRST116' || 
+                                  convCheckError.message?.includes('does not exist') ||
+                                  convCheckError.message?.includes('relation') ||
+                                  convCheckError.status === 404;
+            
+            if (isTableMissing) {
+              console.warn('[RFQ Detail] Conversations table not available - feature currently unavailable');
+              // Continue without conversation creation - feature is optional
+            } else {
+              throw convCheckError;
+            }
+          } else if (!existingConv) {
             // Get user IDs for buyer and seller
             const [buyerProfile, sellerProfile] = await Promise.all([
               supabase.from('profiles').select('id').eq('company_id', rfq.buyer_company_id).limit(1).maybeSingle(),
@@ -269,23 +280,43 @@ export default function RFQDetail() {
             });
 
             if (convError && convError.code !== '23505') {
-              // Ignore duplicate key errors
-              console.warn('Conversation creation failed:', convError);
+              // ✅ FORENSIC RECOVERY: Handle missing table
+              const isTableMissing = convError.code === 'PGRST116' || 
+                                    convError.message?.includes('does not exist') ||
+                                    convError.message?.includes('relation') ||
+                                    convError.status === 404;
+              
+              if (isTableMissing) {
+                console.warn('[RFQ Detail] Conversations table not available - feature currently unavailable');
+                // Continue without conversation creation
+              } else {
+                console.warn('Conversation creation failed:', convError);
+              }
             }
           }
 
-          // Create initial message in the conversation
+          // Create initial message in the conversation (only if conversation exists)
           let finalConversationId = existingConv?.id;
-          if (!finalConversationId) {
+          if (!finalConversationId && !convCheckError) {
             // Get the newly created conversation
-            const { data: newConv } = await supabase
+            const { data: newConv, error: newConvError } = await supabase
               .from('conversations')
               .select('id')
               .or(`and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${companyId}),and(buyer_company_id.eq.${companyId},seller_company_id.eq.${rfq.buyer_company_id})`)
               .order('created_at', { ascending: false })
               .limit(1)
               .maybeSingle();
-            finalConversationId = newConv?.id;
+            
+            if (newConvError) {
+              const isTableMissing = newConvError.code === 'PGRST116' || 
+                                    newConvError.message?.includes('does not exist') ||
+                                    newConvError.status === 404;
+              if (!isTableMissing) {
+                console.warn('Error fetching conversation:', newConvError);
+              }
+            } else {
+              finalConversationId = newConv?.id;
+            }
           }
           
           if (finalConversationId) {
@@ -303,8 +334,18 @@ export default function RFQDetail() {
             });
           }
         } catch (convError) {
-          // Conversation creation is optional, continue
-          console.warn('Auto-conversation creation failed:', convError);
+          // ✅ FORENSIC RECOVERY: Handle all errors gracefully
+          const isTableMissing = convError?.code === 'PGRST116' || 
+                                convError?.message?.includes('does not exist') ||
+                                convError?.message?.includes('relation') ||
+                                convError?.status === 404;
+          
+          if (isTableMissing) {
+            console.warn('[RFQ Detail] Conversations feature currently unavailable');
+            // Continue without conversation creation - feature is optional
+          } else {
+            console.warn('Auto-conversation creation failed:', convError);
+          }
         }
       }
 
@@ -419,7 +460,7 @@ export default function RFQDetail() {
       const transitionResult = await transitionRFQStatus(
         id,
         'awarded',
-        user.id,
+        userId,
         `Awarded to supplier: ${quote.supplier_company_id}`,
         { quote_id: quoteId, supplier_company_id: quote.supplier_company_id }
       );
@@ -590,11 +631,26 @@ export default function RFQDetail() {
       const conversationId = `${rfq.buyer_company_id}-${supplierCompanyId}`;
       
       // Check if conversation exists
-      const { data: existingConv } = await supabase
+      const { data: existingConv, error: convCheckError } = await supabase
         .from('conversations')
         .select('*')
         .or(`id.eq.${conversationId},and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${supplierCompanyId})`)
         .maybeSingle();
+
+      // ✅ FORENSIC RECOVERY: Handle missing table gracefully
+      if (convCheckError) {
+        const isTableMissing = convCheckError.code === 'PGRST116' || 
+                              convCheckError.message?.includes('does not exist') ||
+                              convCheckError.message?.includes('relation') ||
+                              convCheckError.status === 404;
+        
+        if (isTableMissing) {
+          toast.error('Conversations feature is currently unavailable. Please contact support.');
+          return;
+        } else {
+          throw convCheckError;
+        }
+      }
 
       if (!existingConv) {
         // Get user IDs for buyer and seller
@@ -615,14 +671,34 @@ export default function RFQDetail() {
         });
 
         if (convError && convError.code !== '23505') {
-          // Ignore duplicate key errors
-          throw convError;
+          // ✅ FORENSIC RECOVERY: Handle missing table
+          const isTableMissing = convError.code === 'PGRST116' || 
+                                convError.message?.includes('does not exist') ||
+                                convError.message?.includes('relation') ||
+                                convError.status === 404;
+          
+          if (isTableMissing) {
+            toast.error('Conversations feature is currently unavailable. Please contact support.');
+            return;
+          } else {
+            throw convError;
+          }
         }
       }
 
       navigate(`/messages?conversation=${conversationId}`);
     } catch (error) {
-      toast.error('Failed to open conversation');
+      // ✅ FORENSIC RECOVERY: Handle all errors gracefully
+      const isTableMissing = error?.code === 'PGRST116' || 
+                            error?.message?.includes('does not exist') ||
+                            error?.message?.includes('relation') ||
+                            error?.status === 404;
+      
+      if (isTableMissing) {
+        toast.error('Conversations feature is currently unavailable. Please contact support.');
+      } else {
+        toast.error('Failed to open conversation');
+      }
     }
   };
 
@@ -715,14 +791,27 @@ export default function RFQDetail() {
     );
   }
 
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadRFQData();
+        }}
+      />
+    );
+  }
+
   if (!rfq) {
     return <EmptyState type="rfqs" title="RFQ not found" description="The RFQ you're looking for doesn't exist" />;
   }
 
   const isOwner = (currentRole === 'buyer' || currentRole === 'hybrid') && 
-                 rfq.buyer_company_id === companyId;
+                 rfq.buyer_company_id === profileCompanyId;
   const isSupplier = (currentRole === 'seller' || currentRole === 'hybrid') && 
-                     rfq.buyer_company_id !== companyId;
+                     rfq.buyer_company_id !== profileCompanyId;
   // Supplier can only submit if: RFQ is matched AND supplier is in matched_supplier_ids
   const isMatchedSupplier = isSupplier && 
     rfq?.status === 'matched' && 
@@ -1243,7 +1332,7 @@ export default function RFQDetail() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Buyer Info - Only shown to buyer or admin */}
-            {buyerCompany && (isOwner || currentRole === 'admin') && (
+            {buyerCompany && (isOwner || profile?.is_admin === true) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Buyer Information</CardTitle>

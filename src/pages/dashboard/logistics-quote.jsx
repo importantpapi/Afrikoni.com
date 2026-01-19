@@ -13,9 +13,10 @@ import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import {
   calculateShippingQuote,
   saveLogisticsQuote,
@@ -26,12 +27,14 @@ import { recordLogisticsRevenue } from '@/services/revenueService';
 import RequireCapability from '@/guards/RequireCapability';
 
 function LogisticsQuoteInner() {
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const { orderId } = useParams();
   const navigate = useNavigate();
 
   const [order, setOrder] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isRequesting, setIsRequesting] = useState(false);
 
   // Quote request form
@@ -65,17 +68,20 @@ function LogisticsQuoteInner() {
   }, [orderId, authReady, authLoading, user, profile, role, navigate]);
 
   const loadData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
-      // Use company_id from profile
-      const cid = profile?.company_id || null;
-
-      if (!cid) {
+      setIsLoading(true);
+      setError(null);
+      
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      if (!profileCompanyId) {
         toast.error('Company ID not found.');
         navigate('/dashboard/orders');
         return;
       }
-
-      setCompanyId(cid);
 
       if (orderId) {
         const { data: orderData, error } = await supabase
@@ -118,8 +124,9 @@ function LogisticsQuoteInner() {
         }
       }
     } catch (err) {
+      console.error('Error loading logistics data:', err);
+      setError(err?.message || 'Failed to load logistics data');
       toast.error('Failed to load logistics data');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +150,7 @@ function LogisticsQuoteInner() {
 
       setQuotes(calculated || []);
 
-      if (orderId && companyId) {
+      if (orderId && profileCompanyId) {
         await Promise.all(
           calculated.map((q) =>
             saveLogisticsQuote(orderId, companyId, {
@@ -181,7 +188,7 @@ function LogisticsQuoteInner() {
         await recordLogisticsRevenue({
           orderId,
           logisticsQuoteId: quote.id,
-          logisticsPartnerId: companyId,
+          logisticsPartnerId: profileCompanyId,
           basePrice: typeof quote.basePrice === 'number' ? quote.basePrice : quote.finalPrice,
           markupPercent: typeof quote.afrikoniMarkupPercent === 'number' ? quote.afrikoniMarkupPercent : 0,
           markupAmount: typeof quote.afrikoniMarkupAmount === 'number' ? quote.afrikoniMarkupAmount : 0,
@@ -207,6 +214,19 @@ function LogisticsQuoteInner() {
       <div className="flex justify-center py-20">
         <div className="animate-spin h-10 w-10 border-b-2 border-afrikoni-gold rounded-full" />
       </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadData();
+        }}
+      />
     );
   }
 

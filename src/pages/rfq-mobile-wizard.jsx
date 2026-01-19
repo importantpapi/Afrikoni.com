@@ -22,6 +22,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { sanitizeString } from '@/utils/security';
 import { format } from 'date-fns';
+import { createRFQInReview } from '@/services/rfqService';
 import MobileStickyCTA from '@/components/shared/ui/MobileStickyCTA';
 import RFQStep1Need from '@/components/rfq/RFQStep1Need';
 import RFQStep2QuantityDestination from '@/components/rfq/RFQStep2QuantityDestination';
@@ -258,29 +259,29 @@ export default function RFQMobileWizard() {
       // Move 1: Auto-create system conversation thread for RFQ
       // This creates a "Waiting for suppliers" thread in inbox
       try {
-        // Create a system conversation (buyer_company_id = companyId, seller_company_id = null for system)
-        // This will show in inbox as "RFQ: [title]" with system messages
-        const { data: systemConv, error: convError } = await supabase
-          .from('conversations')
-          .insert({
-            buyer_company_id: companyId,
-            seller_company_id: null, // System conversation
-            subject: `RFQ: ${rfqData.title}`,
-            last_message: 'Your RFQ is live. Waiting for supplier responses...',
-            last_message_at: new Date().toISOString(),
-            related_rfq_id: newRFQ.id,
-            is_system: true
-          })
-          .select()
-          .single();
+          // Create a system conversation (buyer_company_id = companyId, seller_company_id = null for system)
+          // This will show in inbox as "RFQ: [title]" with system messages
+          const { data: systemConv, error: convError } = await supabase
+            .from('conversations')
+            .insert({
+              buyer_company_id: companyId,
+              seller_company_id: null, // System conversation
+              subject: `RFQ: ${newRFQ.title}`,
+              last_message: 'Your RFQ is live. Waiting for supplier responses...',
+              last_message_at: new Date().toISOString(),
+              related_rfq_id: newRFQ.id,
+              is_system: true
+            })
+            .select()
+            .single();
 
-        if (!convError && systemConv) {
-          // Create system message with expectations
-          const systemMessage = `✅ Your RFQ "${rfqData.title}" has been created successfully!
+          if (!convError && systemConv) {
+            // Create system message with expectations
+            const systemMessage = `✅ Your RFQ "${newRFQ.title}" has been created successfully!
 
 📊 Status: In Review
 ⏱️ Average response time: 6-24 hours
-👥 Verified suppliers only: ${formData.verified_only ? 'Yes' : 'No'}
+👥 Verified suppliers only: ${(formData.verified_only ?? true) ? 'Yes' : 'No'}
 
 We're matching your RFQ with verified suppliers. You'll receive notifications when suppliers respond.
 

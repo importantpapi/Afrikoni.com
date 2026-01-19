@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
-import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
 import { RFQ_STATUS, RFQ_STATUS_LABELS, getStatusLabel } from '@/constants/status';
 import { buildRFQQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
@@ -40,19 +38,20 @@ const AFRICAN_COUNTRIES = [
 
 function DashboardRFQsInner() {
   const { t } = useTranslation();
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
+  // Derive role from capabilities for display purposes
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+  const isHybridCapability = isBuyer && isSeller;
+  const currentRole = isHybridCapability ? 'hybrid' : isSeller ? 'seller' : 'buyer';
+  
   const [rfqs, setRfqs] = useState([]);
   const [quotes, setQuotes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
-  // Derive role from capabilities for display purposes
-  const isBuyer = capabilities.can_buy === true;
-  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
-  const isHybridCapability = isBuyer && isSeller;
-  const currentRole = isHybridCapability ? 'hybrid' : isSeller ? 'seller' : 'buyer';
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('sent');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -68,46 +67,19 @@ function DashboardRFQsInner() {
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
-
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const companyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
   
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ UNIFIED DASHBOARD KERNEL: Show loading spinner while system is not ready
+  if (!canLoadData && capabilities.loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilities.ready} />
       </div>
     );
   }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardRFQs] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[DashboardRFQs] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[DashboardRFQs] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load RFQs
-    if (!companyId) {
-      console.log('[DashboardRFQs] No company_id - cannot load RFQs');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
@@ -118,35 +90,31 @@ function DashboardRFQsInner() {
     
     if (shouldRefresh) {
       console.log('[DashboardRFQs] Data is stale or first load - refreshing');
-      // Now safe to load data
       loadUserAndRFQs();
     } else {
       console.log('[DashboardRFQs] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, companyId, capabilitiesReady, capabilitiesLoading, activeTab, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, activeTab, location.pathname, isStale, navigate]);
 
   const loadUserAndRFQs = async () => {
+    if (!profileCompanyId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
-      
-      // Use auth from context (no duplicate call)
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      setError(null);
 
-      const companyId = profile?.company_id || null;
-      
       // Load subscription and verification status
-      if (companyId) {
+      if (profileCompanyId) {
         try {
-          const subscription = await getCompanySubscription(companyId);
+          const subscription = await getCompanySubscription(profileCompanyId);
           setCurrentPlan(subscription?.plan_type || 'free');
           
           const { data: companyData } = await supabase
             .from('companies')
             .select('verified, verification_status')
-            .eq('id', companyId)
+            .eq('id', profileCompanyId)
             .single();
           
           setIsVerified(companyData?.verified || companyData?.verification_status === 'verified');
@@ -157,7 +125,7 @@ function DashboardRFQsInner() {
 
       // ✅ FOUNDATION FIX: Build query based on capabilities instead of role
       const query = buildRFQQuery({
-        buyerCompanyId: (activeTab === 'sent' || activeTab === 'all') && isBuyer ? companyId : null,
+        buyerCompanyId: (activeTab === 'sent' || activeTab === 'all') && isBuyer ? profileCompanyId : null,
         status: activeTab === 'received' || activeTab === 'quotes' ? RFQ_STATUS.OPEN : null,
         categoryId: categoryFilter || null,
         country: countryFilter || null
@@ -194,9 +162,9 @@ function DashboardRFQsInner() {
       })) : [];
 
       // SAFETY ASSERTION: each RFQ should be associated with the current company when viewing "sent"
-      if (companyId && (activeTab === 'sent' || activeTab === 'all')) {
+      if (profileCompanyId && (activeTab === 'sent' || activeTab === 'all')) {
         for (const rfq of rfqsWithQuotes) {
-          await assertRowOwnedByCompany(rfq, companyId, 'DashboardRFQs:rfqs');
+          await assertRowOwnedByCompany(rfq, profileCompanyId, 'DashboardRFQs:rfqs');
         }
       }
 
@@ -244,16 +212,18 @@ function DashboardRFQsInner() {
       setCategories(categoriesData || []);
 
       // ✅ FOUNDATION FIX: Load quotes using capabilities
-      if (isSeller && companyId) {
+      if (isSeller && profileCompanyId) {
         const { data: myQuotes } = await supabase
           .from('quotes')
           .select('*, rfqs(*)')
-          .eq('supplier_company_id', companyId)
+          .eq('supplier_company_id', profileCompanyId)
           .order('created_at', { ascending: false });
         setQuotes(myQuotes || []);
       }
     } catch (error) {
+      // ✅ KERNEL MIGRATION: Enhanced error logging and state
       console.error('Error loading RFQs:', error);
+      setError(error?.message || 'Failed to load RFQs. Please try again.');
       toast.error(error?.message || 'Failed to load RFQs. Please try again.');
       setRfqs([]);
       setQuotes([]);
@@ -282,6 +252,22 @@ function DashboardRFQsInner() {
 
   if (isLoading) {
     return <CardSkeleton count={6} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+          if (shouldRefresh) {
+            loadUserAndRFQs();
+          }
+        }}
+      />
+    );
   }
 
   return (

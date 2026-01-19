@@ -10,9 +10,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui
 import { Badge } from '@/components/shared/ui/badge';
 import { Progress } from '@/components/shared/ui/progress';
 import { useSupplierIntelligence, useTrustEvolution, useRiskSignals } from '@/hooks/useTradeIntelligence';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { Shield, TrendingUp, AlertTriangle, CheckCircle, Clock, XCircle, Package, DollarSign } from 'lucide-react';
 import TrustHistoryTimeline from '@/components/intelligence/TrustHistoryTimeline';
 
@@ -23,45 +24,45 @@ export default function SellerIntelligence() {
   const [companyId, setCompanyId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[SellerIntelligence] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: No user → exit
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    // Use company_id from profile
-    const cid = profile?.company_id || null;
-    setCompanyId(cid);
-    setLoading(false);
-  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
-
-  const { data: supplierIntelligence, loading: supplierLoading } = useSupplierIntelligence(companyId);
-  const { data: trustEvolution, loading: trustLoading } = useTrustEvolution(companyId);
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading seller intelligence..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return null;
+  }
+  
+  // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+  const { data: supplierIntelligence, loading: supplierLoading } = useSupplierIntelligence(profileCompanyId);
+  const { data: trustEvolution, loading: trustLoading } = useTrustEvolution(profileCompanyId);
   const { data: riskSignals, loading: riskLoading } = useRiskSignals();
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading seller intelligence..." />;
-  }
-
-  if (loading) {
+  if (loading || supplierLoading || trustLoading || riskLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
     );
   }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          // Hooks will automatically refetch
+        }}
+      />
+    );
+  }
 
   const supplier = supplierIntelligence?.[0] || null;
   const trust = trustEvolution?.[0] || null;
-  const risk = riskSignals?.find(r => r.company_id === companyId) || null;
+  const risk = riskSignals?.find(r => r.company_id === profileCompanyId) || null;
 
   return (
     <>

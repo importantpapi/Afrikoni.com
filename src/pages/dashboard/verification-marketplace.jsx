@@ -11,68 +11,82 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import RequireCapability from '@/guards/RequireCapability';
 
 function VerificationMarketplaceInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const [companyId, setCompanyId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [company, setCompany] = useState(null);
   const [hasExistingPurchase, setHasExistingPurchase] = useState(false);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading verification marketplace..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[VerificationMarketplace] Waiting for auth to be ready...');
+    if (!canLoadData) {
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
       return;
     }
 
-    // GUARD: No user → exit
-    if (!user) {
+    loadData();
+  }, [canLoadData, userId, profileCompanyId]);
+
+  const loadData = async () => {
+    if (!profileCompanyId) {
+      toast.error('Company not found');
       setIsLoading(false);
       return;
     }
 
-    // Now safe to load data
-    loadData();
-  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
-
-  const loadData = async () => {
     try {
-      // Use company_id from profile
-      const cid = profile?.company_id || null;
-      if (!cid) {
-        toast.error('Company not found');
-        return;
-      }
+      setIsLoading(true);
+      setError(null);
       
-      setCompanyId(cid);
-      
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load company
-      const { data: companyData } = await supabase
+      const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
-        .eq('id', cid)
+        .eq('id', profileCompanyId)
         .single();
+      
+      if (companyError) throw companyError;
       
       setCompany(companyData);
       
       // Check for existing purchase
-      const { data: purchase } = await supabase
+      const { data: purchase, error: purchaseError } = await supabase
         .from('verification_purchases')
         .select('*')
-        .eq('company_id', cid)
+        .eq('company_id', profileCompanyId)
         .eq('status', 'completed')
         .maybeSingle();
       
+      if (purchaseError) throw purchaseError;
+      
       setHasExistingPurchase(!!purchase);
-    } catch (error) {
-      console.error('Error loading data:', error);
+    } catch (err) {
+      console.error('[VerificationMarketplace] Error loading data:', err);
+      setError(err.message || 'Failed to load data');
       toast.error('Failed to load data');
     } finally {
       setIsLoading(false);
@@ -161,19 +175,26 @@ function VerificationMarketplaceInner() {
 
       toast.success('Fast-track verification purchased! Your verification will be prioritized.');
       await loadData();
-    } catch (error) {
-      console.error('Error processing purchase:', error);
+    } catch (err) {
+      console.error('[VerificationMarketplace] Error processing purchase:', err);
       toast.error('Failed to process purchase. Please try again.');
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
+    return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadData}
+      />
     );
   }
 

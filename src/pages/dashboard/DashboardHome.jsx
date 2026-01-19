@@ -2,8 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -17,6 +16,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { format, subDays } from 'date-fns';
 import { StatCardSkeleton, CardSkeleton } from '@/components/shared/ui/skeletons';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import OnboardingProgressTracker from '@/components/dashboard/OnboardingProgressTracker';
 import { getActivityMetrics, getSearchAppearanceCount } from '@/services/activityTracking';
 import { toast } from 'sonner';
@@ -24,7 +24,7 @@ import { getUserDisplayName } from '@/utils/userHelpers';
 import { useTranslation } from 'react-i18next';
 // REMOVED: Realtime is now owned by WorkspaceDashboard via DashboardRealtimeManager
 // import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
 // ============================================================================
 // CONSTANTS & HELPERS (Section 2)
@@ -89,8 +89,8 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // ==========================================================================
   
   const { t } = useTranslation();
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  const capabilitiesFromContext = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities: kernelCapabilities, isSystemReady } = useDashboardKernel();
   const navigate = useNavigate();
   
   // State hooks
@@ -115,28 +115,11 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // CRITICAL: These MUST be memoized to prevent object identity changes
   // ==========================================================================
   
-  // ✅ FIX #1: Memoize capabilitiesReady - primitive, no identity issues
-  const capabilitiesReady = capabilitiesProp ? true : capabilitiesFromContext.ready;
-  
-  // ✅ FIX #2: Memoize capabilities object with useMemo
-  // This prevents the capabilities object from changing identity every render
+  // ✅ KERNEL MIGRATION: Use capabilities from kernel
   const capabilities = useMemo(() => {
     if (capabilitiesProp) return capabilitiesProp;
-    return {
-    can_buy: capabilitiesFromContext.can_buy,
-    can_sell: capabilitiesFromContext.can_sell,
-    can_logistics: capabilitiesFromContext.can_logistics,
-    sell_status: capabilitiesFromContext.sell_status,
-    logistics_status: capabilitiesFromContext.logistics_status,
-  };
-  }, [
-    capabilitiesProp,
-    capabilitiesFromContext.can_buy,
-    capabilitiesFromContext.can_sell,
-    capabilitiesFromContext.can_logistics,
-    capabilitiesFromContext.sell_status,
-    capabilitiesFromContext.logistics_status,
-  ]);
+    return kernelCapabilities || {};
+  }, [capabilitiesProp, kernelCapabilities]);
   
   // ✅ FIX #3: Derive primitive flags (these are stable booleans)
   const isBuyer = capabilities?.can_buy === true;
@@ -144,9 +127,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
   const isHybrid = isBuyer && isSeller;
 
+  // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
   // ✅ FIX #4: Memoize company_id as primitive (prevents object in deps)
-  const companyId = profile?.company_id || null;
-  const userId = user?.id || null;
+  const companyId = profileCompanyId || null;
+  const userIdFromKernel = userId || null;
   
   // ✅ FIX #5: Memoize default KPIs (prevents recreation each render)
   const defaultKPIs = useMemo(() => [
@@ -796,7 +780,8 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     // =========================================================================
     // GUARD 1: Wait for all prerequisites (primitives only)
     // =========================================================================
-    if (!authReady || !capabilitiesReady || !companyId || !userId) {
+    // ✅ UNIFIED DASHBOARD KERNEL: Use canLoadData guard
+    if (!canLoadData || !companyId || !userIdFromKernel) {
       // Not ready yet - don't set loading, just wait
       return;
     }
@@ -833,8 +818,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           return;
         }
 
-        // ✅ Use refs to get current user/profile without dependency issues
-        setIsUserAdmin(isAdmin(user, profile));
+        // ✅ KERNEL MIGRATION: Check admin status from kernel
+        // Route-level protection ensures admin - check capabilities for consistency
+        setIsUserAdmin(kernelCapabilities?.is_admin === true);
         setSearchAppearances(0);
         setBuyersLooking(0);
 
@@ -885,14 +871,13 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     // =======================================================================
     // DEPENDENCY ARRAY - PRIMITIVES ONLY
     // =======================================================================
-    // ✅ Booleans - stable after initial resolution
-    authReady,
-    capabilitiesReady,
+    // ✅ KERNEL MIGRATION: Use canLoadData instead of authReady/capabilitiesReady
+    canLoadData,
     canBuy,
     canSell,
     // ✅ String primitives - only change on actual user/company switch
     companyId,
-    userId,
+    userIdFromKernel,
     // ✅ Stable useCallback references (empty or primitive deps)
     loadKPIs,
     loadChartData,
@@ -925,14 +910,34 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // This prevents unmounting during token refresh (which sets loading briefly)
   // ==========================================================================
   
-  if (!authReady || !capabilitiesReady || !companyId) {
-    // Hard gate: Show loading spinner until stable
-    // NOTE: authLoading intentionally NOT included - prevents unmount on token refresh
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
       <SpinnerWithTimeout 
         message="Loading dashboard..." 
-        ready={authReady && capabilitiesReady && !!companyId}
+        ready={isSystemReady}
       />
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userIdFromKernel) {
+    navigate('/login');
+    return null;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if company ID is available
+  if (!companyId) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <EmptyState 
+          type="default"
+          title="Company Required"
+          description="Please complete your company profile to access the dashboard."
+          cta="Go to Company Info"
+          ctaLink="/dashboard/company-info"
+        />
+      </div>
     );
   }
 
@@ -941,29 +946,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // ✅ FIX #10: All logic extracted from JSX into variables
   // ==========================================================================
   
-  // Welcome message derivation
+  // ✅ KERNEL MIGRATION: Welcome message derivation
+  // Note: User display name can be fetched from Supabase if needed, but for now use generic welcome
+  // This avoids blocking on user fetch and keeps the component simple
   let welcomeMessage = `${t('dashboard.welcome') || 'Welcome back'}!`;
-  try {
-    const displayName = getUserDisplayName(user || null, null);
-    if (displayName && displayName !== 'User' && displayName.length > 1) {
-      const firstName = displayName.trim().split(/\s+/)[0];
-      if (firstName.length > 1) {
-        const formattedName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
-        welcomeMessage = `${t('dashboard.welcome') || 'Welcome back'}, ${formattedName}!`;
-      }
-    } else {
-      const email = user?.email || user?.user_email;
-      if (email && typeof email === 'string') {
-        const emailName = email.split('@')[0];
-        if (emailName && emailName.length > 1) {
-          const capitalizedName = emailName.charAt(0).toUpperCase() + emailName.slice(1).toLowerCase();
-          welcomeMessage = `${t('dashboard.welcome') || 'Welcome back'}, ${capitalizedName}!`;
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('Error getting display name:', error);
-  }
 
   // Subtitle derivation
   let subtitle = t('dashboard.buyerSubtitle') || 'Source products and connect with verified suppliers across Africa.';

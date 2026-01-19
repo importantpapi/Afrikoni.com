@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
@@ -32,32 +33,46 @@ export default function AdminRFQReview() {
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [pastRFQs, setPastRFQs] = useState([]);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading RFQ review..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/dashboard');
+    return null;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    navigate('/dashboard');
+    return null;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminRFQReview] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → redirect
-    if (!user) {
-      navigate('/dashboard');
-      return;
-    }
-
-    // Now safe to load data
+    
     loadRFQs();
     if (id) {
       loadRFQDetail(id);
     }
-  }, [id, filterStatus, authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData, id, filterStatus]);
 
   useEffect(() => {
     loadSuppliers();
   }, []);
 
   const loadRFQs = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setError(null);
       let query = supabase
         .from('rfqs')
         .select('*, buyer_company:companies!rfqs_buyer_company_id_fkey(name)')
@@ -75,12 +90,19 @@ export default function AdminRFQReview() {
       if (error) throw error;
       setRfqs(data || []);
     } catch (error) {
+      console.error('Error loading RFQs:', error);
+      setError(error?.message || 'Failed to load RFQs');
       toast.error('Failed to load RFQs');
     }
   };
 
   const loadRFQDetail = async (rfqId) => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('rfqs')
         .select('*, buyer_company:companies!rfqs_buyer_company_id_fkey(*), category:categories(*)')
@@ -123,7 +145,12 @@ export default function AdminRFQReview() {
   };
 
   const loadSuppliers = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('companies')
         .select('id, name, verification_status')
@@ -134,6 +161,8 @@ export default function AdminRFQReview() {
       if (error) throw error;
       setSuppliers(data || []);
     } catch (error) {
+      console.error('Error loading suppliers:', error);
+      setError(error?.message || 'Failed to load suppliers');
       toast.error('Failed to load suppliers');
     }
   };

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -17,180 +18,218 @@ import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
 
 function DashboardSavedInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { userId, isSystemReady, canLoadData } = useDashboardKernel();
   const [savedProducts, setSavedProducts] = useState([]);
   const [savedSuppliers, setSavedSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('products');
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  
+  // ✅ FORENSIC RECOVERY: Add "Is Initialized" ref to prevent redundant triggers
+  const isInitialMount = useRef(true);
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardSaved] Waiting for auth to be ready...');
+  // ✅ FORENSIC RECOVERY: Use ref to track loading state (prevents dependency loops)
+  const isLoadingRef = useRef(false);
+  
+  // ✅ CRITICAL FIX: Store function in ref to prevent dependency loop
+  const loadSavedItemsRef = useRef(null);
+  
+  // ✅ KERNEL MIGRATION: Memoize loadSavedItems with useCallback to prevent infinite loops
+  const loadSavedItems = useCallback(async () => {
+    // Guard 1: Don't run if already loading or no userId
+    if (!canLoadData || !userId || isLoadingRef.current) {
       return;
     }
-
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[DashboardSaved] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // Now safe to load data
-    loadSavedItems();
-  }, [authReady, authLoading, user, profile, role, navigate]);
-
-  const loadSavedItems = async () => {
     try {
+      isLoadingRef.current = true;
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-
-      // Load saved products - Manual join (more reliable)
-      const { data: savedItems, error: savedItemsError } = await supabase
+      // ✅ KEY FIX: Fetch all saved_items first to check if empty
+      const { data: allSavedItems, error: allSavedItemsError } = await supabase
         .from('saved_items')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('item_type', 'product')
-        .order('created_at', { ascending: false });
+        .eq('user_id', userId);
 
-      if (savedItemsError) {
-        console.error('Error loading saved items:', savedItemsError);
-        toast.error('Failed to load saved products');
+      if (allSavedItemsError) {
+        console.error('Error loading saved items:', allSavedItemsError);
+        setError(allSavedItemsError.message || 'Failed to load saved items');
+        toast.error('Failed to load saved items');
         setSavedProducts([]);
-      } else if (savedItems && savedItems.length > 0) {
+        setSavedSuppliers([]);
+        isLoadingRef.current = false;
+        setIsLoading(false); // ✅ Stop the spinner
+        return;
+      }
+
+      // ✅ KEY FIX: If no rows, set empty and STOP LOADING immediately
+      if (!allSavedItems || allSavedItems.length === 0) {
+        setSavedProducts([]);
+        setSavedSuppliers([]);
+        isLoadingRef.current = false;
+        setIsLoading(false); // ✅ Stop the spinner
+        return;
+      }
+
+      // ✅ FORENSIC RECOVERY: Use userId from kernel instead of user.id
+      // Load saved products - Manual join (more reliable)
+      const savedItems = allSavedItems.filter(item => item.item_type === 'product');
+
+      if (savedItems && savedItems.length > 0) {
         const productIds = savedItems.map(item => item.item_id).filter(Boolean);
         
         if (productIds.length === 0) {
           setSavedProducts([]);
-          return;
-        }
-        
-        // Simplified query - PostgREST friendly (no complex joins)
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, product_images(*)')
-          .in('id', productIds);
-        
-        // Load companies separately if needed
-        let companiesMap = new Map();
-        if (productsData && productsData.length > 0) {
-          const companyIds = [...new Set(productsData.map(p => p.company_id).filter(Boolean))];
-          if (companyIds.length > 0) {
-            try {
-              const { data: companies } = await supabase
-                .from('companies')
-                .select('id, company_name, country, verification_status, verified')
-                .in('id', companyIds);
-              
-              if (companies) {
-                companies.forEach(c => companiesMap.set(c.id, c));
+          // Continue to load suppliers - don't return early
+        } else {
+          // Simplified query - PostgREST friendly (no complex joins)
+          const { data: productsData, error: productsError } = await supabase
+            .from('products')
+            .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, product_images(*)')
+            .in('id', productIds);
+          
+          // Load companies separately if needed
+          let companiesMap = new Map();
+          if (productsData && productsData.length > 0) {
+            const companyIds = [...new Set(productsData.map(p => p.company_id).filter(Boolean))];
+            if (companyIds.length > 0) {
+              try {
+                const { data: companies } = await supabase
+                  .from('companies')
+                  .select('id, company_name, country, verification_status, verified')
+                  .in('id', companyIds);
+                
+                if (companies) {
+                  companies.forEach(c => companiesMap.set(c.id, c));
+                }
+              } catch (err) {
+                console.warn('Error loading companies for saved products:', err);
+                // Continue without company data
               }
-            } catch (err) {
-              console.warn('Error loading companies for saved products:', err);
-              // Continue without company data
             }
           }
-        }
-        
-        if (productsError) {
-          console.error('Error loading products:', productsError);
-          toast.error('Failed to load product details');
-          setSavedProducts([]);
-        } else {
-          // Map products with saved_item_id, preserving order, and add primary image
-          const productMap = new Map((productsData || []).map(p => [p.id, p]));
-          const products = savedItems
-            .map(item => {
-              const product = productMap.get(item.item_id);
-              if (!product) {
-                console.warn('Product not found for saved item:', item.item_id);
-                return null;
-              }
-              
-              // Get primary image from product_images
-              const primaryImage = getPrimaryImageFromProduct(product);
-              
-              // Merge company data
-              const company = companiesMap.get(product.company_id);
-              
-              return { 
-                ...product, 
-                saved_item_id: item.id,
-                primaryImage: primaryImage || null,
-                companies: company || null
-              };
-            })
-            .filter(Boolean);
           
-          setSavedProducts(products);
+          if (productsError) {
+            console.error('Error loading products:', productsError);
+            toast.error('Failed to load product details');
+            setSavedProducts([]);
+          } else {
+            // Map products with saved_item_id, preserving order, and add primary image
+            const productMap = new Map((productsData || []).map(p => [p.id, p]));
+            const products = savedItems
+              .map(item => {
+                const product = productMap.get(item.item_id);
+                if (!product) {
+                  console.warn('Product not found for saved item:', item.item_id);
+                  return null;
+                }
+                
+                // Get primary image from product_images
+                const primaryImage = getPrimaryImageFromProduct(product);
+                
+                // Merge company data
+                const company = companiesMap.get(product.company_id);
+                
+                return { 
+                  ...product, 
+                  saved_item_id: item.id,
+                  primaryImage: primaryImage || null,
+                  companies: company || null
+                };
+              })
+              .filter(Boolean);
+            
+            setSavedProducts(products);
+          }
         }
       } else {
         setSavedProducts([]);
       }
 
+      // ✅ FORENSIC RECOVERY: Use userId from kernel instead of user.id
       // Load saved suppliers (companies) - Manual join (more reliable)
-      const { data: savedSupplierItems, error: savedSupplierItemsError } = await supabase
-        .from('saved_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('item_type', 'supplier')
-        .order('created_at', { ascending: false });
+      const savedSupplierItems = allSavedItems.filter(item => item.item_type === 'supplier');
 
-      if (savedSupplierItemsError) {
-        console.error('Error loading saved supplier items:', savedSupplierItemsError);
-        toast.error('Failed to load saved suppliers');
-        setSavedSuppliers([]);
-      } else if (savedSupplierItems && savedSupplierItems.length > 0) {
+      if (savedSupplierItems && savedSupplierItems.length > 0) {
         const companyIds = savedSupplierItems.map(item => item.item_id).filter(Boolean);
         
         if (companyIds.length === 0) {
           setSavedSuppliers([]);
-          return;
-        }
-        
-        const { data: companiesData, error: companiesError } = await supabase
-          .from('companies')
-          .select('*')
-          .in('id', companyIds);
-        
-        if (companiesError) {
-          console.error('Error loading companies:', companiesError);
-          toast.error('Failed to load supplier details');
-          setSavedSuppliers([]);
+          // Continue - don't return early, let finally block handle loading state
         } else {
-          // Map companies with saved_item_id, preserving order
-          const companyMap = new Map((companiesData || []).map(c => [c.id, c]));
-          const suppliers = savedSupplierItems
-            .map(item => {
-              const company = companyMap.get(item.item_id);
-              return company ? { ...company, saved_item_id: item.id } : null;
-            })
-            .filter(Boolean);
-      setSavedSuppliers(suppliers);
+          const { data: companiesData, error: companiesError } = await supabase
+            .from('companies')
+            .select('*')
+            .in('id', companyIds);
+          
+          if (companiesError) {
+            console.error('Error loading companies:', companiesError);
+            toast.error('Failed to load supplier details');
+            setSavedSuppliers([]);
+          } else {
+            // Map companies with saved_item_id, preserving order
+            const companyMap = new Map((companiesData || []).map(c => [c.id, c]));
+            const suppliers = savedSupplierItems
+              .map(item => {
+                const company = companyMap.get(item.item_id);
+                return company ? { ...company, saved_item_id: item.id } : null;
+              })
+              .filter(Boolean);
+            setSavedSuppliers(suppliers);
+          }
         }
       } else {
         setSavedSuppliers([]);
       }
     } catch (error) {
+      console.error('[DashboardSaved] Error loading saved items:', error);
+      setError(error?.message || 'Failed to load saved items');
       toast.error('Failed to load saved items');
+      setSavedProducts([]);
+      setSavedSuppliers([]);
     } finally {
-      setIsLoading(false);
+      isLoadingRef.current = false;
+      setIsLoading(false); // ✅ ALWAYS stop the spinner here
     }
-  };
+  }, [canLoadData, userId]); // ✅ Only recreate if userId or canLoadData changes
 
-  const filteredProducts = savedProducts.filter((p) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      p.title?.toLowerCase().includes(q) ||
-      p.description?.toLowerCase().includes(q)
-    );
-  });
+  // ✅ CRITICAL FIX: Store function in ref to prevent dependency loop
+  useEffect(() => {
+    loadSavedItemsRef.current = loadSavedItems;
+  }, [loadSavedItems]);
+
+  // ✅ FORENSIC RECOVERY: Clean data fetching guard - REMOVED loadSavedItems from deps to prevent loop
+  useEffect(() => {
+    // Only trigger once when everything is ready
+    if (isSystemReady && canLoadData && authReady && userId && !isLoadingRef.current) {
+      if (isInitialMount.current && loadSavedItemsRef.current) {
+        loadSavedItemsRef.current();
+        isInitialMount.current = false;
+      }
+    } else if (!authReady || authLoading) {
+      // Waiting for auth - don't log spam
+    } else if (!isSystemReady || !canLoadData) {
+      // Waiting for system - don't log spam
+    } else if (!userId) {
+      console.log('[DashboardSaved] No user → redirecting to login');
+      navigate('/login');
+    }
+  }, [isSystemReady, canLoadData, authReady, authLoading, userId, navigate]); // ✅ REMOVED loadSavedItems to prevent infinite loop
+
+  // ✅ CRITICAL FIX: Memoize filteredProducts to prevent unnecessary recomputations
+  const filteredProducts = useMemo(() => {
+    return savedProducts.filter((p) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        p.title?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q)
+      );
+    });
+  }, [savedProducts, search]);
 
   // Debug: Log only when products count changes (prevents render loop spam)
   useEffect(() => {
@@ -200,139 +239,194 @@ function DashboardSavedInner() {
     }
   }, [savedProducts.length, filteredProducts.length]);
 
-  const filteredSuppliers = savedSuppliers.filter((s) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      s.company_name?.toLowerCase().includes(q) ||
-      s.country?.toLowerCase().includes(q)
-    );
-  });
+  // ✅ CRITICAL FIX: Memoize filteredSuppliers to prevent unnecessary recomputations
+  const filteredSuppliers = useMemo(() => {
+    return savedSuppliers.filter((s) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        s.company_name?.toLowerCase().includes(q) ||
+        s.country?.toLowerCase().includes(q)
+      );
+    });
+  }, [savedSuppliers, search]);
 
-  // Normalize products - handles all field name variations
-  const [normalizedProducts, setNormalizedProducts] = useState([]);
+  // ✅ FORENSIC RECOVERY: Compute normalized products with useMemo (no state -> effect -> state cycle)
+  const normalizedProducts = useMemo(() => {
+    return filteredProducts.map((p) => {
+      // Normalize title
+      const title = p.title || p.name || p.product_name || 'Untitled product';
+      
+      // Normalize image path/URL (try all possible field names)
+      const imagePathOrUrl =
+        p.primaryImage ||
+        p.image ||
+        p.imageUrl ||
+        p.image_url ||
+        (p.product_images && Array.isArray(p.product_images) && p.product_images.find(i => i.is_primary)?.url) ||
+        (p.product_images && Array.isArray(p.product_images) && p.product_images[0]?.url) ||
+        (Array.isArray(p.images) && p.images[0]) ||
+        null;
+      
+      // Normalize price
+      const price = p.price ?? p.unit_price ?? p.price_min ?? null;
+      const priceMax = p.price_max ?? null;
+      const currency = p.currency || 'USD';
+      
+      // Normalize company name
+      const companyName = 
+        p.companies?.company_name || 
+        p.companies?.name || 
+        p.company?.company_name || 
+        p.company_name || 
+        'Supplier';
+      
+      return {
+        ...p,
+        title,
+        imagePathOrUrl,
+        price,
+        priceMax,
+        currency,
+        companyName,
+        company: p.companies || p.company || null
+      };
+    });
+  }, [filteredProducts]);
+
+  // ✅ FORENSIC RECOVERY: Resolve image URLs separately (async operation)
   const [imageUrlsResolved, setImageUrlsResolved] = useState(new Map());
-
-  // Normalize products array with all field variations
+  const imageUrlsResolvingRef = useRef(false);
+  
   useEffect(() => {
-    const normalize = async () => {
-      const normalized = filteredProducts.map((p) => {
-        // Normalize title
-        const title = p.title || p.name || p.product_name || 'Untitled product';
-        
-        // Normalize image path/URL (try all possible field names)
-        const imagePathOrUrl =
-          p.primaryImage ||
-          p.image ||
-          p.imageUrl ||
-          p.image_url ||
-          (p.product_images && Array.isArray(p.product_images) && p.product_images.find(i => i.is_primary)?.url) ||
-          (p.product_images && Array.isArray(p.product_images) && p.product_images[0]?.url) ||
-          (Array.isArray(p.images) && p.images[0]) ||
-          null;
-        
-        // Normalize price
-        const price = p.price ?? p.unit_price ?? p.price_min ?? null;
-        const priceMax = p.price_max ?? null;
-        const currency = p.currency || 'USD';
-        
-        // Normalize company name
-        const companyName = 
-          p.companies?.company_name || 
-          p.companies?.name || 
-          p.company?.company_name || 
-          p.company_name || 
-          'Supplier';
-        
-        return {
-          ...p,
-          title,
-          imagePathOrUrl,
-          price,
-          priceMax,
-          currency,
-          companyName,
-          company: p.companies || p.company || null
-        };
-      });
+    // ✅ CRITICAL FIX: Prevent concurrent resolution attempts
+    if (imageUrlsResolvingRef.current) return;
+    
+    const resolveImageUrls = async () => {
+      if (normalizedProducts.length === 0) {
+        setImageUrlsResolved(prev => {
+          // Only update if map is not empty
+          if (prev.size === 0) return prev;
+          return new Map();
+        });
+        return;
+      }
       
-      setNormalizedProducts(normalized);
+      imageUrlsResolvingRef.current = true;
       
-      // Resolve image URLs (handle 403 errors with signed URLs if needed)
-      const urlMap = new Map();
-      for (const product of normalized) {
-        if (product.imagePathOrUrl) {
-          // If already a full HTTPS URL, use it directly
-          if (product.imagePathOrUrl.startsWith('https://')) {
-            urlMap.set(product.id, product.imagePathOrUrl);
-          } else {
-            // Try to get public URL first
-            const { data: publicUrlData } = supabase.storage
-              .from('product-images')
-              .getPublicUrl(product.imagePathOrUrl);
-            
-            if (publicUrlData?.publicUrl) {
-              urlMap.set(product.id, publicUrlData.publicUrl);
+      try {
+        const urlMap = new Map();
+        for (const product of normalizedProducts) {
+          if (product.imagePathOrUrl) {
+            // If already a full HTTPS URL, use it directly
+            if (product.imagePathOrUrl.startsWith('https://')) {
+              urlMap.set(product.id, product.imagePathOrUrl);
             } else {
-              // Fallback: try to create signed URL (for private buckets)
-              try {
-                const { data: signedData } = await supabase.storage
-                  .from('product-images')
-                  .createSignedUrl(product.imagePathOrUrl, 3600);
-                
-                if (signedData?.signedUrl) {
-                  urlMap.set(product.id, signedData.signedUrl);
+              // Try to get public URL first
+              const { data: publicUrlData } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(product.imagePathOrUrl);
+              
+              if (publicUrlData?.publicUrl) {
+                urlMap.set(product.id, publicUrlData.publicUrl);
+              } else {
+                // Fallback: try to create signed URL (for private buckets)
+                try {
+                  const { data: signedData } = await supabase.storage
+                    .from('product-images')
+                    .createSignedUrl(product.imagePathOrUrl, 3600);
+                  
+                  if (signedData?.signedUrl) {
+                    urlMap.set(product.id, signedData.signedUrl);
+                  }
+                } catch (err) {
+                  console.warn('Could not create signed URL for product image:', product.id, err);
+                  // Will fallback to placeholder
                 }
-              } catch (err) {
-                console.warn('Could not create signed URL for product image:', product.id, err);
-                // Will fallback to placeholder
               }
             }
           }
         }
+        
+        // ✅ CRITICAL FIX: Only update if URLs actually changed
+        setImageUrlsResolved(prev => {
+          // Compare map sizes and keys to avoid unnecessary updates
+          if (prev.size === urlMap.size) {
+            let hasChanges = false;
+            for (const [id, url] of urlMap.entries()) {
+              if (prev.get(id) !== url) {
+                hasChanges = true;
+                break;
+              }
+            }
+            if (!hasChanges) return prev;
+          }
+          return urlMap;
+        });
+      } finally {
+        imageUrlsResolvingRef.current = false;
       }
-      
-      setImageUrlsResolved(urlMap);
     };
     
-    if (filteredProducts.length > 0) {
-      normalize();
-    } else {
-      setNormalizedProducts([]);
-      setImageUrlsResolved(new Map());
-    }
-  }, [filteredProducts]);
+    resolveImageUrls();
+  }, [normalizedProducts]); // Only depends on normalizedProducts (computed with useMemo)
 
   const handleUnsave = async (itemId, itemType) => {
     try {
-      // Use auth from context (no duplicate call)
-      if (!user) return;
+      // ✅ FORENSIC RECOVERY: Use userId from kernel
+      if (!userId) return;
 
       const { error } = await supabase
         .from('saved_items')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('item_id', itemId)
         .eq('item_type', itemType);
 
       if (error) throw error;
       toast.success('Item removed from saved');
-      loadSavedItems();
+      // ✅ Use ref to call function (prevents dependency issues)
+      if (loadSavedItemsRef.current) {
+        loadSavedItemsRef.current();
+      }
     } catch (error) {
       toast.error('Failed to remove item');
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading saved items..." />;
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading saved items..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
   }
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <p className="mt-4 text-sm text-afrikoni-text-dark/70">Loading saved items...</p>
       </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          if (loadSavedItemsRef.current) {
+            loadSavedItemsRef.current();
+          }
+        }}
+      />
     );
   }
 

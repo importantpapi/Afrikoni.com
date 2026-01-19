@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { ORDER_STATUS, getStatusLabel, getNextStatuses, canTransitionTo } from '@/constants/status';
 import { buildOrderTimeline } from '@/utils/timeline';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
@@ -29,10 +29,8 @@ import BuyerProtectionOption from '@/components/upsell/BuyerProtectionOption';
 import { DealMilestoneTracker } from '@/components/orders/DealMilestoneTracker';
 
 export default function OrderDetail() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -44,9 +42,10 @@ export default function OrderDetail() {
   const [timeline, setTimeline] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isUpdating, setIsUpdating] = useState(false);
-  // Derive role from capabilities for display purposes
-  const isBuyer = capabilities.can_buy === true;
-  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const [error, setError] = useState(null);
+  // ✅ KERNEL MIGRATION: Derive role from capabilities
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
   const [hasReviewed, setHasReviewed] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -54,38 +53,25 @@ export default function OrderDetail() {
   const [templateName, setTemplateName] = useState('');
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [buyerProtectionEnabled, setBuyerProtectionEnabled] = useState(false);
-
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const companyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
   
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  useEffect(() => {
-    if (capabilitiesLoading && !capabilitiesReady) {
-      // Capabilities are loading - show spinner
-      return;
-    }
-  }, [capabilitiesLoading, capabilitiesReady]);
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading order details..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[OrderDetail] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[OrderDetail] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[OrderDetail] No user → redirecting to login');
-      navigate('/login');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
@@ -98,7 +84,7 @@ export default function OrderDetail() {
 
     // Now safe to load data
     loadOrderData();
-  }, [id, authReady, authLoading, userId, companyId, capabilitiesReady, capabilitiesLoading, navigate]);
+  }, [id, canLoadData, userId, profileCompanyId, navigate]);
 
   const loadOrderData = async () => {
     try {
@@ -106,7 +92,8 @@ export default function OrderDetail() {
       
       // Use auth from context (no duplicate call)
       // Role derived from capabilities above
-      const userCompanyId = profile?.company_id || null;
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const userCompanyId = profileCompanyId;
 
       // Load order with related data
       const { data: orderData, error: orderError } = await supabase
@@ -218,13 +205,21 @@ export default function OrderDetail() {
           const { notifyOrderStatusChange } = await import('@/services/notificationService');
           await notifyOrderStatusChange(id, newStatus, order.buyer_company_id, order.seller_company_id);
         } catch (err) {
-          // Fallback to direct insert
-          // Use auth from context (no duplicate call)
-          if (user?.email) {
+          // ✅ KERNEL MIGRATION: Fallback to direct insert
+          // Get user email from Supabase auth
+          let userEmail = '';
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            userEmail = user?.email || '';
+          } catch (err) {
+            // Silently fail
+          }
+          
+          if (userEmail && userId) {
             const { error: notifError } = await supabase.from('notifications').insert({
               company_id: otherCompanyId,
-              user_email: user.email,
-              user_id: user.id,
+              user_email: userEmail,
+              user_id: userId,
               title: 'Order Status Updated',
               message: `Order ${id.slice(0, 8)} status changed to ${newStatus}`,
               type: 'order',
@@ -364,16 +359,24 @@ export default function OrderDetail() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading order details..." />;
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadOrderData();
+        }}
+      />
     );
   }
 

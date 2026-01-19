@@ -281,8 +281,9 @@ export default function Marketplace() {
     try {
       // Use buildProductQuery for server-side filtering
       // buildProductQuery already includes product_images(*), so we just need to add companies
+      // ✅ UNIFIED DASHBOARD KERNEL: Fetch only published products for live marketplace
       let query = buildProductQuery({
-        status: 'active',
+        status: 'published',
         categoryId: selectedFilters.category || null,
         country: selectedFilters.country || null
       });
@@ -306,8 +307,8 @@ export default function Marketplace() {
         .from('products')
         .select(selectString);
       
-      // Re-apply filters
-      query = query.eq('status', 'active');
+      // ✅ UNIFIED DASHBOARD KERNEL: Fetch only published products for live marketplace
+      query = query.eq('status', 'published');
       if (selectedFilters.category) {
         query = query.eq('category_id', selectedFilters.category);
       }

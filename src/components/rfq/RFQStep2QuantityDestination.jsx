@@ -17,6 +17,7 @@ import { COUNTRY_CURRENCY_MAP } from '@/utils/geoDetection';
 const UNITS = [
   { value: 'pieces', label: 'Pieces' },
   { value: 'kg', label: 'Kilograms (kg)' },
+  { value: 'grams', label: 'Grams' },
   { value: 'tons', label: 'Metric Tons' },
   { value: 'liters', label: 'Liters' },
   { value: 'bags', label: 'Bags (50kg)' },

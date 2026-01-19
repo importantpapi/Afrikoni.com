@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
 import { PRODUCT_STATUS, getStatusLabel } from '@/constants/status';
 import { buildProductQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -40,17 +40,17 @@ const AFRICAN_COUNTRIES = [
 ];
 
 function DashboardProductsInner() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, isAdmin, capabilities, isSystemReady } = useDashboardKernel();
+  
+  // Derive role from capabilities for display purposes
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+  const currentRole = isSeller ? 'seller' : 'buyer';
+  
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
-  // Derive role from capabilities for display purposes
-  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
-  const currentRole = isSeller ? 'seller' : 'buyer';
-  const [companyIdState, setCompanyIdState] = useState(null);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -64,46 +64,25 @@ function DashboardProductsInner() {
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
-
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const companyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
   
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading products..." ready={isSystemReady} />
       </div>
     );
   }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardProducts] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[DashboardProducts] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[DashboardProducts] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load products
-    if (!profileCompanyId) {
-      console.log('[DashboardProducts] No company_id - cannot load products');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
@@ -112,43 +91,24 @@ function DashboardProductsInner() {
                          !lastLoadTimeRef.current || 
                          (Date.now() - lastLoadTimeRef.current > 30000);
     
-    // ✅ TOTAL SYSTEM SYNC: Dependency audit - log useEffect trigger
-    console.log('[DashboardProducts] useEffect triggered:', {
-      authReady,
-      authLoading,
-      userId,
-      profileCompanyId,
-      capabilitiesReady,
-      capabilitiesLoading,
-      statusFilter,
-      pathname: location.pathname,
-      isStale,
-      shouldRefresh,
-      lastLoadTime: lastLoadTimeRef.current ? new Date(lastLoadTimeRef.current).toISOString() : 'never',
-    });
-    
     if (shouldRefresh) {
       console.log('[DashboardProducts] Data is stale or first load - refreshing');
-      // Now safe to load data
       loadUserAndProducts();
     } else {
       console.log('[DashboardProducts] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
   const loadUserAndProducts = async () => {
+    if (!profileCompanyId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      
-      const userCompanyId = profile?.company_id || null;
-      setCompanyIdState(userCompanyId);
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load categories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
@@ -179,9 +139,10 @@ function DashboardProductsInner() {
         .from('products')
         .select(selectString);
       
+      // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId for all queries
       // Apply filters
-      if (userCompanyId) {
-        productsQuery = productsQuery.eq('company_id', userCompanyId);
+      if (profileCompanyId) {
+        productsQuery = productsQuery.eq('company_id', profileCompanyId);
       }
       if (statusFilter !== 'all') {
         productsQuery = productsQuery.eq('status', statusFilter);
@@ -216,8 +177,8 @@ function DashboardProductsInner() {
         if (result.error.code === 'PGRST116' || result.error.message?.includes('permission denied')) {
           console.error('🔒 RLS BLOCK DETECTED:', {
             table: 'products',
-            companyId: userCompanyId,
-            userId: user?.id,
+            companyId: profileCompanyId,
+            userId: userId,
             error: result.error
           });
         }
@@ -251,10 +212,11 @@ function DashboardProductsInner() {
         };
       }).filter(Boolean) : [];
 
+      // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId for all security assertions
       // SAFETY ASSERTION: ensure every product belongs to the current company
-      if (userCompanyId) {
+      if (profileCompanyId) {
         for (const product of productsWithImages) {
-          await assertRowOwnedByCompany(product, userCompanyId, 'DashboardProducts:products');
+          await assertRowOwnedByCompany(product, profileCompanyId, 'DashboardProducts:products');
         }
       }
 
@@ -272,13 +234,14 @@ function DashboardProductsInner() {
         markFresh();
       }
     } catch (error) {
-      // ✅ QA FIX: Enhanced error logging for catch block
+      // ✅ KERNEL MIGRATION: Enhanced error logging and state
       console.error('❌ Exception loading products:', {
         message: error?.message,
         name: error?.name,
         stack: error?.stack,
         fullError: error
       });
+      setError(error?.message || 'Failed to load products');
       // Fail gracefully - treat as no data instead of error
       setProducts([]);
       setCategories([]);
@@ -297,11 +260,19 @@ function DashboardProductsInner() {
     if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
 
     try {
+      // ✅ UNIFIED DASHBOARD KERNEL: Ensure product belongs to company before delete
+      if (!profileCompanyId) {
+        toast.error('Company ID not available');
+        return;
+      }
+      
       // Delete product (cascade will delete images and variants)
+      // RLS will ensure only company owner can delete
       const { error } = await supabase
         .from('products')
         .delete()
-        .eq('id', productId);
+        .eq('id', productId)
+        .eq('company_id', profileCompanyId); // ✅ Security: Ensure company ownership
 
       if (error) throw error;
       toast.success('Product deleted successfully');
@@ -313,11 +284,18 @@ function DashboardProductsInner() {
 
   const handleToggleStatus = async (productId, currentStatus) => {
     try {
+      // ✅ UNIFIED DASHBOARD KERNEL: Ensure product belongs to company before update
+      if (!profileCompanyId) {
+        toast.error('Company ID not available');
+        return;
+      }
+      
       const newStatus = currentStatus === 'active' ? 'paused' : 'active';
       const { error } = await supabase
         .from('products')
         .update({ status: newStatus })
-        .eq('id', productId);
+        .eq('id', productId)
+        .eq('company_id', profileCompanyId); // ✅ Security: Ensure company ownership
 
       if (error) throw error;
       toast.success(`Product ${newStatus === 'active' ? 'activated' : 'paused'}`);
@@ -346,13 +324,25 @@ function DashboardProductsInner() {
     inquiries: products.reduce((sum, p) => sum + (p.inquiries || 0), 0)
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading products..." />;
-  }
-
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={6} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+          if (shouldRefresh) {
+            loadUserAndProducts();
+          }
+        }}
+      />
+    );
   }
 
   return (

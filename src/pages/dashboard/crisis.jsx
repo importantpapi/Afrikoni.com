@@ -26,50 +26,37 @@ import {
   crisisPlaybooks, escalationRules, emergencyContacts, communicationTemplates,
   recoveryTimelines
 } from '@/data/crisisDemo';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase } from '@/api/supabaseClient';
 import AccessDenied from '@/components/AccessDenied';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 
 export default function CrisisManagement() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   
   // All hooks must be at the top - before any conditional returns
-  const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [incidentFilter, setIncidentFilter] = useState({ category: 'all', severity: 'all' });
   const [incidentSearch, setIncidentSearch] = useState('');
   const [expandedPlaybooks, setExpandedPlaybooks] = useState(new Set());
   const [showCommModal, setShowCommModal] = useState(false);
   const [commType, setCommType] = useState('internal');
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[CrisisManagement] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user) || profile?.is_admin || false;
-    setHasAccess(admin);
-    setLoading(false);
-  }, [authReady, authLoading, user, profile, role]);
-
-  if (loading || !authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading Crisis Management Center..." />;
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading Crisis Management Center..." ready={isSystemReady} />
+      </div>
+    );
   }
 
-  if (!hasAccess) {
+  // ✅ KERNEL MIGRATION: Check admin access using kernel
+  if (!isAdmin) {
     return <AccessDenied />;
   }
 

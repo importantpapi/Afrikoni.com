@@ -12,9 +12,11 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { 
   getEscrowPayment, 
   getEscrowEvents,
@@ -22,50 +24,52 @@ import {
   createEscrowEvent
 } from '@/lib/supabaseQueries/payments';
 import { format } from 'date-fns';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 export default function EscrowDetailPage() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
+  
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [escrow, setEscrow] = useState(null);
   const [events, setEvents] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
-  const [isUserAdmin, setIsUserAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading escrow..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[EscrowDetailPage] Waiting for auth to be ready...');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[EscrowDetailPage] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[EscrowDetailPage] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // Now safe to load data
     loadEscrow();
-  }, [orderId, authReady, authLoading, user, profile, role, navigate]);
+  }, [orderId, canLoadData, userId, profileCompanyId, navigate]);
 
   const loadEscrow = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      setIsUserAdmin(isAdmin(user));
-      const companyId = profile?.company_id || null;
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId and isAdmin from kernel
       const escrowData = await getEscrowPayment(orderId);
       // SAFETY ASSERTION: Ensure escrow is related to the current company (if available)
-      if (escrowData && companyId && !isUserAdmin) {
-        await assertRowOwnedByCompany(escrowData, companyId, 'EscrowDetailPage:escrow');
+      if (escrowData && profileCompanyId && !isAdmin) {
+        await assertRowOwnedByCompany(escrowData, profileCompanyId, 'EscrowDetailPage:escrow');
       }
 
       setEscrow(escrowData);
@@ -74,8 +78,9 @@ export default function EscrowDetailPage() {
         const eventsList = await getEscrowEvents(escrowData.id);
         setEvents(eventsList);
       }
-    } catch (error) {
-      console.error('Error loading escrow:', error);
+    } catch (err) {
+      console.error('[EscrowDetailPage] Error loading escrow:', err);
+      setError(err.message || 'Failed to load escrow details');
       toast.error('Failed to load escrow details');
       navigate('/dashboard/payments');
     } finally {
@@ -92,7 +97,7 @@ export default function EscrowDetailPage() {
         escrow_id: escrow.id,
         event_type: 'release',
         amount: escrow.amount,
-        created_by: user.id
+        created_by: userId
       });
       
       toast.success('Escrow released successfully');
@@ -112,7 +117,7 @@ export default function EscrowDetailPage() {
         escrow_id: escrow.id,
         event_type: 'refund',
         amount: escrow.amount,
-        created_by: user.id
+        created_by: userId
       });
       
       toast.success('Escrow refunded successfully');
@@ -148,8 +153,19 @@ export default function EscrowDetailPage() {
     }
   };
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadEscrow}
+      />
+    );
   }
 
   if (!escrow) {
@@ -186,7 +202,7 @@ export default function EscrowDetailPage() {
               </p>
             </div>
           </div>
-          {(isUserAdmin || escrow.status === 'held') && (
+          {(isAdmin || escrow.status === 'held') && (
             <div className="flex gap-2">
               {escrow.status === 'held' && (
                 <>

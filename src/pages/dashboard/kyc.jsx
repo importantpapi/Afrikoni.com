@@ -25,57 +25,54 @@ import {
   kycSummary, identityVerification, businessVerification, amlScreening,
   pepScreening, riskScoreBreakdown, requiredDocuments, verificationTimeline
 } from '@/data/kycDemo';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function KYCTracker() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
+  
   // All hooks must be at the top - before any conditional returns
-  const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(false); // Local loading state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showOcrPreview, setShowOcrPreview] = useState(false);
   const [showBusinessDoc, setShowBusinessDoc] = useState(false);
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[KYCTracker] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    setHasAccess(isAdmin(user));
-    setLoading(false);
-  }, [authReady, authLoading, user, profile, role]);
-
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading KYC tracker..." />;
-  }
-
-  if (loading) {
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
-      <>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-afrikoni-text-dark/70">Loading...</div>
-        </div>
-      </>
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading KYC tracker..." ready={isSystemReady} />
+      </div>
     );
   }
 
-  if (!hasAccess) {
+  // ✅ KERNEL MIGRATION: Check admin access using kernel
+  if (!isAdmin) {
     return <AccessDenied />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (loading) {
+    return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          setLoading(true);
+        }}
+      />
+    );
   }
 
   const getStatusColor = (status) => {

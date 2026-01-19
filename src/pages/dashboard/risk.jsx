@@ -23,19 +23,24 @@ import {
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
 // Removed mock data imports - using real database queries
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 import { useRealTimeSubscription } from '@/hooks/useRealTimeData';
 import { toast } from 'sonner';
 
 export default function RiskManagementDashboard() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
+  
   // All hooks must be at the top - before any conditional returns
-  const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(false); // Local loading state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [alertFilter, setAlertFilter] = useState('all'); // all, critical, high, medium, low
   const [riskKPIs, setRiskKPIs] = useState({
     platformRiskScore: 0,
@@ -79,39 +84,30 @@ export default function RiskManagementDashboard() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [contactSubmissions, setContactSubmissions] = useState([]); // Contact form submissions
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading risk dashboard..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Check admin access using kernel
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[RiskDashboard] Waiting for auth to be ready...');
+    if (!canLoadData) {
       return;
     }
 
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setHasAccess(admin);
-    setLoading(false);
-    
-    if (admin) {
-      console.log('✅ Admin access granted for:', user.email);
-    } else {
-      console.log('❌ Access denied for:', user.email);
-    }
-  }, [authReady, authLoading, user, profile, role]);
-
-  useEffect(() => {
-    if (hasAccess && authReady) {
-      loadRiskData();
-      loadNewRegistrations();
-      loadAllUsers(); // Also load all users
-    }
-  }, [hasAccess, authReady]);
+    loadRiskData();
+    loadNewRegistrations();
+    loadAllUsers(); // Also load all users
+  }, [canLoadData]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -488,6 +484,8 @@ export default function RiskManagementDashboard() {
 
   const loadRiskData = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const twentyFourHoursAgo = new Date();
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
       const thirtyDaysAgo = new Date();
@@ -827,26 +825,28 @@ export default function RiskManagementDashboard() {
         pending: data.pending
       })));
 
-    } catch (error) {
-      console.error('Error loading risk data:', error);
+    } catch (err) {
+      console.error('[RiskDashboard] Error loading risk data:', err);
+      setError(err.message || 'Failed to load risk data');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Show loading state
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (loading) {
+    return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-afrikoni-text-dark/70">Loading...</div>
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadRiskData}
+      />
     );
   }
-
-  // Show access denied if not admin
-  if (!hasAccess) {
-    return <AccessDenied />;
-  }
-
-  // If we get here, user is admin - render the page
 
   const filteredAlerts = Array.isArray(earlyWarningAlerts)
     ? (alertFilter === 'all'

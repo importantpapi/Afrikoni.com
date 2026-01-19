@@ -19,45 +19,47 @@ import { TARGET_COUNTRY, getCountryConfig, COUNTRY_CONFIG } from '@/config/count
 import { getCountryMetrics, updateCountryMetrics, getOnboardingFunnel } from '@/services/acquisitionService';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { toast } from 'sonner';
-import { isAdmin } from '@/utils/permissions';
-import { useAuth } from '@/contexts/AuthProvider';
+// NOTE: Admin check done at route level - removed isAdmin import
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function GrowthMetricsDashboard() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const [hasAccess, setHasAccess] = useState(false);
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [loading, setLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(TARGET_COUNTRY);
   const [metrics, setMetrics] = useState([]);
   const [funnel, setFunnel] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading growth metrics..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[GrowthMetricsDashboard] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setHasAccess(admin);
-    setLoading(false);
     
-    if (admin) {
-      loadMetrics();
-      loadFunnel();
-    }
-  }, [authReady, authLoading, user, profile, role, selectedCountry]);
+    loadMetrics();
+    loadFunnel();
+  }, [canLoadData, selectedCountry]);
 
   const loadMetrics = async () => {
     try {
@@ -70,11 +72,16 @@ export default function GrowthMetricsDashboard() {
   };
 
   const loadFunnel = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       const data = await getOnboardingFunnel(selectedCountry);
       setFunnel(data);
     } catch (error) {
       console.error('Error loading funnel:', error);
+      // Don't set error state for funnel as it's secondary data
     }
   };
 
@@ -102,9 +109,19 @@ export default function GrowthMetricsDashboard() {
       </>
     );
   }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadMetrics();
+          loadFunnel();
+        }}
+      />
+    );
   }
 
   const latestMetrics = metrics[0] || {};

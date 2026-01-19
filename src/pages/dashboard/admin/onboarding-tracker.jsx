@@ -17,9 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TARGET_COUNTRY, COUNTRY_CONFIG } from '@/config/countryConfig';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
-import { isAdmin } from '@/utils/permissions';
-import { useAuth } from '@/contexts/AuthProvider';
+// NOTE: Admin check done at route level - removed isAdmin import
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 
 const FUNNEL_STAGES = [
@@ -38,33 +39,38 @@ export default function OnboardingTracker() {
   const [funnelData, setFunnelData] = useState(null);
   const [stuckUsers, setStuckUsers] = useState([]);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading onboarding tracker..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[OnboardingTracker] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setHasAccess(admin);
-    setLoading(false);
     
-    if (admin) {
-      loadFunnelData();
-      loadStuckUsers();
-    }
-  }, [authReady, authLoading, user, profile, role, selectedCountry]);
+    loadFunnelData();
+    loadStuckUsers();
+  }, [canLoadData, selectedCountry]);
 
   const loadFunnelData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setError(null);
       // Get acquisition events for country
       const { data: events } = await supabase
         .from('acquisition_events')
@@ -111,12 +117,18 @@ export default function OnboardingTracker() {
       });
     } catch (error) {
       console.error('Error loading funnel data:', error);
+      setError(error?.message || 'Failed to load funnel data');
       toast.error('Failed to load funnel data');
     }
   };
 
   const loadStuckUsers = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setError(null);
       // Find users stuck at different stages
       const { data: events } = await supabase
         .from('acquisition_events')
@@ -202,9 +214,19 @@ export default function OnboardingTracker() {
       </>
     );
   }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadFunnelData();
+          loadStuckUsers();
+        }}
+      />
+    );
   }
 
   const calculateConversion = (current, previous) => {

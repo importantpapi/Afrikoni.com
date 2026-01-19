@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { validateProductForm } from '@/utils/validation';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -20,9 +20,8 @@ import { toast } from 'sonner';
 import ProductImageUploader from '@/components/products/ProductImageUploader';
 import { sanitizeString } from '@/utils/security';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
-import { autoAssignCategory } from '@/utils/productCategoryIntelligence';
-import { checkProductLimit } from '@/utils/subscriptionLimits';
 import ProductLimitGuard from '@/components/subscription/ProductLimitGuard';
+import { createProduct, updateProduct } from '@/services/productService';
 import { AFRICAN_CURRENCIES, convertCurrency, formatCurrency } from '@/utils/currencyConverter';
 
 const AFRICAN_COUNTRIES = [
@@ -40,10 +39,9 @@ const MOQ_UNITS = ['pieces', 'kg', 'grams', 'liters', 'tons', 'containers', 'pal
 const SUPPLY_UNITS = ['tons/month', 'containers/month', 'kg/month', 'grams/month', 'liters/month', 'pieces/month', 'units/month'];
 
 export default function ProductForm() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, capabilities, canLoadData, isSystemReady } = useDashboardKernel();
+  
   const { id: routeProductId } = useParams();
   const [searchParams] = useSearchParams();
   const queryProductId = searchParams.get('id');
@@ -52,9 +50,13 @@ export default function ProductForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [currentRole, setCurrentRole] = useState(role || 'seller');
-  const [companyId, setCompanyId] = useState(null);
+  
+  // ✅ KERNEL MIGRATION: Derive role from capabilities
+  const derivedRole = capabilities?.can_sell && capabilities?.sell_status === 'approved' ? 'seller' : 'buyer';
+  const [currentRole, setCurrentRole] = useState(derivedRole);
+  const [companyId, setCompanyId] = useState(profileCompanyId || null);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [errors, setErrors] = useState({});
@@ -143,34 +145,41 @@ export default function ProductForm() {
   };
 
   const loadData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
-      // Use auth from context (no duplicate call)
-      // User already checked in useEffect guard
-
-      // Role derived from capabilities above
-
-      // Allow all users to create products - no role restriction
-      // Role is just for display purposes
-
-      // Use companyId from profile, or create if needed
-      const userCompanyId = profile?.company_id || null;
-      if (!userCompanyId) {
-        const { getOrCreateCompany } = await import('@/utils/companyHelper');
-        const createdCompanyId = await getOrCreateCompany(supabase, user);
-        setCompanyId(createdCompanyId);
+      setError(null);
+      
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      if (profileCompanyId) {
+        setCompanyId(profileCompanyId);
+      } else {
+        // Get user email for company creation
+        let userEmail = '';
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          userEmail = user?.email || '';
+        } catch (err) {
+          // Silently fail - email is optional
+        }
         
-        // If no company exists, create a minimal one automatically
-        if (!createdCompanyId && user?.email) {
+        if (userEmail) {
           try {
+            // ✅ KERNEL MIGRATION: Create company using kernel values
+            const role = (capabilities?.can_buy && capabilities?.can_sell) ? 'hybrid' : 
+                        (capabilities?.can_sell && capabilities?.sell_status === 'approved' ? 'seller' : 'buyer');
+            
             const { data: newCompany, error: companyErr } = await supabase
               .from('companies')
               .insert({
-                company_name: profile?.company_name || profile?.full_name || user.email?.split('@')[0] || 'My Company',
-                owner_email: user.email,
-                role: role === 'hybrid' ? 'hybrid' : role || 'seller',
-                country: profile?.country || '',
-                email: user.email
+                company_name: userEmail.split('@')[0] || 'My Company',
+                owner_email: userEmail,
+                role: role,
+                country: '',
+                email: userEmail
               })
               .select('id')
               .single();
@@ -180,18 +189,17 @@ export default function ProductForm() {
               await supabase
                 .from('profiles')
                 .upsert({
-                  id: user.id,
+                  id: userId,
                   company_id: newCompany.id
                 }, { onConflict: 'id' });
               
               setCompanyId(newCompany.id);
             }
           } catch (err) {
-            // Continue anyway - company is optional
+            console.error('Error creating company:', err);
+            setError('Failed to initialize company. Please try again.');
           }
         }
-      } else {
-        setCompanyId(userCompanyId);
       }
 
       // Load categories
@@ -207,9 +215,9 @@ export default function ProductForm() {
         setCategories(categoriesData || []);
       }
 
-      // If editing, load product data
+      // ✅ KERNEL MIGRATION: If editing, load product data
       if (productId) {
-        const finalCompanyId = profile?.company_id || companyId;
+        const finalCompanyId = profileCompanyId || companyId;
         await loadProductData(productId, finalCompanyId);
       } else {
         // If coming from supplier onboarding, pre-fill basic fields
@@ -453,223 +461,77 @@ export default function ProductForm() {
   };
 
   const handleSave = async (publish = false) => {
+    // ✅ STATE MANAGEMENT FIX: Set loading state before async operation
+    setIsSaving(true);
+    
     try {
-      // Check product limit before creating new product
-      if (!productId && companyId) {
-        const limitInfo = await checkProductLimit(companyId);
+      // ✅ KERNEL ALIGNMENT: Delegate all business logic to productService
+      // Frontend only sends user-inputted fields - Kernel handles the rest
+      const result = productId
+        ? await updateProduct({
+            user,
+            productId,
+            formData,
+            companyId: profileCompanyId || companyId,
+            publish
+          })
+        : await createProduct({
+            user,
+            formData,
+            companyId: profileCompanyId || companyId,
+            publish
+          });
+
+      if (!result.success) {
+        // ✅ KERNEL ALIGNMENT: Service returns clean error messages
+        toast.error(result.error || 'Failed to save product. Please try again.');
         
-        if (!limitInfo.canAdd) {
-          if (limitInfo.needsUpgrade) {
-            setShowLimitGuard(true);
-            toast.error(limitInfo.message || 'Product limit reached. Please upgrade your plan.');
-            return;
-          } else {
-            toast.error(limitInfo.message || 'Cannot add more products');
-            return;
-          }
+        // ✅ KERNEL ALIGNMENT: Handle upgrade prompt if needed
+        if (result.needsUpgrade) {
+          setShowLimitGuard(true);
         }
-      }
-
-      // Validate required fields
-      if (!formData.title || !formData.title.trim()) {
-        toast.error('Product title is required');
-        setErrors({ title: 'Product title is required' });
-        return;
-      }
-
-      if (!formData.category_id) {
-        toast.error('Please select a category');
-        setErrors({ category_id: 'Category is required' });
-        return;
-      }
-
-      // Validate price - at least one price field is required
-      const priceMin = formData.price_min ? parseFloat(formData.price_min) : null;
-      const priceMax = formData.price_max ? parseFloat(formData.price_max) : null;
-      
-      if (!priceMin && !priceMax) {
-        toast.error('Please enter at least one price (minimum or maximum)');
-        setErrors({ price_min: 'At least one price is required' });
-        return;
-      }
-
-      if (priceMin && priceMin <= 0) {
-        toast.error('Minimum price must be greater than 0');
-        setErrors({ price_min: 'Price must be greater than 0' });
-        return;
-      }
-
-      if (priceMax && priceMax <= 0) {
-        toast.error('Maximum price must be greater than 0');
-        setErrors({ price_max: 'Price must be greater than 0' });
-        return;
-      }
-
-      if (priceMin && priceMax && priceMin > priceMax) {
-        toast.error('Minimum price cannot be greater than maximum price');
-        setErrors({ price_max: 'Maximum price must be greater than minimum price' });
-        return;
-      }
-
-      // For publishing, require more fields
-      if (publish) {
-        if (!formData.description || !formData.description.trim()) {
-          toast.error('Product description is required for publishing');
-          setErrors({ description: 'Description is required for publishing' });
-          return;
-        }
-        if (formData.images.length === 0) {
-          toast.error('At least one product image is required for publishing');
-          return;
-        }
-      }
-
-      setIsSaving(true);
-
-      // Calculate price field - use price_min if available, otherwise price_max, or 0 as fallback
-      const price = priceMin || priceMax || 0;
-
-      // Auto-assign category using intelligence if not already assigned
-      let finalCategoryId = formData.category_id;
-      if (!finalCategoryId && formData.title) {
-        try {
-          const autoCategoryId = await autoAssignCategory(
-            supabase,
-            formData.title,
-            formData.description || formData.short_description || '',
-            formData.category_id
-          );
-          if (autoCategoryId) {
-            finalCategoryId = autoCategoryId;
-            toast.success('✨ Category automatically assigned based on product details');
-          }
-        } catch (error) {
-          console.error('Auto-category assignment error:', error);
-          // Continue without auto-assignment
-        }
-      }
-
-      // Simple completeness scoring for governance and progression
-      const completenessScore = (() => {
-        let score = 0;
-        if (formData.description && formData.description.trim().length > 100) score += 25;
-        if (formData.images && formData.images.length > 0) score += 25;
-        if (formData.min_order_quantity && parseFloat(formData.min_order_quantity) > 0) score += 15;
-        if (formData.price_min || formData.price_max) score += 15;
-        if (formData.specifications && Object.keys(formData.specifications || {}).length > 0) score += 10;
-        if (formData.certifications && formData.certifications.length > 0) score += 10;
-        return Math.min(score, 100);
-      })();
-
-      // Prepare product data
-      const productData = {
-        company_id: companyId,
-        title: sanitizeString(formData.title),
-        short_description: sanitizeString(formData.short_description),
-        description: sanitizeString(formData.description),
-        category_id: finalCategoryId || null,
-        subcategory_id: formData.subcategory_id || null,
-        country_of_origin: formData.country_of_origin || null,
-        min_order_quantity: formData.min_order_quantity ? parseFloat(formData.min_order_quantity) : null,
-        moq_unit: formData.moq_unit,
-        price: price, // Required field - use price_min or price_max
-        price_min: priceMin,
-        price_max: priceMax,
-        currency: formData.currency || 'USD',
-        lead_time_min_days: formData.lead_time_min_days ? parseInt(formData.lead_time_min_days) : null,
-        lead_time_max_days: formData.lead_time_max_days ? parseInt(formData.lead_time_max_days) : null,
-        supply_ability_qty: formData.supply_ability_qty ? parseFloat(formData.supply_ability_qty) : null,
-        supply_ability_unit: formData.supply_ability_unit,
-        packaging_details: sanitizeString(formData.packaging_details),
-        shipping_terms: formData.shipping_terms,
-        certifications: formData.certifications,
-        specifications: formData.specifications,
-        // Governance / trust & progression metadata (columns should exist in DB)
-        is_standardized: formData.is_standardized || false,
-        completeness_score: completenessScore,
-        status: publish ? 'active' : (formData.status || 'draft'),
-        featured: formData.featured || false,
-        published_at: publish ? new Date().toISOString() : null
-      };
-
-      let savedProductId = productId;
-
-      // Save or update product
-      if (productId) {
-        const { error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', productId);
         
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from('products')
-          .insert(productData)
-          .select('id')
-          .single();
-        
-        if (error) throw error;
-        savedProductId = data.id;
+        // ✅ FORENSIC FIX: Reset state before early return to prevent spinner zombie
+        setIsSaving(false);
+        return;
       }
 
-      // Save images
-      if (formData.images.length > 0) {
-        // Delete existing images if editing
-        if (productId) {
-          await supabase
-            .from('product_images')
-            .delete()
-            .eq('product_id', savedProductId);
-        }
-
-        // Insert new images
-        const imageRecords = formData.images.map((img, index) => ({
-          product_id: savedProductId,
-          url: img.url,
-          alt_text: img.alt_text || formData.title,
-          is_primary: img.is_primary || index === 0,
-          sort_order: img.sort_order !== undefined ? img.sort_order : index
-        }));
-
-        const { error: imagesError } = await supabase
-          .from('product_images')
-          .insert(imageRecords);
-
-        if (imagesError) throw imagesError;
-      }
-
+      // ✅ SUCCESS: Show success message
       toast.success(publish ? 'Product published successfully!' : 'Product saved as draft');
       
-      // Small delay to ensure toast is visible before navigation
-      setTimeout(() => {
-        navigate('/dashboard/products');
-      }, 500);
-    } catch (error) {
-      console.error('Product save error:', error);
-      const errorMessage = error.message || 'Failed to save product';
+      // ✅ FORENSIC FIX: Reset state BEFORE navigation to prevent state zombies
+      setIsSaving(false);
       
-      // Provide more specific error messages
-      if (errorMessage.includes('price') && errorMessage.includes('not-null')) {
-        toast.error('Price is required. Please enter at least a minimum or maximum price.');
-        setErrors({ price_min: 'At least one price is required' });
-      } else if (errorMessage.includes('category_id') && errorMessage.includes('not-null')) {
-        toast.error('Category is required. Please select a category.');
-        setErrors({ category_id: 'Category is required' });
-      } else if (errorMessage.includes('title') && errorMessage.includes('not-null')) {
-        toast.error('Product title is required.');
-        setErrors({ title: 'Product title is required' });
-      } else {
-        toast.error(errorMessage);
-      }
+      // ✅ FORENSIC FIX: Small delay to ensure state updates before navigation
+      // This prevents component unmounting before state cleanup completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // ✅ NAVIGATION: Redirect to products list
+      navigate('/dashboard/products');
+      
+    } catch (error) {
+      // ✅ CRITICAL FIX: Catch all errors, show toast, and log for debugging
+      // This is the "Safety Valve" - ensures button becomes clickable again even if code crashes
+      console.error('[ProductForm] Error saving product:', error);
+      toast.error(`Failed to save product: ${error.message || 'Please try again'}`);
     } finally {
+      // ✅ STATE MANAGEMENT FIX: Wrap submit logic in try/catch/finally block
+      // In finally block, ALWAYS set setIsSaving(false)
+      // This ensures the UI never stays stuck in a loading state if a database error occurs
+      // The finally block ALWAYS executes, even if we return early or throw an error
       setIsSaving(false);
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading product form..." />;
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading product form..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
   }
 
   if (isLoading) {
@@ -677,6 +539,19 @@ export default function ProductForm() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadData();
+        }}
+      />
     );
   }
 

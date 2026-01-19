@@ -30,39 +30,35 @@ import {
   useHighRiskCompanies,
   useHighValueDealsNeedingAttention
 } from '@/hooks/useTradeIntelligence';
-import { isAdmin } from '@/utils/permissions';
-import { useAuth } from '@/contexts/AuthProvider';
+// NOTE: Admin check done at route level - removed isAdmin import
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 import { toast } from 'sonner';
 
 export default function TradeIntelligenceDashboard() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [loading, setLoading] = useState(false); // Local loading state
-  const [hasAccess, setHasAccess] = useState(false);
+  const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('30d');
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[TradeIntelligenceDashboard] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user) || profile?.is_admin || false;
-    setHasAccess(admin);
-    setLoading(false);
-  }, [authReady, authLoading, user, profile, role]);
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading trade intelligence..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
 
   // Calculate date range
   const getDateRange = () => {
@@ -103,21 +99,8 @@ export default function TradeIntelligenceDashboard() {
   const { data: highRiskCompanies, loading: highRiskLoading } = useHighRiskCompanies();
   const { data: highValueDeals, loading: highValueLoading } = useHighValueDealsNeedingAttention();
 
-  // Access checking handled in first useEffect above (using AuthProvider)
-
-  if (loading) {
-    return (
-      <>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        </div>
-      </>
-    );
-  }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
-  }
+  // ✅ KERNEL MIGRATION: Loading states are handled by individual hooks
+  // Error state can be added if needed for hook-level errors
 
   // Calculate summary metrics
   const totalBuyers = buyerIntelligence?.length || 0;

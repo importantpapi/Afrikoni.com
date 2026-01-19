@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { SHIPMENT_STATUS, getStatusLabel, getNextStatuses } from '@/constants/status';
 import { buildShipmentTimeline } from '@/utils/timeline';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
@@ -37,31 +37,41 @@ export default function ShipmentDetail() {
   const isLogisticsApproved = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
   const currentRole = isLogisticsApproved ? 'logistics' : 'buyer';
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[ShipmentDetail] Waiting for auth to be ready...');
-      return;
-    }
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading shipment details..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[ShipmentDetail] No user → redirecting to login');
-      navigate('/login');
+  useEffect(() => {
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
     // Now safe to load data
     loadShipmentData();
-  }, [id, authReady, authLoading, user, profile, capabilities.ready, navigate]);
+  }, [id, canLoadData, userId, profileCompanyId, navigate]);
 
   const loadShipmentData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      // Role derived from capabilities above
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load shipment with order and related data
       const { data: shipmentData, error: shipmentError } = await supabase
         .from('shipments')
@@ -89,6 +99,8 @@ export default function ShipmentDetail() {
       setOrder(shipmentData.orders);
       setNewStatus(shipmentData.status);
     } catch (error) {
+      console.error('Error loading shipment:', error);
+      setError(error?.message || 'Failed to load shipment details');
       toast.error('Failed to load shipment details');
       navigate('/dashboard/shipments');
     } finally {
@@ -133,6 +145,19 @@ export default function ShipmentDetail() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadShipmentData();
+        }}
+      />
     );
   }
 

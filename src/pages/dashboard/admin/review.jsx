@@ -21,17 +21,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { isAdmin } from '@/utils/permissions';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 import { toast } from 'sonner';
 
 export default function AdminReview() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [loading, setLoading] = useState(false); // Local loading state
-  const [hasAccess, setHasAccess] = useState(false);
+  const [error, setError] = useState(null);
   const [pendingSuppliers, setPendingSuppliers] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
   const [openRfqs, setOpenRfqs] = useState([]);
@@ -51,8 +52,8 @@ export default function AdminReview() {
       return;
     }
 
-    // Check admin access
-    const admin = isAdmin(user);
+    // Check admin access - route-level protection already ensures admin, but check profile for consistency
+    const admin = profile?.is_admin === true;
     setHasAccess(admin);
     setLoading(false);
     
@@ -67,46 +68,102 @@ export default function AdminReview() {
   }, [authReady, authLoading, user, profile, role]);
 
   const loadSuppliers = async () => {
-    // ✅ Load all unverified/pending suppliers (sellers) awaiting admin approval
-    // These suppliers will NOT appear on the verified suppliers page until approved
-    const { data, error } = await supabase
-      .from('companies')
-      .select('*')
-      .eq('role', 'seller') // Only show sellers
-      .in('verification_status', ['pending', 'unverified'])
-      .order('created_at', { ascending: false })
-      .limit(100); // Increased limit to show more pending suppliers
-    if (!error) setPendingSuppliers(data || []);
+    if (!canLoadData) {
+      return;
+    }
+    
+    try {
+      setError(null);
+      // ✅ Load all unverified/pending suppliers (sellers) awaiting admin approval
+      // These suppliers will NOT appear on the verified suppliers page until approved
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('role', 'seller') // Only show sellers
+        .in('verification_status', ['pending', 'unverified'])
+        .order('created_at', { ascending: false })
+        .limit(100); // Increased limit to show more pending suppliers
+      if (!error) {
+        setPendingSuppliers(data || []);
+      } else {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error loading suppliers:', error);
+      setError(error?.message || 'Failed to load suppliers');
+    }
   };
 
   const loadProducts = async () => {
-    const { data, error } = await supabase
+    if (!canLoadData) {
+      return;
+    }
+    
+    try {
+      setError(null);
+      const { data, error } = await supabase
       .from('products')
       .select('*')
       .in('status', ['pending_review'])
       .order('created_at', { ascending: false })
       .limit(50);
-    if (!error) setPendingProducts(data || []);
+      if (!error) {
+        setPendingProducts(data || []);
+      } else {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setError(error?.message || 'Failed to load products');
+    }
   };
 
   const loadRFQs = async () => {
-    const { data, error } = await supabase
-      .from('rfqs')
-      .select('*')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (!error) setOpenRfqs(data || []);
+    if (!canLoadData) {
+      return;
+    }
+    
+    try {
+      setError(null);
+      const { data, error } = await supabase
+        .from('rfqs')
+        .select('*')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (!error) {
+        setOpenRfqs(data || []);
+      } else {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error loading RFQs:', error);
+      setError(error?.message || 'Failed to load RFQs');
+    }
   };
 
   const loadDisputes = async () => {
-    const { data, error } = await supabase
-      .from('disputes')
-      .select('*')
-      .in('status', ['open', 'under_review'])
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (!error) setOpenDisputes(data || []);
+    if (!canLoadData) {
+      return;
+    }
+    
+    try {
+      setError(null);
+      const { data, error } = await supabase
+        .from('disputes')
+        .select('*')
+        .in('status', ['open', 'under_review'])
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (!error) {
+        setOpenDisputes(data || []);
+      } else {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error loading disputes:', error);
+      setError(error?.message || 'Failed to load disputes');
+    }
   };
 
   const handleApproveSupplier = async (id) => {
@@ -212,11 +269,6 @@ export default function AdminReview() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading admin review..." />;
-  }
-
   if (loading) {
     return (
       <>
@@ -227,8 +279,22 @@ export default function AdminReview() {
     );
   }
 
-  if (!hasAccess) {
-    return <AccessDenied />;
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          Promise.all([
+            loadSuppliers(),
+            loadProducts(),
+            loadRFQs(),
+            loadDisputes(),
+          ]);
+        }}
+      />
+    );
   }
 
   return (

@@ -11,58 +11,66 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { getInvoice, markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
 import { format } from 'date-fns';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
 
 export default function InvoiceDetailPage() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
-  const [companyId, setCompanyId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Derive role from capabilities
+  const isBuyer = capabilities.can_buy === true;
+  const userRole = isBuyer ? 'buyer' : 'seller';
+
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading invoice..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[InvoiceDetailPage] Waiting for auth to be ready...');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[InvoiceDetailPage] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[InvoiceDetailPage] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // Now safe to load data
     loadInvoice();
-  }, [id, authReady, authLoading, user, profile, role, navigate]);
+  }, [id, canLoadData, userId, profileCompanyId, navigate]);
 
   const loadInvoice = async () => {
+    if (!profileCompanyId) {
+      console.log('[InvoiceDetailPage] No company_id - cannot load invoice');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
-      
-      if (!user || !userCompanyId) {
-        navigate('/login');
-        return;
-      }
+      setError(null);
 
-      setCompanyId(userCompanyId);
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       const invoiceData = await getInvoice(id);
       setInvoice(invoiceData);
-    } catch (error) {
-      console.error('Error loading invoice:', error);
+    } catch (err) {
+      console.error('[InvoiceDetailPage] Error loading invoice:', err);
+      setError(err.message || 'Failed to load invoice');
       toast.error('Failed to load invoice');
       navigate('/dashboard/invoices');
     } finally {
@@ -71,9 +79,14 @@ export default function InvoiceDetailPage() {
   };
 
   const handlePayInvoice = async () => {
+    if (!profileCompanyId) {
+      toast.error('Company ID not found');
+      return;
+    }
+
     try {
       await markInvoiceAsPaid(id, {
-        company_id: companyId,
+        company_id: profileCompanyId,
         amount: invoice.total_amount,
         currency: invoice.currency,
         invoice_number: invoice.invoice_number,
@@ -88,13 +101,19 @@ export default function InvoiceDetailPage() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading invoice..." />;
-  }
-
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadInvoice}
+      />
+    );
   }
 
   if (!invoice) {

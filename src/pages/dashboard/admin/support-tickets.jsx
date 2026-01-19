@@ -19,61 +19,65 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function AdminSupportTickets() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [replyMessage, setReplyMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasAccess, setHasAccess] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading support tickets..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminSupportTickets] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setIsLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setHasAccess(admin);
-    setIsLoading(false);
     
-    if (admin) {
+    loadTickets();
+  }, [canLoadData]);
+
+  useEffect(() => {
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
+      return;
+    }
+    
+    if (statusFilter || searchQuery) {
       loadTickets();
     }
-  }, [authReady, authLoading, user, profile, role]);
-
-  useEffect(() => {
-    if (statusFilter || searchQuery) {
-      if (hasAccess && authReady) {
-        loadTickets();
-      }
-    }
-  }, [statusFilter, searchQuery, hasAccess, authReady]);
+  }, [canLoadData, statusFilter, searchQuery]);
 
   useEffect(() => {
     const ticketParam = searchParams.get('ticket');
@@ -97,7 +101,13 @@ export default function AdminSupportTickets() {
   }, [selectedTicket]);
 
   const loadTickets = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setIsLoading(true);
+      setError(null);
       setIsLoading(true);
       
       let query = supabase
@@ -259,7 +269,7 @@ export default function AdminSupportTickets() {
           status: newStatus,
           last_activity_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          last_replied_by: user.id
+          last_replied_by: userId
         })
         .eq('ticket_number', selectedTicket.ticket_number);
 
@@ -300,7 +310,7 @@ export default function AdminSupportTickets() {
         .update({
           status: newStatus,
           updated_at: new Date().toISOString(),
-          last_replied_by: user.id
+          last_replied_by: userId
         })
         .eq('ticket_number', ticketNumber);
 
@@ -339,9 +349,18 @@ export default function AdminSupportTickets() {
       </>
     );
   }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadTickets();
+        }}
+      />
+    );
   }
 
   const ticket = selectedTicket;

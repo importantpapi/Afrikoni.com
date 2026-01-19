@@ -21,18 +21,19 @@ import { Input } from '@/components/shared/ui/input';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { getAuditLogs } from '@/lib/supabaseQueries/admin';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function AuditLogs() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   // All hooks must be at the top - before any conditional returns
-  const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditKPIs, setAuditKPIs] = useState({
     totalEvents30Days: 0,
@@ -114,33 +115,37 @@ export default function AuditLogs() {
     currentPage * itemsPerPage
   );
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AuditLogs] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    setHasAccess(isAdmin(user));
-    setLoading(false);
-  }, [authReady, authLoading, user, profile, role]);
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading Audit Logs..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
 
   useEffect(() => {
-    if (hasAccess && authReady) {
-      loadAuditData();
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
+      return;
     }
-  }, [hasAccess, authReady]);
+    
+    loadAuditData();
+  }, [canLoadData]);
 
   const loadAuditData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setError(null);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
@@ -195,6 +200,7 @@ export default function AuditLogs() {
       });
     } catch (error) {
       console.error('Error loading audit data:', error);
+      setError(error?.message || 'Failed to load audit logs');
       toast.error('Failed to load audit logs');
     }
   };
@@ -297,12 +303,6 @@ export default function AuditLogs() {
     URL.revokeObjectURL(url);
   };
 
-  // Show loading state
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading audit logs..." />;
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -310,10 +310,18 @@ export default function AuditLogs() {
       </div>
     );
   }
-
-  // Show access denied if not admin
-  if (!hasAccess) {
-    return <AccessDenied />;
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadAuditData();
+        }}
+      />
+    );
   }
 
   return (

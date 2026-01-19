@@ -8,10 +8,11 @@ import { motion } from 'framer-motion';
 import RequireCapability from '@/guards/RequireCapability';
 
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -57,14 +58,8 @@ function LogisticsDashboardInner() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
 
-  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const userCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
+  // ✅ KERNEL MIGRATION: Derive role from capabilities
   const canLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
-
-  const [companyId, setCompanyId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
@@ -84,19 +79,27 @@ function LogisticsDashboardInner() {
   const [shipmentStatusFilter, setShipmentStatusFilter] = useState('all');
   const [partners, setPartners] = useState([]);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading logistics dashboard..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
+
   useEffect(() => {
     let isMounted = true;
     let timeoutId = null;
 
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[LogisticsDashboard] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[LogisticsDashboard] Waiting for capabilities to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData || !profileCompanyId) {
       return;
     }
 
@@ -107,12 +110,6 @@ function LogisticsDashboardInner() {
       return;
     }
 
-    // GUARD: No user → redirect
-    if (!userId) {
-      console.warn('[LogisticsDashboard] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
@@ -139,9 +136,11 @@ function LogisticsDashboardInner() {
         console.log('[LogisticsDashboard] Starting loadDashboardData...');
         setIsLoading(true);
 
-        // Get company ID from profile
-        const cid = userCompanyId;
+        // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+        const cid = profileCompanyId;
         console.log('[LogisticsDashboard] Company ID:', cid);
+        
+        setError(null);
         
         if (!isMounted) {
           console.warn('[LogisticsDashboard] Component unmounted during load');
@@ -150,7 +149,6 @@ function LogisticsDashboardInner() {
           return;
         }
 
-        setCompanyId(cid);
 
         if (!cid) {
           console.warn('[LogisticsDashboard] No company ID found');
@@ -193,6 +191,7 @@ function LogisticsDashboardInner() {
         logError('loadDashboardData', err, { companyId: cid, userId: userId });
         if (isMounted) {
           clearTimeout(timeoutId);
+          setError(err?.message || 'Failed to load logistics dashboard');
           setIsLoading(false);
           toast.error('Failed to load logistics dashboard. Please refresh the page.');
         }
@@ -212,7 +211,7 @@ function LogisticsDashboardInner() {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
+  }, [canLoadData, profileCompanyId, userId, canLogistics, location.pathname, isStale, navigate]);
 
   const loadKPIs = async (cid) => {
     const { data } = await supabase
@@ -403,7 +402,32 @@ function LogisticsDashboardInner() {
   const commissionMTD = kpis.totalRevenue || 0; // placeholder using existing metric
 
   // Show loading state with timeout protection
-  if (isLoading || !authReady || authLoading) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+          if (shouldRefresh) {
+            // Trigger reload by updating a dependency
+            setIsLoading(true);
+          }
+        }}
+      />
+    );
+  }
+  
+  if (!profileCompanyId) {
     return (
       <div className="flex justify-center py-20">
         <div className="animate-spin h-12 w-12 border-b-2 border-afrikoni-gold rounded-full" />

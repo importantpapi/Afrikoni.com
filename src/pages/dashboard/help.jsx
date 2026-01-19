@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import RequireCapability from '@/guards/RequireCapability';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -26,9 +26,9 @@ export default function DashboardHelp() {
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState(null);
   const navigate = useNavigate();
-  // PHASE 5B: Use capabilities instead of role
-  const capabilities = useCapability();
-  // PHASE 5B: Derive visibility from capabilities, not role
+  // ✅ KERNEL MIGRATION: Use capabilities from kernel
+  const { capabilities } = useDashboardKernel();
+  // ✅ KERNEL MIGRATION: Derive visibility from capabilities
   const isBuyer = capabilities?.can_buy === true;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';

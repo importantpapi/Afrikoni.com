@@ -24,6 +24,9 @@ import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { generateProductListing, suggestSuppliers, generateSupplierReply } from '@/ai/aiFunctions';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import KoniAILogo from '@/components/koni/KoniAILogo';
 import KoniAIBadge from '@/components/koni/KoniAIBadge';
 import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
@@ -31,8 +34,8 @@ import KoniAIHero from '@/components/koni/KoniAIHero';
 import { useTranslation } from 'react-i18next';
 
 export default function KoniAIHub() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,33 +72,44 @@ export default function KoniAIHub() {
   // API key check
   const hasApiKey = !!import.meta.env.VITE_OPENAI_API_KEY;
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[KoniAIHub] Waiting for auth to be ready...');
-      return;
-    }
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading KoniAI Hub..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
-    // GUARD: No user → redirect
-    if (!user) {
-      navigate('/login');
+  useEffect(() => {
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData || !profileCompanyId) {
       return;
     }
 
     // Now safe to load data
     loadData();
-  }, [authReady, authLoading, user, profile, navigate]);
+  }, [canLoadData, profileCompanyId, userId, navigate]);
 
   const loadData = async () => {
+    if (!canLoadData || !profileCompanyId) {
+      return;
+    }
+    
     try {
-      // Use auth from context (no duplicate call)
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load company
-      if (profile?.company_id) {
+      if (profileCompanyId) {
         const { data: companyData } = await supabase
           .from('companies')
           .select('*')
-          .eq('id', profile.company_id)
+          .eq('id', profileCompanyId)
           .maybeSingle();
         if (companyData) setCompany(companyData);
       }
@@ -119,6 +133,7 @@ export default function KoniAIHub() {
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load data');
+      // Note: Error handling can be enhanced with ErrorState if needed
     }
   };
 

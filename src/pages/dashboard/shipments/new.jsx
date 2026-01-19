@@ -14,9 +14,10 @@ import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 
 export default function NewShipmentPage() {
   // Use centralized AuthProvider
@@ -40,17 +41,16 @@ export default function NewShipmentPage() {
   const [status, setStatus] = useState('in_transit');
 
   const loadData = useCallback(async () => {
+    if (!canLoadData || !profileCompanyId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      const cid = profile?.company_id || null;
-      if (!cid) {
-        toast.error('Company ID not found');
-        setTimeout(() => navigate('/dashboard/shipments'), 100);
-        return;
-      }
-      setCompanyId(cid);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const cid = profileCompanyId;
 
       // Load orders that don't have shipments yet
       let query = supabase
@@ -69,8 +69,7 @@ export default function NewShipmentPage() {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      // Filter by role
-      const userRole = role || 'buyer';
+      // ✅ KERNEL MIGRATION: Filter by role derived from capabilities
       if (userRole === 'seller' || userRole === 'hybrid') {
         query = query.eq('seller_company_id', cid);
       } else if (userRole === 'buyer') {
@@ -105,9 +104,28 @@ export default function NewShipmentPage() {
     }
   }, [navigate, orderId, profile, role]);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading shipment form..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
+
   useEffect(() => {
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
+      return;
+    }
     loadData();
-  }, [loadData]);
+  }, [canLoadData, loadData]);
 
   const prefillFromOrder = (order) => {
     if (!order) return;
@@ -211,6 +229,19 @@ export default function NewShipmentPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadData();
+        }}
+      />
     );
   }
 

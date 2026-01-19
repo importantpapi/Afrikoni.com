@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -22,12 +23,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import ReliabilityBadge from '@/components/intelligence/ReliabilityBadge';
 
 export default function RFQMatching() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('in_review');
   const [selectedRFQ, setSelectedRFQ] = useState(null);
@@ -50,7 +52,7 @@ export default function RFQMatching() {
     }
 
     // GUARD: Check admin access
-    if (!user || role !== 'admin') {
+    if (!user || !isAdmin) {
       toast.error('Admin access required');
       navigate('/dashboard');
       return;
@@ -58,11 +60,16 @@ export default function RFQMatching() {
 
     // Now safe to load data
     loadData();
-  }, [statusFilter, authReady, authLoading, user, role, navigate]);
+  }, [statusFilter, authReady, authLoading, user, isAdmin, navigate]);
 
   const loadData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
 
       // Load RFQs pending review or open
       const { data: rfqsData, error: rfqsError } = await supabase
@@ -97,8 +104,22 @@ export default function RFQMatching() {
         .select('company_id, reliability_score, avg_response_hours, completion_rate, dispute_rate, slow_response_flag, high_dispute_flag')
         .in('company_id', companiesData?.map(c => c.id) || []);
 
+      // ✅ FORENSIC RECOVERY: Handle missing table gracefully
       if (reliabilityError) {
-        console.warn('Error loading reliability scores:', reliabilityError);
+        const isTableMissing = reliabilityError.code === 'PGRST116' || 
+                              reliabilityError.message?.includes('does not exist') ||
+                              reliabilityError.message?.includes('relation') ||
+                              reliabilityError.message?.includes('view') ||
+                              reliabilityError.status === 404;
+        
+        if (isTableMissing) {
+          console.warn('[RFQ Matching] Supplier intelligence feature currently unavailable');
+          toast.error('Supplier intelligence feature is currently unavailable. Basic matching will be used.');
+          // Continue with empty reliability data - feature is optional
+        } else {
+          console.warn('Error loading reliability scores:', reliabilityError);
+          toast.error('Failed to load supplier intelligence data. Please try again.');
+        }
       }
 
       // Merge reliability data with company data
@@ -122,6 +143,7 @@ export default function RFQMatching() {
       setSuppliers(suppliersData || []);
     } catch (error) {
       console.error('Error loading data:', error);
+      setError(error?.message || 'Failed to load RFQs');
       toast.error('Failed to load RFQs');
     } finally {
       setIsLoading(false);
@@ -162,7 +184,7 @@ export default function RFQMatching() {
       const result = await transitionRFQStatus(
         selectedRFQ.id,
         RFQ_STATUS.MATCHED,
-        user.id,
+        userId,
         `Matched with ${selectedSuppliers.length} supplier(s)${matchingNotes ? '. Notes: ' + matchingNotes.substring(0, 50) : ''}`,
         { 
           supplier_ids: selectedSuppliers,

@@ -11,49 +11,61 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { getReturn, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
 
 export default function ReturnDetailPage() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const { id } = useParams();
   const navigate = useNavigate();
   const [returnItem, setReturnItem] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Derive role from capabilities
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const userRole = isSeller ? 'seller' : 'buyer';
+
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading return details..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[ReturnDetailPage] Waiting for auth to be ready...');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[ReturnDetailPage] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[ReturnDetailPage] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // Now safe to load data
     loadReturn();
-  }, [id, authReady, authLoading, user, profile, role, navigate]);
+  }, [id, canLoadData, userId, profileCompanyId, navigate]);
 
   const loadReturn = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-
+      // ✅ KERNEL MIGRATION: Use kernel values
       const returnData = await getReturn(id);
       setReturnItem(returnData);
-    } catch (error) {
-      console.error('Error loading return:', error);
+    } catch (err) {
+      console.error('[ReturnDetailPage] Error loading return:', err);
+      setError(err.message || 'Failed to load return');
       toast.error('Failed to load return');
       navigate('/dashboard/returns');
     } finally {
@@ -72,13 +84,19 @@ export default function ReturnDetailPage() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading return details..." />;
-  }
-
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadReturn}
+      />
+    );
   }
 
   if (!returnItem) {

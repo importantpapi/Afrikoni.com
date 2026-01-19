@@ -17,7 +17,7 @@ export const createPageUrl = (pageName) => {
     'AdminDashboard': '/dashboard/admin',
     'LogisticsDashboard': '/dashboard',
     'HybridDashboard': '/dashboard',
-    'AddProduct': '/products/add',
+    'AddProduct': '/dashboard/products/new',
     'Analytics': '/analytics',
     'TradeFinancing': '/financing',
     'AIMatchmaking': '/ai-matchmaking',

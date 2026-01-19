@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
@@ -56,11 +58,11 @@ const validateCompanyForm = (formData) => {
 };
 
 export default function CompanyInfo() {
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -68,15 +70,9 @@ export default function CompanyInfo() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
 
-  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const userCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
-
-  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [companyId, setCompanyId] = useState(null);
   const [formData, setFormData] = useState({
     company_name: '',
     business_type: 'manufacturer',
@@ -98,8 +94,23 @@ export default function CompanyInfo() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [newTeamMember, setNewTeamMember] = useState({ email: '', role: 'member' });
   const [isAddingTeamMember, setIsAddingTeamMember] = useState(false);
-  const [currentRole, setCurrentRole] = useState('buyer');
+  const [currentRole, setCurrentRole] = useState(capabilities?.role || 'buyer');
   const [errors, setErrors] = useState({});
+
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading company information..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -134,7 +145,7 @@ export default function CompanyInfo() {
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('handleLogoUpload', error, {
         table: 'companies',
-        companyId: companyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       toast.error(`Failed to upload logo: ${error.message || 'Please try again'}`);
@@ -179,7 +190,7 @@ export default function CompanyInfo() {
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('handleCoverUpload', error, {
         table: 'companies',
-        companyId: companyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       toast.error(`Failed to upload cover image: ${error.message || 'Please try again'}`);
@@ -254,7 +265,7 @@ export default function CompanyInfo() {
             // ✅ GLOBAL HARDENING: Enhanced error logging
             logError('handleGalleryUpload-missingUrl', new Error('Upload succeeded but file_url is missing'), {
               table: 'companies',
-              companyId: companyId,
+              companyId: profileCompanyId,
               userId: userId,
               result: result
             });
@@ -265,7 +276,7 @@ export default function CompanyInfo() {
         } catch (error) {
           logError('handleGalleryUpload-file', error, {
             table: 'companies',
-            companyId: companyId,
+            companyId: profileCompanyId,
             userId: userId,
             fileName: file.name
           });
@@ -289,7 +300,7 @@ export default function CompanyInfo() {
             : validFiles[index]?.name || 'unknown';
           logError('handleGalleryUpload-fileFailed', result.reason || new Error('Upload failed'), {
             table: 'companies',
-            companyId: companyId,
+            companyId: profileCompanyId,
             userId: userId,
             fileName: fileName
           });
@@ -313,7 +324,7 @@ export default function CompanyInfo() {
         if (validUrls.length === 0) {
           logError('handleGalleryUpload-invalidUrls', new Error('No valid URLs in successful uploads'), {
             table: 'companies',
-            companyId: companyId,
+            companyId: profileCompanyId,
             userId: userId,
             successfulUploads: successfulUploads
           });
@@ -333,19 +344,19 @@ export default function CompanyInfo() {
         });
         
         // Auto-save gallery images to database immediately (don't wait for form submission)
-        if (companyId && updatedGalleryImages) {
+        if (profileCompanyId && updatedGalleryImages) {
           try {
             const { error: saveError } = await supabase
               .from('companies')
               .update({
                 gallery_images: updatedGalleryImages
               })
-              .eq('id', companyId);
+              .eq('id', profileCompanyId);
             
             if (saveError) {
             logError('autoSaveGallery', saveError, {
               table: 'companies',
-              companyId: companyId,
+              companyId: profileCompanyId,
               userId: userId
             });
             // Don't show error to user - images are in state, just not persisted yet
@@ -355,7 +366,7 @@ export default function CompanyInfo() {
         } catch (saveErr) {
           logError('autoSaveGallery', saveErr, {
             table: 'companies',
-            companyId: companyId,
+            companyId: profileCompanyId,
             userId: userId
           });
           }
@@ -379,7 +390,7 @@ export default function CompanyInfo() {
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('handleGalleryUpload', error, {
         table: 'companies',
-        companyId: companyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       toast.error('Failed to upload gallery images. Please try again.');
@@ -408,73 +419,86 @@ export default function CompanyInfo() {
     }, 15000);
 
     const loadData = async () => {
+    if (!profileCompanyId) {
+      if (isMounted) {
+        clearTimeout(timeoutId);
+        setIsLoading(false);
+      }
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      if (!user) {
-        if (isMounted) {
-          clearTimeout(timeoutId);
-          setIsLoading(false);
-          navigate('/login');
-        }
-        return;
-      }
-
-      // Use profile from context
-      const profileData = profile;
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // If profile has company_id, load company data
-      if (profileData?.company_id) {
-        setCompanyId(profileData.company_id);
-        
-        const { data: companyData, error: companyError } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', profileData.company_id)
-          .maybeSingle();
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', profileCompanyId)
+        .maybeSingle();
 
         // ✅ GLOBAL HARDENING: Enhanced error logging
         if (companyError) {
           logError('loadData-companies', companyError, {
             table: 'companies',
-            companyId: profileData.company_id,
+            companyId: profileCompanyId,
             userId: userId
           });
-          // Continue with profile data if company query fails
+          throw companyError;
+        }
+
+        // Get user email for fallback
+        let userEmail = '';
+        if (userId) {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            userEmail = user?.email || '';
+          } catch (err) {
+            // Silently fail - email is optional
+          }
         }
 
         if (companyData) {
           setFormData({
-            company_name: companyData.company_name || profileData.company_name || '',
-            business_type: companyData.business_type || profileData.business_type || 'manufacturer',
-            country: companyData.country || profileData.country || '',
-            city: companyData.city || profileData.city || '',
-            phone: companyData.phone || profileData.phone || '',
-            business_email: companyData.email || profileData.business_email || user.email || '',
-            website: companyData.website || profileData.website || '',
-            year_established: companyData.year_established || profileData.year_established || '',
-            company_size: companyData.employee_count || profileData.company_size || '1-10',
-            company_description: companyData.description || profileData.company_description || ''
+            company_name: companyData.company_name || '',
+            business_type: companyData.business_type || 'manufacturer',
+            country: companyData.country || '',
+            city: companyData.city || '',
+            phone: companyData.phone || '',
+            business_email: companyData.email || userEmail || '',
+            website: companyData.website || '',
+            year_established: companyData.year_established || '',
+            company_size: companyData.employee_count || '1-10',
+            company_description: companyData.description || ''
           });
           setLogoUrl(companyData.logo_url || '');
           setCoverUrl(companyData.cover_image_url || companyData.cover_url || '');
           setGalleryImages(Array.isArray(companyData.gallery_images) ? companyData.gallery_images : []);
+        } else {
+          // No company data yet - set default email if available
+          if (userEmail) {
+            setFormData(prev => ({
+              ...prev,
+              business_email: userEmail
+            }));
+          }
         }
         
         // Load team members
-        if (profileData.company_id) {
+        if (profileCompanyId) {
           const { data: teamData, error: teamError } = await supabase
             .from('company_team')
             .select('*')
-            .eq('company_id', profileData.company_id)
+            .eq('company_id', profileCompanyId)
             .order('created_at', { ascending: false });
           
           // ✅ GLOBAL HARDENING: Enhanced error logging
           if (teamError) {
             logError('loadData-team', teamError, {
               table: 'company_team',
-              companyId: profileData.company_id,
+              companyId: profileCompanyId,
               userId: userId
             });
           }
@@ -491,34 +515,14 @@ export default function CompanyInfo() {
         const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
         const normalizedRole = isLogistics ? 'logistics' : (isSeller ? 'seller' : 'buyer');
         setCurrentRole(normalizedRole);
-      } else if (profileData) {
-        // Load from profile if no company yet
-        setFormData({
-          company_name: profileData.company_name || '',
-          business_type: profileData.business_type || 'manufacturer',
-          country: profileData.country || '',
-          city: profileData.city || '',
-          phone: profileData.phone || '',
-          business_email: profileData.business_email || authUser.email || '',
-          website: profileData.website || '',
-          year_established: profileData.year_established || '',
-          company_size: profileData.company_size || '1-10',
-          company_description: profileData.company_description || ''
-        });
-      } else {
-        // Set default email
-        setFormData(prev => ({
-          ...prev,
-          business_email: authUser.email || ''
-        }));
-      }
-    } catch (error) {
+    } catch (err) {
       // ✅ GLOBAL HARDENING: Enhanced error logging
-      logError('loadData', error, {
+      logError('loadData', err, {
         table: 'companies',
-        companyId: userCompanyId,
+        companyId: profileCompanyId,
         userId: userId
       });
+      setError(err.message || 'Failed to load company information');
       if (isMounted) {
         toast.error('Failed to load company information');
       }
@@ -530,9 +534,8 @@ export default function CompanyInfo() {
     }
     };
 
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[CompanyInfo] Waiting for capabilities to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
@@ -541,11 +544,11 @@ export default function CompanyInfo() {
                          !lastLoadTimeRef.current || 
                          (Date.now() - lastLoadTimeRef.current > 30000);
     
-    // Only load data when auth is ready
-    if (authReady && !authLoading && userId && shouldRefresh) {
+    // Only load data when system is ready
+    if (shouldRefresh) {
       console.log('[CompanyInfo] Data is stale or first load - refreshing');
       loadData();
-    } else if (!shouldRefresh) {
+    } else {
       console.log('[CompanyInfo] Data is fresh - skipping reload');
     }
 
@@ -553,7 +556,7 @@ export default function CompanyInfo() {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
+  }, [canLoadData, profileCompanyId, userId, location.pathname, isStale, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -577,19 +580,29 @@ export default function CompanyInfo() {
     try {
       console.log('🔄 Starting save operation...');
       
-      if (!user) {
+      if (!userId) {
         toast.error('User not found. Please log in again.');
         setIsSaving(false);
         navigate('/login');
         return;
       }
 
-      console.log('✅ User found:', user.id);
-      let finalCompanyId = companyId;
+      console.log('✅ User found:', userId);
+      
+      // Get user email for fallback
+      let userEmail = '';
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        userEmail = user?.email || '';
+      } catch (err) {
+        // Silently fail - email is optional
+      }
+      
+      let finalCompanyId = profileCompanyId;
 
-      // Create or update company with timeout
-      if (companyId) {
-        console.log('🔄 Updating existing company:', companyId);
+      // ✅ KERNEL MIGRATION: Create or update company with timeout
+      if (profileCompanyId) {
+        console.log('🔄 Updating existing company:', profileCompanyId);
         // Update existing company
         // Convert year_established to integer or null (database expects integer, not empty string)
         let yearEstablished = null;
@@ -610,7 +623,7 @@ export default function CompanyInfo() {
             country: formData.country || null,
             city: formData.city || null,
             phone: formData.phone || null,
-            email: formData.business_email || user.email || null,
+            email: formData.business_email || userEmail || null,
             website: formData.website || null,
             year_established: yearEstablished, // INTEGER: null or valid year
             employee_count: formData.company_size || '1-10',
@@ -619,14 +632,14 @@ export default function CompanyInfo() {
             cover_image_url: coverUrl || null,
             gallery_images: galleryImages || null
           })
-          .eq('id', companyId);
+          .eq('id', profileCompanyId);
 
         const { error: updateErr } = await Promise.race([updatePromise, timeoutPromise]);
 
         if (updateErr) {
           logError('updateCompany', updateErr, {
             table: 'companies',
-            companyId: companyId,
+            companyId: profileCompanyId,
             userId: userId
           });
           throw new Error(`Failed to update company: ${updateErr.message || 'Unknown error'}`);
@@ -650,12 +663,12 @@ export default function CompanyInfo() {
         
         const insertData = {
           company_name: formData.company_name,
-          owner_email: user.email,
+          owner_email: '', // Will be set from profile
           business_type: formData.business_type,
           country: formData.country || null,
           city: formData.city || null,
           phone: formData.phone || null,
-          email: formData.business_email || user.email || null,
+          email: formData.business_email || null,
           website: formData.website || null,
           year_established: yearEstablished, // INTEGER: null or valid year
           employee_count: formData.company_size || '1-10',
@@ -680,7 +693,7 @@ export default function CompanyInfo() {
         if (companyErr) {
           logError('createCompany', companyErr, {
             table: 'companies',
-            companyId: companyId,
+            companyId: profileCompanyId,
             userId: userId
           });
           throw new Error(`Failed to create company: ${companyErr.message || 'Unknown error'}`);
@@ -689,8 +702,9 @@ export default function CompanyInfo() {
           throw new Error('Company was created but ID is missing');
         }
         finalCompanyId = newCompany.id;
-        setCompanyId(newCompany.id);
         console.log('✅ Company created successfully:', finalCompanyId);
+        
+        // Note: profileCompanyId will be updated via kernel when profile is updated below
       }
 
       // Update profile with company information
@@ -712,7 +726,7 @@ export default function CompanyInfo() {
       const profilePromise = supabase
         .from('profiles')
         .upsert({
-          id: user.id,
+          id: userId,
           ...profileUpdate
         }, { onConflict: 'id' });
 
@@ -721,7 +735,7 @@ export default function CompanyInfo() {
       if (profileErr) {
         logError('updateProfile', profileErr, {
           table: 'profiles',
-          companyId: companyId,
+          companyId: finalCompanyId,
           userId: userId
         });
         throw new Error(`Failed to save profile: ${profileErr.message || 'Unknown error'}`);
@@ -741,7 +755,7 @@ export default function CompanyInfo() {
     } catch (error) {
       logError('saveCompanyInfo', error, {
         table: 'companies',
-        companyId: companyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       const errorMessage = error?.message || error?.error?.message || 'Failed to save company information. Please try again.';
@@ -753,7 +767,7 @@ export default function CompanyInfo() {
   };
 
   const handleAddTeamMember = async () => {
-    if (!newTeamMember.email || !companyId) {
+    if (!newTeamMember.email || !profileCompanyId) {
       toast.error('Please enter an email address');
       return;
     }
@@ -763,18 +777,22 @@ export default function CompanyInfo() {
       const { error } = await supabase
         .from('company_team')
         .insert({
-          company_id: companyId,
+          company_id: profileCompanyId,
           member_email: newTeamMember.email,
           role_label: newTeamMember.role,
-          created_by: user.id
+          created_by: userId
         });
 
       if (error) throw error;
 
       toast.success('Team member added');
       setNewTeamMember({ email: '', role: 'member' });
-      loadData();
-    } catch (error) {
+      // Reload data
+      const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+      if (shouldRefresh) {
+        loadData();
+      }
+    } catch (err) {
       toast.error('Failed to add team member');
     } finally {
       setIsAddingTeamMember(false);
@@ -793,22 +811,34 @@ export default function CompanyInfo() {
       if (error) throw error;
 
       toast.success('Team member removed');
-      loadData();
-    } catch (error) {
+      // Reload data
+      const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+      if (shouldRefresh) {
+        loadData();
+      }
+    } catch (err) {
       toast.error('Failed to remove team member');
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading company information..." />;
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
-  if (isLoading) {
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+          if (shouldRefresh) {
+            loadData();
+          }
+        }}
+      />
     );
   }
 
@@ -859,7 +889,7 @@ export default function CompanyInfo() {
       )}
 
         {/* Company Card Preview */}
-        {companyId && (logoUrl || coverUrl || formData.company_name) && (
+        {profileCompanyId && (logoUrl || coverUrl || formData.company_name) && (
           <Card className="border-afrikoni-gold/20">
             <CardContent className="p-0">
               <div className="relative">
@@ -1318,11 +1348,11 @@ export default function CompanyInfo() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Current User as Owner */}
-                {user && (
+                {userId && (
                   <div className="p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-afrikoni-chestnut">{user.email}</div>
+                        <div className="font-semibold text-afrikoni-chestnut">User ID: {userId.slice(0, 8)}...</div>
                         <div className="text-sm text-afrikoni-deep/70">Owner</div>
                       </div>
                       <Badge variant="default">Owner</Badge>

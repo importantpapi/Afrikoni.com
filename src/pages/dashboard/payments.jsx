@@ -14,9 +14,10 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import {
   getWalletAccount,
   getWalletTransactions,
@@ -27,18 +28,21 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import RequireCapability from '@/guards/RequireCapability';
-import { useCapability } from '@/context/CapabilityContext';
 
 function PaymentsDashboardInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
+  // Derive role from capabilities for API calls that need it
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+  const derivedRole = isSeller ? 'seller' : 'buyer'; // Default to buyer if both or neither
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [escrowPayments, setEscrowPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('wallet');
-  const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -46,45 +50,21 @@ function PaymentsDashboardInner() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const profileCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
-  
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ UNIFIED DASHBOARD KERNEL: Show loading spinner while system is not ready
+  if (!canLoadData && capabilities.loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilities.ready} />
       </div>
     );
   }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[PaymentsDashboard] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[PaymentsDashboard] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[PaymentsDashboard] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load payments
-    if (!profileCompanyId) {
-      console.log('[PaymentsDashboard] No company_id - cannot load payments');
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'payments.jsx:70',message:'HYPOTHESIS_C: useEffect entry - checking canLoadData',data:{canLoadData,profileCompanyId,userId,capabilitiesReady:capabilities.ready},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
@@ -100,39 +80,39 @@ function PaymentsDashboardInner() {
     } else {
       console.log('[PaymentsDashboard] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
-      
-      if (!user || !userCompanyId) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'payments.jsx:110',message:'HYPOTHESIS_C: loadData entry - using profileCompanyId from kernel',data:{profileCompanyId,userId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId from kernel
+      if (!userId || !profileCompanyId) {
         navigate('/login');
         return;
       }
 
-      setCompanyId(userCompanyId);
-
       // Try to load payment data - tables may not exist yet
       try {
+        // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId from kernel
         // Load wallet account
-        let walletAccount = await getWalletAccount(userCompanyId);
+        let walletAccount = await getWalletAccount(profileCompanyId);
         if (!walletAccount) {
           // Create wallet if it doesn't exist
           const { createWalletAccount } = await import('@/lib/supabaseQueries/payments');
-          walletAccount = await createWalletAccount(userCompanyId);
+          walletAccount = await createWalletAccount(profileCompanyId);
         }
         setWallet(walletAccount);
 
         // Load transactions
-        const txs = await getWalletTransactions(userCompanyId, { limit: 50 });
+        const txs = await getWalletTransactions(profileCompanyId, { limit: 50 });
         setTransactions(txs);
 
-        // Load escrow payments
-        const escrows = await getEscrowPaymentsByCompany(userCompanyId, role);
+        // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId from kernel
+        // Load escrow payments - derive role from capabilities
+        const escrows = await getEscrowPaymentsByCompany(profileCompanyId, derivedRole);
         setEscrowPayments(escrows);
         
         // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
@@ -150,8 +130,9 @@ function PaymentsDashboardInner() {
         // ❌ DO NOT mark fresh on error - let it retry on next navigation
       }
     } catch (error) {
+      // ✅ KERNEL MIGRATION: Enhanced error logging and state
       console.error('Error loading payments data:', error);
-      navigate('/dashboard');
+      setError(error?.message || 'Failed to load payments data');
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
@@ -177,13 +158,24 @@ function PaymentsDashboardInner() {
     return null;
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading payments..." />;
-  }
-
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+          if (shouldRefresh) {
+            loadData();
+          }
+        }}
+      />
+    );
   }
 
   const totalInflow = transactions

@@ -13,69 +13,78 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { getReturns, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import RequireCapability from '@/guards/RequireCapability';
 
 function ReturnsDashboardInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [returns, setReturns] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
 
+  // Derive role from capabilities
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const userRole = isSeller ? 'seller' : 'buyer';
+
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading returns..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[ReturnsDashboard] Waiting for auth to be ready...');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[ReturnsDashboard] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[ReturnsDashboard] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // Now safe to load data
     loadData();
-  }, [authReady, authLoading, user, profile, role, statusFilter, navigate]);
+  }, [canLoadData, userId, profileCompanyId, statusFilter, navigate]);
 
   const loadData = async () => {
+    if (!profileCompanyId) {
+      console.log('[ReturnsDashboard] No company_id - cannot load returns');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
-      
-      if (!user || !userCompanyId) {
-        navigate('/login');
-        return;
-      }
+      setError(null);
 
-      setCompanyId(userCompanyId);
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId and userRole from kernel
       // Try to load returns - table may not exist yet
       try {
         const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
-        const returnsList = await getReturns(userCompanyId, role, filters);
+        const returnsList = await getReturns(profileCompanyId, userRole, filters);
         setReturns(returnsList);
       } catch (dataError) {
         console.log('Returns table not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setReturns([]);
+        setError(null); // Don't show error for missing table
       }
-    } catch (error) {
-      console.error('Error loading returns:', error);
-      navigate('/dashboard');
+    } catch (err) {
+      console.error('[ReturnsDashboard] Error loading returns:', err);
+      setError(err.message || 'Failed to load returns');
+      toast.error('Failed to load returns');
     } finally {
       setIsLoading(false);
     }
@@ -111,13 +120,19 @@ function ReturnsDashboardInner() {
     return <AlertCircle className="w-4 h-4" />;
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading returns..." />;
-  }
-
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadData}
+      />
+    );
   }
 
   const totalRefunded = returns

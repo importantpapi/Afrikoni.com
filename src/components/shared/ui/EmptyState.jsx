@@ -23,7 +23,7 @@ const configMap = {
     title: 'No products yet',
     description: 'Start building your catalog by adding your first product listing.',
     cta: 'Add Product',
-    ctaLink: '/products/add',
+    ctaLink: '/dashboard/products/new',
     iconColor: 'text-afrikoni-gold',
     iconBg: 'bg-afrikoni-gold/20'
   },

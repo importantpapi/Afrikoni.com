@@ -20,26 +20,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function AdminVerificationReview() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [verifications, setVerifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [selectedVerification, setSelectedVerification] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all, pending, verified, rejected
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasAccess, setHasAccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,8 +57,8 @@ export default function AdminVerificationReview() {
       return;
     }
 
-    // Check admin access
-    const admin = isAdmin(user);
+    // Check admin access - route-level protection ensures admin, but check profile for consistency
+    const admin = profile?.is_admin === true;
     setHasAccess(admin);
     setIsLoading(false);
     
@@ -75,8 +76,13 @@ export default function AdminVerificationReview() {
   }, [filterStatus, searchQuery, hasAccess, authReady]);
 
   const loadVerifications = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
       // Load verifications with company and profile data
       let query = supabase
@@ -138,6 +144,7 @@ export default function AdminVerificationReview() {
       setVerifications(filtered);
     } catch (error) {
       console.error('Error loading verifications:', error);
+      setError(error?.message || 'Failed to load verifications');
       toast.error('Failed to load verifications');
     } finally {
       setIsLoading(false);
@@ -162,7 +169,7 @@ export default function AdminVerificationReview() {
         .update({
           status: 'verified',
           reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id,
+          reviewed_by: userId,
           review_notes: reviewNotes || null
         })
         .eq('id', verificationId);
@@ -240,7 +247,7 @@ export default function AdminVerificationReview() {
         .update({
           status: 'rejected',
           reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id,
+          reviewed_by: userId,
           review_notes: rejectionReason
         })
         .eq('id', verificationId);
@@ -318,9 +325,18 @@ export default function AdminVerificationReview() {
       </>
     );
   }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadVerifications();
+        }}
+      />
+    );
   }
 
   const verification = selectedVerification;

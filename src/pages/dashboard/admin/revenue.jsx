@@ -12,18 +12,19 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { isAdmin } from '@/utils/permissions';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { useNavigate } from 'react-router-dom';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function RevenueDashboard() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [isLoading, setIsLoading] = useState(false); // Local loading state
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('month'); // 'week', 'month', 'year'
   const [revenueData, setRevenueData] = useState({
     mrr: 0,
@@ -39,32 +40,40 @@ export default function RevenueDashboard() {
   const [chartData, setChartData] = useState([]);
   const navigate = useNavigate();
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading revenue dashboard..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    navigate('/dashboard');
+    return null;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[RevenueDashboard] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → redirect
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setIsAuthorized(admin);
     
-    if (admin) {
-      loadRevenueData();
-    } else {
-      navigate('/dashboard');
-    }
-  }, [timeRange, authReady, authLoading, user, profile, role, navigate]);
+    loadRevenueData();
+  }, [canLoadData, timeRange]);
 
   const loadRevenueData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setIsLoading(true);
+      setError(null);
       const now = new Date();
       let startDate, endDate;
 
@@ -174,7 +183,10 @@ export default function RevenueDashboard() {
       await loadChartData(startDate, endDate);
     } catch (error) {
       console.error('Error loading revenue data:', error);
+      setError(error?.message || 'Failed to load revenue data');
       toast.error('Failed to load revenue data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -218,9 +230,6 @@ export default function RevenueDashboard() {
     );
   }
 
-  if (!isAuthorized) {
-    return null;
-  }
 
   return (
     <>

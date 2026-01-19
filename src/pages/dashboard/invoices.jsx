@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { Receipt, FileText, DollarSign, Clock, CheckCircle, XCircle, Download, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getInvoices, markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
@@ -24,15 +23,16 @@ import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 
 export default function InvoicesDashboard() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [invoices, setInvoices] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -40,45 +40,26 @@ export default function InvoicesDashboard() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const profileCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
+  // Derive role from capabilities for display purposes
+  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const userRole = isSeller ? 'seller' : 'buyer';
   
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading invoices..." ready={isSystemReady} />
       </div>
     );
   }
 
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[InvoicesDashboard] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[InvoicesDashboard] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[InvoicesDashboard] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load invoices
-    if (!profileCompanyId) {
-      console.log('[InvoicesDashboard] No company_id - cannot load invoices');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[InvoicesDashboard] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
@@ -89,41 +70,36 @@ export default function InvoicesDashboard() {
     
     if (shouldRefresh) {
       console.log('[InvoicesDashboard] Data is stale or first load - refreshing');
-      // Now safe to load data
       loadData();
     } else {
       console.log('[InvoicesDashboard] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
+    if (!profileCompanyId) {
+      console.log('[InvoicesDashboard] No company_id - cannot load invoices');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
-      
-      if (!user || !userCompanyId) {
-        navigate('/login');
-        return;
-      }
+      setError(null);
 
-      setCompanyId(userCompanyId);
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Try to load invoices - table may not exist yet
       try {
         const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
-        const invoiceList = await getInvoices(userCompanyId, role, filters);
+        const invoiceList = await getInvoices(profileCompanyId, userRole, filters);
 
         // SAFETY ASSERTION: ensure each invoice is scoped to the current company
         for (const invoice of invoiceList || []) {
-          await assertRowOwnedByCompany(invoice, userCompanyId, 'InvoicesDashboard:invoices');
+          await assertRowOwnedByCompany(invoice, profileCompanyId, 'InvoicesDashboard:invoices');
         }
 
         setInvoices(invoiceList);
         
-        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
-        // Only mark fresh if we got actual data (not an error)
+        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
         if (invoiceList && Array.isArray(invoiceList)) {
           lastLoadTimeRef.current = Date.now();
           markFresh();
@@ -132,11 +108,13 @@ export default function InvoicesDashboard() {
         console.log('Invoices table not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setInvoices([]);
+        setError(null); // Don't show error for missing table
         // ❌ DO NOT mark fresh on error - let it retry on next navigation
       }
-    } catch (error) {
-      console.error('Error loading invoices:', error);
-      navigate('/dashboard');
+    } catch (err) {
+      console.error('[InvoicesDashboard] Error loading invoices:', err);
+      setError(err.message || 'Failed to load invoices');
+      toast.error('Failed to load invoices');
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
       setIsLoading(false);
@@ -144,9 +122,14 @@ export default function InvoicesDashboard() {
   };
 
   const handlePayInvoice = async (invoiceId, invoice) => {
+    if (!profileCompanyId) {
+      toast.error('Company ID not found');
+      return;
+    }
+
     try {
       await markInvoiceAsPaid(invoiceId, {
-        company_id: companyId,
+        company_id: profileCompanyId,
         amount: invoice.total_amount,
         currency: invoice.currency,
         invoice_number: invoice.invoice_number,
@@ -185,13 +168,19 @@ export default function InvoicesDashboard() {
     return new Date(invoice.due_date) < new Date();
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading invoices..." />;
-  }
-
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadData}
+      />
+    );
   }
 
   return (

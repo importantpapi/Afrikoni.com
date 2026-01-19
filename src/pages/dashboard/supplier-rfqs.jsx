@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -22,44 +23,37 @@ import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
 
 function SupplierRFQsInner() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [rfqs, setRfqs] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('matched');
-  const [companyId, setCompanyId] = useState(null);
 
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
 
-  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const userCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading RFQs..." ready={isSystemReady} />
+      </div>
+    );
+  }
 
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[SupplierRFQs] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[SupplierRFQs] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect
-    if (!userId) {
-      navigate('/login');
+    if (!canLoadData) {
+      if (!userId) {
+        navigate('/login');
+        return;
+      }
       return;
     }
 
@@ -78,12 +72,11 @@ function SupplierRFQsInner() {
     
     if (shouldRefresh) {
       console.log('[SupplierRFQs] Data is stale or first load - refreshing');
-      setCompanyId(userCompanyId);
       loadRFQs();
     } else {
       console.log('[SupplierRFQs] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
   const loadRFQs = async () => {
     try {
@@ -222,9 +215,12 @@ function SupplierRFQsInner() {
         {/* RFQ List */}
         <div className="grid gap-4">
           {isLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold mx-auto" />
-            </div>
+            <CardSkeleton count={3} />
+          ) : error ? (
+            <ErrorState 
+              message={error} 
+              onRetry={loadRFQs}
+            />
           ) : filteredRFQs.length === 0 ? (
             <EmptyState
               icon={FileText}

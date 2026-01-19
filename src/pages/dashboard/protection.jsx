@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -17,41 +18,53 @@ import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardProtectionInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const [currentRole, setCurrentRole] = useState(role || 'buyer');
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const [protectionData, setProtectionData] = useState(null);
   const [protectedOrders, setProtectedOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  
+  // ✅ KERNEL MIGRATION: Derive role from capabilities
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+  const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
+
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading protection dashboard..." ready={isSystemReady} />
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardProtection] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData || !profileCompanyId) {
       return;
     }
-
-    // GUARD: No user → redirect
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    // Use role from context
-    const normalizedRole = role || 'buyer';
-    setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
 
     // Now safe to load data
     loadProtection();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData, profileCompanyId, userId, navigate]);
 
   const loadProtection = async () => {
+    if (!canLoadData || !profileCompanyId) {
+      return;
+    }
+    
     try {
-
-      // Get or create company
-      const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
+      setError(null);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const companyId = profileCompanyId;
 
       // Load protection data for buyers and sellers
       if (companyId) {
@@ -137,7 +150,9 @@ function DashboardProtectionInner() {
         });
       }
     } catch (error) {
-      // Error logged (removed for production)
+      // ✅ KERNEL MIGRATION: Enhanced error logging and state
+      console.error('Error loading protection data:', error);
+      setError(error?.message || 'Failed to load protection data');
       toast.error('Failed to load protection data');
     } finally {
       setIsLoading(false);
@@ -149,6 +164,19 @@ function DashboardProtectionInner() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadProtection();
+        }}
+      />
     );
   }
 

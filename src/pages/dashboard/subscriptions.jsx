@@ -11,9 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { 
   getCompanySubscription, 
   createSubscription, 
@@ -23,29 +25,37 @@ import {
 import RequireCapability from '@/guards/RequireCapability';
 
 function SubscriptionsPageInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [currentSubscription, setCurrentSubscription] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [isUpgrading, setIsUpgrading] = useState(false);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading subscriptions..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    toast.error('Please log in to continue');
+    return null;
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[SubscriptionsPage] Waiting for auth to be ready...');
+    if (!canLoadData) {
       return;
     }
 
-    // GUARD: No user → show error
-    if (!user) {
-      toast.error('Please log in to continue');
-      return;
-    }
-
-    // Now safe to load data
     loadSubscription();
-  }, [authReady, authLoading, user, profile, role]);
+  }, [canLoadData]);
 
   const loadSubscription = async () => {
     try {
@@ -90,11 +100,12 @@ function SubscriptionsPageInner() {
         paymentId: `mock_${Date.now()}`
       };
 
-      await createSubscription(companyId, planType, paymentData);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      await createSubscription(profileCompanyId, planType, paymentData);
       toast.success(`Successfully upgraded to ${SUBSCRIPTION_PLANS[planType].name}!`);
       await loadSubscription();
-    } catch (error) {
-      console.error('Error upgrading subscription:', error);
+    } catch (err) {
+      console.error('[SubscriptionsPage] Error upgrading subscription:', err);
       toast.error('Failed to upgrade subscription. Please try again.');
     } finally {
       setIsUpgrading(false);
@@ -104,11 +115,18 @@ function SubscriptionsPageInner() {
   const currentPlan = currentSubscription?.plan_type || 'free';
   const planDetails = getPlanDetails(currentPlan);
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
+    return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadSubscription}
+      />
     );
   }
 

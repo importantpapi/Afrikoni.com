@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/shared/ui/input';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { 
   getMarketingLeads, 
   updateMarketingLead,
@@ -25,43 +26,55 @@ import {
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 
 export default function AdminLeads() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [leads, setLeads] = useState([]);
   const [channelStats, setChannelStats] = useState({});
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading leads management..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/dashboard');
+    return null;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    navigate('/dashboard');
+    return null;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminLeads] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: Check admin access
-    if (!user || !isAdmin(user)) {
-      navigate('/dashboard');
-      return;
-    }
-
-    // Now safe to load data
+    
     loadData();
-  }, [statusFilter, sourceFilter, authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData, statusFilter, sourceFilter]);
 
   const loadData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      // User already checked in useEffect guard
-
       const filters = {};
       if (statusFilter !== 'all') filters.status = statusFilter;
       if (sourceFilter !== 'all') filters.source = sourceFilter;
@@ -73,6 +86,7 @@ export default function AdminLeads() {
       setChannelStats(stats);
     } catch (error) {
       console.error('Error loading leads:', error);
+      setError(error?.message || 'Failed to load leads');
       toast.error('Failed to load leads');
     } finally {
       setIsLoading(false);
@@ -116,6 +130,19 @@ export default function AdminLeads() {
       <>
         <CardSkeleton count={3} />
       </>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadData();
+        }}
+      />
     );
   }
 

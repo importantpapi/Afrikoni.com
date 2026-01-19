@@ -69,7 +69,6 @@ export default function Signup() {
   const waitForSessionAndRedirect = async () => {
     for (let i = 0; i < 10; i++) {
       const { data } = await supabase.auth.getSession();
-      debugger; // ⬅️ BREAKPOINT 3: Inspect data.session (iteration: i+1)
       if (data?.session) {
         console.log('[Signup] Session available, redirecting');
         navigate('/auth/post-login', { replace: true });

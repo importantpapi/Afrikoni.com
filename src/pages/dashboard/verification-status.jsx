@@ -9,11 +9,11 @@ import { Button } from '@/components/shared/ui/button';
 import { Progress } from '@/components/shared/ui/progress';
 import { Badge } from '@/components/shared/ui/badge';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { toast } from 'sonner';
-// import LoadingState from '@/components/LoadingState'; // Component doesn't exist
-// import ErrorState from '@/components/ErrorState'; // Component doesn't exist
 
 /**
  * Supplier Verification Status Dashboard
@@ -65,37 +65,51 @@ const VERIFICATION_STEPS = [
 ];
 
 export default function VerificationStatus() {
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [company, setCompany] = useState(null);
   const [verificationData, setVerificationData] = useState(null);
   const [profileStrength, setProfileStrength] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
 
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading verification status..." ready={isSystemReady} />
+      </div>
+    );
+  }
 
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[VerificationStatus] Waiting for auth to be ready...');
+    if (!canLoadData) {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
       return;
     }
 
-    // GUARD: No user → exit
-    if (!user) {
+    loadVerificationStatus();
+  }, [canLoadData, userId, profileCompanyId]);
+
+  const loadVerificationStatus = async () => {
+    if (!profileCompanyId) {
+      console.log('[VerificationStatus] No company_id - cannot load verification status');
       setLoading(false);
       return;
     }
 
-    // Now safe to load data
-    loadVerificationStatus();
-  }, [authReady, authLoading, user?.id, profile?.company_id]); // ✅ Primitives only - prevents reload on token refresh
-
-  const loadVerificationStatus = async () => {
     try {
-      // Use company_id from profile
-      const companyId = profile?.company_id || null;
+      setLoading(true);
+      setError(null);
+      
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
 
       // Load company data
       const { data: companyData, error: companyError } = await supabase
@@ -188,9 +202,18 @@ export default function VerificationStatus() {
   const status = getVerificationStatus();
   const StatusIcon = status.icon;
 
-  if (loading || !authReady || authLoading) {
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (loading) {
+    return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <SpinnerWithTimeout message="Loading verification status..." />
+      <ErrorState 
+        message={error} 
+        onRetry={loadVerificationStatus}
+      />
     );
   }
 

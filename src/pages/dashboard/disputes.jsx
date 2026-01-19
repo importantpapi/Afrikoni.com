@@ -19,20 +19,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { logDisputeEvent } from '@/utils/auditLogger';
 
 export default function UserDisputes() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [disputes, setDisputes] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [disputeForm, setDisputeForm] = useState({
@@ -41,42 +44,45 @@ export default function UserDisputes() {
     evidence: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading disputes..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[UserDisputes] Waiting for auth to be ready...');
+    if (!canLoadData) {
       return;
     }
 
-    // GUARD: No user → redirect to login
-    if (!user) {
-      console.log('[UserDisputes] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // Now safe to load data
     loadData();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData]);
 
   const loadData = async () => {
+    if (!profileCompanyId) {
+      console.warn('[UserDisputes] No company ID found, cannot load disputes');
+      setDisputes([]);
+      setOrders([]);
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      const cid = profile?.company_id || null;
-      setCompanyId(cid);
-
-      if (!cid) {
-        console.warn('No company ID found, cannot load disputes');
-        setDisputes([]);
-        setOrders([]);
-        return;
-      }
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load user's disputes
       // Note: RLS policy covers raised_by_company_id and against_company_id
       // Also check buyer_company_id and seller_company_id for completeness
@@ -99,7 +105,7 @@ export default function UserDisputes() {
             company_name
           )
         `)
-        .or(`raised_by_company_id.eq.${cid},against_company_id.eq.${cid}${cid ? `,buyer_company_id.eq.${cid},seller_company_id.eq.${cid}` : ''}`)
+        .or(`raised_by_company_id.eq.${profileCompanyId},against_company_id.eq.${profileCompanyId},buyer_company_id.eq.${profileCompanyId},seller_company_id.eq.${profileCompanyId}`)
         .order('created_at', { ascending: false });
 
       if (disputesError) {
@@ -110,12 +116,13 @@ export default function UserDisputes() {
         setDisputes(disputesData || []);
       }
 
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load user's orders for creating new disputes
       // First, get orders that match the criteria
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('id, order_number, total_amount, currency, status, created_at, buyer_company_id, seller_company_id')
-        .or(`buyer_company_id.eq.${cid},seller_company_id.eq.${cid}`)
+        .or(`buyer_company_id.eq.${profileCompanyId},seller_company_id.eq.${profileCompanyId}`)
         .in('status', ['pending', 'processing', 'shipped', 'delivered', 'confirmed'])
         .order('created_at', { ascending: false })
         .limit(50);
@@ -180,7 +187,7 @@ export default function UserDisputes() {
         description: disputeForm.description,
         status: 'open',
         evidence: disputeForm.evidence.length > 0 ? disputeForm.evidence : null,
-        created_by: userData.id
+        created_by: userId
       };
 
       const { data: newDispute, error } = await supabase
@@ -274,13 +281,19 @@ export default function UserDisputes() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading disputes..." />;
-  }
-
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
     return <CardSkeleton count={3} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadData}
+      />
+    );
   }
 
   return (

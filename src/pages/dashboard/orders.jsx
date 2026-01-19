@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
 import { ORDER_STATUS, getStatusLabel } from '@/constants/status';
 import { buildOrderQuery } from '@/utils/queryBuilders';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
@@ -34,17 +33,18 @@ import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
 
 function DashboardOrdersInner() {
   const { t } = useTranslation();
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
-  const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   // Derive role from capabilities for display purposes
-  const isBuyer = capabilities.can_buy === true;
-  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const isHybridCapability = isBuyer && isSeller;
   const currentRole = isHybridCapability ? 'hybrid' : isSeller ? 'seller' : 'buyer';
+  
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
@@ -58,53 +58,25 @@ function DashboardOrdersInner() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedOrderForReview, setSelectedOrderForReview] = useState(null);
   const [orderReviewStatus, setOrderReviewStatus] = useState({});
-  const [companyId, setCompanyId] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
-
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const profileCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
   
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ UNIFIED DASHBOARD KERNEL: Show loading spinner while system is not ready
+  if (!canLoadData && capabilities.loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilities.ready} />
       </div>
     );
   }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardOrders] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[DashboardOrders] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[DashboardOrders] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load orders
-    if (!profileCompanyId) {
-      console.log('[DashboardOrders] No company_id - cannot load orders');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
 
@@ -115,30 +87,28 @@ function DashboardOrdersInner() {
     
     if (shouldRefresh) {
       console.log('[DashboardOrders] Data is stale or first load - refreshing');
-      // Now safe to load data
       loadUserAndOrders();
       loadTemplates();
     } else {
       console.log('[DashboardOrders] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, viewMode, statusFilter, dateRangeFilter, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, viewMode, statusFilter, dateRangeFilter, location.pathname, isStale, navigate]);
 
   useEffect(() => {
     setShowBulkActions(selectedOrders.length > 0);
   }, [selectedOrders]);
 
   const loadUserAndOrders = async () => {
+    if (!profileCompanyId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      const userCompanyId = profile?.company_id || null;
-      setCompanyId(userCompanyId);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const userCompanyId = profileCompanyId;
 
       // ✅ FOUNDATION FIX: Build query based on capabilities instead of role
       const shouldLoadBuyerData = isBuyer && (viewMode === 'all' || viewMode === 'buyer');
@@ -156,11 +126,12 @@ function DashboardOrdersInner() {
         pageSize: pagination.pageSize
       });
 
+      // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId for all security assertions
       // SAFETY ASSERTION: Ensure every order belongs to the current company.
       const ordersData = Array.isArray(result.data) ? result.data : [];
-      if (userCompanyId) {
+      if (profileCompanyId) {
         for (const order of ordersData) {
-          await assertRowOwnedByCompany(order, userCompanyId, 'DashboardOrders:orders');
+          await assertRowOwnedByCompany(order, profileCompanyId, 'DashboardOrders:orders');
         }
       }
 
@@ -181,8 +152,9 @@ function DashboardOrdersInner() {
       }));
 
       // ✅ FOUNDATION FIX: Load review status for buyer's completed orders using capabilities
-      if (shouldLoadBuyerData && userCompanyId) {
-        await loadReviewStatus(ordersData, userCompanyId);
+      // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId for review status
+      if (shouldLoadBuyerData && profileCompanyId) {
+        await loadReviewStatus(ordersData, profileCompanyId);
       }
       
       // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
@@ -515,12 +487,24 @@ function DashboardOrdersInner() {
   ];
 
   // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading orders..." />;
-  }
-
   if (isLoading) {
     return <TableSkeleton rows={10} columns={6} />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+          if (shouldRefresh) {
+            loadUserAndOrders();
+          }
+        }}
+      />
+    );
   }
 
   return (

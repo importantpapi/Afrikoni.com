@@ -16,9 +16,10 @@ import { Textarea } from '@/components/shared/ui/textarea';
 import { Label } from '@/components/shared/ui/label';
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { 
   getEscrowPaymentsByCompany,
   updateEscrowStatus,
@@ -27,44 +28,57 @@ import {
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { logAdminEvent, logDisputeEvent } from '@/utils/auditLogger';
 
 export default function AdminDisputes() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [escrowPayments, setEscrowPayments] = useState([]);
   const [disputes, setDisputes] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDispute, setSelectedDispute] = useState(null);
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [resolutionAction, setResolutionAction] = useState('');
   const navigate = useNavigate();
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading disputes management..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/dashboard');
+    return null;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    navigate('/dashboard');
+    return null;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminDisputes] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: Check admin access
-    if (!user || !isAdmin(user)) {
-      navigate('/dashboard');
-      return;
-    }
-
-    // Now safe to load data
+    
     loadData();
-  }, [statusFilter, authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData, statusFilter]);
 
   const loadData = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-
       // Load all escrow payments
       const { data: allEscrows } = await supabase
         .from('escrow_payments')
@@ -99,6 +113,7 @@ export default function AdminDisputes() {
       }
     } catch (error) {
       console.error('Error loading disputes data:', error);
+      setError(error?.message || 'Failed to load disputes data');
       toast.error('Failed to load disputes data');
     } finally {
       setIsLoading(false);
@@ -115,7 +130,7 @@ export default function AdminDisputes() {
           escrow_id: escrowId,
           event_type: 'release',
           amount: amount,
-          created_by: user.id,
+          created_by: userId,
           metadata: { admin_action: true }
         });
         toast.success('Escrow released to seller');
@@ -125,7 +140,7 @@ export default function AdminDisputes() {
           escrow_id: escrowId,
           event_type: 'refund',
           amount: amount,
-          created_by: user.id,
+          created_by: userId,
           metadata: { admin_action: true }
         });
         toast.success('Escrow refunded to buyer');
@@ -254,6 +269,19 @@ export default function AdminDisputes() {
       <>
         <CardSkeleton count={3} />
       </>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadData();
+        }}
+      />
     );
   }
 

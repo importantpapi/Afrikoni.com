@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
@@ -18,14 +18,14 @@ import { format, subDays, startOfDay } from 'date-fns';
 import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardAnalyticsInner() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [analytics, setAnalytics] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [period, setPeriod] = useState('30');
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,50 +34,39 @@ function DashboardAnalyticsInner() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   
-  // Derive role from capabilities for display purposes
-  const isBuyer = capabilities.can_buy === true;
-  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  // ✅ KERNEL MIGRATION: Derive role from capabilities
+  const isBuyer = capabilities?.can_buy === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
   
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const profileCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
-  
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading analytics..." ready={isSystemReady} />
       </div>
     );
   }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    navigate('/login');
+    return null;
+  }
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardAnalytics] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[DashboardAnalytics] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[DashboardAnalytics] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load analytics
-    if (!profileCompanyId) {
-      console.log('[DashboardAnalytics] No company_id - cannot load analytics');
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'analytics.jsx:58',message:'HYPOTHESIS_E: useEffect entry - checking canLoadData',data:{canLoadData,profileCompanyId,userId,capabilitiesReady:capabilities.ready},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
+    // ✅ UNIFIED DASHBOARD KERNEL: Single guard replaces all scattered checks
+    if (!canLoadData) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'analytics.jsx:61',message:'HYPOTHESIS_E: canLoadData is false - early return',data:{canLoadData,userId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      if (!userId) {
+        console.log('[DashboardAnalytics] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
@@ -93,22 +82,26 @@ function DashboardAnalyticsInner() {
     } else {
       console.log('[DashboardAnalytics] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, period, viewMode, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, period, viewMode, location.pathname, isStale, navigate]);
 
   const loadUserAndAnalytics = async () => {
+    if (!canLoadData || !profileCompanyId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
-      
-      // Use auth from context (no duplicate call)
-      // Role derived from capabilities above
-      const companyId = profile?.company_id || null;
+      setError(null);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const companyId = profileCompanyId;
 
       const days = parseInt(period);
       const startDate = startOfDay(subDays(new Date(), days)).toISOString();
 
+      // ✅ DEBUG MODE FIX: Use currentRole instead of undefined 'normalizedRole'
       // Load analytics data based on role
-      const showBuyerAnalytics = (normalizedRole === 'buyer') || (normalizedRole === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'));
-      const showSellerAnalytics = (normalizedRole === 'seller') || (normalizedRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'));
+      const showBuyerAnalytics = (currentRole === 'buyer') || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'));
+      const showSellerAnalytics = (currentRole === 'seller') || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'));
 
       let buyerData = null;
       let sellerData = null;
@@ -275,8 +268,9 @@ function DashboardAnalyticsInner() {
         };
       }
 
+      // ✅ DEBUG MODE FIX: Use currentRole instead of undefined 'role'
       // For hybrid users, combine data if viewing 'all'
-      if (role === 'hybrid' && viewMode === 'all' && buyerData && sellerData) {
+      if (currentRole === 'hybrid' && viewMode === 'all' && buyerData && sellerData) {
         setChartData([...buyerData.chartData, ...sellerData.chartData]);
         setAnalytics({
           ...buyerData.analytics,
@@ -289,7 +283,7 @@ function DashboardAnalyticsInner() {
       } else if (sellerData) {
         setChartData(sellerData.chartData);
         setAnalytics(sellerData.analytics);
-      } else if (role === 'logistics') {
+      } else if (capabilities.can_logistics && capabilities.logistics_status === 'approved') {
         const [shipmentsRes, ordersRes] = await Promise.all([
           supabase
             .from('shipments')
@@ -343,8 +337,9 @@ function DashboardAnalyticsInner() {
         }
       }
     } catch (error) {
-      // Fail gracefully - treat as no data instead of error
+      // ✅ KERNEL MIGRATION: Enhanced error logging and state
       console.error('[DashboardAnalytics] Error loading analytics:', error);
+      setError(error?.message || 'Failed to load analytics');
       setAnalytics(null);
       setChartData([]);
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
@@ -358,6 +353,22 @@ function DashboardAnalyticsInner() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
       </div>
+    );
+  }
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
+          if (shouldRefresh) {
+            loadUserAndAnalytics();
+          }
+        }}
+      />
     );
   }
 

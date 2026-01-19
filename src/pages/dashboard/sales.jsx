@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -18,12 +19,12 @@ import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardSalesInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
-  const [currentRole, setCurrentRole] = useState(role || 'seller');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
@@ -33,45 +34,22 @@ function DashboardSalesInner() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   
-  // ✅ ARCHITECTURAL FIX: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const profileCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
-  
-  // ✅ ARCHITECTURAL FIX: Show loading spinner while capabilities are loading
-  // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't wrap here
-  if (capabilitiesLoading && !capabilitiesReady) {
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilitiesReady} />
+        <SpinnerWithTimeout message="Loading sales..." ready={isSystemReady} />
       </div>
     );
   }
 
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardSales] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[DashboardSales] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[DashboardSales] No user → redirecting to login');
-      navigate('/login');
-      return;
-    }
-
-    // GUARD: No company_id → cannot load sales
-    if (!profileCompanyId) {
-      console.log('[DashboardSales] No company_id - cannot load sales');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[DashboardSales] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
@@ -82,42 +60,41 @@ function DashboardSalesInner() {
     
     if (shouldRefresh) {
       console.log('[DashboardSales] Data is stale or first load - refreshing');
-      // Now safe to load data
       loadSales();
     } else {
       console.log('[DashboardSales] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, profileCompanyId, capabilitiesReady, capabilitiesLoading, statusFilter, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
   const loadSales = async () => {
+    if (!profileCompanyId) {
+      console.log('[DashboardSales] No company_id - cannot load sales');
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      const normalizedRole = role || 'seller';
-      setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      const { data: salesOrders, error: queryError } = await supabase
+        .from('orders')
+        .select('*, products(*)')
+        .eq('seller_company_id', profileCompanyId)
+        .order('created_at', { ascending: false });
+
+      if (queryError) throw queryError;
+
+      setOrders(salesOrders || []);
       
-      const companyId = profile?.company_id || null;
-
-      // Load orders where user is the seller
-      if (companyId) {
-        const { data: salesOrders } = await supabase
-          .from('orders')
-          .select('*, products(*)')
-          .eq('seller_company_id', companyId)
-          .order('created_at', { ascending: false });
-
-        setOrders(salesOrders || []);
-        
-        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
-        // Only mark fresh if we got actual data (not an error)
-        if (salesOrders && Array.isArray(salesOrders)) {
-          lastLoadTimeRef.current = Date.now();
-          markFresh();
-        }
+      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
+      if (salesOrders && Array.isArray(salesOrders)) {
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
       }
-    } catch (error) {
-      // Error logged (removed for production)
+    } catch (err) {
+      console.error('[DashboardSales] Error loading sales:', err);
+      setError(err.message || 'Failed to load sales');
       toast.error('Failed to load sales');
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
@@ -160,16 +137,18 @@ function DashboardSalesInner() {
     .filter(o => o.payment_status === 'pending')
     .reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading sales..." />;
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
-  if (isLoading) {
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadSales}
+      />
     );
   }
 
@@ -322,7 +301,7 @@ function DashboardSalesInner() {
                 title="No sales yet"
                 description="Start selling by adding products to your catalog."
                 cta="Add Products"
-                ctaLink="/products/add"
+                ctaLink="/dashboard/products/new"
               />
             ) : (
               <DataTable

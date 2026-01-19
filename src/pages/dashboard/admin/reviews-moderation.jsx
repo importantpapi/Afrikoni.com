@@ -6,8 +6,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -24,38 +25,51 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 // Component-level capability check not needed for admin pages
 
 function ReviewsModerationInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState('pending');
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
   const [adminNote, setAdminNote] = useState('');
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading reviews moderation..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    toast.error('Unauthorized access');
+    return null;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    toast.error('Unauthorized access');
+    return null;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[ReviewsModeration] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: Check admin access
-    if (!user || !profile?.is_admin) {
-      toast.error('Unauthorized access');
-      return;
-    }
-
-    // Now safe to load data
+    
     loadReviews();
-  }, [filterStatus, authReady, authLoading, user, profile, role]);
+  }, [canLoadData, filterStatus]);
 
   const loadReviews = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-
       // Load reviews with order and company details
       let query = supabase
         .from('reviews')
@@ -94,6 +108,7 @@ function ReviewsModerationInner() {
       setReviews(data || []);
     } catch (error) {
       console.error('Error in loadReviews:', error);
+      setError(error?.message || 'An error occurred while loading reviews');
       toast.error('An error occurred while loading reviews');
     } finally {
       setIsLoading(false);
@@ -112,7 +127,7 @@ function ReviewsModerationInner() {
         .update({
           status: 'approved',
           approved_at: new Date().toISOString(),
-          approved_by: (await supabase.auth.getUser()).data.user?.id
+          approved_by: userId
         })
         .eq('id', review.id);
 
@@ -141,7 +156,7 @@ function ReviewsModerationInner() {
         .from('reviews')
         .update({
           status: 'rejected',
-          approved_by: (await supabase.auth.getUser()).data.user?.id
+          approved_by: userId
         })
         .eq('id', review.id);
 

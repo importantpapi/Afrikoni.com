@@ -19,10 +19,11 @@ import { Textarea } from '@/components/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { toast } from 'sonner';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 import { format } from 'date-fns';
 
@@ -37,10 +38,10 @@ const AFRICAN_COUNTRIES = [
 ];
 
 export default function AdminSupplierManagement() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
-  const [hasAccess, setHasAccess] = useState(false);
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const [loading, setLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -64,32 +65,38 @@ export default function AdminSupplierManagement() {
     verification_status: 'unverified'
   });
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading supplier management..." ready={isSystemReady} />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  if (!userId) {
+    return <AccessDenied />;
+  }
+  
+  // ✅ KERNEL MIGRATION: Check admin access
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminSupplierManagement] Waiting for auth to be ready...');
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
       return;
     }
-
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    const admin = isAdmin(user);
-    setHasAccess(admin);
-    setLoading(false);
     
-    if (admin) {
-      loadSuppliers();
-    }
-  }, [authReady, authLoading, user, profile, role, statusFilter]);
+    loadSuppliers();
+  }, [canLoadData, statusFilter]);
 
   const loadSuppliers = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
+      setLoading(true);
+      setError(null);
       let query = supabase
         .from('companies')
         .select('*, profiles!companies_user_id_fkey(email, full_name)')
@@ -111,8 +118,11 @@ export default function AdminSupplierManagement() {
       setSuppliers(data || []);
     } catch (error) {
       console.error('Error loading suppliers:', error);
+      setError(error?.message || 'Failed to load suppliers');
       toast.error('Failed to load suppliers');
       setSuppliers([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -360,9 +370,18 @@ export default function AdminSupplierManagement() {
       </>
     );
   }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadSuppliers();
+        }}
+      />
+    );
   }
 
   return (

@@ -1,7 +1,6 @@
-import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeManager';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -9,10 +8,13 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 /**
  * =============================================================================
- * WorkspaceDashboard - PERSISTENT DASHBOARD LAYOUT
+ * WorkspaceDashboard - THE KERNEL HOST
  * =============================================================================
  * 
  * ARCHITECTURAL OWNERSHIP:
+ * - This component is now a pure Kernel Consumer
+ * - No longer imports useAuth() or useCapability() directly
+ * - Gets all state from useDashboardKernel() - Single Source of Truth
  * - This component OWNS the dashboard layout
  * - This component OWNS the realtime subscriptions (via DashboardRealtimeManager)
  * - Child routes render inside <Outlet /> and may unmount freely
@@ -27,38 +29,26 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
  * - DashboardRealtimeManager is rendered HERE (above Outlet)
  * - It renders null but owns the single Supabase channel
  * - Child pages (DashboardHome, OrdersPage, etc.) do NOT have realtime hooks
+ * 
+ * ✅ KERNEL MIGRATION COMPLETE:
+ * - Eliminated useAuth() import - Kernel provides userId
+ * - Eliminated useCapability() import - Kernel provides capabilities
+ * - Eliminated useMemo for capabilities - Kernel already memoized
+ * - Unified state machine via isSystemReady flag
+ * - No double initialization lag
  */
 export default function WorkspaceDashboard() {
-  // ===========================================================================
-  // ALL HOOKS FIRST (Rules of Hooks compliance)
-  // ===========================================================================
-  
-  const { user, profile, authReady } = useAuth();
-  const capabilities = useCapability();
   const location = useLocation();
   
-  // Memoize capabilities data for child components
-  const capabilitiesData = useMemo(() => ({
-    can_buy: capabilities.can_buy,
-    can_sell: capabilities.can_sell,
-    can_logistics: capabilities.can_logistics,
-    sell_status: capabilities.sell_status,
-    logistics_status: capabilities.logistics_status,
-    isHybrid: capabilities.can_buy && capabilities.can_sell,
-  }), [
-    capabilities.can_buy,
-    capabilities.can_sell,
-    capabilities.can_logistics,
-    capabilities.sell_status,
-    capabilities.logistics_status,
-  ]);
+  // ✅ KERNEL MIGRATION: Get everything from the Single Source of Truth
+  const { 
+    userId, 
+    profileCompanyId, 
+    capabilities, 
+    isSystemReady 
+  } = useDashboardKernel();
 
-  // ===========================================================================
-  // REALTIME CALLBACK (uses ref pattern internally)
-  // This callback is passed to DashboardRealtimeManager
-  // Child components can subscribe to updates via context if needed
-  // ===========================================================================
-  
+  // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
   const handleRealtimeUpdate = useCallback((payload) => {
     console.log('[WorkspaceDashboard] Realtime update:', payload.table, payload.event);
     // Updates are logged here - child components refresh their own data
@@ -66,49 +56,53 @@ export default function WorkspaceDashboard() {
   }, []);
 
   // ===========================================================================
-  // DERIVED VALUES (primitives for stability)
+  // RENDER GUARDS (Standardized via Kernel)
   // ===========================================================================
   
-  const companyId = profile?.company_id || null;
-  const userId = user?.id || null;
-  const realtimeEnabled = !!(authReady && capabilities.ready && companyId);
-
-  // ===========================================================================
-  // RENDER GUARDS (after all hooks)
-  // ===========================================================================
-  
-  if (!capabilities.ready) {
-    return <SpinnerWithTimeout message="Loading workspace..." ready={capabilities.ready} />;
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Initializing Workspace..." ready={isSystemReady} />;
   }
 
-  if (capabilities.error && !capabilities.ready) {
-    console.error('[WorkspaceDashboard] Capabilities error - blocking render');
-    return <SpinnerWithTimeout message="Loading workspace..." ready={capabilities.ready} />;
-  }
+  // ✅ KERNEL MIGRATION: Prepare capabilities data for DashboardLayout
+  // Kernel already provides memoized capabilities, but DashboardLayout expects specific shape
+  const capabilitiesData = {
+    can_buy: capabilities.can_buy,
+    can_sell: capabilities.can_sell,
+    can_logistics: capabilities.can_logistics,
+    sell_status: capabilities.sell_status,
+    logistics_status: capabilities.logistics_status,
+    isHybrid: capabilities.can_buy && capabilities.can_sell,
+  };
 
   // ===========================================================================
   // RENDER - Layout + RealtimeManager + Outlet
   // ===========================================================================
   
   return (
-    <DashboardLayout capabilities={capabilitiesData}>
-      {/* 
-        CRITICAL: DashboardRealtimeManager renders NULL but owns subscriptions.
-        It is placed HERE (in the layout) so it survives route changes.
-        Child routes (DashboardHome, OrdersPage, etc.) render via <Outlet />.
-      */}
-      <DashboardRealtimeManager
-        companyId={companyId}
-        userId={userId}
-        onUpdate={handleRealtimeUpdate}
-        enabled={realtimeEnabled}
-      />
-      
-      <ErrorBoundary fallbackMessage="Failed to load dashboard. Please try again.">
-        {/* ✅ REACTIVE READINESS FIX: Force component re-boot on navigation */}
-        {/* Outlet renders child routes - key forces re-mount on route change */}
-        <Outlet key={location.pathname} />
-      </ErrorBoundary>
-    </DashboardLayout>
+    <ErrorBoundary fallbackMessage="Dashboard layout error. Please refresh the page.">
+      {/* ✅ KERNEL MIGRATION: Pass Kernel capabilities directly to the Layout */}
+      <DashboardLayout capabilities={capabilitiesData}>
+        {/* 
+          CRITICAL: DashboardRealtimeManager renders NULL but owns subscriptions.
+          It is placed HERE (in the layout) so it survives route changes.
+          Child routes (DashboardHome, OrdersPage, etc.) render via <Outlet />.
+          
+          ✅ KERNEL MIGRATION: Use profileCompanyId from Kernel
+          This ensures realtime subscriptions never attempt with undefined company ID
+        */}
+        <DashboardRealtimeManager
+          companyId={profileCompanyId}
+          userId={userId}
+          onUpdate={handleRealtimeUpdate}
+          enabled={isSystemReady && !!profileCompanyId}
+        />
+        
+        <ErrorBoundary fallbackMessage="Failed to load dashboard page. Please try again.">
+          {/* ✅ REACTIVE READINESS FIX: Force component re-boot on navigation */}
+          {/* Outlet renders child routes - key forces re-mount on route change */}
+          <Outlet key={location.pathname} />
+        </ErrorBoundary>
+      </DashboardLayout>
+    </ErrorBoundary>
   );
 }

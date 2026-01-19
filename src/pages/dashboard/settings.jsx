@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import { LogOut } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -18,7 +20,6 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/shared/ui/switch';
 import { useTranslation } from 'react-i18next';
 import CookieSettingsModal from '@/components/shared/ui/CookieSettingsModal';
-import { useCapability } from '@/context/CapabilityContext';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
 
@@ -87,40 +88,33 @@ export default function DashboardSettings() {
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [showCookieModal, setShowCookieModal] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, user, profile } = useDashboardKernel();
 
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
 
-  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const userCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading settings..." ready={isSystemReady} />
+      </div>
+    );
+  }
 
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[DashboardSettings] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[DashboardSettings] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → redirect to login
-    if (!userId) {
-      console.log('[DashboardSettings] No user → redirecting to login');
-      navigate('/login');
+    if (!canLoadData) {
+      if (!userId) {
+        console.log('[DashboardSettings] No user → redirecting to login');
+        navigate('/login');
+      }
       return;
     }
 
@@ -129,34 +123,25 @@ export default function DashboardSettings() {
                          !lastLoadTimeRef.current || 
                          (Date.now() - lastLoadTimeRef.current > 30000);
     
-    // ✅ TOTAL SYSTEM SYNC: Dependency audit - log useEffect trigger
-    console.log('[DashboardSettings] useEffect triggered:', {
-      authReady,
-      authLoading,
-      userId,
-      userCompanyId,
-      capabilitiesReady,
-      capabilitiesLoading,
-      pathname: location.pathname,
-      isStale,
-      shouldRefresh,
-      lastLoadTime: lastLoadTimeRef.current ? new Date(lastLoadTimeRef.current).toISOString() : 'never',
-    });
-    
     if (shouldRefresh) {
       console.log('[DashboardSettings] Data is stale or first load - refreshing');
       loadUserData();
     } else {
       console.log('[DashboardSettings] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale, navigate]);
+  }, [canLoadData, userId, profileCompanyId, location.pathname, isStale, navigate]);
 
   const loadUserData = async () => {
+    if (!user || !profile) {
+      console.log('[DashboardSettings] User or profile not available');
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      // ✅ GLOBAL HARDENING: Derive role from capabilities instead of role prop
+      // ✅ KERNEL MIGRATION: Derive role from capabilities
       const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
       const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
       const normalizedRole = isLogistics ? 'logistics' : (isSeller ? 'seller' : 'buyer');
@@ -164,7 +149,7 @@ export default function DashboardSettings() {
 
       setUserData(user);
       
-      // Use profile from context (already loaded)
+      // Use profile from kernel (already loaded)
       const profileData = profile || {};
       
       setFormData({
@@ -207,11 +192,13 @@ export default function DashboardSettings() {
       // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
-    } catch (error) {
-      // ✅ GLOBAL HARDENING: Enhanced error logging
-      logError('loadUserData', error, {
+    } catch (err) {
+      // ✅ KERNEL MIGRATION: Enhanced error handling
+      console.error('[DashboardSettings] Error loading user data:', err);
+      setError(err.message || 'Failed to load settings');
+      logError('loadUserData', err, {
         table: 'profiles',
-        companyId: userCompanyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       toast.error('Failed to load settings');
@@ -305,22 +292,21 @@ export default function DashboardSettings() {
   const generateApiKey = async () => {
     if (!confirm('Regenerating API key will invalidate the current key. Continue?')) return;
 
-    // GUARD: Check auth
-    if (!authReady || !user) {
+    // ✅ KERNEL MIGRATION: Check canLoadData instead of authReady
+    if (!canLoadData || !user) {
       toast.error('User not authenticated');
       return;
     }
 
     setIsSaving(true);
     try {
-      // Use auth from context (no duplicate call)
-
+      // ✅ KERNEL MIGRATION: Use userId from kernel
       const newApiKey = `afk_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       
       const { error } = await supabase
         .from('profiles')
         .update({ api_key: newApiKey })
-        .eq('id', user.id);
+        .eq('id', userId);
 
       if (error) throw error;
 
@@ -334,22 +320,21 @@ export default function DashboardSettings() {
   };
 
   const handleSave = async (tab = 'profile') => {
-    // GUARD: Check auth
-    if (!authReady || !user) {
+    // ✅ KERNEL MIGRATION: Check canLoadData instead of authReady
+    if (!canLoadData || !user) {
       toast.error('User not authenticated');
       return;
     }
 
     setIsSaving(true);
     try {
-      // Use auth from context (no duplicate call)
-
+      // ✅ KERNEL MIGRATION: Use userId from kernel
       if (tab === 'profile') {
         // Update profile with name and avatar
         await supabase
           .from('profiles')
           .upsert({
-            id: user.id,
+            id: userId,
             name: formData.name || formData.full_name,
             phone: formData.phone,
             avatar_url: avatarUrl,
@@ -359,6 +344,9 @@ export default function DashboardSettings() {
       }
 
       if (tab === 'company') {
+        // Note: supabaseHelpers.auth.updateMe may need profileCompanyId
+        // Keeping original for now as it may handle company updates differently
+        const { supabaseHelpers } = await import('@/api/supabaseClient');
         await supabaseHelpers.auth.updateMe(formData);
       }
 
@@ -379,7 +367,7 @@ export default function DashboardSettings() {
               payments: preferences.payments
             }
           })
-          .eq('id', user.id);
+          .eq('id', userId);
       }
 
       if (tab === 'security') {
@@ -390,7 +378,7 @@ export default function DashboardSettings() {
             language: preferences.language,
             currency: preferences.currency
           })
-          .eq('id', user.id);
+          .eq('id', userId);
       }
 
       toast.success('Settings saved successfully');
@@ -406,16 +394,18 @@ export default function DashboardSettings() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading settings..." />;
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
-  if (isLoading) {
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadUserData}
+      />
     );
   }
 
@@ -638,19 +628,19 @@ export default function DashboardSettings() {
                           <SelectValue placeholder={translate('settings.selectBusinessType', 'Select business type')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="manufacturer">{t('onboarding.businessType.manufacturer')}</SelectItem>
-                          <SelectItem value="wholesaler">{t('onboarding.businessType.wholesaler')}</SelectItem>
-                          <SelectItem value="distributor">{t('onboarding.businessType.distributor')}</SelectItem>
-                          <SelectItem value="trading_company">{t('onboarding.businessType.trader')}</SelectItem>
-                          <SelectItem value="logistics_provider">{t('onboarding.businessType.serviceProvider')}</SelectItem>
+                          <SelectItem value="manufacturer">{translate('onboarding.businessType.manufacturer', 'Manufacturer')}</SelectItem>
+                          <SelectItem value="wholesaler">{translate('onboarding.businessType.wholesaler', 'Wholesaler')}</SelectItem>
+                          <SelectItem value="distributor">{translate('onboarding.businessType.distributor', 'Distributor')}</SelectItem>
+                          <SelectItem value="trading_company">{translate('onboarding.businessType.trader', 'Trading Company')}</SelectItem>
+                          <SelectItem value="logistics_provider">{translate('onboarding.businessType.serviceProvider', 'Logistics Provider')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="country">{t('onboarding.country')}</Label>
+                      <Label htmlFor="country">{translate('onboarding.country', 'Country')}</Label>
                       <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('onboarding.selectCountry')} />
+                          <SelectValue placeholder={translate('onboarding.selectCountry', 'Select country')} />
                         </SelectTrigger>
                         <SelectContent>
                           {AFRICAN_COUNTRIES.map(country => (
@@ -663,7 +653,7 @@ export default function DashboardSettings() {
                   
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="city">{t('onboarding.city')}</Label>
+                      <Label htmlFor="city">{translate('onboarding.city', 'City')}</Label>
                       <Input
                         id="city"
                         value={formData.city}
@@ -703,7 +693,7 @@ export default function DashboardSettings() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="website">{t('onboarding.website')}</Label>
+                      <Label htmlFor="website">{translate('onboarding.website', 'Website')}</Label>
                       <Input
                         id="website"
                         value={formData.website}

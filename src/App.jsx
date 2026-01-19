@@ -37,7 +37,7 @@ import Countries from './pages/countries';
 import HowItWorks from './pages/how-it-works';
 
 /* ===== Dashboard shell ===== */
-import Dashboard from './pages/dashboard';
+import Dashboard from './pages/dashboard/WorkspaceDashboard';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import PostLoginRouter from './auth/PostLoginRouter';
 
@@ -530,12 +530,11 @@ function App() {
   return (
     <LanguageProvider>
       <CurrencyProvider>
-        {/* ✅ CRITICAL: AuthProvider MUST come before RoleProvider */}
+        {/* ✅ CRITICAL: AuthProvider MUST come before UserProvider and RoleProvider */}
         <AuthProvider>
           <UserProvider>
-            {/* ✅ RoleProvider now uses AuthProvider's data */}
+            {/* ✅ RoleProvider uses AuthProvider's data */}
             <RoleProvider>
-
               <ScrollToTop />
               <Toaster position="top-right" />
               
@@ -543,10 +542,9 @@ function App() {
               <DebugAuth />
 
               <AppContent />
-
             </RoleProvider>
           </UserProvider>
-          </AuthProvider>
+        </AuthProvider>
       </CurrencyProvider>
     </LanguageProvider>
   );

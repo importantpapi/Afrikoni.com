@@ -6,8 +6,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
@@ -19,11 +21,13 @@ import { motion } from 'framer-motion';
 import RequireCapability from '@/guards/RequireCapability';
 
 function ReviewsDashboardInner() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const [company, setCompany] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [stats, setStats] = useState({
     trustScore: 50,
     averageRating: 0,
@@ -31,22 +35,23 @@ function ReviewsDashboardInner() {
     breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
   });
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading reviews..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[ReviewsDashboard] Waiting for auth to be ready...');
+    if (!canLoadData) {
       return;
     }
 
-    // GUARD: No user → return early
-    if (!user) {
-      console.log('[ReviewsDashboard] No user');
-      return;
-    }
-
-    // Now safe to load data
     loadReviewsData();
-  }, [authReady, authLoading, user, profile, role]);
+  }, [canLoadData]);
 
   const loadReviewsData = async () => {
     try {
@@ -113,26 +118,26 @@ function ReviewsDashboardInner() {
         breakdown
       });
 
-    } catch (error) {
-      console.error('Error in loadReviewsData:', error);
+    } catch (err) {
+      console.error('[ReviewsDashboard] Error in loadReviewsData:', err);
+      setError(err.message || 'Failed to load reviews');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading reviews..." />;
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
-  if (isLoading) {
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-afrikoni-chestnut">Reviews & Trust Score</h1>
-        <div className="text-center py-12">
-          <p className="text-afrikoni-deep/60">Loading reviews...</p>
-        </div>
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadReviewsData}
+      />
     );
   }
 

@@ -7,9 +7,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { useCapability } from '@/context/CapabilityContext';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
@@ -40,16 +41,15 @@ const TEAM_ROLES = [
 import RequireCapability from '@/guards/RequireCapability';
 
 function TeamMembersInner() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  
   const location = useLocation();
-  const [companyId, setCompanyId] = useState(null);
   // Derive role from capabilities for display purposes
-  const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const currentRole = isSeller ? 'seller' : 'buyer';
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('free');
@@ -58,12 +58,6 @@ function TeamMembersInner() {
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
-
-  // ✅ GLOBAL HARDENING: Extract primitives for dependencies
-  const userId = user?.id || null;
-  const userCompanyId = profile?.company_id || null;
-  const capabilitiesReady = capabilities?.ready || false;
-  const capabilitiesLoading = capabilities?.loading || false;
   
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -109,66 +103,57 @@ function TeamMembersInner() {
   }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale]);
 
   const loadData = async () => {
+    if (!profileCompanyId) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      setCompanyId(userCompanyId);
-      // Role derived from capabilities above
-
+      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load subscription status
-      if (userCompanyId) {
-        try {
-          const subscription = await getCompanySubscription(userCompanyId);
-          setCurrentPlan(subscription?.plan_type || 'free');
-        } catch (error) {
-          // ✅ GLOBAL HARDENING: Enhanced error logging
-          logError('loadData-subscription', error, {
-            companyId: userCompanyId,
-            userId: userId
-          });
-        }
-
-        // Load team members - Fix: Better error handling
-        try {
-          const { data: teamData, error: teamError } = await supabase
-            .from('company_team')
-            .select('*')
-            .eq('company_id', userCompanyId)
-            .order('created_at', { ascending: false });
-
-          // ✅ GLOBAL HARDENING: Enhanced error logging
-          if (teamError) {
-            logError('loadData-team', teamError, {
-              table: 'company_team',
-              companyId: userCompanyId,
-              userId: userId
-            });
-            // Don't throw - just log and set empty array
-            setTeamMembers([]);
-            return; // Don't mark fresh on error
-          } else {
-            setTeamMembers(teamData || []);
-          }
-        } catch (teamLoadError) {
-          logError('loadData-team', teamLoadError, {
-            table: 'company_team',
-            companyId: userCompanyId,
-            userId: userId
-          });
-          setTeamMembers([]);
-          return; // Don't mark fresh on error
-        }
-        
-        // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
-        lastLoadTimeRef.current = Date.now();
-        markFresh();
+      try {
+        const subscription = await getCompanySubscription(profileCompanyId);
+        setCurrentPlan(subscription?.plan_type || 'free');
+      } catch (err) {
+        // ✅ GLOBAL HARDENING: Enhanced error logging
+        logError('loadData-subscription', err, {
+          companyId: profileCompanyId,
+          userId: userId
+        });
       }
-    } catch (error) {
-      logError('loadData', error, {
+
+      // Load team members - Fix: Better error handling
+      const { data: teamData, error: teamError } = await supabase
+        .from('company_team')
+        .select('*')
+        .eq('company_id', profileCompanyId)
+        .order('created_at', { ascending: false });
+
+      // ✅ GLOBAL HARDENING: Enhanced error logging
+      if (teamError) {
+        logError('loadData-team', teamError, {
+          table: 'company_team',
+          companyId: profileCompanyId,
+          userId: userId
+        });
+        throw teamError;
+      }
+      
+      setTeamMembers(teamData || []);
+      
+      // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
+    } catch (err) {
+      logError('loadData', err, {
         table: 'company_team',
-        companyId: userCompanyId,
+        companyId: profileCompanyId,
         userId: userId
       });
+      setError(err.message || 'Failed to load team members');
       toast.error('Failed to load team members');
     } finally {
       setIsLoading(false);
@@ -176,7 +161,7 @@ function TeamMembersInner() {
   };
 
   const handleInviteMember = async () => {
-    if (!inviteForm.email || !companyId) {
+    if (!inviteForm.email || !profileCompanyId) {
       toast.error('Please enter an email address');
       return;
     }
@@ -196,10 +181,11 @@ function TeamMembersInner() {
 
     setIsInviting(true);
     try {
+      // ✅ KERNEL MIGRATION: Use profileCompanyId and userId from kernel
       const { error } = await supabase
         .from('company_team')
         .insert({
-          company_id: companyId,
+          company_id: profileCompanyId,
           member_email: inviteForm.email,
           member_name: inviteForm.name || null,
           role_label: inviteForm.role,
@@ -210,7 +196,7 @@ function TeamMembersInner() {
           can_manage_orders: inviteForm.can_manage_orders,
           can_manage_rfqs: inviteForm.can_manage_rfqs,
           invited_at: new Date().toISOString(),
-          created_by: user.id
+          created_by: userId
         });
 
       if (error) throw error;
@@ -255,7 +241,7 @@ function TeamMembersInner() {
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('handleUpdatePermissions', error, {
         table: 'company_team',
-        companyId: companyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       toast.error('Failed to update permissions');
@@ -306,16 +292,18 @@ function TeamMembersInner() {
   const activeMembersCount = teamMembers.filter(m => m.status === 'active').length;
   const maxMembers = currentPlan === 'free' ? 1 : currentPlan === 'growth' ? 3 : 999;
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading team members..." />;
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
-  if (isLoading) {
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={loadData}
+      />
     );
   }
 

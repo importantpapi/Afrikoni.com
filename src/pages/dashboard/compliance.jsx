@@ -20,18 +20,21 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
 // Removed mock data imports - using real database queries
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { CardSkeleton } from '@/components/shared/ui/skeletons';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function ComplianceCenter() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
+  
   // All hooks must be at the top - before any conditional returns
-  const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(false); // Local loading state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [docFilter, setDocFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
   const [taskSort, setTaskSort] = useState('dueDate');
@@ -52,30 +55,28 @@ export default function ComplianceCenter() {
   const [complianceTasks, setComplianceTasks] = useState([]);
   const [certificates, setCertificates] = useState([]);
 
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading compliance..." ready={isSystemReady} />
+      </div>
+    );
+  }
+
+  // ✅ KERNEL MIGRATION: Check admin access using kernel
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[ComplianceCenter] Waiting for auth to be ready...');
+    if (!canLoadData) {
       return;
     }
 
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    // Check admin access
-    setHasAccess(isAdmin(user));
-    setLoading(false);
-  }, [authReady, authLoading, user, profile, role]);
-
-  useEffect(() => {
-    if (hasAccess && authReady) {
-      loadComplianceData();
-    }
-  }, [hasAccess, authReady]);
+    loadComplianceData();
+  }, [canLoadData]);
 
   const loadComplianceData = async () => {
     try {
@@ -227,21 +228,27 @@ export default function ComplianceCenter() {
 
       setCertificates(certs);
 
-    } catch (error) {
-      console.error('Error loading compliance data:', error);
+    } catch (err) {
+      console.error('[ComplianceCenter] Error loading compliance data:', err);
+      setError(err.message || 'Failed to load compliance data');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // ✅ KERNEL MIGRATION: Use unified loading state
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-afrikoni-text-dark/70">Loading...</div>
-      </div>
-    );
+    return <CardSkeleton count={3} />;
   }
 
-  if (!hasAccess) {
-    return <AccessDenied />;
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={loadComplianceData}
+      />
+    );
   }
 
   const filteredDocuments = docFilter === 'all'

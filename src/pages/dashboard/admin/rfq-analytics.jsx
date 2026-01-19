@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { FileText, TrendingUp, CheckCircle, DollarSign } from 'lucide-react';
@@ -10,8 +11,8 @@ import { toast } from 'sonner';
 import { RFQ_STATUS } from '@/constants/status';
 
 export default function RFQAnalytics() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState({
     posted: 0,
@@ -20,6 +21,7 @@ export default function RFQAnalytics() {
     totalValue: 0
   });
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -29,7 +31,7 @@ export default function RFQAnalytics() {
     }
 
     // GUARD: Check admin access
-    if (!user || role !== 'admin') {
+    if (!user || !isAdmin) {
       toast.error('Admin access required');
       navigate('/dashboard');
       return;
@@ -37,13 +39,16 @@ export default function RFQAnalytics() {
 
     // Now safe to load data
     loadAnalytics();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+  }, [authReady, authLoading, user, profile, isAdmin, navigate]);
 
   const loadAnalytics = async () => {
+    if (!canLoadData) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
-      
-      // Use auth from context (no duplicate call)
+      setError(null);
 
       // RFQs Posted (all RFQs)
       const { count: postedCount } = await supabase
@@ -80,6 +85,7 @@ export default function RFQAnalytics() {
       });
     } catch (error) {
       console.error('Error loading analytics:', error);
+      setError(error?.message || 'Failed to load analytics');
       toast.error('Failed to load analytics');
     } finally {
       setIsLoading(false);
@@ -93,6 +99,19 @@ export default function RFQAnalytics() {
   const matchRate = analytics.posted > 0
     ? ((analytics.matched / analytics.posted) * 100).toFixed(1)
     : '0.0';
+  
+  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (error) {
+    return (
+      <ErrorState 
+        message={error} 
+        onRetry={() => {
+          setError(null);
+          loadAnalytics();
+        }}
+      />
+    );
+  }
 
   return (
     <>

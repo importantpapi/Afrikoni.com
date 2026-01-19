@@ -18,7 +18,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import { isAdmin } from '@/utils/permissions';
+// NOTE: Admin check done at route level - removed isAdmin import
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import AccessDenied from '@/components/AccessDenied';
@@ -75,8 +75,8 @@ export default function AdminMarketplace() {
       return;
     }
 
-    // Check admin access
-    const admin = isAdmin(user);
+    // Check admin access - route-level protection ensures admin, but check profile for consistency
+    const admin = profile?.is_admin === true;
     setHasAccess(admin);
     setLoading(false);
     
