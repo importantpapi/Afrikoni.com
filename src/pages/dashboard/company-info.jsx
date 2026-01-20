@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { useCapability } from '@/context/CapabilityContext';
 import { logError } from '@/utils/errorLogger';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
@@ -61,8 +60,6 @@ const validateCompanyForm = (formData) => {
 export default function CompanyInfo() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  // ✅ KERNEL-CENTRIC: Import useCapability to check ready state
-  const { ready } = useCapability();
   
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
@@ -100,16 +97,7 @@ export default function CompanyInfo() {
   const [currentRole, setCurrentRole] = useState(capabilities?.role || 'buyer');
   const [errors, setErrors] = useState({});
 
-  // ✅ KERNEL-CENTRIC: Check ready state from Kernel - ONLY render when ready === true
-  if (!ready) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SpinnerWithTimeout message="Loading company information..." ready={ready} />
-      </div>
-    );
-  }
-  
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state (UI Gate)
   if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center min-h-screen">

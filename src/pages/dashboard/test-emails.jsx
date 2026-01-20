@@ -24,8 +24,20 @@ import {
 import { supabase } from '@/api/supabaseClient';
 import { Mail, Send, CheckCircle, XCircle, AlertCircle, TestTube, Bug } from 'lucide-react';
 import { testResendAPIDirectly } from '@/utils/testResendAPI';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 export default function TestEmails() {
+  const { isSystemReady } = useDashboardKernel();
+
+  // ✅ KERNEL COMPLIANCE: UI Gate for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading email testing..." ready={isSystemReady} />
+      </div>
+    );
+  }
   const [testEmail, setTestEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [results, setResults] = useState({});

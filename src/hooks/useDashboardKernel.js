@@ -136,7 +136,7 @@ export function useDashboardKernel() {
                   }
                   // Last attempt - profile doesn't exist, redirect to onboarding
                   console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
-                  window.location.href = '/onboarding/company';
+                  navigate('/onboarding/company', { replace: true });
                   return;
                 }
                 // Other errors - throw
@@ -150,7 +150,7 @@ export function useDashboardKernel() {
               } else {
                 // Profile is null after refresh - redirect to onboarding
                 console.warn('[useDashboardKernel] Profile is null after refresh - redirecting to onboarding');
-                window.location.href = '/onboarding/company';
+                navigate('/onboarding/company', { replace: true });
                 return;
               }
             }
@@ -173,7 +173,7 @@ export function useDashboardKernel() {
               }
               // Last attempt - profile not found, redirect to onboarding
               console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
-              window.location.href = '/onboarding/company';
+              navigate('/onboarding/company', { replace: true });
               return;
             }
             

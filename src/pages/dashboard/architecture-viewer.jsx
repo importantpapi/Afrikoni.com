@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, AlertTriangle, Database, Shield, Users, Layout, GitBranch, Settings } from 'lucide-react';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 const AfrikoniArchitecture = () => {
+  const { isSystemReady } = useDashboardKernel();
+
+  // ✅ KERNEL COMPLIANCE: UI Gate for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading architecture viewer..." ready={isSystemReady} />
+      </div>
+    );
+  }
   const [activeView, setActiveView] = useState('boot');
   const [expandedSections, setExpandedSections] = useState({
     auth: true,

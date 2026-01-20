@@ -58,7 +58,6 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSynchronizing, setIsSynchronizing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
@@ -216,7 +215,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
-                    disabled={isLoading || isSynchronizing}
+                    disabled={isLoading}
                     required
                   />
                 </div>
@@ -234,7 +233,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
-                    disabled={isLoading || isSynchronizing}
+                    disabled={isLoading}
                     required
                   />
                   <button

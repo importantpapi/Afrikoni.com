@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import RequireCapability from '@/guards/RequireCapability';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -27,7 +28,16 @@ export default function DashboardHelp() {
   const [openFaq, setOpenFaq] = useState(null);
   const navigate = useNavigate();
   // ✅ KERNEL MIGRATION: Use capabilities from kernel
-  const { capabilities } = useDashboardKernel();
+  const { capabilities, isSystemReady } = useDashboardKernel();
+  
+  // ✅ KERNEL COMPLIANCE: UI Gate for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading help center..." ready={isSystemReady} />
+      </div>
+    );
+  }
   // ✅ KERNEL MIGRATION: Derive visibility from capabilities
   const isBuyer = capabilities?.can_buy === true;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';

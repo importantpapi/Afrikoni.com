@@ -13,6 +13,8 @@ import { getCommissionSummary } from '@/utils/commissionCalculator';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 /**
  * Founder Control Panel
@@ -21,6 +23,16 @@ import { cn } from '@/lib/utils';
  */
 
 export default function FounderControlPanel() {
+  const { isSystemReady } = useDashboardKernel();
+
+  // ✅ KERNEL COMPLIANCE: UI Gate for loading state
+  if (!isSystemReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading control panel..." ready={isSystemReady} />
+      </div>
+    );
+  }
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('active'); // 'active' | 'all' | 'stalled'
