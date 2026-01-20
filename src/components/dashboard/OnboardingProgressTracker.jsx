@@ -23,6 +23,11 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // ✅ SCHEMA ALIGNMENT: Guard with companyId check before loading
+    if (!companyId) {
+      setIsLoading(false);
+      return;
+    }
     loadProgress();
   }, [companyId, userId]);
 
@@ -48,11 +53,11 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
       // Check verification status
       let verificationComplete = false;
       try {
+        // ✅ SCHEMA ALIGNMENT: KYC verifications table uses company_id only (no user_id column)
         const { data: verification, error: verificationError } = await supabase
           .from('kyc_verifications')
           .select('status')
           .eq('company_id', companyId)
-          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows
@@ -81,16 +86,18 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
       // Check if has interactions (RFQ or message)
       let hasInteractions = false;
       try {
+        // ✅ SCHEMA ALIGNMENT: RFQs table uses buyer_company_id (not company_id)
         const { data: rfqs } = await supabase
           .from('rfqs')
           .select('id')
-          .eq('company_id', companyId)
+          .eq('buyer_company_id', companyId)
           .limit(1);
 
+        // ✅ SCHEMA ALIGNMENT: Messages table uses sender_company_id and receiver_company_id (not sender_id/receiver_id)
         const { data: messages } = await supabase
           .from('messages')
           .select('id')
-          .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+          .or(`sender_company_id.eq.${companyId},receiver_company_id.eq.${companyId}`)
           .limit(1);
 
         hasInteractions = (rfqs && rfqs.length > 0) || (messages && messages.length > 0);

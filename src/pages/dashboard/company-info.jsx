@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { useCapability } from '@/context/CapabilityContext';
 import { logError } from '@/utils/errorLogger';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
@@ -60,6 +61,8 @@ const validateCompanyForm = (formData) => {
 export default function CompanyInfo() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  // ✅ KERNEL-CENTRIC: Import useCapability to check ready state
+  const { ready } = useCapability();
   
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
@@ -97,6 +100,15 @@ export default function CompanyInfo() {
   const [currentRole, setCurrentRole] = useState(capabilities?.role || 'buyer');
   const [errors, setErrors] = useState({});
 
+  // ✅ KERNEL-CENTRIC: Check ready state from Kernel - ONLY render when ready === true
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <SpinnerWithTimeout message="Loading company information..." ready={ready} />
+      </div>
+    );
+  }
+  
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
     return (
@@ -433,14 +445,21 @@ export default function CompanyInfo() {
       
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // If profile has company_id, load company data
+      // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle() for companies
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
         .eq('id', profileCompanyId)
-        .maybeSingle();
+        .single();
 
-        // ✅ GLOBAL HARDENING: Enhanced error logging
+        // ✅ GLOBAL HARDENING: Enhanced error logging with PGRST116 handling
         if (companyError) {
+          // Handle PGRST116 (not found) - company doesn't exist, redirect to onboarding
+          if (companyError.code === 'PGRST116') {
+            console.warn('[CompanyInfo] Company not found - redirecting to onboarding');
+            navigate('/onboarding/company', { replace: true });
+            return;
+          }
           logError('loadData-companies', companyError, {
             table: 'companies',
             companyId: profileCompanyId,
@@ -466,7 +485,7 @@ export default function CompanyInfo() {
             company_description: companyData.description || ''
           });
           setLogoUrl(companyData.logo_url || '');
-          setCoverUrl(companyData.cover_image_url || companyData.cover_url || '');
+          setCoverUrl(companyData.cover_image_url ?? companyData.cover_url ?? ''); // ✅ KERNEL-CENTRIC: Vibranium defaults
           setGalleryImages(Array.isArray(companyData.gallery_images) ? companyData.gallery_images : []);
         } else {
           // No company data yet - set default email if available
@@ -478,7 +497,7 @@ export default function CompanyInfo() {
           }
         }
         
-        // Load team members
+        // ✅ SCHEMA ALIGNMENT: Load team members (table now exists with required columns)
         if (profileCompanyId) {
           const { data: teamData, error: teamError } = await supabase
             .from('company_team')
@@ -488,14 +507,21 @@ export default function CompanyInfo() {
           
           // ✅ GLOBAL HARDENING: Enhanced error logging
           if (teamError) {
-            logError('loadData-team', teamError, {
-              table: 'company_team',
-              companyId: profileCompanyId,
-              userId: userId
-            });
+            // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+            if (teamError.code === 'PGRST204' || teamError.code === 'PGRST205') {
+              console.warn('[CompanyInfo] Schema mismatch (PGRST204/205) - continuing with empty team');
+              setTeamMembers([]);
+            } else {
+              logError('loadData-team', teamError, {
+                table: 'company_team',
+                companyId: profileCompanyId,
+                userId: userId
+              });
+              setTeamMembers([]);
+            }
+          } else {
+            setTeamMembers(teamData || []);
           }
-          
-          setTeamMembers(teamData || []);
         }
         
         // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
@@ -508,6 +534,13 @@ export default function CompanyInfo() {
         const normalizedRole = isLogistics ? 'logistics' : (isSeller ? 'seller' : 'buyer');
         setCurrentRole(normalizedRole);
     } catch (err) {
+      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+      if (err?.code === 'PGRST204' || err?.code === 'PGRST205') {
+        console.warn('[CompanyInfo] Schema mismatch (PGRST204/205) - ignoring error');
+        // Don't set error state - allow UI to continue
+        return;
+      }
+      
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('loadData', err, {
         table: 'companies',
@@ -519,6 +552,7 @@ export default function CompanyInfo() {
         toast.error('Failed to load company information');
       }
     } finally {
+      // ✅ VIBRANIUM STABILIZATION: Always reset loading state (non-negotiable)
       if (isMounted) {
         clearTimeout(timeoutId);
         setIsLoading(false);
@@ -615,7 +649,7 @@ export default function CompanyInfo() {
             employee_count: formData.company_size || '1-10',
             description: formData.company_description || null,
             logo_url: logoUrl || null,
-            cover_image_url: coverUrl || null,
+            cover_image_url: coverUrl ?? null, // ✅ KERNEL-CENTRIC: Vibranium defaults
             gallery_images: galleryImages || null
           })
           .eq('id', profileCompanyId);
@@ -660,7 +694,7 @@ export default function CompanyInfo() {
           employee_count: formData.company_size || '1-10',
           description: formData.company_description || null,
           logo_url: logoUrl || null,
-          cover_image_url: coverUrl || null,
+          cover_url: coverUrl || null,
           gallery_images: galleryImages || null,
           verified: false,
           verification_status: 'unverified'

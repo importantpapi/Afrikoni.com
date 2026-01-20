@@ -141,11 +141,29 @@ export default function OnboardingTracker() {
       const stuck = [];
       for (const event of events || []) {
         // Check if they signed up
-        const { data: company } = await supabase
-          .from('companies')
-          .select('id, created_at')
-          .eq('owner_email', event.email)
-          .maybeSingle();
+        // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+        let company = null;
+        try {
+          const { data, error: companyError } = await supabase
+            .from('companies')
+            .select('id, created_at')
+            .eq('owner_email', event.email)
+            .single();
+          
+          if (companyError) {
+            // Handle PGRST116 (not found) - company doesn't exist yet, this is OK
+            if (companyError.code !== 'PGRST116') {
+              console.error('[OnboardingTracker] Error loading company:', companyError);
+            }
+          } else {
+            company = data;
+          }
+        } catch (error) {
+          // PGRST116 (not found) is expected - company may not exist yet
+          if (error?.code !== 'PGRST116') {
+            console.error('[OnboardingTracker] Error loading company:', error);
+          }
+        }
 
         if (!company) {
           stuck.push({ ...event, stage: 'invited', days: Math.floor((Date.now() - new Date(event.created_at)) / (1000 * 60 * 60 * 24)) });
@@ -153,11 +171,29 @@ export default function OnboardingTracker() {
         }
 
         // Check if profile complete
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('company_id', company.id)
-          .maybeSingle();
+        // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+        let profile = null;
+        try {
+          const { data, error: profileError } = await supabase
+            .from('profiles')
+            .select('onboarding_completed')
+            .eq('company_id', company.id)
+            .single();
+          
+          if (profileError) {
+            // Handle PGRST116 (not found) - profile doesn't exist yet, this is OK
+            if (profileError.code !== 'PGRST116') {
+              console.error('[OnboardingTracker] Error loading profile:', profileError);
+            }
+          } else {
+            profile = data;
+          }
+        } catch (error) {
+          // PGRST116 (not found) is expected - profile may not exist yet
+          if (error?.code !== 'PGRST116') {
+            console.error('[OnboardingTracker] Error loading profile:', error);
+          }
+        }
 
         if (!profile?.onboarding_completed) {
           stuck.push({ ...event, stage: 'signed_up', days: Math.floor((Date.now() - new Date(company.created_at)) / (1000 * 60 * 60 * 24)) });

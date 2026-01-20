@@ -17,6 +17,8 @@ import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
 import { logLoginEvent } from '@/utils/auditLogger';
 import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
+import { login as authServiceLogin } from '@/services/AuthService';
+import { useCapability } from '@/context/CapabilityContext';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -25,11 +27,38 @@ export default function Login() {
 
   // 🔐 AUTH STATE
   const { authReady, hasUser, profile, user } = useAuth();
+  
+  // ✅ EMERGENCY FIX: Destructure ready FIRST to prevent "ready is not defined" errors
+  const { ready, capabilities, refreshCapabilities, kernelError } = useCapability();
+  
+  // ✅ KERNEL-CENTRIC: Safety check for undefined ready
+  if (typeof ready === 'undefined') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold mx-auto mb-4" />
+          <p className="text-afrikoni-deep">Initializing workspace...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // ✅ KERNEL-CENTRIC: Auto-retry if Kernel hits timeout
+  useEffect(() => {
+    if (kernelError && !ready) {
+      console.log('[Login] Kernel error detected - auto-retrying once');
+      const retryTimer = setTimeout(() => {
+        refreshCapabilities(true);
+      }, 1000); // Wait 1s before retry
+      return () => clearTimeout(retryTimer);
+    }
+  }, [kernelError, ready, refreshCapabilities]);
 
   // 🔐 FORM STATE
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSynchronizing, setIsSynchronizing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
@@ -44,19 +73,39 @@ export default function Login() {
   );
 
   // 🚨 HARD GUARD: LOGGED-IN USERS MUST NEVER SEE /login
+  // ✅ KERNEL-CENTRIC: The Redirect Law - navigate based on profile state
   useEffect(() => {
-    if (!authReady) return;
+    // Only fire if all prerequisites are met
+    if (authReady !== true || ready !== true || !hasUser) return;
 
-    if (hasUser) {
-      // 🚨 CRITICAL: Dashboard requires company_id
-      // If company_id is missing, redirect to company onboarding
-      if (!profile || !profile.company_id) {
-        navigate('/onboarding/company', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+    const hasProfile = !!profile;
+    
+    // ✅ KERNEL-CENTRIC: The Redirect Law
+    if (!hasProfile) {
+      // No profile -> onboarding
+      console.log('[Login] ✅ Redirect Law: No profile - navigating to onboarding');
+      navigate('/onboarding/company', { replace: true });
+    } else {
+      // Has profile -> dashboard
+      console.log('[Login] ✅ Redirect Law: Has profile - navigating to dashboard');
+      navigate('/dashboard', { replace: true });
     }
-  }, [authReady, hasUser, profile, navigate]);
+  }, [authReady, ready, hasUser, profile, navigate]);
+  
+  // ✅ KERNEL-CENTRIC: Self-Heal - If ready is true but capabilities are null after 5 seconds, refresh
+  useEffect(() => {
+    if (!ready) return;
+    
+    const selfHealTimer = setTimeout(() => {
+      // Check if capabilities are null/empty after 5 seconds
+      if (!capabilities || (!capabilities.can_buy && !capabilities.can_sell && !capabilities.can_logistics)) {
+        console.log('[Login] Self-Heal: Capabilities null after 5s - calling refreshCapabilities()');
+        refreshCapabilities();
+      }
+    }, 5000);
+    
+    return () => clearTimeout(selfHealTimer);
+  }, [ready, capabilities, refreshCapabilities]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -72,22 +121,27 @@ export default function Login() {
       // ✅ FULL-STACK SYNC: Use AuthService for atomic login with profile verification
       const { user: authUser, profile: authProfile } = await authServiceLogin(email.trim(), password);
 
-      // ✅ FULL-STACK SYNC: Profile verification happens in AuthService
-      // If profile doesn't exist, PostLoginRouter will handle creation
-      
+      // ✅ LOGIN SYNCHRONIZATION: Immediately navigate to /auth/post-login the moment data.user is returned
+      // Bypass any secondary local checks that are currently hanging
+      setIsLoading(false);
       toast.success(t('login.success') || 'Welcome back!');
+      
+      // ✅ SURGICAL FIX: Navigate immediately after successful login, bypassing Kernel wait
+      // PostLoginRouter will handle the final redirect based on capabilities.ready
+      console.log('[Login] ✅ Login successful - navigating to /auth/post-login');
       navigate('/auth/post-login', { replace: true });
-
+      
       // ✅ KERNEL COMPLIANCE: Use email from form instead of direct API call
       // Non-blocking audit log - full user object will be available after AuthProvider updates
-      // PostLoginRouter will handle the redirect, so we log with available data
       try {
         await logLoginEvent({
           user: { email: email.trim() },
-          profile: null,
+          profile: authProfile || null,
           success: true
         });
       } catch (_) {}
+      
+      return; // Exit early - navigation handled above
 
     } catch (err) {
       // ✅ FULL-STACK SYNC: Enhanced error handling
@@ -134,9 +188,19 @@ export default function Login() {
                 <Logo type="full" size="lg" link={true} showTagline={true} />
               </div>
               <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
-                {t('login.welcomeBack')}
+                {isSynchronizing ? t('login.synchronizing') || 'Synchronizing...' : t('login.welcomeBack')}
               </h1>
-              <p className="text-afrikoni-deep">{t('login.subtitle')}</p>
+              <p className="text-afrikoni-deep">
+                {isSynchronizing 
+                  ? t('login.synchronizingSubtitle') || 'Preparing your workspace...'
+                  : t('login.subtitle')
+                }
+              </p>
+              {isSynchronizing && (
+                <div className="mt-4 flex justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-afrikoni-gold" />
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
@@ -152,6 +216,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
+                    disabled={isLoading || isSynchronizing}
                     required
                   />
                 </div>
@@ -169,6 +234,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
+                    disabled={isLoading || isSynchronizing}
                     required
                   />
                   <button

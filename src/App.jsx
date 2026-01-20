@@ -16,6 +16,8 @@ import { RoleProvider } from './context/RoleContext';
 import { CapabilityProvider } from './context/CapabilityContext';
 import RequireCapability from './components/auth/RequireCapability';
 import { useAuth } from './contexts/AuthProvider';
+import { useCapability } from './context/CapabilityContext';
+import { supabase } from './api/supabaseClient';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
 import { useBrowserNavigation } from './hooks/useBrowserNavigation';
@@ -194,9 +196,26 @@ function DebugAuth() {
 // ============================================
 function AppContent() {
   const { authReady } = useAuth();
+  const { resetKernel } = useCapability(); // ✅ KERNEL-CENTRIC: Get resetKernel function from Kernel
 
   useSessionRefresh();
   useBrowserNavigation();
+  
+  // ✅ KERNEL-CENTRIC: Clean Logout - On SIGN_OUT, call resetKernel() to purge the "Brain"
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event) => {
+        if (event === 'SIGNED_OUT') {
+          console.log('[App] SIGN_OUT detected - calling resetKernel() to purge Brain');
+          resetKernel(); // ✅ KERNEL-CENTRIC: Clear Kernel state before next user logs in
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [resetKernel]);
 
   useEffect(() => {
     // Only setup preloading after auth is ready
@@ -207,6 +226,20 @@ function AppContent() {
     }
     }
   }, [authReady]); // Only run when auth is ready
+
+  // ✅ EMERGENCY FIX: Self-Healing Engine - Auto-reload on module update errors
+  useEffect(() => {
+    const handlePreloadError = () => {
+      console.log('[App] Vite preload error detected - auto-reloading to fix module cache');
+      window.location.reload();
+    };
+
+    window.addEventListener('vite:preloadError', handlePreloadError);
+
+    return () => {
+      window.removeEventListener('vite:preloadError', handlePreloadError);
+    };
+  }, []);
 
   return (
           <Layout>

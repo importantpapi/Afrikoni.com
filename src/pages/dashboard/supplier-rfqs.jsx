@@ -12,7 +12,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Input } from '@/components/shared/ui/input';
 import { 
   FileText, Search, MapPin, Package, DollarSign, 
-  Calendar, ArrowRight, Filter, Clock
+  Calendar, ArrowRight, Filter, Clock, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -35,7 +35,7 @@ function SupplierRFQsInner() {
   const [statusFilter, setStatusFilter] = useState('matched');
 
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
-  const { isStale, markFresh } = useDataFreshness(30000);
+  const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
@@ -148,12 +148,26 @@ function SupplierRFQsInner() {
               RFQs matched with your company. Submit offers to buyers.
             </p>
           </div>
-          <Button
-            onClick={() => navigate('/dashboard/rfqs')}
-            variant="outline"
-          >
-            View All RFQs
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
+            <Button
+              variant="outline"
+              onClick={() => {
+                refresh();
+                loadRFQs();
+              }}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </Button>
+            <Button
+              onClick={() => navigate('/dashboard/rfqs')}
+              variant="outline"
+            >
+              View All RFQs
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

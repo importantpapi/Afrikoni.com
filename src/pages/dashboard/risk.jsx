@@ -253,13 +253,22 @@ export default function RiskManagementDashboard() {
         if (user.company_id) {
           // Try to get capabilities for this user's company (non-blocking)
           try {
-            const { data: userCapabilities } = await supabase
+            // ✅ GLOBAL REFACTOR: Use .single() for company_capabilities (should exist for companies)
+            const { data: userCapabilities, error: capabilitiesError } = await supabase
               .from('company_capabilities')
               .select('can_buy, can_sell, can_logistics')
               .eq('company_id', user.company_id)
-              .maybeSingle();
+              .single();
             
-            if (userCapabilities) {
+            // Handle PGRST116 (not found) - capabilities don't exist, use defaults
+            if (capabilitiesError && capabilitiesError.code === 'PGRST116') {
+              // Capabilities not found - use default buyer role
+              userRole = 'buyer';
+            } else if (capabilitiesError) {
+              // Other error - use default buyer role
+              console.warn('[Risk] Error fetching capabilities:', capabilitiesError);
+              userRole = 'buyer';
+            } else if (userCapabilities) {
               if (userCapabilities.can_sell && userCapabilities.can_buy) {
                 userRole = 'hybrid';
               } else if (userCapabilities.can_sell) {

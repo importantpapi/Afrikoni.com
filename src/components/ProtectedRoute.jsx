@@ -15,21 +15,39 @@ import { isAdmin } from '@/utils/permissions';
 import { toast } from 'sonner';
 import { LoadingScreen } from '@/components/shared/ui/LoadingScreen';
 import AccessDenied from './AccessDenied';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useCapability } from '@/context/CapabilityContext';
 
 /**
  * Protects a route - requires authentication
  * Redirects to login with return URL preserved
  * Optional: requireCompanyId - if true, redirects to company onboarding if company_id is missing
+ * 
+ * ✅ KERNEL INTEGRATION: Consumes isPreWarming from useDashboardKernel to prevent 'Failed to load' errors
  */
 export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, requireCompanyId: needsCompanyId = false }) => {
   const { user, profile, authReady, loading } = useAuth();
+  const { isPreWarming } = useDashboardKernel();
+  const capabilities = useCapability();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
+  // ✅ KERNEL GUARD DEPLOYMENT: Show "Synchronizing World" if Kernel is pre-warming
+  // This prevents child components from attempting to load data before Kernel is ready
+  if (isPreWarming) {
+    return <LoadingScreen message="Synchronizing World..." />;
+  }
+
   // Show loading while auth initializes
   if (!authReady || loading) {
     return <LoadingScreen message="Checking authentication..." />;
+  }
+
+  // ✅ FIX STATE STAGNATION: Wait for BOTH authReady AND capabilities.ready
+  // If auth is ready but Kernel (capabilities) isn't loaded yet, show loading screen
+  if (authReady && !capabilities?.ready) {
+    return <LoadingScreen message="Waking up the Kernel..." />;
   }
 
   // Redirect to login if not authenticated

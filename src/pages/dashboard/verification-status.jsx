@@ -112,25 +112,46 @@ export default function VerificationStatus() {
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
 
       // Load company data
+      // ✅ CRITICAL FIX: Use profileCompanyId from Kernel (not undefined companyId)
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
-        .eq('id', companyId)
+        .eq('id', profileCompanyId)
         .single();
 
       if (companyError) throw companyError;
       setCompany(companyData);
 
       // Load verification submission data
-      const { data: verifData, error: verifError } = await supabase
-        .from('verifications')
-        .select('*')
-        .eq('company_id', companyId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+      // ✅ CRITICAL FIX: Use profileCompanyId from Kernel (not undefined companyId)
+      let verifData = null;
+      try {
+        const { data, error: verifError } = await supabase
+          .from('verifications')
+          .select('*')
+          .eq('company_id', profileCompanyId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (verifError) {
+          // Handle PGRST116 (not found) - no verification exists yet, this is OK
+          if (verifError.code !== 'PGRST116') {
+            console.error('[VerificationStatus] Error loading verification:', verifError);
+            throw verifError;
+          }
+        } else {
+          verifData = data;
+        }
+      } catch (error) {
+        // PGRST116 (not found) is expected - verification may not exist yet
+        if (error?.code !== 'PGRST116') {
+          console.error('[VerificationStatus] Error loading verification:', error);
+        }
+      }
 
-      if (!verifError && verifData) {
+      if (verifData) {
         setVerificationData(verifData);
       }
 

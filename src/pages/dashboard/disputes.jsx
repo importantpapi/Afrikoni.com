@@ -206,17 +206,52 @@ export default function UserDisputes() {
         const { createNotification } = await import('@/services/notificationService');
         
         // Get company names for better context
-        const { data: buyerCompany } = await supabase
-          .from('companies')
-          .select('company_name')
-          .eq('id', buyerCompanyId)
-          .maybeSingle();
+        // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+        let buyerCompany = null;
+        try {
+          const { data, error: buyerError } = await supabase
+            .from('companies')
+            .select('company_name')
+            .eq('id', buyerCompanyId)
+            .single();
+          
+          if (buyerError) {
+            // Handle PGRST116 (not found) - company doesn't exist, this is OK
+            if (buyerError.code !== 'PGRST116') {
+              console.error('[Disputes] Error loading buyer company:', buyerError);
+            }
+          } else {
+            buyerCompany = data;
+          }
+        } catch (error) {
+          // PGRST116 (not found) is expected - company may not exist
+          if (error?.code !== 'PGRST116') {
+            console.error('[Disputes] Error loading buyer company:', error);
+          }
+        }
         
-        const { data: sellerCompany } = await supabase
-          .from('companies')
-          .select('company_name')
-          .eq('id', sellerCompanyId)
-          .maybeSingle();
+        let sellerCompany = null;
+        try {
+          const { data, error: sellerError } = await supabase
+            .from('companies')
+            .select('company_name')
+            .eq('id', sellerCompanyId)
+            .single();
+          
+          if (sellerError) {
+            // Handle PGRST116 (not found) - company doesn't exist, this is OK
+            if (sellerError.code !== 'PGRST116') {
+              console.error('[Disputes] Error loading seller company:', sellerError);
+            }
+          } else {
+            sellerCompany = data;
+          }
+        } catch (error) {
+          // PGRST116 (not found) is expected - company may not exist
+          if (error?.code !== 'PGRST116') {
+            console.error('[Disputes] Error loading seller company:', error);
+          }
+        }
         
         const orderNumber = selectedOrder.order_number || selectedOrder.id.slice(0, 8).toUpperCase();
         const orderAmount = `${selectedOrder.currency || 'USD'} ${parseFloat(selectedOrder.total_amount || 0).toLocaleString()}`;

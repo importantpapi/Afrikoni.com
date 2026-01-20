@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Warehouse, Package, Truck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Warehouse, Package, Truck, CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -278,6 +278,18 @@ function FulfillmentDashboardInner() {
             <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Order Fulfillment</h1>
             <p className="text-afrikoni-text-dark/70">Manage order picking, packing, and dispatch</p>
           </div>
+          {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
+          <Button
+            variant="outline"
+            onClick={() => {
+              refresh();
+              loadData();
+            }}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
         </motion.div>
 
         {/* Stats Cards */}

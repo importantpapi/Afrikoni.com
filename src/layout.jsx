@@ -11,7 +11,6 @@ import Navbar from './components/layout/Navbar';
 import { Logo } from '@/components/shared/ui/Logo';
 import WhatsAppButton from '@/components/shared/ui/WhatsAppButton';
 import CookieBanner from '@/components/shared/ui/CookieBanner';
-import NewsletterPopup from '@/components/shared/ui/NewsletterPopup';
 import MobileMainNav from './components/layout/MobileMainNav';
 
 // Lazy load MobileLayout outside component to prevent re-creation on every render
@@ -400,45 +399,27 @@ export default function Layout({ children }) {
 
   const handleLogout = async () => {
     try {
-      // Sign out using direct supabase client for reliability
-      const { error } = await supabase.auth.signOut();
+      // ✅ REFERENCE CLEANUP: Use direct supabase signOut - AuthProvider handles state via SIGNED_OUT event
+      // No need for setUser - AuthProvider's onAuthStateChange listener will clear state automatically
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) throw error;
-      
-      // Clear user state
-      setUser(null);
       
       // Clear storage (non-blocking)
       try {
         if (typeof window !== 'undefined') {
-          // Only clear auth-related storage, not everything
-          if (window.localStorage) {
-            const keys = Object.keys(window.localStorage);
-            keys.forEach(key => {
-              if (key.startsWith('sb-') || key.includes('supabase')) {
-                window.localStorage.removeItem(key);
-              }
-            });
-          }
-          if (window.sessionStorage) {
-            const keys = Object.keys(window.sessionStorage);
-            keys.forEach(key => {
-              if (key.startsWith('sb-') || key.includes('supabase')) {
-                window.sessionStorage.removeItem(key);
-              }
-            });
-          }
+          localStorage.clear();
+          sessionStorage.clear();
         }
-      } catch {
-        // ignore storage failures
+      } catch (storageError) {
+        console.error('[Layout] Storage clear error:', storageError);
       }
       
-      // Redirect to home
-      navigate('/', { replace: true });
+      // Hard redirect to login
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if there's an error, try to redirect anyway
-      setUser(null);
-      navigate('/', { replace: true });
+      // Even on error, force redirect
+      window.location.href = '/login';
     }
   };
 
@@ -474,9 +455,6 @@ export default function Layout({ children }) {
 
           {/* Cookie Banner */}
           <CookieBanner />
-
-          {/* Newsletter Popup */}
-          <NewsletterPopup />
         </div>
       );
     } catch (error) {
@@ -506,9 +484,6 @@ export default function Layout({ children }) {
 
       {/* Cookie Banner */}
       <CookieBanner />
-
-      {/* Newsletter Popup */}
-      <NewsletterPopup />
     </div>
   );
 }

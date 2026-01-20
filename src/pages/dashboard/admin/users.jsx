@@ -3,7 +3,7 @@
  * Admin-only page for managing user roles and permissions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -109,17 +109,7 @@ export default function AdminUsers() {
     return <AccessDenied />;
   }
 
-  useEffect(() => {
-    // ✅ KERNEL MIGRATION: Use canLoadData guard
-    if (!canLoadData) {
-      return;
-    }
-    
-    loadUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canLoadData]); // loadUsers is defined in component scope
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       console.log('[User Management] Loading all users...');
       
@@ -264,7 +254,16 @@ export default function AdminUsers() {
       });
       setUsers([]);
     }
-  };
+  }, [canLoadData]); // ✅ FIX: Proper dependency array for useCallback
+
+  useEffect(() => {
+    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    if (!canLoadData) {
+      return;
+    }
+    
+    loadUsers();
+  }, [canLoadData, loadUsers]); // ✅ FIX: Include loadUsers in dependencies
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -359,10 +358,6 @@ export default function AdminUsers() {
         </div>
       </>
     );
-  }
-
-  if (!hasAccess) {
-    return <AccessDenied />;
   }
 
   return (
@@ -582,7 +577,7 @@ export default function AdminUsers() {
                                   setEditingUser(userItem.id);
                                   setSelectedRole(userItem.role);
                                 }}
-                                disabled={userItem.role === 'admin' && user?.id !== userItem.id}
+                                disabled={userItem.role === 'admin' && userId !== userItem.id}
                               >
                                 <UserCheck className="w-3 h-3 mr-1" />
                                 Edit Role

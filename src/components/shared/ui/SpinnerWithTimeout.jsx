@@ -15,7 +15,7 @@ import { Card } from './card';
 
 export function SpinnerWithTimeout({ 
   message = 'Loading...',
-  timeoutMs = 10000, // Increased from 5000ms to 10000ms for initial page loads
+  timeoutMs = 15000, // ✅ TOTAL VIBRANIUM RESET: Increased to 15s for rescue timeout
   ready = false, // PHASE 5B: If true, timeout NEVER triggers
   onRetry,
   className = ''
@@ -73,11 +73,18 @@ export function SpinnerWithTimeout({
                 Retry
               </Button>
             )}
+            {/* ✅ TOTAL VIBRANIUM RESET: Add Force Reload button for rescue timeout */}
             <Button
               variant="outline"
               onClick={() => window.location.reload()}
             >
               Refresh Page
+            </Button>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Force Reload
             </Button>
           </div>
         </Card>

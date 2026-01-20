@@ -23,6 +23,11 @@ export default function ServicesOverview() {
   const capabilities = useCapability();
   const navigate = useNavigate();
 
+  // ✅ URGENT FIX: Define isLogistics within component scope to prevent crash
+  const isLogistics = capabilities?.ready && 
+                      capabilities?.can_logistics === true && 
+                      capabilities?.logistics_status === 'approved';
+
   const handleLogisticsClick = (e) => {
     e.preventDefault();
     // ✅ FOUNDATION FIX: Check capabilities instead of role
@@ -154,7 +159,7 @@ export default function ServicesOverview() {
                         onClick={handleLogisticsClick}
                         className={`w-full ${service.colorClass} text-white group-hover:shadow-lg transition-all`}
                       >
-                        {user && isLogistics(userRole) ? 'Go to Dashboard' : 'Join as Logistics Partner'}
+                        {user && isLogistics ? 'Go to Dashboard' : 'Join as Logistics Partner'}
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     ) : (

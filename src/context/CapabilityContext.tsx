@@ -14,13 +14,34 @@ export type CapabilityData = {
   loading: boolean;
   ready: boolean;
   error: string | null;
+  kernelError: string | null; // ✅ KERNEL-CENTRIC: Error state for UI retry button
 };
 
 type CapabilityContextValue = CapabilityData & {
   refreshCapabilities: (forceRefresh?: boolean) => Promise<void>;
+  forceRefresh: () => Promise<void>; // ✅ KERNEL-CENTRIC: Hard reset method
+  resetKernel: () => void; // ✅ KERNEL-CENTRIC: Hard reset function
+  reset: () => void; // Alias for backward compatibility
 };
 
 const CapabilityContext = createContext<CapabilityContextValue | undefined>(undefined);
+
+/**
+ * ✅ KERNEL INTEGRATION: SUPER_USER_CAPS constant for Admin users
+ * Ensures sell_status and logistics_status are 'approved' to prevent restricted UI elements
+ */
+const SUPER_USER_CAPS: CapabilityData = {
+  can_buy: true,
+  can_sell: true,
+  can_logistics: true,
+  sell_status: 'approved',
+  logistics_status: 'approved',
+  company_id: null,
+  loading: false,
+  ready: true,
+  error: null,
+  kernelError: null,
+};
 
 /**
  * CapabilityProvider - Provides company capabilities
@@ -48,8 +69,9 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   const hasFetchedRef = useRef(false);
   const fetchedCompanyIdRef = useRef<string | null>(null);
   const isFetchingRef = useRef(false); // ✅ Track if fetch is in progress (not loading state)
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null); // ✅ Track timeout to clear on success
   
-  // ✅ CRITICAL FIX: Start with ready=true and safe defaults to allow rendering
+  // ✅ FIX STATE STAGNATION: Start with ready=false to ensure React detects state transitions
   const [capabilities, setCapabilities] = useState<CapabilityData>({
     can_buy: true,
     can_sell: false,
@@ -57,8 +79,8 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     sell_status: 'disabled',
     logistics_status: 'disabled',
     company_id: null,
-    loading: false, // ✅ Start with false to allow immediate rendering
-    ready: true, // ✅ CRITICAL: Start with true to allow rendering even without user
+    loading: false, // Start with false - will be set to true when fetch starts
+    ready: false, // ✅ FIX: Start false - will transition to true after successful fetch
     error: null,
   });
 
@@ -74,22 +96,19 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     const targetCompanyId = profile?.company_id;
     
     // =========================================================================
-    // ✅ KERNEL-TO-UI ALIGNMENT FIX: ADMIN OVERRIDE
-    // Admins without company_id get full capabilities to access admin dashboard
+    // ✅ KERNEL HANDSHAKE: IMMEDIATE ADMIN BYPASS (FIRST CHECK)
+    // Admins should bypass capability check entirely - if JWT says is_admin, grant everything immediately
+    // This prevents the fetch from "hanging" when admins don't have company_id or capability rows
+    // ✅ KERNEL INTEGRATION: Use SUPER_USER_CAPS constant to ensure consistent status values
     // =========================================================================
-    if (profile?.is_admin === true && (!targetCompanyId || forceRefresh)) {
-      console.log('[CapabilityContext] ✅ Admin user detected - granting full capabilities (bypassing company_id requirement)');
-      setCapabilities({
-        can_buy: true,
-        can_sell: true,
-        can_logistics: true,
-        sell_status: 'approved',
-        logistics_status: 'approved',
-        company_id: targetCompanyId || null, // Preserve company_id if it exists
-        loading: false,
-        ready: true,
-        error: null,
-      });
+    if (profile?.is_admin === true) {
+      console.log('[CapabilityContext] ✅ KERNEL HANDSHAKE: Admin user detected - granting full capabilities immediately (bypassing fetch)');
+          setCapabilities({
+            ...SUPER_USER_CAPS,
+            company_id: targetCompanyId || null, // Preserve company_id if it exists
+            ready: true, // ✅ FIX: Set ready=true for admin (immediate grant)
+            kernelError: null, // ✅ KERNEL-CENTRIC: Clear error for admin
+          });
       hasFetchedRef.current = true;
       fetchedCompanyIdRef.current = targetCompanyId || 'admin'; // Mark as fetched for admin
       return;
@@ -113,19 +132,23 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       console.log('[CapabilityContext] 🔄 Force refresh requested - resetting fetch flags');
       hasFetchedRef.current = false;
       fetchedCompanyIdRef.current = null;
+      // ✅ KERNEL-CENTRIC: Clear kernel error on force refresh
+      setCapabilities(prev => ({ ...prev, kernelError: null }));
     }
 
     // =========================================================================
-    // GUARD 2: Prerequisites not ready - ALLOW RENDERING WITH DEFAULTS
+    // GUARD 2: Prerequisites not ready - KEEP READY=FALSE UNTIL PREREQUISITES MET
     // =========================================================================
     if (!authReady || !user || !targetCompanyId) {
       console.log('[CapabilityContext] Prerequisites not ready - authReady:', authReady, 'user:', !!user, 'companyId:', targetCompanyId);
-      // ✅ CRITICAL FIX: Always keep ready=true to allow rendering, even without user
+      // ✅ FIX STATE STAGNATION: Keep ready=false until prerequisites are met and capabilities are loaded
+      // The useEffect will handle setting ready=true after timeout if needed (for onboarding flow)
       setCapabilities(prev => ({
         ...prev,
         loading: false,
-        ready: true, // ✅ ALWAYS true - never block rendering
+        ready: false, // ✅ FIX: Keep false until prerequisites are met and capabilities are loaded
         company_id: prev?.company_id ?? null,
+        kernelError: null, // ✅ KERNEL-CENTRIC: Clear error when prerequisites not met
       }));
       return;
     }
@@ -153,48 +176,170 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           ...prev, 
           loading: true, 
           error: null,
-          ready: true, // ✅ Keep ready=true even during loading
+          ready: false, // ✅ FIX: Keep ready=false during loading - will be set to true after success
         }));
       }
 
-      // ✅ CRITICAL FIX: Wrap database call in try/catch
-      let data, error;
+      // ✅ HARDEN CAPABILITY FETCH: Pre-check to ensure company record exists before fetching capabilities
+      let companyExists = false;
       try {
-        const result = await supabase
-          .from('company_capabilities')
-          .select('*')
-          .eq('company_id', targetCompanyId)
+        const { data: companyData, error: companyError } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('id', targetCompanyId)
           .single();
-        data = result?.data;
-        error = result?.error;
-      } catch (dbError: any) {
-        console.error('[CapabilityContext] Database query error:', dbError);
-        error = dbError;
-        data = null;
+        
+        if (companyError && companyError.code !== 'PGRST116') {
+          console.warn('[CapabilityContext] Company pre-check error (non-fatal):', companyError);
+        }
+        companyExists = !!companyData;
+      } catch (companyCheckError: any) {
+        console.warn('[CapabilityContext] Company pre-check failed (non-fatal):', companyCheckError);
+        // Continue anyway - capabilities fetch will handle missing company
+      }
+
+      if (!companyExists) {
+        console.warn('[CapabilityContext] Company not found - creating default capabilities');
+        // Company doesn't exist - create default capabilities anyway (company might be created later)
+      }
+
+      // ✅ CRITICAL FIX: Wrap database call in try/catch with retry logic
+      let data, error;
+      let fetchAttempt = 0;
+      const maxAttempts = 2;
+      
+      while (fetchAttempt < maxAttempts) {
+        fetchAttempt++;
+        try {
+          // ✅ OPTIMIZE CAPABILITY HANDSHAKE: Use .maybeSingle() to prevent hanging on missing records
+          const result = await supabase
+            .from('company_capabilities')
+            .select('*')
+            .eq('company_id', targetCompanyId)
+            .maybeSingle();
+          
+          data = result?.data;
+          error = result?.error;
+          
+          // ✅ OPTIMIZE CAPABILITY HANDSHAKE: Add error log specifically for Supabase response
+          if (error) {
+            console.error(`[CapabilityContext] Supabase response error (attempt ${fetchAttempt}/${maxAttempts}):`, {
+              code: error.code,
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+              status: error.status,
+              statusText: error.statusText
+            });
+          } else if (data) {
+            console.log(`[CapabilityContext] ✅ Supabase response success (attempt ${fetchAttempt}/${maxAttempts}):`, {
+              company_id: data.company_id,
+              can_buy: data.can_buy,
+              can_sell: data.can_sell,
+              can_logistics: data.can_logistics
+            });
+          } else {
+            console.log(`[CapabilityContext] Supabase response: no data, no error (attempt ${fetchAttempt}/${maxAttempts})`);
+          }
+          
+          // If successful or non-retryable error, break
+          if (!error || (error.code !== 'PGRST116' && fetchAttempt === 1)) {
+            break;
+          }
+          
+          // If PGRST116 (not found) on first attempt, retry once
+          if (error.code === 'PGRST116' && fetchAttempt < maxAttempts) {
+            console.log(`[CapabilityContext] Capabilities not found (attempt ${fetchAttempt}/${maxAttempts}) - retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay before retry
+            continue;
+          }
+          
+          break;
+        } catch (dbError: any) {
+          console.error(`[CapabilityContext] Database query error (attempt ${fetchAttempt}/${maxAttempts}):`, {
+            message: dbError.message,
+            stack: dbError.stack,
+            name: dbError.name
+          });
+          error = dbError;
+          data = null;
+          
+          // Retry on network/timeout errors
+          if (fetchAttempt < maxAttempts && (
+            dbError.message?.includes('fetch') || 
+            dbError.message?.includes('network') || 
+            dbError.message?.includes('timeout')
+          )) {
+            console.log(`[CapabilityContext] Network error detected - retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay before retry
+            continue;
+          }
+          
+          break;
+        }
       }
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // Capabilities don't exist, create them
-          console.log('[CapabilityContext] Capabilities not found, creating...');
-          const { data: newCapabilities, error: insertError } = await supabase
-            .from('company_capabilities')
-            .insert({
-              company_id: targetCompanyId,
-              can_buy: true,
-              can_sell: false,
-              can_logistics: false,
-              sell_status: 'disabled',
-              logistics_status: 'disabled',
-            })
-            .select()
-            .single();
+          // Capabilities don't exist, create them using upsert for idempotency
+          console.log('[CapabilityContext] Capabilities not found, creating/upserting...');
+          
+          // ✅ CAPABILITY RESILIENCE: Use upsert with retry loop (2 attempts)
+          let newCapabilities = null;
+          let insertError = null;
+          
+          for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+              const result = await supabase
+                .from('company_capabilities')
+                .upsert({
+                  company_id: targetCompanyId,
+                  can_buy: true,
+                  can_sell: false,
+                  can_logistics: false,
+                  sell_status: 'disabled',
+                  logistics_status: 'disabled',
+                }, {
+                  onConflict: 'company_id'
+                })
+                .select()
+                .single();
 
-          if (insertError) {
-            throw insertError;
+              if (result.error) {
+                insertError = result.error;
+                if (attempt < 2) {
+                  console.warn(`[CapabilityContext] Upsert attempt ${attempt} failed, retrying...`, insertError);
+                  await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+                  continue;
+                }
+              } else {
+                newCapabilities = result.data;
+                insertError = null;
+                break;
+              }
+            } catch (upsertErr: any) {
+              insertError = upsertErr;
+              if (attempt < 2) {
+                console.warn(`[CapabilityContext] Upsert attempt ${attempt} error, retrying...`, upsertErr);
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                continue;
+              }
+            }
+          }
+
+          if (insertError || !newCapabilities) {
+            throw insertError || new Error('Failed to create capabilities after 2 attempts');
           }
           
-          console.log('[CapabilityContext] ✅ Created capabilities for company:', targetCompanyId);
+          console.log('[CapabilityContext] ✅ Created/upserted capabilities for company:', targetCompanyId);
+          
+          // ✅ ELIMINATE TIMEOUT RACE: Clear timeout immediately upon successful creation
+          if (timeoutIdRef.current) {
+            clearTimeout(timeoutIdRef.current);
+            timeoutIdRef.current = null;
+            console.log('[CapabilityContext] ✅ Cleared timeout - capabilities created successfully');
+          }
+          
           setCapabilities({
             can_buy: newCapabilities.can_buy,
             can_sell: newCapabilities.can_sell,
@@ -205,6 +350,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
             loading: false,
             ready: true,
             error: null,
+            kernelError: null, // ✅ KERNEL-CENTRIC: Clear error on success
           });
           hasFetchedRef.current = true;
           fetchedCompanyIdRef.current = targetCompanyId;
@@ -213,6 +359,15 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         }
       } else if (data) {
         console.log('[CapabilityContext] ✅ Loaded capabilities for company:', targetCompanyId);
+        
+        // ✅ ELIMINATE TIMEOUT RACE: Clear timeout immediately upon successful database response
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+          timeoutIdRef.current = null;
+          console.log('[CapabilityContext] ✅ Cleared timeout - capabilities loaded successfully');
+        }
+        
+        // ✅ CAPABILITY RESILIENCE: Only set ready=true after successful fetch
         setCapabilities({
           can_buy: data.can_buy,
           can_sell: data.can_sell,
@@ -221,9 +376,20 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           logistics_status: data.logistics_status as CapabilityStatus,
           company_id: targetCompanyId,
           loading: false,
-          ready: true,
+          ready: true, // ✅ Only set ready=true after successful fetch
           error: null,
         });
+        hasFetchedRef.current = true;
+        fetchedCompanyIdRef.current = targetCompanyId;
+      } else {
+        // No data and no error - this shouldn't happen, but handle gracefully
+        console.warn('[CapabilityContext] No data and no error - using defaults');
+        setCapabilities(prev => ({
+          ...prev,
+          loading: false,
+          ready: true, // Still allow rendering with defaults
+          company_id: targetCompanyId,
+        }));
         hasFetchedRef.current = true;
         fetchedCompanyIdRef.current = targetCompanyId;
       }
@@ -245,6 +411,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           loading: false,
           ready: true, // ✅ CRITICAL: Still allow rendering with defaults
           error: 'Database sync error: Required tables are missing. Please contact support or run database migrations.',
+          kernelError: 'Database sync error: Required tables are missing. Please contact support or run database migrations.', // ✅ KERNEL-CENTRIC: Set kernelError
         }));
         // Mark as fetched to prevent retry loops
         hasFetchedRef.current = true;
@@ -253,11 +420,12 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       }
       
       // Network/timeout error - allow access with warning (RLS will enforce)
+      // ✅ TOTAL VIBRANIUM RESET: Use kernelError instead of error for consistency
       setCapabilities(prev => ({
         ...prev,
         loading: false,
         ready: true, // ✅ CRITICAL: Always allow rendering
-        error: errorMessage,
+        kernelError: errorMessage, // ✅ TOTAL VIBRANIUM RESET: Use kernelError state
       }));
       
       // Still mark as fetched to prevent retry loops
@@ -313,11 +481,38 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           // Reset fetch flags
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        } else if (event === 'SIGNED_IN') {
           // On signin, reset fetch flags to allow re-fetch
-          console.log('[CapabilityContext] SIGNED_IN/TOKEN_REFRESHED detected - resetting fetch flags');
+          console.log('[CapabilityContext] SIGNED_IN detected - resetting fetch flags');
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
+        } else if (event === 'TOKEN_REFRESHED') {
+          // ✅ KERNEL LOCK: Maintain "Warm" state during token refresh
+          // During TOKEN_REFRESHED, profile may be momentarily null, but we should NOT reset
+          // if we already have valid capabilities loaded. This prevents the 5-second hang.
+          
+          // Check if we ALREADY have valid capabilities loaded
+          const hasValidCapabilities = hasFetchedRef.current && fetchedCompanyIdRef.current !== null;
+          
+          if (hasValidCapabilities) {
+            // ✅ KERNEL LOCK: We have valid capabilities - DO NOT RESET
+            // Maintain the current "Ready" state and keep fetch flags intact
+            console.log('[CapabilityContext] TOKEN_REFRESHED detected - Kernel is WARM, maintaining capabilities', {
+              fetchedCompanyId: fetchedCompanyIdRef.current,
+              hasFetched: hasFetchedRef.current
+            });
+            // DO NOT reset flags - keep Kernel warm
+            return; // Exit early - no reset needed
+          }
+          
+          // Only reset if we DON'T have valid capabilities yet
+          // This handles the case where TOKEN_REFRESHED fires before initial fetch completes
+          console.log('[CapabilityContext] TOKEN_REFRESHED detected - no valid capabilities yet, allowing reset', {
+            hasFetched: hasFetchedRef.current,
+            fetchedCompanyId: fetchedCompanyIdRef.current
+          });
+          // Note: We don't reset here because if we don't have capabilities, 
+          // the fetch effect will handle it. Resetting here would cause double-booting.
         }
       }
     );
@@ -327,36 +522,9 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     };
   }, []); // Empty deps - only set up listener once
 
-  // =========================================================================
-  // ✅ FULL-STACK SYNC: Listen for AUTH_CHANGE event (signout)
-  // =========================================================================
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event) => {
-        if (event === 'SIGNED_OUT') {
-          console.log('[CapabilityContext] SIGNED_OUT event detected - resetting capabilities');
-          // Reset capabilities to null/defaults on signout
-          setCapabilities({
-            can_buy: true,
-            can_sell: false,
-            can_logistics: false,
-            sell_status: 'disabled',
-            logistics_status: 'disabled',
-            company_id: null,
-            loading: false,
-            ready: true, // Keep ready=true to allow rendering
-            error: null,
-          });
-          hasFetchedRef.current = false;
-          fetchedCompanyIdRef.current = null;
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  // ✅ ELIMINATE TIMEOUT RACE: Removed duplicate onAuthStateChange listener
+  // The listener above (lines 432-465) already handles SIGNED_OUT, SIGNED_IN, and TOKEN_REFRESHED
+  // This duplicate was causing unnecessary resets
 
   // =========================================================================
   // CAPABILITY FETCH EFFECT WITH TIMEOUT FALLBACK
@@ -366,39 +534,58 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     try {
       // Only fetch if we have prerequisites
       if (!authReady || !currentCompanyId) {
-        // ✅ CRITICAL: Ensure ready=true even without prerequisites
+        // ✅ FIX STATE STAGNATION: Keep ready=false until prerequisites are met
+        // If authReady but no companyId, allow rendering after timeout (for onboarding flow)
         setCapabilities(prev => ({
           ...prev,
-          ready: true, // Always allow rendering
+          ready: false, // ✅ FIX: Keep false until authReady and companyId are available
           loading: false,
+          kernelError: null, // ✅ KERNEL-CENTRIC: Clear error when prerequisites not met
         }));
+        
+        // ✅ TOTAL VIBRANIUM RESET: Removed 2-second ready timeout - keep ready=false until companyId exists
+        // This prevents race condition during onboarding where ready becomes true before company is created
+        // Components should check for companyId existence separately, not rely on ready state
         return;
       }
 
-      fetchCapabilities();
+      // ✅ KERNEL LOCK: Only fetch if we haven't fetched yet (prevents double-booting)
+      if (!hasFetchedRef.current) {
+        fetchCapabilities();
+      } else {
+        console.log('[CapabilityContext] ✅ Kernel is WARM - skipping fetch (already loaded)');
+      }
 
-      // ✅ SAFETY: If capabilities don't load within 10 seconds, set ready=true to unblock dashboard
+      // ✅ HARDEN CAPABILITY FETCH: Reduced timeout from 10s to 5s with automatic retry
       // This prevents infinite loading if there's a database issue
-      const timeoutId = setTimeout(() => {
+      // ✅ ELIMINATE TIMEOUT RACE: Store timeout ID in ref so it can be cleared on success
+      // ✅ KERNEL-CENTRIC: Set kernelError instead of just timing out - UI can show retry button
+      timeoutIdRef.current = setTimeout(() => {
         // Use ref to check current state without dependency issues
         if (!hasFetchedRef.current && currentCompanyId) {
-          console.warn('[CapabilityContext] ⚠️ Capability fetch timeout - setting ready=true to unblock dashboard');
+          console.warn('[CapabilityContext] ⚠️ Capability fetch timeout (5s) - setting kernelError for UI retry');
           setCapabilities(prev => {
             if (prev?.ready) return prev; // Don't override if already ready
             return {
               ...prev,
               loading: false,
-              ready: true, // Force ready to unblock dashboard
+              ready: false, // ✅ KERNEL-CENTRIC: Keep ready=false so UI shows retry button
               company_id: currentCompanyId,
-              error: prev?.error || 'Capability fetch timed out - using default capabilities',
+              error: prev?.error || 'Capability fetch timed out',
+              kernelError: 'Capability fetch timed out. Please retry.', // ✅ KERNEL-CENTRIC: Set error for UI
             };
           });
-          hasFetchedRef.current = true;
-          fetchedCompanyIdRef.current = currentCompanyId;
+          // Don't mark as fetched - allow retry
+          timeoutIdRef.current = null; // Clear ref after timeout fires
         }
-      }, 10000); // 10 second timeout
+      }, 5000); // ✅ Reduced from 10s to 5s timeout
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+          timeoutIdRef.current = null;
+        }
+      };
     } catch (error) {
       console.error('[CapabilityContext] Effect error:', error);
       // ✅ CRITICAL: Always allow rendering even on error
@@ -407,6 +594,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         ready: true,
         loading: false,
         error: 'Capability initialization error - using defaults',
+        kernelError: 'Capability initialization error - using defaults', // ✅ KERNEL-CENTRIC: Set kernelError
       }));
     }
   }, [authReady, currentUserId, currentCompanyId]); // ✅ Primitives only
@@ -418,9 +606,50 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     await fetchCapabilities(forceRefresh);
   }, []); // Stable reference - fetchCapabilities uses current profile via closure
 
+  // ✅ KERNEL-CENTRIC: Hard reset method that clears hasFetched and fetchedCompanyId, then triggers fetch
+  const forceRefresh = useCallback(async () => {
+    console.log('[CapabilityContext] forceRefresh() called - hard reset');
+    hasFetchedRef.current = false;
+    fetchedCompanyIdRef.current = null;
+    setCapabilities(prev => ({ ...prev, kernelError: null }));
+    await fetchCapabilities(true);
+  }, []); // Stable reference - fetchCapabilities uses current profile via closure
+
+  // ✅ KERNEL-CENTRIC: Hard reset function that clears capabilities, hasFetched, and fetchedCompanyId
+  const resetKernel = useCallback(() => {
+    console.log('[CapabilityContext] resetKernel() called - clearing Kernel state');
+    setCapabilities({
+      can_buy: false,
+      can_sell: false,
+      can_logistics: false,
+      sell_status: 'disabled',
+      logistics_status: 'disabled',
+      company_id: null,
+      loading: false,
+      ready: false, // Reset to false - will be set to true on next login
+      error: null,
+      kernelError: null, // ✅ KERNEL-CENTRIC: Clear kernel error on reset
+    });
+    // Reset fetch flags
+    hasFetchedRef.current = false;
+    fetchedCompanyIdRef.current = null;
+    isFetchingRef.current = false;
+    // Clear any pending timeout
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
+      timeoutIdRef.current = null;
+    }
+  }, []);
+
+  // ✅ KERNEL-CENTRIC: Alias for backward compatibility
+  const reset = resetKernel;
+
   const value: CapabilityContextValue = {
     ...capabilities,
     refreshCapabilities,
+    forceRefresh, // ✅ KERNEL-CENTRIC: Export forceRefresh method
+    resetKernel, // ✅ KERNEL-CENTRIC: Export resetKernel function
+    reset, // Alias for backward compatibility
   };
 
   // ✅ CRITICAL FIX: Always render children, even if context fails
@@ -453,8 +682,18 @@ export function useCapability(): CapabilityContextValue {
       loading: false,
       ready: true, // ✅ Always ready to allow rendering
       error: null,
+      kernelError: null,
       refreshCapabilities: async () => {
         console.warn('[useCapability] refreshCapabilities called outside provider');
+      },
+      forceRefresh: async () => {
+        console.warn('[useCapability] forceRefresh called outside provider');
+      },
+      resetKernel: () => {
+        console.warn('[useCapability] resetKernel called outside provider');
+      },
+      reset: () => {
+        console.warn('[useCapability] reset called outside provider');
       },
     };
   }

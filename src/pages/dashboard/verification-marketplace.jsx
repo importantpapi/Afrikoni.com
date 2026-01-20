@@ -74,14 +74,30 @@ function VerificationMarketplaceInner() {
       setCompany(companyData);
       
       // Check for existing purchase
-      const { data: purchase, error: purchaseError } = await supabase
-        .from('verification_purchases')
-        .select('*')
-        .eq('company_id', profileCompanyId)
-        .eq('status', 'completed')
-        .maybeSingle();
-      
-      if (purchaseError) throw purchaseError;
+      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+      let purchase = null;
+      try {
+        const { data, error: purchaseError } = await supabase
+          .from('verification_purchases')
+          .select('*')
+          .eq('company_id', profileCompanyId)
+          .eq('status', 'completed')
+          .single();
+        
+        if (purchaseError) {
+          // Handle PGRST116 (not found) - purchase doesn't exist yet, this is OK
+          if (purchaseError.code !== 'PGRST116') {
+            throw purchaseError;
+          }
+        } else {
+          purchase = data;
+        }
+      } catch (error) {
+        // PGRST116 (not found) is expected - purchase may not exist yet
+        if (error?.code !== 'PGRST116') {
+          throw error;
+        }
+      }
       
       setHasExistingPurchase(!!purchase);
     } catch (err) {
@@ -151,11 +167,29 @@ function VerificationMarketplaceInner() {
         .eq('id', companyId);
 
       // Create or update verification record
-      const { data: existingVerification } = await supabase
-        .from('verifications')
-        .select('id')
-        .eq('company_id', companyId)
-        .maybeSingle();
+      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+      let existingVerification = null;
+      try {
+        const { data, error: verifError } = await supabase
+          .from('verifications')
+          .select('id')
+          .eq('company_id', companyId)
+          .single();
+        
+        if (verifError) {
+          // Handle PGRST116 (not found) - verification doesn't exist yet, this is OK
+          if (verifError.code !== 'PGRST116') {
+            console.error('[VerificationMarketplace] Error checking existing verification:', verifError);
+          }
+        } else {
+          existingVerification = data;
+        }
+      } catch (error) {
+        // PGRST116 (not found) is expected - verification may not exist yet
+        if (error?.code !== 'PGRST116') {
+          console.error('[VerificationMarketplace] Error checking existing verification:', error);
+        }
+      }
 
       if (!existingVerification) {
         await supabase.from('verifications').insert({

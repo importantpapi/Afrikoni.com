@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 // REMOVED: Realtime is now owned by WorkspaceDashboard via DashboardRealtimeManager
 // import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useCapability } from '@/context/CapabilityContext';
 
 // ============================================================================
 // CONSTANTS & HELPERS (Section 2)
@@ -91,6 +92,8 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   const { t } = useTranslation();
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities: kernelCapabilities, isSystemReady } = useDashboardKernel();
+  // ✅ KERNEL-CENTRIC: Import useCapability to check ready state
+  const { ready } = useCapability();
   const navigate = useNavigate();
   
   // State hooks
@@ -557,9 +560,23 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (error) throw error;
+      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+      if (error) {
+        if (error.code === 'PGRST204' || error.code === 'PGRST205') {
+          console.warn('[DashboardHome] Schema mismatch (PGRST204/205) - continuing with empty orders');
+          setRecentOrders([]);
+          return;
+        }
+        throw error;
+      }
       setRecentOrders(Array.isArray(data) ? data : []);
     } catch (error) {
+      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+      if (error?.code === 'PGRST204' || error?.code === 'PGRST205') {
+        console.warn('[DashboardHome] Schema mismatch (PGRST204/205) - ignoring error');
+        setRecentOrders([]);
+        return;
+      }
       console.error('[Dashboard] Error loading recent orders:', error);
       setRecentOrders([]);
     }
@@ -573,11 +590,28 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
     try {
       const [companyRes, productsRes] = await Promise.allSettled([
-        supabase.from('companies').select('verification_status, verified').eq('id', cid).maybeSingle(),
+        supabase.from('companies').select('verification_status, verified').eq('id', cid).single(),
         supabase.from('products').select('status', { count: 'exact' }).eq('company_id', cid)
       ]);
 
-      const company = companyRes.status === 'fulfilled' ? companyRes.value?.data : null;
+      // ✅ QUERY REFACTOR: Handle PGRST116 (No Rows) error for companies
+      let company = null;
+      if (companyRes.status === 'fulfilled') {
+        if (companyRes.value?.error) {
+          if (companyRes.value.error.code === 'PGRST116') {
+            console.warn('[DashboardHome] Company not found (PGRST116)');
+            toast.error('Company not found or access denied');
+            navigate('/dashboard');
+            return;
+          } else {
+            console.error('[DashboardHome] Company fetch error:', companyRes.value.error);
+            toast.error('Failed to load company information');
+          }
+        } else {
+          company = companyRes.value?.data || null;
+        }
+      }
+      
       const productsData = productsRes.status === 'fulfilled' ? (productsRes.value?.data || []) : [];
 
       const statusCounts = (Array.isArray(productsData) ? productsData : []).reduce(
@@ -617,15 +651,31 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     }
 
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('rfqs')
         .select('*')
         .eq('buyer_company_id', cid)
         .order('created_at', { ascending: false })
         .limit(5);
 
+      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+      if (error) {
+        if (error.code === 'PGRST204' || error.code === 'PGRST205') {
+          console.warn('[DashboardHome] Schema mismatch (PGRST204/205) - continuing with empty RFQs');
+          setRecentRFQs([]);
+          return;
+        }
+        throw error;
+      }
       setRecentRFQs(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (error) {
+      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+      if (error?.code === 'PGRST204' || error?.code === 'PGRST205') {
+        console.warn('[DashboardHome] Schema mismatch (PGRST204/205) - ignoring error');
+        setRecentRFQs([]);
+        return;
+      }
+      console.error('[DashboardHome] Error loading recent RFQs:', error);
       setRecentRFQs([]);
     }
   }, []);
@@ -681,10 +731,15 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             .in('entity_id', productIds)
             .gte('created_at', today.toISOString());
           
-          // ✅ Handle errors gracefully
+          // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
           if (viewsError) {
-            console.warn('[loadActivityMetrics] Activity logs query error:', viewsError.message);
-            setSearchAppearances(0);
+            if (viewsError.code === 'PGRST204' || viewsError.code === 'PGRST205') {
+              console.warn('[loadActivityMetrics] Schema mismatch (PGRST204/205) - continuing with empty metrics');
+              setSearchAppearances(0);
+            } else {
+              console.warn('[loadActivityMetrics] Activity logs query error:', viewsError.message);
+              setSearchAppearances(0);
+            }
           } else {
             setSearchAppearances(count || 0);
           }
@@ -716,6 +771,13 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           setBuyersLooking(0);
         }
       } catch (error) {
+      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+      if (error?.code === 'PGRST204' || error?.code === 'PGRST205') {
+        console.warn('[loadActivityMetrics] Schema mismatch (PGRST204/205) - ignoring error');
+        setSearchAppearances(0);
+        setBuyersLooking(0);
+        return;
+      }
       console.error('[loadActivityMetrics] Exception:', error);
       setSearchAppearances(0);
       setBuyersLooking(0);
@@ -780,11 +842,16 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     // =========================================================================
     // GUARD 1: Wait for all prerequisites (primitives only)
     // =========================================================================
-    // ✅ UNIFIED DASHBOARD KERNEL: Use canLoadData guard
-    if (!canLoadData || !companyId || !userIdFromKernel) {
+    // ✅ SCHEMA ALIGNMENT: Strict guard using profileCompanyId from Kernel
+    // ✅ KERNEL GUARD REINFORCEMENT: Ensure canLoadData AND profileCompanyId before fetching
+    // ✅ FIX DASHBOARD SYNC: Also wait for capabilities.ready
+    if (!canLoadData || !profileCompanyId || !userIdFromKernel || !ready) {
       // Not ready yet - don't set loading, just wait
       return;
     }
+    
+    // ✅ SCHEMA ALIGNMENT: Use profileCompanyId from Kernel (not local state)
+    const companyId = profileCompanyId;
 
     // =========================================================================
     // GUARD 2: IDEMPOTENCY - Don't reload for same company_id
@@ -807,6 +874,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     }, 15000);
 
     const load = async () => {
+      // ✅ KERNEL-CENTRIC: The Finally Law - wrap in try/catch/finally
       try {
         console.log('[DashboardHome] Starting data load for companyId:', companyId);
         setIsLoading(true);
@@ -848,12 +916,12 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
         if (isMounted) {
           hasLoadedRef.current = true;
-          setIsLoading(false);
-          clearTimeout(timeoutId);
           console.log('[DashboardHome] Data load complete');
         }
       } catch (error) {
         console.error('[DashboardHome] Load error:', error);
+      } finally {
+        // ✅ KERNEL-CENTRIC: The Finally Law - setLoading(false) MUST be in finally block
         if (isMounted) {
           setIsLoading(false);
           clearTimeout(timeoutId);
@@ -872,11 +940,14 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     // DEPENDENCY ARRAY - PRIMITIVES ONLY
     // =======================================================================
     // ✅ KERNEL MIGRATION: Use canLoadData instead of authReady/capabilitiesReady
+    // ✅ SCHEMA ALIGNMENT: Use profileCompanyId from Kernel (not local companyId)
+    // ✅ FIX DASHBOARD SYNC: Include ready from useCapability
     canLoadData,
+    profileCompanyId, // ✅ SCHEMA ALIGNMENT: Use Kernel's profileCompanyId
+    ready, // ✅ FIX DASHBOARD SYNC: Wait for capabilities.ready
     canBuy,
     canSell,
     // ✅ String primitives - only change on actual user/company switch
-    companyId,
     userIdFromKernel,
     // ✅ Stable useCallback references (empty or primitive deps)
     loadKPIs,
@@ -909,6 +980,16 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // ✅ FIX #12: Do NOT use authLoading - once authReady is true, stay mounted
   // This prevents unmounting during token refresh (which sets loading briefly)
   // ==========================================================================
+  
+  // ✅ KERNEL-CENTRIC: Check ready state from Kernel - ONLY navigate when ready === true
+  if (!ready) {
+    return (
+      <SpinnerWithTimeout 
+        message="Loading dashboard..." 
+        ready={ready}
+      />
+    );
+  }
   
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {

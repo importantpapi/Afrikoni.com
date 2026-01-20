@@ -3,10 +3,10 @@
  * Manage returns for buyers and sellers
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { RotateCcw, Package, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { RotateCcw, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -22,6 +22,7 @@ import { getReturns, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 
 function ReturnsDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -32,6 +33,11 @@ function ReturnsDashboardInner() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ FINAL SYNC: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh, refresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
 
   // Derive role from capabilities
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
@@ -47,6 +53,7 @@ function ReturnsDashboardInner() {
   }
 
   // ✅ KERNEL MIGRATION: Use canLoadData guard
+  // ✅ FINAL SYNC: Check data freshness before loading
   useEffect(() => {
     if (!canLoadData) {
       if (!userId) {
@@ -56,8 +63,18 @@ function ReturnsDashboardInner() {
       return;
     }
 
-    loadData();
-  }, [canLoadData, userId, profileCompanyId, statusFilter, navigate]);
+    // ✅ FINAL SYNC: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh) {
+      console.log('[ReturnsDashboard] Data is stale or first load - refreshing');
+      loadData();
+    } else {
+      console.log('[ReturnsDashboard] Data is fresh - skipping reload');
+    }
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
   const loadData = async () => {
     if (!profileCompanyId) {
@@ -81,6 +98,10 @@ function ReturnsDashboardInner() {
         setReturns([]);
         setError(null); // Don't show error for missing table
       }
+      
+      // ✅ FINAL SYNC: Mark fresh ONLY on successful load
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
     } catch (err) {
       console.error('[ReturnsDashboard] Error loading returns:', err);
       setError(err.message || 'Failed to load returns');
@@ -152,6 +173,18 @@ function ReturnsDashboardInner() {
             <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Returns</h1>
             <p className="text-afrikoni-text-dark/70">Manage product returns and refunds</p>
           </div>
+          {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
+          <Button
+            variant="outline"
+            onClick={() => {
+              refresh();
+              loadData();
+            }}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
         </motion.div>
 
         {/* Stats Cards */}

@@ -23,6 +23,7 @@ import { AIDescriptionService } from '@/components/services/AIDescriptionService
 import ProductLimitGuard from '@/components/subscription/ProductLimitGuard';
 import { createProduct, updateProduct } from '@/services/productService';
 import { AFRICAN_CURRENCIES, convertCurrency, formatCurrency } from '@/utils/currencyConverter';
+import { checkProductLimit } from '@/utils/subscriptionLimits';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',

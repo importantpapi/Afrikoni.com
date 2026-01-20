@@ -39,23 +39,101 @@ export async function login(email, password) {
       throw new Error('No user returned from authentication');
     }
 
-    // Step 2: Immediately fetch profile to verify company_id exists
-    // This ensures the Promise only resolves after profile is confirmed
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authData.user.id)
-      .maybeSingle();
+    // ✅ KERNEL HANDSHAKE: Retry profile fetch to handle race condition
+    // On slow networks or cold-start databases, a single fetch often fails
+    // Retry 3 times with exponential backoff (500ms, 1000ms, 2000ms)
+    const fetchProfileWithRetry = async (userId, maxAttempts = 3) => {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single(); // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle()
 
-    if (profileError) {
-      console.error('[AuthService] Profile fetch error:', profileError);
-      // Don't throw - profile might not exist yet (will be created by PostLoginRouter)
-      // Return user with null profile
-      return {
-        user: authData.user,
-        profile: null
-      };
-    }
+          if (profileError) {
+            // Handle PGRST116 (not found) - return null after all retries
+            if (profileError.code === 'PGRST116') {
+              if (attempt < maxAttempts) {
+                const delayMs = 500 * Math.pow(2, attempt - 1); // Exponential backoff
+                console.log(`[AuthService] Profile not found (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                continue;
+              }
+              // Last attempt - profile doesn't exist, return null
+              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - returning null`);
+              return null;
+            }
+            // Network errors or other errors - throw
+            throw profileError;
+          }
+
+          // Success - return profile data
+          return profileData;
+        } catch (error) {
+          // If it's the last attempt and not PGRST116, throw
+          if (attempt === maxAttempts) {
+            if (error.code === 'PGRST116') {
+              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - returning null`);
+              return null;
+            }
+            throw error;
+          }
+          // Wait before retry with exponential backoff
+          const delayMs = 500 * Math.pow(2, attempt - 1);
+          console.log(`[AuthService] Profile fetch error (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`, error);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+      return null;
+    };
+
+    // Step 2: Fetch profile with retry logic
+    const profileData = await fetchProfileWithRetry(authData.user.id);
+
+    // ✅ PRIORITY 1 FIX: Metadata sync with retry logic (2 attempts)
+    // This ensures RLS policies can access is_admin from the JWT token
+    // Login doesn't resolve until refresh is confirmed successful
+    const syncMetadataWithRetry = async (maxAttempts = 2) => {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          // Update user metadata with admin flag
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: {
+              is_admin: profileData?.is_admin || false
+            }
+          });
+          
+          if (updateError) {
+            throw updateError;
+          }
+          
+          console.log(`[AuthService] Admin flag synced to JWT metadata (attempt ${attempt}/${maxAttempts}):`, profileData?.is_admin || false);
+          
+          // Refresh session immediately to ensure RLS policies see the flag
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError) {
+            throw refreshError;
+          }
+          
+          console.log(`[AuthService] Session refreshed with updated metadata (attempt ${attempt}/${maxAttempts})`);
+          return; // Success - exit retry loop
+        } catch (metadataError) {
+          if (attempt === maxAttempts) {
+            // Last attempt failed - log error but don't block login
+            console.warn('[AuthService] Failed to sync admin flag to metadata after all retries (non-critical):', metadataError);
+            return;
+          }
+          // Retry with delay
+          const delayMs = 500 * attempt; // 500ms, 1000ms
+          console.warn(`[AuthService] Metadata sync failed (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`, metadataError);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+    };
+    
+    await syncMetadataWithRetry();
 
     // Step 3: Return user and profile (profile may be null if not created yet)
     return {
@@ -118,16 +196,36 @@ export async function getSession() {
     }
 
     // Fetch profile
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .maybeSingle();
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single(); // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle()
 
-    return {
-      user: session.user,
-      profile: profileData || null
-    };
+      // Handle PGRST116 (not found) - return null for profile
+      if (profileError && profileError.code === 'PGRST116') {
+        return {
+          user: session.user,
+          profile: null
+        };
+      }
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      return {
+        user: session.user,
+        profile: profileData || null
+      };
+    } catch (error) {
+      console.error('[AuthService] Get session profile error:', error);
+      return {
+        user: session.user,
+        profile: null
+      };
+    }
   } catch (error) {
     console.error('[AuthService] Get session error:', error);
     return { user: null, profile: null };

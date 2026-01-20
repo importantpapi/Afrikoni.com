@@ -1,77 +1,57 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider';
-import { supabase } from '@/api/supabaseClient';
-import { toast } from 'sonner';
+import { useCapability } from '@/context/CapabilityContext';
+import { LoadingScreen } from '@/components/shared/ui/LoadingScreen';
 
 export default function PostLoginRouter() {
   const { user, profile, authReady } = useAuth();
+  const capabilities = useCapability();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handlePostLogin = async () => {
-      if (!authReady) return;
-
-      if (!user) {
-        navigate('/login', { replace: true });
-        return;
+    // 🛣️ FORCE NAVIGATION: Direct log to debug router state
+    console.log("🛣️ Router Check:", { 
+      authReady, 
+      hasUser: !!user, 
+      capsReady: capabilities?.ready,
+      capsLoading: capabilities?.loading,
+      hasProfile: !!profile,
+      companyId: profile?.company_id 
+    });
+    
+    // ✅ TOTAL VIBRANIUM RESET: Wait for BOTH authReady AND capabilities.ready AND profile check
+    // Only navigate when ALL conditions are true (no race condition)
+    if (authReady && user && profile && capabilities?.ready && !capabilities?.loading) {
+      const target = profile?.company_id ? '/dashboard' : '/onboarding/company';
+      console.log("🚀 Redirecting to:", target);
+      navigate(target, { replace: true });
+      // ✅ VERIFICATION: Log FINISH LINE REACHED when navigate executes
+      console.log("🏁 FINISH LINE REACHED: Navigation executed to", target);
+    } else {
+      console.log("⏳ Router waiting:", {
+        authReady,
+        hasUser: !!user,
+        capsReady: capabilities?.ready,
+        capsLoading: capabilities?.loading,
+        hasProfile: !!profile
+      });
+    }
+  }, [authReady, user, profile, capabilities?.ready, capabilities?.loading, navigate]);
+  
+  // ✅ TOTAL VIBRANIUM RESET: Add timeout fallback to prevent infinite waiting
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (authReady && user && !capabilities?.ready) {
+        console.warn('[PostLoginRouter] Timeout - capabilities not ready after 10s, forcing navigation');
+        // Force navigation even if capabilities aren't ready (fallback)
+        const target = profile?.company_id ? '/dashboard' : '/onboarding/company';
+        navigate(target, { replace: true });
       }
+    }, 10000); // 10-second timeout
+    
+    return () => clearTimeout(timeoutId);
+  }, [authReady, user, profile, capabilities?.ready, navigate]);
 
-      // Create profile if doesn't exist
-      if (!profile) {
-        try {
-          const { data: newProfile, error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: user.id,
-              email: user.email,
-              full_name: user.user_metadata?.full_name || '',
-            })
-            .select()
-            .single();
-          
-          if (profileError && profileError.code !== '23505') { // Ignore duplicate key errors
-            console.error('[PostLoginRouter] Profile creation error:', profileError);
-            toast.error('Failed to create your profile. Please try again or contact support.');
-            navigate('/login', { replace: true });
-            return;
-          }
-          
-          // If profile created successfully, continue to onboarding
-          if (newProfile) {
-            navigate('/onboarding/company', { replace: true });
-          } else {
-            // Profile creation returned no data but no error - redirect to login
-            toast.error('Account setup incomplete. Please try logging in again.');
-            navigate('/login', { replace: true });
-          }
-          return;
-        } catch (error) {
-          console.error('[PostLoginRouter] Unexpected error during profile creation:', error);
-          toast.error('An unexpected error occurred. Please try again or contact support.');
-          navigate('/login', { replace: true });
-          return;
-        }
-      }
-
-      // PHASE 4: Removed role-based routing
-      // Navigate based on company_id only (no role checks)
-      if (profile.company_id) {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/onboarding/company', { replace: true });
-      }
-    };
-
-    handlePostLogin();
-  }, [user, profile, authReady, navigate]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-afrikoni-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-afrikoni-deep">Setting up your account...</p>
-      </div>
-    </div>
-  );
+  return <LoadingScreen message="Unlocking Workspace..." />;
 }

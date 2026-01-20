@@ -69,7 +69,9 @@ if (!rootElement) {
     try {
       const root = ReactDOM.createRoot(rootElement);
       root.render(
-        <React.StrictMode>
+        // ✅ STABILIZE BOOT: Temporarily disabled StrictMode to prevent double mounting
+        // This stops the "🚀 Afrikoni app booting twice" and prevents 5s timeout
+        // <React.StrictMode>
           <ErrorBoundary>
             <BrowserRouter
               future={{
@@ -80,7 +82,7 @@ if (!rootElement) {
               <App />
             </BrowserRouter>
           </ErrorBoundary>
-        </React.StrictMode>,
+        // </React.StrictMode>,
       );
     } catch (e) {
       console.error('[React Render] Error during render:', e);

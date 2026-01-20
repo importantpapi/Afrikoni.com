@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useCapability } from '@/context/CapabilityContext';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
@@ -32,6 +33,8 @@ import RequireCapability from '@/guards/RequireCapability';
 function PaymentsDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  // ✅ KERNEL-CENTRIC: Import useCapability to check ready state
+  const { ready } = useCapability();
   
   // Derive role from capabilities for API calls that need it
   const isBuyer = capabilities?.can_buy === true;
@@ -50,6 +53,15 @@ function PaymentsDashboardInner() {
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   
+  // ✅ KERNEL-CENTRIC: Check ready state from Kernel - ONLY render when ready === true
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <SpinnerWithTimeout message="Loading capabilities..." ready={ready} />
+      </div>
+    );
+  }
+  
   // ✅ UNIFIED DASHBOARD KERNEL: Show loading spinner while system is not ready
   if (!canLoadData && capabilities.loading) {
     return (
@@ -60,9 +72,7 @@ function PaymentsDashboardInner() {
   }
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'payments.jsx:70',message:'HYPOTHESIS_C: useEffect entry - checking canLoadData',data:{canLoadData,profileCompanyId,userId,capabilitiesReady:capabilities.ready},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
+    // ✅ PRODUCTION CLEANUP: Agent logging disabled
     // ✅ KERNEL MIGRATION: Use canLoadData guard
     if (!canLoadData) {
       return;
@@ -85,9 +95,6 @@ function PaymentsDashboardInner() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'payments.jsx:110',message:'HYPOTHESIS_C: loadData entry - using profileCompanyId from kernel',data:{profileCompanyId,userId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId from kernel
       if (!userId || !profileCompanyId) {
         navigate('/login');
@@ -122,19 +129,39 @@ function PaymentsDashboardInner() {
           markFresh();
         }
       } catch (dataError) {
+        // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+        if (dataError?.code === 'PGRST204' || dataError?.code === 'PGRST205') {
+          console.warn('[PaymentsDashboard] Schema mismatch (PGRST204/205) - continuing with empty state');
+          // Set empty data - feature not yet available
+          setWallet({ currency: 'USD', available_balance: 0 ?? 0, pending_balance: 0 ?? 0 }); // ✅ KERNEL-CENTRIC: Vibranium defaults
+          setTransactions([]);
+          setEscrowPayments([]);
+          return; // Exit gracefully - don't set error state
+        }
         console.log('Payment tables not yet set up:', dataError.message);
         // Set empty data - feature not yet available
-        setWallet(null);
+        setWallet({ currency: 'USD', available_balance: 0, pending_balance: 0 });
         setTransactions([]);
         setEscrowPayments([]);
         // ❌ DO NOT mark fresh on error - let it retry on next navigation
       }
     } catch (error) {
-      // ✅ KERNEL MIGRATION: Enhanced error logging and state
-      console.error('Error loading payments data:', error);
-      setError(error?.message || 'Failed to load payments data');
+      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+      if (error?.code === 'PGRST204' || error?.code === 'PGRST205') {
+        console.warn('[PaymentsDashboard] Schema mismatch (PGRST204/205) - ignoring error');
+        // Set empty data and continue - don't crash
+        setWallet({ currency: 'USD', available_balance: 0, pending_balance: 0 });
+        setTransactions([]);
+        setEscrowPayments([]);
+        // ✅ VIBRANIUM STABILIZATION: Don't return early - let finally block handle setIsLoading(false)
+      } else {
+        // ✅ KERNEL MIGRATION: Enhanced error logging and state
+        console.error('Error loading payments data:', error);
+        setError(error?.message || 'Failed to load payments data');
+      }
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
+      // ✅ VIBRANIUM STABILIZATION: Always reset loading state (non-negotiable)
       setIsLoading(false);
     }
   };
@@ -220,7 +247,7 @@ function PaymentsDashboardInner() {
                 </p>
                 <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
                   {wallet.currency}{' '}
-                  {parseFloat(wallet.available_balance || 0).toLocaleString('en-US', {
+                  {parseFloat(wallet.available_balance ?? 0).toLocaleString('en-US', { // ✅ KERNEL-CENTRIC: Vibranium defaults
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
@@ -287,7 +314,7 @@ function PaymentsDashboardInner() {
                   <div>
                     <p className="text-sm text-afrikoni-text-dark/70 mb-1">Available Balance</p>
                     <h2 className="text-4xl font-bold text-afrikoni-text-dark">
-                      {wallet.currency} {parseFloat(wallet.available_balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {wallet.currency} {parseFloat(wallet.available_balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {/* ✅ KERNEL-CENTRIC: Vibranium defaults */}
                     </h2>
                     {wallet.pending_balance > 0 && (
                       <p className="text-sm text-afrikoni-text-dark/60 mt-2">

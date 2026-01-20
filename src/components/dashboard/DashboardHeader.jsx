@@ -1,20 +1,44 @@
+/**
+ * ============================================================================
+ * ⚠️ DEPRECATED COMPONENT ⚠️
+ * ============================================================================
+ * 
+ * This component is DEPRECATED and not currently used in the dashboard.
+ * 
+ * If you need to use this component, update it to use capabilities:
+ * - Use `useDashboardKernel()` hook to get `capabilities` and `isAdmin`
+ * - Replace `user?.user_role` checks with capability checks
+ * - Derive role labels from capabilities (e.g., if can_sell && can_buy, label as 'Hybrid Workspace')
+ * 
+ * ============================================================================
+ */
+
 import React from 'react';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Search, Bell, MessageCircle, User } from 'lucide-react';
 import NotificationBell from '@/components/notificationbell';
+import { getUserInitial } from '@/utils/userHelpers';
 
-export default function DashboardHeader({ user, company, activeRole, onRoleSwitch }) {
+export default function DashboardHeader({ user, company, activeRole, onRoleSwitch, capabilities, isAdmin }) {
+  // ✅ FINAL CLEANUP: Derive role options from capabilities instead of user.user_role
+  const isHybrid = capabilities?.can_buy === true && capabilities?.can_sell === true;
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+  const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
+  
   const roleOptions = [
     { value: 'buyer', label: 'Buyer' },
     { value: 'seller', label: 'Seller' },
     { value: 'admin', label: 'Admin' },
     { value: 'logistics_partner', label: 'Logistics' }
   ].filter(role => {
-    // Only show roles user has access to
-    if (user?.user_role === 'admin') return true;
-    return role.value === user?.user_role || role.value === 'buyer';
+    // ✅ FINAL CLEANUP: Use capabilities and isAdmin instead of user.user_role
+    if (isAdmin) return true;
+    if (role.value === 'buyer') return true; // Everyone can be a buyer
+    if (role.value === 'seller' && isSeller) return true;
+    if (role.value === 'logistics_partner' && isLogistics) return true;
+    return false;
   });
 
   return (

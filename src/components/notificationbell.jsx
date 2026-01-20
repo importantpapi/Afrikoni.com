@@ -13,6 +13,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const channelRef = useRef(null); // ✅ KERNEL ALIGNMENT: Store channel in ref for proper cleanup
+  const activeCompanyIdRef = useRef(null); // ✅ VIBRANIUM STABILIZATION: Track active subscription companyId
 
   // ✅ FULL-STACK SYNC: Standardize isHybrid as (can_buy && can_sell)
   const isHybrid = capabilities?.can_buy === true && capabilities?.can_sell === true;
@@ -94,15 +95,42 @@ export default function NotificationBell() {
       return;
     }
 
+    // ✅ VIBRANIUM STABILIZATION: Get current companyId
+    const currentCompanyId = profileCompanyId || null;
+    
+    // ✅ VIBRANIUM STABILIZATION: Only subscribe if companyId exists and is different from previous
+    // This prevents infinite unsubscribe/subscribe cycles
+    if (currentCompanyId && currentCompanyId === activeCompanyIdRef.current) {
+      // Already subscribed to this companyId - skip subscription but still load notifications
+      console.log('[NotificationBell] Already subscribed to companyId:', currentCompanyId);
+      loadNotifications();
+      return;
+    }
+    
+    // ✅ VIBRANIUM STABILIZATION: If companyId became null, clear the ref and unsubscribe
+    if (!currentCompanyId && activeCompanyIdRef.current) {
+      console.log('[NotificationBell] CompanyId became null - clearing subscription');
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      activeCompanyIdRef.current = null;
+      return;
+    }
+
     // Now safe to load notifications
     loadNotifications();
+    
+    // ✅ VIBRANIUM STABILIZATION: Unsubscribe from previous channel if exists and companyId changed
+    if (channelRef.current && activeCompanyIdRef.current !== currentCompanyId) {
+      console.log('[NotificationBell] Unsubscribing from previous channel (companyId changed)');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
     
     // ✅ KERNEL ALIGNMENT: Setup real-time subscription with proper admin/hybrid handling
     const setupSubscription = async () => {
       try {
-        // ✅ KERNEL ALIGNMENT: Use kernel-provided values
-        const companyId = profileCompanyId || null;
-        
         // ✅ FINAL 3% FIX: Admin users see all notifications, clients use company-scoped channel
         if (isAdmin) {
           // Admin: No filter - RLS policy allows access to all notifications
@@ -124,25 +152,25 @@ export default function NotificationBell() {
             });
 
           channelRef.current = channel;
+          activeCompanyIdRef.current = 'admin'; // Mark as admin subscription
           return channel;
         }
         
         // ✅ FINAL 3% FIX: Clients use dashboard-${companyId} pattern for 'World Isolation'
         // Regular users (including hybrid): apply company_id filter
-        if (!companyId && !userId && !user.email) {
+        if (!currentCompanyId && !userId && !user.email) {
+          return null;
+        }
+        
+        // ✅ VIBRANIUM STABILIZATION: Only subscribe if companyId exists and is different
+        if (!currentCompanyId) {
+          console.log('[NotificationBell] No companyId - skipping subscription');
           return null;
         }
         
         // ✅ FINAL 3% FIX: Use dashboard-${companyId} pattern to match DashboardRealtimeManager
-        const channelName = companyId ? `dashboard-${companyId}` : `notifications-${userId || user.email}`;
-        let filter = '';
-        if (companyId) {
-          filter = `company_id=eq.${companyId}`;
-        } else if (userId) {
-          filter = `user_id=eq.${userId}`;
-        } else if (user.email) {
-          filter = `user_email=eq.${user.email}`;
-        }
+        const channelName = `dashboard-${currentCompanyId}`;
+        const filter = `company_id=eq.${currentCompanyId}`;
         
         const channel = supabase
           .channel(channelName)
@@ -158,6 +186,8 @@ export default function NotificationBell() {
           .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
               console.log(`[NotificationBell] Real-time subscribed (${channelName})`);
+              // ✅ VIBRANIUM STABILIZATION: Track active subscription
+              activeCompanyIdRef.current = currentCompanyId;
             }
           });
 
@@ -177,9 +207,10 @@ export default function NotificationBell() {
         console.log('[NotificationBell] Unsubscribing');
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
+        activeCompanyIdRef.current = null; // ✅ VIBRANIUM STABILIZATION: Clear tracked companyId
       }
     };
-  }, [userId, profileCompanyId, user?.email, authReady, authLoading, isAdminOrHybrid, loadNotifications]); // ✅ KERNEL ALIGNMENT: Include loadNotifications
+  }, [userId, profileCompanyId, user?.email, authReady, authLoading, isAdminOrHybrid, loadNotifications, isAdmin]); // ✅ VIBRANIUM STABILIZATION: Include isAdmin
 
   const markAsRead = async (notificationId) => {
     if (!notificationId) return;

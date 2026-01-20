@@ -1,8 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Users, Package, ShoppingBag, TrendingUp } from 'lucide-react';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
 export default function AdminCommandCenter({ data }) {
+  // ✅ FINAL SYNC: Use Kernel to derive role labels instead of user.user_role
+  const { isAdmin, capabilities, isHybrid } = useDashboardKernel();
   const { companies = [], orders = [], users = [] } = data;
 
   const stats = [
@@ -45,12 +48,17 @@ export default function AdminCommandCenter({ data }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {users.slice(0, 5).map(user => (
-                <div key={user.id} className="p-3 border border-afrikoni-gold/20 rounded-lg">
-                  <div className="font-semibold text-afrikoni-chestnut">{user.email}</div>
-                  <div className="text-sm text-afrikoni-deep">{user.user_role}</div>
-                </div>
-              ))}
+              {users.slice(0, 5).map(user => {
+                // ✅ FINAL SYNC: Derive role label from capabilities (fallback to email-based check if user object has is_admin)
+                const userIsAdmin = user.is_admin || user.user_metadata?.is_admin || false;
+                const roleLabel = userIsAdmin ? 'Admin' : 'User';
+                return (
+                  <div key={user.id} className="p-3 border border-afrikoni-gold/20 rounded-lg">
+                    <div className="font-semibold text-afrikoni-chestnut">{user.email}</div>
+                    <div className="text-sm text-afrikoni-deep">{roleLabel}</div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

@@ -110,8 +110,16 @@ export default function KoniAIHub() {
           .from('companies')
           .select('*')
           .eq('id', profileCompanyId)
-          .maybeSingle();
-        if (companyData) setCompany(companyData);
+          .single();
+        
+        if (companyError) {
+          // Handle PGRST116 (not found) - company doesn't exist yet, this is OK
+          if (companyError.code !== 'PGRST116') {
+            console.error('[Koniai] Error loading company:', companyError);
+          }
+        } else if (companyData) {
+          setCompany(companyData);
+        }
       }
 
       // Load categories

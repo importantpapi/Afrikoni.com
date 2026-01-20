@@ -42,18 +42,28 @@ function SignupInner() {
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
 
-  // ✅ KERNEL COMPLIANCE: Redirect logged-in users away from signup page
+  // ✅ TOTAL VIBRANIUM RESET: Consolidated navigation logic - single useEffect, single destination
+  // Prevents race conditions from duplicate redirect hooks
   useEffect(() => {
     if (!authReady) return;
     
+    // If user becomes available after signup, redirect
     if (hasUser) {
-      if (!profile || !profile.company_id) {
-        navigate('/onboarding/company', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      console.log('[Signup] User available from AuthProvider, redirecting to post-login');
+      navigate('/auth/post-login', { replace: true });
+      return;
     }
-  }, [authReady, hasUser, profile, navigate]);
+    
+    // ✅ TOTAL VIBRANIUM RESET: Add 10-second timeout fallback to prevent infinite waiting
+    const timeoutId = setTimeout(() => {
+      if (!hasUser && authReady) {
+        console.warn('[Signup] AuthProvider update timeout (10s) - forcing redirect to post-login');
+        navigate('/auth/post-login', { replace: true });
+      }
+    }, 10000); // 10-second timeout fallback
+    
+    return () => clearTimeout(timeoutId);
+  }, [authReady, hasUser, navigate]);
 
   // Email validation helper
   const isValidEmail = (email) => {
@@ -81,24 +91,8 @@ function SignupInner() {
     setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
   };
 
-  // ✅ KERNEL COMPLIANCE: Watch AuthProvider state instead of polling getSession()
-  // Wait for AuthProvider to update after signup
-  useEffect(() => {
-    if (!authReady) return;
-    
-    // If user becomes available after signup, redirect
-    if (hasUser) {
-      console.log('[Signup] User available from AuthProvider, redirecting');
-      navigate('/auth/post-login', { replace: true });
-    }
-  }, [authReady, hasUser, navigate]);
-
   const handleSignup = async (e) => {
-    debugger; // ⬅️ BREAKPOINT 1: Does click fire?
     e.preventDefault();
-    
-    // DEBUG: Log submit click
-    console.log('SUBMIT CLICKED');
     
     // Clear previous errors
     setFieldErrors({ email: '', password: '', confirmPassword: '', general: '' });
@@ -149,18 +143,12 @@ function SignupInner() {
 
     // If validation errors exist, show them and return (don't set loading)
     if (hasErrors) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.jsx:149',message:'Validation errors - early return',data:{errors:newErrors,hasErrors},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       console.log('VALIDATION ERRORS:', newErrors);
       setFieldErrors(newErrors);
       return;
     }
 
     // Validation passed - set loading state immediately before Supabase call
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.jsx:156',message:'Validation passed - proceeding to Supabase',data:{email:formData.email},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     console.log('VALIDATION PASSED - Starting signup');
     setIsLoading(true);
     try {
@@ -181,7 +169,6 @@ function SignupInner() {
       }
       
       try {
-        console.log('CALLING SUPABASE AUTH.SIGNUP');
         const result = await supabase.auth.signUp({
         email: formData.email.trim(), // Trim email to prevent whitespace issues
         password: formData.password,
@@ -193,12 +180,6 @@ function SignupInner() {
       });
         data = result.data;
         error = result.error;
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/8db900e9-13cb-4fbb-a772-e155a234f3a7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.jsx:174',message:'Supabase signUp response',data:{hasUser:!!result.data?.user,hasSession:!!result.data?.session,hasError:!!result.error,errorMessage:result.error?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
-        debugger; // ⬅️ BREAKPOINT 2: Inspect result.data.user, result.data.session, result.error
-        // DEBUG: Log Supabase response
-        console.log('SIGNUP RESPONSE', { data, error });
       } catch (networkError) {
         // ✅ KERNEL COMPLIANCE: Use standardized network error detection
         if (isNetworkError(networkError)) {

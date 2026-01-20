@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
@@ -137,6 +137,41 @@ export default function NotificationsCenter() {
       setIsLoading(false);
     }
   }, [userId, profileCompanyId, isAdmin, capabilities]);
+
+  // ✅ KERNEL MIGRATION: Use canLoadData guard
+  useEffect(() => {
+    if (!canLoadData) {
+      return;
+    }
+
+    loadNotifications();
+    
+    // ✅ FULL-STACK SYNC: Listen to centralized DashboardRealtimeManager updates
+    // DashboardRealtimeManager subscribes to notifications via dashboard-${companyId} channel
+    // Listen for custom events dispatched by DashboardRealtimeManager
+    const handleRealtimeUpdate = (event) => {
+      if (event.detail?.table === 'notifications') {
+        console.log('[NotificationsCenter] Realtime update received from DashboardRealtimeManager');
+        loadNotifications();
+      }
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadNotifications();
+      }
+    };
+    
+    window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', loadNotifications);
+
+    return () => {
+      window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', loadNotifications);
+    };
+  }, [canLoadData, loadNotifications]); // ✅ FINAL CLEANUP: Include loadNotifications in dependencies
 
   const markAsRead = async (id) => {
     try {

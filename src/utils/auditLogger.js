@@ -109,7 +109,7 @@ function getActorType(profile, capabilities = null) {
   // ✅ KERNEL COMPLIANCE: Check is_admin first
   if (profile.is_admin === true) return 'admin';
   
-  // ✅ KERNEL COMPLIANCE: Derive from capabilities if available
+  // ✅ GLOBAL REFACTOR: Derive from capabilities if available
   if (capabilities) {
     const isBuyer = capabilities.can_buy === true;
     const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
@@ -121,14 +121,8 @@ function getActorType(profile, capabilities = null) {
     if (isBuyer) return 'buyer';
   }
   
-  // Fallback: Check legacy role field (for backward compatibility during migration)
-  // TODO: Remove this fallback after migration is complete
-  if (profile.role === 'admin') return 'admin';
-  if (profile.role === 'buyer') return 'buyer';
-  if (profile.role === 'seller') return 'supplier';
-  if (profile.role === 'hybrid') return 'hybrid';
-  if (profile.role === 'logistics') return 'logistics';
-  
+  // ✅ GLOBAL REFACTOR: Removed legacy role fallback - capabilities should always be provided
+  // If no capabilities provided, default to 'user'
   return 'user';
 }
 

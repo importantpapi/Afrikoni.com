@@ -139,9 +139,16 @@ export default function AdminSupplierManagement() {
         .from('profiles')
         .select('id')
         .eq('email', formData.email)
-        .maybeSingle();
-
-      let userId = existingUser?.id;
+        .single();
+      
+      if (userError) {
+        // Handle PGRST116 (not found) - user doesn't exist yet, this is OK
+        if (userError.code !== 'PGRST116') {
+          console.error('[SupplierManagement] Error checking existing user:', userError);
+        }
+      } else {
+        userId = existingUser?.id;
+      }
 
       // If user doesn't exist, create a profile entry
       if (!userId) {

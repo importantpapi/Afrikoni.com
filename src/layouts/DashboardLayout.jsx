@@ -299,43 +299,8 @@ export default function DashboardLayout({
   const contextUserEmail = contextUser?.email?.toLowerCase() || null;
   const contextProfileId = contextProfile?.id || null;
   
-  // ✅ TOTAL SYSTEM SYNC: Kernel logging - track Persistent Shell state
-  // NOTE: Must be AFTER contextUserId, contextUserEmail, contextProfileId declarations
-  useEffect(() => {
-    const capabilitiesReadyState = safeCapabilities?.ready ?? false;
-    const currentPathname = location.pathname;
-    
-    console.group('🏠 Dashboard Kernel Sync');
-    console.log('📊 Auth State:', {
-      authReady: contextUser ? true : false,
-      userId: contextUserId || 'null',
-      userEmail: contextUserEmail || 'null',
-    });
-    console.log('🔐 Capabilities State:', {
-      capabilitiesReady: capabilitiesReadyState,
-      can_buy: safeCapabilities?.can_buy ?? false,
-      can_sell: safeCapabilities?.can_sell ?? false,
-      can_logistics: safeCapabilities?.can_logistics ?? false,
-      sell_status: safeCapabilities?.sell_status ?? 'unknown',
-      logistics_status: safeCapabilities?.logistics_status ?? 'unknown',
-    });
-    console.log('📍 Navigation State:', {
-      currentPathname,
-      sidebarOpen,
-      userMenuOpen,
-    });
-    console.log('🏢 Company State:', {
-      companyId: profileCompanyId || 'null',
-      profileId: contextProfileId || 'null',
-      profileCompanyId: profileCompanyId || 'null', // ✅ STABILIZATION: Explicit logging for verification
-    });
-    console.log('🔧 Stabilization State:', {
-      isDevelopment: isDevelopment,
-      capabilitiesDataReady: !!capabilitiesData,
-      capabilitiesData: capabilitiesData,
-    });
-    console.groupEnd();
-  }, [location.pathname, safeCapabilities?.ready, contextUserId, contextUserEmail, profileCompanyId, contextProfileId, sidebarOpen, userMenuOpen, contextUser, safeCapabilities, isDevelopment, capabilitiesData]);
+  // ✅ SCHEMA ALIGNMENT: Removed verbose console logging - Kernel sync verified
+  // Kernel is working correctly, no need for verbose logging in production
   
   useEffect(() => {
     if (contextUserId && contextProfileId) {

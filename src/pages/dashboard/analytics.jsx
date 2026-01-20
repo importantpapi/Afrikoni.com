@@ -55,14 +55,9 @@ function DashboardAnalyticsInner() {
   }
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'analytics.jsx:58',message:'HYPOTHESIS_E: useEffect entry - checking canLoadData',data:{canLoadData,profileCompanyId,userId,capabilitiesReady:capabilities.ready},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
-    // ✅ UNIFIED DASHBOARD KERNEL: Single guard replaces all scattered checks
-    if (!canLoadData) {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d7d2d2ee-1c5c-40ad-93f6-c86749150e4f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'analytics.jsx:61',message:'HYPOTHESIS_E: canLoadData is false - early return',data:{canLoadData,userId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
+    // ✅ SCHEMA ALIGNMENT: Strict guard using profileCompanyId from Kernel
+    // ✅ KERNEL GUARD REINFORCEMENT: Ensure canLoadData AND profileCompanyId before fetching
+    if (!canLoadData || !profileCompanyId) {
       if (!userId) {
         console.log('[DashboardAnalytics] No user → redirecting to login');
         navigate('/login');

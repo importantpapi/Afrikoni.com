@@ -68,14 +68,60 @@ export function getNetworkErrorMessage() {
 export function handleNetworkError(error, options = {}) {
   const { logError = true } = options;
 
+  // ✅ GLOBAL REFACTOR: Sanitize PGRST error codes and technical SQL errors
+  const errorCode = error?.code || '';
+  const errorMessage = error?.message || '';
+  
+  // Map PGRST error codes to user-friendly messages
+  const pgrstErrorMap = {
+    'PGRST116': 'The requested information was not found.',
+    'PGRST301': 'You do not have permission to access this resource.',
+    '23505': 'This record already exists.',
+    '42501': 'You do not have permission to perform this action.',
+    '42P01': 'Database configuration error. Please contact support.',
+  };
+  
+  // Check if it's a known PGRST error code
+  if (pgrstErrorMap[errorCode]) {
+    if (logError) {
+      console.error('[NetworkErrorHandler] Database error detected:', {
+        code: errorCode,
+        userMessage: pgrstErrorMap[errorCode],
+        // Never log full error object as it may contain URLs or technical details
+      });
+    }
+    return pgrstErrorMap[errorCode];
+  }
+
+  // Check if it's a network error
+  if (isNetworkError(error)) {
+    if (logError) {
+      console.error('[NetworkErrorHandler] Network-level error detected:', {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name,
+        // Never log full error object as it may contain URLs
+      });
+    }
+    return getNetworkErrorMessage();
+  }
+
+  // Generic error - sanitize message
   if (logError) {
-    console.error('[NetworkErrorHandler] Network-level error detected:', {
-      message: error?.message,
-      code: error?.code,
-      name: error?.name,
-      // Never log full error object as it may contain URLs
+    console.error('[NetworkErrorHandler] Error detected:', {
+      code: errorCode,
+      // Never log full error object as it may contain URLs or technical details
     });
   }
 
-  return getNetworkErrorMessage();
+  // Sanitize error message - remove URLs and technical details
+  let sanitizedMessage = errorMessage
+    .replace(/https?:\/\/[\w.-]+\.supabase\.co[^\s]*/gi, '[network error]')
+    .replace(/qkeeufeiaphqylsnfhza[^\s]*/gi, '[network error]')
+    .replace(/[\w-]+\.supabase\.co/gi, '[network error]')
+    .replace(/PGRST\d+/g, '[database error]')
+    .replace(/\d{5}/g, '[error code]'); // Replace SQL error codes
+
+  // Return user-friendly message or sanitized message
+  return sanitizedMessage || 'An error occurred. Please try again.';
 }

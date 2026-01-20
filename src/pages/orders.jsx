@@ -8,9 +8,10 @@ import { Card, CardContent } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { ShoppingBag, Package, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
-export default function Orders() {
-  // Use centralized AuthProvider
+function OrdersInner() {
+  // ✅ FINAL SYNC: Use centralized AuthProvider
   const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -155,6 +156,15 @@ export default function Orders() {
         )}
       </div>
     </div>
+  );
+}
+
+// ✅ FINAL SYNC: Wrap with ProtectedRoute since this is a private page
+export default function Orders() {
+  return (
+    <ProtectedRoute requireCompanyId>
+      <OrdersInner />
+    </ProtectedRoute>
   );
 }
 

@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui
 import { FileText, DollarSign, Calendar, CheckCircle, Clock, Edit, Share, Eye } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthProvider';
 
-export default function RFQManagement() {
-  // Use centralized AuthProvider
+function RFQManagementInner() {
+  // ✅ FINAL SYNC: Use centralized AuthProvider
   const { user, profile, role, authReady, loading: authLoading } = useAuth();
   const [rfqs, setRfqs] = useState([]);
   const [activeTab, setActiveTab] = useState('active');
@@ -228,6 +230,15 @@ export default function RFQManagement() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+// ✅ FINAL SYNC: Wrap with ProtectedRoute since this is a private page
+export default function RFQManagement() {
+  return (
+    <ProtectedRoute requireCompanyId>
+      <RFQManagementInner />
+    </ProtectedRoute>
   );
 }
 

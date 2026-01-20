@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 // Removed Radix Tabs - using plain conditionals instead
-import { Heart, Package, Users, Search, Bookmark, FileText, X } from 'lucide-react';
+import { Heart, Package, Users, Search, Bookmark, FileText, X, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import OptimizedImage from '@/components/OptimizedImage';
+import { useDataFreshness } from '@/hooks/useDataFreshness';
 
 function DashboardSavedInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -27,6 +28,11 @@ function DashboardSavedInner() {
   const [activeTab, setActiveTab] = useState('products');
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // ✅ FINAL SYNC: Data freshness tracking (30 second threshold)
+  const { isStale, markFresh, refresh } = useDataFreshness(30000);
+  const lastLoadTimeRef = useRef(null);
   
   // ✅ FORENSIC RECOVERY: Add "Is Initialized" ref to prevent redundant triggers
   const isInitialMount = useRef(true);
@@ -203,22 +209,29 @@ function DashboardSavedInner() {
   }, [loadSavedItems]);
 
   // ✅ FORENSIC RECOVERY: Clean data fetching guard - REMOVED loadSavedItems from deps to prevent loop
+  // ✅ FINAL SYNC: Check data freshness before loading
   useEffect(() => {
-    // Only trigger once when everything is ready
-    if (isSystemReady && canLoadData && authReady && userId && !isLoadingRef.current) {
-      if (isInitialMount.current && loadSavedItemsRef.current) {
-        loadSavedItemsRef.current();
-        isInitialMount.current = false;
+    if (!isSystemReady || !canLoadData || !userId) {
+      if (!userId) {
+        console.log('[DashboardSaved] No user → redirecting to login');
+        navigate('/login');
       }
-    } else if (!authReady || authLoading) {
-      // Waiting for auth - don't log spam
-    } else if (!isSystemReady || !canLoadData) {
-      // Waiting for system - don't log spam
-    } else if (!userId) {
-      console.log('[DashboardSaved] No user → redirecting to login');
-      navigate('/login');
+      return;
     }
-  }, [isSystemReady, canLoadData, authReady, authLoading, userId, navigate]); // ✅ REMOVED loadSavedItems to prevent infinite loop
+
+    // ✅ FINAL SYNC: Check if data is stale (older than 30 seconds)
+    const shouldRefresh = isStale || 
+                         !lastLoadTimeRef.current || 
+                         (Date.now() - lastLoadTimeRef.current > 30000);
+    
+    if (shouldRefresh && loadSavedItemsRef.current && !isLoadingRef.current) {
+      console.log('[DashboardSaved] Data is stale or first load - refreshing');
+      loadSavedItemsRef.current();
+      isInitialMount.current = false;
+    } else if (!shouldRefresh) {
+      console.log('[DashboardSaved] Data is fresh - skipping reload');
+    }
+  }, [isSystemReady, canLoadData, userId, location.pathname, isStale, navigate]); // ✅ FINAL SYNC: Include isStale and location.pathname
 
   // ✅ CRITICAL FIX: Memoize filteredProducts to prevent unnecessary recomputations
   const filteredProducts = useMemo(() => {
@@ -441,9 +454,10 @@ function DashboardSavedInner() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-8"
+          className="mb-8 flex items-center justify-between"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">Saved Items</h1>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">Saved Items</h1>
           {activeTab === 'products' && (
             <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
               {normalizedProducts.length > 0 
@@ -458,6 +472,21 @@ function DashboardSavedInner() {
                 : 'No saved suppliers yet'}
             </p>
           )}
+          </div>
+          {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
+          <Button
+            variant="outline"
+            onClick={() => {
+              refresh();
+              if (loadSavedItemsRef.current) {
+                loadSavedItemsRef.current();
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
         </motion.div>
 
         {/* Summary */}

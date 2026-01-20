@@ -128,11 +128,29 @@ export default function OrderDetail() {
       setSellerCompany(sellerRes.data);
 
       // Load shipment if exists
-      const { data: shipmentData } = await supabase
-        .from('shipments')
-        .select('*')
-        .eq('order_id', id)
-        .maybeSingle();
+      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+      let shipmentData = null;
+      try {
+        const { data, error: shipmentError } = await supabase
+          .from('shipments')
+          .select('*')
+          .eq('order_id', id)
+          .single();
+        
+        if (shipmentError) {
+          // Handle PGRST116 (not found) - shipment doesn't exist yet, this is OK
+          if (shipmentError.code !== 'PGRST116') {
+            console.error('[Order Detail] Error loading shipment:', shipmentError);
+          }
+        } else {
+          shipmentData = data;
+        }
+      } catch (error) {
+        // PGRST116 (not found) is expected - shipment may not exist yet
+        if (error?.code !== 'PGRST116') {
+          console.error('[Order Detail] Error loading shipment:', error);
+        }
+      }
 
       setShipment(shipmentData);
 
@@ -150,16 +168,29 @@ export default function OrderDetail() {
 
       // Check if user has already reviewed this order/supplier
       if ((orderData.status === 'completed' || orderData.status === 'delivered') && userCompanyId) {
-        const { data: reviewData } = await supabase
-          .from('reviews')
-          .select('*')
-          .eq('order_id', id)
-          .eq('reviewer_company_id', userCompanyId)
-          .maybeSingle();
-        
-        if (reviewData) {
-          setHasReviewed(true);
-          setExistingReview(reviewData);
+        // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
+        try {
+          const { data: reviewData, error: reviewError } = await supabase
+            .from('reviews')
+            .select('*')
+            .eq('order_id', id)
+            .eq('reviewer_company_id', userCompanyId)
+            .single();
+          
+          if (reviewError) {
+            // Handle PGRST116 (not found) - review doesn't exist yet, this is OK
+            if (reviewError.code !== 'PGRST116') {
+              console.error('[Order Detail] Error loading review:', reviewError);
+            }
+          } else if (reviewData) {
+            setHasReviewed(true);
+            setExistingReview(reviewData);
+          }
+        } catch (error) {
+          // PGRST116 (not found) is expected - review may not exist yet
+          if (error?.code !== 'PGRST116') {
+            console.error('[Order Detail] Error loading review:', error);
+          }
         }
       }
 

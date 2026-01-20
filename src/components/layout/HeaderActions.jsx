@@ -4,8 +4,12 @@ import { Button } from '@/components/shared/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, ShoppingCart, ChevronDown, LogOut, User, LayoutDashboard, MessageSquare, Package, FileText, Settings } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
 export default function HeaderActions({ user, onLogout }) {
+  // ✅ FINAL SYNC: Derive role from Kernel instead of user.user_role
+  const { isAdmin, capabilities, isHybrid } = useDashboardKernel();
+  const derivedRoleLabel = isAdmin ? 'Admin' : isHybrid ? 'Hybrid' : capabilities?.can_sell ? 'Seller' : capabilities?.can_buy ? 'Buyer' : 'User';
   const [language, setLanguage] = useState('English');
   const [currency, setCurrency] = useState('USD');
 
@@ -124,7 +128,7 @@ export default function HeaderActions({ user, onLogout }) {
                   <div className="py-1">
                     <div className="px-4 py-3 border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
                       <div className="font-semibold text-afrikoni-chestnut text-sm">{user.email}</div>
-                      <div className="text-xs text-afrikoni-deep/70">{user.user_role || 'User'}</div>
+                      <div className="text-xs text-afrikoni-deep/70">{derivedRoleLabel}</div>
                     </div>
                     <Link 
                       to="/dashboard" 
