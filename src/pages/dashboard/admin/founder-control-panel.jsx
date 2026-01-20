@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  TrendingUp, AlertTriangle, CheckCircle, Clock, DollarSign, 
+import {
+  TrendingUp, AlertTriangle, CheckCircle, Clock, DollarSign,
   Users, Package, FileText, ArrowRight, Filter, Download, RefreshCw
 } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
@@ -13,6 +13,8 @@ import { getCommissionSummary } from '@/utils/commissionCalculator';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 /**
  * Founder Control Panel
@@ -21,8 +23,13 @@ import { cn } from '@/lib/utils';
  */
 
 export default function FounderControlPanel() {
+  const { isSystemReady } = useDashboardKernel();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading founder control panel..." />;
+  }
   const [filter, setFilter] = useState('active'); // 'active' | 'all' | 'stalled'
   const [timeframe, setTimeframe] = useState('week'); // 'week' | 'month' | 'all'
   

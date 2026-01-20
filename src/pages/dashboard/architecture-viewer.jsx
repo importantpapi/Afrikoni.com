@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, AlertTriangle, Database, Shield, Users, Layout, GitBranch, Settings } from 'lucide-react';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 const AfrikoniArchitecture = () => {
+  const { isSystemReady } = useDashboardKernel();
   const [activeView, setActiveView] = useState('boot');
   const [expandedSections, setExpandedSections] = useState({
     auth: true,
     role: true,
     dashboard: true
   });
+
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading architecture viewer..." />;
+  }
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({...prev, [section]: !prev[section]}));

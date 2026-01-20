@@ -58,7 +58,6 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSynchronizing, setIsSynchronizing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
@@ -188,19 +187,11 @@ export default function Login() {
                 <Logo type="full" size="lg" link={true} showTagline={true} />
               </div>
               <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
-                {isSynchronizing ? t('login.synchronizing') || 'Synchronizing...' : t('login.welcomeBack')}
+                {t('login.welcomeBack')}
               </h1>
               <p className="text-afrikoni-deep">
-                {isSynchronizing 
-                  ? t('login.synchronizingSubtitle') || 'Preparing your workspace...'
-                  : t('login.subtitle')
-                }
+                {t('login.subtitle')}
               </p>
-              {isSynchronizing && (
-                <div className="mt-4 flex justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-afrikoni-gold" />
-                </div>
-              )}
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
@@ -216,7 +207,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
-                    disabled={isLoading || isSynchronizing}
+                    disabled={isLoading}
                     required
                   />
                 </div>
@@ -234,7 +225,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
-                    disabled={isLoading || isSynchronizing}
+                    disabled={isLoading}
                     required
                   />
                   <button

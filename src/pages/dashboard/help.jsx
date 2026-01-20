@@ -8,6 +8,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import {
   MessageCircle,
   Mail,
@@ -27,7 +28,11 @@ export default function DashboardHelp() {
   const [openFaq, setOpenFaq] = useState(null);
   const navigate = useNavigate();
   // ✅ KERNEL MIGRATION: Use capabilities from kernel
-  const { capabilities } = useDashboardKernel();
+  const { capabilities, isSystemReady } = useDashboardKernel();
+
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading help center..." />;
+  }
   // ✅ KERNEL MIGRATION: Derive visibility from capabilities
   const isBuyer = capabilities?.can_buy === true;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';

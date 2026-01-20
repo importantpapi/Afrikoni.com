@@ -11,18 +11,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
-import { 
+import {
   Shield, TrendingUp, Award, AlertCircle, Search,
   Eye, BarChart3, CheckCircle, XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 // PHASE 5B: Admin pages use route-level admin check (ProtectedRoute requireAdmin)
 
 function TrustEngineInner() {
+  const { isSystemReady } = useDashboardKernel();
   const [suppliers, setSuppliers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading trust engine..." />;
+  }
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   useEffect(() => {
