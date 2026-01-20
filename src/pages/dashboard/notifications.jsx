@@ -18,17 +18,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/shared/ui/input';
 
 export default function NotificationsCenter() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  // ✅ FINAL 3% FIX: Use unified Dashboard Kernel with capabilities for hybrid check
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
   
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedNotifications, setSelectedNotifications] = useState([]);
-  const [currentRole, setCurrentRole] = useState(capabilities?.role || 'buyer');
-  const navigate = useNavigate();
+      const [filter, setFilter] = useState('all');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedNotifications, setSelectedNotifications] = useState([]);
+      const navigate = useNavigate();
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -53,59 +52,45 @@ export default function NotificationsCenter() {
 
     loadNotifications();
     
-    // Subscribe to real-time updates
-    let channel = null;
-    const setupSubscription = async () => {
-      try {
-        // ✅ KERNEL MIGRATION: Use profileCompanyId and userId from kernel
-        // Only subscribe if we have a filter (company_id, user_id)
-        if (!profileCompanyId && !userId) return;
-
-        // Build filter for realtime subscription
-        let filterStr = '';
-        if (profileCompanyId) {
-          filterStr = `company_id=eq.${profileCompanyId}`;
-        } else if (userId) {
-          filterStr = `user_id=eq.${userId}`;
-        }
-
-        channel = supabase
-          .channel('notifications-updates')
-          .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: filterStr
-          }, () => {
-            loadNotifications();
-          })
-          .subscribe();
-      } catch (error) {
-        // Silently fail - subscription is optional
+    // ✅ FULL-STACK SYNC: Listen to centralized DashboardRealtimeManager updates
+    // DashboardRealtimeManager subscribes to notifications via dashboard-${companyId} channel
+    // Listen for custom events dispatched by DashboardRealtimeManager
+    const handleRealtimeUpdate = (event) => {
+      if (event.detail?.table === 'notifications') {
+        console.log('[NotificationsCenter] Realtime update received from DashboardRealtimeManager');
+        loadNotifications();
       }
     };
-
-    setupSubscription();
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadNotifications();
+      }
+    };
+    
+    window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', loadNotifications);
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', loadNotifications);
     };
-  }, [canLoadData, profileCompanyId, userId]);
+  }, [canLoadData, profileCompanyId, userId, isAdmin, capabilities]);
 
-  const loadNotifications = async () => {
+  // ✅ FULL-STACK SYNC: Wrap loadNotifications in useCallback to fix dependency array
+  const loadNotifications = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // ✅ KERNEL MIGRATION: Use capabilities and profileCompanyId from kernel
-      const normalizedRole = capabilities?.role || 'buyer';
-      setCurrentRole(normalizedRole === 'logistics_partner' ? 'logistics' : normalizedRole);
+      // ✅ FULL-STACK SYNC: Removed role-based logic - use capabilities instead
 
-      // Always require at least one filter to pass RLS
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Admin users can access notifications without company_id
+      // Always require at least one filter to pass RLS (unless admin)
       // Prefer user_id over company_id for RLS matching (more reliable)
-      if (!userId && !profileCompanyId) {
+      if (!userId && !profileCompanyId && !isAdmin) {
         setNotifications([]);
         setIsLoading(false);
         return;
@@ -116,12 +101,20 @@ export default function NotificationsCenter() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // ✅ KERNEL MIGRATION: Prefer user_id first (most reliable for RLS), then company_id
-      if (userId) {
-        query = query.eq('user_id', userId);
-      } else if (profileCompanyId) {
-        query = query.eq('company_id', profileCompanyId);
+      // ✅ FULL-STACK SYNC: Standardize isHybrid as (can_buy && can_sell)
+      const isHybrid = capabilities?.can_buy === true && capabilities?.can_sell === true;
+      const isAdminOrHybrid = isAdmin || isHybrid;
+      
+      // ✅ FULL-STACK SYNC: Admin/hybrid users can see all notifications - RLS policy handles filtering
+      if (!isAdminOrHybrid) {
+        // Regular users: apply filters
+        if (userId) {
+          query = query.eq('user_id', userId);
+        } else if (profileCompanyId) {
+          query = query.eq('company_id', profileCompanyId);
+        }
       }
+      // Admin/hybrid: query runs without filter - RLS policy allows access
 
       const { data, error } = await query;
 
@@ -143,7 +136,7 @@ export default function NotificationsCenter() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, profileCompanyId, isAdmin, capabilities]);
 
   const markAsRead = async (id) => {
     try {

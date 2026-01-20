@@ -85,10 +85,11 @@ function DashboardSavedInner() {
           setSavedProducts([]);
           // Continue to load suppliers - don't return early
         } else {
+          // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
           // Simplified query - PostgREST friendly (no complex joins)
           const { data: productsData, error: productsError } = await supabase
             .from('products')
-            .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, product_images(*)')
+            .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, product_images(*)')
             .in('id', productIds);
           
           // Load companies separately if needed
@@ -222,10 +223,12 @@ function DashboardSavedInner() {
   // ✅ CRITICAL FIX: Memoize filteredProducts to prevent unnecessary recomputations
   const filteredProducts = useMemo(() => {
     return savedProducts.filter((p) => {
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       if (!search) return true;
       const q = search.toLowerCase();
       return (
-        p.title?.toLowerCase().includes(q) ||
+        p.name?.toLowerCase().includes(q) ||
+        p.title?.toLowerCase().includes(q) || // Fallback for legacy data
         p.description?.toLowerCase().includes(q)
       );
     });
@@ -254,8 +257,8 @@ function DashboardSavedInner() {
   // ✅ FORENSIC RECOVERY: Compute normalized products with useMemo (no state -> effect -> state cycle)
   const normalizedProducts = useMemo(() => {
     return filteredProducts.map((p) => {
-      // Normalize title
-      const title = p.title || p.name || p.product_name || 'Untitled product';
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Prioritize 'name' over 'title' (DB schema uses 'name')
+      const title = p.name || p.title || p.product_name || 'Untitled product';
       
       // Normalize image path/URL (try all possible field names)
       const imagePathOrUrl =
@@ -572,7 +575,7 @@ function DashboardSavedInner() {
                             {imageUrlResolved ? (
                               <img 
                                 src={imageUrlResolved} 
-                                alt={p.title} 
+                                alt={p.name || p.title} 
                                 className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
                                 onError={(e) => {
                                   // Fallback to placeholder on error
@@ -619,7 +622,7 @@ function DashboardSavedInner() {
                           {/* Product Info */}
                           <div className="mt-3">
                             <h3 className="font-semibold text-afrikoni-text-dark mb-1 line-clamp-2 group-hover:text-afrikoni-gold transition-colors">
-                              {p.title}
+                              {p.name || p.title}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-afrikoni-text-dark/70 mb-2">
                               <Users className="w-3 h-3" />

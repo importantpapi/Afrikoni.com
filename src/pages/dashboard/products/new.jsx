@@ -40,7 +40,7 @@ const SUPPLY_UNITS = ['tons/month', 'containers/month', 'kg/month', 'grams/month
 
 export default function ProductForm() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, capabilities, canLoadData, isSystemReady } = useDashboardKernel();
+  const { profileCompanyId, userId, user, capabilities, canLoadData, isSystemReady } = useDashboardKernel();
   
   const { id: routeProductId } = useParams();
   const [searchParams] = useSearchParams();
@@ -157,14 +157,8 @@ export default function ProductForm() {
       if (profileCompanyId) {
         setCompanyId(profileCompanyId);
       } else {
-        // Get user email for company creation
-        let userEmail = '';
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          userEmail = user?.email || '';
-        } catch (err) {
-          // Silently fail - email is optional
-        }
+        // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
+        const userEmail = user?.email || '';
         
         if (userEmail) {
           try {

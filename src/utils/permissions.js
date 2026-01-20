@@ -34,11 +34,8 @@ export const isAdmin = (user, profile = null) => {
     return true;
   }
 
-  // Fallback: Check user_metadata for backward compatibility during migration
-  // TODO: Remove this after migration is complete
-  if (user.user_metadata?.role === "admin") {
-    return true;
-  }
+  // ✅ KERNEL COMPLIANCE: Removed user_metadata.role fallback
+  // Admin access is now exclusively determined by profiles.is_admin boolean
 
   return false;
 };

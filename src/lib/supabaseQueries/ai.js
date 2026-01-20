@@ -23,11 +23,12 @@ export async function getProductRecommendations(productId, limit = 10) {
       return [];
     }
     
+    // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
     // Load products separately
     const productIds = recommendations.map(r => r.recommended_product_id).filter(Boolean);
     const { data: productsData, error: productsError } = await supabase
       .from('products')
-      .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, product_images(*)')
+      .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, product_images(*)')
       .in('id', productIds);
     
     if (productsError) throw productsError;

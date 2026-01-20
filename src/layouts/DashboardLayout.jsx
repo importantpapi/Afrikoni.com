@@ -246,7 +246,8 @@ export default function DashboardLayout({
   const isBuyer = capabilitiesData?.can_buy === true;
   const isSeller = capabilitiesData?.can_sell === true && capabilitiesData?.sell_status === 'approved';
   const isLogistics = capabilitiesData?.can_logistics === true && capabilitiesData?.logistics_status === 'approved';
-  const isHybridCapability = isBuyer && isSeller;
+  // ✅ FULL-STACK SYNC: Standardize isHybrid as (can_buy && can_sell)
+  const isHybridCapability = capabilitiesData?.can_buy === true && capabilitiesData?.can_sell === true;
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [isFounder, setIsFounder] = useState(false);
   const [activeView, setActiveView] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
@@ -386,24 +387,21 @@ export default function DashboardLayout({
         console.warn('Failed to log logout:', auditError);
       }
       
-      // Sign out using direct supabase client for reliability
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Clear any local state
-      setCompanyId(null);
-      // PHASE 5B: Removed setUserRole - no role state exists
-      
-      // Show success message
-      toast.success('Logged out successfully');
-      
-      // Redirect to home page
-      navigate('/', { replace: true });
+      // ✅ FULL-STACK SYNC: Use AuthService for atomic logout with state wipe
+      const { logout: authServiceLogout } = await import('@/services/AuthService');
+      await authServiceLogout();
+      // AuthService handles: signOut({ scope: 'global' }), localStorage.clear(), window.location.href reset
+      // No need to navigate or clear state - AuthService does hard redirect
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if there's an error, try to redirect anyway
-      navigate('/', { replace: true });
-      toast.error('Logged out, but there was an issue clearing the session');
+      // Even if there's an error, force redirect via AuthService
+      try {
+        const { logout: authServiceLogout } = await import('@/services/AuthService');
+        await authServiceLogout();
+      } catch (fallbackError) {
+        // Last resort: direct redirect
+        window.location.href = '/login';
+      }
     }
   };
 
@@ -411,18 +409,67 @@ export default function DashboardLayout({
   // Sidebar is built dynamically from capabilities, not from static role-based nav arrays
 
   // PHASE 5B: Build sidebar from capabilities (capability-based access - ONLY source of truth)
+  // ✅ KERNEL-TO-UI ALIGNMENT: Integrated admin check into sidebar building
   // ✅ STABILIZATION: Global error boundary around sidebar building
-  const buildSidebarFromCapabilities = (caps) => {
+  const buildSidebarFromCapabilities = (caps, isAdmin = false) => {
     try {
       if (!caps) return null;
     
     const menuItems = [];
     
-    // Always show: Overview, Messages, Settings
+    // ✅ KERNEL-TO-UI ALIGNMENT: Admin-first sidebar structure
+    // If admin, show admin-specific modules FIRST before capability-based sections
+    if (isAdmin) {
+      // Admin Panel (always first for admins)
+      menuItems.push(
+        { icon: AlertTriangle, label: 'Admin Panel', path: '/dashboard/admin', priority: 'primary', isAdminSection: true }
+      );
+      
+      // Governance & Security (Admin Section)
+      menuItems.push({
+        icon: Shield,
+        label: 'Governance & Security',
+        path: null,
+        priority: 'primary',
+        isSection: true,
+        isAdminSection: true,
+        children: [
+          { icon: AlertCircle, label: 'Risk Management', path: '/dashboard/risk' },
+          { icon: Shield, label: 'Compliance', path: '/dashboard/compliance' },
+          { icon: FileCheck, label: 'KYC Review', path: '/dashboard/kyc' },
+          { icon: AlertTriangle, label: 'Anti-Corruption', path: '/dashboard/anticorruption' },
+          { icon: AlertCircle, label: 'Crisis Management', path: '/dashboard/crisis' },
+          { icon: FileText, label: 'Audit Logs', path: '/dashboard/audit' },
+        ]
+      });
+    }
+    
+    // Always show: Overview, Messages
     menuItems.push(
       { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
       { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' }
     );
+    
+    // ✅ FULL-STACK SYNC: Hybrid Navigation - Show both Buyer and Seller workspace tabs
+    const isHybrid = caps.can_buy === true && caps.can_sell === true;
+    if (isHybrid) {
+      menuItems.push({
+        icon: ShoppingCart,
+        label: 'Buyer Workspace',
+        path: '/dashboard',
+        priority: 'primary',
+        isHybridTab: true,
+        viewMode: 'buyer'
+      });
+      menuItems.push({
+        icon: Package,
+        label: 'Seller Workspace',
+        path: '/dashboard',
+        priority: 'primary',
+        isHybridTab: true,
+        viewMode: 'seller'
+      });
+    }
     
     // If can_buy → show Buy section
     if (caps.can_buy) {
@@ -568,12 +615,14 @@ export default function DashboardLayout({
   };
 
   // PHASE 5B: Always use capabilities - no role-based fallback
+  // ✅ KERNEL-TO-UI ALIGNMENT: Pass isAdmin to sidebar builder
   // ✅ STABILIZATION: Capability override for development + error boundary
   let menuItems;
   try {
     if (capabilitiesData) {
-      // Capability-based sidebar (only source of truth)
-      menuItems = buildSidebarFromCapabilities(capabilitiesData);
+      // ✅ KERNEL-TO-UI ALIGNMENT: Pass admin status to sidebar builder
+      // Capability-based sidebar (only source of truth) with integrated admin check
+      menuItems = buildSidebarFromCapabilities(capabilitiesData, isUserAdmin);
       if (!menuItems || !Array.isArray(menuItems)) {
         // PHASE 5B: If capabilities build fails, show minimal safe sidebar
         console.error('[DashboardLayout] Capabilities build returned invalid data, showing minimal sidebar');
@@ -627,14 +676,8 @@ export default function DashboardLayout({
     return true;
   });
   
-  // ✅ FIXED: Add Admin Panel link to sidebar if user is admin (founder OR is_admin flag)
-  // This allows admins to access admin panel from any capability dashboard
-  if (isUserAdmin && !location.pathname.startsWith('/dashboard/admin')) {
-    menuItems = [
-      ...menuItems,
-      { icon: AlertTriangle, label: 'Admin Panel', path: '/dashboard/admin', isAdminSection: true }
-    ];
-  }
+  // ✅ KERNEL-TO-UI ALIGNMENT: Admin panel now integrated into buildSidebarFromCapabilities
+  // Removed duplicate admin panel addition - it's now part of the sidebar build logic
   // PHASE 5B: isHybrid derived from capabilities, not role string
   const isHybrid = isHybridCapability;
 

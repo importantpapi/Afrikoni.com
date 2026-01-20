@@ -1,6 +1,10 @@
 /**
  * Hook to handle automatic session refresh
  * Keeps users logged in by refreshing tokens before expiry
+ * 
+ * ✅ KERNEL COMPLIANCE: This hook no longer subscribes to auth state changes.
+ * AuthProvider is the ONLY authority for auth state changes.
+ * This hook only handles periodic session refresh if needed.
  */
 
 import { useEffect } from 'react';
@@ -8,37 +12,20 @@ import { supabase } from '@/api/supabaseClient';
 
 export function useSessionRefresh() {
   useEffect(() => {
-    // Set up auth state change listener
-    // CRITICAL: Suppress email confirmation errors globally
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // GLOBAL FILTER: Suppress email confirmation errors
-      // Email delivery errors are non-fatal and must never show UI
-      if (event === 'SIGNED_UP') {
-        // Signup event - email errors are expected and non-blocking
-        // Do NOT show any errors - user creation is the only success indicator
-        console.debug('[AUTH] Signup event - email errors suppressed');
-      }
-      
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        // Session refreshed or signed out - handle accordingly
-        if (event === 'TOKEN_REFRESHED') {
-          // Session refreshed successfully - user stays logged in
-          // No action needed, Supabase handles this automatically
-        }
-      }
-    });
-
+    // ✅ KERNEL COMPLIANCE: Removed secondary auth listener
+    // AuthProvider already handles all auth state changes via onAuthStateChange
+    // This hook should not duplicate that functionality
+    
     // Refresh session periodically to ensure it's valid
     // NOTE: Don't call getSession() on mount - AuthProvider already handles initial session check
     // This hook only refreshes sessions that are close to expiry
     const refreshSession = async () => {
       try {
-        // Use onAuthStateChange to detect when we need to refresh
-        // Don't call getSession() directly - AuthProvider already did that
-        // Only check expiry if we have a session from the auth state change event
-        // For now, we'll rely on Supabase's auto-refresh and only intervene if needed
+        // ✅ KERNEL COMPLIANCE: Don't call getSession() directly
+        // AuthProvider owns all session access. This hook only triggers Supabase's
+        // built-in token refresh mechanism if needed.
+        // Supabase automatically refreshes tokens, so this is mostly a no-op
+        // but kept for potential future use cases.
       } catch (error) {
         // Silently fail - session refresh is optional
       }
@@ -51,7 +38,6 @@ export function useSessionRefresh() {
     const interval = setInterval(refreshSession, 30 * 60 * 1000);
 
     return () => {
-      subscription.unsubscribe();
       clearInterval(interval);
     };
   }, []);

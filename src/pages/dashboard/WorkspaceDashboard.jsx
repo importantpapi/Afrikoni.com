@@ -45,7 +45,8 @@ export default function WorkspaceDashboard() {
     userId, 
     profileCompanyId, 
     capabilities, 
-    isSystemReady 
+    isSystemReady,
+    isPreWarming // ✅ FULL-STACK SYNC: Pre-warming state
   } = useDashboardKernel();
 
   // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
@@ -59,6 +60,11 @@ export default function WorkspaceDashboard() {
   // RENDER GUARDS (Standardized via Kernel)
   // ===========================================================================
   
+  // ✅ FULL-STACK SYNC: Pre-warming state - show "Synchronizing World" message
+  if (isPreWarming) {
+    return <SpinnerWithTimeout message="Synchronizing World..." ready={false} timeoutMs={3000} />;
+  }
+
   if (!isSystemReady) {
     return <SpinnerWithTimeout message="Initializing Workspace..." ready={isSystemReady} />;
   }

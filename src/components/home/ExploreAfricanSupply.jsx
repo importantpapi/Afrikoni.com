@@ -114,21 +114,22 @@ export default function ExploreAfricanSupply() {
       // Build two queries: one for category match, one for keyword match
       // Then combine and deduplicate results
       
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Query 1: Products with matching category name in database
       const { data: categoryProducts } = await supabase
         .from('products')
-        .select('id, title, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories!inner(name)')
+        .select('id, name, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories!inner(name)')
         .eq('status', 'active')
         .ilike('categories.name', `%${category.name}%`)
         .order('created_at', { ascending: false })
         .limit(limit * 2);
 
-      // Query 2: Products with keywords in title (using OR for multiple keywords)
-      const keywordFilters = category.keywords.map(keyword => `title.ilike.%${keyword}%`);
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Query 2: Products with keywords in name (using OR for multiple keywords)
+      const keywordFilters = category.keywords.map(keyword => `name.ilike.%${keyword}%`);
       
       let keywordQuery = supabase
         .from('products')
-        .select('id, title, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories(name)')
+        .select('id, name, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories(name)')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(limit * 2);
@@ -438,7 +439,7 @@ export default function ExploreAfricanSupply() {
                                     {primaryImage?.url ? (
                                       <OptimizedImage
                                         src={primaryImage.url}
-                                        alt={product.title || 'Product'}
+                                        alt={product.name || product.title || 'Product'}
                                         className="w-full h-full object-cover"
                                         width={400}
                                         height={300}
@@ -459,7 +460,7 @@ export default function ExploreAfricanSupply() {
                                   </div>
                                   <CardContent className="p-2.5 md:p-3 space-y-1.5">
                                     <h5 className="font-semibold text-afrikoni-chestnut text-sm md:text-lg leading-snug line-clamp-2 min-h-[2.5em]">
-                                      {product.title || 'Product Name'}
+                                      {product.name || product.title || 'Product Name'}
                                     </h5>
                                     {product.price_min ? (
                                       <div className="text-xs md:text-base text-afrikoni-gold font-bold">

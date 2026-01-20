@@ -223,12 +223,13 @@ export default function SupportChatSidebar() {
         })
         .eq('ticket_number', ticketNumber);
 
+      // ✅ KERNEL COMPLIANCE: Use is_admin boolean instead of role string
       // Notify admin
       try {
         const { data: adminUsers } = await supabase
           .from('profiles')
           .select('id, email')
-          .eq('role', 'admin')
+          .eq('is_admin', true)
           .limit(10);
 
         if (adminUsers && adminUsers.length > 0) {

@@ -35,11 +35,12 @@ export default function CompareProducts() {
         return;
       }
 
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Fetch product details from Supabase - Simplified query
       const productIds = compareList.map(p => p.id);
       const { data: productsData, error } = await supabase
         .from('products')
-        .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, moq, min_order_quantity, moq_unit, lead_time_min_days, lead_time_max_days, delivery_time, supply_ability_qty, supply_ability_unit, certifications, unit, product_images(*)')
+        .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, moq, min_order_quantity, moq_unit, lead_time_min_days, lead_time_max_days, delivery_time, supply_ability_qty, supply_ability_unit, certifications, unit, product_images(*)')
         .in('id', productIds)
         .eq('status', 'active');
       
@@ -188,7 +189,7 @@ export default function CompareProducts() {
     <>
       <SEO 
         title={`Compare ${products.length} Products - Afrikoni`}
-        description={`Compare ${products.length} products side-by-side: ${products.map(p => p.title).join(', ')}`}
+        description={`Compare ${products.length} products side-by-side: ${products.map(p => p.name || p.title).join(', ')}`}
       />
       <div className="min-h-screen bg-afrikoni-offwhite py-8">
         <div className="max-w-7xl mx-auto px-4">
@@ -272,7 +273,7 @@ export default function CompareProducts() {
                                   </div>
                                 )}
                                 <h3 className="font-semibold text-afrikoni-chestnut text-xs md:text-sm line-clamp-2 px-1">
-                                  {product.title}
+                                  {product.name || product.title}
                                 </h3>
                               </Link>
                             </div>

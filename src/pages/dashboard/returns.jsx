@@ -69,11 +69,11 @@ function ReturnsDashboardInner() {
       setIsLoading(true);
       setError(null);
 
-      // ✅ KERNEL MIGRATION: Use profileCompanyId and userRole from kernel
+      // ✅ KERNEL COMPLIANCE: Use profileCompanyId and capabilities from kernel
       // Try to load returns - table may not exist yet
       try {
         const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
-        const returnsList = await getReturns(profileCompanyId, userRole, filters);
+        const returnsList = await getReturns(profileCompanyId, capabilities, filters);
         setReturns(returnsList);
       } catch (dataError) {
         console.log('Returns table not yet set up:', dataError.message);
@@ -239,7 +239,7 @@ function ReturnsDashboardInner() {
                         <div className="flex items-center gap-3 mb-2">
                           <Package className="w-5 h-5 text-afrikoni-gold" />
                           <p className="font-semibold">
-                            {returnItem.products?.title || 'Product'}
+                            {returnItem.products?.name || returnItem.products?.title || 'Product'}
                           </p>
                           <Badge variant={getStatusBadge(returnItem.status)}>
                             {getStatusIcon(returnItem.status)}

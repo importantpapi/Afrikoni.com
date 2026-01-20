@@ -192,18 +192,19 @@ function DashboardProductsInner() {
         if (!product) return null;
         
         // Debug: Log product_images data (development only)
+        // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
         if (process.env.NODE_ENV === 'development') {
           if (product.product_images) {
-            console.log(`📸 Dashboard: Product ${product.id} (${product.title}) has ${Array.isArray(product.product_images) ? product.product_images.length : 1} image(s):`, product.product_images);
+            console.log(`📸 Dashboard: Product ${product.id} (${product.name || product.title}) has ${Array.isArray(product.product_images) ? product.product_images.length : 1} image(s):`, product.product_images);
           } else {
-            console.warn(`⚠️ Dashboard: Product ${product.id} (${product.title}) has NO product_images`);
+            console.warn(`⚠️ Dashboard: Product ${product.id} (${product.name || product.title}) has NO product_images`);
           }
         }
         
         const primaryImage = getPrimaryImageFromProduct(product);
         
         if (process.env.NODE_ENV === 'development' && !primaryImage && product.id) {
-          console.warn(`⚠️ Dashboard: No primary image found for product ${product.id} (${product.title})`);
+          console.warn(`⚠️ Dashboard: No primary image found for product ${product.id} (${product.name || product.title})`);
         }
         
         return {
@@ -305,9 +306,11 @@ function DashboardProductsInner() {
     }
   };
 
+  // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || 
-      product.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.title?.toLowerCase().includes(searchQuery.toLowerCase()) || // Fallback for legacy data
       product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.short_description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
@@ -536,7 +539,7 @@ function DashboardProductsInner() {
                         {product.primaryImage ? (
                           <OptimizedImage
                             src={product.primaryImage}
-                            alt={product.title || 'Product'}
+                            alt={product.name || product.title || 'Product'}
                             className="w-full h-full object-cover"
                             width={400}
                             height={300}
@@ -566,7 +569,7 @@ function DashboardProductsInner() {
                       </div>
                       
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-afrikoni-text-dark line-clamp-2 flex-1">{product.title}</h3>
+                        <h3 className="font-semibold text-afrikoni-text-dark line-clamp-2 flex-1">{product.name || product.title}</h3>
                         {/* Search Ranking */}
                         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                           <Star className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />

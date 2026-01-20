@@ -110,9 +110,9 @@ function PaymentsDashboardInner() {
         const txs = await getWalletTransactions(profileCompanyId, { limit: 50 });
         setTransactions(txs);
 
-        // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId from kernel
-        // Load escrow payments - derive role from capabilities
-        const escrows = await getEscrowPaymentsByCompany(profileCompanyId, derivedRole);
+        // ✅ KERNEL COMPLIANCE: Use profileCompanyId and capabilities from kernel
+        // Load escrow payments - determine buyer/seller from capabilities
+        const escrows = await getEscrowPaymentsByCompany(profileCompanyId, capabilities);
         setEscrowPayments(escrows);
         
         // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response

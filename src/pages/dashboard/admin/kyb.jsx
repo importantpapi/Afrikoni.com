@@ -27,8 +27,8 @@ import { CardSkeleton } from '@/components/shared/ui/skeletons';
 // NOTE: Admin check done at route level - removed isAdmin import
 
 export default function AdminKYB() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, isSystemReady, canLoadData, isAdmin } = useDashboardKernel();
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -36,21 +36,20 @@ export default function AdminKYB() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminKYB] Waiting for auth to be ready...');
+    // ✅ KERNEL COMPLIANCE: Use canLoadData guard instead of authReady/authLoading
+    if (!canLoadData) {
       return;
     }
 
-    // GUARD: Check admin access - route-level protection ensures admin, but check profile for consistency
-    if (!user || !(profile?.is_admin === true)) {
+    // ✅ KERNEL COMPLIANCE: Use isAdmin from kernel
+    if (!isAdmin) {
       navigate('/dashboard');
       return;
     }
 
     // Now safe to load data
     loadDocuments();
-  }, [authReady, authLoading, user, profile, role, navigate]);
+  }, [canLoadData, isAdmin, navigate]);
 
   const loadDocuments = async () => {
     try {

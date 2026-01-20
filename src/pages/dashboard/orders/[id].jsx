@@ -30,7 +30,7 @@ import { DealMilestoneTracker } from '@/components/orders/DealMilestoneTracker';
 
 export default function OrderDetail() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -205,15 +205,8 @@ export default function OrderDetail() {
           const { notifyOrderStatusChange } = await import('@/services/notificationService');
           await notifyOrderStatusChange(id, newStatus, order.buyer_company_id, order.seller_company_id);
         } catch (err) {
-          // ✅ KERNEL MIGRATION: Fallback to direct insert
-          // Get user email from Supabase auth
-          let userEmail = '';
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            userEmail = user?.email || '';
-          } catch (err) {
-            // Silently fail
-          }
+          // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
+          const userEmail = user?.email || '';
           
           if (userEmail && userId) {
             const { error: notifError } = await supabase.from('notifications').insert({
@@ -519,12 +512,12 @@ export default function OrderDetail() {
                     {product.images && product.images[0] && (
                       <img 
                         src={product.images[0]} 
-                        alt={product.title}
+                        alt={product.name || product.title}
                         className="w-24 h-24 object-cover rounded-lg"
                       />
                     )}
                     <div className="flex-1">
-                      <h3 className="font-semibold text-afrikoni-chestnut">{product.title}</h3>
+                      <h3 className="font-semibold text-afrikoni-chestnut">{product.name || product.title}</h3>
                       <p className="text-sm text-afrikoni-deep/70 mt-1">{product.short_description}</p>
                       <div className="mt-2 flex items-center gap-4 text-sm">
                         <span className="text-afrikoni-deep">Quantity: {order.quantity} {order.products?.unit || 'units'}</span>

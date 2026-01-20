@@ -119,10 +119,12 @@ export default function Products() {
 
       let filtered = data || [];
 
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Client-side filtering
       if (debouncedSearchQuery) {
         filtered = filtered.filter(p =>
-          p.title?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          p.name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          p.title?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) || // Fallback for legacy data
           p.description?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
         );
       }

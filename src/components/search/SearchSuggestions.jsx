@@ -34,11 +34,12 @@ export default function SearchSuggestions({
   const loadSuggestions = async (searchQuery) => {
     setIsLoading(true);
     try {
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Search products
       const { data: products } = await supabase
         .from('products')
-        .select('title, id')
-        .ilike('title', `%${searchQuery}%`)
+        .select('name, id')
+        .ilike('name', `%${searchQuery}%`)
         .eq('status', 'active')
         .limit(5);
 
@@ -57,8 +58,9 @@ export default function SearchSuggestions({
         .eq('verified', true)
         .limit(3);
 
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       const combined = [
-        ...(products || []).map(p => ({ type: 'product', text: p.title, id: p.id })),
+        ...(products || []).map(p => ({ type: 'product', text: p.name || p.title, id: p.id })),
         ...(categories || []).map(c => ({ type: 'category', text: c.name, id: c.id })),
         ...(companies || []).map(c => ({ type: 'company', text: c.company_name, id: c.id })),
       ].slice(0, 8);

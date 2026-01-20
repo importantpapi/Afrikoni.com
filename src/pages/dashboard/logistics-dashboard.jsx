@@ -50,9 +50,8 @@ function LogisticsDashboardInner() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  const capabilities = useCapability();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, profileCompanyId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
 
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
@@ -266,7 +265,7 @@ function LogisticsDashboardInner() {
   const loadRecentShipments = async (cid) => {
       let query = supabase
         .from('shipments')
-      .select('*, orders(products(title), total_amount)')
+      .select('*, orders(products(name), total_amount)')
       .eq('logistics_partner_id', cid)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -793,7 +792,7 @@ function LogisticsDashboardInner() {
                                 {s.tracking_id || s.id}
                               </span>
                               <span className="text-[11px] text-slate-500">
-                                {s.orders?.products?.title || 'Shipment'}
+                                {s.orders?.products?.name || s.orders?.products?.title || 'Shipment'}
                               </span>
                             </div>
                           </td>

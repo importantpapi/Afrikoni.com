@@ -303,7 +303,7 @@ function DashboardOrdersInner() {
     const headers = ['Order ID', 'Product', 'Quantity', 'Amount', 'Status', 'Date'];
     const rows = filteredOrders.map(order => [
       order.id?.substring(0, 8) || '',
-      order.products?.title || '',
+      order.products?.name || order.products?.title || '',
       order.quantity || 0,
       order.total_amount || 0,
       order.status || '',

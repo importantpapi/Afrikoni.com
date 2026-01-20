@@ -29,8 +29,8 @@ import AccessDenied from '@/components/AccessDenied';
 import { toast } from 'sonner';
 
 export default function AdminReview() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
+  // ✅ KERNEL COMPLIANCE: Use unified Dashboard Kernel
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin, user, profile } = useDashboardKernel();
   const [loading, setLoading] = useState(false); // Local loading state
   const [error, setError] = useState(null);
   const [pendingSuppliers, setPendingSuppliers] = useState([]);
@@ -39,25 +39,22 @@ export default function AdminReview() {
   const [openDisputes, setOpenDisputes] = useState([]);
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminReview] Waiting for auth to be ready...');
+    // ✅ KERNEL COMPLIANCE: Use isSystemReady instead of authReady/authLoading
+    if (!isSystemReady) {
+      console.log('[AdminReview] Waiting for system to be ready...');
       return;
     }
 
-    // GUARD: No user → set no access
-    if (!user) {
-      setHasAccess(false);
+    // ✅ KERNEL COMPLIANCE: Use userId from kernel
+    if (!userId) {
       setLoading(false);
       return;
     }
 
-    // Check admin access - route-level protection already ensures admin, but check profile for consistency
-    const admin = profile?.is_admin === true;
-    setHasAccess(admin);
+    // ✅ KERNEL COMPLIANCE: Use isAdmin from kernel
     setLoading(false);
     
-    if (admin) {
+    if (isAdmin) {
       Promise.all([
         loadSuppliers(),
         loadProducts(),
@@ -65,7 +62,7 @@ export default function AdminReview() {
         loadDisputes(),
       ]);
     }
-  }, [authReady, authLoading, user, profile, role]);
+  }, [isSystemReady, userId, isAdmin]);
 
   const loadSuppliers = async () => {
     if (!canLoadData) {
@@ -76,10 +73,27 @@ export default function AdminReview() {
       setError(null);
       // ✅ Load all unverified/pending suppliers (sellers) awaiting admin approval
       // These suppliers will NOT appear on the verified suppliers page until approved
+      // ✅ KERNEL COMPLIANCE: Query by capability instead of role field
+      // First get company IDs with can_sell capability
+      const { data: sellerCompanies, error: capError } = await supabase
+        .from('company_capabilities')
+        .select('company_id')
+        .eq('can_sell', true);
+      
+      if (capError) throw capError;
+      
+      const sellerCompanyIds = sellerCompanies?.map(c => c.company_id) || [];
+      
+      if (sellerCompanyIds.length === 0) {
+        setPendingSuppliers([]);
+        return;
+      }
+      
+      // Then query companies with those IDs
       const { data, error } = await supabase
         .from('companies')
         .select('*')
-        .eq('role', 'seller') // Only show sellers
+        .in('id', sellerCompanyIds)
         .in('verification_status', ['pending', 'unverified'])
         .order('created_at', { ascending: false })
         .limit(100); // Increased limit to show more pending suppliers
@@ -414,7 +428,7 @@ export default function AdminReview() {
                   >
                     <div>
                       <div className="font-semibold text-afrikoni-text-dark">
-                        {product.title}
+                        {product.name || product.title}
                       </div>
                       <div className="text-xs text-afrikoni-text-dark/70">
                         Status: {product.status}

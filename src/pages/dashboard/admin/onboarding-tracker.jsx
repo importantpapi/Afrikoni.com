@@ -31,8 +31,8 @@ const FUNNEL_STAGES = [
 ];
 
 export default function OnboardingTracker() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, isSystemReady, canLoadData, isAdmin } = useDashboardKernel();
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(false); // Local loading state
   const [selectedCountry, setSelectedCountry] = useState(TARGET_COUNTRY);
@@ -200,11 +200,7 @@ export default function OnboardingTracker() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading onboarding tracker..." />;
-  }
-
+  // ✅ KERNEL COMPLIANCE: Duplicate check removed - isSystemReady already checked above
   if (loading) {
     return (
       <>
@@ -333,7 +329,7 @@ export default function OnboardingTracker() {
                     <div className="flex items-center gap-4">
                       <Mail className="w-5 h-5 text-afrikoni-text-dark/50" />
                       <div>
-                        <div className="font-medium text-afrikoni-text-dark">{user.email}</div>
+                        <div className="font-medium text-afrikoni-text-dark">{user?.email || 'N/A'}</div>
                         <div className="text-sm text-afrikoni-text-dark/70">
                           Stuck at: <Badge variant="outline">{user.stage}</Badge>
                           {' • '}
@@ -344,7 +340,7 @@ export default function OnboardingTracker() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => sendReminder(user.email, user.stage)}
+                      onClick={() => sendReminder(user?.email || '', user?.stage || '')}
                       className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10"
                     >
                       <Send className="w-4 h-4 mr-2" />

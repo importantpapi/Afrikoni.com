@@ -20,14 +20,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 // NOTE: Admin check done at route level - removed isAdmin import
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import AccessDenied from '@/components/AccessDenied';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { DataTable, StatusChip } from '@/components/shared/ui/data-table';
 
 export default function AdminMarketplace() {
-  const [user, setUser] = useState(null);
+  // ✅ KERNEL COMPLIANCE: Use unified Dashboard Kernel
+  const { user, profile, userId, isSystemReady, canLoadData, isAdmin } = useDashboardKernel();
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('products');
@@ -62,38 +64,37 @@ export default function AdminMarketplace() {
   });
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[AdminMarketplace] Waiting for auth to be ready...');
+    // ✅ KERNEL COMPLIANCE: Use isSystemReady instead of authReady/authLoading
+    if (!isSystemReady) {
+      console.log('[AdminMarketplace] Waiting for system to be ready...');
       return;
     }
 
-    // GUARD: No user → set no access
-    if (!user) {
+    // ✅ KERNEL COMPLIANCE: Use userId and isAdmin from kernel
+    if (!userId) {
       setHasAccess(false);
       setLoading(false);
       return;
     }
 
-    // Check admin access - route-level protection ensures admin, but check profile for consistency
-    const admin = profile?.is_admin === true;
-    setHasAccess(admin);
+    setHasAccess(isAdmin);
     setLoading(false);
     
-    if (admin) {
+    if (isAdmin) {
       loadData();
     }
-  }, [authReady, authLoading, user, profile, role]);
+  }, [isSystemReady, userId, isAdmin]);
 
   useEffect(() => {
-    if (hasAccess && authReady && activeTab === 'products') {
+    // ✅ KERNEL COMPLIANCE: Use isSystemReady instead of authReady
+    if (hasAccess && isSystemReady && activeTab === 'products') {
       loadProducts();
-    } else if (hasAccess && authReady && activeTab === 'suppliers') {
+    } else if (hasAccess && isSystemReady && activeTab === 'suppliers') {
       loadSuppliers();
-    } else if (hasAccess && authReady && activeTab === 'orders') {
+    } else if (hasAccess && isSystemReady && activeTab === 'orders') {
       loadOrders();
     }
-  }, [hasAccess, authReady, activeTab, productStatusFilter, productCategoryFilter, productCountryFilter, supplierStatusFilter, supplierCountryFilter, orderStatusFilter]);
+  }, [hasAccess, isSystemReady, activeTab, productStatusFilter, productCategoryFilter, productCountryFilter, supplierStatusFilter, supplierCountryFilter, orderStatusFilter]);
 
   const loadData = async () => {
     await Promise.all([
@@ -331,9 +332,9 @@ export default function AdminMarketplace() {
     }
   };
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading marketplace..." />;
+  // ✅ KERNEL COMPLIANCE: Use isSystemReady instead of authReady/authLoading
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading marketplace..." ready={isSystemReady} />;
   }
 
   if (loading) {

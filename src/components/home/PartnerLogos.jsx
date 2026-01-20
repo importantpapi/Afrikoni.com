@@ -19,11 +19,12 @@ export default function PartnerLogos() {
 
   const loadPartners = async () => {
     try {
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'sort_order' instead of 'display_order' (DB schema uses 'sort_order')
       const { data, error } = await supabase
         .from('partner_logos')
         .select('*')
         .eq('published', true)
-        .order('display_order', { ascending: true })
+        .order('sort_order', { ascending: true })
         .limit(12);
 
       if (error) throw error;

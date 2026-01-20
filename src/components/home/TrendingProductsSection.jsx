@@ -22,10 +22,11 @@ export default function TrendingProductsSection() {
     try {
       setLoading(true);
       
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Simplified query - PostgREST friendly (no complex joins)
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, views, created_at')
+        .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, views, created_at')
         .eq('status', 'active')
         .order('views', { ascending: false })
         .order('created_at', { ascending: false })

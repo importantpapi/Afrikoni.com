@@ -63,10 +63,28 @@ export default function Suppliers() {
   const loadSuppliers = async () => {
     setIsLoading(true);
     try {
+      // ✅ KERNEL COMPLIANCE: Query capability-based instead of role-based
+      // First, get company IDs from company_capabilities where can_sell=true
+      const { data: sellerCapabilities, error: capError } = await supabase
+        .from('company_capabilities')
+        .select('company_id')
+        .eq('can_sell', true);
+
+      if (capError) throw capError;
+
+      const sellerCompanyIds = sellerCapabilities?.map(c => c.company_id).filter(Boolean) || [];
+      
+      if (sellerCompanyIds.length === 0) {
+        setSuppliers([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Then query companies with those IDs
       const { data, error } = await supabase
         .from('companies')
         .select('*')
-        .eq('role', 'seller')
+        .in('id', sellerCompanyIds)
         // ✅ CRITICAL: Only show verified suppliers - admin must approve before they appear
         .eq('verified', true)
         .eq('verification_status', 'verified')
@@ -229,10 +247,27 @@ export default function Suppliers() {
   const applyFilters = async () => {
     setIsLoading(true);
     try {
+      // ✅ KERNEL COMPLIANCE: Query capability-based instead of role-based
+      // First, get company IDs from company_capabilities where can_sell=true
+      const { data: sellerCapabilities, error: capError } = await supabase
+        .from('company_capabilities')
+        .select('company_id')
+        .eq('can_sell', true);
+
+      if (capError) throw capError;
+
+      const sellerCompanyIds = sellerCapabilities?.map(c => c.company_id).filter(Boolean) || [];
+      
+      if (sellerCompanyIds.length === 0) {
+        setSuppliers([]);
+        setIsLoading(false);
+        return;
+      }
+
       let query = supabase
         .from('companies')
         .select('*')
-        .eq('role', 'seller')
+        .in('id', sellerCompanyIds)
         // ✅ CRITICAL: Only show verified suppliers - admin must approve before they appear
         .eq('verified', true)
         .eq('verification_status', 'verified')

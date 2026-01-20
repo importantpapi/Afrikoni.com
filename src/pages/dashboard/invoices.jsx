@@ -86,11 +86,11 @@ export default function InvoicesDashboard() {
       setIsLoading(true);
       setError(null);
 
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      // ✅ KERNEL COMPLIANCE: Use profileCompanyId and capabilities from kernel
       // Try to load invoices - table may not exist yet
       try {
         const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
-        const invoiceList = await getInvoices(profileCompanyId, userRole, filters);
+        const invoiceList = await getInvoices(profileCompanyId, capabilities, filters);
 
         // SAFETY ASSERTION: ensure each invoice is scoped to the current company
         for (const invoice of invoiceList || []) {

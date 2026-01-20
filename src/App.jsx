@@ -294,7 +294,7 @@ function AppContent() {
           {/* ============================================================ */}
           {/* 🏛️ INFRASTRUCTURE ARCHITECTURE: */}
           {/* - DashboardLayout stays mounted (persistent shell) */}
-          {/* - CapabilityProvider wraps entire dashboard (single source of truth) */}
+          {/* - CapabilityProvider is now GLOBAL (wraps entire app) */}
           {/* - RequireCapability guards entry (ensures capabilities.ready) */}
           {/* - All routes are nested under /dashboard/* (unified tree) */}
           {/* - <Outlet /> swaps pages while layout persists */}
@@ -302,11 +302,9 @@ function AppContent() {
           <Route
             path="/dashboard/*"
             element={
-              <CapabilityProvider>
-                <RequireCapability require={null}>
-                  <Dashboard />
-                </RequireCapability>
-              </CapabilityProvider>
+              <RequireCapability require={null}>
+                <Dashboard />
+              </RequireCapability>
             }
           >
             {/* 0. SYSTEM HOME */}
@@ -535,13 +533,18 @@ function App() {
           <UserProvider>
             {/* ✅ RoleProvider uses AuthProvider's data */}
             <RoleProvider>
-              <ScrollToTop />
-              <Toaster position="top-right" />
-              
-              {/* Debug component to detect stuck auth */}
-              <DebugAuth />
+              {/* ✅ KERNEL ALIGNMENT: CapabilityProvider lifted to global level */}
+              {/* This enables NotificationBell and other global components to access capabilities */}
+              {/* even on public routes (/, /products, /marketplace, etc.) */}
+              <CapabilityProvider>
+                <ScrollToTop />
+                <Toaster position="top-right" />
+                
+                {/* Debug component to detect stuck auth */}
+                <DebugAuth />
 
-              <AppContent />
+                <AppContent />
+              </CapabilityProvider>
             </RoleProvider>
           </UserProvider>
         </AuthProvider>

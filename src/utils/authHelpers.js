@@ -24,179 +24,38 @@ import { getOrCreateCompany } from './companyHelper';
  * @deprecated role field removed - use useCapability() hook in React components
  */
 export async function getCurrentUserAndRole(supabase, supabaseHelpers) {
-  
-  // Defensive check: if supabaseHelpers is missing, import it
-  let helpers = supabaseHelpers;
-  if (!helpers) {
-    try {
-      const { supabaseHelpers: importedHelpers } = await import('@/api/supabaseClient');
-      helpers = importedHelpers;
-    } catch (importError) {
-      if (import.meta.env.DEV) {
-        console.error('[DEBUG] Failed to import supabaseHelpers:', importError);
-      }
-      // Return safe defaults if we can't import helpers
-      return {
-        user: null,
-        profile: null,
-        role: null,
-        companyId: null,
-        onboardingCompleted: false
-      };
-    }
-  }
-  
-  // Validate helpers structure
-  if (!helpers || !helpers.auth || typeof helpers.auth.me !== 'function') {
-    const errorMsg = `Invalid supabaseHelpers structure: helpers=${!!helpers}, auth=${!!helpers?.auth}, me=${typeof helpers?.auth?.me}`;
-    if (import.meta.env.DEV) {
-      console.error('[DEBUG]', errorMsg, helpers);
-    }
-    return {
-      user: null,
-      profile: null,
-      role: 'buyer',
-      companyId: null,
-      onboardingCompleted: false
-    };
-  }
-  
-  try {
-    // 1. Check session first
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session) {
-      return {
-        user: null,
-        profile: null,
-        role: null,
-        companyId: null,
-        onboardingCompleted: false
-      };
-    }
-
-    // 2. Get auth user
-    const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
-    if (userError || !authUser) {
-      return {
-        user: null,
-        profile: null,
-        role: null,
-        companyId: null,
-        onboardingCompleted: false
-      };
-    }
-
-    // 3. Fetch user profile using existing helper (handles profiles/users fallback)
-    let profile = null;
-    try {
-      // Defensive check: ensure helpers and helpers.auth exist
-      if (!helpers || !helpers.auth || typeof helpers.auth.me !== 'function') {
-        throw new Error(`Invalid supabaseHelpers: helpers=${!!helpers}, helpers.auth=${!!helpers?.auth}, helpers.auth.me=${typeof helpers?.auth?.me}`);
-      }
-      
-      profile = await helpers.auth.me();
-    } catch (profileError) {
-      if (import.meta.env.DEV) {
-        console.error('[DEBUG] Profile fetch error:', profileError);
-      }
-      // If profile doesn't exist, create minimal one
-      if (profileError.code === 'PGRST116' || profileError.code === '42P01') {
-        const { error: upsertError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: authUser.id,
-            full_name: authUser.user_metadata?.name || authUser.email?.split('@')[0],
-            role: 'buyer',
-            onboarding_completed: false
-          }, { onConflict: 'id' });
-        if (upsertError) {
-          // Ignore profile creation error and fall back to minimal profile
-        }
-        
-        // Return minimal profile data
-        profile = {
-          id: authUser.id,
-          email: authUser.email,
-          role: null,
-          onboarding_completed: false
-        };
-      } else {
-        // Other error - return null
-        return {
-          user: authUser,
-          profile: null,
-          role: null,
-          companyId: null,
-          onboardingCompleted: false
-        };
-      }
-    }
-
-    if (!profile) {
-      return {
-        user: authUser,
-        profile: null,
-        role: null,
-        companyId: null,
-        onboardingCompleted: false
-      };
-    }
-
-    // 4. Get or create company (with timeout to prevent hanging)
-    let companyId = null;
-    try {
-      // Add timeout to prevent hanging on company queries
-      const companyPromise = getOrCreateCompany(supabase, profile);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Company fetch timeout')), 5000)
-      );
-      
-      companyId = await Promise.race([companyPromise, timeoutPromise]).catch(err => {
-        console.warn('[getCurrentUserAndRole] Company fetch failed or timed out:', err.message);
-        return null; // Return null on timeout/error
-      });
-    } catch (companyError) {
-      // Continue without company ID - non-blocking
-      console.warn('[getCurrentUserAndRole] Company error (non-blocking):', companyError?.message || companyError);
-    }
-
-    // 5. Role is deprecated - React components use useCapability() hook instead
-    // This utility is for non-React contexts only
-    // const role = null; // Deprecated - removed from return object
-
-    // 6. Check onboarding status
-    const onboardingCompleted = profile.onboarding_completed === true;
-
-    return {
-      user: authUser,
-      profile,
-      // role removed - deprecated, use useCapability() hook in React components
-      companyId,
-      onboardingCompleted
-    };
-  } catch (error) {
-    // Return safe defaults on error
-    return {
-      user: null,
-      profile: null,
-      // role removed - deprecated
-      companyId: null,
-      onboardingCompleted: false
-    };
-  }
+  // ✅ FINAL 3% FIX: Function removed - throw error to catch any remaining usage
+  throw new Error(
+    'getCurrentUserAndRole has been removed as part of kernel alignment. ' +
+    'Use useDashboardKernel() hook in React components or direct Supabase calls in non-React contexts. ' +
+    'See: src/hooks/useDashboardKernel.js for React usage, or use supabase.auth.getUser() + supabase.from("profiles").select() for non-React.'
+  );
 }
 
 /**
  * Check if user has completed onboarding
  * 
+ * ✅ FINAL 3% FIX: Refactored to use direct Supabase calls instead of getCurrentUserAndRole
+ * 
  * @param {Object} supabase - Supabase client instance
- * @param {Object} supabaseHelpers - Supabase helpers object
+ * @param {Object} supabaseHelpers - Supabase helpers object (deprecated, kept for compatibility)
  * @returns {Promise<boolean>}
  */
 export async function hasCompletedOnboarding(supabase, supabaseHelpers) {
-  const { onboardingCompleted } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-  return onboardingCompleted;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    return profile?.onboarding_completed === true;
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
@@ -299,23 +158,34 @@ export async function isEmailVerified(supabase) {
 /**
  * Require email verification before allowing dashboard access
  * 
+ * ✅ FINAL 3% FIX: Refactored to use direct Supabase calls instead of getCurrentUserAndRole
+ * 
  * @param {Object} supabase - Supabase client instance
- * @param {Object} supabaseHelpers - Supabase helpers object
+ * @param {Object} supabaseHelpers - Supabase helpers object (deprecated, kept for compatibility)
  * @returns {Promise<{user: Object, profile: Object, emailVerified: boolean}|null>}
  * @deprecated role field removed - use useCapability() hook in React components
  */
 export async function requireEmailVerification(supabase, supabaseHelpers) {
-  const result = await getCurrentUserAndRole(supabase, supabaseHelpers);
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, company_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const emailVerified = await isEmailVerified(supabase);
   
-  if (!result.user) {
-    return null; // Not authenticated
+    return {
+      user,
+      profile: profile || null,
+      companyId: profile?.company_id || null,
+      emailVerified
+    };
+  } catch (error) {
+    return null;
   }
-  
-  const emailVerified = await isEmailVerified(supabase);
-  
-  return {
-    ...result,
-    emailVerified
-  };
 }
 

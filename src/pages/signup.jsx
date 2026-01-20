@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
+import { GuestOnlyRoute } from '@/components/ProtectedRoute';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
@@ -15,10 +17,12 @@ import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
+import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
 
 
-export default function Signup() {
+function SignupInner() {
   const { t } = useLanguage();
+  const { authReady, hasUser, profile } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -37,6 +41,19 @@ export default function Signup() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
+
+  // ✅ KERNEL COMPLIANCE: Redirect logged-in users away from signup page
+  useEffect(() => {
+    if (!authReady) return;
+    
+    if (hasUser) {
+      if (!profile || !profile.company_id) {
+        navigate('/onboarding/company', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [authReady, hasUser, profile, navigate]);
 
   // Email validation helper
   const isValidEmail = (email) => {
@@ -64,31 +81,17 @@ export default function Signup() {
     setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
   };
 
-  // Helper: Wait for session to be available before redirecting
-  // Prevents blank page for new users (Supabase auth timing issue)
-  const waitForSessionAndRedirect = async () => {
-    for (let i = 0; i < 10; i++) {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session) {
-        console.log('[Signup] Session available, redirecting');
-        navigate('/auth/post-login', { replace: true });
-        return true;
-      }
-      // Wait 200ms before retry
-      await new Promise(res => setTimeout(res, 200));
+  // ✅ KERNEL COMPLIANCE: Watch AuthProvider state instead of polling getSession()
+  // Wait for AuthProvider to update after signup
+  useEffect(() => {
+    if (!authReady) return;
+    
+    // If user becomes available after signup, redirect
+    if (hasUser) {
+      console.log('[Signup] User available from AuthProvider, redirecting');
+      navigate('/auth/post-login', { replace: true });
     }
-
-    // If session still not available after retries, show clear message
-    console.warn('[Signup] Session not available after waiting, showing message to user');
-    setFieldErrors({
-      email: '',
-      password: '',
-      confirmPassword: '',
-      general: 'Your account was created successfully! Please refresh the page to continue.'
-    });
-
-    return false;
-  };
+  }, [authReady, hasUser, navigate]);
 
   const handleSignup = async (e) => {
     debugger; // ⬅️ BREAKPOINT 1: Does click fire?
@@ -197,47 +200,14 @@ export default function Signup() {
         // DEBUG: Log Supabase response
         console.log('SIGNUP RESPONSE', { data, error });
       } catch (networkError) {
-        // Handle network/connection errors gracefully
-        // These are errors that occur BEFORE Supabase can respond
-        console.error('[Signup] Network-level error (before Supabase response):', {
-          message: networkError?.message,
-          code: networkError?.code,
-          name: networkError?.name,
-          // Never log full error object as it may contain URLs
-        });
-        
-        const networkErrorMessage = (networkError?.message || '').toLowerCase();
-        const errorCode = networkError?.code || '';
-        const errorName = (networkError?.name || '').toLowerCase();
-        
-        // Comprehensive network error detection
-        // Catch: Load failed, fetch failures, connection errors, DNS errors, timeouts
-        const isNetworkError = 
-          networkErrorMessage.includes('load failed') ||
-          networkErrorMessage.includes('network error') ||
-          networkErrorMessage.includes('fetch') ||
-          networkErrorMessage.includes('connection') ||
-          networkErrorMessage.includes('failed to fetch') ||
-          networkErrorMessage.includes('network request failed') ||
-          networkErrorMessage.includes('networkerror') ||
-          networkErrorMessage.includes('networkerror when attempting to fetch') ||
-          networkErrorMessage.includes('supabase.co') || // Catch any Supabase URLs
-          errorCode === 'ENOTFOUND' ||
-          errorCode === 'ECONNREFUSED' ||
-          errorCode === 'ETIMEDOUT' ||
-          errorCode === 'ECONNRESET' ||
-          errorName === 'networkerror' ||
-          errorName === 'typeerror' ||
-          // Check if error message contains URL patterns (but don't expose them)
-          /https?:\/\/[\w.-]+\.supabase\.co/.test(networkErrorMessage);
-        
-        if (isNetworkError) {
-          // User-safe message that doesn't expose technical details
+        // ✅ KERNEL COMPLIANCE: Use standardized network error detection
+        if (isNetworkError(networkError)) {
+          const userMessage = handleNetworkError(networkError);
           setFieldErrors({ 
             email: '',
             password: '',
             confirmPassword: '',
-            general: "We're having trouble connecting to our servers. Please try again in a moment."
+            general: userMessage
           });
           setIsLoading(false);
           return;
@@ -279,13 +249,20 @@ export default function Signup() {
       // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
       // New users may not have session immediately available in browser storage
       // This prevents "nothing happens" / blank page for new users
-      // First check if session already exists in response (optimization)
+      // ✅ KERNEL COMPLIANCE: AuthProvider will update via onAuthStateChange
+      // The useEffect above will handle redirect when hasUser becomes true
       if (data.session) {
-        console.log('[Signup] Session available in response, redirecting immediately');
-        navigate('/auth/post-login', { replace: true });
+        console.log('[Signup] Session available in response, AuthProvider will update');
+        // Don't navigate here - let useEffect handle it when AuthProvider updates
       } else {
-        console.log('[Signup] Session not in response, waiting for session...');
-        await waitForSessionAndRedirect();
+        console.log('[Signup] Session not in response, waiting for AuthProvider to update...');
+        // Show message to user - useEffect will redirect when AuthProvider updates
+        setFieldErrors({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          general: 'Account created! Redirecting...'
+        });
       }
       
       // Run background tasks (non-blocking, never throw)
@@ -351,16 +328,10 @@ export default function Signup() {
         errorCode === 'PGRST116' ||
         errorCode === '42P01';
       
-      // Always check if user was created - if auth succeeded, we succeed
-      let userCreated = false;
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        userCreated = !!user;
-      } catch (checkError) {
-        // Can't check - assume auth might have failed
-      }
-      
-      if (userCreated || mightBeDatabaseError) {
+      // ✅ KERNEL COMPLIANCE: Don't call getUser() - rely on AuthProvider state
+      // If we get here and mightBeDatabaseError is true, auth likely succeeded
+      // AuthProvider's onAuthStateChange will update state when user is available
+      if (mightBeDatabaseError) {
         // ✅ USER ACCOUNT EXISTS OR DATABASE ERROR - This is SUCCESS
         // Database errors are non-critical - profile creation handled by PostLoginRouter
         console.log('[Signup] User account created successfully, waiting for session before redirect');
@@ -369,10 +340,15 @@ export default function Signup() {
         // 🔒 NEVER show database errors - always show success if user exists
         toast.success(t('signup.success') || 'Account created successfully!');
         
-        // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
-        // New users may not have session immediately available in browser storage
-        console.log('[Signup] Waiting for session...');
-        await waitForSessionAndRedirect();
+        // ✅ KERNEL COMPLIANCE: AuthProvider will update via onAuthStateChange
+        // The useEffect above will handle redirect when hasUser becomes true
+        console.log('[Signup] Waiting for AuthProvider to update...');
+        setFieldErrors({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          general: 'Account created! Redirecting...'
+        });
         return;
       }
 
@@ -451,42 +427,14 @@ export default function Signup() {
         return;
       }
 
-      // Network/connection errors (Supabase URL, fetch failures, etc.)
-      // These errors occur when the browser cannot reach Supabase at all
-      // CHECK ORIGINAL ERROR TOO - before sanitization
-      const originalErrorString = error?.toString() || error?.message || JSON.stringify(error) || '';
-      const normalizedErrorMessage = errorMessage.toLowerCase();
-      const normalizedOriginalError = originalErrorString.toLowerCase();
-      
-      const isNetworkLevelError = 
-        normalizedErrorMessage.includes('load failed') ||
-        normalizedErrorMessage.includes('network error') ||
-        normalizedErrorMessage.includes('fetch') ||
-        normalizedErrorMessage.includes('connection') ||
-        normalizedErrorMessage.includes('failed to fetch') ||
-        normalizedErrorMessage.includes('network request failed') ||
-        normalizedErrorMessage.includes('networkerror') ||
-        normalizedErrorMessage.includes('networkerror when attempting to fetch') ||
-        normalizedErrorMessage.includes('supabase.co') || // Catch any Supabase URLs
-        normalizedErrorMessage.includes('qkeeufeiaphqylsnfhza') || // Catch project ID
-        normalizedOriginalError.includes('load failed') || // Check original too
-        normalizedOriginalError.includes('supabase.co') || // Check original too
-        normalizedOriginalError.includes('qkeeufeiaphqylsnfhza') || // Check original too
-        /https?:\/\/[\w.-]+\.supabase\.co/.test(errorMessage) || // URL pattern matching
-        /https?:\/\/[\w.-]+\.supabase\.co/.test(originalErrorString) || // URL pattern in original
-        /qkeeufeiaphqylsnfhza/.test(originalErrorString) || // Project ID in original
-        errorCode === 'ENOTFOUND' ||
-        errorCode === 'ECONNREFUSED' ||
-        errorCode === 'ETIMEDOUT' ||
-        errorCode === 'ECONNRESET';
-      
-      if (isNetworkLevelError) {
-        // User-safe message - never expose Supabase URLs or technical details
+      // ✅ KERNEL COMPLIANCE: Use standardized network error detection
+      if (isNetworkError(error)) {
+        const userMessage = handleNetworkError(error);
         setFieldErrors({ 
           email: '',
           password: '',
           confirmPassword: '',
-          general: "We're having trouble connecting to our servers. Please try again in a moment."
+          general: userMessage
         });
         return;
       }
@@ -788,5 +736,14 @@ export default function Signup() {
       </Card>
       </motion.div>
     </div>
+  );
+}
+
+// ✅ KERNEL COMPLIANCE: Wrap with GuestOnlyRoute to redirect logged-in users
+export default function Signup() {
+  return (
+    <GuestOnlyRoute>
+      <SignupInner />
+    </GuestOnlyRoute>
   );
 }

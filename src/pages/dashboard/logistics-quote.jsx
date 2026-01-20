@@ -51,21 +51,21 @@ function LogisticsQuoteInner() {
   const [existingQuotes, setExistingQuotes] = useState([]);
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[LogisticsQuote] Waiting for auth to be ready...');
+    // ✅ KERNEL COMPLIANCE: Use isSystemReady instead of authReady/authLoading
+    if (!isSystemReady) {
+      console.log('[LogisticsQuote] Waiting for system to be ready...');
       return;
     }
 
-    // GUARD: No user → redirect
-    if (!user) {
+    // ✅ KERNEL COMPLIANCE: Use userId from kernel
+    if (!userId) {
       navigate('/login');
       return;
     }
 
     // Now safe to load data
     loadData();
-  }, [orderId, authReady, authLoading, user, profile, role, navigate]);
+  }, [orderId, isSystemReady, userId, navigate]);
 
   const loadData = async () => {
     if (!canLoadData) {

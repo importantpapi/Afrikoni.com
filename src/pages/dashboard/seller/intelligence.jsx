@@ -18,8 +18,8 @@ import { Shield, TrendingUp, AlertTriangle, CheckCircle, Clock, XCircle, Package
 import TrustHistoryTimeline from '@/components/intelligence/TrustHistoryTimeline';
 
 export default function SellerIntelligence() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, profileCompanyId, isSystemReady, canLoadData } = useDashboardKernel();
   const [loading, setLoading] = useState(false); // Local loading state
   const [companyId, setCompanyId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');

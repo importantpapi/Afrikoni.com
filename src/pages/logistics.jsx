@@ -8,7 +8,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import SEO from '@/components/SEO';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+// ✅ FINAL 3% FIX: Removed getCurrentUserAndRole import - not used in this file
 import { useCapability } from '@/context/CapabilityContext';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import ErrorBoundary from '@/components/ErrorBoundary';

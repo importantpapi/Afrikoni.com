@@ -332,8 +332,9 @@ export default function Marketplace() {
         }
       }
       
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Remove 'title' from valid sort fields (DB uses 'name', not 'title')
       // Validate sortField exists before ordering
-      const validSortFields = ['created_at', 'views', 'price_min', 'min_order_quantity', 'title'];
+      const validSortFields = ['created_at', 'views', 'price_min', 'min_order_quantity', 'name'];
       if (!validSortFields.includes(sortField)) {
         sortField = 'created_at';
         ascending = false;

@@ -20,8 +20,8 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 
 export default function NewShipmentPage() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');

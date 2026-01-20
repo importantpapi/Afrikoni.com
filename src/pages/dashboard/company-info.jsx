@@ -59,7 +59,7 @@ const validateCompanyForm = (formData) => {
 
 export default function CompanyInfo() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
@@ -449,16 +449,8 @@ export default function CompanyInfo() {
           throw companyError;
         }
 
-        // Get user email for fallback
-        let userEmail = '';
-        if (userId) {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            userEmail = user?.email || '';
-          } catch (err) {
-            // Silently fail - email is optional
-          }
-        }
+        // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
+        const userEmail = user?.email || '';
 
         if (companyData) {
           setFormData({
@@ -589,14 +581,8 @@ export default function CompanyInfo() {
 
       console.log('✅ User found:', userId);
       
-      // Get user email for fallback
-      let userEmail = '';
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        userEmail = user?.email || '';
-      } catch (err) {
-        // Silently fail - email is optional
-      }
+      // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
+      const userEmail = user?.email || '';
       
       let finalCompanyId = profileCompanyId;
 

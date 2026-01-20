@@ -16,6 +16,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
 import { logLoginEvent } from '@/utils/auditLogger';
+import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -23,7 +24,7 @@ export default function Login() {
   const [searchParams] = useSearchParams();
 
   // 🔐 AUTH STATE
-  const { authReady, hasUser, profile } = useAuth();
+  const { authReady, hasUser, profile, user } = useAuth();
 
   // 🔐 FORM STATE
   const [email, setEmail] = useState('');
@@ -33,6 +34,14 @@ export default function Login() {
 
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
   const intent = searchParams.get('intent');
+
+  // ✅ FULL-STACK SYNC: Identity-First logic - Admin domain detection
+  const isAdminEmail = email && (
+    email.toLowerCase().includes('@afrikoni.com') ||
+    email.toLowerCase().includes('@admin.') ||
+    localStorage.getItem('admin-flag') === 'true' ||
+    sessionStorage.getItem('admin-flag') === 'true'
+  );
 
   // 🚨 HARD GUARD: LOGGED-IN USERS MUST NEVER SEE /login
   useEffect(() => {
@@ -60,48 +69,46 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password
-      });
+      // ✅ FULL-STACK SYNC: Use AuthService for atomic login with profile verification
+      const { user: authUser, profile: authProfile } = await authServiceLogin(email.trim(), password);
 
-      if (error) {
-        toast.error(error.message || 'Invalid credentials');
-        setIsLoading(false);
-
-        try {
-          await logLoginEvent({
-            user: { email },
-            profile: null,
-            success: false
-          });
-        } catch (_) {}
-
-        return;
-      }
-
+      // ✅ FULL-STACK SYNC: Profile verification happens in AuthService
+      // If profile doesn't exist, PostLoginRouter will handle creation
+      
       toast.success(t('login.success') || 'Welcome back!');
       navigate('/auth/post-login', { replace: true });
 
-      // Non-blocking audit log
+      // ✅ KERNEL COMPLIANCE: Use email from form instead of direct API call
+      // Non-blocking audit log - full user object will be available after AuthProvider updates
+      // PostLoginRouter will handle the redirect, so we log with available data
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user?.id)
-          .maybeSingle();
-
         await logLoginEvent({
-          user,
-          profile: profileData,
+          user: { email: email.trim() },
+          profile: null,
           success: true
         });
       } catch (_) {}
 
     } catch (err) {
-      toast.error(err.message || 'Login failed');
+      // ✅ FULL-STACK SYNC: Enhanced error handling
       setIsLoading(false);
+      
+      // Log failed login attempt
+      try {
+        await logLoginEvent({
+          user: { email },
+          profile: null,
+          success: false
+        });
+      } catch (_) {}
+
+      // ✅ KERNEL COMPLIANCE: Use standardized network error detection
+      if (isNetworkError(err)) {
+        const userMessage = handleNetworkError(err);
+        toast.error(userMessage);
+      } else {
+        toast.error(err.message || 'Login failed');
+      }
     }
   };
 
@@ -120,7 +127,7 @@ export default function Login() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="border-afrikoni-gold/20 shadow-2xl bg-afrikoni-offwhite rounded-xl">
+        <Card className={`border-afrikoni-gold/20 shadow-2xl bg-afrikoni-offwhite rounded-xl ${isAdminEmail ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/30' : ''}`}>
           <CardContent className="p-8 md:p-10">
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useCapability } from '@/context/CapabilityContext';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -257,8 +258,10 @@ export default function RFQDetail() {
 
   if (!rfq) return null;
 
+  // ✅ KERNEL COMPLIANCE: Use capabilities instead of user_role
+  const { capabilities } = useCapability();
   const isBuyer = user?.company_id === rfq.buyer_company_id;
-  const isSeller = user?.user_role === 'seller';
+  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
 
   return (
     <div className="min-h-screen bg-stone-50 py-8">

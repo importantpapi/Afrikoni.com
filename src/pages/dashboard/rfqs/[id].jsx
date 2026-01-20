@@ -31,7 +31,7 @@ import { FirstTimeQuoteGuidance } from '@/components/onboarding/FirstTimeUserGui
 
 export default function RFQDetail() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
   const [rfq, setRfq] = useState(null);
@@ -320,12 +320,12 @@ export default function RFQDetail() {
           }
           
           if (finalConversationId) {
-            const { data: currentUser } = await supabase.auth.getUser();
+            // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
             await supabase.from('messages').insert({
               conversation_id: finalConversationId,
               sender_company_id: companyId,
               receiver_company_id: rfq.buyer_company_id,
-              sender_user_email: currentUser.data?.user?.email || '',
+              sender_user_email: user?.email || '',
               content: `I've submitted a quote for your RFQ: "${rfq.title}". Please review and let me know if you have any questions.`,
               read: false,
               related_to: id,

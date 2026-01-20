@@ -1,11 +1,23 @@
 /**
  * Returns & After-Sales Queries
+ * ✅ KERNEL COMPLIANCE: Uses capabilities instead of role parameter
  */
 
 import { supabase } from '@/api/supabaseClient';
 
-export async function getReturns(companyId, role = 'buyer', filters = {}) {
-  const column = role === 'buyer' ? 'buyer_company_id' : 'seller_company_id';
+/**
+ * Get returns for a company
+ * @param {string} companyId - Company ID
+ * @param {Object} capabilities - Capabilities object (from useCapability hook)
+ * @param {Object} filters - Additional filters
+ * @returns {Promise<Array>} Returns list
+ */
+export async function getReturns(companyId, capabilities = null, filters = {}) {
+  // ✅ KERNEL COMPLIANCE: Determine column from capabilities instead of role
+  // If company can sell, they're viewing seller returns; otherwise buyer returns
+  const column = capabilities?.can_sell === true && capabilities?.sell_status === 'approved'
+    ? 'seller_company_id'
+    : 'buyer_company_id';
   let query = supabase
     .from('returns')
     .select(`

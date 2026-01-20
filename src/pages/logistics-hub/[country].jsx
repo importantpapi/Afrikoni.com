@@ -38,11 +38,27 @@ export default function LogisticsHubPage() {
 
   const loadLogisticsData = async (countryName) => {
     try {
-      // Get logistics partners (companies with logistics role)
+      // ✅ KERNEL COMPLIANCE: Query capability-based instead of role-based
+      // First, get company IDs from company_capabilities where can_logistics=true
+      const { data: logisticsCapabilities, error: capError } = await supabase
+        .from('company_capabilities')
+        .select('company_id')
+        .eq('can_logistics', true);
+
+      if (capError) throw capError;
+
+      const logisticsCompanyIds = logisticsCapabilities?.map(c => c.company_id).filter(Boolean) || [];
+      
+      if (logisticsCompanyIds.length === 0) {
+        setLogisticsPartners([]);
+        return;
+      }
+
+      // Then query companies with those IDs
       const { data: partners } = await supabase
         .from('companies')
         .select('id, company_name, country, city, verified')
-        .eq('role', 'logistics')
+        .in('id', logisticsCompanyIds)
         .eq('country', countryName)
         .limit(10);
 

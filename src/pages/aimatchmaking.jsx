@@ -23,8 +23,28 @@ export default function AIMatchmaking() {
 
     setIsMatching(true);
     try {
+      // ✅ KERNEL COMPLIANCE: Query capability-based instead of role-based
+      // First, get company IDs from company_capabilities where can_sell=true and sell_status='approved'
+      const { data: sellerCapabilities, error: capError } = await supabase
+        .from('company_capabilities')
+        .select('company_id')
+        .eq('can_sell', true)
+        .eq('sell_status', 'approved');
+
+      if (capError) throw capError;
+
+      const sellerCompanyIds = sellerCapabilities?.map(c => c.company_id).filter(Boolean) || [];
+      
+      if (sellerCompanyIds.length === 0) {
+        setMatches([]);
+        toast.info('No verified sellers found');
+        setIsMatching(false);
+        return;
+      }
+
       const [suppliersRes, productsRes] = await Promise.all([
-        supabase.from('companies').select('*').eq('role', 'seller'),
+        // Query companies with seller capability IDs
+        supabase.from('companies').select('*').in('id', sellerCompanyIds),
         supabase.from('products').select('*').eq('status', 'active')
       ]);
 

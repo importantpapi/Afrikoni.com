@@ -22,10 +22,8 @@ import RealTimeTracking from '@/components/logistics/RealTimeTracking';
 import CustomsClearance from '@/components/logistics/CustomsClearance';
 
 export default function ShipmentDetail() {
-  // Use centralized AuthProvider
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
   const [shipment, setShipment] = useState(null);
@@ -256,7 +254,7 @@ export default function ShipmentDetail() {
                     </div>
                     <div>
                       <span className="text-sm text-afrikoni-deep/70">Product</span>
-                      <p className="font-medium">{order.products?.title || 'N/A'}</p>
+                      <p className="font-medium">{order.products?.name || order.products?.title || 'N/A'}</p>
                     </div>
                     <div>
                       <span className="text-sm text-afrikoni-deep/70">Quantity</span>

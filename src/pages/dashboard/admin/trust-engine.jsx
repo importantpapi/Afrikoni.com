@@ -33,11 +33,27 @@ function TrustEngineInner() {
     try {
       setIsLoading(true);
 
-      // Load suppliers with scores
+      // ✅ KERNEL COMPLIANCE: Query by capability instead of role field
+      // First get company IDs with can_sell capability
+      const { data: sellerCompanies, error: capError } = await supabase
+        .from('company_capabilities')
+        .select('company_id')
+        .eq('can_sell', true);
+      
+      if (capError) throw capError;
+      
+      const sellerCompanyIds = sellerCompanies?.map(c => c.company_id) || [];
+      
+      if (sellerCompanyIds.length === 0) {
+        setSuppliers([]);
+        return;
+      }
+      
+      // Then query companies with those IDs
       const { data: suppliersData, error } = await supabase
         .from('companies')
         .select('*')
-        .eq('role', 'seller')
+        .in('id', sellerCompanyIds)
         .order('trust_score', { ascending: false })
         .limit(100);
 

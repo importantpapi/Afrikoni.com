@@ -580,15 +580,17 @@ export async function notifyNewMessage(
     if (conversation?.subject) {
       notificationMessage = `${senderName}: ${conversation.subject}`;
     } else if (conversation?.related_type === 'product' && conversation?.related_to) {
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Try to get product name
       const { data: product } = await supabase
         .from('products')
-        .select('title')
+        .select('name')
         .eq('id', conversation.related_to)
         .maybeSingle();
       
-      if (product?.title) {
-        notificationMessage = `${senderName} sent a message about ${product.title}`;
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
+      if (product?.name || product?.title) {
+        notificationMessage = `${senderName} sent a message about ${product.name || product.title}`;
       }
     }
 

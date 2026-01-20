@@ -96,8 +96,18 @@ export async function getEscrowPayment(orderId) {
   return data;
 }
 
-export async function getEscrowPaymentsByCompany(companyId, role = 'buyer') {
-  const column = role === 'buyer' ? 'buyer_company_id' : 'seller_company_id';
+/**
+ * ✅ KERNEL COMPLIANCE: Uses capabilities instead of role parameter
+ * @param {string} companyId - Company ID
+ * @param {Object} capabilities - Capabilities object (from useCapability hook)
+ * @returns {Promise<Array>} Escrow payments list
+ */
+export async function getEscrowPaymentsByCompany(companyId, capabilities = null) {
+  // ✅ KERNEL COMPLIANCE: Determine column from capabilities instead of role
+  // If company can sell, they're viewing seller escrow; otherwise buyer escrow
+  const column = capabilities?.can_sell === true && capabilities?.sell_status === 'approved'
+    ? 'seller_company_id'
+    : 'buyer_company_id';
   const { data, error } = await supabase
     .from('escrow_payments')
     .select(`

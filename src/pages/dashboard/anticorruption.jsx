@@ -34,8 +34,12 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 
 export default function AntiCorruption() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, isSystemReady, canLoadData, isAdmin, capabilities } = useDashboardKernel();
+  
+  // ✅ KERNEL COMPLIANCE: Derive admin/internal status from isAdmin flag
+  // Note: riskProfiles is mock data - profile.role refers to mock risk profile, not user profile
+  const isInternalUser = isAdmin; // Internal users are admins
   
   // All hooks must be at the top - before any conditional returns
   const [hasAccess, setHasAccess] = useState(false);
@@ -665,7 +669,9 @@ export default function AntiCorruption() {
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-full flex items-center justify-center">
-                        {profile.role === 'Internal' ? (
+                        {/* ✅ FULL-STACK SYNC: Mock data uses 'role' field - this is NOT user profile.role */}
+                        {/* This refers to risk profile type (Internal/External) in mock data */}
+                        {(profile.role === 'Internal' || profile.type === 'Internal') ? (
                           <UserCheck className="w-6 h-6 text-afrikoni-gold" />
                         ) : (
                           <Building2 className="w-6 h-6 text-afrikoni-gold" />
@@ -679,9 +685,10 @@ export default function AntiCorruption() {
                     <p className="text-xs text-afrikoni-text-dark/70 mb-2">{profile.position}</p>
                     <div className="space-y-2 mb-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-afrikoni-text-dark/70">Role:</span>
+                        <span className="text-afrikoni-text-dark/70">Type:</span>
                         <Badge variant="outline" className="text-xs">
-                          {profile.role}
+                          {/* ✅ FULL-STACK SYNC: Mock data field - NOT user profile.role */}
+                          {profile.role || profile.type || 'External'}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between text-xs">

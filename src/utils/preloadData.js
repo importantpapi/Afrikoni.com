@@ -4,17 +4,33 @@
  */
 
 import { supabase } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+// ✅ FINAL 3% FIX: Removed getCurrentUserAndRole import - replaced with direct Supabase calls
 
 /**
  * Preload dashboard KPIs and recent data
  * Called when user hovers over dashboard link or when app is idle
+ * 
+ * ✅ FINAL 3% FIX: Removed getCurrentUserAndRole dependency - uses direct Supabase auth
  */
 export async function preloadDashboardData(role = 'buyer') {
   try {
-    // Import supabaseHelpers dynamically to avoid circular dependencies
-    const { supabaseHelpers } = await import('@/api/supabaseClient');
-    const { companyId } = await getCurrentUserAndRole(supabase, supabaseHelpers);
+    // ✅ FINAL 3% FIX: Get companyId directly from session and profile
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      if (import.meta.env.DEV) {
+        console.debug('[Preload] Skipping - no session');
+      }
+      return;
+    }
+
+    // Get profile to extract company_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('company_id')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    const companyId = profile?.company_id;
     if (!companyId) {
       if (import.meta.env.DEV) {
         console.debug('[Preload] Skipping - no companyId');
@@ -142,11 +158,12 @@ export async function preloadMarketplaceData() {
           return { data: null, error: err };
         }),
       
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // ✅ FIX: Simplified select - only columns that definitely exist
       // Removed joins that might fail due to RLS or missing relationships
       supabase
         .from('products')
-        .select('id, title, status, created_at')
+        .select('id, name, status, created_at')
         .eq('status', 'active')
         .limit(20)
         .catch(err => {

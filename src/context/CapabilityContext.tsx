@@ -74,6 +74,28 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     const targetCompanyId = profile?.company_id;
     
     // =========================================================================
+    // ✅ KERNEL-TO-UI ALIGNMENT FIX: ADMIN OVERRIDE
+    // Admins without company_id get full capabilities to access admin dashboard
+    // =========================================================================
+    if (profile?.is_admin === true && (!targetCompanyId || forceRefresh)) {
+      console.log('[CapabilityContext] ✅ Admin user detected - granting full capabilities (bypassing company_id requirement)');
+      setCapabilities({
+        can_buy: true,
+        can_sell: true,
+        can_logistics: true,
+        sell_status: 'approved',
+        logistics_status: 'approved',
+        company_id: targetCompanyId || null, // Preserve company_id if it exists
+        loading: false,
+        ready: true,
+        error: null,
+      });
+      hasFetchedRef.current = true;
+      fetchedCompanyIdRef.current = targetCompanyId || 'admin'; // Mark as fetched for admin
+      return;
+    }
+    
+    // =========================================================================
     // GUARD 1: IDEMPOTENCY - Already fetched for this company_id (unless force refresh)
     // =========================================================================
     if (
@@ -267,6 +289,75 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   const currentUserId = user?.id || null;
   const currentCompanyId = profile?.company_id || null;
   
+  // =========================================================================
+  // AUTH CHANGE LISTENER: Reset capabilities on signout
+  // =========================================================================
+  useEffect(() => {
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event) => {
+        if (event === 'SIGNED_OUT') {
+          console.log('[CapabilityContext] SIGNED_OUT detected - resetting capabilities');
+          // Reset capabilities to null/defaults on signout
+          setCapabilities({
+            can_buy: false,
+            can_sell: false,
+            can_logistics: false,
+            sell_status: 'disabled',
+            logistics_status: 'disabled',
+            company_id: null,
+            loading: false,
+            ready: true, // Keep ready=true to allow rendering
+            error: null,
+          });
+          // Reset fetch flags
+          hasFetchedRef.current = false;
+          fetchedCompanyIdRef.current = null;
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          // On signin, reset fetch flags to allow re-fetch
+          console.log('[CapabilityContext] SIGNED_IN/TOKEN_REFRESHED detected - resetting fetch flags');
+          hasFetchedRef.current = false;
+          fetchedCompanyIdRef.current = null;
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []); // Empty deps - only set up listener once
+
+  // =========================================================================
+  // ✅ FULL-STACK SYNC: Listen for AUTH_CHANGE event (signout)
+  // =========================================================================
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event) => {
+        if (event === 'SIGNED_OUT') {
+          console.log('[CapabilityContext] SIGNED_OUT event detected - resetting capabilities');
+          // Reset capabilities to null/defaults on signout
+          setCapabilities({
+            can_buy: true,
+            can_sell: false,
+            can_logistics: false,
+            sell_status: 'disabled',
+            logistics_status: 'disabled',
+            company_id: null,
+            loading: false,
+            ready: true, // Keep ready=true to allow rendering
+            error: null,
+          });
+          hasFetchedRef.current = false;
+          fetchedCompanyIdRef.current = null;
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   // =========================================================================
   // CAPABILITY FETCH EFFECT WITH TIMEOUT FALLBACK
   // =========================================================================

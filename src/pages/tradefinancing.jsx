@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -15,8 +16,9 @@ import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 
 export default function TradeFinancing() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL COMPLIANCE: Use unified Dashboard Kernel
+  const { user, profile, isAdmin } = useDashboardKernel();
+  const { authReady, loading: authLoading } = useAuth();
   const [applications, setApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -137,7 +139,7 @@ export default function TradeFinancing() {
     }
   };
 
-  const isAdmin = user?.user_role === 'admin';
+  // ✅ KERNEL COMPLIANCE: isAdmin already available from useDashboardKernel()
 
   return (
     <div className="min-h-screen bg-stone-50 py-8">

@@ -179,13 +179,14 @@ export async function suggestProductListings(companyId) {
     const config = getCountryConfig();
     const popularProducts = config.popularProducts || [];
 
+    // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
     // Get existing products
     const { data: existingProducts } = await supabase
       .from('products')
-      .select('title')
+      .select('name')
       .eq('company_id', companyId);
 
-    const existingTitles = existingProducts?.map(p => p.title.toLowerCase()) || [];
+    const existingTitles = existingProducts?.map(p => (p.name || p.title || '').toLowerCase()).filter(Boolean) || [];
     const suggestions = popularProducts.filter(p => 
       !existingTitles.some(title => title.includes(p.toLowerCase()))
     );

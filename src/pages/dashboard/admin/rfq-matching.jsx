@@ -45,14 +45,14 @@ export default function RFQMatching() {
   );
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[RFQMatching] Waiting for auth to be ready...');
+    // ✅ KERNEL COMPLIANCE: Use isSystemReady instead of authReady/authLoading
+    if (!isSystemReady) {
+      console.log('[RFQMatching] Waiting for system to be ready...');
       return;
     }
 
-    // GUARD: Check admin access
-    if (!user || !isAdmin) {
+    // ✅ KERNEL COMPLIANCE: Use userId and isAdmin from kernel
+    if (!userId || !isAdmin) {
       toast.error('Admin access required');
       navigate('/dashboard');
       return;
@@ -60,7 +60,7 @@ export default function RFQMatching() {
 
     // Now safe to load data
     loadData();
-  }, [statusFilter, authReady, authLoading, user, isAdmin, navigate]);
+  }, [statusFilter, isSystemReady, userId, isAdmin, navigate]);
 
   const loadData = async () => {
     if (!canLoadData) {

@@ -34,9 +34,8 @@ const AFRICAN_COUNTRIES = [
 const UNITS = ['pieces', 'kg', 'grams', 'tons', 'containers', 'pallets', 'boxes', 'bags', 'units', 'liters', 'meters'];
 
 export default function CreateRFQ() {
-  // ✅ UNIFIED DASHBOARD KERNEL: Use standardized hook
-  const { user, profile, authReady, loading: authLoading } = useAuth();
-  const { capabilities } = useDashboardKernel();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -86,7 +85,7 @@ export default function CreateRFQ() {
 
     // Now safe to load data
     loadData();
-  }, [authReady, authLoading, user, profile, capabilities, navigate]);
+  }, [canLoadData, user, profile, capabilities, navigate]);
 
   const loadData = async () => {
     try {
@@ -393,23 +392,14 @@ export default function CreateRFQ() {
       setIsSubmitting(true);
       setError(null);
       
-      // ✅ KERNEL MIGRATION: Get user object from Supabase auth for service call
-      let userObj = null;
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        userObj = user;
-      } catch (err) {
-        console.error('Error fetching user:', err);
-        toast.error('Authentication error. Please log in again.');
-        navigate('/login');
-        return;
-      }
-      
-      if (!userObj) {
+      // ✅ KERNEL COMPLIANCE: Use userId from kernel instead of direct auth API call
+      if (!userId || !user) {
         toast.error('User not found. Please log in again.');
         navigate('/login');
         return;
       }
+      
+      const userObj = user;
       
       // ✅ KERNEL ALIGNMENT: Delegate all business logic to rfqService
       // Frontend only sends user-inputted fields - Kernel handles the rest

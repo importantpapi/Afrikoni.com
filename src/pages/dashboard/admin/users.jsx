@@ -17,7 +17,6 @@ import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 // NOTE: Admin check done at route level - removed isAdmin import
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import AccessDenied from '@/components/AccessDenied';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -117,7 +116,8 @@ export default function AdminUsers() {
     }
     
     loadUsers();
-  }, [canLoadData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canLoadData]); // loadUsers is defined in component scope
 
   const loadUsers = async () => {
     try {
@@ -177,21 +177,49 @@ export default function AdminUsers() {
       // Note: We can't directly query auth.users from the client, so we'll use created_at as fallback
       // userId is already available from useDashboardKernel() hook
       
+      // ✅ FULL-STACK SYNC: Load company_capabilities for all companies to derive roles
+      const companyIds = (profilesData || []).map(p => p.companies?.id).filter(Boolean);
+      let capabilitiesMap = {};
+      
+      if (companyIds.length > 0) {
+        const { data: capabilitiesData } = await supabase
+          .from('company_capabilities')
+          .select('company_id, can_buy, can_sell, can_logistics, sell_status, logistics_status')
+          .in('company_id', companyIds);
+        
+        // Build map for quick lookup
+        capabilitiesMap = (capabilitiesData || []).reduce((acc, cap) => {
+          acc[cap.company_id] = cap;
+          return acc;
+        }, {});
+      }
+      
       // Process users with company data
       const usersWithCompanies = (profilesData || []).map(profile => {
         const company = profile.companies;
+        const companyId = company?.id;
+        const capabilities = companyId ? capabilitiesMap[companyId] : null;
         
-        // Determine role using REAL data from database: admin (if is_admin) > profile role > company role > 'buyer' default
-        let displayRole = 'buyer'; // Default to buyer (real role) instead of 'user'
+        // ✅ FULL-STACK SYNC: Derive role from capabilities (not profile.role)
+        let displayRole = 'buyer'; // Default
         
         if (profile.is_admin || profile.email?.toLowerCase() === 'youba.thiam@icloud.com') {
           displayRole = 'admin';
-        } else if (profile.role) {
-          // Use the actual role from profiles table (buyer, seller, hybrid, logistics)
-          displayRole = profile.role;
-        } else if (company?.role) {
-          // Fallback to company role if profile doesn't have one
-          displayRole = company.role;
+        } else if (capabilities) {
+          // Derive role from capabilities
+          const isHybrid = capabilities.can_buy && capabilities.can_sell;
+          const isSeller = capabilities.can_sell && capabilities.sell_status === 'approved';
+          const isLogistics = capabilities.can_logistics && capabilities.logistics_status === 'approved';
+          
+          if (isHybrid) {
+            displayRole = 'hybrid';
+          } else if (isSeller) {
+            displayRole = 'seller';
+          } else if (isLogistics) {
+            displayRole = 'logistics';
+          } else {
+            displayRole = 'buyer'; // Default
+          }
         }
 
         return {
@@ -200,13 +228,14 @@ export default function AdminUsers() {
           fullName: profile.full_name || profile.email?.split('@')[0] || 'Unknown User',
           role: displayRole,
           createdAt: profile.created_at,
-          lastLogin: profile.updated_at || profile.created_at, // Use updated_at as fallback for last activity
+          lastLogin: profile.updated_at || profile.created_at,
           status: 'active',
           companyName: company?.company_name || 'No company yet',
           country: company?.country || profile.country || 'Not specified',
           isAdmin: profile.is_admin || false,
           verificationStatus: company?.verification_status || 'unverified',
-          isVerified: company?.verified || false
+          isVerified: company?.verified || false,
+          companyId: companyId || null
         };
       });
 
@@ -246,24 +275,59 @@ export default function AdminUsers() {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      // Update role in Supabase database
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', userId);
+      // ✅ FULL-STACK SYNC: Update capabilities instead of profile.role
+      // Find user's company_id first
+      const user = users.find(u => u.id === userId);
+      if (!user?.companyId) {
+        toast.error('User must have a company to update capabilities');
+        return;
+      }
 
-      if (error) {
-        console.error('Error updating user role:', error);
-        toast.error('Failed to update role', {
-          description: error.message || 'Unknown error occurred'
+      // Map role string to capabilities
+      const capabilityUpdates = {
+        'buyer': { can_buy: true, can_sell: false, can_logistics: false },
+        'seller': { can_buy: true, can_sell: true, sell_status: 'approved', can_logistics: false },
+        'hybrid': { can_buy: true, can_sell: true, sell_status: 'approved', can_logistics: false },
+        'logistics': { can_buy: true, can_sell: false, can_logistics: true, logistics_status: 'approved' },
+        'admin': { can_buy: true, can_sell: true, can_logistics: true, sell_status: 'approved', logistics_status: 'approved' }
+      };
+
+      const updates = capabilityUpdates[newRole];
+      if (!updates) {
+        toast.error('Invalid role');
+        return;
+      }
+
+      // Update company_capabilities
+      const { error: capError } = await supabase
+        .from('company_capabilities')
+        .update(updates)
+        .eq('company_id', user.companyId);
+
+      if (capError) {
+        console.error('Error updating capabilities:', capError);
+        toast.error('Failed to update capabilities', {
+          description: capError.message || 'Unknown error occurred'
         });
         return;
       }
 
-      // Update local state
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      // If admin role, also update profile.is_admin
+      if (newRole === 'admin') {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ is_admin: true })
+          .eq('id', userId);
+
+        if (profileError) {
+          console.warn('Failed to update is_admin flag:', profileError);
+        }
+      }
+
+      // Reload users to reflect changes
+      await loadUsers();
       setEditingUser(null);
-      toast.success('Role updated successfully');
+      toast.success('Capabilities updated successfully');
       console.log(`✅ Role changed for user ${userId} to ${newRole}`);
     } catch (error) {
       console.error('Error updating role:', error);

@@ -153,39 +153,39 @@ export default function DashboardSettings() {
       const profileData = profile || {};
       
       setFormData({
-        full_name: profile.name || user.full_name || user.name || '',
-        name: profile.name || user.name || '',
-        email: user.email || '',
-        phone: profile.phone || user.phone || '',
-        company_name: profile.company_name || user.company_name || '',
-        business_type: profile.business_type || user.business_type || '',
-        country: profile.country || user.country || '',
-        city: profile.city || user.city || '',
-        business_email: profile.business_email || user.business_email || '',
-        website: profile.website || user.website || '',
-        year_established: profile.year_established || user.year_established || '',
-        company_size: profile.company_size || user.company_size || '',
-        company_description: profile.company_description || user.company_description || ''
+        full_name: profile?.name || user?.full_name || user?.name || '',
+        name: profile?.name || user?.name || '',
+        email: user?.email || '',
+        phone: profile?.phone || user?.phone || '',
+        company_name: profile?.company_name || user?.company_name || '',
+        business_type: profile?.business_type || user?.business_type || '',
+        country: profile?.country || user?.country || '',
+        city: profile?.city || user?.city || '',
+        business_email: profile?.business_email || user?.business_email || '',
+        website: profile?.website || user?.website || '',
+        year_established: profile?.year_established || user?.year_established || '',
+        company_size: profile?.company_size || user?.company_size || '',
+        company_description: profile?.company_description || user?.company_description || ''
       });
       
-      setAvatarUrl(profile.avatar_url || user.avatar_url || '');
-      setApiKey(profile.api_key || '');
+      setAvatarUrl(profile?.avatar_url || user?.avatar_url || '');
+      setApiKey(profile?.api_key || '');
       
       // Load notification preferences
-      if (profile.notification_preferences) {
+      if (profile?.notification_preferences) {
         const prefs = typeof profile.notification_preferences === 'string' 
           ? JSON.parse(profile.notification_preferences)
           : profile.notification_preferences;
         setPreferences({
-          language: profile.language || 'en',
-          currency: profile.currency || 'USD',
-          email_notifications: prefs.email !== false,
-          in_app_notifications: prefs.in_app !== false,
-          order_updates: prefs.order_updates !== false,
-          new_messages: prefs.new_messages !== false,
-          rfq_responses: prefs.rfq_responses !== false,
-          reviews: prefs.reviews !== false,
-          payments: prefs.payments !== false
+          language: profile?.language || 'en',
+          currency: profile?.currency || 'USD',
+          email_notifications: prefs?.email !== false,
+          in_app_notifications: prefs?.in_app !== false,
+          order_updates: prefs?.order_updates !== false,
+          new_messages: prefs?.new_messages !== false,
+          rfq_responses: prefs?.rfq_responses !== false,
+          reviews: prefs?.reviews !== false,
+          payments: prefs?.payments !== false
         });
       }
       

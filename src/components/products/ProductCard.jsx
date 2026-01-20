@@ -60,7 +60,7 @@ export default function ProductCard({ product, priority = false }) {
           {imageUrl ? (
             <OptimizedImage
               src={imageUrl}
-              alt={product.title || product.name || 'Product'}
+              alt={product.name || product.title || 'Product'}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               width={250}
               height={250}
@@ -94,9 +94,10 @@ export default function ProductCard({ product, priority = false }) {
 
         {/* Content - Minimal padding */}
         <CardContent className="p-3">
+          {/* ✅ KERNEL-SCHEMA ALIGNMENT: Prioritize 'name' over 'title' (DB schema uses 'name') */}
           {/* Product Name - 2 lines max, bold */}
           <h3 className="text-sm md:text-base font-semibold text-afrikoni-chestnut mb-2 line-clamp-2 leading-tight min-h-[40px]">
-            {product.title || product.name}
+            {product.name || product.title}
           </h3>
 
           {/* MOQ - Small, gray */}

@@ -29,9 +29,22 @@ export default function BuyerCentral() {
 
   const loadStats = async () => {
     try {
+      // ✅ KERNEL COMPLIANCE: Query capability-based instead of role-based
+      // First, get company IDs from company_capabilities where can_sell=true and sell_status='approved'
+      const { data: sellerCapabilities, error: capError } = await supabase
+        .from('company_capabilities')
+        .select('company_id')
+        .eq('can_sell', true)
+        .eq('sell_status', 'approved');
+
+      const sellerCompanyIds = sellerCapabilities?.map(c => c.company_id).filter(Boolean) || [];
+      
       const [productsRes, suppliersRes, ordersRes] = await Promise.all([
         supabase.from('products').select('id', { count: 'exact', head: true }),
-        supabase.from('companies').select('id', { count: 'exact', head: true }).eq('role', 'seller'),
+        // Query companies with seller capability IDs
+        sellerCompanyIds.length > 0
+          ? supabase.from('companies').select('id', { count: 'exact', head: true }).in('id', sellerCompanyIds)
+          : Promise.resolve({ count: 0, error: null }),
         supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'completed')
       ]);
 

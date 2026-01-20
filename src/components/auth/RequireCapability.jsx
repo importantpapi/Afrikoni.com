@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useCapability } from '@/context/CapabilityContext';
+import { useAuth } from '@/contexts/AuthProvider';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
 /**
@@ -51,6 +52,16 @@ export default function RequireCapability({
   require = null, // "buy" | "sell" | "logistics" | null
   requireApproved = false, // If true, requires status === "approved"
 }) {
+  // ✅ FULL-STACK SYNC: Get auth state for admin check
+  const { profile } = useAuth();
+  const isAdmin = profile?.is_admin === true;
+
+  // ✅ FULL-STACK SYNC: Admin Override - Admins bypass all capability checks
+  if (isAdmin) {
+    console.log('[RequireCapability] Admin user detected - bypassing capability checks');
+    return <>{children}</>;
+  }
+
   // ✅ CRITICAL FIX: Safe access with optional chaining
   let capability;
   try {

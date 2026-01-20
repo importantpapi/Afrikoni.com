@@ -17,9 +17,25 @@ export async function getClientIPAndCountry() {
       ? null // Client-side, can't access headers directly
       : null; // Server-side would use headers, but we're client-side
     
+    // ✅ KERNEL-TO-UI ALIGNMENT: Enhanced error handling for ipapi.co failures
     // For client-side, use ipapi.co API
-    const response = await fetch('https://ipapi.co/json/');
-    if (!response.ok) throw new Error('IP API failed');
+    let response;
+    try {
+      response = await fetch('https://ipapi.co/json/');
+      
+      // Handle 429 (Too Many Requests) and other HTTP errors gracefully
+      if (!response.ok) {
+        if (response.status === 429) {
+          console.debug('[IP Detection] Rate limited (429) - using fallback');
+          throw new Error('Rate limited');
+        }
+        throw new Error(`IP API failed with status ${response.status}`);
+      }
+    } catch (fetchError) {
+      // Network errors, CORS, or HTTP errors - use fallback
+      console.debug('[IP Detection] Fetch failed (non-critical):', fetchError.message || 'Network error');
+      throw fetchError;
+    }
     
     const data = await response.json();
     return {
@@ -30,8 +46,9 @@ export async function getClientIPAndCountry() {
       region: data.region || null
     };
   } catch (error) {
-    // Silently fail - CORS error on localhost is expected, use fallback values
-    console.debug('[IP Detection] Failed (non-critical):', error.message || 'CORS or network error');
+    // ✅ KERNEL-TO-UI ALIGNMENT: Silent fallback for all errors (429, network, CORS)
+    // Silently fail - CORS error on localhost is expected, rate limits are expected
+    // Use fallback values without logging errors to console
     // Fallback values
     return {
       ip_address: 'unknown',
@@ -81,11 +98,31 @@ function getRiskLevel(action, metadata = {}) {
 }
 
 /**
- * Determine actor type from user role
+ * ✅ KERNEL COMPLIANCE: Determine actor type from is_admin and capabilities
+ * @param {Object} profile - User profile object
+ * @param {Object} capabilities - Optional capabilities object (from useCapability hook)
+ * @returns {string} - Actor type: 'admin', 'buyer', 'supplier', 'logistics', 'hybrid', 'user', 'system'
  */
-function getActorType(profile) {
+function getActorType(profile, capabilities = null) {
   if (!profile) return 'system';
   
+  // ✅ KERNEL COMPLIANCE: Check is_admin first
+  if (profile.is_admin === true) return 'admin';
+  
+  // ✅ KERNEL COMPLIANCE: Derive from capabilities if available
+  if (capabilities) {
+    const isBuyer = capabilities.can_buy === true;
+    const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+    const isLogistics = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
+    
+    if (isSeller && isBuyer) return 'hybrid';
+    if (isSeller) return 'supplier';
+    if (isLogistics) return 'logistics';
+    if (isBuyer) return 'buyer';
+  }
+  
+  // Fallback: Check legacy role field (for backward compatibility during migration)
+  // TODO: Remove this fallback after migration is complete
   if (profile.role === 'admin') return 'admin';
   if (profile.role === 'buyer') return 'buyer';
   if (profile.role === 'seller') return 'supplier';
@@ -106,6 +143,7 @@ export async function logAuditEvent({
   user = null,
   profile = null,
   company_id = null,
+  capabilities = null, // ✅ KERNEL COMPLIANCE: Accept capabilities parameter
   metadata = {},
   status = 'success',
   event_source = 'user'
@@ -117,7 +155,7 @@ export async function logAuditEvent({
     // Determine actor information
     const actor_user_id = user?.id || profile?.id || null;
     const actor_company_id = company_id || profile?.company_id || user?.company_id || null;
-    const actor_type = getActorType(profile);
+    const actor_type = getActorType(profile, capabilities); // ✅ KERNEL COMPLIANCE: Pass capabilities
     
     // Determine risk level
     const risk_level = getRiskLevel(action, metadata);

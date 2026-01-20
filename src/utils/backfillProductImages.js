@@ -47,10 +47,10 @@ export async function backfillProductImages(productId, userId) {
       return { success: true, count: 0, message: 'No main images found' };
     }
 
-    // Get product title for alt text
+    // ✅ KERNEL-SCHEMA ALIGNMENT: Get product name for alt text (DB has 'name', not 'title')
     const { data: product } = await supabase
       .from('products')
-      .select('title')
+      .select('name')
       .eq('id', productId)
       .single();
 
@@ -62,7 +62,7 @@ export async function backfillProductImages(productId, userId) {
       return {
         product_id: productId,
         url: publicUrl,
-        alt_text: product?.title || 'Product image',
+        alt_text: product?.name || 'Product image',
         is_primary: index === 0,
         sort_order: index
       };
@@ -101,10 +101,10 @@ export async function backfillProductImages(productId, userId) {
  */
 export async function backfillAllUserProducts(userId) {
   try {
-    // Get all active products for this user's company
+    // ✅ KERNEL-SCHEMA ALIGNMENT: Get product name (DB has 'name', not 'title')
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .select('id, title, company_id')
+      .select('id, name, company_id')
       .eq('status', 'active');
 
     if (productsError) {

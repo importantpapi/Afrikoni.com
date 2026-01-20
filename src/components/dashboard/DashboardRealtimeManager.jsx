@@ -57,6 +57,13 @@ export default function DashboardRealtimeManager({
     if (onUpdateRef.current && isMountedRef.current) {
       onUpdateRef.current({ table, event: eventType, data });
     }
+    
+    // ✅ FULL-STACK SYNC: Dispatch custom event for components that don't have direct callback access
+    if (isMountedRef.current && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dashboard-realtime-update', {
+        detail: { table, event: eventType, data }
+      }));
+    }
   }, []);
 
   // ===========================================================================
@@ -217,19 +224,38 @@ export default function DashboardRealtimeManager({
       );
 
     // -----------------------------------------------------------------
-    // Notifications (user-level, INSERT only)
+    // Notifications (company-scoped + user-level, INSERT/UPDATE only)
+    // ✅ FULL-STACK SYNC: Use dashboard-${companyId} channel pattern
     // -----------------------------------------------------------------
+    if (companyId && typeof companyId === 'string' && companyId.trim() !== '') {
+      // Company-scoped notifications
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `company_id=eq.${companyId}`,
+        },
+        (payload) => {
+          console.log('[RealtimeManager] Notification change (company):', payload.eventType);
+          invokeCallback('notifications', payload.eventType, payload.new);
+        }
+      );
+    }
+    
+    // User-level notifications (fallback if no companyId)
     if (userId && typeof userId === 'string' && userId.trim() !== '') {
       channel.on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          console.log('[RealtimeManager] New notification');
+          console.log('[RealtimeManager] Notification change (user):', payload.eventType);
           invokeCallback('notifications', payload.eventType, payload.new);
         }
       );

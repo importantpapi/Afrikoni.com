@@ -18,8 +18,8 @@ import { sendRFQNotification } from '@/utils/rfqNotifications';
 import { logRFQAdminAction } from '@/utils/rfqAuditLog';
 
 export default function AdminRFQReview() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
+  const { user, profile, userId, capabilities, isSystemReady, canLoadData, isAdmin } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);

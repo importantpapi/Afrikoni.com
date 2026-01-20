@@ -8,16 +8,39 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import ProductCard from '@/components/products/ProductCard';
+// ✅ KERNEL-SCHEMA ALIGNMENT: Enhanced error handling for ipapi.co failures (429, network, CORS)
+// ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
 // Simple country detection utility
 const detectCountry = async () => {
+  // ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'BE'; // Belgium (HQ location)
+  }
+  
   try {
-    const response = await fetch('https://ipapi.co/json/');
-    if (!response.ok) throw new Error('IP API failed');
+    let response;
+    try {
+      response = await fetch('https://ipapi.co/json/');
+      
+      // Handle 429 (Too Many Requests) and other HTTP errors gracefully
+      if (!response.ok) {
+        if (response.status === 429) {
+          // Rate limited - silently return null without logging
+          return null;
+        }
+        throw new Error(`IP API failed with status ${response.status}`);
+      }
+    } catch (fetchError) {
+      // Network errors, CORS, or HTTP errors - silently return null
+      return null;
+    }
+    
     const data = await response.json();
     return data?.country_code || null;
   } catch (err) {
-    // Silently fail - CORS error on localhost is expected
-    console.debug('[IP Detection] Failed (non-critical):', err.message || 'CORS or network error');
+    // ✅ KERNEL-SCHEMA ALIGNMENT: Silent fallback for all errors (429, network, CORS)
+    // Silently fail - CORS error on localhost is expected, rate limits are expected
+    // Return null without logging errors
     return null;
   }
 };
@@ -99,10 +122,11 @@ export default function MobileProductGrid({
       // Determine which country to filter by
       const filterCountry = country || detectedCountry;
       
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Simplified query - PostgREST friendly (no complex joins)
       let query = supabase
         .from('products')
-        .select('id, title, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, views, created_at')
+        .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, views, created_at')
         .eq('status', 'active');
 
       // Filter by country if specified (simplified - only use country_of_origin)

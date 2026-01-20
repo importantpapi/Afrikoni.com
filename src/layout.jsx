@@ -1,7 +1,8 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabaseHelpers, supabase } from '@/api/supabaseClient';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/contexts/AuthProvider';
 import { createPageUrl } from './utils';
 import { Button } from '@/components/shared/ui/button';
 import { Mail, Phone, MapPin, Lock, Shield, Award, CheckCircle, Linkedin, Twitter, Facebook, Instagram, Youtube, ChevronDown, MessageCircle } from 'lucide-react';
@@ -375,8 +376,9 @@ function Footer() {
 }
 
 export default function Layout({ children }) {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // ✅ KERNEL COMPLIANCE: Use AuthProvider as single source of truth
+  // Remove duplicate auth state - AuthProvider owns all auth state
+  const { user, loading: authLoading, authReady } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -385,31 +387,6 @@ export default function Layout({ children }) {
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
   // Check if we're on a product page (where sticky CTA will be shown)
   const isProductPage = location.pathname.startsWith('/product');
-
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  useEffect(() => {
-    loadUser();
-    
-    // Listen for auth changes
-    // CRITICAL: Suppress email confirmation errors globally
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // GLOBAL FILTER: Suppress email confirmation errors
-      // This prevents "Error sending confirmation email" from appearing anywhere
-      if (event === 'SIGNED_UP' || event === 'TOKEN_REFRESHED') {
-        // Check if there's an error in the session or event
-        // Email errors are non-fatal and should never block or show UI
-        console.debug('[AUTH] Auth state change:', event, session ? 'session exists' : 'no session');
-      }
-      
-      if (session) {
-        loadUser();
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Check mobile viewport
   useEffect(() => {
@@ -420,19 +397,6 @@ export default function Layout({ children }) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  const loadUser = async () => {
-    try {
-      const { getCurrentUserAndRole } = await import('@/utils/authHelpers');
-      const { user: userData } = await getCurrentUserAndRole(supabase, supabaseHelpers);
-      setUser(userData);
-    } catch (error) {
-      // Silently fail for unauthenticated users - this is normal
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -478,7 +442,8 @@ export default function Layout({ children }) {
     }
   };
 
-  if (isLoading) {
+  // ✅ KERNEL COMPLIANCE: Use authReady from AuthProvider
+  if (!authReady || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />

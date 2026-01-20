@@ -163,11 +163,12 @@ export default function AdminAnalytics() {
           .gte('created_at', startISO)
           .lte('created_at', endISO),
         
-        // Active Suppliers
+        // Active Suppliers (capability-based)
+        // ✅ KERNEL COMPLIANCE: Query by capability instead of role field
         supabase
-          .from('companies')
-          .select('id, role, created_at, country')
-          .eq('role', 'seller')
+          .from('company_capabilities')
+          .select('company_id, created_at')
+          .eq('can_sell', true)
           .gte('created_at', startISO)
           .lte('created_at', endISO),
 

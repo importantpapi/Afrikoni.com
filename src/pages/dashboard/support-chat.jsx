@@ -26,7 +26,7 @@ import RequireCapability from '@/guards/RequireCapability';
 
 function SupportChatInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+  const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [ticketNumber, setTicketNumber] = useState(null);
@@ -103,14 +103,8 @@ function SupportChatInner() {
       // Always create a new unique ticket for each user session
       // This ensures each person gets their own ticket, not shared tickets
       if (cid) {
-        // ✅ KERNEL MIGRATION: Get user email from Supabase
-        let userEmail = '';
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          userEmail = user?.email || '';
-        } catch (err) {
-          // Silently fail - email is optional
-        }
+        // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
+        const userEmail = user?.email || '';
         
         // Create new ticket - each user gets their own unique ticket
         const newTicketNumber = generateTicketNumber();
@@ -141,7 +135,7 @@ function SupportChatInner() {
               const { data: adminUsers } = await supabase
                 .from('profiles')
                 .select('id, email')
-                .eq('role', 'admin')
+                .eq('is_admin', true)
                 .limit(10);
 
               if (adminUsers && adminUsers.length > 0) {
@@ -278,14 +272,8 @@ function SupportChatInner() {
 
     setIsSending(true);
     try {
-      // ✅ KERNEL MIGRATION: Get user email from Supabase
-      let userEmail = '';
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        userEmail = user?.email || '';
-      } catch (err) {
-        // Silently fail - email is optional
-      }
+      // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
+      const userEmail = user?.email || '';
       
       // Create support message
       const { error: messageError } = await supabase
@@ -316,7 +304,7 @@ function SupportChatInner() {
         const { data: adminUsers } = await supabase
           .from('profiles')
           .select('id, email')
-          .eq('role', 'admin')
+          .eq('is_admin', true)
           .limit(10);
 
         if (adminUsers && adminUsers.length > 0) {

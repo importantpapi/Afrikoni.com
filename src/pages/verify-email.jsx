@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
+// ✅ FINAL 3% FIX: Removed getCurrentUserAndRole import - not used in this file
 import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Mail, Loader2, CheckCircle, AlertCircle } from 'lucide-react';

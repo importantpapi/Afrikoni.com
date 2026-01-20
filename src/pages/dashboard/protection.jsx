@@ -71,7 +71,7 @@ function DashboardProtectionInner() {
         const [ordersRes, disputesRes, walletRes] = await Promise.all([
           // Load orders where user is buyer or seller
           supabase.from('orders')
-            .select('*, products(title), buyer_company:buyer_company_id(company_name), seller_company:seller_company_id(company_name)')
+            .select('*, products(name), buyer_company:buyer_company_id(company_name), seller_company:seller_company_id(company_name)')
             .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`),
           supabase.from('disputes')
             .select('*')

@@ -141,10 +141,11 @@ function SupplierAnalyticsInner() {
       const prevStartISO = prevStart.toISOString();
       const prevEndISO = prevEnd.toISOString();
 
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Load products for this supplier
       const { data: products, error: productsError } = await supabase
         .from('products')
-        .select('id, title, views, status, created_at, category_id, country_of_origin')
+        .select('id, name, views, status, created_at, category_id, country_of_origin')
         .eq('company_id', companyId)
         .eq('status', 'active');
 
@@ -315,7 +316,7 @@ function SupplierAnalyticsInner() {
       const rate = views > 0 ? (conversions / views) * 100 : 0;
 
       return {
-        name: product.title?.substring(0, 20) || 'Product',
+        name: product.name?.substring(0, 20) || product.title?.substring(0, 20) || 'Product',
         views,
         conversions,
         rate: parseFloat(rate.toFixed(2)),

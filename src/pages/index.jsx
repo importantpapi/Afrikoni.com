@@ -48,9 +48,31 @@ export default function Home() {
   };
 
   const detectUserCountry = async () => {
+    // ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
+    if (window.location.hostname === 'localhost') {
+      setDetectedCountry('Belgium');
+      return;
+    }
+    
     try {
-      const response = await fetch('https://ipapi.co/json/');
-      if (!response.ok) throw new Error('IP API failed');
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Enhanced error handling for ipapi.co failures (429, network, CORS)
+      let response;
+      try {
+        response = await fetch('https://ipapi.co/json/');
+        
+        // Handle 429 (Too Many Requests) and other HTTP errors gracefully
+        if (!response.ok) {
+          if (response.status === 429) {
+            // Rate limited - silently return null without logging
+            return;
+          }
+          throw new Error(`IP API failed with status ${response.status}`);
+        }
+      } catch (fetchError) {
+        // Network errors, CORS, or HTTP errors - silently return null
+        return;
+      }
+      
       const data = await response.json();
       const countryCode = data?.country_code;
       const codeToName = {
@@ -70,6 +92,11 @@ export default function Home() {
         'SZ': 'Eswatini', 'SS': 'South Sudan', 'AO': 'Angola'
       };
       const countryName = codeToName[countryCode];
+      
+      if (!countryName) {
+        // Invalid country code - silently return
+        return;
+      }
       if (countryName) {
         setDetectedCountry(countryName);
       }

@@ -1,120 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { Bell, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
-import { getOrCreateCompany } from '@/utils/companyHelper'; // Import at the top
 
 export default function NotificationBell() {
-  const { user, profile, role, authReady, loading: authLoading } = useAuth();
+  const { user, authReady, loading: authLoading } = useAuth();
+  // ✅ FINAL 3% FIX: Use kernel hook with capabilities for hybrid check
+  const { isAdmin, capabilities, profileCompanyId, userId } = useDashboardKernel();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const channelRef = useRef(null); // ✅ KERNEL ALIGNMENT: Store channel in ref for proper cleanup
 
-  useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading || !user) {
-      return;
-    }
+  // ✅ FULL-STACK SYNC: Standardize isHybrid as (can_buy && can_sell)
+  const isHybrid = capabilities?.can_buy === true && capabilities?.can_sell === true;
+  const isAdminOrHybrid = isAdmin || isHybrid;
 
-    // Now safe to load notifications
-    loadNotifications();
-    
-    // Setup real-time subscription
-    const setupSubscription = async () => {
-      try {
-        // Use company_id from profile first (no need to call getOrCreateCompany if we already have it)
-        const companyId = profile?.company_id || null;
-        
-        if (!companyId && !user.id && !user.email) {
-          return null;
-        }
-        
-        let filter = '';
-        if (companyId) {
-          filter = `company_id=eq.${companyId}`;
-        } else if (user.id) {
-          filter = `user_id=eq.${user.id}`;
-        } else if (user.email) {
-          filter = `user_email=eq.${user.email}`;
-        }
-        
-        const channel = supabase
-          .channel(`notifications-${user.id || user.email}`)
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: filter
-          }, (payload) => {
-            console.log('[NotificationBell] Real-time update:', payload.eventType);
-            loadNotifications();
-          })
-          .subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              console.log('[NotificationBell] Real-time subscribed');
-            }
-          });
-
-        return channel;
-      } catch (error) {
-        console.debug('Error setting up subscription:', error);
-        return null;
-      }
-    };
-
-    let channelCleanup = null;
-    setupSubscription().then(channel => {
-      channelCleanup = channel;
-    });
-
-    return () => {
-      if (channelCleanup) {
-        console.log('[NotificationBell] Unsubscribing');
-        supabase.removeChannel(channelCleanup);
-      }
-    };
-  }, [user?.id, user?.email, authReady, authLoading]); // More specific dependencies
-
-  const loadNotifications = async () => {
+  // ✅ KERNEL ALIGNMENT: Wrap loadNotifications in useCallback to avoid stale closures
+  // Must be defined BEFORE useEffect that uses it
+  const loadNotifications = useCallback(async () => {
     if (!user) return;
     
     try {
-      // Use company_id from profile first (avoid unnecessary getOrCreateCompany calls)
-      let companyId = profile?.company_id || null;
+      // ✅ KERNEL ALIGNMENT: Use kernel-provided values
+      const companyId = profileCompanyId || null;
 
-      if (companyId && user.id) {
-        try {
-          const { data: profileCheck } = await supabase
-            .from('profiles')
-            .select('company_id')
-            .eq('id', user.id)
-            .maybeSingle();
+      // ✅ KERNEL ALIGNMENT: Admin/hybrid users don't need filters - RLS policy handles visibility
+      if (isAdminOrHybrid) {
+        // Admin/hybrid: query runs without filter - RLS policy allows access to all notifications
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .limit(10);
 
-          if (profileCheck?.company_id !== companyId) {
-            await supabase
-              .from('profiles')
-              .upsert({ id: user.id, company_id: companyId }, { onConflict: 'id' });
-          }
-        } catch (err) {
-          console.debug('Error updating profile company_id:', err);
+        if (error) {
+          console.debug('Notification bell query error:', error);
+          setNotifications([]);
+          setUnreadCount(0);
+          return;
         }
+        
+        setNotifications(data || []);
+        setUnreadCount(data?.filter(n => !n.read).length || 0);
+        return;
       }
 
-      if (!user.id && !user.email) {
+      // Regular users: require at least one identifier
+      if (!userId && !companyId && !user.email) {
         setNotifications([]);
         setUnreadCount(0);
         return;
       }
 
+      // ✅ KERNEL ALIGNMENT: Regular users apply filters
       let query = supabase
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (user.id) {
-        query = query.eq('user_id', user.id);
+      if (userId) {
+        query = query.eq('user_id', userId);
       } else if (companyId) {
         query = query.eq('company_id', companyId);
       } else if (user.email) {
@@ -137,7 +86,100 @@ export default function NotificationBell() {
       setNotifications([]);
       setUnreadCount(0);
     }
-  };
+  }, [user, userId, profileCompanyId, isAdmin, isHybrid]); // ✅ FINAL 3% FIX: Use isAdmin and isHybrid from capabilities
+
+  useEffect(() => {
+    // GUARD: Wait for auth to be ready
+    if (!authReady || authLoading || !user) {
+      return;
+    }
+
+    // Now safe to load notifications
+    loadNotifications();
+    
+    // ✅ KERNEL ALIGNMENT: Setup real-time subscription with proper admin/hybrid handling
+    const setupSubscription = async () => {
+      try {
+        // ✅ KERNEL ALIGNMENT: Use kernel-provided values
+        const companyId = profileCompanyId || null;
+        
+        // ✅ FINAL 3% FIX: Admin users see all notifications, clients use company-scoped channel
+        if (isAdmin) {
+          // Admin: No filter - RLS policy allows access to all notifications
+          const channel = supabase
+            .channel(`notifications-admin-${userId || 'global'}`)
+            .on('postgres_changes', {
+              event: '*',
+              schema: 'public',
+              table: 'notifications',
+              // ✅ FINAL 3% FIX: No filter for admin users - RLS handles visibility
+            }, (payload) => {
+              console.log('[NotificationBell] Real-time update (admin):', payload.eventType);
+              loadNotifications();
+            })
+            .subscribe((status) => {
+              if (status === 'SUBSCRIBED') {
+                console.log('[NotificationBell] Real-time subscribed (admin - no filter)');
+              }
+            });
+
+          channelRef.current = channel;
+          return channel;
+        }
+        
+        // ✅ FINAL 3% FIX: Clients use dashboard-${companyId} pattern for 'World Isolation'
+        // Regular users (including hybrid): apply company_id filter
+        if (!companyId && !userId && !user.email) {
+          return null;
+        }
+        
+        // ✅ FINAL 3% FIX: Use dashboard-${companyId} pattern to match DashboardRealtimeManager
+        const channelName = companyId ? `dashboard-${companyId}` : `notifications-${userId || user.email}`;
+        let filter = '';
+        if (companyId) {
+          filter = `company_id=eq.${companyId}`;
+        } else if (userId) {
+          filter = `user_id=eq.${userId}`;
+        } else if (user.email) {
+          filter = `user_email=eq.${user.email}`;
+        }
+        
+        const channel = supabase
+          .channel(channelName)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: filter
+          }, (payload) => {
+            console.log('[NotificationBell] Real-time update (client):', payload.eventType);
+            loadNotifications();
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log(`[NotificationBell] Real-time subscribed (${channelName})`);
+            }
+          });
+
+        channelRef.current = channel;
+        return channel;
+      } catch (error) {
+        console.debug('Error setting up subscription:', error);
+        return null;
+      }
+    };
+
+    setupSubscription();
+
+    // ✅ KERNEL ALIGNMENT: Proper cleanup function
+    return () => {
+      if (channelRef.current) {
+        console.log('[NotificationBell] Unsubscribing');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [userId, profileCompanyId, user?.email, authReady, authLoading, isAdminOrHybrid, loadNotifications]); // ✅ KERNEL ALIGNMENT: Include loadNotifications
 
   const markAsRead = async (notificationId) => {
     if (!notificationId) return;

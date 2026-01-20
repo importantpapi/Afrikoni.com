@@ -25,7 +25,6 @@ import {
 // Removed mock data imports - using real database queries
 // NOTE: Admin check done at route level - removed isAdmin import
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { getCurrentUserAndRole } from '@/utils/authHelpers';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
@@ -37,6 +36,12 @@ import { toast } from 'sonner';
 export default function RiskManagementDashboard() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
+  
+  // ✅ KERNEL COMPLIANCE: Derive role from capabilities instead of role field
+  const derivedRole = capabilities?.can_sell && capabilities?.can_buy ? 'hybrid' 
+    : capabilities?.can_sell ? 'seller' 
+    : capabilities?.can_logistics ? 'logistics' 
+    : 'buyer';
   
   // All hooks must be at the top - before any conditional returns
   const [loading, setLoading] = useState(false);
@@ -121,7 +126,7 @@ export default function RiskManagementDashboard() {
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [hasAccess, autoRefresh, authReady]);
+  }, [hasAccess, autoRefresh, isSystemReady]);
 
   // Load ALL users (no time filter) for search and complete visibility
   const loadAllUsers = async () => {
@@ -242,6 +247,33 @@ export default function RiskManagementDashboard() {
           console.warn('Error fetching user activity:', activityError);
         }
 
+        // ✅ KERNEL COMPLIANCE: Derive role from user's company capabilities if available
+        // Default to 'buyer' since most users are buyers and we don't have capabilities for all users
+        let userRole = 'buyer'; // Default
+        if (user.company_id) {
+          // Try to get capabilities for this user's company (non-blocking)
+          try {
+            const { data: userCapabilities } = await supabase
+              .from('company_capabilities')
+              .select('can_buy, can_sell, can_logistics')
+              .eq('company_id', user.company_id)
+              .maybeSingle();
+            
+            if (userCapabilities) {
+              if (userCapabilities.can_sell && userCapabilities.can_buy) {
+                userRole = 'hybrid';
+              } else if (userCapabilities.can_sell) {
+                userRole = 'seller';
+              } else if (userCapabilities.can_logistics) {
+                userRole = 'logistics';
+              }
+            }
+          } catch (capError) {
+            // Non-critical - use default 'buyer'
+            console.debug('Could not fetch capabilities for user:', user.id, capError);
+          }
+        }
+
         return {
           id: user.id,
           email: user.email || 'No email',
@@ -253,7 +285,7 @@ export default function RiskManagementDashboard() {
           verificationStatus: user.companies?.verification_status || 'unverified',
           isVerified: user.companies?.verified || false,
           createdAt: user.created_at,
-          role: user.role || 'buyer',
+          role: userRole, // ✅ KERNEL COMPLIANCE: Derived from capabilities, defaults to 'buyer'
           orderCount,
           rfqCount,
           productCount,
@@ -396,7 +428,7 @@ export default function RiskManagementDashboard() {
           verificationStatus: user.companies?.verification_status || 'unverified',
           isVerified: user.companies?.verified || false,
           createdAt: user.created_at,
-          role: user.role || 'buyer',
+          role: 'buyer', // ✅ KERNEL COMPLIANCE: Default to buyer (capabilities would require per-user query)
           // Activity stats
           orderCount,
           rfqCount,

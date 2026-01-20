@@ -97,11 +97,12 @@ export default function AdminReviews() {
     try {
       setLoading(true);
       setError(null);
+      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       let query = supabase
         .from('reviews')
         .select(`
           *,
-          products(title, images),
+          products(name, images),
           companies!reviews_reviewed_company_id_fkey(company_name, logo_url),
           companies!reviews_reviewer_company_id_fkey(company_name)
         `)
@@ -416,12 +417,12 @@ export default function AdminReviews() {
                             {review.products?.images?.[0] && (
                               <img 
                                 src={review.products.images[0]} 
-                                alt={review.products.title}
+                                alt={review.products?.name || review.products?.title || 'Product'}
                                 className="w-10 h-10 object-cover rounded"
                               />
                             )}
                             <div className="text-sm text-afrikoni-text-dark">
-                              {review.products?.title || 'N/A'}
+                              {review.products?.name || review.products?.title || 'N/A'}
                             </div>
                           </div>
                         </td>

@@ -27,7 +27,7 @@ import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
 import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
+// ✅ KERNEL-TO-UI ALIGNMENT: Removed useCapability import - Navbar doesn't need capabilities
 import { useNavigate } from 'react-router-dom';
 
 // Country code to country name mapping
@@ -211,8 +211,9 @@ export default function Navbar({ user, onLogout }) {
 
   // Use centralized AuthProvider
   const { profile: authProfile, role: authRole } = useAuth();
-  // ✅ FOUNDATION FIX: Use capabilities instead of roleHelpers
-  const capabilities = useCapability();
+  // ✅ KERNEL-TO-UI ALIGNMENT: Removed useCapability() - Navbar doesn't need capabilities
+  // Navbar is rendered outside CapabilityProvider context (in public layout)
+  // Capabilities are only needed inside dashboard routes
 
   // Load user profile to get company_id for profile link
   useEffect(() => {
@@ -869,11 +870,13 @@ How It Works
             <nav className="flex flex-col gap-2 text-gray-700 text-sm">
               <Link to="/become-supplier" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
               <Link 
-                to={user && capabilities.ready && capabilities.can_sell && capabilities.sell_status === 'approved' ? "/dashboard" : "/become-supplier"} 
+                to={user ? "/dashboard" : "/become-supplier"} 
                 onClick={() => {
                   setMegaOpen(false);
-                  const isSellerApproved = capabilities.ready && capabilities.can_sell && capabilities.sell_status === 'approved';
-                  if (!user || !isSellerApproved) {
+                  // ✅ KERNEL-TO-UI ALIGNMENT: Simplified check - dashboard will handle capability routing
+                  // If user exists, link to dashboard (dashboard will show appropriate view)
+                  // If no user, link to become-supplier page
+                  if (!user) {
                     navigate('/become-supplier');
                   }
                 }}
