@@ -230,13 +230,13 @@ export default function ExploreAfricanSupply() {
           </p>
         </motion.div>
 
-        {/* Source by Country - Slider with all 54 countries */}
+        {/* Source by Country - Slider with all 54 countries - Hidden on Mobile */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-10 md:mb-16"
+          className="hidden md:block mb-10 md:mb-16"
         >
           <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex-1 min-w-0">

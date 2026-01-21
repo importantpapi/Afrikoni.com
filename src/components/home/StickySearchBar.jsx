@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X } from 'lucide-react';
+import { Search, X, Sparkles } from 'lucide-react';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 
@@ -21,6 +21,14 @@ const PLACEHOLDER_EXAMPLES = [
   'Cotton fabric Tanzania',
   'Palm oil producer Côte d\'Ivoire',
   'Spices exporter Ethiopia'
+];
+
+// AI-powered Quick Actions based on popular African trade trends
+const AI_QUICK_ACTIONS = [
+  { label: 'Shea Butter Bulk', search: 'shea butter bulk supplier' },
+  { label: 'Solar Components', search: 'solar panel components' },
+  { label: 'Cashew Nuts', search: 'cashew nuts exporter' },
+  { label: 'Cocoa Beans', search: 'cocoa beans bulk' },
 ];
 
 export default function StickySearchBar() {
@@ -148,9 +156,44 @@ export default function StickySearchBar() {
             </button>
           </div>
 
+          {/* AI-Powered Quick Actions Overlay - Shows when search bar is focused */}
+          <AnimatePresence>
+            {searchFocused && !searchQuery && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-afrikoni-gold/20 p-3"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+                  <span className="text-xs font-semibold text-afrikoni-chestnut">AI-Suggested Quick Actions</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {AI_QUICK_ACTIONS.map((action, index) => (
+                    <motion.button
+                      key={action.label}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => {
+                        setSearchQuery(action.search);
+                        handleSearch();
+                      }}
+                      className="px-3 py-1.5 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 border border-afrikoni-gold/30 rounded-lg text-xs font-medium text-afrikoni-chestnut transition-all active:scale-95 touch-manipulation"
+                    >
+                      {action.label}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Search Suggestions Dropdown */}
           <AnimatePresence>
-            {showSuggestions && (searchFocused || searchQuery) && (
+            {showSuggestions && (searchFocused || searchQuery) && searchQuery && (
               <motion.div
                 initial={{ opacity: 0, y: -10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}

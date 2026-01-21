@@ -8,7 +8,6 @@ import PartnerLogos from '@/components/home/PartnerLogos';
 import LiveTradeTicker from '@/components/community/LiveTradeTicker';
 import BetaSection from '@/components/home/BetaSection';
 import StickySearchBar from '@/components/home/StickySearchBar';
-import CategoryChips from '@/components/home/CategoryChips';
 import MobileCategoryGrid from '@/components/home/MobileCategoryGrid';
 import CountryQuickFilters from '@/components/home/CountryQuickFilters';
 import MobileCountryFilters from '@/components/home/MobileCountryFilters';
@@ -176,12 +175,7 @@ export default function Home() {
         {/* ✅ DESKTOP LAYOUT - Desktop Only (unchanged) */}
         {/* ============================================================ */}
         
-        {/* Category Chips - Desktop Only (keep original for desktop) */}
-        <section className="hidden md:block py-3 bg-afrikoni-offwhite">
-          <div className="max-w-[1440px] mx-auto px-4">
-            <CategoryChips />
-          </div>
-        </section>
+        {/* Category Chips - Removed from desktop per user request */}
         
         {/* Hero Section - Desktop Only (Mobile uses StickySearchBar + MobileProductGrid) */}
         <section className="hidden md:block relative overflow-visible">

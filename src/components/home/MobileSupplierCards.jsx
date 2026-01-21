@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, MapPin, Building2, MessageSquare, ChevronRight } from 'lucide-react';
+import { Shield, MapPin, Building2, MessageSquare, ChevronRight, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { supabase } from '@/api/supabaseClient';
@@ -37,6 +37,32 @@ const getCountryFlag = (countryName) => {
   return COUNTRY_FLAGS[countryName] || '';
 };
 
+// Helper function to calculate years on platform
+const getYearsOnPlatform = (createdAt) => {
+  if (!createdAt) return null;
+  const years = (new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24 * 365);
+  if (years < 1) {
+    const months = Math.floor(years * 12);
+    return months > 0 ? `${months}m` : '<1m';
+  }
+  return `${Math.floor(years)}y`;
+};
+
+// Helper function to format response rate
+const formatResponseRate = (avgHours) => {
+  if (!avgHours || avgHours === 0) return null;
+  if (avgHours < 4) return '< 4h';
+  if (avgHours < 24) return `< ${Math.floor(avgHours)}h`;
+  return `< ${Math.floor(avgHours / 24)}d`;
+};
+
+// Helper function to check if supplier is online (active in last 24h)
+const isSupplierOnline = (lastActivity) => {
+  if (!lastActivity) return false;
+  const hoursSinceActivity = (new Date() - new Date(lastActivity)) / (1000 * 60 * 60);
+  return hoursSinceActivity < 24;
+};
+
 export default function MobileSupplierCards() {
   const navigate = useNavigate();
   const [suppliers, setSuppliers] = useState([]);
@@ -48,15 +74,70 @@ export default function MobileSupplierCards() {
 
   const loadVerifiedSuppliers = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch companies with their performance metrics
+      const { data: companiesData, error: companiesError } = await supabase
         .from('companies')
         .select('*')
         .eq('verification_status', 'verified')
         .order('created_at', { ascending: false })
         .limit(6);
 
-      if (error) throw error;
-      setSuppliers(data || []);
+      if (companiesError) throw companiesError;
+
+      // Fetch response rate data from quotes for each company
+      const suppliersWithMetrics = await Promise.all(
+        (companiesData || []).map(async (company) => {
+          // Get quotes with RFQ data to calculate response time
+          const { data: quotesData } = await supabase
+            .from('quotes')
+            .select('created_at, rfq_id')
+            .eq('supplier_company_id', company.id)
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+          let avgResponseHours = null;
+          if (quotesData && quotesData.length > 0) {
+            // Fetch RFQ creation times for these quotes
+            const rfqIds = quotesData.map(q => q.rfq_id).filter(Boolean);
+            if (rfqIds.length > 0) {
+              const { data: rfqsData } = await supabase
+                .from('rfqs')
+                .select('id, created_at')
+                .in('id', rfqIds);
+
+              if (rfqsData) {
+                const rfqMap = new Map(rfqsData.map(r => [r.id, r.created_at]));
+                const responseTimes = quotesData
+                  .filter(q => rfqMap.has(q.rfq_id))
+                  .map(q => {
+                    const rfqTime = new Date(rfqMap.get(q.rfq_id));
+                    const quoteTime = new Date(q.created_at);
+                    return (quoteTime - rfqTime) / (1000 * 60 * 60); // Convert to hours
+                  })
+                  .filter(t => t > 0 && t < 720); // Filter out negative or unrealistic times
+
+                if (responseTimes.length > 0) {
+                  avgResponseHours = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+                }
+              }
+            }
+          }
+
+          // Get last activity (most recent quote)
+          const lastActivity = quotesData && quotesData.length > 0 
+            ? quotesData[0].created_at 
+            : company.updated_at || company.created_at;
+
+          return {
+            ...company,
+            avgResponseHours,
+            lastActivity,
+            isOnline: isSupplierOnline(lastActivity),
+          };
+        })
+      );
+
+      setSuppliers(suppliersWithMetrics);
     } catch (err) {
       console.error('Error loading verified suppliers:', err);
       setSuppliers([]);
@@ -155,8 +236,15 @@ export default function MobileSupplierCards() {
                         ) : (
                           <Building2 className="w-6 h-6 text-afrikoni-gold/50" />
                         )}
-                        {/* Verification Badge */}
-                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-afrikoni-gold/20">
+                        {/* Verification Badge with Online Indicator */}
+                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-afrikoni-gold/20 flex items-center gap-0.5">
+                          {supplier.isOnline && (
+                            <motion.div
+                              animate={{ opacity: [1, 0.5, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="w-1.5 h-1.5 bg-green-500 rounded-full"
+                            />
+                          )}
                           <Shield className="w-3 h-3 text-afrikoni-gold" />
                         </div>
                       </div>
@@ -174,13 +262,30 @@ export default function MobileSupplierCards() {
                           </div>
                         </div>
                         
-                        {/* Location */}
-                        <div className="flex items-center gap-1 mb-1">
+                        {/* Location & Trust Signals */}
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                           {flag && <span className="text-xs">{flag}</span>}
                           <span className="text-xs text-afrikoni-deep/70 line-clamp-1">
                             {supplier.country || 'N/A'}
                           </span>
+                          
+                          {/* Years on Platform */}
+                          {getYearsOnPlatform(supplier.created_at) && (
+                            <span className="text-[10px] bg-afrikoni-gold/10 text-afrikoni-gold px-1.5 py-0.5 rounded-full font-medium">
+                              {getYearsOnPlatform(supplier.created_at)} on platform
+                            </span>
+                          )}
                         </div>
+
+                        {/* Response Rate Indicator */}
+                        {formatResponseRate(supplier.avgResponseHours) && (
+                          <div className="flex items-center gap-1 mb-1">
+                            <Clock className="w-3 h-3 text-green-600" />
+                            <span className="text-[10px] text-green-700 font-medium">
+                              Responds in {formatResponseRate(supplier.avgResponseHours)}
+                            </span>
+                          </div>
+                        )}
 
                         {/* Categories (if available) */}
                         {supplier.main_categories && Array.isArray(supplier.main_categories) && supplier.main_categories.length > 0 && (

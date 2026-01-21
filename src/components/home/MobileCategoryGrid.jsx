@@ -16,7 +16,8 @@ import {
   Factory,
   Boxes,
   Truck,
-  Building2
+  Building2,
+  TrendingUp
 } from 'lucide-react';
 
 // B2B Categories with icons (8 categories for 2x4 grid)
@@ -31,6 +32,19 @@ const B2B_CATEGORIES = [
   { id: 'logistics', name: 'Logistics', icon: Truck, color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
 ];
 
+// Trending data constant - defined at top of file to ensure scope
+const trendingData = {
+  'Agriculture': { growth: '+12%' },
+  'Food': { growth: '+8%' },
+  'Textiles': { growth: '+15%' },
+  'Energy': { growth: '+22%' },
+  'Food & Beverage': { growth: '+8%' }, // Alias for full name
+  'Construction': { growth: '' },
+  'Manufacturing': { growth: '' },
+  'Packaging': { growth: '' },
+  'Logistics': { growth: '' },
+};
+
 export default function MobileCategoryGrid() {
   const navigate = useNavigate();
 
@@ -39,13 +53,15 @@ export default function MobileCategoryGrid() {
   };
 
   return (
-    <section className="md:hidden py-4 bg-afrikoni-offwhite">
+    <section className="block lg:hidden py-4 bg-afrikoni-offwhite">
       <div className="max-w-[1440px] mx-auto px-4">
         <h2 className="text-lg font-bold text-afrikoni-chestnut mb-3">Browse Categories</h2>
-        {/* 2x4 Dense Grid */}
-        <div className="grid grid-cols-4 grid-rows-2 gap-2">
+        {/* 2x4 Dense Grid - Professional B2B Layout */}
+        <div className="grid grid-cols-2 gap-3">
           {B2B_CATEGORIES.map((category, index) => {
             const Icon = category.icon;
+            // Safe mapping: Get trend data with fallback to prevent crashes
+            const trend = trendingData[category.name] || { growth: '' };
             
             return (
               <motion.button
@@ -55,7 +71,7 @@ export default function MobileCategoryGrid() {
                 transition={{ delay: index * 0.03 }}
                 onClick={() => handleCategoryClick(category)}
                 className={`
-                  flex flex-col items-center justify-center gap-1
+                  relative flex flex-col items-center justify-center gap-1
                   p-2.5 rounded-lg
                   border border-afrikoni-gold/15
                   ${category.bgColor}
@@ -65,6 +81,14 @@ export default function MobileCategoryGrid() {
                   min-h-[70px]
                 `}
               >
+                {/* Trending Badge - Only show if growth exists */}
+                {trend.growth && (
+                  <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-sm z-10">
+                    <TrendingUp className="w-2.5 h-2.5" />
+                    <span className="text-[8px] font-bold">{trend.growth}</span>
+                  </div>
+                )}
+                
                 <Icon className={`w-5 h-5 ${category.color}`} />
                 <span className="text-[10px] font-medium text-afrikoni-chestnut text-center leading-tight line-clamp-2">
                   {category.name.split(' ')[0]}
