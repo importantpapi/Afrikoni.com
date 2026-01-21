@@ -9,10 +9,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, MapPin, ChevronDown } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
-import { Card, CardContent } from '@/components/shared/ui/card';
-import { Button } from '@/components/shared/ui/button';
 
 // Top 5 Trending Countries (based on supplier/product activity)
 const TRENDING_COUNTRIES = [
@@ -26,7 +24,6 @@ const TRENDING_COUNTRIES = [
 export default function MobileCountryFilters() {
   const navigate = useNavigate();
   const [countryCounts, setCountryCounts] = useState({});
-  const [showCountrySearch, setShowCountrySearch] = useState(false);
 
   useEffect(() => {
     loadCountryCounts();
@@ -107,17 +104,6 @@ export default function MobileCountryFilters() {
             );
           })}
         </div>
-
-        {/* Search by Country Button */}
-        <Button
-          variant="outline"
-          onClick={handleSearchByCountry}
-          className="w-full border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs py-2 h-9"
-        >
-          <MapPin className="w-3 h-3 mr-2" />
-          Search by Country
-          <ChevronDown className="w-3 h-3 ml-auto" />
-        </Button>
       </div>
     </section>
   );

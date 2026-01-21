@@ -38,6 +38,7 @@ export default function StickySearchBar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(PLACEHOLDER_EXAMPLES[0]);
   const [isSticky, setIsSticky] = useState(false);
+  const [selectedFilterChip, setSelectedFilterChip] = useState(null);
   const searchContainerRef = useRef(null);
   const placeholderIntervalRef = useRef(null);
 
@@ -79,6 +80,15 @@ export default function StickySearchBar() {
   const handleSelectSuggestion = (suggestion) => {
     setSearchQuery(suggestion);
     handleSearch();
+  };
+
+  const handleFilterChipClick = (chipValue) => {
+    const newValue = chipValue === selectedFilterChip ? '' : chipValue;
+    setSelectedFilterChip(newValue === '' ? null : chipValue);
+    setSearchQuery(newValue);
+    if (newValue) {
+      setShowSuggestions(true);
+    }
   };
 
   return (
@@ -210,6 +220,33 @@ export default function StickySearchBar() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Filter Chips - Premium Pill Filters Under Search Bar */}
+          <div className="mt-3 pb-1 overflow-x-auto scrollbar-hide -mx-4 px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex gap-2">
+              {['Coffee', 'Cotton', 'Palm Oil', 'Logistics', 'Packaging'].map((chip) => {
+                const isSelected = selectedFilterChip === chip;
+                return (
+                  <motion.button
+                    key={chip}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleFilterChipClick(chip)}
+                    className={`
+                      px-4 py-2 rounded-full text-sm font-medium
+                      transition-all duration-200 touch-manipulation
+                      whitespace-nowrap flex-shrink-0
+                      ${isSelected 
+                        ? 'bg-gradient-to-r from-[#E6B85C] via-[#D4A23A] to-[#B88A2E] text-white shadow-md border-0' 
+                        : 'bg-afrikoni-cream/80 border border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold/50'
+                      }
+                    `}
+                  >
+                    {chip}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
