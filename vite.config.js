@@ -7,6 +7,7 @@ const BUILD_TIMESTAMP = Date.now();
 
 export default defineConfig({
   plugins: [react()],
+  base: '/', // ✅ KERNEL ROUTING: Ensure base path is '/' to prevent folder name in URL
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -151,7 +151,16 @@ const Categories = lazy(() => import('./pages/categories'));
 const Contact = lazy(() => import('./pages/contact'));
 const Help = lazy(() => import('./pages/help'));
 const About = lazy(() => import('./pages/about'));
+const AfrikoniCode = lazy(() => import('./pages/afrikoni-code'));
 const Pricing = lazy(() => import('./pages/pricing'));
+const BuyerHub = lazy(() => import('./pages/buyer-hub'));
+const SupplierHub = lazy(() => import('./pages/supplier-hub'));
+const Trust = lazy(() => import('./pages/trust'));
+const OrderProtection = lazy(() => import('./pages/order-protection'));
+const Community = lazy(() => import('./pages/community'));
+const VerificationCenter = lazy(() => import('./pages/verification-center'));
+const Trending = lazy(() => import('./pages/trending'));
+const Logistics = lazy(() => import('./pages/logistics'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 
 // ============================================
@@ -304,7 +313,17 @@ function AppContent() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/help" element={<Help />} />
           <Route path="/about" element={<About />} />
+          <Route path="/about-us" element={<About />} /> {/* ✅ KERNEL ROUTING: Alias for About page to prevent broken links */}
+          <Route path="/afrikoni-code" element={<AfrikoniCode />} /> {/* ✅ PUBLIC ROUTING: Afrikoni Code page */}
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/buyer-hub" element={<BuyerHub />} />
+          <Route path="/supplier-hub" element={<SupplierHub />} />
+          <Route path="/trust" element={<Trust />} />
+          <Route path="/order-protection" element={<OrderProtection />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/verification-center" element={<VerificationCenter />} />
+          <Route path="/trending" element={<Trending />} />
+          <Route path="/logistics" element={<Logistics />} />
 
           {/* Onboarding */}
           <Route 

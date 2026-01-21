@@ -423,19 +423,22 @@ export default function Layout({ children }) {
     }
   };
 
-  // ✅ KERNEL COMPLIANCE: Use authReady from AuthProvider
-  if (!authReady || authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
-  }
-
-  // If on dashboard route, don't render main layout (dashboard has its own layout)
+  // ✅ PUBLIC PAGES FIX: Only wait for auth on dashboard routes, not public pages
+  // Public pages should render immediately without waiting for auth
   if (isDashboardRoute) {
+    // For dashboard routes, wait for auth ready
+    if (!authReady || authLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        </div>
+      );
+    }
+    // Dashboard has its own layout
     return <>{children}</>;
   }
+
+  // Public pages render immediately without auth check
 
   // On mobile, use MobileLayout (which includes its own header and bottom nav)
   // On desktop, use the traditional layout
