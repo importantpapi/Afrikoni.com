@@ -92,19 +92,39 @@ export default function Login() {
   }, [authReady, ready, hasUser, profile, navigate]);
   
   // ✅ KERNEL-CENTRIC: Self-Heal - If ready is true but capabilities are null after 5 seconds, refresh
+  // ✅ VIBRANIUM STABILIZATION: Only fire if Kernel is NOT warm and prerequisites are met
   useEffect(() => {
-    if (!ready) return;
+    // Guard: Only fire if ready is false AND authReady is true AND user exists AND capabilities are null
+    // ✅ KERNEL POLISH: DO NOT call if capabilities.ready is already true (Kernel is WARM)
+    // ✅ KERNEL POLISH: DO NOT call if authReady is false (refresh in progress)
+    // ✅ KERNEL POLISH: DO NOT call if ready is true (Kernel is ready)
+    if (ready === true || !authReady || !user || capabilities?.ready === true) {
+      return; // Kernel is warm or prerequisites not met - skip self-heal
+    }
+    
+    // ✅ KERNEL POLISH: Additional guard - only proceed if capabilities are actually null/empty
+    if (capabilities && (capabilities.can_buy || capabilities.can_sell || capabilities.can_logistics)) {
+      return; // Capabilities exist - Kernel is warm, skip self-heal
+    }
     
     const selfHealTimer = setTimeout(() => {
-      // Check if capabilities are null/empty after 5 seconds
-      if (!capabilities || (!capabilities.can_buy && !capabilities.can_sell && !capabilities.can_logistics)) {
+      // Double-check: Only fire if capabilities are still null/empty after 5 seconds
+      // AND ready is still false AND authReady is still true AND user still exists
+      // ✅ KERNEL POLISH: DO NOT call if capabilities.ready is true (Kernel became WARM during wait)
+      // ✅ KERNEL POLISH: DO NOT call if ready is true (Kernel became ready during wait)
+      // ✅ KERNEL POLISH: DO NOT call if authReady is false (refresh in progress)
+      if (ready === false && authReady === true && user !== null && 
+          capabilities?.ready !== true && // ✅ KERNEL POLISH: Guard against WARM Kernel
+          (!capabilities || (!capabilities.can_buy && !capabilities.can_sell && !capabilities.can_logistics))) {
         console.log('[Login] Self-Heal: Capabilities null after 5s - calling refreshCapabilities()');
         refreshCapabilities();
+      } else {
+        console.log('[Login] Self-Heal: Skipped - Kernel is warm or refresh in progress');
       }
     }, 5000);
     
     return () => clearTimeout(selfHealTimer);
-  }, [ready, capabilities, refreshCapabilities]);
+  }, [ready, authReady, user, capabilities, refreshCapabilities]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -122,7 +142,6 @@ export default function Login() {
 
       // ✅ LOGIN SYNCHRONIZATION: Immediately navigate to /auth/post-login the moment data.user is returned
       // Bypass any secondary local checks that are currently hanging
-      setIsLoading(false);
       toast.success(t('login.success') || 'Welcome back!');
       
       // ✅ SURGICAL FIX: Navigate immediately after successful login, bypassing Kernel wait
@@ -144,7 +163,6 @@ export default function Login() {
 
     } catch (err) {
       // ✅ FULL-STACK SYNC: Enhanced error handling
-      setIsLoading(false);
       
       // Log failed login attempt
       try {
@@ -162,6 +180,10 @@ export default function Login() {
       } else {
         toast.error(err.message || 'Login failed');
       }
+    } finally {
+      // ✅ VIBRANIUM STABILIZATION: Always reset loading state, even if Kernel is slow
+      // This ensures the button doesn't stay stuck on "Signing In..."
+      setIsLoading(false);
     }
   };
 
@@ -187,19 +209,11 @@ export default function Login() {
                 <Logo type="full" size="lg" link={true} showTagline={true} />
               </div>
               <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
-                {isSynchronizing ? t('login.synchronizing') || 'Synchronizing...' : t('login.welcomeBack')}
+                {t('login.welcomeBack')}
               </h1>
               <p className="text-afrikoni-deep">
-                {isSynchronizing 
-                  ? t('login.synchronizingSubtitle') || 'Preparing your workspace...'
-                  : t('login.subtitle')
-                }
+                {t('login.subtitle')}
               </p>
-              {isSynchronizing && (
-                <div className="mt-4 flex justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-afrikoni-gold" />
-                </div>
-              )}
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">

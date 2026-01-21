@@ -138,8 +138,17 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
 
     // =========================================================================
     // GUARD 2: Prerequisites not ready - KEEP READY=FALSE UNTIL PREREQUISITES MET
+    // ✅ VIBRANIUM STABILIZATION: If Kernel is WARM, don't dump state during authReady flicker
     // =========================================================================
     if (!authReady || !user || !targetCompanyId) {
+      // ✅ VIBRANIUM STABILIZATION: If Kernel is already WARM (hasFetched === true), 
+      // don't dump state just because authReady flickered during silent refresh
+      // Allow fetchCapabilities to use cached session if TOKEN_REFRESHED event is in progress
+      if (hasFetchedRef.current && capabilities?.ready) {
+        console.log('[CapabilityContext] Kernel is WARM - skipping prerequisite check during authReady flicker');
+        return; // Keep existing state - Kernel is warm, just authReady flickered
+      }
+      
       console.log('[CapabilityContext] Prerequisites not ready - authReady:', authReady, 'user:', !!user, 'companyId:', targetCompanyId);
       // ✅ FIX STATE STAGNATION: Keep ready=false until prerequisites are met and capabilities are loaded
       // The useEffect will handle setting ready=true after timeout if needed (for onboarding flow)

@@ -202,17 +202,53 @@ function AppContent() {
   useBrowserNavigation();
   
   // ✅ KERNEL-CENTRIC: Clean Logout - On SIGN_OUT, call resetKernel() to purge the "Brain"
+  // ✅ KERNEL POLISH: Add debounce with isResetting ref to prevent resetKernel() from being called twice
   useEffect(() => {
+    const isResettingRef = { current: false }; // ✅ KERNEL POLISH: Track reset state
+    let resetTimeoutId = null;
+    let lastSignOutTime = 0;
+    const DEBOUNCE_MS = 1000; // 1 second debounce
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
         if (event === 'SIGNED_OUT') {
+          // ✅ KERNEL POLISH: Check if already resetting
+          if (isResettingRef.current) {
+            console.log('[App] SIGN_OUT - resetKernel() already in progress, skipping');
+            return;
+          }
+          
+          const now = Date.now();
+          // ✅ KERNEL POLISH: Debounce - only call resetKernel if last call was more than 1 second ago
+          if (now - lastSignOutTime < DEBOUNCE_MS) {
+            console.log('[App] SIGN_OUT debounced - skipping duplicate resetKernel() call');
+            return;
+          }
+          
+          // Clear any pending timeout
+          if (resetTimeoutId) {
+            clearTimeout(resetTimeoutId);
+          }
+          
+          lastSignOutTime = now;
+          isResettingRef.current = true; // ✅ KERNEL POLISH: Mark as resetting
           console.log('[App] SIGN_OUT detected - calling resetKernel() to purge Brain');
-          resetKernel(); // ✅ KERNEL-CENTRIC: Clear Kernel state before next user logs in
+          
+          // ✅ KERNEL POLISH: Use timeout to ensure resetKernel is only called once
+          resetTimeoutId = setTimeout(() => {
+            resetKernel(); // ✅ KERNEL-CENTRIC: Clear Kernel state before next user logs in
+            isResettingRef.current = false; // ✅ KERNEL POLISH: Clear reset flag after completion
+            resetTimeoutId = null;
+          }, 100); // Small delay to batch multiple SIGN_OUT events
         }
       }
     );
     
     return () => {
+      if (resetTimeoutId) {
+        clearTimeout(resetTimeoutId);
+      }
+      isResettingRef.current = false; // ✅ KERNEL POLISH: Clear flag on cleanup
       subscription.unsubscribe();
     };
   }, [resetKernel]);

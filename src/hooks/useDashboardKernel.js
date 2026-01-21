@@ -210,12 +210,13 @@ export function useDashboardKernel() {
     };
   }, [result.isPreWarming]);
 
-  // ✅ SAFETY FALLBACK: If after 5 seconds we are still not ready, log warning
+  // ✅ SAFETY FALLBACK: If after 10 seconds we are still not ready, log warning
+  // ✅ VIBRANIUM STABILIZATION: Increased from 5s to 10s to allow for slow database responses during initial boot
   // This helps debug spinner deadlocks without forcing readiness (which could hide real errors)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!result.isSystemReady && !result.isPreWarming) {
-        console.warn('[useDashboardKernel] Timeout: System still not ready after 5s', {
+        console.warn('[useDashboardKernel] Timeout: System still not ready after 10s', {
           authReady,
           authLoading,
           capabilitiesReady: capabilities.ready,
@@ -225,7 +226,7 @@ export function useDashboardKernel() {
           isPreWarming: result.isPreWarming
         });
       }
-    }, 5000);
+    }, 10000); // ✅ VIBRANIUM STABILIZATION: Increased from 5s to 10s
     return () => clearTimeout(timer);
   }, [result.isSystemReady, result.isPreWarming, authReady, authLoading, capabilities.ready, user, profile]);
 

@@ -135,7 +135,10 @@ export default function AdminSupplierManagement() {
       }
 
       // Check if user exists with this email
-      const { data: existingUser } = await supabase
+      // ✅ FIX: Use local variable instead of reassigning const userId
+      let targetUserId = null;
+      
+      const { data: existingUser, error: userError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', formData.email)
@@ -147,11 +150,11 @@ export default function AdminSupplierManagement() {
           console.error('[SupplierManagement] Error checking existing user:', userError);
         }
       } else {
-        userId = existingUser?.id;
+        targetUserId = existingUser?.id;
       }
 
       // If user doesn't exist, create a profile entry
-      if (!userId) {
+      if (!targetUserId) {
         const { data: newProfile, error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -163,14 +166,14 @@ export default function AdminSupplierManagement() {
           .single();
 
         if (profileError) throw profileError;
-        userId = newProfile.id;
+        targetUserId = newProfile.id;
       }
 
       // Create company
       const { data: newCompany, error: companyError } = await supabase
         .from('companies')
         .insert({
-          user_id: userId,
+          user_id: targetUserId,
           company_name: formData.company_name,
           email: formData.email,
           phone: formData.phone || null,
