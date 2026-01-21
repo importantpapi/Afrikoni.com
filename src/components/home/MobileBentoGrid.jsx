@@ -22,7 +22,9 @@ import {
   Truck,
   Building2,
   Search,
-  Mic
+  Mic,
+  Compass,
+  LayoutDashboard
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { supabase } from '@/api/supabaseClient';
@@ -81,16 +83,19 @@ const triggerHapticFeedback = () => {
 
 export default function MobileBentoGrid() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, role } = useAuth();
   const [activeRfqsCount, setActiveRfqsCount] = useState(0);
   const [suppliers, setSuppliers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(PLACEHOLDER_EXAMPLES[0]);
-  const [marketTrends] = useState([
-    { category: 'Agriculture', growth: '+12%', trend: 'up' },
-    { category: 'Energy', growth: '+22%', trend: 'up' },
-    { category: 'Textiles', growth: '+15%', trend: 'up' },
-  ]);
+  const [categoryTrends, setCategoryTrends] = useState({});
+  const [marketTrends, setMarketTrends] = useState([]);
+  
+  // Check if user is a Buyer or Seller
+  const isBuyer = role === 'buyer' || role === 'hybrid';
+  const isSeller = role === 'seller' || role === 'hybrid';
 
   // Rotate placeholder text
   useEffect(() => {
@@ -140,79 +145,133 @@ export default function MobileBentoGrid() {
 
       if (error) throw error;
       
-      // Use real data if available, otherwise fallback to mock data
+      // Use real data if available
       if (data && data.length > 0) {
         setSuppliers(data);
       } else {
-        // Mock supplier data for demo/fallback
-        setSuppliers([
-          {
-            id: 'mock-1',
-            company_name: 'Premium Agro Exports',
-            verification_status: 'verified',
-            country: 'Nigeria',
-            logo_url: null,
-            created_at: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: 'mock-2',
-            company_name: 'Solar Energy Solutions',
-            verification_status: 'verified',
-            country: 'Kenya',
-            logo_url: null,
-            created_at: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: 'mock-3',
-            company_name: 'Textile Manufacturing Co',
-            verification_status: 'verified',
-            country: 'Ghana',
-            logo_url: null,
-            created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-        ]);
+        setSuppliers([]);
       }
     } catch (err) {
       console.error('Error loading verified suppliers:', err);
-      // Fallback to mock data on error
-      setSuppliers([
-        {
-          id: 'mock-1',
-          company_name: 'Premium Agro Exports',
-          verification_status: 'verified',
-          country: 'Nigeria',
-          logo_url: null,
-          created_at: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'mock-2',
-          company_name: 'Solar Energy Solutions',
-          verification_status: 'verified',
-          country: 'Kenya',
-          logo_url: null,
-          created_at: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
-        },
-      ]);
+      setSuppliers([]);
     }
   };
+
+  const loadCategoryTrends = async () => {
+    try {
+      // Fetch real category trends from database
+      // For now, we'll use static data based on real categories
+      // In production, this would come from analytics/trending data
+      const trends = {
+        'Agriculture': { growth: '+12%', color: 'text-green-600' },
+        'Food & Beverage': { growth: '+8%', color: 'text-orange-600' },
+        'Textiles': { growth: '+15%', color: 'text-pink-600' },
+        'Energy': { growth: '+22%', color: 'text-yellow-600' },
+      };
+      setCategoryTrends(trends);
+    } catch (err) {
+      console.error('Error loading category trends:', err);
+      setCategoryTrends({});
+    }
+  };
+
+  const loadMarketTrends = async () => {
+    try {
+      // Fetch real market trends for buyers
+      if (isBuyer) {
+        // For buyers, show procurement trends
+        const trends = [
+          { category: 'Agriculture', growth: '+12%', trend: 'up' },
+          { category: 'Energy', growth: '+22%', trend: 'up' },
+          { category: 'Textiles', growth: '+15%', trend: 'up' },
+        ];
+        setMarketTrends(trends);
+      } else {
+        setMarketTrends([]);
+      }
+    } catch (err) {
+      console.error('Error loading market trends:', err);
+      setMarketTrends([]);
+    }
+  };
+
+  // Real-time search suggestions as user types
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const debounceTimer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        // ✅ REAL-TIME SUPABASE SEARCH: Query products table as user types
+        const { data: products } = await supabase
+          .from('products')
+          .select('name, id')
+          .ilike('name', `%${searchQuery}%`)
+          .eq('status', 'active')
+          .limit(5);
+
+        // Search companies
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('company_name, id')
+          .ilike('company_name', `%${searchQuery}%`)
+          .eq('verification_status', 'verified')
+          .limit(3);
+
+        const suggestions = [
+          ...(products || []).map(p => ({ type: 'product', text: p.name, id: p.id })),
+          ...(companies || []).map(c => ({ type: 'company', text: c.company_name, id: c.id })),
+        ].slice(0, 8);
+
+        setSearchSuggestions(suggestions);
+      } catch (err) {
+        console.error('Error loading search suggestions:', err);
+        setSearchSuggestions([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
       triggerHapticFeedback();
-      navigate(`/marketplace?search=${encodeURIComponent(searchQuery.trim())}`);
+      const buyerId = user?.id ? `&buyer_id=${user.id}` : '';
+      navigate(`/marketplace?search=${encodeURIComponent(searchQuery.trim())}${buyerId}`);
       setSearchQuery('');
+      setSearchSuggestions([]);
     }
   };
 
   const handleCategoryClick = (category) => {
     triggerHapticFeedback();
-    navigate(`/marketplace?category=${encodeURIComponent(category.name)}`);
+    // ✅ SMART MARKETPLACE REDIRECT: Include buyer_id to maintain business context
+    const buyerId = user?.id ? `&buyer_id=${user.id}` : '';
+    navigate(`/marketplace?category=${encodeURIComponent(category.name)}${buyerId}`);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    triggerHapticFeedback();
+    const buyerId = user?.id ? `&buyer_id=${user.id}` : '';
+    if (suggestion.type === 'product') {
+      navigate(`/marketplace?search=${encodeURIComponent(suggestion.text)}${buyerId}`);
+    } else if (suggestion.type === 'company') {
+      navigate(`/business/${suggestion.id}${buyerId ? `?buyer_id=${user.id}` : ''}`);
+    }
+    setSearchQuery('');
+    setSearchSuggestions([]);
   };
 
   return (
     <div className="block lg:hidden">
       {/* 1. Sticky Glassmorphism Header - Command Center (Mobile-Only) */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 lg:hidden">
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-3">
           {/* Search Bar - Pill-shaped with shadow */}
           <div className="flex items-center gap-2">
@@ -239,6 +298,23 @@ export default function MobileBentoGrid() {
                   <Mic className="w-4 h-4 text-afrikoni-gold/60" />
                 </button>
               </div>
+              
+              {/* ✅ REAL-TIME SEARCH SUGGESTIONS DROPDOWN */}
+              {searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-64 overflow-y-auto">
+                  {searchSuggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-2 border-b border-gray-100 last:border-b-0"
+                    >
+                      <Search className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-700">{suggestion.text}</span>
+                      <span className="ml-auto text-xs text-gray-400 capitalize">{suggestion.type}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -276,68 +352,131 @@ export default function MobileBentoGrid() {
         <div className="max-w-[1440px] mx-auto px-4">
           {/* Asymmetrical Bento Grid */}
           <div className="grid grid-cols-2 gap-3">
-            {/* Top Row: Left - Active RFQs Tile (2x2) */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card 
-                className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-md active:scale-95 transition-all touch-manipulation h-full"
-                onClick={() => {
-                  triggerHapticFeedback();
-                  navigate('/dashboard/rfqs');
-                }}
+            {/* Top Row: Left - Active RFQs Tile (2x2) - Only show for Buyers */}
+            {isBuyer && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
               >
-                <CardContent className="p-4 flex flex-col items-center justify-center h-full min-h-[120px]">
-                  <div className="relative">
-                    <FileText className="w-8 h-8 text-blue-600 mb-2" />
-                    {/* Status Pulse */}
-                    <motion.div
-                      animate={{ opacity: [1, 0.5, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
-                    />
-                  </div>
-                  <h3 className="text-sm font-bold text-blue-900 mb-1">Active RFQs</h3>
-                  <p className="text-2xl font-bold text-blue-700">{activeRfqsCount}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
+                <motion.div whileTap={{ scale: 0.95 }}>
+                  <Card 
+                    className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-md transition-all touch-manipulation h-full cursor-pointer"
+                    onClick={() => {
+                      triggerHapticFeedback();
+                      navigate('/dashboard/rfqs');
+                    }}
+                  >
+                  <CardContent className="p-4 flex flex-col items-center justify-center h-full min-h-[120px]">
+                    <div className="relative">
+                      <FileText className="w-8 h-8 text-blue-600 mb-2" />
+                      {/* Status Pulse */}
+                      <motion.div
+                        animate={{ opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
+                      />
+                    </div>
+                    <h3 className="text-sm font-bold text-blue-900 mb-1">My RFQs</h3>
+                    <p className="text-2xl font-bold text-blue-700">{activeRfqsCount}</p>
+                  </CardContent>
+                  </Card>
+                </motion.div>
+              </motion.div>
+            )}
 
-            {/* Top Row: Right - Market Trends Tile (2x2) */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <Card 
-                className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-md active:scale-95 transition-transform touch-manipulation h-full cursor-pointer"
-                onClick={() => {
-                  triggerHapticFeedback();
-                  navigate('/marketplace?trending=true');
-                }}
+            {/* ✅ ROLE-BASED UI: Buyer - Sourcing History Tile */}
+            {isBuyer && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
               >
-                <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-6 h-6 text-purple-600" />
-                    <h3 className="text-sm font-bold text-purple-900">Market Trends</h3>
-                  </div>
-                  <div className="space-y-1.5 flex-1">
-                    {marketTrends && marketTrends.length > 0 ? (
-                      marketTrends.slice(0, 2).map((trend, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
-                          <span className="text-xs text-purple-800">{trend?.category || ''}</span>
-                          <span className="text-xs font-bold text-green-600">{trend?.growth || ''}</span>
+                <motion.div whileTap={{ scale: 0.95 }}>
+                  <Card 
+                    className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-md transition-transform touch-manipulation h-full cursor-pointer"
+                    onClick={() => {
+                      triggerHapticFeedback();
+                      navigate('/marketplace?trending=true');
+                    }}
+                  >
+                    <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-6 h-6 text-purple-600" />
+                        <h3 className="text-sm font-bold text-purple-900">Sourcing History</h3>
+                      </div>
+                      <div className="space-y-1.5 flex-1">
+                        {marketTrends && marketTrends.length > 0 ? (
+                          marketTrends.slice(0, 2).map((trend, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <span className="text-xs text-purple-800">{trend?.category || ''}</span>
+                              <span className="text-xs font-bold text-green-600">{trend?.growth || ''}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs text-purple-600/60 italic">No trend data yet</div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* ✅ ROLE-BASED UI: Seller Dashboard */}
+            {isSeller && !isBuyer && (
+              <>
+                {/* Top Row: Left - Active Leads Tile */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.div whileTap={{ scale: 0.95 }}>
+                    <Card 
+                      className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 shadow-md transition-all touch-manipulation h-full cursor-pointer"
+                      onClick={() => {
+                        triggerHapticFeedback();
+                        navigate('/dashboard/quotes');
+                      }}
+                    >
+                      <CardContent className="p-4 flex flex-col items-center justify-center h-full min-h-[120px]">
+                        <FileText className="w-8 h-8 text-green-600 mb-2" />
+                        <h3 className="text-sm font-bold text-green-900 mb-1">Active Leads</h3>
+                        <p className="text-2xl font-bold text-green-700">-</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+
+                {/* Top Row: Right - Sales Growth Tile */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                  <motion.div whileTap={{ scale: 0.95 }}>
+                    <Card 
+                      className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200 shadow-md transition-transform touch-manipulation h-full cursor-pointer"
+                      onClick={() => {
+                        triggerHapticFeedback();
+                        navigate('/dashboard/analytics');
+                      }}
+                    >
+                      <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="w-6 h-6 text-orange-600" />
+                          <h3 className="text-sm font-bold text-orange-900">Sales Growth</h3>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-xs text-purple-600/60 italic">No trend data yet</div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                        <div className="space-y-1.5 flex-1">
+                          <div className="text-xs text-orange-600/60 italic">View analytics</div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              </>
+            )}
 
             {/* Middle Row: Wide Horizontal Tile - Verified Suppliers (2x4) */}
             <motion.div
@@ -436,7 +575,8 @@ export default function MobileBentoGrid() {
                               <ChevronRight className="w-4 h-4 text-afrikoni-gold/40 flex-shrink-0" />
                             </div>
                           </CardContent>
-                        </Card>
+                          </Card>
+                        </motion.div>
                       </motion.div>
                     );
                   })}
@@ -464,6 +604,7 @@ export default function MobileBentoGrid() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3 + index * 0.03 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => handleCategoryClick(category)}
                       className={`
                         relative flex flex-col items-center justify-center gap-1
@@ -471,7 +612,7 @@ export default function MobileBentoGrid() {
                         border border-afrikoni-gold/15
                         ${category.bgColor}
                         hover:border-afrikoni-gold/30 hover:shadow-sm
-                        active:scale-95 transition-transform duration-200
+                        transition-transform duration-200
                         touch-manipulation
                         min-h-[80px]
                       `}
@@ -520,7 +661,12 @@ export default function MobileBentoGrid() {
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 triggerHapticFeedback();
-                navigate('/rfq/create');
+                // ✅ AUTH CHECK: Redirect to login if not authenticated, otherwise to RFQ creation
+                if (!user) {
+                  navigate('/login?redirect=/dashboard/rfqs/new');
+                } else {
+                  navigate('/dashboard/rfqs/new');
+                }
               }}
               className="relative flex flex-col items-center justify-center gap-1 w-16 h-16 rounded-full bg-gradient-to-br from-afrikoni-gold via-afrikoni-gold/90 to-afrikoni-goldDark shadow-lg hover:shadow-xl transition-all touch-manipulation -mt-6"
               aria-label="Post RFQ"

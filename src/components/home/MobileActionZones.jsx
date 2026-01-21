@@ -44,14 +44,19 @@ export default function MobileActionZones() {
 
   const handlePostRFQClick = () => {
     triggerHapticFeedback();
-    navigate('/rfq/create');
+    // ✅ AUTH CHECK: Redirect to login if not authenticated, otherwise to RFQ creation
+    if (!user) {
+      navigate('/login?redirect=/dashboard/rfqs/new');
+    } else {
+      navigate('/dashboard/rfqs/new');
+    }
   };
 
   return (
-    <section className="md:hidden py-6 bg-afrikoni-offwhite">
+    <section className="block lg:hidden py-6 bg-afrikoni-offwhite">
       <div className="max-w-[1440px] mx-auto px-4">
         {/* Side-by-side Bento Blocks */}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {/* Adaptive Content: Progress Tracker for New Users, Market Insights for Established */}
           {isNewUser && onboardingStep ? (
             <motion.div
@@ -115,22 +120,24 @@ export default function MobileActionZones() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.1 }}
+            className="col-span-2"
           >
             <div onClick={handlePostRFQClick} className="cursor-pointer">
-              <Card className="border-2 border-afrikoni-gold bg-gradient-to-br from-afrikoni-gold via-afrikoni-gold/90 to-afrikoni-goldDark shadow-lg hover:shadow-xl transition-all active:scale-[0.98] h-full touch-manipulation">
-                <CardContent className="p-3">
-                  <div className="flex flex-col items-center gap-2 text-center">
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-                      <FileText className="w-5 h-5 text-white" />
+              <Card className="border-2 border-afrikoni-gold bg-gradient-to-br from-afrikoni-gold via-afrikoni-gold/90 to-afrikoni-goldDark shadow-xl hover:shadow-2xl transition-all active:scale-[0.98] touch-manipulation">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+                      <FileText className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold text-white mb-1">
-                        Post RFQ
+                    <div className="flex-1 min-w-0 text-left">
+                      <h3 className="text-base font-bold text-white mb-1">
+                        Post RFQ → Get Quotes
                       </h3>
-                      <p className="text-[10px] text-white/90 line-clamp-2">
-                        Get quotes now
+                      <p className="text-xs text-white/90">
+                        Connect with verified suppliers instantly
                       </p>
                     </div>
+                    <ArrowRight className="w-5 h-5 text-white flex-shrink-0" />
                   </div>
                 </CardContent>
               </Card>
