@@ -135,23 +135,25 @@ export default function AdminSupplierManagement() {
       }
 
       // Check if user exists with this email
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: userError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', formData.email)
         .single();
-      
+
+      let newUserId = null;
+
       if (userError) {
         // Handle PGRST116 (not found) - user doesn't exist yet, this is OK
         if (userError.code !== 'PGRST116') {
           console.error('[SupplierManagement] Error checking existing user:', userError);
         }
       } else {
-        userId = existingUser?.id;
+        newUserId = existingUser?.id;
       }
 
       // If user doesn't exist, create a profile entry
-      if (!userId) {
+      if (!newUserId) {
         const { data: newProfile, error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -163,14 +165,14 @@ export default function AdminSupplierManagement() {
           .single();
 
         if (profileError) throw profileError;
-        userId = newProfile.id;
+        newUserId = newProfile.id;
       }
 
       // Create company
       const { data: newCompany, error: companyError } = await supabase
         .from('companies')
         .insert({
-          user_id: userId,
+          user_id: newUserId,
           company_name: formData.company_name,
           email: formData.email,
           phone: formData.phone || null,
