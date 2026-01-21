@@ -78,23 +78,23 @@ export default function StickySearchBar() {
       className={`
         md:hidden w-full transition-all duration-300 z-50
         ${isSticky 
-          ? 'fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-md border-b border-afrikoni-gold/20 py-2 px-4' 
-          : 'relative'
+          ? 'fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md shadow-lg border-b border-afrikoni-gold/30 py-3 px-4' 
+          : 'relative bg-white/80 backdrop-blur-md border-b border-afrikoni-gold/20 py-3 px-4'
         }
       `}
     >
       <div className="max-w-[1440px] mx-auto">
         <div ref={searchContainerRef} className="relative">
-          {/* Search Bar */}
+          {/* Search Bar - Enhanced with clear white input box */}
           <div
             className={`
               flex items-center gap-2
-              bg-white rounded-full
-              shadow-sm border border-afrikoni-gold/15
+              bg-white rounded-xl
+              shadow-md border-2 border-afrikoni-gold/20
               px-3 md:px-4 py-2.5 md:py-3
               transition-all duration-200
-              focus-within:shadow-md focus-within:border-afrikoni-gold/30
-              ${searchFocused ? 'shadow-md border-afrikoni-gold/30' : ''}
+              focus-within:shadow-lg focus-within:border-afrikoni-gold/40
+              ${searchFocused ? 'shadow-lg border-afrikoni-gold/40' : ''}
             `}
           >
             <Search className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold/60 flex-shrink-0" />

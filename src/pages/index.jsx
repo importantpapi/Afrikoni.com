@@ -9,8 +9,12 @@ import LiveTradeTicker from '@/components/community/LiveTradeTicker';
 import BetaSection from '@/components/home/BetaSection';
 import StickySearchBar from '@/components/home/StickySearchBar';
 import CategoryChips from '@/components/home/CategoryChips';
+import MobileCategoryGrid from '@/components/home/MobileCategoryGrid';
 import CountryQuickFilters from '@/components/home/CountryQuickFilters';
+import MobileCountryFilters from '@/components/home/MobileCountryFilters';
 import VerifiedSuppliersSection from '@/components/home/VerifiedSuppliersSection';
+import MobileSupplierCards from '@/components/home/MobileSupplierCards';
+import MobileActionZones from '@/components/home/MobileActionZones';
 import TrendingProductsSection from '@/components/home/TrendingProductsSection';
 import MobileProductGrid from '@/components/home/MobileProductGrid';
 import { motion } from 'framer-motion';
@@ -119,24 +123,26 @@ export default function Home() {
         {/* Live Trade Ticker */}
         <LiveTradeTicker />
         
-        {/* Sticky Search Bar - Phase 1.1 */}
+        {/* ============================================================ */}
+        {/* ✅ MOBILE BENTO ARCHITECTURE - Mobile Only */}
+        {/* ============================================================ */}
+        
+        {/* 1. Command Center: Sticky Header with Glassmorphism */}
         <StickySearchBar />
         
-        {/* Category Chips - Phase 1.2 - Mobile Only */}
-        <section className="md:hidden py-3 bg-afrikoni-offwhite">
-          <div className="max-w-[1440px] mx-auto px-4">
-            <CategoryChips />
-          </div>
-        </section>
+        {/* 2. Category Hub: 2x4 Dense Grid - Mobile Only */}
+        <MobileCategoryGrid />
         
-        {/* Country Quick Filters - Phase 1.3 - Mobile Only */}
-        <section className="md:hidden py-2 bg-afrikoni-offwhite border-b border-afrikoni-gold/10">
-          <div className="max-w-[1440px] mx-auto px-4">
-            <CountryQuickFilters />
-          </div>
-        </section>
+        {/* Country Filters - Mobile Only: Top 5 Trending + Search */}
+        <MobileCountryFilters />
         
-        {/* Mobile Product Grids - Infinite Discovery Flow (Phase 4) - Mobile Only */}
+        {/* 3. Trust Hierarchy: Horizontal Supplier Cards - Mobile Only */}
+        <MobileSupplierCards />
+        
+        {/* 4. Action Zones: How It Works & Post RFQ Bento Blocks - Mobile Only */}
+        <MobileActionZones />
+        
+        {/* Mobile Product Grids - Infinite Discovery Flow - Mobile Only */}
         <section className="md:hidden">
           {/* Primary: Country-Specific Products */}
           {detectedCountry && (
@@ -166,13 +172,26 @@ export default function Home() {
           />
         </section>
         
+        {/* ============================================================ */}
+        {/* ✅ DESKTOP LAYOUT - Desktop Only (unchanged) */}
+        {/* ============================================================ */}
+        
+        {/* Category Chips - Desktop Only (keep original for desktop) */}
+        <section className="hidden md:block py-3 bg-afrikoni-offwhite">
+          <div className="max-w-[1440px] mx-auto px-4">
+            <CategoryChips />
+          </div>
+        </section>
+        
         {/* Hero Section - Desktop Only (Mobile uses StickySearchBar + MobileProductGrid) */}
         <section className="hidden md:block relative overflow-visible">
           <HeroSection categories={categories} />
         </section>
 
-        {/* Verified Suppliers Section - Phase 2.1 */}
-        <VerifiedSuppliersSection />
+        {/* Verified Suppliers Section - Desktop Only (Mobile uses MobileSupplierCards) */}
+        <div className="hidden md:block">
+          <VerifiedSuppliersSection />
+        </div>
 
         {/* Trending Products Section - Phase 2.2 */}
         <TrendingProductsSection />
