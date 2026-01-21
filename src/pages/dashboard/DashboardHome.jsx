@@ -25,7 +25,6 @@ import { useTranslation } from 'react-i18next';
 // REMOVED: Realtime is now owned by WorkspaceDashboard via DashboardRealtimeManager
 // import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { useCapability } from '@/context/CapabilityContext';
 
 // ============================================================================
 // CONSTANTS & HELPERS (Section 2)
@@ -90,14 +89,15 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // ==========================================================================
   
   const { t } = useTranslation();
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+  // ✅ KERNEL MANIFESTO: Rule 1 - Use Kernel exclusively
   const { profileCompanyId, userId, canLoadData, capabilities: kernelCapabilities, isSystemReady } = useDashboardKernel();
-  // ✅ KERNEL-CENTRIC: Import useCapability to check ready state
-  const { ready } = useCapability();
+  // ✅ KERNEL MANIFESTO: Rule 1 - Use capabilities.ready from Kernel (not useCapability())
+  const ready = kernelCapabilities?.ready || false;
   const navigate = useNavigate();
   
   // State hooks
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [kpis, setKpis] = useState([]);
   const [salesChartData, setSalesChartData] = useState([]);
@@ -112,6 +112,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // Refs for idempotency guards
   const hasLoadedRef = useRef(false);
   const loadingCompanyIdRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO FIX: AbortController for query cancellation
   
   // ==========================================================================
   // SECTION 3.2: MEMOIZED DERIVED STATE
@@ -865,22 +866,29 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     let isMounted = true;
     let timeoutId = null;
 
-    // Safety timeout: Force loading to false after 15 seconds
+    // ✅ KERNEL MANIFESTO FIX: Create AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO FIX: Timeout with query cancellation and error state
     timeoutId = setTimeout(() => {
-      if (isMounted) {
-        console.warn('[DashboardHome] Loading timeout - forcing loading to false');
+      if (isMounted && !abortSignal.aborted) {
+        console.warn('[DashboardHome] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort(); // ✅ Cancel all pending queries
         setIsLoading(false);
+        setError('Data loading timed out. Please try again.'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       }
     }, 15000);
 
     const load = async () => {
-      // ✅ KERNEL-CENTRIC: The Finally Law - wrap in try/catch/finally
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - wrap in try/catch/finally
       try {
         console.log('[DashboardHome] Starting data load for companyId:', companyId);
         setIsLoading(true);
+        setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
         loadingCompanyIdRef.current = companyId;
 
-        if (!isMounted) {
+        if (!isMounted || abortSignal.aborted) {
           clearTimeout(timeoutId);
           setIsLoading(false);
           return;
@@ -898,31 +906,54 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           can_sell: canSell,
         };
 
-        // Load all data in parallel
+        // ✅ KERNEL MANIFESTO FIX: Check if aborted before and after queries
+        const checkAborted = () => {
+          if (abortSignal.aborted) {
+            throw new Error('Query aborted');
+          }
+        };
+
+        // Load all data in parallel with abort checks
         const results = await Promise.allSettled([
-          loadKPIs(caps, companyId),
-          loadChartData(caps, companyId),
-          loadRecentOrders(companyId),
-          loadRecentRFQs(companyId),
-          loadRecentMessages(companyId),
-          loadApprovalSummary(companyId, canSell),
-          loadActivityMetrics(userId, companyId)
+          loadKPIs(caps, companyId).then(() => checkAborted()),
+          loadChartData(caps, companyId).then(() => checkAborted()),
+          loadRecentOrders(companyId).then(() => checkAborted()),
+          loadRecentRFQs(companyId).then(() => checkAborted()),
+          loadRecentMessages(companyId).then(() => checkAborted()),
+          loadApprovalSummary(companyId, canSell).then(() => checkAborted()),
+          loadActivityMetrics(userId, companyId).then(() => checkAborted())
         ]);
+        
+        // ✅ KERNEL MANIFESTO FIX: Check if aborted before updating state
+        if (abortSignal.aborted) {
+          return; // Don't update state if aborted
+        }
         
         const failedCount = results.filter(r => r.status === 'rejected').length;
         if (failedCount > 0 && isMounted) {
           console.warn('[Dashboard] Some data loads failed:', failedCount);
+          // ✅ KERNEL MANIFESTO: Rule 4 - Set error if critical failures
+          if (failedCount === results.length) {
+            setError('Failed to load dashboard data. Please try again.');
+          }
         }
 
-        if (isMounted) {
+        if (isMounted && !abortSignal.aborted) {
           hasLoadedRef.current = true;
           console.log('[DashboardHome] Data load complete');
         }
       } catch (error) {
+        // ✅ KERNEL MANIFESTO FIX: Handle abort errors properly
+        if (error.message === 'Query aborted') {
+          return; // Ignore abort errors
+        }
         console.error('[DashboardHome] Load error:', error);
+        if (isMounted && !abortSignal.aborted) {
+          setError('Failed to load dashboard data. Please try again.'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
+        }
       } finally {
-        // ✅ KERNEL-CENTRIC: The Finally Law - setLoading(false) MUST be in finally block
-        if (isMounted) {
+        // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - setLoading(false) MUST be in finally block
+        if (isMounted && !abortSignal.aborted) {
           setIsLoading(false);
           clearTimeout(timeoutId);
         }
@@ -941,10 +972,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     // =======================================================================
     // ✅ KERNEL MIGRATION: Use canLoadData instead of authReady/capabilitiesReady
     // ✅ SCHEMA ALIGNMENT: Use profileCompanyId from Kernel (not local companyId)
-    // ✅ FIX DASHBOARD SYNC: Include ready from useCapability
+    // ✅ KERNEL MANIFESTO: Use capabilities.ready from Kernel (not useCapability())
     canLoadData,
     profileCompanyId, // ✅ SCHEMA ALIGNMENT: Use Kernel's profileCompanyId
-    ready, // ✅ FIX DASHBOARD SYNC: Wait for capabilities.ready
+    ready, // ✅ KERNEL MANIFESTO: Wait for capabilities.ready from Kernel
     canBuy,
     canSell,
     // ✅ String primitives - only change on actual user/company switch
@@ -1085,7 +1116,22 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   // ✅ FIX #11: No executable logic inside JSX - only variables and components
   // ==========================================================================
 
-  // Loading state (single, non-duplicated)
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state
+  if (error) {
+    return (
+      <ErrorState 
+        message={error}
+        onRetry={() => {
+          setError(null);
+          hasLoadedRef.current = false; // ✅ Allow retry
+          loadingCompanyIdRef.current = null;
+          // useEffect will retry automatically when canLoadData is true
+        }}
+      />
+    );
+  }
+
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state (single, non-duplicated)
   if (isLoading) {
     return (
       <div className="space-y-6 pb-8">

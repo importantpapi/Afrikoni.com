@@ -37,6 +37,7 @@ function SupplierRFQsInner() {
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -47,8 +48,9 @@ function SupplierRFQsInner() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
+  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
         navigate('/login');
@@ -58,12 +60,26 @@ function SupplierRFQsInner() {
     }
 
     // ✅ FOUNDATION FIX: Check capabilities instead of role
-    const isSellerApproved = capabilities.can_sell === true && capabilities.sell_status === 'approved';
+    const isSellerApproved = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
     if (!isSellerApproved) {
       toast.error('Supplier access required');
       navigate('/dashboard');
       return;
     }
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[SupplierRFQs] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
@@ -72,16 +88,34 @@ function SupplierRFQsInner() {
     
     if (shouldRefresh) {
       console.log('[SupplierRFQs] Data is stale or first load - refreshing');
-      loadRFQs();
+      loadRFQs(abortSignal).catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('[SupplierRFQs] Load error:', err);
+        }
+      });
     } else {
       console.log('[SupplierRFQs] Data is fresh - skipping reload');
     }
-  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
-  const loadRFQs = async () => {
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate, capabilities]);
+
+  const loadRFQs = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     try {
       setIsLoading(true);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
 
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
+
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       // Load RFQs that are matched AND supplier is in shortlist
       // Note: Buyer identity is NOT shown - only RFQ details
       const { data: rfqsData, error: rfqsError } = await supabase
@@ -93,13 +127,17 @@ function SupplierRFQsInner() {
         .eq('status', 'matched')
         .order('created_at', { ascending: false });
 
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+      if (abortSignal?.aborted) return;
+
       // ✅ GLOBAL HARDENING: Enhanced error logging
       if (rfqsError) {
         logError('loadRFQs', rfqsError, {
           table: 'rfqs',
-          companyId: userCompanyId,
+          companyId: profileCompanyId, // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
           userId: userId
         });
+        setError('Failed to load RFQs. Please try again.'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
         toast.error('Failed to load RFQs');
         return; // Don't mark fresh on error
       }
@@ -109,7 +147,7 @@ function SupplierRFQsInner() {
         if (!rfq.matched_supplier_ids || !Array.isArray(rfq.matched_supplier_ids)) {
           return false;
         }
-        return rfq.matched_supplier_ids.includes(userCompanyId);
+        return rfq.matched_supplier_ids.includes(profileCompanyId); // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
       });
       
       setRfqs(matchedRFQs);
@@ -118,14 +156,20 @@ function SupplierRFQsInner() {
       lastLoadTimeRef.current = Date.now();
       markFresh();
     } catch (error) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
+      if (error.name === 'AbortError' || abortSignal?.aborted) return;
       logError('loadRFQs', error, {
         table: 'rfqs',
-        companyId: userCompanyId,
+        companyId: profileCompanyId, // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
         userId: userId
       });
+      setError('Failed to load RFQs. Please try again.'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load RFQs');
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
+      if (!abortSignal?.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -154,7 +198,7 @@ function SupplierRFQsInner() {
               variant="outline"
               onClick={() => {
                 refresh();
-                loadRFQs();
+                lastLoadTimeRef.current = null; // Trigger reload via useEffect
               }}
               className="flex items-center gap-2"
             >
@@ -228,13 +272,17 @@ function SupplierRFQsInner() {
 
         {/* RFQ List */}
         <div className="grid gap-4">
-          {isLoading ? (
-            <CardSkeleton count={3} />
-          ) : error ? (
+          {/* ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked FIRST */}
+          {error ? (
             <ErrorState 
               message={error} 
-              onRetry={loadRFQs}
+              onRetry={() => {
+                setError(null);
+                // useEffect will retry automatically when canLoadData is true
+              }}
             />
+          ) : isLoading ? (
+            <CardSkeleton count={3} />
           ) : filteredRFQs.length === 0 ? (
             <EmptyState
               icon={FileText}

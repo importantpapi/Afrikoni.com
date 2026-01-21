@@ -22,17 +22,19 @@ import RealTimeTracking from '@/components/logistics/RealTimeTracking';
 import CustomsClearance from '@/components/logistics/CustomsClearance';
 
 export default function ShipmentDetail() {
-  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
-  const { user, profile, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
+  // ✅ KERNEL MANIFESTO: Rule 1 - Use Kernel exclusively
+  const { profileCompanyId, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
   const [shipment, setShipment] = useState(null);
   const [order, setOrder] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
   const [isUpdating, setIsUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
   // Derive role from capabilities for display purposes
-  const isLogisticsApproved = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
+  const isLogisticsApproved = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
   const currentRole = isLogisticsApproved ? 'logistics' : 'buyer';
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
@@ -51,25 +53,53 @@ export default function ShipmentDetail() {
   }
 
   useEffect(() => {
-    // ✅ KERNEL MIGRATION: Use canLoadData guard
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       return;
     }
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[ShipmentDetail] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
 
     // Now safe to load data
-    loadShipmentData();
-  }, [id, canLoadData, userId, profileCompanyId, navigate]);
+    loadShipmentData(abortSignal).catch(err => {
+      if (err.name !== 'AbortError') {
+        console.error('[ShipmentDetail] Load error:', err);
+      }
+    });
 
-  const loadShipmentData = async () => {
-    if (!canLoadData) {
-      return;
-    }
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
+  }, [id, canLoadData, userId, profileCompanyId, navigate, capabilities]);
+
+  const loadShipmentData = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     
     try {
       setIsLoading(true);
-      setError(null);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
       
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for data scoping (RLS will enforce)
       // Load shipment with order and related data
       const { data: shipmentData, error: shipmentError } = await supabase
         .from('shipments')
@@ -86,6 +116,9 @@ export default function ShipmentDetail() {
         .eq('id', id)
         .single();
 
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+      if (abortSignal?.aborted) return;
+
       if (shipmentError) throw shipmentError;
       if (!shipmentData) {
         toast.error('Shipment not found');
@@ -97,12 +130,17 @@ export default function ShipmentDetail() {
       setOrder(shipmentData.orders);
       setNewStatus(shipmentData.status);
     } catch (error) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
+      if (error.name === 'AbortError' || abortSignal?.aborted) return;
       console.error('Error loading shipment:', error);
-      setError(error?.message || 'Failed to load shipment details');
+      setError(error?.message || 'Failed to load shipment details'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load shipment details');
       navigate('/dashboard/shipments');
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
+      if (!abortSignal?.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -130,7 +168,8 @@ export default function ShipmentDetail() {
       }
 
       toast.success('Shipment status updated');
-      loadShipmentData();
+      // Trigger reload via useEffect dependency change
+      loadShipmentData(abortControllerRef.current?.signal).catch(() => {});
     } catch (error) {
       toast.error('Failed to update shipment status');
     } finally {
@@ -138,24 +177,25 @@ export default function ShipmentDetail() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
-  }
-  
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
       <ErrorState 
         message={error} 
         onRetry={() => {
           setError(null);
-          loadShipmentData();
+          // useEffect will retry automatically when canLoadData is true
         }}
       />
+    );
+  }
+
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 

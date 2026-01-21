@@ -15,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { useCapability } from '@/context/CapabilityContext';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
@@ -33,8 +32,8 @@ import RequireCapability from '@/guards/RequireCapability';
 function PaymentsDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  // ✅ KERNEL-CENTRIC: Import useCapability to check ready state
-  const { ready } = useCapability();
+  // ✅ KERNEL MANIFESTO: Use capabilities.ready from Kernel instead of useCapability()
+  const ready = capabilities?.ready || false;
   
   // Derive role from capabilities for API calls that need it
   const isBuyer = capabilities?.can_buy === true;

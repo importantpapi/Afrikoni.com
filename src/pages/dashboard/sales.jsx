@@ -33,6 +33,7 @@ function DashboardSalesInner() {
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
   
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -43,8 +44,9 @@ function DashboardSalesInner() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
+  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
         console.log('[DashboardSales] No user → redirecting to login');
@@ -53,6 +55,20 @@ function DashboardSalesInner() {
       return;
     }
 
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[DashboardSales] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
+
     // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
                          !lastLoadTimeRef.current || 
@@ -60,13 +76,26 @@ function DashboardSalesInner() {
     
     if (shouldRefresh) {
       console.log('[DashboardSales] Data is stale or first load - refreshing');
-      loadSales();
+      loadSales(abortSignal).catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('[DashboardSales] Load error:', err);
+        }
+      });
     } else {
       console.log('[DashboardSales] Data is fresh - skipping reload');
     }
+
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
   }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
-  const loadSales = async () => {
+  const loadSales = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId) {
       console.log('[DashboardSales] No company_id - cannot load sales');
       return;
@@ -74,14 +103,20 @@ function DashboardSalesInner() {
 
     try {
       setIsLoading(true);
-      setError(null);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
       
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       const { data: salesOrders, error: queryError } = await supabase
         .from('orders')
         .select('*, products(*)')
         .eq('seller_company_id', profileCompanyId)
         .order('created_at', { ascending: false });
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+      if (abortSignal?.aborted) return;
 
       if (queryError) throw queryError;
 
@@ -93,12 +128,17 @@ function DashboardSalesInner() {
         markFresh();
       }
     } catch (err) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
+      if (err.name === 'AbortError' || abortSignal?.aborted) return;
       console.error('[DashboardSales] Error loading sales:', err);
-      setError(err.message || 'Failed to load sales');
+      setError(err.message || 'Failed to load sales'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load sales');
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
+      if (!abortSignal?.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -137,19 +177,22 @@ function DashboardSalesInner() {
     .filter(o => o.payment_status === 'pending')
     .reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
       <ErrorState 
         message={error} 
-        onRetry={loadSales}
+        onRetry={() => {
+          setError(null);
+          // useEffect will retry automatically when canLoadData is true
+        }}
       />
     );
+  }
+
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
   return (

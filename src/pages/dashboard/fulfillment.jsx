@@ -44,6 +44,7 @@ function FulfillmentDashboardInner() {
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
 
   // Derive logistics capability from kernel
   const canLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
@@ -57,8 +58,9 @@ function FulfillmentDashboardInner() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
+  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
         console.warn('[FulfillmentDashboard] No user found, redirecting to login');
@@ -67,6 +69,20 @@ function FulfillmentDashboardInner() {
       return;
     }
 
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[FulfillmentDashboard] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
+
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
                          !lastLoadTimeRef.current || 
@@ -74,13 +90,26 @@ function FulfillmentDashboardInner() {
     
     if (shouldRefresh) {
       console.log('[FulfillmentDashboard] Data is stale or first load - refreshing');
-      loadData();
+      loadData(abortSignal).catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('[FulfillmentDashboard] Load error:', err);
+        }
+      });
     } else {
       console.log('[FulfillmentDashboard] Data is fresh - skipping reload');
     }
-  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
-  const loadData = async () => {
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
+  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate, canLogistics]);
+
+  const loadData = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId && !canLogistics) {
       console.warn('[FulfillmentDashboard] No company ID found for non-logistics user');
       toast.info('Complete your company profile to access fulfillment features.');
@@ -90,10 +119,13 @@ function FulfillmentDashboardInner() {
 
     try {
       setIsLoading(true);
-      setError(null);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
       console.log('[FulfillmentDashboard] Starting loadData...');
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
       
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       // Load orders with fulfillment status
       // For logistics users, show orders they're handling logistics for
       // For sellers, show their own orders
@@ -112,6 +144,9 @@ function FulfillmentDashboardInner() {
           .from('shipments')
           .select('order_id')
           .eq('logistics_partner_id', profileCompanyId);
+
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+        if (abortSignal?.aborted) return;
 
         // ✅ GLOBAL HARDENING: Enhanced error logging
         if (shipmentsError) {
@@ -151,6 +186,9 @@ function FulfillmentDashboardInner() {
       const { data: orders, error: ordersError } = await ordersQuery
         .order('created_at', { ascending: false });
 
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+      if (abortSignal?.aborted) return;
+
       // ✅ GLOBAL HARDENING: Enhanced error logging
       if (ordersError) {
         logError('loadData-orders', ordersError, {
@@ -177,11 +215,18 @@ function FulfillmentDashboardInner() {
         console.log('[FulfillmentDashboard] No orders found or orders is not an array');
       }
 
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before more queries
+      if (abortSignal?.aborted) return;
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before more queries
+      if (abortSignal?.aborted) return;
+
       // Load warehouses (non-blocking, fail-safe) - only for sellers/hybrid with company
-      if (userCompanyId && !canLogistics) {
-        const warehousesList = await getWarehouseLocations(userCompanyId).catch((err) => {
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
+      if (profileCompanyId && !canLogistics) {
+        const warehousesList = await getWarehouseLocations(profileCompanyId).catch((err) => {
           logError('loadData-warehouses', err, {
-            companyId: userCompanyId,
+            companyId: profileCompanyId, // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
             userId: userId
           });
           return [];
@@ -192,13 +237,18 @@ function FulfillmentDashboardInner() {
         setWarehouses([]);
       }
 
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after all queries
+      if (abortSignal?.aborted) return;
+
       // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
       console.log('[FulfillmentDashboard] Data loaded successfully');
     } catch (error) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
+      if (error.name === 'AbortError' || abortSignal?.aborted) return;
       logError('loadData', error, {
-        companyId: userCompanyId,
+        companyId: profileCompanyId, // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
         userId: userId
       });
       toast.error('Failed to load fulfillment data. Please try again.');

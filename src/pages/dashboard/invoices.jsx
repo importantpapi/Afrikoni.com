@@ -39,6 +39,7 @@ export default function InvoicesDashboard() {
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
   
   // Derive role from capabilities for display purposes
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
@@ -53,8 +54,9 @@ export default function InvoicesDashboard() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
+  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
         console.log('[InvoicesDashboard] No user → redirecting to login');
@@ -63,6 +65,20 @@ export default function InvoicesDashboard() {
       return;
     }
 
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[InvoicesDashboard] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
+
     // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
                          !lastLoadTimeRef.current || 
@@ -70,13 +86,26 @@ export default function InvoicesDashboard() {
     
     if (shouldRefresh) {
       console.log('[InvoicesDashboard] Data is stale or first load - refreshing');
-      loadData();
+      loadData(abortSignal).catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('[InvoicesDashboard] Load error:', err);
+        }
+      });
     } else {
       console.log('[InvoicesDashboard] Data is fresh - skipping reload');
     }
+
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
   }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
-  const loadData = async () => {
+  const loadData = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId) {
       console.log('[InvoicesDashboard] No company_id - cannot load invoices');
       return;
@@ -84,13 +113,20 @@ export default function InvoicesDashboard() {
 
     try {
       setIsLoading(true);
-      setError(null);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
 
       // ✅ KERNEL COMPLIANCE: Use profileCompanyId and capabilities from kernel
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       // Try to load invoices - table may not exist yet
       try {
         const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
         const invoiceList = await getInvoices(profileCompanyId, capabilities, filters);
+
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+        if (abortSignal?.aborted) return;
 
         // SAFETY ASSERTION: ensure each invoice is scoped to the current company
         for (const invoice of invoiceList || []) {
@@ -105,6 +141,7 @@ export default function InvoicesDashboard() {
           markFresh();
         }
       } catch (dataError) {
+        if (abortSignal?.aborted) return; // Ignore abort errors
         console.log('Invoices table not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setInvoices([]);
@@ -112,12 +149,17 @@ export default function InvoicesDashboard() {
         // ❌ DO NOT mark fresh on error - let it retry on next navigation
       }
     } catch (err) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
+      if (err.name === 'AbortError' || abortSignal?.aborted) return;
       console.error('[InvoicesDashboard] Error loading invoices:', err);
-      setError(err.message || 'Failed to load invoices');
+      setError(err.message || 'Failed to load invoices'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load invoices');
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
+      if (!abortSignal?.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -137,7 +179,8 @@ export default function InvoicesDashboard() {
       });
       
       toast.success('Invoice paid successfully');
-      loadData();
+      // Trigger reload via useEffect dependency change
+      lastLoadTimeRef.current = null;
     } catch (error) {
       console.error('Error paying invoice:', error);
       toast.error('Failed to pay invoice');
@@ -168,19 +211,22 @@ export default function InvoicesDashboard() {
     return new Date(invoice.due_date) < new Date();
   };
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
       <ErrorState 
         message={error} 
-        onRetry={loadData}
+        onRetry={() => {
+          setError(null);
+          // useEffect will retry automatically when canLoadData is true
+        }}
       />
     );
+  }
+
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
   return (

@@ -38,6 +38,7 @@ function ReturnsDashboardInner() {
   // ✅ FINAL SYNC: Data freshness tracking (30 second threshold)
   const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
 
   // Derive role from capabilities
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
@@ -52,9 +53,9 @@ function ReturnsDashboardInner() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
-  // ✅ FINAL SYNC: Check data freshness before loading
+  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
         console.log('[ReturnsDashboard] No user → redirecting to login');
@@ -63,6 +64,20 @@ function ReturnsDashboardInner() {
       return;
     }
 
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[ReturnsDashboard] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
+
     // ✅ FINAL SYNC: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
                          !lastLoadTimeRef.current || 
@@ -70,13 +85,26 @@ function ReturnsDashboardInner() {
     
     if (shouldRefresh) {
       console.log('[ReturnsDashboard] Data is stale or first load - refreshing');
-      loadData();
+      loadData(abortSignal).catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('[ReturnsDashboard] Load error:', err);
+        }
+      });
     } else {
       console.log('[ReturnsDashboard] Data is fresh - skipping reload');
     }
+
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
   }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
 
-  const loadData = async () => {
+  const loadData = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId) {
       console.log('[ReturnsDashboard] No company_id - cannot load returns');
       return;
@@ -84,30 +112,44 @@ function ReturnsDashboardInner() {
 
     try {
       setIsLoading(true);
-      setError(null);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
 
       // ✅ KERNEL COMPLIANCE: Use profileCompanyId and capabilities from kernel
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       // Try to load returns - table may not exist yet
       try {
         const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
         const returnsList = await getReturns(profileCompanyId, capabilities, filters);
+
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+        if (abortSignal?.aborted) return;
+
         setReturns(returnsList);
+        
+        // ✅ FINAL SYNC: Mark fresh ONLY on successful load
+        lastLoadTimeRef.current = Date.now();
+        markFresh();
       } catch (dataError) {
+        if (abortSignal?.aborted) return; // Ignore abort errors
         console.log('Returns table not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setReturns([]);
         setError(null); // Don't show error for missing table
       }
-      
-      // ✅ FINAL SYNC: Mark fresh ONLY on successful load
-      lastLoadTimeRef.current = Date.now();
-      markFresh();
     } catch (err) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
+      if (err.name === 'AbortError' || abortSignal?.aborted) return;
       console.error('[ReturnsDashboard] Error loading returns:', err);
-      setError(err.message || 'Failed to load returns');
+      setError(err.message || 'Failed to load returns'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load returns');
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
+      if (!abortSignal?.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -115,7 +157,8 @@ function ReturnsDashboardInner() {
     try {
       await updateReturnStatus(returnId, status);
       toast.success(`Return ${status} successfully`);
-      loadData();
+      // Trigger reload via useEffect dependency change
+      lastLoadTimeRef.current = null;
     } catch (error) {
       console.error('Error updating return:', error);
       toast.error('Failed to update return status');
@@ -141,19 +184,22 @@ function ReturnsDashboardInner() {
     return <AlertCircle className="w-4 h-4" />;
   };
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
       <ErrorState 
         message={error} 
-        onRetry={loadData}
+        onRetry={() => {
+          setError(null);
+          // useEffect will retry automatically when canLoadData is true
+        }}
       />
     );
+  }
+
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
   const totalRefunded = returns

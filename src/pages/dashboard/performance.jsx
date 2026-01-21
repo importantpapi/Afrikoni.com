@@ -37,6 +37,7 @@ function PerformanceDashboardInner() {
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
   
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -47,8 +48,9 @@ function PerformanceDashboardInner() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
+  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
         console.log('[PerformanceDashboard] No user → redirecting to login');
@@ -57,6 +59,20 @@ function PerformanceDashboardInner() {
       return;
     }
 
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[PerformanceDashboard] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
+
     // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
                          !lastLoadTimeRef.current || 
@@ -64,13 +80,26 @@ function PerformanceDashboardInner() {
     
     if (shouldRefresh) {
       console.log('[PerformanceDashboard] Data is stale or first load - refreshing');
-      loadData();
+      loadData(abortSignal).catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('[PerformanceDashboard] Load error:', err);
+        }
+      });
     } else {
       console.log('[PerformanceDashboard] Data is fresh - skipping reload');
     }
+
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
   }, [canLoadData, userId, profileCompanyId, location.pathname, isStale, navigate]);
 
-  const loadData = async () => {
+  const loadData = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId) {
       console.log('[PerformanceDashboard] No company_id - cannot load performance');
       return;
@@ -78,12 +107,19 @@ function PerformanceDashboardInner() {
 
     try {
       setIsLoading(true);
-      setError(null);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
       
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       // Calculate and get performance
       await calculateSupplierPerformance(profileCompanyId);
       const perf = await getSupplierPerformance(profileCompanyId);
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+      if (abortSignal?.aborted) return;
+
       setPerformance(perf);
       
       // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
@@ -92,27 +128,35 @@ function PerformanceDashboardInner() {
         markFresh();
       }
     } catch (err) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
+      if (err.name === 'AbortError' || abortSignal?.aborted) return;
       console.error('[PerformanceDashboard] Error loading performance data:', err);
-      setError(err.message || 'Failed to load performance data');
+      setError(err.message || 'Failed to load performance data'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load performance data');
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
+      if (!abortSignal?.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
       <ErrorState 
         message={error} 
-        onRetry={loadData}
+        onRetry={() => {
+          setError(null);
+          // useEffect will retry automatically when canLoadData is true
+        }}
       />
     );
+  }
+
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
   const metrics = [

@@ -33,6 +33,7 @@ function DashboardAnalyticsInner() {
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
+  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
   
   // ✅ KERNEL MIGRATION: Derive role from capabilities
   const isBuyer = capabilities?.can_buy === true;
@@ -55,8 +56,8 @@ function DashboardAnalyticsInner() {
   }
 
   useEffect(() => {
-    // ✅ SCHEMA ALIGNMENT: Strict guard using profileCompanyId from Kernel
-    // ✅ KERNEL GUARD REINFORCEMENT: Ensure canLoadData AND profileCompanyId before fetching
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData || !profileCompanyId) {
       if (!userId) {
         console.log('[DashboardAnalytics] No user → redirecting to login');
@@ -64,6 +65,20 @@ function DashboardAnalyticsInner() {
       }
       return;
     }
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        console.warn('[DashboardAnalytics] Loading timeout (15s) - aborting queries');
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
 
     // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
     const shouldRefresh = isStale || 
@@ -73,21 +88,38 @@ function DashboardAnalyticsInner() {
     if (shouldRefresh) {
       console.log('[DashboardAnalytics] Data is stale or first load - refreshing');
       // Now safe to load data
-      loadUserAndAnalytics();
+      loadUserAndAnalytics(abortSignal).catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('[DashboardAnalytics] Load error:', err);
+        }
+      });
     } else {
       console.log('[DashboardAnalytics] Data is fresh - skipping reload');
     }
+
+    return () => {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      clearTimeout(timeoutId);
+    };
   }, [canLoadData, userId, profileCompanyId, period, viewMode, location.pathname, isStale, navigate]);
 
-  const loadUserAndAnalytics = async () => {
+  const loadUserAndAnalytics = async (abortSignal) => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!canLoadData || !profileCompanyId) {
       return;
     }
     
     try {
       setIsLoading(true);
-      setError(null);
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+
+      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (abortSignal?.aborted) return;
+
+      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       const companyId = profileCompanyId;
 
       const days = parseInt(period);
@@ -102,11 +134,17 @@ function DashboardAnalyticsInner() {
       let sellerData = null;
 
       if (showBuyerAnalytics && companyId) {
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+        if (abortSignal?.aborted) return;
+
         const [ordersRes, rfqsRes, quotesRes] = await Promise.all([
           supabase.from('orders').select('*').eq('buyer_company_id', companyId).gte('created_at', startDate),
           supabase.from('rfqs').select('*').eq('buyer_company_id', companyId).gte('created_at', startDate),
           supabase.from('quotes').select('*, rfqs!inner(buyer_company_id)').eq('rfqs.buyer_company_id', companyId).gte('quotes.created_at', startDate)
         ]);
+
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+        if (abortSignal?.aborted) return;
 
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
         const rfqs = Array.isArray(rfqsRes.data) ? rfqsRes.data : [];
@@ -149,12 +187,18 @@ function DashboardAnalyticsInner() {
       }
       
       if (showSellerAnalytics && companyId) {
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+        if (abortSignal?.aborted) return;
+
         const [ordersRes, productsRes, rfqsRes, quotesRes] = await Promise.all([
           supabase.from('orders').select('*').eq('seller_company_id', companyId).gte('created_at', startDate),
           supabase.from('products').select('*').eq('company_id', companyId),
           supabase.from('rfqs').select('*, matched_supplier_ids').gte('created_at', startDate),
           supabase.from('quotes').select('*, rfqs!inner(*)').eq('supplier_company_id', companyId).gte('created_at', startDate)
         ]);
+
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+        if (abortSignal?.aborted) return;
 
         const orders = ordersRes.data || [];
         const products = productsRes.data || [];
@@ -206,6 +250,9 @@ function DashboardAnalyticsInner() {
           orders: ordersByDate[date] || 0
         }));
 
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before more queries
+        if (abortSignal?.aborted) return;
+
         // Load inquiries (messages related to products)
         const { data: inquiriesData } = await supabase
           .from('messages')
@@ -213,6 +260,9 @@ function DashboardAnalyticsInner() {
           .eq('receiver_company_id', companyId)
           .not('related_type', 'is', null)
           .gte('created_at', startDate);
+
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+        if (abortSignal?.aborted) return;
 
         const inquiries = Array.isArray(inquiriesData) ? inquiriesData : [];
 
@@ -278,7 +328,10 @@ function DashboardAnalyticsInner() {
       } else if (sellerData) {
         setChartData(sellerData.chartData);
         setAnalytics(sellerData.analytics);
-      } else if (capabilities.can_logistics && capabilities.logistics_status === 'approved') {
+      } else if (capabilities?.can_logistics && capabilities?.logistics_status === 'approved') {
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+        if (abortSignal?.aborted) return;
+
         const [shipmentsRes, ordersRes] = await Promise.all([
           supabase
             .from('shipments')
@@ -292,6 +345,9 @@ function DashboardAnalyticsInner() {
           .gte('created_at', startDate)
             .limit(100)
         ]);
+
+        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
+        if (abortSignal?.aborted) return;
 
         const shipments = shipmentsRes.data || [];
         const orders = ordersRes.data || [];
@@ -343,33 +399,26 @@ function DashboardAnalyticsInner() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
-  }
-  
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
       <ErrorState 
         message={error} 
         onRetry={() => {
           setError(null);
-          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
-          if (shouldRefresh) {
-            loadUserAndAnalytics();
-          }
+          // useEffect will retry automatically when canLoadData is true
         }}
       />
     );
   }
 
-  // Wait for auth to be ready
-  if (!authReady || authLoading) {
-    return <SpinnerWithTimeout message="Loading analytics..." />;
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
+    );
   }
 
   return (

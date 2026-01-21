@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
@@ -109,10 +109,45 @@ export default function ProductForm() {
   ]);
   const [productLimitInfo, setProductLimitInfo] = useState(null);
   const [showLimitGuard, setShowLimitGuard] = useState(false);
+  
+  // ✅ KERNEL MANIFESTO FIX: Timeout refs for canLoadData wait and data loading
+  const canLoadDataTimeoutRef = useRef(null);
+  const loadDataTimeoutRef = useRef(null);
 
   useEffect(() => {
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
+    if (!canLoadData) {
+      // ✅ KERNEL MANIFESTO FIX: Add timeout for canLoadData wait
+      canLoadDataTimeoutRef.current = setTimeout(() => {
+        setIsLoading(false);
+        setError('System not ready. Please refresh the page or complete your company profile.');
+      }, 10000); // 10 second timeout
+      
+      return () => {
+        if (canLoadDataTimeoutRef.current) {
+          clearTimeout(canLoadDataTimeoutRef.current);
+        }
+      };
+    }
+    
+    // ✅ Clear canLoadData timeout if canLoadData becomes true
+    if (canLoadDataTimeoutRef.current) {
+      clearTimeout(canLoadDataTimeoutRef.current);
+      canLoadDataTimeoutRef.current = null;
+    }
+    
     loadData();
-  }, []);
+    
+    return () => {
+      // ✅ KERNEL MANIFESTO FIX: Cleanup - Clear timeouts on unmount
+      if (canLoadDataTimeoutRef.current) {
+        clearTimeout(canLoadDataTimeoutRef.current);
+      }
+      if (loadDataTimeoutRef.current) {
+        clearTimeout(loadDataTimeoutRef.current);
+      }
+    };
+  }, [canLoadData, profileCompanyId, userId]); // ✅ KERNEL MANIFESTO FIX: Depend on canLoadData for retry
 
   useEffect(() => {
     if (formData.category_id) {
@@ -146,15 +181,20 @@ export default function ProductForm() {
   };
 
   const loadData = async () => {
-    if (!canLoadData) {
-      return;
-    }
+    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
+    // This function is only called when canLoadData is true
     
     try {
       setIsLoading(true);
-      setError(null);
+      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
       
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+      // ✅ KERNEL MANIFESTO FIX: Add timeout for data loading
+      loadDataTimeoutRef.current = setTimeout(() => {
+        setIsLoading(false);
+        setError('Loading timed out. Please try again.');
+      }, 15000); // 15 second timeout
+      
+      // ✅ KERNEL MANIFESTO: Rule 3 - Use profileCompanyId from Kernel
       if (profileCompanyId) {
         setCompanyId(profileCompanyId);
       } else {
@@ -192,7 +232,7 @@ export default function ProductForm() {
             }
           } catch (err) {
             console.error('Error creating company:', err);
-            setError('Failed to initialize company. Please try again.');
+            throw new Error('Failed to initialize company. Please try again.');
           }
         }
       }
@@ -204,11 +244,10 @@ export default function ProductForm() {
         .order('name');
 
       if (categoriesError) {
-        console.error('Failed to load categories:', categoriesError);
-        toast.error('Failed to load categories. Please refresh the page.');
-      } else {
-        setCategories(categoriesData || []);
+        throw categoriesError;
       }
+      
+      setCategories(categoriesData || []);
 
       // ✅ KERNEL MIGRATION: If editing, load product data
       if (productId) {
@@ -232,9 +271,25 @@ export default function ProductForm() {
           }));
         }
       }
+      
+      // ✅ KERNEL MANIFESTO FIX: Clear timeout on success
+      if (loadDataTimeoutRef.current) {
+        clearTimeout(loadDataTimeoutRef.current);
+        loadDataTimeoutRef.current = null;
+      }
     } catch (error) {
+      // ✅ KERNEL MANIFESTO: Rule 4 - Handle errors properly
+      console.error('[ProductForm] Load error:', error);
+      setError(error.message || 'Failed to load form data. Please try again.');
       toast.error('Failed to load form data');
+      
+      // ✅ Clear timeout on error
+      if (loadDataTimeoutRef.current) {
+        clearTimeout(loadDataTimeoutRef.current);
+        loadDataTimeoutRef.current = null;
+      }
     } finally {
+      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
       setIsLoading(false);
     }
   };
@@ -518,35 +573,36 @@ export default function ProductForm() {
     }
   };
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
+  // ✅ KERNEL MANIFESTO: Rule 2 - UI Gate - Check Kernel readiness
   if (!isSystemReady) {
     return <SpinnerWithTimeout message="Loading product form..." ready={isSystemReady} />;
   }
   
-  // ✅ KERNEL MIGRATION: Check if user is authenticated
+  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Check if user is authenticated
   if (!userId) {
     navigate('/login');
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state (check before loading)
   if (error) {
     return (
       <ErrorState 
         message={error} 
         onRetry={() => {
           setError(null);
-          loadData();
+          // useEffect will retry automatically when canLoadData is true
         }}
       />
+    );
+  }
+
+  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
     );
   }
 
