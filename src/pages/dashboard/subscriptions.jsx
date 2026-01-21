@@ -32,6 +32,7 @@ function SubscriptionsPageInner() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const abortControllerRef = useRef(null);
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -50,33 +51,55 @@ function SubscriptionsPageInner() {
 
   // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    if (!canLoadData) {
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate (first line)
+    if (!canLoadData || !profileCompanyId) {
       return;
     }
 
     loadSubscription();
-  }, [canLoadData]);
+
+    // ✅ KERNEL MANIFESTO: Finally Law - Cleanup
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [canLoadData, profileCompanyId]);
 
   const loadSubscription = async () => {
+    // ✅ KERNEL MANIFESTO: Rule 4 - Zombie Protection (AbortController)
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        abortControllerRef.current.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
+
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Use auth from context (no duplicate call)
-      const cid = profile?.company_id || null;
-      if (!cid) {
-        toast.error('Company not found');
-        setIsLoading(false);
-        return;
-      }
+      if (abortSignal.aborted) return;
       
-      setCompanyId(cid);
-      const subscription = await getCompanySubscription(cid);
+      // ✅ KERNEL MIGRATION: Use profileCompanyId directly from Kernel
+      const subscription = await getCompanySubscription(profileCompanyId);
+      
+      if (abortSignal.aborted) return;
       setCurrentSubscription(subscription);
     } catch (error) {
+      if (abortSignal.aborted) return;
       console.error('Error loading subscription:', error);
+      setError(error.message || 'Failed to load subscription');
       toast.error('Failed to load subscription');
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Finally Law
+      clearTimeout(timeoutId);
+      if (!abortSignal.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -115,19 +138,22 @@ function SubscriptionsPageInner() {
   const currentPlan = currentSubscription?.plan_type || 'free';
   const planDetails = getPlanDetails(currentPlan);
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 5 - Three-State UI (Error BEFORE Loading)
   if (error) {
     return (
       <ErrorState 
         message={error} 
-        onRetry={loadSubscription}
+        onRetry={() => {
+          setError(null);
+          loadSubscription();
+        }}
       />
     );
+  }
+
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
   return (

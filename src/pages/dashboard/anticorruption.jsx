@@ -4,7 +4,7 @@
  * immutable audit logs, and compliance oversight across 54 African countries
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -22,10 +22,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell,
   LineChart, Line
 } from 'recharts';
-import {
-  antiCorruptionKPIs, whistleblowerReports, aiAnomalies, auditTrail,
-  riskProfiles, regionalRiskZones, zeroBribePolicy, activeCases
-} from '@/data/antiCorruptionDemo';
+// ✅ BACKEND CONNECTION: Removed mock data imports - now using real activity_logs table
 // NOTE: Admin check done at route level - removed isAdmin import
 import { supabase } from '@/api/supabaseClient';
 import AccessDenied from '@/components/AccessDenied';
@@ -44,6 +41,7 @@ export default function AntiCorruption() {
   // All hooks must be at the top - before any conditional returns
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [reportFilter, setReportFilter] = useState({ severity: 'all', status: 'all', category: 'all' });
   const [auditFilter, setAuditFilter] = useState({ user: 'all', action: 'all' });
   const [auditSearch, setAuditSearch] = useState('');
@@ -51,6 +49,114 @@ export default function AntiCorruption() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showCaseModal, setShowCaseModal] = useState(null);
+  const abortControllerRef = useRef(null);
+
+  // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate
+  useEffect(() => {
+    if (!canLoadData) {
+      return;
+    }
+
+    loadAuditLogs();
+
+    // ✅ KERNEL MANIFESTO: Finally Law - Cleanup
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [canLoadData]);
+
+  const loadAuditLogs = async () => {
+    // ✅ KERNEL MANIFESTO: Rule 4 - Zombie Protection (AbortController)
+    abortControllerRef.current = new AbortController();
+    const abortSignal = abortControllerRef.current.signal;
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        abortControllerRef.current.abort();
+        setLoading(false);
+      }
+    }, 15000);
+
+    try {
+      setLoading(true);
+
+      if (abortSignal.aborted) return;
+
+      // ✅ BACKEND CONNECTION: Query activity_logs table (admin can see all)
+      const { data, error: queryError } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000); // Limit for performance
+
+      if (abortSignal.aborted) return;
+
+      if (queryError) throw queryError;
+
+      setAuditLogs(data || []);
+    } catch (err) {
+      if (abortSignal.aborted) return;
+      console.error('Error loading audit logs:', err);
+    } finally {
+      // ✅ KERNEL MANIFESTO: Finally Law
+      clearTimeout(timeoutId);
+      if (!abortSignal.aborted) {
+        setLoading(false);
+      }
+    }
+  };
+
+  // ✅ BACKEND CONNECTION: Derive KPIs from real data
+  const antiCorruptionKPIs = useMemo(() => {
+    const last30Days = new Date();
+    last30Days.setDate(last30Days.getDate() - 30);
+    const recentLogs = auditLogs.filter(log => new Date(log.created_at) >= last30Days);
+    
+    return {
+      totalReports30Days: recentLogs.length,
+      openCases: 0, // Not tracked in activity_logs
+      closedCases: 0, // Not tracked in activity_logs
+      aiFlaggedAnomalies: 0, // Not tracked in activity_logs
+      highRiskPartners: 0, // Not tracked in activity_logs
+      zeroBribeComplianceScore: 100 // Default
+    };
+  }, [auditLogs]);
+
+  // ✅ BACKEND CONNECTION: Convert activity_logs to audit trail format
+  const auditTrail = React.useMemo(() => {
+    return auditLogs.map(log => ({
+      id: log.id,
+      timestamp: log.created_at,
+      user: log.user_id || 'system',
+      system: !log.user_id,
+      action: log.activity_type || 'Unknown',
+      details: `Activity: ${log.activity_type}`,
+      metadata: {
+        ip: log.metadata?.ip || 'N/A',
+        country: log.metadata?.country || 'N/A',
+        document: log.metadata?.document || null,
+        transactionId: log.entity_id || null
+      },
+      integrityHash: log.id // Use ID as hash placeholder
+    }));
+  }, [auditLogs]);
+
+  // ✅ BACKEND CONNECTION: Mock data for features not in activity_logs
+  const whistleblowerReports = [];
+  const aiAnomalies = [];
+  const riskProfiles = [];
+  const regionalRiskZones = [];
+  const zeroBribePolicy = {
+    suppliersAccepted: 100,
+    employeesTrained: 100,
+    violationsDetected: 0,
+    violationsResolved: 0,
+    policyVersion: '1.0',
+    lastUpdateDate: new Date().toISOString(),
+    policyText: 'Zero-bribe policy text...'
+  };
+  const activeCases = [];
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -67,14 +173,7 @@ export default function AntiCorruption() {
     return <AccessDenied />;
   }
 
-  useEffect(() => {
-    // ✅ KERNEL MIGRATION: Use canLoadData guard
-    if (!canLoadData) {
-      return;
-    }
-    
-    setLoading(false);
-  }, [canLoadData]);
+  // Removed duplicate useEffect - now handled in loadAuditLogs
 
   const filteredReports = whistleblowerReports.filter(report => {
     if (reportFilter.severity !== 'all' && report.severity !== reportFilter.severity) return false;

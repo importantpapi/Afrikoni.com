@@ -70,22 +70,14 @@ function TeamMembersInner() {
     can_manage_rfqs: false
   });
 
+  // ✅ KERNEL MANIFESTO: Rule 2 - UI Gate
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Unlocking Workspace..." ready={isSystemReady} />;
+  }
+
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading) {
-      console.log('[TeamMembers] Waiting for auth to be ready...');
-      return;
-    }
-
-    // GUARD: Wait for capabilities to be ready
-    if (!capabilitiesReady || capabilitiesLoading) {
-      console.log('[TeamMembers] Waiting for capabilities to be ready...');
-      return;
-    }
-
-    // GUARD: No user → show error
-    if (!userId) {
-      toast.error('Please log in to continue');
+    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate (first line)
+    if (!canLoadData || !profileCompanyId) {
       return;
     }
 
@@ -100,13 +92,24 @@ function TeamMembersInner() {
     } else {
       console.log('[TeamMembers] Data is fresh - skipping reload');
     }
-  }, [authReady, authLoading, userId, userCompanyId, capabilitiesReady, capabilitiesLoading, location.pathname, isStale]);
+  }, [canLoadData, profileCompanyId, location.pathname, isStale]);
 
   const loadData = async () => {
     if (!profileCompanyId) {
       setIsLoading(false);
       return;
     }
+
+    // ✅ KERNEL MANIFESTO: Rule 4 - Zombie Protection (AbortController)
+    const abortController = new AbortController();
+    const abortSignal = abortController.signal;
+    const timeoutId = setTimeout(() => {
+      if (!abortSignal.aborted) {
+        abortController.abort();
+        setIsLoading(false);
+        setError('Data loading timed out. Please try again.');
+      }
+    }, 15000);
 
     try {
       setIsLoading(true);
@@ -115,9 +118,12 @@ function TeamMembersInner() {
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load subscription status
       try {
+        if (abortSignal.aborted) return;
         const subscription = await getCompanySubscription(profileCompanyId);
+        if (abortSignal.aborted) return;
         setCurrentPlan(subscription?.plan_type || 'free');
       } catch (err) {
+        if (abortSignal.aborted) return;
         // ✅ GLOBAL HARDENING: Enhanced error logging
         logError('loadData-subscription', err, {
           companyId: profileCompanyId,
@@ -126,11 +132,14 @@ function TeamMembersInner() {
       }
 
       // Load team members - Fix: Better error handling
+      if (abortSignal.aborted) return;
       const { data: teamData, error: teamError } = await supabase
         .from('company_team')
         .select('*')
         .eq('company_id', profileCompanyId)
         .order('created_at', { ascending: false });
+
+      if (abortSignal.aborted) return;
 
       // ✅ GLOBAL HARDENING: Enhanced error logging
       if (teamError) {
@@ -148,6 +157,7 @@ function TeamMembersInner() {
       lastLoadTimeRef.current = Date.now();
       markFresh();
     } catch (err) {
+      if (abortSignal.aborted) return;
       logError('loadData', err, {
         table: 'company_team',
         companyId: profileCompanyId,
@@ -156,7 +166,11 @@ function TeamMembersInner() {
       setError(err.message || 'Failed to load team members');
       toast.error('Failed to load team members');
     } finally {
-      setIsLoading(false);
+      // ✅ KERNEL MANIFESTO: Finally Law
+      clearTimeout(timeoutId);
+      if (!abortSignal.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -218,7 +232,7 @@ function TeamMembersInner() {
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('handleInviteMember', error, {
         table: 'company_team',
-        companyId: companyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       toast.error('Failed to send invitation');
@@ -292,19 +306,22 @@ function TeamMembersInner() {
   const activeMembersCount = teamMembers.filter(m => m.status === 'active').length;
   const maxMembers = currentPlan === 'free' ? 1 : currentPlan === 'growth' ? 3 : 999;
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ KERNEL MANIFESTO: Rule 5 - Three-State UI (Error BEFORE Loading)
   if (error) {
     return (
       <ErrorState 
         message={error} 
-        onRetry={loadData}
+        onRetry={() => {
+          setError(null);
+          loadData();
+        }}
       />
     );
+  }
+
+  // ✅ KERNEL MIGRATION: Use unified loading state
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
   return (

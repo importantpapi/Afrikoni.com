@@ -15,7 +15,9 @@
     "test-all": "node scripts/test-rfq-comprehensive.js",
     "smoke-tests": "node scripts/smoke-tests-automated.js",
     "check-deploy": "node scripts/prepare-deployment.js",
-    "verify-metadata": "node scripts/verify-metadata-migration.js"
+    "verify-metadata": "node scripts/verify-metadata-migration.js",
+    "verify-backend": "node scripts/verify-backend-via-api.js",
+    "verify-backend-compliance": "node scripts/verify-backend-kernel-compliance.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
