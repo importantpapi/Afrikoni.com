@@ -470,6 +470,8 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   // AUTH CHANGE LISTENER: Reset capabilities on signout
   // =========================================================================
   useEffect(() => {
+    const DEBUG_BOOT = import.meta.env.VITE_DEBUG_BOOT === 'true';
+
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
@@ -497,12 +499,12 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
 
           if (hasValidCapabilities) {
             // ✅ Kernel is WARM - DO NOT RESET (prevents ghost navigation)
-            console.log('[CapabilityContext] SIGNED_IN detected - Kernel is WARM, skipping reset');
+            if (DEBUG_BOOT) console.log('[CapabilityContext] SIGNED_IN detected - Kernel is WARM, skipping reset');
             return; // Preserve warm state
           }
 
           // Cold start - reset to allow initial fetch
-          console.log('[CapabilityContext] SIGNED_IN detected - cold start, resetting fetch flags');
+          if (DEBUG_BOOT) console.log('[CapabilityContext] SIGNED_IN detected - cold start, resetting fetch flags');
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
         } else if (event === 'TOKEN_REFRESHED') {

@@ -209,7 +209,9 @@ function AppContent() {
 
   useSessionRefresh();
   useBrowserNavigation();
-  
+
+  const DEBUG_BOOT = import.meta.env.VITE_DEBUG_BOOT === 'true';
+
   // ✅ KERNEL-CENTRIC: Clean Logout - On SIGN_OUT, call resetKernel() to purge the "Brain"
   // ✅ KERNEL POLISH: Add debounce with isResetting ref to prevent resetKernel() from being called twice
   useEffect(() => {
@@ -217,10 +219,10 @@ function AppContent() {
     let resetTimeoutId = null;
     let lastSignOutTime = 0;
     const DEBOUNCE_MS = 1000; // 1 second debounce
-    
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
-        console.log(`🎯 [App] Auth event: ${event}`);
+        if (DEBUG_BOOT) console.log(`🎯 [App] Auth event: ${event}`);
 
         if (event === 'SIGNED_OUT') {
           // ✅ KERNEL POLISH: Check if already resetting

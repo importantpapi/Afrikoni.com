@@ -200,9 +200,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let isMounted = true;
     let timeoutId = null;
-    
+
+    const DEBUG_BOOT = import.meta.env.VITE_DEBUG_BOOT === 'true';
+
     // ✅ CROSS-TAB SYNC: Set up BroadcastChannel for auth sync
-    const authChannel = typeof BroadcastChannel !== 'undefined' 
+    const authChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('auth_sync')
       : null;
 
@@ -214,7 +216,7 @@ export function AuthProvider({ children }) {
         }
       };
     }
-    
+
     // Safety timeout - force loading to false after 10 seconds
     timeoutId = setTimeout(() => {
       if (isMounted && loading && !hasInitializedRef.current) {
@@ -224,17 +226,17 @@ export function AuthProvider({ children }) {
         hasInitializedRef.current = true;
       }
     }, 10000);
-    
+
     const initAuth = async () => {
       // ✅ VIBRANIUM STABILIZATION: Prevent INITIAL_SESSION from firing multiple times
       if (hasInitializedRef.current) {
         console.log('[Auth] Already initialized, skipping');
         return;
       }
-      
+
       // ✅ VIBRANIUM STABILIZATION: Mark as initializing immediately to prevent race conditions
       hasInitializedRef.current = true;
-      
+
       try {
         await resolveAuth();
       } catch (err) {
@@ -255,7 +257,7 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
         if (!isMounted) return;
-        console.log(`🔐 [AuthProvider] Event: ${event} (hasInitialized: ${hasInitializedRef.current})`);
+        if (DEBUG_BOOT) console.log(`🔐 [AuthProvider] Event: ${event} (hasInitialized: ${hasInitializedRef.current})`);
         
         if (event === 'SIGNED_OUT') {
           setUser(null);

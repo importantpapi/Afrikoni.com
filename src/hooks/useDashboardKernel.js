@@ -34,13 +34,15 @@ export function useDashboardKernel() {
   const [preWarming, setPreWarming] = useState(false);
   const preWarmingTimeoutRef = useRef(null);
 
+  const DEBUG_BOOT = import.meta.env.VITE_DEBUG_BOOT === 'true';
+
   const result = useMemo(() => {
     const profileCompanyId = profile?.company_id || null;
-    
+
     // ✅ FULL-STACK SYNC: Pre-warming logic
     // If authReady is true but profile is null, show "Synchronizing World" for 3 seconds
     const isPreWarming = authReady === true && !authLoading && user && !profile;
-    
+
     // ✅ FORENSIC RECOVERY: Ensure authReady is explicitly checked
     // System is ready only when: auth is ready AND not loading AND capabilities are ready AND not pre-warming
     const isSystemReady = authReady === true && !authLoading && capabilities.ready === true && !isPreWarming;
@@ -48,7 +50,7 @@ export function useDashboardKernel() {
 
     // ✅ KERNEL HARDENING: Profile lag detection - warn if authReady but profile missing
     // This helps debug "Profile Lag" issues in production where user exists but profile hasn't loaded
-    if (isPreWarming) {
+    if (isPreWarming && DEBUG_BOOT) {
       console.warn('[useDashboardKernel] Pre-warming: authReady=true, user exists, but profile is missing - showing "Synchronizing World"', {
         userId: user.id,
         userEmail: user.email,
@@ -71,7 +73,7 @@ export function useDashboardKernel() {
       // ✅ FULL-STACK SYNC: Standardize isHybrid
       isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true
     };
-  }, [user, profile, authReady, authLoading, capabilities]);
+  }, [user, profile, authReady, authLoading, capabilities, DEBUG_BOOT]);
 
   // ✅ NETWORK RECOVERY: Listen for online event to re-trigger handshake
   useEffect(() => {
@@ -136,7 +138,7 @@ export function useDashboardKernel() {
                   }
                   // Last attempt - profile doesn't exist, redirect to onboarding
                   console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
-                  console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (profile not found)');
+                  if (DEBUG_BOOT) console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (profile not found)');
                   navigate('/onboarding/company', { replace: true });
                   return;
                 }
@@ -151,7 +153,7 @@ export function useDashboardKernel() {
               } else {
                 // Profile is null after refresh - redirect to onboarding
                 console.warn('[useDashboardKernel] Profile is null after refresh - redirecting to onboarding');
-                console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (profile null after refresh)');
+                if (DEBUG_BOOT) console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (profile null after refresh)');
                 navigate('/onboarding/company', { replace: true });
                 return;
               }
@@ -175,7 +177,7 @@ export function useDashboardKernel() {
               }
               // Last attempt - profile not found, redirect to onboarding
               console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
-              console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (error handling)');
+              if (DEBUG_BOOT) console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (error handling)');
               navigate('/onboarding/company', { replace: true });
               return;
             }
@@ -196,7 +198,7 @@ export function useDashboardKernel() {
         setPreWarming(false);
         // ✅ TOTAL VIBRANIUM RESET: Redirect to login on pre-warming failure
         console.error('[useDashboardKernel] Pre-warming failed - redirecting to login');
-        console.log('🧭 [NAVIGATION] useDashboardKernel → /login (pre-warming failed)');
+        if (DEBUG_BOOT) console.log('🧭 [NAVIGATION] useDashboardKernel → /login (pre-warming failed)');
         navigate('/login?error=profile_sync_failed', { replace: true });
       }, 10000); // ✅ GLOBAL REFACTOR: Increased timeout from 5s to 10s
     } else {

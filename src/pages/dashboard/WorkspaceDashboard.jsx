@@ -6,6 +6,8 @@ import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeMa
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
+const DEBUG_BOOT = import.meta.env.VITE_DEBUG_BOOT === 'true';
+
 /**
  * =============================================================================
  * WorkspaceDashboard - THE KERNEL HOST
@@ -39,7 +41,6 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
  *
  * ✅ GHOST NAVIGATION FIX:
  * - Removed key={location.pathname} from Outlet
- * - Added mount/unmount detection logging
  * - Component now mounts ONCE per session
  */
 export default function WorkspaceDashboard() {
@@ -55,19 +56,21 @@ export default function WorkspaceDashboard() {
     isPreWarming // ✅ FULL-STACK SYNC: Pre-warming state
   } = useDashboardKernel();
 
-  // ✅ GHOST NAVIGATION DETECTION: Log mount/unmount cycles
+  // Debug logging (only in debug mode)
   useEffect(() => {
-    mountCountRef.current += 1;
-    console.log(`🚀 [WorkspaceDashboard] MOUNTED (count: ${mountCountRef.current}) at ${location.pathname}`);
+    if (DEBUG_BOOT) {
+      mountCountRef.current += 1;
+      console.log(`🚀 [WorkspaceDashboard] MOUNTED (count: ${mountCountRef.current}) at ${location.pathname}`);
+      return () => {
+        console.log(`🔴 [WorkspaceDashboard] UNMOUNTED from ${location.pathname}`);
+      };
+    }
+  }, [location.pathname]);
 
-    return () => {
-      console.log(`🔴 [WorkspaceDashboard] UNMOUNTED from ${location.pathname}`);
-    };
-  }, []); // Empty deps - should only run once per component lifetime
-
-  // ✅ GHOST NAVIGATION DETECTION: Log route changes (without remount)
   useEffect(() => {
-    console.log(`🔄 [WorkspaceDashboard] Route changed to: ${location.pathname} (no remount)`);
+    if (DEBUG_BOOT) {
+      console.log(`🔄 [WorkspaceDashboard] Route changed to: ${location.pathname} (no remount)`);
+    }
   }, [location.pathname]);
 
   // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
