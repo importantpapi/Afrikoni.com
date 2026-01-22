@@ -491,8 +491,18 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
         } else if (event === 'SIGNED_IN') {
-          // On signin, reset fetch flags to allow re-fetch
-          console.log('[CapabilityContext] SIGNED_IN detected - resetting fetch flags');
+          // ✅ GHOST NAVIGATION FIX: Check if Kernel is already WARM before resetting
+          // Only reset if we don't have valid capabilities yet (cold start)
+          const hasValidCapabilities = hasFetchedRef.current && fetchedCompanyIdRef.current !== null;
+
+          if (hasValidCapabilities) {
+            // ✅ Kernel is WARM - DO NOT RESET (prevents ghost navigation)
+            console.log('[CapabilityContext] SIGNED_IN detected - Kernel is WARM, skipping reset');
+            return; // Preserve warm state
+          }
+
+          // Cold start - reset to allow initial fetch
+          console.log('[CapabilityContext] SIGNED_IN detected - cold start, resetting fetch flags');
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
         } else if (event === 'TOKEN_REFRESHED') {

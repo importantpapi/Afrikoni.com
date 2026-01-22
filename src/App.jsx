@@ -220,6 +220,8 @@ function AppContent() {
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
+        console.log(`🎯 [App] Auth event: ${event}`);
+
         if (event === 'SIGNED_OUT') {
           // ✅ KERNEL POLISH: Check if already resetting
           if (isResettingRef.current) {

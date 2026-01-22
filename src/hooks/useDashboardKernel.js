@@ -136,6 +136,7 @@ export function useDashboardKernel() {
                   }
                   // Last attempt - profile doesn't exist, redirect to onboarding
                   console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
+                  console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (profile not found)');
                   navigate('/onboarding/company', { replace: true });
                   return;
                 }
@@ -150,6 +151,7 @@ export function useDashboardKernel() {
               } else {
                 // Profile is null after refresh - redirect to onboarding
                 console.warn('[useDashboardKernel] Profile is null after refresh - redirecting to onboarding');
+                console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (profile null after refresh)');
                 navigate('/onboarding/company', { replace: true });
                 return;
               }
@@ -173,6 +175,7 @@ export function useDashboardKernel() {
               }
               // Last attempt - profile not found, redirect to onboarding
               console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
+              console.log('🧭 [NAVIGATION] useDashboardKernel → /onboarding/company (error handling)');
               navigate('/onboarding/company', { replace: true });
               return;
             }
@@ -193,6 +196,7 @@ export function useDashboardKernel() {
         setPreWarming(false);
         // ✅ TOTAL VIBRANIUM RESET: Redirect to login on pre-warming failure
         console.error('[useDashboardKernel] Pre-warming failed - redirecting to login');
+        console.log('🧭 [NAVIGATION] useDashboardKernel → /login (pre-warming failed)');
         navigate('/login?error=profile_sync_failed', { replace: true });
       }, 10000); // ✅ GLOBAL REFACTOR: Increased timeout from 5s to 10s
     } else {

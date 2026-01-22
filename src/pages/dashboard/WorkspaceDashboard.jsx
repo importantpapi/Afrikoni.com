@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -10,7 +10,7 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
  * =============================================================================
  * WorkspaceDashboard - THE KERNEL HOST
  * =============================================================================
- * 
+ *
  * ARCHITECTURAL OWNERSHIP:
  * - This component is now a pure Kernel Consumer
  * - No longer imports useAuth() or useCapability() directly
@@ -19,35 +19,56 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
  * - This component OWNS the realtime subscriptions (via DashboardRealtimeManager)
  * - Child routes render inside <Outlet /> and may unmount freely
  * - Realtime subscriptions survive all tab/route changes
- * 
+ *
  * LIFECYCLE:
  * - Mounts when user enters /dashboard/*
  * - NEVER unmounts during tab navigation
  * - Unmounts only when leaving /dashboard/* entirely
- * 
+ *
  * REALTIME:
  * - DashboardRealtimeManager is rendered HERE (above Outlet)
  * - It renders null but owns the single Supabase channel
  * - Child pages (DashboardHome, OrdersPage, etc.) do NOT have realtime hooks
- * 
+ *
  * ✅ KERNEL MIGRATION COMPLETE:
  * - Eliminated useAuth() import - Kernel provides userId
  * - Eliminated useCapability() import - Kernel provides capabilities
  * - Eliminated useMemo for capabilities - Kernel already memoized
  * - Unified state machine via isSystemReady flag
  * - No double initialization lag
+ *
+ * ✅ GHOST NAVIGATION FIX:
+ * - Removed key={location.pathname} from Outlet
+ * - Added mount/unmount detection logging
+ * - Component now mounts ONCE per session
  */
 export default function WorkspaceDashboard() {
   const location = useLocation();
-  
+  const mountCountRef = useRef(0);
+
   // ✅ KERNEL MIGRATION: Get everything from the Single Source of Truth
-  const { 
-    userId, 
-    profileCompanyId, 
-    capabilities, 
+  const {
+    userId,
+    profileCompanyId,
+    capabilities,
     isSystemReady,
     isPreWarming // ✅ FULL-STACK SYNC: Pre-warming state
   } = useDashboardKernel();
+
+  // ✅ GHOST NAVIGATION DETECTION: Log mount/unmount cycles
+  useEffect(() => {
+    mountCountRef.current += 1;
+    console.log(`🚀 [WorkspaceDashboard] MOUNTED (count: ${mountCountRef.current}) at ${location.pathname}`);
+
+    return () => {
+      console.log(`🔴 [WorkspaceDashboard] UNMOUNTED from ${location.pathname}`);
+    };
+  }, []); // Empty deps - should only run once per component lifetime
+
+  // ✅ GHOST NAVIGATION DETECTION: Log route changes (without remount)
+  useEffect(() => {
+    console.log(`🔄 [WorkspaceDashboard] Route changed to: ${location.pathname} (no remount)`);
+  }, [location.pathname]);
 
   // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
   const handleRealtimeUpdate = useCallback((payload) => {
@@ -59,7 +80,7 @@ export default function WorkspaceDashboard() {
   // ===========================================================================
   // RENDER GUARDS (Standardized via Kernel)
   // ===========================================================================
-  
+
   // ✅ FULL-STACK SYNC: Pre-warming state - show "Synchronizing World" message
   if (isPreWarming) {
     return <SpinnerWithTimeout message="Synchronizing World..." ready={false} timeoutMs={3000} />;
@@ -83,16 +104,16 @@ export default function WorkspaceDashboard() {
   // ===========================================================================
   // RENDER - Layout + RealtimeManager + Outlet
   // ===========================================================================
-  
+
   return (
     <ErrorBoundary fallbackMessage="Dashboard layout error. Please refresh the page.">
       {/* ✅ KERNEL MIGRATION: Pass Kernel capabilities directly to the Layout */}
       <DashboardLayout capabilities={capabilitiesData}>
-        {/* 
+        {/*
           CRITICAL: DashboardRealtimeManager renders NULL but owns subscriptions.
           It is placed HERE (in the layout) so it survives route changes.
           Child routes (DashboardHome, OrdersPage, etc.) render via <Outlet />.
-          
+
           ✅ KERNEL MIGRATION: Use profileCompanyId from Kernel
           This ensures realtime subscriptions never attempt with undefined company ID
         */}
@@ -102,11 +123,11 @@ export default function WorkspaceDashboard() {
           onUpdate={handleRealtimeUpdate}
           enabled={isSystemReady && !!profileCompanyId}
         />
-        
+
         <ErrorBoundary fallbackMessage="Failed to load dashboard page. Please try again.">
-          {/* ✅ REACTIVE READINESS FIX: Force component re-boot on navigation */}
-          {/* Outlet renders child routes - key forces re-mount on route change */}
-          <Outlet key={location.pathname} />
+          {/* ✅ GHOST NAVIGATION FIX: Removed key={location.pathname} to prevent forced remounts */}
+          {/* Outlet renders child routes WITHOUT forcing remount on navigation */}
+          <Outlet />
         </ErrorBoundary>
       </DashboardLayout>
     </ErrorBoundary>
