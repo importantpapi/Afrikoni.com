@@ -201,11 +201,12 @@ export default function DashboardLayout({
   // PHASE 5B: Check capability.ready ONCE before first mount
   // If capabilities not ready and not mounted yet, show loading
   // Once mounted, NEVER unmount (even if capabilities change)
+  // ✅ FIX DEADLOCK: If kernelError exists, fail-open and allow rendering
   if (!hasMountedRef.current) {
-    if (!safeCapabilities?.ready) {
+    if (!safeCapabilities?.ready && !safeCapabilities?.kernelError) {
       return <SpinnerWithTimeout message="Preparing your workspace..." ready={safeCapabilities?.ready ?? true} />;
     }
-    // PHASE 5B: Mark as mounted once capabilities are ready (only runs once)
+    // PHASE 5B: Mark as mounted once capabilities are ready (or if error occurred)
     hasMountedRef.current = true;
   }
   

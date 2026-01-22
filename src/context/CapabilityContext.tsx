@@ -551,11 +551,22 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           loading: false,
           kernelError: null, // ✅ KERNEL-CENTRIC: Clear error when prerequisites not met
         }));
-        
-        // ✅ TOTAL VIBRANIUM RESET: Removed 2-second ready timeout - keep ready=false until companyId exists
-        // This prevents race condition during onboarding where ready becomes true before company is created
-        // Components should check for companyId existence separately, not rely on ready state
-        return;
+
+        // ✅ FIX DEADLOCK: Fail-open after 3s if prerequisites still not met
+        // This handles race conditions during auth recovery
+        const prerequisiteTimeoutId = setTimeout(() => {
+          if (!hasFetchedRef.current) {
+            console.warn('[CapabilityContext] Prerequisites timeout - failing open to prevent infinite spinner');
+            setCapabilities(prev => ({
+              ...prev,
+              ready: true, // Fail-open to allow rendering
+              loading: false,
+              kernelError: !currentCompanyId ? 'Company profile not loaded. Some features may be limited.' : null,
+            }));
+          }
+        }, 3000);
+
+        return () => clearTimeout(prerequisiteTimeoutId);
       }
 
       // ✅ KERNEL LOCK: Only fetch if we haven't fetched yet (prevents double-booting)
@@ -572,13 +583,13 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       timeoutIdRef.current = setTimeout(() => {
         // Use ref to check current state without dependency issues
         if (!hasFetchedRef.current && currentCompanyId) {
-          console.warn('[CapabilityContext] ⚠️ Capability fetch timeout (5s) - setting kernelError for UI retry');
+          console.warn('[CapabilityContext] ⚠️ Capability fetch timeout (5s) - failing open with error state');
           setCapabilities(prev => {
             if (prev?.ready) return prev; // Don't override if already ready
             return {
               ...prev,
               loading: false,
-              ready: false, // ✅ KERNEL-CENTRIC: Keep ready=false so UI shows retry button
+              ready: true, // ✅ FIX DEADLOCK: Fail-open to allow rendering with error state
               company_id: currentCompanyId,
               error: prev?.error || 'Capability fetch timed out',
               kernelError: 'Capability fetch timed out. Please retry.', // ✅ KERNEL-CENTRIC: Set error for UI
