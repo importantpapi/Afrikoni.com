@@ -1,7 +1,11 @@
 /**
  * Geo Detection Utility
  * Automatically detects user's country, language, and currency based on browser settings and IP
+ *
+ * ✅ REFACTORED: Now uses GeoService singleton (no direct ipapi.co calls)
  */
+
+import * as GeoService from '@/services/GeoService';
 
 // Country to currency mapping
 export const COUNTRY_CURRENCY_MAP = {
@@ -157,72 +161,16 @@ const COUNTRY_LANGUAGE_MAP = {
 
 /**
  * Detect user's country from IP address
+ * ✅ REFACTORED: Uses GeoService singleton (no direct ipapi.co fetch)
  */
 export async function detectCountry() {
-  // ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'BE'; // Belgium (HQ location)
-  }
-  
   try {
-    // ✅ KERNEL-SCHEMA ALIGNMENT: Enhanced error handling for ipapi.co failures (429, network, CORS)
-    // Try to get country from IP
-    let response;
-    try {
-      response = await fetch('https://ipapi.co/json/');
-      
-      // Handle 429 (Too Many Requests) and other HTTP errors gracefully
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Rate limited - silently return default without logging
-          return 'DEFAULT';
-        }
-        throw new Error(`IP API failed with status ${response.status}`);
-      }
-    } catch (fetchError) {
-      // Network errors, CORS, or HTTP errors - silently return default
-      return 'DEFAULT';
-    }
-    
-    const data = await response.json();
-    return data.country_code || 'DEFAULT';
+    const { country_code } = await GeoService.getCountry();
+    return country_code || 'DEFAULT';
   } catch (error) {
-    // ✅ KERNEL-SCHEMA ALIGNMENT: Silent fallback for all errors (429, network, CORS)
-    // Silently fail - CORS error on localhost is expected, rate limits are expected
-    // Return default without logging errors
+    // GeoService never throws, but just in case
     return 'DEFAULT';
   }
-  
-  // Fallback: try to detect from browser timezone
-  try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    // Extract country code from timezone (e.g., "Africa/Lagos" -> "NG")
-    if (timezone.includes('Africa/')) {
-      const city = timezone.split('/')[1];
-      // Map major African cities to countries
-      const cityToCountry = {
-        'Lagos': 'NG', 'Accra': 'GH', 'Nairobi': 'KE', 'Cairo': 'EG',
-        'Casablanca': 'MA', 'Dakar': 'SN', 'Dar_es_Salaam': 'TZ',
-        'Addis_Ababa': 'ET', 'Luanda': 'AO', 'Kinshasa': 'CD',
-        'Abidjan': 'CI', 'Kampala': 'UG', 'Algiers': 'DZ',
-        'Khartoum': 'SD', 'Maputo': 'MZ', 'Antananarivo': 'MG',
-        'Bamako': 'ML', 'Ouagadougou': 'BF', 'Niamey': 'NE',
-        'Kigali': 'RW', 'Porto-Novo': 'BJ', 'Conakry': 'GN',
-        'N\'Djamena': 'TD', 'Harare': 'ZW', 'Lusaka': 'ZM',
-        'Lilongwe': 'MW', 'Banjul': 'GM', 'Monrovia': 'LR',
-        'Freetown': 'SL', 'Lome': 'TG', 'Nouakchott': 'MR',
-        'Windhoek': 'NA', 'Maseru': 'LS', 'Asmara': 'ER',
-        'Djibouti': 'DJ', 'Juba': 'SS', 'Bangui': 'CF',
-        'Brazzaville': 'CG', 'Malabo': 'GQ', 'Mbabane': 'SZ',
-        'Tripoli': 'LY', 'Tunis': 'TN'
-      };
-      return cityToCountry[city] || 'DEFAULT';
-    }
-  } catch (error) {
-    console.warn('Failed to detect country from timezone:', error);
-  }
-  
-  return 'DEFAULT';
 }
 
 /**

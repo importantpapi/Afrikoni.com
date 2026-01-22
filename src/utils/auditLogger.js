@@ -1,55 +1,29 @@
 /**
  * Audit Logger Utility
  * Provides easy-to-use functions for logging critical actions with IP and country detection
+ *
+ * ✅ REFACTORED: Now uses GeoService singleton (no direct ipapi.co calls)
  */
 
 import { createAuditLog } from '@/lib/supabaseQueries/admin';
+import * as GeoService from '@/services/GeoService';
 
 /**
  * Get client IP address and country
- * Uses ipapi.co free tier (1000 requests/day)
- * Falls back to Vercel headers if available
+ * ✅ REFACTORED: Uses GeoService singleton (no direct ipapi.co calls)
  */
 export async function getClientIPAndCountry() {
   try {
-    // Try to get IP from Vercel headers first (if deployed on Vercel)
-    const vercelIP = typeof window !== 'undefined' 
-      ? null // Client-side, can't access headers directly
-      : null; // Server-side would use headers, but we're client-side
-    
-    // ✅ KERNEL-TO-UI ALIGNMENT: Enhanced error handling for ipapi.co failures
-    // For client-side, use ipapi.co API
-    let response;
-    try {
-      response = await fetch('https://ipapi.co/json/');
-      
-      // Handle 429 (Too Many Requests) and other HTTP errors gracefully
-      if (!response.ok) {
-        if (response.status === 429) {
-          console.debug('[IP Detection] Rate limited (429) - using fallback');
-          throw new Error('Rate limited');
-        }
-        throw new Error(`IP API failed with status ${response.status}`);
-      }
-    } catch (fetchError) {
-      // Network errors, CORS, or HTTP errors - use fallback
-      console.debug('[IP Detection] Fetch failed (non-critical):', fetchError.message || 'Network error');
-      throw fetchError;
-    }
-    
-    const data = await response.json();
+    const geo = await GeoService.getGeo();
     return {
-      ip_address: data.ip || 'unknown',
-      country: data.country_name || data.country_code || 'Unknown',
-      country_code: data.country_code || 'XX',
-      city: data.city || null,
-      region: data.region || null
+      ip_address: geo.ip || 'unknown',
+      country: geo.country || 'Unknown',
+      country_code: geo.country_code || 'XX',
+      city: geo.city || null,
+      region: geo.region || null
     };
   } catch (error) {
-    // ✅ KERNEL-TO-UI ALIGNMENT: Silent fallback for all errors (429, network, CORS)
-    // Silently fail - CORS error on localhost is expected, rate limits are expected
-    // Use fallback values without logging errors to console
-    // Fallback values
+    // GeoService never throws, but just in case
     return {
       ip_address: 'unknown',
       country: 'Unknown',

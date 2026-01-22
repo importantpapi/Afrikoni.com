@@ -3,47 +3,14 @@
  * Phase 2 - Infinite Discovery Flow
  * Mobile-only product grid with country-first relevance
  * 2 products per row, high density, immediate product discovery
+ *
+ * ✅ REFACTORED: Now uses GeoService singleton (no direct ipapi.co calls)
  */
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import ProductCard from '@/components/products/ProductCard';
-// ✅ KERNEL-SCHEMA ALIGNMENT: Enhanced error handling for ipapi.co failures (429, network, CORS)
-// ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
-// Simple country detection utility
-const detectCountry = async () => {
-  // ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'BE'; // Belgium (HQ location)
-  }
-  
-  try {
-    let response;
-    try {
-      response = await fetch('https://ipapi.co/json/');
-      
-      // Handle 429 (Too Many Requests) and other HTTP errors gracefully
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Rate limited - silently return null without logging
-          return null;
-        }
-        throw new Error(`IP API failed with status ${response.status}`);
-      }
-    } catch (fetchError) {
-      // Network errors, CORS, or HTTP errors - silently return null
-      return null;
-    }
-    
-    const data = await response.json();
-    return data?.country_code || null;
-  } catch (err) {
-    // ✅ KERNEL-SCHEMA ALIGNMENT: Silent fallback for all errors (429, network, CORS)
-    // Silently fail - CORS error on localhost is expected, rate limits are expected
-    // Return null without logging errors
-    return null;
-  }
-};
+import * as GeoService from '@/services/GeoService';
 
 // Country code to name mapping
 const CODE_TO_NAME = {
@@ -86,31 +53,39 @@ const getCountryFlag = (countryName) => {
   return COUNTRY_FLAGS[countryName] || '';
 };
 
-export default function MobileProductGrid({ 
-  country = null, 
-  limit = 8, 
+export default function MobileProductGrid({
+  country = null,
+  limit = 8,
   title = null,
-  showHeader = false 
+  showHeader = false
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detectedCountry, setDetectedCountry] = useState(null);
 
   useEffect(() => {
-    // Detect user country if not provided
-    if (!country) {
-      detectUserCountry();
-    }
-    loadProducts();
-  }, [country]);
+    // ✅ REFACTORED: Only detect country if not provided via props
+    // This prevents duplicate ipapi.co calls when parent already detected country
+    const initializeAndLoad = async () => {
+      if (!country) {
+        await detectUserCountry();
+      }
+      await loadProducts();
+    };
+
+    initializeAndLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country]); // Only re-run if country prop changes
 
   const detectUserCountry = async () => {
+    // ✅ REFACTORED: Uses GeoService singleton (no direct ipapi.co fetch)
     try {
-      const countryCode = await detectCountry();
-      if (countryCode && CODE_TO_NAME[countryCode]) {
-        setDetectedCountry(CODE_TO_NAME[countryCode]);
+      const { country_code } = await GeoService.getCountry();
+      if (country_code && CODE_TO_NAME[country_code]) {
+        setDetectedCountry(CODE_TO_NAME[country_code]);
       }
     } catch (err) {
+      // GeoService never throws, but just in case
       // Silently fail - country detection is optional
     }
   };

@@ -20,6 +20,7 @@ import { motion } from 'framer-motion';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import * as GeoService from '@/services/GeoService';
 
 export default function Home() {
   const [categories, setCategories] = useState([]);
@@ -51,61 +52,17 @@ export default function Home() {
   };
 
   const detectUserCountry = async () => {
-    // ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
-    if (window.location.hostname === 'localhost') {
-      setDetectedCountry('Belgium');
-      return;
-    }
-    
+    // ✅ REFACTORED: Uses GeoService singleton (no direct ipapi.co fetch)
     try {
-      // ✅ KERNEL-SCHEMA ALIGNMENT: Enhanced error handling for ipapi.co failures (429, network, CORS)
-      let response;
-      try {
-        response = await fetch('https://ipapi.co/json/');
-        
-        // Handle 429 (Too Many Requests) and other HTTP errors gracefully
-        if (!response.ok) {
-          if (response.status === 429) {
-            // Rate limited - silently return null without logging
-            return;
-          }
-          throw new Error(`IP API failed with status ${response.status}`);
-        }
-      } catch (fetchError) {
-        // Network errors, CORS, or HTTP errors - silently return null
-        return;
-      }
-      
-      const data = await response.json();
-      const countryCode = data?.country_code;
-      const codeToName = {
-        'NG': 'Nigeria', 'KE': 'Kenya', 'GH': 'Ghana', 'ZA': 'South Africa',
-        'ET': 'Ethiopia', 'TZ': 'Tanzania', 'UG': 'Uganda', 'EG': 'Egypt',
-        'MA': 'Morocco', 'DZ': 'Algeria', 'TN': 'Tunisia', 'SN': 'Senegal',
-        'CI': "Côte d'Ivoire", 'CM': 'Cameroon', 'ZW': 'Zimbabwe', 'MZ': 'Mozambique',
-        'MG': 'Madagascar', 'ML': 'Mali', 'BF': 'Burkina Faso', 'NE': 'Niger',
-        'RW': 'Rwanda', 'BJ': 'Benin', 'GN': 'Guinea', 'TD': 'Chad',
-        'ZM': 'Zambia', 'MW': 'Malawi', 'SO': 'Somalia', 'BI': 'Burundi',
-        'TG': 'Togo', 'SL': 'Sierra Leone', 'LY': 'Libya', 'MR': 'Mauritania',
-        'ER': 'Eritrea', 'GM': 'Gambia', 'BW': 'Botswana', 'NA': 'Namibia',
-        'GA': 'Gabon', 'LS': 'Lesotho', 'GW': 'Guinea-Bissau', 'LR': 'Liberia',
-        'CF': 'Central African Republic', 'CG': 'Congo', 'CD': 'DR Congo',
-        'ST': 'São Tomé and Príncipe', 'SC': 'Seychelles', 'CV': 'Cape Verde',
-        'KM': 'Comoros', 'MU': 'Mauritius', 'GQ': 'Equatorial Guinea',
-        'SZ': 'Eswatini', 'SS': 'South Sudan', 'AO': 'Angola'
-      };
-      const countryName = codeToName[countryCode];
-      
-      if (!countryName) {
-        // Invalid country code - silently return
-        return;
-      }
-      if (countryName) {
-        setDetectedCountry(countryName);
+      const { country } = await GeoService.getCountry();
+
+      // Only set if we got a real country (not fallback 'International')
+      if (country && country !== 'International') {
+        setDetectedCountry(country);
       }
     } catch (err) {
-      // Silently fail - country detection is optional (CORS error on localhost is expected)
-      console.debug('[IP Detection] Failed (non-critical):', err.message || 'CORS or network error');
+      // GeoService never throws, but just in case
+      // Silently fail - country detection is optional
     }
   };
 
