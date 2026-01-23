@@ -19,22 +19,24 @@ import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useCapability } from '@/context/CapabilityContext';
 
 /**
- * Protects a route - requires authentication
- * Redirects to login with return URL preserved
- * Optional: requireCompanyId - if true, redirects to company onboarding if company_id is missing
- * 
- * ✅ KERNEL INTEGRATION: Consumes isPreWarming from useDashboardKernel to prevent 'Failed to load' errors
+ * ✅ SINGLE REDIRECT OWNER: Protects a route - requires authentication
+ *
+ * This guard ONLY redirects when there is NO authenticated user.
+ * It does NOT redirect based on profile or company_id.
+ * PostLoginRouter handles all post-auth routing decisions.
+ *
+ * Redirects to login with return URL preserved if user is not authenticated.
+ * Shows loading screens while auth/capabilities are initializing.
  */
 export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, requireCompanyId: needsCompanyId = false }) => {
   const { user, profile, authReady, loading } = useAuth();
-  const { isPreWarming } = useDashboardKernel();
+  const { isPreWarming, systemStatus } = useDashboardKernel();
   const capabilities = useCapability();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // ✅ KERNEL GUARD DEPLOYMENT: Show "Synchronizing World" if Kernel is pre-warming
-  // This prevents child components from attempting to load data before Kernel is ready
+  // Show loading during pre-warming (profile fetch in progress)
   if (isPreWarming) {
     return <LoadingScreen message="Synchronizing World..." />;
   }
@@ -44,13 +46,13 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
     return <LoadingScreen message="Checking authentication..." />;
   }
 
-  // ✅ FIX STATE STAGNATION: Wait for BOTH authReady AND capabilities.ready
-  // If auth is ready but Kernel (capabilities) isn't loaded yet, show loading screen
-  if (authReady && !capabilities?.ready) {
-    return <LoadingScreen message="Waking up the Kernel..." />;
+  // Show loading if system status is still loading
+  if (systemStatus === 'loading') {
+    return <LoadingScreen message="Preparing workspace..." />;
   }
 
-  // Redirect to login if not authenticated
+  // ✅ SINGLE REDIRECT OWNER: ONLY redirect when NO user exists
+  // Do NOT redirect based on profile/company_id - PostLoginRouter handles that
   if (!user) {
     const next = searchParams.get('next') || location.pathname + location.search;
     navigate(`/login?next=${encodeURIComponent(next)}`);
@@ -58,12 +60,11 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
     return null;
   }
 
-  // 🚨 CRITICAL GUARD: Dashboard routes require company_id
-  // If company_id is missing and route requires it, redirect to company onboarding
-  if (needsCompanyId && (!profile || !profile.company_id)) {
-    console.log('[ProtectedRoute] No company_id → redirecting to company onboarding');
-    navigate('/onboarding/company', { replace: true });
-    return null;
+  // ✅ DEPRECATED: requireCompanyId logic removed
+  // PostLoginRouter now handles profile-based routing
+  // This guard only checks authentication, not profile state
+  if (needsCompanyId) {
+    console.warn('[ProtectedRoute] requireCompanyId is deprecated - use PostLoginRouter instead');
   }
 
   // Check admin access if required

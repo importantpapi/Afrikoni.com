@@ -345,39 +345,29 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     console.log('🔴 [DashboardLayout] LOGOUT CLICKED - Starting logout flow');
 
-    try {
-      // Log logout to audit log before signing out (non-blocking)
-      try {
-        console.log('[DashboardLayout] Step 1: Logging audit event...');
-        const { logLogoutEvent } = await import('@/utils/auditLogger');
-        await logLogoutEvent({ user: contextUser, profile: contextProfile });
-        console.log('[DashboardLayout] Step 1: Audit event logged ✓');
-      } catch (auditError) {
-        // Don't break logout if audit logging fails
-        console.warn('[DashboardLayout] Audit logging failed (non-critical):', auditError);
-      }
+    // ✅ GUARANTEED REDIRECT: Set up timeout to ensure redirect happens
+    const redirectTimeout = setTimeout(() => {
+      console.log('[DashboardLayout] ⏰ Redirect timeout triggered - forcing redirect');
+      window.location.href = '/login';
+    }, 5000); // Guarantee redirect after 5s max
 
-      // ✅ FULL-STACK SYNC: Use AuthService for atomic logout with state wipe
-      console.log('[DashboardLayout] Step 2: Calling AuthService.logout()...');
+    try {
+      // Non-blocking audit logging - fire and forget
+      import('@/utils/auditLogger')
+        .then(({ logLogoutEvent }) => logLogoutEvent({ user: contextUser, profile: contextProfile }))
+        .catch(err => console.warn('[DashboardLayout] Audit logging failed (non-critical):', err));
+
+      console.log('[DashboardLayout] Calling AuthService.logout()...');
       const { logout: authServiceLogout } = await import('@/services/AuthService');
       await authServiceLogout();
-      console.log('[DashboardLayout] Step 2: AuthService.logout() completed ✓');
-      // AuthService handles: signOut({ scope: 'global' }), localStorage.clear(), window.location.href reset
-      // No need to navigate or clear state - AuthService does hard redirect
+      console.log('[DashboardLayout] AuthService.logout() completed ✓');
+      // AuthService handles redirect - clear our timeout
+      clearTimeout(redirectTimeout);
     } catch (error) {
-      console.error('[DashboardLayout] ❌ Logout error in primary flow:', error);
-      // Even if there's an error, force redirect via AuthService
-      try {
-        console.log('[DashboardLayout] Attempting fallback logout...');
-        const { logout: authServiceLogout } = await import('@/services/AuthService');
-        await authServiceLogout();
-        console.log('[DashboardLayout] Fallback logout completed ✓');
-      } catch (fallbackError) {
-        console.error('[DashboardLayout] ❌ Fallback logout failed:', fallbackError);
-        // Last resort: direct redirect
-        console.log('[DashboardLayout] Using last-resort redirect...');
-        window.location.href = '/login';
-      }
+      console.error('[DashboardLayout] ❌ Logout error:', error);
+      // Clear timeout and redirect immediately
+      clearTimeout(redirectTimeout);
+      window.location.href = '/login';
     }
   };
 

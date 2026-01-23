@@ -148,12 +148,24 @@ export async function login(email, password) {
 
 /**
  * Logout with atomic state wipe
+ * ✅ GUARANTEED REDIRECT: Always redirects to /login even if signOut hangs
  * @returns {Promise<void>}
  */
 export async function logout() {
   try {
-    // Step 1: Atomic signout with global scope
-    const { error: signOutError } = await supabase.auth.signOut({ scope: 'global' });
+    // ✅ GUARANTEED REDIRECT: Race signOut with timeout
+    // If signOut doesn't complete in 3s, proceed anyway
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(() => {
+        console.warn('[AuthService] signOut timeout - proceeding with cleanup');
+        resolve({ error: null });
+      }, 3000)
+    );
+
+    const signOutPromise = supabase.auth.signOut({ scope: 'global' });
+
+    // Race between signOut and timeout
+    const { error: signOutError } = await Promise.race([signOutPromise, timeoutPromise]);
 
     if (signOutError) {
       console.error('[AuthService] Signout error:', signOutError);

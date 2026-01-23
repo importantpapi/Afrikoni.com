@@ -400,33 +400,46 @@ export default function Layout({ children }) {
   const handleLogout = async () => {
     console.log('🔴 [Layout] LOGOUT CLICKED - Starting logout flow');
 
-    try {
-      // ✅ REFERENCE CLEANUP: Use direct supabase signOut - AuthProvider handles state via SIGNED_OUT event
-      // No need for setUser - AuthProvider's onAuthStateChange listener will clear state automatically
-      console.log('[Layout] Step 1: Calling supabase.auth.signOut()...');
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      if (error) throw error;
-      console.log('[Layout] Step 1: signOut() completed ✓');
+    // ✅ GUARANTEED REDIRECT: Set up timeout to ensure redirect happens
+    const redirectTimeout = setTimeout(() => {
+      console.log('[Layout] ⏰ Redirect timeout triggered - forcing redirect');
+      window.location.href = '/login';
+    }, 5000); // Guarantee redirect after 5s max
 
-      // Clear storage (non-blocking)
+    try {
+      // Race signOut with timeout (3s max)
+      const timeoutPromise = new Promise((resolve) =>
+        setTimeout(() => {
+          console.warn('[Layout] signOut timeout - proceeding with cleanup');
+          resolve({ error: null });
+        }, 3000)
+      );
+
+      const signOutPromise = supabase.auth.signOut({ scope: 'global' });
+      const { error } = await Promise.race([signOutPromise, timeoutPromise]);
+
+      if (error) {
+        console.error('[Layout] signOut error:', error);
+      }
+
+      // Clear storage
       try {
-        console.log('[Layout] Step 2: Clearing storage...');
         if (typeof window !== 'undefined') {
           localStorage.clear();
           sessionStorage.clear();
         }
-        console.log('[Layout] Step 2: Storage cleared ✓');
       } catch (storageError) {
         console.error('[Layout] Storage clear error:', storageError);
       }
 
-      // Hard redirect to login
-      console.log('[Layout] Step 3: Redirecting to /login...');
+      // Clear timeout and redirect
+      clearTimeout(redirectTimeout);
+      console.log('[Layout] Redirecting to /login...');
       window.location.href = '/login';
     } catch (error) {
       console.error('[Layout] ❌ Logout error:', error);
-      // Even on error, force redirect
-      console.log('[Layout] Forcing redirect despite error...');
+      // Clear timeout and redirect immediately
+      clearTimeout(redirectTimeout);
       window.location.href = '/login';
     }
   };

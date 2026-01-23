@@ -128,39 +128,78 @@ export default function RequireCapability({
     return <SpinnerWithTimeout message="Preparing your workspace..." ready={capability?.ready ?? true} />;
   }
 
-  // ✅ CRITICAL FIX: Safe access with optional chaining and defaults
-  // PHASE 5B: ONLY block when capability.ready === false
-  // Pass ready prop to SpinnerWithTimeout to cancel timeout when capability.ready === true
+  // ✅ SINGLE REDIRECT OWNER: Block rendering but NEVER redirect
+  // Show spinner if capabilities not ready
   if (!capability?.ready) {
-    // ✅ CRITICAL: If capability not ready but no error, allow rendering after short delay
     return <SpinnerWithTimeout message="Preparing your workspace..." ready={capability?.ready ?? true} />;
   }
 
-  // ✅ CRITICAL FIX: Safe access with optional chaining
-  // STEP 6: Check capability requirements
+  // ✅ SINGLE REDIRECT OWNER: Show error UI with retry instead of redirecting
+  // Helper to render capability error
+  const renderCapabilityError = (message) => (
+    <div className="min-h-screen flex items-center justify-center bg-afrikoni-ivory p-8">
+      <div className="max-w-md text-center">
+        <div className="mb-6">
+          <svg
+            className="w-16 h-16 mx-auto text-amber-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-afrikoni-text-dark mb-4">
+          Access Restricted
+        </h2>
+        <p className="text-lg text-afrikoni-text-dark/70 mb-6">
+          {message}
+        </p>
+        <div className="space-y-3">
+          <button
+            onClick={() => capability.forceRefresh?.() || window.location.reload()}
+            className="w-full px-6 py-3 bg-afrikoni-gold text-white rounded-lg hover:bg-afrikoni-gold/90 transition-colors"
+          >
+            Retry
+          </button>
+          <button
+            onClick={() => window.location.href = '/dashboard'}
+            className="w-full px-6 py-3 bg-gray-200 text-afrikoni-text-dark rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Check capability requirements - show error UI instead of redirecting
   if (require === 'buy') {
     if (!capability?.can_buy) {
-      return <Navigate to="/dashboard" replace />;
+      return renderCapabilityError('This feature requires buyer capabilities. Please contact support to enable buying features.');
     }
   }
 
   if (require === 'sell') {
     if (!capability?.can_sell) {
-      return <Navigate to="/dashboard" replace />;
+      return renderCapabilityError('This feature requires seller capabilities. Please apply for seller verification.');
     }
-    // If requireApproved, also check sell_status === "approved"
     if (requireApproved && capability?.sell_status !== 'approved') {
-      return <Navigate to="/dashboard" replace />;
+      return renderCapabilityError('Your seller account is pending approval. We\'ll notify you once it\'s approved.');
     }
   }
 
   if (require === 'logistics') {
     if (!capability?.can_logistics) {
-      return <Navigate to="/dashboard" replace />;
+      return renderCapabilityError('This feature requires logistics capabilities. Please contact support to enable logistics features.');
     }
-    // If requireApproved, also check logistics_status === "approved"
     if (requireApproved && capability?.logistics_status !== 'approved') {
-      return <Navigate to="/dashboard" replace />;
+      return renderCapabilityError('Your logistics account is pending approval. We\'ll notify you once it\'s approved.');
     }
   }
 
