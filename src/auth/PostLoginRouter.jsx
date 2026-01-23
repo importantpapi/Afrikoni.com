@@ -84,27 +84,30 @@ export default function PostLoginRouter() {
       return;
     }
 
-    // ✅ SINGLE REDIRECT OWNER: Decide navigation based on profileStatus
+    // ✅ SINGLE REDIRECT OWNER: Decide navigation based on systemStatus (not just profileStatus)
+    // This ensures BOTH profile AND capabilities are ready before showing dashboard (no skeleton)
     let target = null;
     let reason = '';
 
-    if (profileStatus === 'ready') {
+    // Check systemStatus first (combines profile + capabilities)
+    if (systemStatus === 'ready' && profileStatus === 'ready') {
       target = '/dashboard';
-      reason = 'Profile loaded successfully';
+      reason = 'System fully ready (profile + capabilities loaded)';
     } else if (profileStatus === 'missing') {
+      // Profile missing but system can still be "ready" for onboarding flow
       target = '/onboarding/company';
       reason = 'Profile does not exist, needs onboarding';
-    } else if (profileStatus === 'error') {
+    } else if (profileStatus === 'error' || systemStatus === 'error') {
       target = '/login?error=profile_error';
-      reason = 'Profile fetch failed';
-    } else if (profileStatus === 'loading') {
+      reason = 'Profile or system error';
+    } else if (systemStatus === 'loading' || profileStatus === 'loading') {
       // Still loading - universal fail-safe will handle timeout
-      console.log('[PostLoginRouter] ⏳ Profile still loading...', {
+      console.log('[PostLoginRouter] ⏳ System still loading...', {
         profileStatus,
         systemStatus,
         elapsed: '0s'
       });
-      return; // Wait for profile to load or fail-safe to trigger
+      return; // Wait for system to be ready or fail-safe to trigger
     }
 
     // If we have a target, navigate immediately
