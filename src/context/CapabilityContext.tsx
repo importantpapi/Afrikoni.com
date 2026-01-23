@@ -70,7 +70,8 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   const fetchedCompanyIdRef = useRef<string | null>(null);
   const isFetchingRef = useRef(false); // ✅ Track if fetch is in progress (not loading state)
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null); // ✅ Track timeout to clear on success
-  
+  const hasSeenSignedInRef = useRef(false); // ✅ Track if SIGNED_IN was already handled this session
+
   // ✅ FIX STATE STAGNATION: Start with ready=false to ensure React detects state transitions
   const [capabilities, setCapabilities] = useState<CapabilityData>({
     can_buy: true,
@@ -492,6 +493,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           // Reset fetch flags
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
+          hasSeenSignedInRef.current = false; // ✅ Reset for next login session
         } else if (event === 'SIGNED_IN') {
           // ✅ GHOST NAVIGATION FIX: Check if Kernel is already WARM before resetting
           // Only reset if we don't have valid capabilities yet (cold start)
@@ -503,8 +505,17 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
             return; // Preserve warm state
           }
 
-          // Cold start - reset to allow initial fetch
-          if (DEBUG_BOOT) console.log('[CapabilityContext] SIGNED_IN detected - cold start, resetting fetch flags');
+          // ✅ BOOT RACE FIX: Check if we've already handled SIGNED_IN for this session
+          // During boot, SIGNED_IN can fire multiple times before capabilities load
+          // Only handle the FIRST occurrence to prevent reset loops
+          if (hasSeenSignedInRef.current) {
+            if (DEBUG_BOOT) console.log('[CapabilityContext] SIGNED_IN detected - already handled this session, skipping');
+            return; // Ignore duplicate SIGNED_IN events during boot
+          }
+
+          // First SIGNED_IN of session - reset to allow initial fetch
+          if (DEBUG_BOOT) console.log('[CapabilityContext] SIGNED_IN detected - first occurrence, resetting fetch flags');
+          hasSeenSignedInRef.current = true; // Mark as handled
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
         } else if (event === 'TOKEN_REFRESHED') {
@@ -666,6 +677,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     hasFetchedRef.current = false;
     fetchedCompanyIdRef.current = null;
     isFetchingRef.current = false;
+    hasSeenSignedInRef.current = false; // ✅ Reset for next login session
     // Clear any pending timeout
     if (timeoutIdRef.current) {
       clearTimeout(timeoutIdRef.current);
