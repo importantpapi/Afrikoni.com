@@ -116,7 +116,9 @@ export function useDashboardKernel() {
       canLoadData,
       capabilities,
       isPreWarming,
-      isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true
+      isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true,
+      authReady,
+      authLoading
     };
   }, [user, profile, authReady, authLoading, capabilities, profileFetchStatus, DEBUG_BOOT]);
 

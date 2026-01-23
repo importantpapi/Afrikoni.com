@@ -134,14 +134,11 @@ async function fetchGeoDataWithRetry() {
 
       const response = await fetchWithTimeout('https://ipapi.co/json/', REQUEST_TIMEOUT_MS);
 
-      // Handle rate limiting
+      // ✅ BIG TECH PATTERN: Fail-fast on rate limiting - use fallback instead of waiting
+      // Rate limiting means we've exceeded quota, retrying won't help
       if (response.status === 429) {
-        if (attempt < MAX_RETRIES) {
-          const retryAfter = parseInt(response.headers.get('Retry-After') || '60', 10);
-          await sleep(Math.min(retryAfter * 1000, 5000)); // Max 5s wait
-          continue;
-        }
-        throw new Error('Rate limited');
+        console.warn('[GeoService] Rate limited (429) - failing immediately to use fallback');
+        throw new Error('Rate limited - using fallback');
       }
 
       // Handle server errors (retry)
@@ -223,7 +220,13 @@ export async function getGeo() {
       return data;
     })
     .catch(err => {
-      console.debug('[GeoService] fetch failed, using fallback:', err.message);
+      // ✅ BIG TECH PATTERN: Always use fallback, never block the app
+      const isRateLimited = err.message?.includes('Rate limited');
+      const fallbackReason = isRateLimited
+        ? 'ipapi.co rate limited - using default currency/country'
+        : `network error (${err.message})`;
+
+      console.warn(`[GeoService] ${fallbackReason} - app continues with fallback`);
       cached = FALLBACK_GEO;
       return FALLBACK_GEO;
     })

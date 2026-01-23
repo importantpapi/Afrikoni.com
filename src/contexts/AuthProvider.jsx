@@ -24,6 +24,8 @@ export function AuthProvider({ children }) {
   const hasInitializedRef = useRef(false);
   const schemaValidatedRef = useRef(false);
   const profileNullTimeoutRef = useRef(null);
+  // ✅ LOOP PROTECTION: Track if silentRefresh is currently running
+  const silentRefreshInProgressRef = useRef(false);
 
   // ✅ SCHEMA VALIDATION: Verify schema integrity before allowing authReady
   const validateSchema = useCallback(async () => {
@@ -55,6 +57,14 @@ export function AuthProvider({ children }) {
 
   // ✅ FIX: Separate function for silent refresh (no loading state change)
   const silentRefresh = useCallback(async () => {
+    // ✅ LOOP PROTECTION: Prevent concurrent silentRefresh calls
+    if (silentRefreshInProgressRef.current) {
+      console.log('[Auth] Silent refresh already in progress, skipping');
+      return;
+    }
+
+    silentRefreshInProgressRef.current = true;
+
     try {
       console.log('[Auth] Silent refresh...');
       
@@ -122,6 +132,9 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error('[Auth] Silent refresh error:', err);
       // Don't clear state on error during silent refresh
+    } finally {
+      // ✅ LOOP PROTECTION: Always reset flag when done
+      silentRefreshInProgressRef.current = false;
     }
   }, []);
 
