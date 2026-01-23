@@ -26,6 +26,8 @@ export function AuthProvider({ children }) {
   const profileNullTimeoutRef = useRef(null);
   // ✅ LOOP PROTECTION: Track if silentRefresh is currently running
   const silentRefreshInProgressRef = useRef(false);
+  // ✅ OPTIMIZATION: Track if we've already tried session refresh for null profile
+  const hasTriedProfileRefreshRef = useRef(false);
 
   // ✅ SCHEMA VALIDATION: Verify schema integrity before allowing authReady
   const validateSchema = useCallback(async () => {
@@ -91,37 +93,47 @@ export function AuthProvider({ children }) {
           // Profile not found - this is OK for new users
           console.log('[Auth] Silent refresh - profile not found (new user)');
           
-          // ✅ ERROR LOGGING & SILENT REFRESH: If profile remains null > 5s, trigger sessionRefresh
-          if (profileNullTimeoutRef.current) {
-            clearTimeout(profileNullTimeoutRef.current);
-          }
-          profileNullTimeoutRef.current = setTimeout(async () => {
-            console.warn('[Auth] Profile null for >5s - triggering session refresh');
-            try {
-              await supabase.auth.refreshSession();
-              // Re-fetch profile after refresh
-              const { data: refreshedProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              if (refreshedProfile) {
-                setProfile(refreshedProfile);
-                setRole(refreshedProfile?.role || null);
-              }
-            } catch (refreshErr) {
-              console.error('[Auth] Session refresh error:', refreshErr);
+          // ✅ OPTIMIZATION: Only try session refresh ONCE per session to prevent loops
+          // If profile is null, useDashboardKernel will handle retries with its pre-warming timeout
+          if (!hasTriedProfileRefreshRef.current) {
+            if (profileNullTimeoutRef.current) {
+              clearTimeout(profileNullTimeoutRef.current);
             }
-          }, 5000);
+            profileNullTimeoutRef.current = setTimeout(async () => {
+              if (hasTriedProfileRefreshRef.current) {
+                return; // Already tried, don't retry
+              }
+              hasTriedProfileRefreshRef.current = true; // Mark as tried
+              console.warn('[Auth] Profile null for >5s - attempting session refresh (once only)');
+              try {
+                // Re-fetch profile WITHOUT calling refreshSession() to avoid triggering TOKEN_REFRESHED
+                const { data: refreshedProfile } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single();
+                if (refreshedProfile) {
+                  console.log('[Auth] Profile found on retry');
+                  setProfile(refreshedProfile);
+                  setRole(refreshedProfile?.role || null);
+                } else {
+                  console.log('[Auth] Profile still null after retry - user needs onboarding');
+                }
+              } catch (refreshErr) {
+                console.error('[Auth] Profile retry error:', refreshErr);
+              }
+            }, 5000);
+          }
         } else {
           console.error('[Auth] Silent refresh profile fetch error:', profileError);
         }
       } else {
-        // Profile found - clear timeout
+        // Profile found - clear timeout and reset retry flag
         if (profileNullTimeoutRef.current) {
           clearTimeout(profileNullTimeoutRef.current);
           profileNullTimeoutRef.current = null;
         }
+        hasTriedProfileRefreshRef.current = false; // Reset for future sessions
       }
 
       setUser(session.user);
@@ -279,7 +291,10 @@ export function AuthProvider({ children }) {
           // ✅ Keep authReady true - we're still "ready", just no user
           setAuthReady(true);
           setLoading(false);
-          
+
+          // ✅ OPTIMIZATION: Reset retry flag for next login session
+          hasTriedProfileRefreshRef.current = false;
+
           // ✅ VIBRANIUM STABILIZATION: Clear all storage on SIGN_OUT
           try {
             if (typeof window !== 'undefined') {

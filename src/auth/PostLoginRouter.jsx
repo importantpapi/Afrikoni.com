@@ -80,8 +80,22 @@ export default function PostLoginRouter() {
         authLoading,
         hasUser: !!userId
       });
-      // Don't return early - universal fail-safe will handle timeout
-      return;
+
+      // ✅ OPTIMIZATION: Set up 2s timeout to wait for userId (instead of relying on 5s universal fail-safe)
+      // This gives AuthProvider time to update context, but doesn't make user wait full 5s
+      const userIdWaitTimeout = setTimeout(() => {
+        if (!hasNavigatedRef.current) {
+          console.warn('[PostLoginRouter] ⚠️ userId still null after 2s - best-effort redirect');
+          hasNavigatedRef.current = true;
+
+          // Best-effort redirect: Try dashboard (most common), fallback to login on error
+          const target = profileCompanyId ? '/dashboard' : '/onboarding/company';
+          console.log(`[PostLoginRouter] 2s timeout: Redirecting to ${target}`);
+          window.location.href = target;
+        }
+      }, 2000); // 2 second timeout for userId
+
+      return () => clearTimeout(userIdWaitTimeout);
     }
 
     // ✅ SINGLE REDIRECT OWNER: Decide navigation based on systemStatus (not just profileStatus)
