@@ -398,27 +398,35 @@ export default function Layout({ children }) {
   }, []);
 
   const handleLogout = async () => {
+    console.log('🔴 [Layout] LOGOUT CLICKED - Starting logout flow');
+
     try {
       // ✅ REFERENCE CLEANUP: Use direct supabase signOut - AuthProvider handles state via SIGNED_OUT event
       // No need for setUser - AuthProvider's onAuthStateChange listener will clear state automatically
+      console.log('[Layout] Step 1: Calling supabase.auth.signOut()...');
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) throw error;
-      
+      console.log('[Layout] Step 1: signOut() completed ✓');
+
       // Clear storage (non-blocking)
       try {
+        console.log('[Layout] Step 2: Clearing storage...');
         if (typeof window !== 'undefined') {
           localStorage.clear();
           sessionStorage.clear();
         }
+        console.log('[Layout] Step 2: Storage cleared ✓');
       } catch (storageError) {
         console.error('[Layout] Storage clear error:', storageError);
       }
-      
+
       // Hard redirect to login
+      console.log('[Layout] Step 3: Redirecting to /login...');
       window.location.href = '/login';
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[Layout] ❌ Logout error:', error);
       // Even on error, force redirect
+      console.log('[Layout] Forcing redirect despite error...');
       window.location.href = '/login';
     }
   };

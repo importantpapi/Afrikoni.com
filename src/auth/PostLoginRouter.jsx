@@ -16,30 +16,48 @@ export default function PostLoginRouter() {
   const hasNavigatedRef = useRef(false);
 
   useEffect(() => {
-    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Check Kernel readiness flags
-    if (!isSystemReady || !capabilities?.ready || !userId || hasNavigatedRef.current) {
-      return; // Wait for Kernel to be ready
+    // ✅ NAVIGATION FIX: Enhanced readiness check with fail-safe timeout
+    if (!userId || hasNavigatedRef.current) {
+      return; // No user or already navigated
     }
-    
+
+    // ✅ NAVIGATION FIX: Wait for Kernel, but with bounded timeout
+    if (!isSystemReady || !capabilities?.ready) {
+      // Set up a fail-safe: if still not ready after 3 seconds, force navigation anyway
+      const failSafeTimeout = setTimeout(() => {
+        if (!hasNavigatedRef.current && userId) {
+          console.warn('[PostLoginRouter] ⚠️ Fail-safe triggered - Kernel not ready after 3s, forcing navigation');
+          const target = profileCompanyId ? '/dashboard' : '/onboarding/company';
+          hasNavigatedRef.current = true;
+          window.location.href = target; // Use hard redirect as fail-safe
+        }
+      }, 3000);
+
+      return () => clearTimeout(failSafeTimeout);
+    }
+
     // ✅ KERNEL MANIFESTO: Rule 3 - Use profileCompanyId from Kernel (not profile?.company_id)
     const target = profileCompanyId ? '/dashboard' : '/onboarding/company';
-    
+
     console.log("🚀 KERNEL REDIRECT: Jumping to", target);
-    
+
     // ✅ KERNEL MANIFESTO FIX: Wrap navigate in setTimeout(0) to prevent React render cycle cancellation
     setTimeout(() => {
-      navigate(target, { replace: true });
-      hasNavigatedRef.current = true;
+      if (!hasNavigatedRef.current) {
+        navigate(target, { replace: true });
+        hasNavigatedRef.current = true;
+      }
     }, 0);
-    
-    // ✅ KERNEL MANIFESTO FIX: Increased timeout to 1000ms for slow networks
+
+    // ✅ KERNEL MANIFESTO FIX: Hard redirect fallback if React Router fails
     setTimeout(() => {
-      if (window.location.pathname === '/login' && !hasNavigatedRef.current) {
-        console.warn('[PostLoginRouter] Fallback: React Router navigation failed, using hard redirect');
+      if ((window.location.pathname === '/auth/post-login' || window.location.pathname === '/login') && !hasNavigatedRef.current) {
+        console.warn('[PostLoginRouter] 🔄 Fallback: React Router navigation failed, using hard redirect');
+        hasNavigatedRef.current = true;
         window.location.href = target;
       }
-    }, 1000);
-    
+    }, 1500);
+
     return;
   }, [isSystemReady, capabilities?.ready, userId, profileCompanyId, navigate]);
   

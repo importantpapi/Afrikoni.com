@@ -343,29 +343,39 @@ export default function DashboardLayout({
   // Removed loadUser - now using UserContext
 
   const handleLogout = async () => {
+    console.log('🔴 [DashboardLayout] LOGOUT CLICKED - Starting logout flow');
+
     try {
       // Log logout to audit log before signing out (non-blocking)
       try {
+        console.log('[DashboardLayout] Step 1: Logging audit event...');
         const { logLogoutEvent } = await import('@/utils/auditLogger');
         await logLogoutEvent({ user: contextUser, profile: contextProfile });
+        console.log('[DashboardLayout] Step 1: Audit event logged ✓');
       } catch (auditError) {
         // Don't break logout if audit logging fails
-        console.warn('Failed to log logout:', auditError);
+        console.warn('[DashboardLayout] Audit logging failed (non-critical):', auditError);
       }
-      
+
       // ✅ FULL-STACK SYNC: Use AuthService for atomic logout with state wipe
+      console.log('[DashboardLayout] Step 2: Calling AuthService.logout()...');
       const { logout: authServiceLogout } = await import('@/services/AuthService');
       await authServiceLogout();
+      console.log('[DashboardLayout] Step 2: AuthService.logout() completed ✓');
       // AuthService handles: signOut({ scope: 'global' }), localStorage.clear(), window.location.href reset
       // No need to navigate or clear state - AuthService does hard redirect
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[DashboardLayout] ❌ Logout error in primary flow:', error);
       // Even if there's an error, force redirect via AuthService
       try {
+        console.log('[DashboardLayout] Attempting fallback logout...');
         const { logout: authServiceLogout } = await import('@/services/AuthService');
         await authServiceLogout();
+        console.log('[DashboardLayout] Fallback logout completed ✓');
       } catch (fallbackError) {
+        console.error('[DashboardLayout] ❌ Fallback logout failed:', fallbackError);
         // Last resort: direct redirect
+        console.log('[DashboardLayout] Using last-resort redirect...');
         window.location.href = '/login';
       }
     }

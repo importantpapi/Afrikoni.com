@@ -71,25 +71,10 @@ export default function Login() {
     sessionStorage.getItem('admin-flag') === 'true'
   );
 
-  // 🚨 HARD GUARD: LOGGED-IN USERS MUST NEVER SEE /login
-  // ✅ KERNEL-CENTRIC: The Redirect Law - navigate based on profile state
-  useEffect(() => {
-    // Only fire if all prerequisites are met
-    if (authReady !== true || ready !== true || !hasUser) return;
-
-    const hasProfile = !!profile;
-    
-    // ✅ KERNEL-CENTRIC: The Redirect Law
-    if (!hasProfile) {
-      // No profile -> onboarding
-      console.log('[Login] ✅ Redirect Law: No profile - navigating to onboarding');
-      navigate('/onboarding/company', { replace: true });
-    } else {
-      // Has profile -> dashboard
-      console.log('[Login] ✅ Redirect Law: Has profile - navigating to dashboard');
-      navigate('/dashboard', { replace: true });
-    }
-  }, [authReady, ready, hasUser, profile, navigate]);
+  // 🚨 NAVIGATION FIX: Removed competing redirect logic
+  // PostLoginRouter is the SINGLE SOURCE OF TRUTH for post-login navigation
+  // This effect previously competed with PostLoginRouter, causing navigation deadlocks
+  // Now we rely entirely on PostLoginRouter for all post-login routing decisions
   
   // ✅ KERNEL-CENTRIC: Self-Heal - If ready is true but capabilities are null after 5 seconds, refresh
   // ✅ VIBRANIUM STABILIZATION: Only fire if Kernel is NOT warm and prerequisites are met
