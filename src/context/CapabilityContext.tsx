@@ -566,6 +566,15 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     try {
       // Only fetch if we have prerequisites
       if (!authReady || !currentCompanyId) {
+        // ✅ DIAGNOSTIC: Log why prerequisites are not met
+        console.log('[CapabilityContext] ⏳ Waiting for prerequisites...', {
+          authReady,
+          hasUser: !!user,
+          hasProfile: !!profile,
+          currentCompanyId,
+          'Waiting for': !authReady ? 'authReady=true' : 'company_id from profile'
+        });
+
         // ✅ FIX STATE STAGNATION: Keep ready=false until prerequisites are met
         // If authReady but no companyId, allow rendering after timeout (for onboarding flow)
         setCapabilities(prev => ({
@@ -579,7 +588,17 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         // This handles race conditions during auth recovery
         const prerequisiteTimeoutId = setTimeout(() => {
           if (!hasFetchedRef.current) {
-            console.warn('[CapabilityContext] Prerequisites timeout - failing open to prevent infinite spinner');
+            console.warn('[CapabilityContext] ⚠️ Prerequisites timeout after 3s - failing open', {
+              authReady,
+              hasUser: !!user,
+              hasProfile: !!profile,
+              currentCompanyId,
+              currentUserId,
+              'Missing': {
+                authReady: !authReady ? '❌ authReady is false' : null,
+                companyId: !currentCompanyId ? '❌ company_id is missing' : null,
+              }
+            });
             setCapabilities(prev => ({
               ...prev,
               ready: true, // Fail-open to allow rendering
