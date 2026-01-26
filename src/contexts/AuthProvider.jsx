@@ -135,20 +135,13 @@ export function AuthProvider({ children }) {
         setLoading(true);
       }
 
-      // ✅ SCHEMA CIRCUIT BREAKER: Validate schema integrity before proceeding
+      // ✅ SCHEMA VALIDATION: Validate schema integrity (non-blocking)
+      // FIX: Schema validation failure should NOT block auth - RLS policies enforce security
       const schemaValid = await validateSchema();
       if (!schemaValid) {
-        console.error('[Auth] Schema validation failed - blocking authReady');
-        // ✅ TOTAL VIBRANIUM RESET: Remove timeout bypass - keep authReady false if schema invalid
-        // Instead, set a timeout to show error state but don't bypass circuit breaker
-        setTimeout(() => {
-          console.error('[Auth] Schema validation timeout - app may have degraded functionality');
-          // Don't set authReady=true - keep circuit breaker active
-          // Only clear loading state to prevent infinite spinner
-          setLoading(false);
-          hasInitializedRef.current = true;
-        }, 10000);
-        return;
+        console.warn('[Auth] Schema validation failed - proceeding with degraded mode');
+        console.warn('[Auth] Security is still enforced via RLS policies at database level');
+        // Continue with auth flow - don't block the entire app
       }
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -386,6 +379,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user,
+      hasUser: !!user, // ✅ FIX: Add hasUser for login.jsx and signup.jsx compatibility
       profile,
       role,
       authReady,
