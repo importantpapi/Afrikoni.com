@@ -24,6 +24,10 @@ export function AuthProvider({ children }) {
   const hasInitializedRef = useRef(false);
   const schemaValidatedRef = useRef(false);
   const profileNullTimeoutRef = useRef(null);
+  // ✅ FIX: Lock to prevent race conditions during boot sequence
+  const isResolvingRef = useRef(false);
+  // ✅ FIX: Queue events that arrive during resolution
+  const pendingEventRef = useRef(null);
 
   // ✅ SCHEMA VALIDATION: Verify schema integrity before allowing authReady
   const validateSchema = useCallback(async () => {
@@ -127,9 +131,16 @@ export function AuthProvider({ children }) {
 
   // Initial auth resolution (shows loading state)
   const resolveAuth = useCallback(async () => {
+    // ✅ FIX: Acquire lock to prevent concurrent execution
+    if (isResolvingRef.current) {
+      console.log('[Auth] Resolution already in progress, skipping');
+      return;
+    }
+    isResolvingRef.current = true;
+
     try {
       console.log('[Auth] Resolving...');
-      
+
       // ✅ FIX: Only set loading on INITIAL auth, not on refresh
       if (!hasInitializedRef.current) {
         setLoading(true);
@@ -145,7 +156,7 @@ export function AuthProvider({ children }) {
       }
 
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         console.log('[Auth] No session - guest mode');
         setUser(null);
@@ -158,14 +169,14 @@ export function AuthProvider({ children }) {
       }
 
       console.log('[Auth] User found:', session.user.id);
-      
+
       // ✅ CLEANUP: Use .single() to avoid empty array logic that keeps loading state active
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
-      
+
       // Handle profile not found gracefully
       if (profileError && profileError.code !== 'PGRST116') {
         console.error('[Auth] Profile fetch error:', profileError);
@@ -187,8 +198,22 @@ export function AuthProvider({ children }) {
       setAuthReady(true);
       setLoading(false);
       hasInitializedRef.current = true;
+    } finally {
+      // ✅ FIX: Release lock and process any pending events
+      isResolvingRef.current = false;
+
+      // Process queued event if any
+      if (pendingEventRef.current) {
+        const pendingEvent = pendingEventRef.current;
+        pendingEventRef.current = null;
+        console.log('[Auth] Processing queued event:', pendingEvent);
+        if (pendingEvent === 'SIGNED_IN' || pendingEvent === 'TOKEN_REFRESHED') {
+          // Use silent refresh for queued events since we just completed initial resolution
+          silentRefresh();
+        }
+      }
     }
-  }, [validateSchema]);
+  }, [validateSchema, silentRefresh]);
 
   useEffect(() => {
     let isMounted = true;
@@ -219,15 +244,12 @@ export function AuthProvider({ children }) {
     }, 10000);
     
     const initAuth = async () => {
-      // ✅ VIBRANIUM STABILIZATION: Prevent INITIAL_SESSION from firing multiple times
-      if (hasInitializedRef.current) {
-        console.log('[Auth] Already initialized, skipping');
+      // ✅ FIX: Check both hasInitialized AND isResolving to prevent duplicate calls
+      if (hasInitializedRef.current || isResolvingRef.current) {
+        console.log('[Auth] Already initialized or resolving, skipping');
         return;
       }
-      
-      // ✅ VIBRANIUM STABILIZATION: Mark as initializing immediately to prevent race conditions
-      hasInitializedRef.current = true;
-      
+
       try {
         await resolveAuth();
       } catch (err) {
@@ -235,6 +257,7 @@ export function AuthProvider({ children }) {
           console.error('[Auth] Init error:', err);
           setAuthReady(true);
           setLoading(false);
+          hasInitializedRef.current = true;
         }
       } finally {
         if (isMounted && timeoutId) {
@@ -249,7 +272,7 @@ export function AuthProvider({ children }) {
       async (event) => {
         if (!isMounted) return;
         console.log('[Auth] Event:', event);
-        
+
         if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
@@ -257,7 +280,7 @@ export function AuthProvider({ children }) {
           // ✅ Keep authReady true - we're still "ready", just no user
           setAuthReady(true);
           setLoading(false);
-          
+
           // ✅ VIBRANIUM STABILIZATION: Clear all storage on SIGN_OUT
           try {
             if (typeof window !== 'undefined') {
@@ -267,13 +290,21 @@ export function AuthProvider({ children }) {
           } catch (storageError) {
             console.error('[AuthProvider] Storage clear error:', storageError);
           }
-          
+
           // ✅ CROSS-TAB SYNC: Broadcast logout to other tabs
           if (authChannel) {
             authChannel.postMessage('LOGOUT');
           }
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          // ✅ FIX: Use silent refresh for these events
+          // ✅ FIX: Check lock before processing event
+          if (isResolvingRef.current) {
+            // Resolution in progress - queue this event for later
+            console.log('[Auth] Resolution in progress, queuing event:', event);
+            pendingEventRef.current = event;
+            return;
+          }
+
+          // ✅ FIX: Use silent refresh for these events after initialization
           // This prevents loading state from flickering and causing child unmounts
           if (hasInitializedRef.current) {
             // Already initialized - do silent refresh
