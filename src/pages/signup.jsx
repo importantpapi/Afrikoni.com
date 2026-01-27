@@ -38,32 +38,37 @@ function SignupInner() {
     confirmPassword: '',
     general: ''
   });
+  // ✅ FIX: Track if signup was attempted - timeout should only start AFTER signup
+  const [signupAttempted, setSignupAttempted] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
 
-  // ✅ TOTAL VIBRANIUM RESET: Consolidated navigation logic - single useEffect, single destination
-  // Prevents race conditions from duplicate redirect hooks
+  // ✅ FIX: Consolidated navigation logic - only redirect AFTER signup attempted
   useEffect(() => {
     if (!authReady) return;
-    
-    // If user becomes available after signup, redirect
+
+    // If user becomes available after signup, redirect immediately
     if (hasUser) {
       console.log('[Signup] User available from AuthProvider, redirecting to post-login');
       navigate('/auth/post-login', { replace: true });
       return;
     }
-    
-    // ✅ TOTAL VIBRANIUM RESET: Add 10-second timeout fallback to prevent infinite waiting
+
+    // ✅ FIX: Only start timeout AFTER signup was attempted (not on page load!)
+    // This prevents redirecting users who are still filling out the form
+    if (!signupAttempted) return;
+
+    // Timeout only starts after successful signup attempt
     const timeoutId = setTimeout(() => {
-      if (!hasUser && authReady) {
+      if (!hasUser && authReady && signupAttempted) {
         console.warn('[Signup] AuthProvider update timeout (10s) - forcing redirect to post-login');
         navigate('/auth/post-login', { replace: true });
       }
     }, 10000); // 10-second timeout fallback
-    
+
     return () => clearTimeout(timeoutId);
-  }, [authReady, hasUser, navigate]);
+  }, [authReady, hasUser, signupAttempted, navigate]);
 
   // Email validation helper
   const isValidEmail = (email) => {
@@ -224,6 +229,9 @@ function SignupInner() {
         timestamp: new Date().toISOString()
       });
 
+      // ✅ FIX: Mark signup as attempted - now the timeout can start
+      setSignupAttempted(true);
+
       // Show success message immediately
       toast.success(t('signup.success') || 'Account created successfully!');
       
@@ -317,10 +325,13 @@ function SignupInner() {
         // Database errors are non-critical - profile creation handled by PostLoginRouter
         console.log('[Signup] User account created successfully, waiting for session before redirect');
         console.warn('[Signup] Error occurred but user exists (non-critical, suppressed):', errorMessage);
-        
+
+        // ✅ FIX: Mark signup as attempted - now the timeout can start
+        setSignupAttempted(true);
+
         // 🔒 NEVER show database errors - always show success if user exists
         toast.success(t('signup.success') || 'Account created successfully!');
-        
+
         // ✅ KERNEL COMPLIANCE: AuthProvider will update via onAuthStateChange
         // The useEffect above will handle redirect when hasUser becomes true
         console.log('[Signup] Waiting for AuthProvider to update...');

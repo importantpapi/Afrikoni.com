@@ -8,42 +8,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import ProductCard from '@/components/products/ProductCard';
-// ✅ KERNEL-SCHEMA ALIGNMENT: Enhanced error handling for ipapi.co failures (429, network, CORS)
-// ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
-// Simple country detection utility
-const detectCountry = async () => {
-  // ✅ FINAL KERNEL ALIGNMENT: Localhost check - skip API call on localhost
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'BE'; // Belgium (HQ location)
-  }
-  
-  try {
-    let response;
-    try {
-      response = await fetch('https://ipapi.co/json/');
-      
-      // Handle 429 (Too Many Requests) and other HTTP errors gracefully
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Rate limited - silently return null without logging
-          return null;
-        }
-        throw new Error(`IP API failed with status ${response.status}`);
-      }
-    } catch (fetchError) {
-      // Network errors, CORS, or HTTP errors - silently return null
-      return null;
-    }
-    
-    const data = await response.json();
-    return data?.country_code || null;
-  } catch (err) {
-    // ✅ KERNEL-SCHEMA ALIGNMENT: Silent fallback for all errors (429, network, CORS)
-    // Silently fail - CORS error on localhost is expected, rate limits are expected
-    // Return null without logging errors
-    return null;
-  }
-};
+// ✅ FIX: Use centralized geo detection (no CORS issues)
+import { detectCountry } from '@/utils/geoDetection';
 
 // Country code to name mapping
 const CODE_TO_NAME = {
