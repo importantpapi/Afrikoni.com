@@ -163,6 +163,10 @@ const Trending = lazy(() => import('./pages/trending'));
 const Logistics = lazy(() => import('./pages/logistics'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 
+// ✅ ENTERPRISE FIX: Mobile-specific pages
+const InboxMobile = lazy(() => import('./pages/inbox-mobile'));
+const RFQMobileWizard = lazy(() => import('./pages/rfq-mobile-wizard'));
+
 // ============================================
 // DEBUG COMPONENT - Detects stuck auth (Silent mode)
 // ============================================
@@ -324,6 +328,14 @@ function AppContent() {
           <Route path="/verification-center" element={<VerificationCenter />} />
           <Route path="/trending" element={<Trending />} />
           <Route path="/logistics" element={<Logistics />} />
+
+          {/* ✅ ENTERPRISE FIX: Mobile-specific routes */}
+          <Route path="/inbox-mobile" element={
+            <ProtectedRoute>
+              <InboxMobile />
+            </ProtectedRoute>
+          } />
+          <Route path="/rfq/create-mobile" element={<RFQMobileWizard />} />
 
           {/* Onboarding */}
           <Route 

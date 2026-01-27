@@ -109,15 +109,15 @@ export async function login(email, password) {
           }
           
           console.log(`[AuthService] Admin flag synced to JWT metadata (attempt ${attempt}/${maxAttempts}):`, profileData?.is_admin || false);
-          
-          // Refresh session immediately to ensure RLS policies see the flag
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          
-          if (refreshError) {
-            throw refreshError;
-          }
-          
-          console.log(`[AuthService] Session refreshed with updated metadata (attempt ${attempt}/${maxAttempts})`);
+
+          // ✅ ENTERPRISE FIX: Make session refresh fire-and-forget
+          // Don't await - this prevents triggering TOKEN_REFRESHED events during login
+          // The session will refresh naturally on next request
+          supabase.auth.refreshSession().catch(err => {
+            console.warn('[AuthService] Session refresh failed (non-blocking):', err);
+          });
+
+          console.log(`[AuthService] Session refresh triggered (non-blocking)`);
           return; // Success - exit retry loop
         } catch (metadataError) {
           if (attempt === maxAttempts) {

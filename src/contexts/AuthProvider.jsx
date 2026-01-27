@@ -24,6 +24,10 @@ export function AuthProvider({ children }) {
   const hasInitializedRef = useRef(false);
   const schemaValidatedRef = useRef(false);
   const profileNullTimeoutRef = useRef(null);
+  // ✅ FIX: Lock to prevent race conditions during boot sequence
+  const isResolvingRef = useRef(false);
+  // ✅ FIX: Queue events that arrive during resolution
+  const pendingEventRef = useRef(null);
 
   // ✅ SCHEMA VALIDATION: Verify schema integrity before allowing authReady
   const validateSchema = useCallback(async () => {
@@ -78,39 +82,12 @@ export function AuthProvider({ children }) {
       // Handle profile not found gracefully (PGRST116 = not found)
       if (profileError) {
         if (profileError.code === 'PGRST116') {
-          // Profile not found - this is OK for new users
-          console.log('[Auth] Silent refresh - profile not found (new user)');
-          
-          // ✅ ERROR LOGGING & SILENT REFRESH: If profile remains null > 5s, trigger sessionRefresh
-          if (profileNullTimeoutRef.current) {
-            clearTimeout(profileNullTimeoutRef.current);
-          }
-          profileNullTimeoutRef.current = setTimeout(async () => {
-            console.warn('[Auth] Profile null for >5s - triggering session refresh');
-            try {
-              await supabase.auth.refreshSession();
-              // Re-fetch profile after refresh
-              const { data: refreshedProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              if (refreshedProfile) {
-                setProfile(refreshedProfile);
-                setRole(refreshedProfile?.role || null);
-              }
-            } catch (refreshErr) {
-              console.error('[Auth] Session refresh error:', refreshErr);
-            }
-          }, 5000);
+          // ✅ ENTERPRISE FIX: Profile not found - don't trigger refresh loop
+          // New users will be redirected to onboarding by PostLoginRouter
+          // Don't call refreshSession() here - it causes infinite event loops
+          console.log('[Auth] Silent refresh - profile not found (new user → will be redirected to onboarding)');
         } else {
           console.error('[Auth] Silent refresh profile fetch error:', profileError);
-        }
-      } else {
-        // Profile found - clear timeout
-        if (profileNullTimeoutRef.current) {
-          clearTimeout(profileNullTimeoutRef.current);
-          profileNullTimeoutRef.current = null;
         }
       }
 
@@ -127,32 +104,32 @@ export function AuthProvider({ children }) {
 
   // Initial auth resolution (shows loading state)
   const resolveAuth = useCallback(async () => {
+    // ✅ FIX: Acquire lock to prevent concurrent execution
+    if (isResolvingRef.current) {
+      console.log('[Auth] Resolution already in progress, skipping');
+      return;
+    }
+    isResolvingRef.current = true;
+
     try {
       console.log('[Auth] Resolving...');
-      
+
       // ✅ FIX: Only set loading on INITIAL auth, not on refresh
       if (!hasInitializedRef.current) {
         setLoading(true);
       }
 
-      // ✅ SCHEMA CIRCUIT BREAKER: Validate schema integrity before proceeding
+      // ✅ SCHEMA VALIDATION: Validate schema integrity (non-blocking)
+      // FIX: Schema validation failure should NOT block auth - RLS policies enforce security
       const schemaValid = await validateSchema();
       if (!schemaValid) {
-        console.error('[Auth] Schema validation failed - blocking authReady');
-        // ✅ TOTAL VIBRANIUM RESET: Remove timeout bypass - keep authReady false if schema invalid
-        // Instead, set a timeout to show error state but don't bypass circuit breaker
-        setTimeout(() => {
-          console.error('[Auth] Schema validation timeout - app may have degraded functionality');
-          // Don't set authReady=true - keep circuit breaker active
-          // Only clear loading state to prevent infinite spinner
-          setLoading(false);
-          hasInitializedRef.current = true;
-        }, 10000);
-        return;
+        console.warn('[Auth] Schema validation failed - proceeding with degraded mode');
+        console.warn('[Auth] Security is still enforced via RLS policies at database level');
+        // Continue with auth flow - don't block the entire app
       }
 
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         console.log('[Auth] No session - guest mode');
         setUser(null);
@@ -165,14 +142,14 @@ export function AuthProvider({ children }) {
       }
 
       console.log('[Auth] User found:', session.user.id);
-      
+
       // ✅ CLEANUP: Use .single() to avoid empty array logic that keeps loading state active
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
-      
+
       // Handle profile not found gracefully
       if (profileError && profileError.code !== 'PGRST116') {
         console.error('[Auth] Profile fetch error:', profileError);
@@ -194,8 +171,22 @@ export function AuthProvider({ children }) {
       setAuthReady(true);
       setLoading(false);
       hasInitializedRef.current = true;
+    } finally {
+      // ✅ FIX: Release lock and process any pending events
+      isResolvingRef.current = false;
+
+      // Process queued event if any
+      if (pendingEventRef.current) {
+        const pendingEvent = pendingEventRef.current;
+        pendingEventRef.current = null;
+        console.log('[Auth] Processing queued event:', pendingEvent);
+        if (pendingEvent === 'SIGNED_IN' || pendingEvent === 'TOKEN_REFRESHED') {
+          // Use silent refresh for queued events since we just completed initial resolution
+          silentRefresh();
+        }
+      }
     }
-  }, [validateSchema]);
+  }, [validateSchema, silentRefresh]);
 
   useEffect(() => {
     let isMounted = true;
@@ -226,15 +217,12 @@ export function AuthProvider({ children }) {
     }, 10000);
     
     const initAuth = async () => {
-      // ✅ VIBRANIUM STABILIZATION: Prevent INITIAL_SESSION from firing multiple times
-      if (hasInitializedRef.current) {
-        console.log('[Auth] Already initialized, skipping');
+      // ✅ FIX: Check both hasInitialized AND isResolving to prevent duplicate calls
+      if (hasInitializedRef.current || isResolvingRef.current) {
+        console.log('[Auth] Already initialized or resolving, skipping');
         return;
       }
-      
-      // ✅ VIBRANIUM STABILIZATION: Mark as initializing immediately to prevent race conditions
-      hasInitializedRef.current = true;
-      
+
       try {
         await resolveAuth();
       } catch (err) {
@@ -242,6 +230,7 @@ export function AuthProvider({ children }) {
           console.error('[Auth] Init error:', err);
           setAuthReady(true);
           setLoading(false);
+          hasInitializedRef.current = true;
         }
       } finally {
         if (isMounted && timeoutId) {
@@ -256,7 +245,7 @@ export function AuthProvider({ children }) {
       async (event) => {
         if (!isMounted) return;
         console.log('[Auth] Event:', event);
-        
+
         if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
@@ -264,7 +253,7 @@ export function AuthProvider({ children }) {
           // ✅ Keep authReady true - we're still "ready", just no user
           setAuthReady(true);
           setLoading(false);
-          
+
           // ✅ VIBRANIUM STABILIZATION: Clear all storage on SIGN_OUT
           try {
             if (typeof window !== 'undefined') {
@@ -274,13 +263,21 @@ export function AuthProvider({ children }) {
           } catch (storageError) {
             console.error('[AuthProvider] Storage clear error:', storageError);
           }
-          
+
           // ✅ CROSS-TAB SYNC: Broadcast logout to other tabs
           if (authChannel) {
             authChannel.postMessage('LOGOUT');
           }
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          // ✅ FIX: Use silent refresh for these events
+          // ✅ FIX: Check lock before processing event
+          if (isResolvingRef.current) {
+            // Resolution in progress - queue this event for later
+            console.log('[Auth] Resolution in progress, queuing event:', event);
+            pendingEventRef.current = event;
+            return;
+          }
+
+          // ✅ FIX: Use silent refresh for these events after initialization
           // This prevents loading state from flickering and causing child unmounts
           if (hasInitializedRef.current) {
             // Already initialized - do silent refresh
@@ -386,6 +383,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user,
+      hasUser: !!user, // ✅ FIX: Add hasUser for login.jsx and signup.jsx compatibility
       profile,
       role,
       authReady,

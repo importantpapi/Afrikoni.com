@@ -93,108 +93,19 @@ export function useDashboardKernel() {
     };
   }, [user, result.isSystemReady, result.isPreWarming]);
 
-  // ✅ KERNEL HANDSHAKE: Pre-warming timeout (10 seconds) with exponential backoff retry
-  // ✅ GLOBAL REFACTOR: Increased timeout from 5s to 10s, added exponential backoff (3 retries)
+  // ✅ ENTERPRISE FIX: Reduced pre-warming timeout from 10s to 3s
+  // If profile doesn't load in 3s, redirect to onboarding immediately
   useEffect(() => {
     if (result.isPreWarming) {
       setPreWarming(true);
       preWarmingTimeoutRef.current = setTimeout(async () => {
-        console.warn('[useDashboardKernel] Pre-warming timeout (10s) - attempting Kernel Handshake with exponential backoff');
-        
-        // ✅ KERNEL HANDSHAKE: Exponential backoff retry (3 attempts: 1s, 2s, 4s)
-        const maxRetries = 3;
-        let lastError = null;
-        
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          try {
-            const delayMs = 1000 * Math.pow(2, attempt - 1); // Exponential backoff: 1s, 2s, 4s
-            if (attempt > 1) {
-              console.log(`[useDashboardKernel] Retry attempt ${attempt}/${maxRetries} after ${delayMs}ms delay...`);
-              await new Promise(resolve => setTimeout(resolve, delayMs));
-            }
-            
-            // Step 1: Refresh session to get updated metadata
-            console.log(`[useDashboardKernel] Step 1 (attempt ${attempt}/${maxRetries}): Refreshing session...`);
-            await supabase.auth.refreshSession();
-            
-            // Step 2: Re-fetch profile after session refresh
-            console.log(`[useDashboardKernel] Step 2 (attempt ${attempt}/${maxRetries}): Re-fetching profile after session refresh...`);
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single(); // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle()
-              
-              if (profileError) {
-                // Handle PGRST116 (not found) - redirect to onboarding
-                if (profileError.code === 'PGRST116') {
-                  if (attempt < maxRetries) {
-                    lastError = profileError;
-                    continue; // Retry
-                  }
-                  // Last attempt - profile doesn't exist, redirect to onboarding
-                  console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
-                  navigate('/onboarding/company', { replace: true });
-                  return;
-                }
-                // Other errors - throw
-                throw profileError;
-              }
-              
-              if (profileData) {
-                console.log(`[useDashboardKernel] ✅ Kernel Handshake successful (attempt ${attempt}/${maxRetries}) - profile loaded`);
-                // Profile will be updated via AuthProvider's onAuthStateChange listener
-                return; // Don't clear preWarming yet - let AuthProvider update state
-              } else {
-                // Profile is null after refresh - redirect to onboarding
-                console.warn('[useDashboardKernel] Profile is null after refresh - redirecting to onboarding');
-                navigate('/onboarding/company', { replace: true });
-                return;
-              }
-            }
-            
-            // No session - this shouldn't happen, but handle it
-            if (attempt === maxRetries) {
-              console.warn('[useDashboardKernel] No session after all retries - defaulting to Access Denied');
-              setPreWarming(false);
-              return;
-            }
-            lastError = new Error('No session found');
-          } catch (refreshError) {
-            lastError = refreshError;
-            console.error(`[useDashboardKernel] Kernel Handshake error (attempt ${attempt}/${maxRetries}):`, refreshError);
-            
-            // Handle PGRST116 (not found) - redirect to onboarding
-            if (refreshError?.code === 'PGRST116' || refreshError?.message?.includes('not found')) {
-              if (attempt < maxRetries) {
-                continue; // Retry
-              }
-              // Last attempt - profile not found, redirect to onboarding
-              console.warn('[useDashboardKernel] Profile not found after all retries - redirecting to onboarding');
-              navigate('/onboarding/company', { replace: true });
-              return;
-            }
-            
-            // Other errors - retry if not last attempt
-            if (attempt < maxRetries) {
-              continue; // Retry with exponential backoff
-            }
-            
-            // Last attempt failed - log and clear preWarming
-            console.error('[useDashboardKernel] Kernel Handshake failed after all retries:', lastError);
-            setPreWarming(false);
-          }
-        }
-        
-        // All retries exhausted
-        console.error('[useDashboardKernel] Kernel Handshake failed after all retries:', lastError);
+        console.warn('[useDashboardKernel] Pre-warming timeout (3s) - redirecting to onboarding');
+
+        // ✅ ENTERPRISE: Don't retry forever - redirect immediately
+        // If user has no profile after 3s, they need to create one
         setPreWarming(false);
-        // ✅ TOTAL VIBRANIUM RESET: Redirect to login on pre-warming failure
-        console.error('[useDashboardKernel] Pre-warming failed - redirecting to login');
-        navigate('/login?error=profile_sync_failed', { replace: true });
-      }, 10000); // ✅ GLOBAL REFACTOR: Increased timeout from 5s to 10s
+        navigate('/onboarding/company', { replace: true });
+      }, 3000); // ✅ ENTERPRISE: Reduced from 10s to 3s for fast UX
     } else {
       setPreWarming(false);
       if (preWarmingTimeoutRef.current) {
@@ -210,23 +121,20 @@ export function useDashboardKernel() {
     };
   }, [result.isPreWarming]);
 
-  // ✅ SAFETY FALLBACK: If after 10 seconds we are still not ready, log warning
-  // ✅ VIBRANIUM STABILIZATION: Increased from 5s to 10s to allow for slow database responses during initial boot
-  // This helps debug spinner deadlocks without forcing readiness (which could hide real errors)
+  // ✅ ENTERPRISE: Debug timeout reduced to 5s for faster feedback
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!result.isSystemReady && !result.isPreWarming) {
-        console.warn('[useDashboardKernel] Timeout: System still not ready after 10s', {
+        console.warn('[useDashboardKernel] Timeout: System not ready after 5s', {
           authReady,
           authLoading,
           capabilitiesReady: capabilities.ready,
           hasUser: !!user,
           hasProfile: !!profile,
           hasCompanyId: !!profile?.company_id,
-          isPreWarming: result.isPreWarming
         });
       }
-    }, 10000); // ✅ VIBRANIUM STABILIZATION: Increased from 5s to 10s
+    }, 5000); // ✅ ENTERPRISE: Reduced to 5s
     return () => clearTimeout(timer);
   }, [result.isSystemReady, result.isPreWarming, authReady, authLoading, capabilities.ready, user, profile]);
 
