@@ -541,20 +541,30 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // ✅ CRITICAL FIX: Wrap in try/catch to prevent blocking
     try {
-      // Only fetch if we have prerequisites
-      if (!authReady || !currentCompanyId) {
-        // ✅ FIX STATE STAGNATION: Keep ready=false until prerequisites are met
-        // If authReady but no companyId, allow rendering after timeout (for onboarding flow)
+      // ✅ ENTERPRISE FIX: Decouple routing from capabilities
+      // Auth not ready → wait (can't route yet)
+      if (!authReady) {
         setCapabilities(prev => ({
           ...prev,
-          ready: false, // ✅ FIX: Keep false until authReady and companyId are available
+          ready: false,
           loading: false,
-          kernelError: null, // ✅ KERNEL-CENTRIC: Clear error when prerequisites not met
+          kernelError: null,
         }));
-        
-        // ✅ TOTAL VIBRANIUM RESET: Removed 2-second ready timeout - keep ready=false until companyId exists
-        // This prevents race condition during onboarding where ready becomes true before company is created
-        // Components should check for companyId existence separately, not rely on ready state
+        return;
+      }
+
+      // ✅ ENTERPRISE FIX: Auth ready but no companyId → set ready=true immediately
+      // This unblocks PostLoginRouter to redirect to onboarding
+      // "Capabilities" are not relevant for users without a company yet
+      if (!currentCompanyId) {
+        console.log('[CapabilityContext] ✅ ENTERPRISE: No companyId - setting ready=true for routing');
+        setCapabilities(prev => ({
+          ...prev,
+          ready: true, // ✅ UNBLOCK ROUTING - let PostLoginRouter handle redirect
+          loading: false,
+          company_id: null,
+          kernelError: null,
+        }));
         return;
       }
 

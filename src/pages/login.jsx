@@ -149,29 +149,25 @@ export default function Login() {
       console.log('[Login] ✅ Login successful - navigating to /auth/post-login');
       navigate('/auth/post-login', { replace: true });
       
-      // ✅ KERNEL COMPLIANCE: Use email from form instead of direct API call
-      // Non-blocking audit log - full user object will be available after AuthProvider updates
-      try {
-        await logLoginEvent({
-          user: { email: email.trim() },
-          profile: authProfile || null,
-          success: true
-        });
-      } catch (_) {}
+      // ✅ ENTERPRISE FIX: Fire-and-forget audit log - NEVER block navigation
+      // Audit logs are "Side Effects" not "Gatekeepers" (Airbnb pattern)
+      logLoginEvent({
+        user: { email: email.trim() },
+        profile: authProfile || null,
+        success: true
+      }).catch(() => {}); // Silent catch, no await
       
       return; // Exit early - navigation handled above
 
     } catch (err) {
       // ✅ FULL-STACK SYNC: Enhanced error handling
       
-      // Log failed login attempt
-      try {
-        await logLoginEvent({
-          user: { email },
-          profile: null,
-          success: false
-        });
-      } catch (_) {}
+      // ✅ ENTERPRISE FIX: Fire-and-forget failed login audit
+      logLoginEvent({
+        user: { email },
+        profile: null,
+        success: false
+      }).catch(() => {}); // Silent catch, no await
 
       // ✅ KERNEL COMPLIANCE: Use standardized network error detection
       if (isNetworkError(err)) {
