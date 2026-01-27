@@ -365,10 +365,9 @@ export function AuthProvider({ children }) {
       }
       
       // ✅ CROSS-TAB SYNC: Broadcast logout to other tabs
-      if (authChannel) {
-        authChannel.postMessage('LOGOUT');
-      }
-      
+      // Note: This is handled by the SIGNED_OUT event handler in useEffect
+      // which has access to the authChannel. No need to duplicate here.
+
       console.log('[AuthProvider] Logout successful');
     } catch (error) {
       console.error('[AuthProvider] Logout error:', error);

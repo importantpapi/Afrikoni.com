@@ -173,7 +173,7 @@ export default function InboxMobile() {
       <ConversationView
         conversationId={selectedConversation}
         conversation={conversation}
-        currentUser={currentUser}
+        currentUser={user}
         companyId={companyId}
         onBack={() => setSelectedConversation(null)}
       />
@@ -205,7 +205,7 @@ export default function InboxMobile() {
       <ConversationList
         conversations={filteredConversations}
         onSelectConversation={setSelectedConversation}
-        currentUserId={currentUser?.id}
+        currentUserId={user?.id}
       />
 
       {/* Brand Clarity Banner (bottom of list) */}
