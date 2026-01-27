@@ -82,39 +82,12 @@ export function AuthProvider({ children }) {
       // Handle profile not found gracefully (PGRST116 = not found)
       if (profileError) {
         if (profileError.code === 'PGRST116') {
-          // Profile not found - this is OK for new users
-          console.log('[Auth] Silent refresh - profile not found (new user)');
-          
-          // ✅ ERROR LOGGING & SILENT REFRESH: If profile remains null > 5s, trigger sessionRefresh
-          if (profileNullTimeoutRef.current) {
-            clearTimeout(profileNullTimeoutRef.current);
-          }
-          profileNullTimeoutRef.current = setTimeout(async () => {
-            console.warn('[Auth] Profile null for >5s - triggering session refresh');
-            try {
-              await supabase.auth.refreshSession();
-              // Re-fetch profile after refresh
-              const { data: refreshedProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              if (refreshedProfile) {
-                setProfile(refreshedProfile);
-                setRole(refreshedProfile?.role || null);
-              }
-            } catch (refreshErr) {
-              console.error('[Auth] Session refresh error:', refreshErr);
-            }
-          }, 5000);
+          // ✅ ENTERPRISE FIX: Profile not found - don't trigger refresh loop
+          // New users will be redirected to onboarding by PostLoginRouter
+          // Don't call refreshSession() here - it causes infinite event loops
+          console.log('[Auth] Silent refresh - profile not found (new user → will be redirected to onboarding)');
         } else {
           console.error('[Auth] Silent refresh profile fetch error:', profileError);
-        }
-      } else {
-        // Profile found - clear timeout
-        if (profileNullTimeoutRef.current) {
-          clearTimeout(profileNullTimeoutRef.current);
-          profileNullTimeoutRef.current = null;
         }
       }
 
