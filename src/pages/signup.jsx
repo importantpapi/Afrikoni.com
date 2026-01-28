@@ -42,6 +42,9 @@ function SignupInner() {
   });
   // ✅ FIX: Track if signup was attempted - timeout should only start AFTER signup
   const [signupAttempted, setSignupAttempted] = useState(false);
+  // ✅ EMAIL VERIFICATION: Track if waiting for email confirmation
+  const [awaitingEmailVerification, setAwaitingEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
@@ -49,6 +52,12 @@ function SignupInner() {
   // ✅ FIX: Consolidated navigation logic - only redirect AFTER signup attempted
   useEffect(() => {
     if (!authReady) return;
+
+    // ✅ EMAIL VERIFICATION: Don't redirect if waiting for email confirmation
+    if (awaitingEmailVerification) {
+      console.log('[Signup] Waiting for email verification - not redirecting');
+      return;
+    }
 
     // If user becomes available after signup, redirect immediately
     if (hasUser) {
@@ -62,15 +71,16 @@ function SignupInner() {
     if (!signupAttempted) return;
 
     // Timeout only starts after successful signup attempt
+    // But NOT if we're waiting for email verification
     const timeoutId = setTimeout(() => {
-      if (!hasUser && authReady && signupAttempted) {
+      if (!hasUser && authReady && signupAttempted && !awaitingEmailVerification) {
         console.warn('[Signup] AuthProvider update timeout (10s) - forcing redirect to post-login');
         navigate('/auth/post-login', { replace: true });
       }
     }, 10000); // 10-second timeout fallback
 
     return () => clearTimeout(timeoutId);
-  }, [authReady, hasUser, signupAttempted, navigate]);
+  }, [authReady, hasUser, signupAttempted, awaitingEmailVerification, navigate]);
 
   // Email validation helper
   const isValidEmail = (email) => {
@@ -242,9 +252,22 @@ function SignupInner() {
       // ✅ FIX: Mark signup as attempted - now the timeout can start
       setSignupAttempted(true);
 
+      // ✅ EMAIL VERIFICATION: Check if email confirmation is required
+      // If user was created but no session, email confirmation is pending
+      const emailConfirmationRequired = data.user && !data.session;
+
+      if (emailConfirmationRequired) {
+        console.log('[Signup] Email confirmation required - showing verification screen');
+        setAwaitingEmailVerification(true);
+        setVerificationEmail(formData.email.trim());
+        toast.success('Account created! Please check your email to verify your account.');
+        setIsLoading(false);
+        return; // Don't continue - show verification UI
+      }
+
       // Show success message immediately
       toast.success(t('signup.success') || 'Account created successfully!');
-      
+
       // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
       // New users may not have session immediately available in browser storage
       // This prevents "nothing happens" / blank page for new users
@@ -481,6 +504,114 @@ function SignupInner() {
     // For new signups, go to dashboard (will show role selection)
     return '/dashboard';
   };
+
+  // ✅ EMAIL VERIFICATION: Resend verification email
+  const handleResendVerification = async () => {
+    if (!verificationEmail) return;
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: verificationEmail,
+      });
+
+      if (error) throw error;
+      toast.success('Verification email resent! Please check your inbox.');
+    } catch (err) {
+      toast.error('Failed to resend email. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ✅ EMAIL VERIFICATION: Show verification pending screen
+  if (awaitingEmailVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-2xl rounded-xl">
+            <CardContent className="p-8 md:p-10">
+              <div className="text-center">
+                <div className="flex justify-center mb-6">
+                  <Logo type="full" size="lg" link={true} showTagline={true} />
+                </div>
+
+                {/* Email Icon */}
+                <div className="w-20 h-20 mx-auto mb-6 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                  <Mail className="w-10 h-10 text-afrikoni-gold" />
+                </div>
+
+                <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
+                  Check Your Email
+                </h1>
+
+                <p className="text-afrikoni-deep mb-4">
+                  We've sent a verification link to:
+                </p>
+
+                <p className="text-lg font-semibold text-afrikoni-chestnut mb-6 break-all">
+                  {verificationEmail}
+                </p>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-amber-800">
+                    Click the link in your email to verify your account and complete signup.
+                    The link will expire in 24 hours.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleResendVerification}
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      'Resend Verification Email'
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setAwaitingEmailVerification(false);
+                      setVerificationEmail('');
+                      setSignupAttempted(false);
+                    }}
+                    className="w-full text-afrikoni-deep"
+                  >
+                    Use a Different Email
+                  </Button>
+                </div>
+
+                <p className="mt-6 text-sm text-afrikoni-deep/70">
+                  Didn't receive the email? Check your spam folder or{' '}
+                  <button
+                    onClick={handleResendVerification}
+                    className="text-afrikoni-gold hover:underline"
+                  >
+                    click here to resend
+                  </button>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
