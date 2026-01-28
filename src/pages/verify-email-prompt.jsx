@@ -22,9 +22,15 @@ export default function VerifyEmailPrompt() {
         return;
       }
 
+      // ✅ EMAIL VERIFICATION FIX: Include redirect URL to auth-callback
+      const emailRedirectUrl = `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: user.email,
+        options: {
+          emailRedirectTo: emailRedirectUrl,
+        },
       });
 
       if (error) throw error;

@@ -14,15 +14,23 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEmailVerification, setIsEmailVerification] = useState(false);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the URL hash which contains the OAuth tokens
+        // Get the URL hash which contains the OAuth/verification tokens
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const errorParam = hashParams.get('error');
         const errorDescription = hashParams.get('error_description');
+        const tokenType = hashParams.get('type'); // 'signup', 'recovery', 'magiclink', etc.
+
+        // ✅ EMAIL VERIFICATION: Detect if this is email verification callback
+        if (tokenType === 'signup' || tokenType === 'email_change') {
+          setIsEmailVerification(true);
+          console.log('[AuthCallback] Email verification callback detected, type:', tokenType);
+        }
 
         if (errorParam) {
           throw new Error(errorDescription || errorParam);
@@ -84,7 +92,12 @@ export default function AuthCallback() {
           console.log('[AuthCallback] Profile not yet available, PostLoginRouter will handle creation');
         }
 
-        toast.success(t('login.success') || 'Logged in successfully!');
+        // ✅ EMAIL VERIFICATION: Show appropriate success message
+        if (isEmailVerification) {
+          toast.success('Email verified successfully! Welcome to Afrikoni.');
+        } else {
+          toast.success(t('login.success') || 'Logged in successfully!');
+        }
 
         // Check email verification (using user from AuthProvider)
         const emailVerified = user?.email_confirmed_at !== null;
@@ -118,7 +131,7 @@ export default function AuthCallback() {
     if (authReady) {
       handleAuthCallback();
     }
-  }, [navigate, searchParams, t, authReady, user, profile]);
+  }, [navigate, searchParams, t, authReady, user, profile, isEmailVerification]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
@@ -129,7 +142,9 @@ export default function AuthCallback() {
         {isLoading ? (
           <>
             <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-afrikoni-gold" />
-            <p className="text-afrikoni-deep">Completing sign in...</p>
+            <p className="text-afrikoni-deep">
+              {isEmailVerification ? 'Verifying your email...' : 'Completing sign in...'}
+            </p>
           </>
         ) : error ? (
           <>
