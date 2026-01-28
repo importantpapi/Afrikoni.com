@@ -27,8 +27,10 @@ export default function AuthCallback() {
         const tokenType = hashParams.get('type'); // 'signup', 'recovery', 'magiclink', etc.
 
         // ✅ EMAIL VERIFICATION: Detect if this is email verification callback
-        if (tokenType === 'signup' || tokenType === 'email_change') {
-          setIsEmailVerification(true);
+        // Use local variable for immediate checks (state updates are async)
+        const isEmailVerify = tokenType === 'signup' || tokenType === 'email_change';
+        if (isEmailVerify) {
+          setIsEmailVerification(true); // For UI display
           console.log('[AuthCallback] Email verification callback detected, type:', tokenType);
         }
 
@@ -93,7 +95,8 @@ export default function AuthCallback() {
         }
 
         // ✅ EMAIL VERIFICATION: Show appropriate success message
-        if (isEmailVerification) {
+        // Use local variable isEmailVerify (state hasn't updated yet in same render)
+        if (isEmailVerify) {
           toast.success('Email verified successfully! Welcome to Afrikoni.');
         } else {
           toast.success(t('login.success') || 'Logged in successfully!');
@@ -131,7 +134,8 @@ export default function AuthCallback() {
     if (authReady) {
       handleAuthCallback();
     }
-  }, [navigate, searchParams, t, authReady, user, profile, isEmailVerification]);
+  // Note: isEmailVerification intentionally NOT in deps - it's set inside the effect
+  }, [navigate, searchParams, t, authReady, user, profile]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
