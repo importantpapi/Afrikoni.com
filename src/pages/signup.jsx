@@ -900,27 +900,28 @@ function SignupInner() {
               </div>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <GoogleSignIn 
+              {/* ✅ ALIBABA FLOW: Pass selectedRole to OAuth for role-aware signup */}
+              <GoogleSignIn
                 redirectTo={getOAuthRedirectPath()}
+                intendedRole={selectedRole}
                 onSuccess={() => {
                   toast.success(t('signup.success') || 'Account created successfully!');
                   setIsLoading(false);
                 }}
                 onError={(error) => {
                   console.error('[Signup] Google OAuth error:', error);
-                  // Error is already handled in GoogleSignIn component with toast
                   setIsLoading(false);
                 }}
               />
-              <FacebookSignIn 
+              <FacebookSignIn
                 redirectTo={getOAuthRedirectPath()}
+                intendedRole={selectedRole}
                 onSuccess={() => {
                   toast.success(t('signup.success') || 'Account created successfully!');
                   setIsLoading(false);
                 }}
                 onError={(error) => {
                   console.error('[Signup] Facebook OAuth error:', error);
-                  // Error is already handled in FacebookSignIn component with toast
                   setIsLoading(false);
                 }}
               />

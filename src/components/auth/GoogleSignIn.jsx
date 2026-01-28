@@ -8,19 +8,21 @@ import { useLanguage } from '@/i18n/LanguageContext';
 
 /**
  * GoogleSignIn Component
- * 
+ *
  * A reusable component for Google OAuth sign-in using Supabase.
  * Handles authentication flow and redirects to dashboard on success.
- * 
+ *
  * @param {Object} props - Component props
  * @param {string} props.redirectTo - URL to redirect after successful sign-in (default: '/dashboard')
+ * @param {string} props.intendedRole - User's selected role from signup ('buyer'|'seller'|'hybrid'|'services')
  * @param {string} props.variant - Button variant ('primary' | 'outline') (default: 'outline')
  * @param {string} props.className - Additional CSS classes
  * @param {Function} props.onSuccess - Callback function called on successful sign-in
  * @param {Function} props.onError - Callback function called on error
  */
-export default function GoogleSignIn({ 
+export default function GoogleSignIn({
   redirectTo = '/dashboard',
+  intendedRole = null,
   variant = 'outline',
   className = '',
   onSuccess,
@@ -43,15 +45,21 @@ export default function GoogleSignIn({
       setIsLoading(true);
 
       // Get the full redirect URL
-      const fullRedirectUrl = redirectTo.startsWith('http') 
-        ? redirectTo 
+      const fullRedirectUrl = redirectTo.startsWith('http')
+        ? redirectTo
         : `${window.location.origin}${redirectTo}`;
+
+      // ✅ ALIBABA FLOW: Build callback URL with intended_role
+      let callbackUrl = `${window.location.origin}/auth/callback?redirect_to=${encodeURIComponent(fullRedirectUrl)}`;
+      if (intendedRole) {
+        callbackUrl += `&intended_role=${encodeURIComponent(intendedRole)}`;
+      }
 
       // Initiate OAuth flow with Supabase
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect_to=${encodeURIComponent(fullRedirectUrl)}`,
+          redirectTo: callbackUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -123,23 +131,30 @@ export default function GoogleSignIn({
 
 /**
  * Standalone Google Sign-In Function
- * 
+ *
  * If you need to call Google sign-in programmatically (not via button),
  * you can use this function directly.
- * 
+ *
  * @param {string} redirectTo - URL to redirect after successful sign-in
+ * @param {string} intendedRole - User's selected role ('buyer'|'seller'|'hybrid'|'services')
  * @returns {Promise<void>}
  */
-export async function signInWithGoogle(redirectTo = '/dashboard') {
+export async function signInWithGoogle(redirectTo = '/dashboard', intendedRole = null) {
   try {
-    const fullRedirectUrl = redirectTo.startsWith('http') 
-      ? redirectTo 
+    const fullRedirectUrl = redirectTo.startsWith('http')
+      ? redirectTo
       : `${window.location.origin}${redirectTo}`;
+
+    // ✅ ALIBABA FLOW: Include intended_role in callback URL
+    let callbackUrl = `${window.location.origin}/auth/callback?redirect_to=${encodeURIComponent(fullRedirectUrl)}`;
+    if (intendedRole) {
+      callbackUrl += `&intended_role=${encodeURIComponent(intendedRole)}`;
+    }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect_to=${encodeURIComponent(fullRedirectUrl)}`,
+        redirectTo: callbackUrl,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
