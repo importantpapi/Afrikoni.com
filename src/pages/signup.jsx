@@ -192,6 +192,9 @@ function SignupInner() {
       }
       
       try {
+        // ✅ EMAIL VERIFICATION FIX: Build callback URL with intended_role for email verification
+        const emailRedirectUrl = `${window.location.origin}/auth/callback?intended_role=${encodeURIComponent(selectedRole || 'buyer')}`;
+
         const result = await supabase.auth.signUp({
         email: formData.email.trim(), // Trim email to prevent whitespace issues
         password: formData.password,
@@ -201,6 +204,8 @@ function SignupInner() {
             // ✅ ALIBABA FLOW: Store intended role in user metadata
             intended_role: selectedRole, // 'buyer' | 'seller' | 'hybrid' | 'services'
           },
+          // ✅ EMAIL VERIFICATION FIX: Redirect to auth-callback after email verification
+          emailRedirectTo: emailRedirectUrl,
         },
       });
         data = result.data;
@@ -511,9 +516,15 @@ function SignupInner() {
 
     setIsLoading(true);
     try {
+      // ✅ EMAIL VERIFICATION FIX: Include redirect URL with role
+      const emailRedirectUrl = `${window.location.origin}/auth/callback?intended_role=${encodeURIComponent(selectedRole || 'buyer')}`;
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: verificationEmail,
+        options: {
+          emailRedirectTo: emailRedirectUrl,
+        },
       });
 
       if (error) throw error;

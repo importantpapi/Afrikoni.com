@@ -60,9 +60,15 @@ export default function VerifyEmail() {
   const handleResendEmail = async () => {
     setIsResending(true);
     try {
+      // ✅ EMAIL VERIFICATION FIX: Include redirect URL to auth-callback
+      const emailRedirectUrl = `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email: email
+        email: email,
+        options: {
+          emailRedirectTo: emailRedirectUrl,
+        },
       });
 
       if (error) {
