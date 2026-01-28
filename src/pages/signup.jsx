@@ -10,7 +10,7 @@ import { Label } from '@/components/shared/ui/label';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Progress } from '@/components/shared/ui/progress';
-import { User, Mail, Lock, Shield, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Shield, CheckCircle, Loader2, Eye, EyeOff, ShoppingCart, Package, RefreshCw, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { Logo } from '@/components/shared/ui/Logo';
@@ -29,6 +29,8 @@ function SignupInner() {
     password: '',
     confirmPassword: ''
   });
+  // ✅ ALIBABA FLOW: Role selection (intent-first)
+  const [selectedRole, setSelectedRole] = useState(null); // 'buyer' | 'seller' | 'hybrid' | 'services'
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -105,6 +107,12 @@ function SignupInner() {
     let hasErrors = false;
     const newErrors = { email: '', password: '', confirmPassword: '', general: '' };
 
+    // ✅ ALIBABA FLOW: Role selection is required
+    if (!selectedRole) {
+      newErrors.general = 'Please select a role - what do you want to do on Afrikoni?';
+      hasErrors = true;
+    }
+
     // Required fields validation - show explicit inline errors
     if (!formData.fullName.trim()) {
       newErrors.general = 'Please fill in all required fields';
@@ -180,6 +188,8 @@ function SignupInner() {
         options: {
           data: {
             full_name: formData.fullName,
+            // ✅ ALIBABA FLOW: Store intended role in user metadata
+            intended_role: selectedRole, // 'buyer' | 'seller' | 'hybrid' | 'services'
           },
         },
       });
@@ -501,6 +511,83 @@ function SignupInner() {
                   <CheckCircle className="w-4 h-4 text-blue-600" />
                   <span>{t('login.trusted')}</span>
                 </div>
+            </div>
+
+            {/* ✅ ALIBABA FLOW: Role Selection (Intent-First) */}
+            <div className="mb-6">
+              <Label className="mb-3 block font-semibold text-center">I want to:</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Buyer */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('buyer')}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                    selectedRole === 'buyer'
+                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
+                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
+                  }`}
+                >
+                  <ShoppingCart className={`w-6 h-6 ${selectedRole === 'buyer' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
+                  <span className={`font-medium text-sm ${selectedRole === 'buyer' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
+                    Buy Products
+                  </span>
+                  <span className="text-xs text-gray-500">Source from Africa</span>
+                </button>
+
+                {/* Seller */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('seller')}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                    selectedRole === 'seller'
+                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
+                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
+                  }`}
+                >
+                  <Package className={`w-6 h-6 ${selectedRole === 'seller' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
+                  <span className={`font-medium text-sm ${selectedRole === 'seller' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
+                    Sell Products
+                  </span>
+                  <span className="text-xs text-gray-500">Export to the world</span>
+                </button>
+
+                {/* Hybrid (Both) */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('hybrid')}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                    selectedRole === 'hybrid'
+                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
+                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
+                  }`}
+                >
+                  <RefreshCw className={`w-6 h-6 ${selectedRole === 'hybrid' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
+                  <span className={`font-medium text-sm ${selectedRole === 'hybrid' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
+                    Buy & Sell
+                  </span>
+                  <span className="text-xs text-gray-500">Trade both ways</span>
+                </button>
+
+                {/* Services (Logistics, Finance, etc.) */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('services')}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                    selectedRole === 'services'
+                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
+                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
+                  }`}
+                >
+                  <Truck className={`w-6 h-6 ${selectedRole === 'services' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
+                  <span className={`font-medium text-sm ${selectedRole === 'services' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
+                    Provide Services
+                  </span>
+                  <span className="text-xs text-gray-500">Logistics, Finance...</span>
+                </button>
+              </div>
+              {!selectedRole && fieldErrors.general && fieldErrors.general.includes('role') && (
+                <p className="mt-2 text-sm text-red-600 text-center">Please select what you want to do</p>
+              )}
             </div>
 
           <form onSubmit={handleSignup} className="space-y-5">
