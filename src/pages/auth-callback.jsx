@@ -51,6 +51,28 @@ export default function AuthCallback() {
           throw new Error('No session found. Please try signing in again.');
         }
 
+        // ✅ ALIBABA FLOW: Read intended_role from URL (passed from OAuth signup)
+        const intendedRole = searchParams.get('intended_role');
+        if (intendedRole && user) {
+          console.log('[AuthCallback] OAuth signup with intended_role:', intendedRole);
+
+          // Update the user's profile with the intended role
+          try {
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ role: intendedRole })
+              .eq('id', user.id);
+
+            if (updateError) {
+              console.warn('[AuthCallback] Failed to update profile role:', updateError);
+            } else {
+              console.log('[AuthCallback] Profile role updated to:', intendedRole);
+            }
+          } catch (roleError) {
+            console.warn('[AuthCallback] Role update error (non-critical):', roleError);
+          }
+        }
+
         // ✅ KERNEL COMPLIANCE: Use user and profile from AuthProvider
         // Profile creation is handled by PostLoginRouter if needed
         // We don't need to create profile here - AuthProvider and PostLoginRouter handle it

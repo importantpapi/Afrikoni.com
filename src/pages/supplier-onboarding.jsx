@@ -50,15 +50,46 @@ const COMPANY_SIZES = [
   '1000+ employees'
 ];
 
-const STEPS = [
-  { id: 1, title: 'Welcome', icon: Building2 },
-  { id: 2, title: 'Company Info', icon: Building2 },
-  { id: 3, title: 'Verification', icon: Shield },
-  { id: 4, title: 'Categories', icon: Package },
-  { id: 5, title: 'First Product', icon: Package },
-  { id: 6, title: 'Payment Setup', icon: DollarSign },
-  { id: 7, title: 'Complete', icon: CheckCircle },
-];
+// ✅ ALIBABA FLOW: Role-based step configuration
+const STEPS_BY_ROLE = {
+  // Buyer: Minimal friction - just basic info
+  buyer: [
+    { id: 1, title: 'Welcome', icon: Building2 },
+    { id: 2, title: 'Preferences', icon: Building2 },
+    { id: 3, title: 'Complete', icon: CheckCircle },
+  ],
+  // Seller: Full onboarding with products and payment
+  seller: [
+    { id: 1, title: 'Welcome', icon: Building2 },
+    { id: 2, title: 'Company Info', icon: Building2 },
+    { id: 3, title: 'Verification', icon: Shield },
+    { id: 4, title: 'Categories', icon: Package },
+    { id: 5, title: 'First Product', icon: Package },
+    { id: 6, title: 'Payment Setup', icon: DollarSign },
+    { id: 7, title: 'Complete', icon: CheckCircle },
+  ],
+  // Hybrid: Same as seller (they want to sell too)
+  hybrid: [
+    { id: 1, title: 'Welcome', icon: Building2 },
+    { id: 2, title: 'Company Info', icon: Building2 },
+    { id: 3, title: 'Verification', icon: Shield },
+    { id: 4, title: 'Categories', icon: Package },
+    { id: 5, title: 'First Product', icon: Package },
+    { id: 6, title: 'Payment Setup', icon: DollarSign },
+    { id: 7, title: 'Complete', icon: CheckCircle },
+  ],
+  // Services: Company info + verification
+  services: [
+    { id: 1, title: 'Welcome', icon: Building2 },
+    { id: 2, title: 'Company Info', icon: Building2 },
+    { id: 3, title: 'Services', icon: Package },
+    { id: 4, title: 'Verification', icon: Shield },
+    { id: 5, title: 'Complete', icon: CheckCircle },
+  ],
+};
+
+// Default to seller steps for backwards compatibility
+const STEPS = STEPS_BY_ROLE.seller;
 
 export default function SupplierOnboarding() {
   // Use centralized AuthProvider
@@ -69,6 +100,11 @@ export default function SupplierOnboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [companyId, setCompanyId] = useState(null);
   const [completedSteps, setCompletedSteps] = useState([]);
+
+  // ✅ ALIBABA FLOW: Get role-specific steps
+  // Priority: profile.role > user metadata > default to 'seller'
+  const userRole = role || profile?.role || user?.user_metadata?.intended_role || 'seller';
+  const roleSteps = STEPS_BY_ROLE[userRole] || STEPS_BY_ROLE.seller;
   
   const [formData, setFormData] = useState({
     // Step 2: Company Information
@@ -140,12 +176,15 @@ export default function SupplierOnboarding() {
     try {
       setIsLoading(true);
 
+      // ✅ FIX: Use profile.company_id directly (userCompanyId was out of scope)
+      const currentCompanyId = profile?.company_id;
+
       // Load existing company data if available
-      if (userCompanyId) {
+      if (currentCompanyId) {
         const { data: companyData } = await supabase
           .from('companies')
           .select('*')
-          .eq('id', userCompanyId)
+          .eq('id', currentCompanyId)
           .single();
 
         if (companyData) {
@@ -200,40 +239,51 @@ export default function SupplierOnboarding() {
 
   const validateStep = (step) => {
     const newErrors = {};
-    
+
+    // ✅ ALIBABA FLOW: Role-aware validation
     if (step === 2) {
-      if (!formData.company_name.trim()) newErrors.company_name = 'Company name is required';
-      if (!formData.business_type) newErrors.business_type = 'Business type is required';
-      if (!formData.country) newErrors.country = 'Country is required';
-      if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
-      if (!formData.business_email.trim()) newErrors.business_email = 'Business email is required';
-    }
-    
-    if (step === 3) {
-      // Verification is optional but encouraged
-    }
-    
-    if (step === 4) {
-      if (formData.categories.length === 0) {
-        newErrors.categories = 'Please select at least one product category';
+      if (userRole === 'buyer') {
+        // Buyer preferences are all optional
+        // No required fields
+      } else {
+        // Sellers need company info
+        if (!formData.company_name.trim()) newErrors.company_name = 'Company name is required';
+        if (!formData.business_type) newErrors.business_type = 'Business type is required';
+        if (!formData.country) newErrors.country = 'Country is required';
+        if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
+        if (!formData.business_email.trim()) newErrors.business_email = 'Business email is required';
       }
     }
-    
+
+    if (step === 3) {
+      // Verification is optional for all roles
+    }
+
+    if (step === 4) {
+      if (userRole !== 'buyer' && userRole !== 'services') {
+        if (formData.categories.length === 0) {
+          newErrors.categories = 'Please select at least one product category';
+        }
+      }
+    }
+
     if (step === 5) {
       // First product is optional
     }
-    
+
     if (step === 6) {
-      if (!formData.payment_method) {
-        newErrors.payment_method = 'Payment method is required';
-      }
-      if (formData.payment_method === 'bank_transfer') {
-        if (!formData.bank_name.trim()) newErrors.bank_name = 'Bank name is required';
-        if (!formData.account_number.trim()) newErrors.account_number = 'Account number is required';
-        if (!formData.account_holder_name.trim()) newErrors.account_holder_name = 'Account holder name is required';
+      if (userRole !== 'buyer') {
+        if (!formData.payment_method) {
+          newErrors.payment_method = 'Payment method is required';
+        }
+        if (formData.payment_method === 'bank_transfer') {
+          if (!formData.bank_name.trim()) newErrors.bank_name = 'Bank name is required';
+          if (!formData.account_number.trim()) newErrors.account_number = 'Account number is required';
+          if (!formData.account_holder_name.trim()) newErrors.account_holder_name = 'Account holder name is required';
+        }
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -249,7 +299,7 @@ export default function SupplierOnboarding() {
       await saveCompanyInfo();
     }
 
-    if (currentStep < STEPS.length) {
+    if (currentStep < roleSteps.length) {
       setCurrentStep(currentStep + 1);
       setCompletedSteps(prev => [...prev, currentStep]);
     }
@@ -346,7 +396,27 @@ export default function SupplierOnboarding() {
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
-      // Save all data
+      // ✅ ALIBABA FLOW: Role-aware completion
+      if (userRole === 'buyer') {
+        // Buyers: minimal setup - just update profile with preferences
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            country: formData.country || null,
+            onboarding_completed: true,
+          })
+          .eq('id', user.id);
+
+        if (profileError) {
+          console.warn('[Onboarding] Profile update error:', profileError);
+        }
+
+        toast.success('Welcome to Afrikoni! Start exploring.');
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+
+      // Sellers/Hybrid/Services: Full company setup
       await saveCompanyInfo();
 
       // Update company with categories and mark onboarding as completed
@@ -387,8 +457,8 @@ export default function SupplierOnboarding() {
 
         navigate(`/dashboard/products/new?${params.toString()}`);
       } else {
-        // Otherwise take them to their products dashboard
-        navigate('/dashboard/products');
+        // Otherwise take them to their dashboard
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       toast.error('Failed to complete onboarding');
@@ -407,7 +477,7 @@ export default function SupplierOnboarding() {
     }));
   };
 
-  const progress = (currentStep / STEPS.length) * 100;
+  const progress = (currentStep / roleSteps.length) * 100;
 
   if (isLoading) {
     return (
@@ -428,11 +498,20 @@ export default function SupplierOnboarding() {
           </Link>
           <div className="flex items-center justify-between mb-6">
             <div>
+              {/* ✅ ALIBABA FLOW: Role-aware header */}
               <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2">
-                Supplier Onboarding
+                {userRole === 'buyer' ? 'Getting Started' :
+                 userRole === 'services' ? 'Partner Onboarding' :
+                 userRole === 'hybrid' ? 'Trader Setup' : 'Seller Onboarding'}
               </h1>
               <p className="text-afrikoni-text-dark/70">
-                Complete your supplier profile to start selling on Afrikoni
+                {userRole === 'buyer'
+                  ? 'Set up your buyer preferences to start sourcing on Afrikoni'
+                  : userRole === 'services'
+                  ? 'Set up your service provider profile on Afrikoni'
+                  : userRole === 'hybrid'
+                  ? 'Complete your profile to start buying and selling on Afrikoni'
+                  : 'Complete your supplier profile to start selling on Afrikoni'}
               </p>
             </div>
             <Logo type="full" size="sm" />
@@ -442,7 +521,7 @@ export default function SupplierOnboarding() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-afrikoni-text-dark">
-                Step {currentStep} of {STEPS.length}
+                Step {currentStep} of {roleSteps.length}
               </span>
               <span className="text-sm text-afrikoni-text-dark/70">
                 {Math.round(progress)}% Complete
@@ -453,7 +532,7 @@ export default function SupplierOnboarding() {
 
           {/* Step Indicators */}
           <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4">
-            {STEPS.map((step, idx) => {
+            {roleSteps.map((step, idx) => {
               const Icon = step.icon;
               const isCompleted = completedSteps.includes(step.id);
               const isCurrent = currentStep === step.id;
@@ -483,7 +562,7 @@ export default function SupplierOnboarding() {
                       {step.title}
                     </span>
                   </div>
-                  {idx < STEPS.length - 1 && (
+                  {idx < roleSteps.length - 1 && (
                     <div className={`w-12 h-0.5 mx-2 ${
                       isPast ? 'bg-afrikoni-gold' : 'bg-afrikoni-gold/30'
                     }`} />
@@ -505,7 +584,7 @@ export default function SupplierOnboarding() {
           >
             <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
               <CardContent className="p-6 md:p-8">
-                {/* Step 1: Welcome */}
+                {/* Step 1: Welcome - Role-aware content */}
                 {currentStep === 1 && (
                   <div className="text-center space-y-6">
                     <div className="w-24 h-24 bg-afrikoni-gold/20 rounded-full flex items-center justify-center mx-auto">
@@ -513,45 +592,140 @@ export default function SupplierOnboarding() {
                     </div>
                     <div>
                       <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-text-dark mb-4">
-                        Welcome to Afrikoni Supplier Platform
+                        {userRole === 'buyer'
+                          ? 'Welcome to Afrikoni!'
+                          : userRole === 'services'
+                          ? 'Welcome to Afrikoni Partner Network'
+                          : 'Welcome to Afrikoni Supplier Platform'}
                       </h2>
                       <p className="text-afrikoni-text-dark/70 text-lg mb-6">
-                        Let's get your business set up to start selling to buyers across Africa and beyond.
+                        {userRole === 'buyer'
+                          ? "Let's set up your preferences to find the best suppliers across Africa."
+                          : userRole === 'services'
+                          ? "Join our network of trusted logistics, finance, and service partners."
+                          : "Let's get your business set up to start selling to buyers across Africa and beyond."}
                       </p>
                     </div>
                     <div className="grid md:grid-cols-3 gap-4 text-left">
-                      <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
-                        <Shield className="w-8 h-8 text-afrikoni-gold mb-2" />
-                        <h3 className="font-semibold text-afrikoni-chestnut mb-1">Verified Status</h3>
-                        <p className="text-sm text-afrikoni-deep/70">
-                          Get verified and build trust with buyers
-                        </p>
-                      </div>
-                      <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
-                        <Package className="w-8 h-8 text-afrikoni-gold mb-2" />
-                        <h3 className="font-semibold text-afrikoni-chestnut mb-1">Global Reach</h3>
-                        <p className="text-sm text-afrikoni-deep/70">
-                          Access buyers from 54+ African countries
-                        </p>
-                      </div>
-                      <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
-                        <DollarSign className="w-8 h-8 text-afrikoni-gold mb-2" />
-                        <h3 className="font-semibold text-afrikoni-chestnut mb-1">Secure Payments</h3>
-                        <p className="text-sm text-afrikoni-deep/70">
-                          Escrow protection for all transactions
-                        </p>
-                      </div>
+                      {userRole === 'buyer' ? (
+                        <>
+                          <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                            <Package className="w-8 h-8 text-afrikoni-gold mb-2" />
+                            <h3 className="font-semibold text-afrikoni-chestnut mb-1">Quality Products</h3>
+                            <p className="text-sm text-afrikoni-deep/70">
+                              Source from verified African suppliers
+                            </p>
+                          </div>
+                          <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                            <Shield className="w-8 h-8 text-afrikoni-gold mb-2" />
+                            <h3 className="font-semibold text-afrikoni-chestnut mb-1">Buyer Protection</h3>
+                            <p className="text-sm text-afrikoni-deep/70">
+                              Escrow payments protect your orders
+                            </p>
+                          </div>
+                          <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                            <DollarSign className="w-8 h-8 text-afrikoni-gold mb-2" />
+                            <h3 className="font-semibold text-afrikoni-chestnut mb-1">Best Prices</h3>
+                            <p className="text-sm text-afrikoni-deep/70">
+                              Direct from manufacturers & exporters
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                            <Shield className="w-8 h-8 text-afrikoni-gold mb-2" />
+                            <h3 className="font-semibold text-afrikoni-chestnut mb-1">Verified Status</h3>
+                            <p className="text-sm text-afrikoni-deep/70">
+                              Get verified and build trust with buyers
+                            </p>
+                          </div>
+                          <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                            <Package className="w-8 h-8 text-afrikoni-gold mb-2" />
+                            <h3 className="font-semibold text-afrikoni-chestnut mb-1">Global Reach</h3>
+                            <p className="text-sm text-afrikoni-deep/70">
+                              Access buyers from 54+ African countries
+                            </p>
+                          </div>
+                          <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                            <DollarSign className="w-8 h-8 text-afrikoni-gold mb-2" />
+                            <h3 className="font-semibold text-afrikoni-chestnut mb-1">Secure Payments</h3>
+                            <p className="text-sm text-afrikoni-deep/70">
+                              Escrow protection for all transactions
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className="pt-4">
                       <p className="text-sm text-afrikoni-deep/70 mb-4">
-                        This will take about 5-10 minutes to complete.
+                        {userRole === 'buyer'
+                          ? 'This will take less than 1 minute.'
+                          : 'This will take about 5-10 minutes to complete.'}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Step 2: Company Information */}
-                {currentStep === 2 && (
+                {/* Step 2: Role-aware - Preferences (buyer) or Company Info (seller) */}
+                {currentStep === 2 && userRole === 'buyer' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-afrikoni-text-dark mb-2">
+                        Your Preferences
+                      </h2>
+                      <p className="text-afrikoni-text-dark/70">
+                        Help us personalize your experience (optional)
+                      </p>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="country">Your Country</Label>
+                        <Select
+                          value={formData.country}
+                          onValueChange={(value) => handleChange('country', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {AFRICAN_COUNTRIES.map(country => (
+                              <SelectItem key={country} value={country}>{country}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="business_type">What best describes you?</Label>
+                        <Select
+                          value={formData.business_type}
+                          onValueChange={(value) => handleChange('business_type', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="retailer">Retailer</SelectItem>
+                            <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                            <SelectItem value="distributor">Distributor</SelectItem>
+                            <SelectItem value="manufacturer">Manufacturer</SelectItem>
+                            <SelectItem value="individual">Individual Buyer</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="bg-afrikoni-gold/5 rounded-lg p-4 border border-afrikoni-gold/20">
+                      <p className="text-sm text-afrikoni-deep/70">
+                        <Shield className="w-4 h-4 inline mr-1 text-afrikoni-gold" />
+                        You can update these preferences anytime from your dashboard settings.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Company Information (for sellers/hybrid/services) */}
+                {currentStep === 2 && userRole !== 'buyer' && (
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-afrikoni-text-dark mb-2">
@@ -703,8 +877,46 @@ export default function SupplierOnboarding() {
                   </div>
                 )}
 
-                {/* Step 3: Verification */}
-                {currentStep === 3 && (
+                {/* Step 3: Complete for buyers, Verification for sellers */}
+                {currentStep === 3 && userRole === 'buyer' && (
+                  <div className="text-center space-y-6">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto"
+                    >
+                      <CheckCircle className="w-12 h-12 text-green-600" />
+                    </motion.div>
+                    <div>
+                      <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-text-dark mb-4">
+                        You're All Set!
+                      </h2>
+                      <p className="text-afrikoni-text-dark/70 text-lg mb-6">
+                        Start exploring products from verified African suppliers.
+                      </p>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4 text-left">
+                      <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                        <Package className="w-6 h-6 text-afrikoni-gold mb-2" />
+                        <h3 className="font-semibold text-afrikoni-chestnut mb-1">Browse Products</h3>
+                        <p className="text-sm text-afrikoni-deep/70">
+                          Explore thousands of products from African suppliers
+                        </p>
+                      </div>
+                      <div className="p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                        <Shield className="w-6 h-6 text-afrikoni-gold mb-2" />
+                        <h3 className="font-semibold text-afrikoni-chestnut mb-1">Request Quotes</h3>
+                        <p className="text-sm text-afrikoni-deep/70">
+                          Send RFQs to get competitive pricing from suppliers
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Verification (for sellers/hybrid/services) */}
+                {currentStep === 3 && userRole !== 'buyer' && (
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-afrikoni-text-dark mb-2">
@@ -1075,13 +1287,13 @@ export default function SupplierOnboarding() {
             Back
           </Button>
           <div className="flex gap-2">
-            {currentStep < STEPS.length ? (
+            {currentStep < roleSteps.length ? (
               <Button
                 onClick={handleNext}
                 disabled={isSubmitting}
                 className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
               >
-                {currentStep === STEPS.length - 1 ? 'Complete Setup' : 'Next'}
+                {currentStep === roleSteps.length - 1 ? 'Complete Setup' : 'Next'}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
