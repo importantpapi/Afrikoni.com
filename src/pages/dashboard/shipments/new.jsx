@@ -21,16 +21,22 @@ import ErrorState from '@/components/shared/ui/ErrorState';
 
 export default function NewShipmentPage() {
   // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
-  const { user, profile, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
+  const { user, profile, userId, profileCompanyId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
-  
+
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState(null); // ✅ FIX: Add missing error state
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(orderId || '');
   const [companyId, setCompanyId] = useState(null);
+
+  // ✅ FIX: Derive userRole from capabilities
+  const userRole = capabilities?.can_sell && capabilities?.can_buy ? 'hybrid'
+    : capabilities?.can_sell ? 'seller'
+    : 'buyer';
   
   // Shipment form fields
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -102,7 +108,7 @@ export default function NewShipmentPage() {
       setIsLoading(false);
       // Don't navigate on error to avoid loops - just show error
     }
-  }, [navigate, orderId, profile, role]);
+  }, [navigate, orderId, profileCompanyId, userRole, canLoadData]);
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
