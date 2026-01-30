@@ -71,6 +71,7 @@ export default function PostLoginRouter() {
 
     // Fast-path: Auth ready + user exists + has company_id but no profile yet
     // Wait briefly then redirect (profile might be loading)
+    // ✅ SKELETON FIX: Reduced from 2s to 1s for faster UX
     if (authReady && user && !profile) {
       const timer = setTimeout(() => {
         if (!hasNavigatedRef.current) {
@@ -81,7 +82,7 @@ export default function PostLoginRouter() {
           hasNavigatedRef.current = true;
           navigate(onboardingPath, { replace: true });
         }
-      }, 2000); // 2 second wait for profile to load
+      }, 1000); // ✅ Reduced from 2s to 1s
       return () => clearTimeout(timer);
     }
   }, [authReady, user, profile, navigate]);
@@ -114,7 +115,7 @@ export default function PostLoginRouter() {
 
   }, [isSystemReady, capabilities?.ready, userId, profileCompanyId, navigate]);
 
-  // ✅ Safety fallback: If nothing happens after 8 seconds, force redirect
+  // ✅ SKELETON FIX: Reduced fallback timeout from 8s to 5s for faster UX
   // ✅ ALIBABA FLOW: Use role-based routing in fallback too
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
@@ -123,11 +124,11 @@ export default function PostLoginRouter() {
         const fallbackPath = profile?.company_id
           ? getDashboardPath(userRole)
           : getOnboardingPath(userRole);
-        console.warn(`[PostLoginRouter] Fallback: 8s timeout - forcing redirect to ${fallbackPath}`);
+        console.warn(`[PostLoginRouter] Fallback: 5s timeout - forcing redirect to ${fallbackPath}`);
         hasNavigatedRef.current = true;
         window.location.href = fallbackPath;
       }
-    }, 8000);
+    }, 5000); // ✅ Reduced from 8s to 5s
 
     return () => clearTimeout(fallbackTimer);
   }, [authReady, user, profile]);

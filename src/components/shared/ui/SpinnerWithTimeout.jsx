@@ -13,9 +13,9 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from './button';
 import { Card } from './card';
 
-export function SpinnerWithTimeout({ 
+export function SpinnerWithTimeout({
   message = 'Loading...',
-  timeoutMs = 15000, // ✅ TOTAL VIBRANIUM RESET: Increased to 15s for rescue timeout
+  timeoutMs = 8000, // ✅ SKELETON FIX: Reduced from 15s to 8s for faster UX
   ready = false, // PHASE 5B: If true, timeout NEVER triggers
   onRetry,
   className = ''

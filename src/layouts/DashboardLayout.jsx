@@ -196,16 +196,13 @@ export default function DashboardLayout({
   
   // PHASE 5B: Track if layout has been mounted once (to prevent unmounting)
   const hasMountedRef = useRef(false);
-  
-  // ✅ CRITICAL FIX: Safe access with optional chaining
-  // PHASE 5B: Check capability.ready ONCE before first mount
-  // If capabilities not ready and not mounted yet, show loading
-  // Once mounted, NEVER unmount (even if capabilities change)
+
+  // ✅ SKELETON FIX: Removed pre-mount loading check
+  // WorkspaceDashboard (parent) already verifies isSystemReady via useDashboardKernel
+  // Having another loading screen here causes cascading loading states ("skeleton problem")
+  // Trust that the parent component has already verified capabilities
   if (!hasMountedRef.current) {
-    if (!safeCapabilities?.ready) {
-      return <SpinnerWithTimeout message="Preparing your workspace..." ready={safeCapabilities?.ready ?? true} />;
-    }
-    // PHASE 5B: Mark as mounted once capabilities are ready (only runs once)
+    // PHASE 5B: Mark as mounted immediately (no loading guard here)
     hasMountedRef.current = true;
   }
   

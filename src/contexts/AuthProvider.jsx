@@ -119,14 +119,27 @@ export function AuthProvider({ children }) {
         setLoading(true);
       }
 
-      // ✅ SCHEMA VALIDATION: Validate schema integrity (non-blocking)
-      // FIX: Schema validation failure should NOT block auth - RLS policies enforce security
-      const schemaValid = await validateSchema();
-      if (!schemaValid) {
-        console.warn('[Auth] Schema validation failed - proceeding with degraded mode');
-        console.warn('[Auth] Security is still enforced via RLS policies at database level');
-        // Continue with auth flow - don't block the entire app
-      }
+      // ✅ SCHEMA VALIDATION FIX: Run validation in background with timeout (non-blocking)
+      // Schema validation should NEVER block auth - it's informational only
+      // RLS policies enforce security at database level regardless
+      const validateSchemaWithTimeout = async () => {
+        try {
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Schema validation timeout')), 3000)
+          );
+          const validationPromise = validateSchema();
+          const schemaValid = await Promise.race([validationPromise, timeoutPromise]);
+          if (!schemaValid) {
+            console.warn('[Auth] Schema validation failed - proceeding with degraded mode');
+          } else {
+            console.log('[Auth] ✅ Schema validation passed');
+          }
+        } catch (err) {
+          console.warn('[Auth] Schema validation skipped (timeout or error):', err.message);
+        }
+      };
+      // Fire-and-forget - don't await, don't block auth flow
+      validateSchemaWithTimeout();
 
       const { data: { session } } = await supabase.auth.getSession();
 

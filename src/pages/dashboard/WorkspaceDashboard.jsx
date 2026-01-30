@@ -59,14 +59,15 @@ export default function WorkspaceDashboard() {
   // ===========================================================================
   // RENDER GUARDS (Standardized via Kernel)
   // ===========================================================================
-  
-  // ✅ FULL-STACK SYNC: Pre-warming state - show "Synchronizing World" message
-  if (isPreWarming) {
-    return <SpinnerWithTimeout message="Synchronizing World..." ready={false} timeoutMs={3000} />;
-  }
 
+  // ✅ SKELETON FIX: Consolidated loading check
+  // Pre-warming and system readiness are both handled by a single guard
+  // This prevents multiple sequential loading screens ("skeleton problem")
+  // useDashboardKernel already handles pre-warming timeout (3s → redirect to onboarding)
   if (!isSystemReady) {
-    return <SpinnerWithTimeout message="Initializing Workspace..." ready={isSystemReady} />;
+    // Single loading message - no cascading states
+    const loadingMessage = isPreWarming ? "Synchronizing..." : "Loading...";
+    return <SpinnerWithTimeout message={loadingMessage} ready={isSystemReady} timeoutMs={5000} />;
   }
 
   // ✅ KERNEL MIGRATION: Prepare capabilities data for DashboardLayout
