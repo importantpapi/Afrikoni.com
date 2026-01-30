@@ -93,19 +93,19 @@ export function useDashboardKernel() {
     };
   }, [user, result.isSystemReady, result.isPreWarming]);
 
-  // ✅ ENTERPRISE FIX: Reduced pre-warming timeout from 10s to 3s
-  // If profile doesn't load in 3s, redirect to onboarding immediately
+  // ✅ SKELETON FIX: Reduced pre-warming timeout from 3s to 2s for faster UX
+  // If profile doesn't load in 2s, redirect to onboarding immediately
   useEffect(() => {
     if (result.isPreWarming) {
       setPreWarming(true);
       preWarmingTimeoutRef.current = setTimeout(async () => {
-        console.warn('[useDashboardKernel] Pre-warming timeout (3s) - redirecting to onboarding');
+        console.warn('[useDashboardKernel] Pre-warming timeout (2s) - redirecting to onboarding');
 
         // ✅ ENTERPRISE: Don't retry forever - redirect immediately
-        // If user has no profile after 3s, they need to create one
+        // If user has no profile after 2s, they need to create one
         setPreWarming(false);
         navigate('/onboarding/company', { replace: true });
-      }, 3000); // ✅ ENTERPRISE: Reduced from 10s to 3s for fast UX
+      }, 2000); // ✅ SKELETON FIX: Reduced from 3s to 2s
     } else {
       setPreWarming(false);
       if (preWarmingTimeoutRef.current) {
@@ -121,11 +121,11 @@ export function useDashboardKernel() {
     };
   }, [result.isPreWarming]);
 
-  // ✅ ENTERPRISE: Debug timeout reduced to 5s for faster feedback
+  // ✅ SKELETON FIX: Debug timeout reduced to 3s for faster feedback
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!result.isSystemReady && !result.isPreWarming) {
-        console.warn('[useDashboardKernel] Timeout: System not ready after 5s', {
+        console.warn('[useDashboardKernel] Timeout: System not ready after 3s', {
           authReady,
           authLoading,
           capabilitiesReady: capabilities.ready,
@@ -134,7 +134,7 @@ export function useDashboardKernel() {
           hasCompanyId: !!profile?.company_id,
         });
       }
-    }, 5000); // ✅ ENTERPRISE: Reduced to 5s
+    }, 3000); // ✅ SKELETON FIX: Reduced from 5s to 3s
     return () => clearTimeout(timer);
   }, [result.isSystemReady, result.isPreWarming, authReady, authLoading, capabilities.ready, user, profile]);
 
