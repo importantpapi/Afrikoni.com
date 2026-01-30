@@ -42,6 +42,7 @@ export default function CreateRFQ() {
   const [cities, setCities] = useState([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [error, setError] = useState(null); // ✅ FIX: Add missing error state
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   // ✅ FIX: Derive role from capabilities (no undefined role variable)
   const derivedRole = capabilities.can_buy ? 'buyer' : 'seller';
