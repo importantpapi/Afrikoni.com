@@ -16,14 +16,14 @@ export const Select = ({ children, value, onValueChange }) => {
 
 export const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) => {
   const { open, setOpen } = React.useContext(SelectContext);
-  
+
   return (
     <button
       ref={ref}
       type="button"
       onClick={() => setOpen(!open)}
       className={cn(
-        'flex h-10 w-full items-center justify-between rounded-md border border-afrikoni-gold/30 bg-afrikoni-offwhite px-3 py-2 text-sm ring-offset-white placeholder:text-afrikoni-earth/60 text-afrikoni-earth focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        'flex h-10 sm:h-10 min-h-[44px] sm:min-h-0 w-full items-center justify-between rounded-md border border-afrikoni-gold/30 bg-afrikoni-offwhite px-3 py-2 text-sm ring-offset-white placeholder:text-afrikoni-earth/60 text-afrikoni-earth focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation',
         className
       )}
       {...props}
@@ -110,7 +110,7 @@ export const SelectItem = ({ children, value, className, ...props }) => {
   return (
     <div
       className={cn(
-        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-afrikoni-cream focus:bg-afrikoni-cream text-afrikoni-deep transition-colors',
+        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-3 sm:py-1.5 px-3 sm:px-2 text-sm outline-none hover:bg-afrikoni-cream focus:bg-afrikoni-cream text-afrikoni-deep transition-colors touch-manipulation min-h-[44px] sm:min-h-0',
         className
       )}
       onClick={handleClick}
