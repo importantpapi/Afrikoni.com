@@ -1,29 +1,99 @@
 /**
  * WhatsApp Community Page
  * Join the Afrikoni Trade Community on WhatsApp
+ * GATED: Only available to authenticated users to prevent value leakage
  */
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Users, Shield, TrendingUp, ArrowRight, QrCode } from 'lucide-react';
+import { MessageCircle, Users, Shield, TrendingUp, ArrowRight, QrCode, LogIn } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import SEO from '@/components/SEO';
 import { openWhatsAppCommunity, generateWhatsAppQRCode } from '@/utils/whatsappCommunity';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { useAuth } from '@/contexts/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 export default function Community() {
   const { t } = useLanguage();
   const { trackEvent } = useAnalytics();
+  const { user, authReady } = useAuth();
+  const navigate = useNavigate();
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const whatsappLink = import.meta.env.VITE_WHATSAPP_COMMUNITY_LINK || 'https://chat.whatsapp.com/KmhNH1jLkPrHg18ktpNa5v';
 
   useEffect(() => {
-    // Generate QR code on mount
-    const qrUrl = generateWhatsAppQRCode(whatsappLink);
-    setQrCodeUrl(qrUrl);
-  }, [whatsappLink]);
+    // Generate QR code on mount - only if authenticated
+    if (user) {
+      const qrUrl = generateWhatsAppQRCode(whatsappLink);
+      setQrCodeUrl(qrUrl);
+    }
+  }, [whatsappLink, user]);
+
+  // GATED: Show auth prompt for unauthenticated users
+  if (authReady && !user) {
+    return (
+      <>
+        <SEO
+          title="Join the Afrikoni Trade Community"
+          description="Connect with verified buyers, suppliers & logistics partners. Sign in to access our exclusive community."
+          url="/community"
+        />
+        <div className="min-h-screen bg-gradient-to-b from-afrikoni-offwhite to-afrikoni-cream flex items-center justify-center px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="max-w-md w-full border-2 border-afrikoni-gold/30 shadow-afrikoni-lg">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-afrikoni-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-8 h-8 text-afrikoni-gold" />
+                </div>
+                <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                  Members-Only Community
+                </h1>
+                <p className="text-afrikoni-deep/80 mb-6">
+                  Our WhatsApp community is exclusively for verified Afrikoni members.
+                  Sign in or create an account to connect with thousands of African traders.
+                </p>
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => navigate('/auth?redirect=/community')}
+                    className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Sign In to Join
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/auth?mode=signup&redirect=/community')}
+                    className="w-full border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
+                  >
+                    Create Free Account
+                  </Button>
+                </div>
+                <p className="text-sm text-afrikoni-deep/60 mt-6">
+                  This keeps our community safe and spam-free
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </>
+    );
+  }
+
+  // Loading state
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+      </div>
+    );
+  }
 
   const handleJoinClick = () => {
     trackEvent('join_whatsapp_clicked', {

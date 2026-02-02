@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
 import { validateNumeric, sanitizeString } from '@/utils/security';
 import { createRFQ } from '@/services/rfqService';
+import SeriousModeGate from '@/components/serious-mode/SeriousModeGate';
 
 const AFRICAN_COUNTRIES = [
   'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -527,7 +528,11 @@ export default function CreateRFQ() {
   }
 
   return (
-    <>
+    <SeriousModeGate
+      requiredAction="rfq"
+      userId={userId}
+      companyId={profile?.company_id}
+    >
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/rfqs')}>
@@ -840,7 +845,7 @@ export default function CreateRFQ() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </SeriousModeGate>
   );
 }
 

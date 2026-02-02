@@ -40,6 +40,8 @@ export default function BusinessProfile() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isOwner, setIsOwner] = useState(false);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
+  const [hasCompletedTransaction, setHasCompletedTransaction] = useState(false);
+  const [isCheckingTransaction, setIsCheckingTransaction] = useState(true);
   const productsPerPage = 12;
 
   useEffect(() => {
@@ -59,6 +61,61 @@ export default function BusinessProfile() {
         setIsOwner(true);
       }
     }
+  }, [authReady, user, profile, id]);
+
+  // Check if user has completed a transaction with this supplier
+  useEffect(() => {
+    const checkTransactionHistory = async () => {
+      if (!authReady || !user || !profile?.company_id || !id) {
+        setIsCheckingTransaction(false);
+        return;
+      }
+
+      // Owner always has access
+      if (profile.company_id === id) {
+        setHasCompletedTransaction(true);
+        setIsCheckingTransaction(false);
+        return;
+      }
+
+      try {
+        // Check for completed orders between user's company and this supplier
+        const { data: orders, error } = await supabase
+          .from('orders')
+          .select('id')
+          .or(`buyer_company_id.eq.${profile.company_id},seller_company_id.eq.${profile.company_id}`)
+          .or(`buyer_company_id.eq.${id},seller_company_id.eq.${id}`)
+          .eq('status', 'completed')
+          .limit(1);
+
+        if (error) {
+          console.error('Error checking transaction history:', error);
+          setIsCheckingTransaction(false);
+          return;
+        }
+
+        // More precise check: need BOTH conditions to be true
+        const { data: precisOrders, error: preciseError } = await supabase
+          .from('orders')
+          .select('id')
+          .in('status', ['completed', 'delivered', 'closeout'])
+          .or(
+            `and(buyer_company_id.eq.${profile.company_id},seller_company_id.eq.${id}),` +
+            `and(buyer_company_id.eq.${id},seller_company_id.eq.${profile.company_id})`
+          )
+          .limit(1);
+
+        if (!preciseError && precisOrders && precisOrders.length > 0) {
+          setHasCompletedTransaction(true);
+        }
+      } catch (err) {
+        console.error('Failed to check transaction history:', err);
+      } finally {
+        setIsCheckingTransaction(false);
+      }
+    };
+
+    checkTransactionHistory();
   }, [authReady, user, profile, id]);
 
   const loadBusinessData = async () => {
@@ -387,7 +444,7 @@ export default function BusinessProfile() {
                         <MessageSquare className="w-5 h-5 mr-2" />
                         Contact Supplier
                       </Button>
-                      {business.website && (
+                      {business.website && (isOwner || hasCompletedTransaction) && (
                         <Button
                           variant="outline"
                           asChild
@@ -610,22 +667,60 @@ export default function BusinessProfile() {
                           <p className="font-bold text-afrikoni-chestnut">{business.employee_count}</p>
                         </div>
                       )}
-                      {business.phone && (
-                        <div className="p-4 bg-afrikoni-green/5 rounded-xl border border-afrikoni-green/20">
-                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            Phone
-                          </p>
-                          <p className="font-bold text-afrikoni-chestnut">{business.phone}</p>
-                        </div>
-                      )}
-                      {business.email && (
-                        <div className="p-4 bg-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
-                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            Email
-                          </p>
-                          <p className="font-bold text-afrikoni-chestnut break-all">{business.email}</p>
+                      {/* Contact Info - Gated until transaction completed */}
+                      {(isOwner || hasCompletedTransaction) ? (
+                        <>
+                          {business.phone && (
+                            <div className="p-4 bg-afrikoni-green/5 rounded-xl border border-afrikoni-green/20">
+                              <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                Phone
+                              </p>
+                              <p className="font-bold text-afrikoni-chestnut">{business.phone}</p>
+                            </div>
+                          )}
+                          {business.email && (
+                            <div className="p-4 bg-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
+                              <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
+                                <Mail className="w-3 h-3" />
+                                Email
+                              </p>
+                              <p className="font-bold text-afrikoni-chestnut break-all">{business.email}</p>
+                            </div>
+                          )}
+                        </>
+                      ) : (business.phone || business.email) && (
+                        <div className="col-span-2 p-5 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 rounded-xl border-2 border-afrikoni-gold/30">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-afrikoni-gold/20 flex items-center justify-center flex-shrink-0">
+                              <Shield className="w-5 h-5 text-afrikoni-gold" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-afrikoni-chestnut mb-1">Contact Info Protected</h4>
+                              <p className="text-sm text-afrikoni-deep/70 mb-3">
+                                Complete your first transaction with this supplier to unlock direct contact details.
+                                This protects both buyers and suppliers from spam and fraud.
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => setShowMessageDialog(true)}
+                                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+                                >
+                                  <MessageSquare className="w-4 h-4 mr-1" />
+                                  Send Message First
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => navigate('/dashboard/rfqs/new')}
+                                  className="border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
+                                >
+                                  Create RFQ
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

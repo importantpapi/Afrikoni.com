@@ -245,20 +245,18 @@ export default function Contact() {
 
           <Card className="border-afrikoni-gold/20">
             <CardContent className="p-6 text-center">
-              <MessageCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <h3 className="font-bold text-afrikoni-chestnut mb-2">WhatsApp Community</h3>
-              <p className="text-sm text-afrikoni-deep mb-2">Join our community for instant support</p>
-              <a 
-                href="https://chat.whatsapp.com/KmhNH1jLkPrHg18ktpNa5v" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-green-600 hover:underline font-semibold"
+              <Phone className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="font-bold text-afrikoni-chestnut mb-2">Phone Support</h3>
+              <p className="text-sm text-afrikoni-deep mb-2">Speak directly with our team</p>
+              <a
+                href="tel:+32456779368"
+                className="text-blue-600 hover:underline font-semibold"
               >
-                Join Community
+                +32 456 77 93 68
               </a>
               <div className="mt-4">
                 <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                  24/7 Available
+                  Business Hours
                 </span>
               </div>
             </CardContent>
@@ -431,8 +429,8 @@ export default function Contact() {
                     <span className="text-green-600 font-semibold">24/7</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-afrikoni-deep">WhatsApp Community</span>
-                    <span className="text-green-600 font-semibold">24/7</span>
+                    <span className="text-afrikoni-deep">Phone Support</span>
+                    <span className="text-green-600 font-semibold">Mon-Fri 9AM-6PM CET</span>
                   </div>
                 </div>
               </div>
