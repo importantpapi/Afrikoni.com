@@ -11,7 +11,7 @@ export default function Pricing() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [orderValue, setOrderValue] = useState(10000);
-  const [selectedTier, setSelectedTier] = useState('bronze');
+  const [selectedTier, setSelectedTier] = useState('starter'); // Default to free tier
   
   // Refs for scrolling
   const calculatorRef = useRef(null);
@@ -47,9 +47,12 @@ export default function Pricing() {
     // Handle plan selection
     if (plan) {
       const planMap = {
-        'free': 'bronze',
-        'verified': 'silver',
-        'enterprise': 'enterprise'
+        'free': 'starter',
+        'starter': 'starter',
+        'growth': 'growth',
+        'pro': 'growth', // Pro maps to Growth for sellers
+        'elite': 'elite',
+        'business': 'elite' // Business maps to Elite for sellers
       };
       if (planMap[plan]) {
         setSelectedTier(planMap[plan]);

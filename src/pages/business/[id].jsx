@@ -80,34 +80,37 @@ export default function BusinessProfile() {
 
       try {
         // Check for completed orders between user's company and this supplier
-        const { data: orders, error } = await supabase
+        // Query 1: User's company is buyer, this business is seller
+        const { data: ordersAsBuyer, error: error1 } = await supabase
           .from('orders')
           .select('id')
-          .or(`buyer_company_id.eq.${profile.company_id},seller_company_id.eq.${profile.company_id}`)
-          .or(`buyer_company_id.eq.${id},seller_company_id.eq.${id}`)
-          .eq('status', 'completed')
+          .eq('buyer_company_id', profile.company_id)
+          .eq('seller_company_id', id)
+          .in('status', ['completed', 'delivered', 'closeout'])
           .limit(1);
 
-        if (error) {
-          console.error('Error checking transaction history:', error);
+        if (!error1 && ordersAsBuyer && ordersAsBuyer.length > 0) {
+          setHasCompletedTransaction(true);
           setIsCheckingTransaction(false);
           return;
         }
 
-        // More precise check: need BOTH conditions to be true
-        const { data: precisOrders, error: preciseError } = await supabase
+        // Query 2: User's company is seller, this business is buyer
+        const { data: ordersAsSeller, error: error2 } = await supabase
           .from('orders')
           .select('id')
+          .eq('seller_company_id', profile.company_id)
+          .eq('buyer_company_id', id)
           .in('status', ['completed', 'delivered', 'closeout'])
-          .or(
-            `and(buyer_company_id.eq.${profile.company_id},seller_company_id.eq.${id}),` +
-            `and(buyer_company_id.eq.${id},seller_company_id.eq.${profile.company_id})`
-          )
           .limit(1);
 
-        if (!preciseError && precisOrders && precisOrders.length > 0) {
+        if (!error2 && ordersAsSeller && ordersAsSeller.length > 0) {
           setHasCompletedTransaction(true);
         }
+
+        // Log errors for debugging but don't block
+        if (error1) console.warn('Transaction check query 1 error:', error1);
+        if (error2) console.warn('Transaction check query 2 error:', error2);
       } catch (err) {
         console.error('Failed to check transaction history:', err);
       } finally {

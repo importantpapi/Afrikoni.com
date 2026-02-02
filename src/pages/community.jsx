@@ -61,7 +61,7 @@ export default function Community() {
                 </p>
                 <div className="space-y-3">
                   <Button
-                    onClick={() => navigate('/auth?redirect=/community')}
+                    onClick={() => navigate('/login?redirect=/community')}
                     className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
                   >
                     <LogIn className="w-4 h-4 mr-2" />
@@ -69,7 +69,7 @@ export default function Community() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => navigate('/auth?mode=signup&redirect=/community')}
+                    onClick={() => navigate('/signup?redirect=/community')}
                     className="w-full border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
                   >
                     Create Free Account
