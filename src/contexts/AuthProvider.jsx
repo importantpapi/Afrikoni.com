@@ -19,14 +19,18 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
-  
-  // ✅ FIX: Track if initial auth has completed
+  // FIX: New flag that's only true when auth resolution is FULLY complete
+  // This prevents race conditions where other components react to authReady
+  // before profile fetch has completed
+  const [authResolutionComplete, setAuthResolutionComplete] = useState(false);
+
+  // FIX: Track if initial auth has completed
   const hasInitializedRef = useRef(false);
   const schemaValidatedRef = useRef(false);
   const profileNullTimeoutRef = useRef(null);
-  // ✅ FIX: Lock to prevent race conditions during boot sequence
+  // FIX: Lock to prevent race conditions during boot sequence
   const isResolvingRef = useRef(false);
-  // ✅ FIX: Queue events that arrive during resolution
+  // FIX: Queue events that arrive during resolution
   const pendingEventRef = useRef(null);
 
   // ✅ SCHEMA VALIDATION: Verify schema integrity before allowing authReady
@@ -150,6 +154,7 @@ export function AuthProvider({ children }) {
         setRole(null);
         setAuthReady(true);
         setLoading(false);
+        setAuthResolutionComplete(true); // FIX: Signal that resolution is fully complete
         hasInitializedRef.current = true;
         return;
       }
@@ -173,6 +178,7 @@ export function AuthProvider({ children }) {
       setRole(profileData?.role || null);
       setAuthReady(true);
       setLoading(false);
+      setAuthResolutionComplete(true); // FIX: Signal that resolution is fully complete (with profile)
       hasInitializedRef.current = true;
 
       console.log('[Auth] ✅ Resolved:', { role: profileData?.role || 'none' });
@@ -183,6 +189,7 @@ export function AuthProvider({ children }) {
       setRole(null);
       setAuthReady(true);
       setLoading(false);
+      setAuthResolutionComplete(true); // FIX: Signal completion even on error (allows routing)
       hasInitializedRef.current = true;
     } finally {
       // ✅ FIX: Release lock and process any pending events
@@ -222,9 +229,10 @@ export function AuthProvider({ children }) {
     // Safety timeout - force loading to false after 10 seconds
     timeoutId = setTimeout(() => {
       if (isMounted && loading && !hasInitializedRef.current) {
-        console.warn('[Auth] Loading timeout - forcing to false');
+        console.warn('[Auth] Loading timeout (10s) - forcing resolution complete');
         setAuthReady(true);
         setLoading(false);
+        setAuthResolutionComplete(true); // FIX: Signal completion on timeout
         hasInitializedRef.current = true;
       }
     }, 10000);
@@ -243,6 +251,7 @@ export function AuthProvider({ children }) {
           console.error('[Auth] Init error:', err);
           setAuthReady(true);
           setLoading(false);
+          setAuthResolutionComplete(true); // FIX: Signal completion on error
           hasInitializedRef.current = true;
         }
       } finally {
@@ -395,10 +404,11 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user,
-      hasUser: !!user, // ✅ FIX: Add hasUser for login.jsx and signup.jsx compatibility
+      hasUser: !!user, // FIX: Add hasUser for login.jsx and signup.jsx compatibility
       profile,
       role,
       authReady,
+      authResolutionComplete, // FIX: New flag for downstream components to wait for full resolution
       loading,
       refreshProfile,
       refreshAuth: resolveAuth,

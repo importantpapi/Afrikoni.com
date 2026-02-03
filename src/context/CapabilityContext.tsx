@@ -52,18 +52,21 @@ const SUPER_USER_CAPS: CapabilityData = {
  * 3. Re-fetches are silent (no loading state change)
  */
 export function CapabilityProvider({ children }: { children: ReactNode }) {
-  // ✅ CRITICAL FIX: Wrap useAuth in try/catch to prevent blocking
-  let user, profile, authReady;
+  // CRITICAL FIX: Wrap useAuth in try/catch to prevent blocking
+  // FIX: Use authResolutionComplete instead of authReady to wait for full resolution
+  let user, profile, authReady, authResolutionComplete;
   try {
     const auth = useAuth();
     user = auth?.user;
     profile = auth?.profile;
     authReady = auth?.authReady ?? false;
+    authResolutionComplete = auth?.authResolutionComplete ?? false;
   } catch (error) {
     console.warn('[CapabilityContext] Auth context error, using defaults:', error);
     user = null;
     profile = null;
     authReady = false;
+    authResolutionComplete = false;
   }
   
   const hasFetchedRef = useRef(false);
@@ -539,11 +542,13 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   // CAPABILITY FETCH EFFECT WITH TIMEOUT FALLBACK
   // =========================================================================
   useEffect(() => {
-    // ✅ CRITICAL FIX: Wrap in try/catch to prevent blocking
+    // CRITICAL FIX: Wrap in try/catch to prevent blocking
     try {
-      // ✅ ENTERPRISE FIX: Decouple routing from capabilities
-      // Auth not ready → wait (can't route yet)
-      if (!authReady) {
+      // FIX: Wait for authResolutionComplete, not just authReady
+      // authReady can be true before profile fetch completes, causing race condition
+      // authResolutionComplete is only true when profile fetch has completed (or timed out)
+      if (!authResolutionComplete) {
+        console.log('[CapabilityContext] Waiting for auth resolution to complete...');
         setCapabilities(prev => ({
           ...prev,
           ready: false,
@@ -616,7 +621,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         kernelError: 'Capability initialization error - using defaults', // ✅ KERNEL-CENTRIC: Set kernelError
       }));
     }
-  }, [authReady, currentUserId, currentCompanyId]); // ✅ Primitives only
+  }, [authResolutionComplete, currentUserId, currentCompanyId]); // FIX: Use authResolutionComplete instead of authReady
 
   // ✅ CRITICAL FIX: Safe value with defaults
   // refreshCapabilities now supports force refresh
