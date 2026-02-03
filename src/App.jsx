@@ -163,6 +163,15 @@ const Trending = lazy(() => import('./pages/trending'));
 const Logistics = lazy(() => import('./pages/logistics'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
 
+// FIX: Missing public pages - these were in navbar but not routed
+const TradeShield = lazy(() => import('./pages/protection'));
+const AntiFraud = lazy(() => import('./pages/anti-fraud'));
+const ResourcesIndex = lazy(() => import('./pages/resources/index'));
+const ResourcesDownloads = lazy(() => import('./pages/resources/downloads'));
+const ResourceArticle1 = lazy(() => import('./pages/resources/how-to-source-verified-african-suppliers'));
+const ResourceArticle2 = lazy(() => import('./pages/resources/kyc-kyb-and-aml-for-african-b2b-trade'));
+const ResourceArticle3 = lazy(() => import('./pages/resources/escrow-vs-advance-payments-in-african-trade'));
+
 // ✅ ENTERPRISE FIX: Mobile-specific pages
 const InboxMobile = lazy(() => import('./pages/inbox-mobile'));
 const RFQMobileWizard = lazy(() => import('./pages/rfq-mobile-wizard'));
@@ -324,6 +333,14 @@ function AppContent() {
           <Route path="/supplier-hub" element={<SupplierHub />} />
           <Route path="/trust" element={<Trust />} />
           <Route path="/order-protection" element={<OrderProtection />} />
+          {/* FIX: Missing public pages - these were linked in navbar but not routed */}
+          <Route path="/protection" element={<TradeShield />} />
+          <Route path="/anti-fraud" element={<AntiFraud />} />
+          <Route path="/resources" element={<ResourcesIndex />} />
+          <Route path="/resources/downloads" element={<ResourcesDownloads />} />
+          <Route path="/resources/how-to-source-verified-african-suppliers" element={<ResourceArticle1 />} />
+          <Route path="/resources/kyc-kyb-and-aml-for-african-b2b-trade" element={<ResourceArticle2 />} />
+          <Route path="/resources/escrow-vs-advance-payments-in-african-trade" element={<ResourceArticle3 />} />
           <Route path="/community" element={<Community />} />
           <Route path="/verification-center" element={<VerificationCenter />} />
           <Route path="/trending" element={<Trending />} />
