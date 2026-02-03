@@ -1,20 +1,29 @@
 /**
  * Sticky WhatsApp Chat Button
  * Fixed position button that opens WhatsApp community link
+ * GATED: Only shows for authenticated users to prevent value leakage
  */
 
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
-
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthProvider';
 
 export default function WhatsAppButton() {
   const location = useLocation();
+  const { user, authReady } = useAuth();
+
   const handleClick = () => {
     openWhatsAppCommunity('sticky_button');
   };
+
+  // GATED: Only show for authenticated users
+  // This prevents unauthenticated users from bypassing the platform
+  if (!authReady || !user) {
+    return null;
+  }
 
   // Hide on homepage (mobile only) - show on RFQ pages and other pages
   const isHomepage = location.pathname === '/';

@@ -11,7 +11,7 @@ export default function Pricing() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [orderValue, setOrderValue] = useState(10000);
-  const [selectedTier, setSelectedTier] = useState('bronze');
+  const [selectedTier, setSelectedTier] = useState('starter'); // Default to free tier
   
   // Refs for scrolling
   const calculatorRef = useRef(null);
@@ -47,9 +47,12 @@ export default function Pricing() {
     // Handle plan selection
     if (plan) {
       const planMap = {
-        'free': 'bronze',
-        'verified': 'silver',
-        'enterprise': 'enterprise'
+        'free': 'starter',
+        'starter': 'starter',
+        'growth': 'growth',
+        'pro': 'growth', // Pro maps to Growth for sellers
+        'elite': 'elite',
+        'business': 'elite' // Business maps to Elite for sellers
       };
       if (planMap[plan]) {
         setSelectedTier(planMap[plan]);
@@ -81,140 +84,125 @@ export default function Pricing() {
     }
   }, [searchParams]);
 
+  // Africa-appropriate pricing - designed for African SME margins (15-25%)
   const sellerTiers = [
     {
-      id: 'bronze',
-      name: 'Bronze',
-      emoji: '🥉',
+      id: 'starter',
+      name: 'Afrikoni Starter',
+      emoji: '🚀',
       monthlyPrice: 'Free',
-      transactionFee: 3,
-      description: 'Perfect for getting started',
+      transactionFee: 4,
+      description: 'Zero cost to start selling',
       features: [
-        'Basic listing',
-        'Standard verification',
-        'Email support',
+        'Basic product listing',
+        'Up to 10 products',
+        'Standard search ranking',
         'Basic analytics',
-        'First 10 transactions: FREE'
+        'RFQ notifications',
+        'Standard support',
+        '4% success fee only when you sell'
       ],
-      color: 'border-amber-300',
-      bgColor: 'bg-amber-50',
+      color: 'border-green-300',
+      bgColor: 'bg-green-50',
       popular: false
     },
     {
-      id: 'silver',
-      name: 'Silver',
-      emoji: '🥈',
-      monthlyPrice: '$49',
-      transactionFee: 2,
-      description: 'For growing businesses',
+      id: 'growth',
+      name: 'Afrikoni Growth',
+      emoji: '📈',
+      monthlyPrice: '$29',
+      transactionFee: 3,
+      description: 'Best value for growing businesses',
       features: [
-        'Unlimited listings',
-        'Enhanced verification badge',
-        'Priority support',
-        'Featured in search',
-        'Advanced analytics',
-        'Lower transaction fee (2%)'
-      ],
-      color: 'border-slate-300',
-      bgColor: 'bg-slate-50',
-      popular: true
-    },
-    {
-      id: 'gold',
-      name: 'Gold',
-      emoji: '🥇',
-      monthlyPrice: '$199',
-      transactionFee: 1,
-      description: 'For serious businesses',
-      features: [
-        'Everything in Silver',
-        'Premium verification (factory audit)',
-        'Dedicated account manager',
-        'Custom storefront',
-        'API access',
-        'Priority placement',
-        'Co-marketing opportunities',
-        'Lowest transaction fee (1%)'
+        'Everything in Starter',
+        'Unlimited products',
+        '2x search visibility',
+        '3% success fee (save 25%)',
+        'Full analytics dashboard',
+        'Priority RFQ matching',
+        'Email support'
       ],
       color: 'border-afrikoni-gold',
       bgColor: 'bg-afrikoni-cream/30',
-      popular: false
+      popular: true
     },
     {
-      id: 'enterprise',
-      name: 'Enterprise',
-      emoji: '💎',
-      monthlyPrice: 'Custom',
-      transactionFee: 'Custom',
-      description: 'For large trading houses',
+      id: 'elite',
+      name: 'Afrikoni Elite',
+      emoji: '👑',
+      monthlyPrice: '$99',
+      transactionFee: 2,
+      description: 'Maximum visibility & lowest fees',
       features: [
-        'Everything in Gold',
-        'White-label options',
-        'Custom integrations',
-        'Full service support',
-        'Volume discounts',
-        'Negotiated rates'
+        'Everything in Growth',
+        'Top search visibility (3x)',
+        'Verified Elite badge',
+        '2% success fee (save 50%)',
+        'Featured in category pages',
+        'Priority customer support',
+        'Dedicated account manager',
+        'Custom storefront branding'
       ],
-      color: 'border-purple-300',
+      color: 'border-purple-400',
       bgColor: 'bg-purple-50',
       popular: false
     }
   ];
 
+  // Africa-appropriate buyer pricing
   const buyerTiers = [
     {
       id: 'free',
-      name: 'Free',
+      name: 'Afrikoni Free',
       price: '$0',
       period: 'forever',
-      description: 'Perfect for getting started',
+      description: 'Start sourcing immediately',
       features: [
-        'Browse and search',
-        'Contact suppliers',
-        'Place orders',
-        'Basic support',
-        'Standard escrow'
+        'Browse verified suppliers',
+        'Search products & categories',
+        '3 RFQs per month',
+        '10 messages per month',
+        'Basic Afrikoni Shield protection',
+        'Standard support'
       ],
-      color: 'border-gray-300',
+      color: 'border-green-300',
       popular: false
     },
     {
       id: 'pro',
-      name: 'Buyer Pro',
-      price: '$99',
+      name: 'Afrikoni Pro',
+      price: '$29',
       period: 'per month',
-      description: 'For procurement managers',
+      description: 'Less than $1/day for serious buyers',
       features: [
         'Everything in Free',
-        'Advanced search filters',
-        'Price drop alerts',
+        'Unlimited RFQs',
+        'Unlimited messaging',
+        'Priority supplier matching',
+        'Price intelligence & benchmarks',
         'Supplier comparison tools',
-        'Market intelligence dashboard',
-        'Bulk RFQ management',
-        'Priority customer support',
-        'Saved suppliers and products',
-        'Purchase analytics'
+        'Email support'
       ],
-      color: 'border-blue-300',
+      color: 'border-afrikoni-gold',
       popular: true
     },
     {
-      id: 'enterprise-buyer',
-      name: 'Enterprise',
-      price: '$499',
+      id: 'business',
+      name: 'Afrikoni Business',
+      price: '$99',
       period: 'per month',
-      description: 'For large procurement teams',
+      description: 'For procurement professionals',
       features: [
         'Everything in Pro',
-        'Dedicated sourcing agent',
+        'Bulk RFQ management',
+        'API access',
         'Custom supplier vetting',
-        'Negotiation assistance',
-        'Quality inspection coordination',
-        'Multi-user accounts',
-        'Integration with ERP',
-        'Quarterly business reviews'
+        'Dedicated account manager',
+        'Priority support (4hr response)',
+        'Custom reports & analytics',
+        'Multi-user accounts'
       ],
-      color: 'border-purple-300',
+      color: 'border-purple-400',
       popular: false
     }
   ];
@@ -239,35 +227,43 @@ export default function Pricing() {
         <div className="max-w-7xl mx-auto px-4 py-10 md:py-16">
           {/* Header */}
           <header className="text-center mb-12">
+            <Badge className="bg-afrikoni-gold/20 text-afrikoni-chestnut mb-4 px-4 py-2">
+              <Shield className="w-4 h-4 inline mr-2" />
+              Designed for African Business Realities
+            </Badge>
             <h1 className="text-4xl md:text-5xl font-bold text-afrikoni-chestnut mb-4">
-              Afrikoni Pricing: Fair & Transparent
+              We Only Win When You Win
             </h1>
             <p className="text-lg text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
-              We only make money when you succeed. Our fees are designed to be fair, transparent, and aligned with the value we provide.
+              Zero upfront costs. Success fees only when your deal completes.
+              Africa's fairest B2B marketplace pricing — designed for SME margins and cash flow realities.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-green-100 px-3 py-1.5 rounded-full">
                 <Check className="w-5 h-5 text-green-600" />
-                <span>No hidden fees</span>
+                <span className="font-medium">No hidden fees — ever</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-green-100 px-3 py-1.5 rounded-full">
                 <Check className="w-5 h-5 text-green-600" />
-                <span>Free tier available</span>
+                <span className="font-medium">Start free today</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-green-100 px-3 py-1.5 rounded-full">
                 <Check className="w-5 h-5 text-green-600" />
-                <span>Cancel anytime</span>
+                <span className="font-medium">Cancel anytime</span>
               </div>
             </div>
           </header>
 
           {/* Fee Calculator */}
-          <Card ref={calculatorRef} className="mb-12 border-afrikoni-gold/30">
-            <CardHeader>
+          <Card ref={calculatorRef} className="mb-12 border-afrikoni-gold/30 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-cream">
               <CardTitle className="flex items-center gap-2">
-                <Calculator className="w-5 h-5" />
-                Transaction Fee Calculator
+                <Calculator className="w-5 h-5 text-afrikoni-gold" />
+                See How Much You Keep
               </CardTitle>
+              <p className="text-sm text-afrikoni-deep/70 mt-1">
+                Calculate your success fee — we only charge when your deal completes
+              </p>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
@@ -296,7 +292,7 @@ export default function Pricing() {
                   >
                     {sellerTiers.map(tier => (
                       <option key={tier.id} value={tier.id}>
-                        {tier.emoji} {tier.name} ({tier.transactionFee}% fee)
+                        {tier.emoji} {tier.name} ({tier.transactionFee}% success fee)
                       </option>
                     ))}
                   </select>
@@ -305,20 +301,29 @@ export default function Pricing() {
               {selectedTierData && selectedTierData.transactionFee && (
                 <div className="mt-6 p-6 bg-gradient-to-br from-afrikoni-cream/80 to-afrikoni-gold/20 rounded-lg border-2 border-afrikoni-gold/30 shadow-md">
                   <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-afrikoni-gold/20">
-                    <span className="text-lg font-semibold text-afrikoni-chestnut">Transaction Fee ({selectedTierData.transactionFee}%):</span>
+                    <div>
+                      <span className="text-lg font-semibold text-afrikoni-chestnut">Success Fee ({selectedTierData.transactionFee}%)</span>
+                      <p className="text-xs text-afrikoni-deep/60">Only charged when deal completes</p>
+                    </div>
                     <span className="text-3xl font-bold text-afrikoni-chestnut">
                       ${feeAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-semibold text-afrikoni-deep">Estimated Supplier Payout:</span>
+                    <span className="text-lg font-semibold text-afrikoni-deep">You Keep:</span>
                     <span className="text-2xl font-bold text-green-700">
                       ${(orderValue - feeAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
-                  <p className="text-sm text-afrikoni-deep/80 mt-4 pt-4 border-t border-afrikoni-gold/20">
-                    <strong className="text-afrikoni-chestnut">This includes:</strong> Escrow protection, fraud prevention, dispute resolution, payment processing, customer support, and platform maintenance.
-                  </p>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                    <p className="text-sm text-green-800 flex items-start gap-2">
+                      <Shield className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Your fee includes Afrikoni Shield protection:</strong> Secure escrow, fraud prevention,
+                        48-hour dispute resolution, and full customer support. Your satisfaction or your money back.
+                      </span>
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -453,15 +458,16 @@ export default function Pricing() {
             </div>
           </section>
 
-          {/* Transaction Fees Section */}
+          {/* Transaction Fees Section - Renamed to Afrikoni Shield Protection */}
           <section ref={transactionFeesRef} className="mb-16">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2 flex items-center justify-center gap-2">
-                <DollarSign className="w-8 h-8" />
-                Transaction Fees
+                <Shield className="w-8 h-8 text-afrikoni-gold" />
+                Afrikoni Shield Protection
               </h2>
-              <p className="text-afrikoni-deep/80">
-                Commission-based pricing. We only earn when you succeed.
+              <p className="text-afrikoni-deep/80 max-w-2xl mx-auto">
+                Every transaction is protected. Your payment is held securely until you confirm receipt.
+                We only charge a success fee when your deal completes — if it doesn't work out, you pay nothing.
               </p>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
@@ -694,30 +700,41 @@ export default function Pricing() {
             </div>
           </section>
 
-          {/* Comparison Table */}
+          {/* Why Afrikoni - Comparison */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-6 text-center">
-              How We Compare
-            </h2>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
+                Would You Pay 3% to Avoid Losing 100%?
+              </h2>
+              <p className="text-afrikoni-deep/80 max-w-2xl mx-auto">
+                Last year, African businesses lost $4.2 billion to trade fraud.
+                Afrikoni Shield protects your money — the success fee is your insurance.
+              </p>
+            </div>
             <div className="overflow-x-auto">
-              <table className="w-full bg-white rounded-lg shadow-sm border border-afrikoni-gold/30">
+              <table className="w-full bg-white rounded-lg shadow-lg border-2 border-afrikoni-gold/30">
                 <thead>
-                  <tr className="bg-afrikoni-cream/50">
-                    <th className="px-4 py-3 text-left font-semibold text-afrikoni-chestnut">Feature</th>
-                    <th className="px-4 py-3 text-center font-semibold text-afrikoni-chestnut">Afrikoni</th>
-                    <th className="px-4 py-3 text-center font-semibold text-afrikoni-deep">Competitor A</th>
-                    <th className="px-4 py-3 text-center font-semibold text-afrikoni-deep">Alibaba</th>
+                  <tr className="bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-cream">
+                    <th className="px-4 py-4 text-left font-bold text-afrikoni-chestnut">Protection</th>
+                    <th className="px-4 py-4 text-center font-bold text-afrikoni-chestnut">
+                      <span className="flex items-center justify-center gap-1">
+                        <Shield className="w-4 h-4" />
+                        Afrikoni
+                      </span>
+                    </th>
+                    <th className="px-4 py-4 text-center font-semibold text-afrikoni-deep">WhatsApp/Direct</th>
+                    <th className="px-4 py-4 text-center font-semibold text-afrikoni-deep">Local Platforms</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-afrikoni-gold/20">
                   <tr>
-                    <td className="px-4 py-3 font-medium">Transaction Fee</td>
-                    <td className="px-4 py-3 text-center text-green-600 font-semibold">2-3%</td>
-                    <td className="px-4 py-3 text-center">5-8%</td>
-                    <td className="px-4 py-3 text-center">3-5%</td>
+                    <td className="px-4 py-3 font-medium">Success Fee</td>
+                    <td className="px-4 py-3 text-center text-green-600 font-bold">2-4%</td>
+                    <td className="px-4 py-3 text-center">0% (but 100% risk)</td>
+                    <td className="px-4 py-3 text-center text-red-600">5-15%</td>
                   </tr>
                   <tr className="bg-afrikoni-cream/20">
-                    <td className="px-4 py-3 font-medium">Escrow Protection</td>
+                    <td className="px-4 py-3 font-medium">Payment Protection</td>
                     <td className="px-4 py-3 text-center">
                       <Check className="w-5 h-5 text-green-600 mx-auto" />
                     </td>
@@ -725,29 +742,29 @@ export default function Pricing() {
                       <X className="w-5 h-5 text-red-500 mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="text-yellow-600">⚠</span>
+                      <span className="text-yellow-600">⚠ Limited</span>
                     </td>
                   </tr>
                   <tr>
+                    <td className="px-4 py-3 font-medium">Verified Suppliers</td>
+                    <td className="px-4 py-3 text-center">
+                      <Check className="w-5 h-5 text-green-600 mx-auto" />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <X className="w-5 h-5 text-red-500 mx-auto" />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="text-yellow-600">⚠ Basic</span>
+                    </td>
+                  </tr>
+                  <tr className="bg-afrikoni-cream/20">
                     <td className="px-4 py-3 font-medium">Dispute Resolution</td>
-                    <td className="px-4 py-3 text-center text-green-600 font-semibold">48hrs</td>
+                    <td className="px-4 py-3 text-center text-green-600 font-semibold">48-hour guarantee</td>
+                    <td className="px-4 py-3 text-center text-red-600">No recourse</td>
                     <td className="px-4 py-3 text-center">Weeks</td>
-                    <td className="px-4 py-3 text-center">Slow</td>
-                  </tr>
-                  <tr className="bg-afrikoni-cream/20">
-                    <td className="px-4 py-3 font-medium">Free Tier</td>
-                    <td className="px-4 py-3 text-center">
-                      <Check className="w-5 h-5 text-green-600 mx-auto" />
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto" />
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="text-yellow-600">⚠</span>
-                    </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 font-medium">Transparent Fees</td>
+                    <td className="px-4 py-3 font-medium">Money-Back Guarantee</td>
                     <td className="px-4 py-3 text-center">
                       <Check className="w-5 h-5 text-green-600 mx-auto" />
                     </td>
@@ -755,7 +772,7 @@ export default function Pricing() {
                       <X className="w-5 h-5 text-red-500 mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="text-yellow-600">⚠</span>
+                      <X className="w-5 h-5 text-red-500 mx-auto" />
                     </td>
                   </tr>
                 </tbody>
@@ -766,46 +783,66 @@ export default function Pricing() {
           {/* FAQ */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-6 text-center">
-              Frequently Asked Questions
+              Common Questions
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
-              <Card>
+              <Card className="border-afrikoni-gold/20">
                 <CardHeader>
-                  <CardTitle className="text-lg">Why should I pay fees when other sites are "free"?</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-afrikoni-gold" />
+                    Why pay fees when WhatsApp is "free"?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-afrikoni-deep/80">
-                    There's no such thing as free. Others hide costs in higher product prices, poor customer service, no protection when things go wrong, and hidden payment fees. We're upfront about costs and provide real value.
+                    WhatsApp has no protection. If something goes wrong, you lose everything.
+                    Our 2-4% success fee includes escrow protection, verified suppliers, and dispute resolution.
+                    It's insurance for your money — would you rather pay 3% or risk losing 100%?
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-afrikoni-gold/20">
                 <CardHeader>
-                  <CardTitle className="text-lg">Can I negotiate rates?</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-afrikoni-gold" />
+                    When do I pay the success fee?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-afrikoni-deep/80">
-                    Yes! High-volume sellers get custom rates. Contact us at <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">hello@afrikoni.com</a> to discuss enterprise pricing.
+                    Only when your deal completes successfully. If the transaction doesn't close,
+                    or if there's a dispute ruled in your favor, you pay nothing.
+                    Zero upfront costs, zero risk.
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-afrikoni-gold/20">
                 <CardHeader>
-                  <CardTitle className="text-lg">What if I'm not satisfied?</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="w-5 h-5 text-afrikoni-gold" />
+                    Is this pricing fair for African businesses?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-afrikoni-deep/80">
-                    First 10 transactions are FREE for Bronze sellers. Try us risk-free. You can cancel your subscription anytime with no penalties.
+                    Yes! We designed our pricing for African SME realities: 15-25% margins and tight cash flow.
+                    Our rates (2-4%) are lower than Alibaba (3-5%) and much lower than local platforms (5-15%).
+                    Plans start at $29/month — less than $1 per day.
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-afrikoni-gold/20">
                 <CardHeader>
-                  <CardTitle className="text-lg">Do I have to pay monthly or per transaction?</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
+                    How do I get lower rates?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-afrikoni-deep/80">
-                    For Silver and Gold sellers, you can choose! Pay the monthly subscription OR pay per transaction. Whichever works better for your business model.
+                    Upgrade your plan! Growth members pay 3% (save 25%), Elite members pay 2% (save 50%).
+                    High-volume traders can contact us for custom enterprise rates.
+                    Email <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">hello@afrikoni.com</a>.
                   </p>
                 </CardContent>
               </Card>

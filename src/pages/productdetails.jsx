@@ -17,7 +17,9 @@ import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
-import { Package, MapPin, Star, Shield, Building2, MessageCircle, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Package, MapPin, Star, Shield, Building2, MessageCircle, FileText, CheckCircle, Clock, Zap, FlaskConical } from 'lucide-react';
+import QuickQuoteModal from '@/components/products/QuickQuoteModal';
+import { SampleOrderButton } from '@/components/products/SampleOrderButton';
 import TrustBadge from '@/components/shared/ui/TrustBadge';
 import { toast } from 'sonner';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
@@ -54,6 +56,7 @@ export default function ProductDetail() {
   const [supplier, setSupplier] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showQuickQuoteModal, setShowQuickQuoteModal] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
@@ -930,30 +933,50 @@ export default function ProductDetail() {
                 <div className="space-y-3 md:space-y-4">
                   {/* PRIMARY CTA: Request Quote - Hidden on mobile (shown in sticky CTA) */}
                   <div className="hidden md:block space-y-3">
-                    <Button 
-                      onClick={handleCreateRFQ} 
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-95 md:active:scale-100 min-h-[52px] md:min-h-[52px] text-base md:text-lg" 
+                    <Button
+                      onClick={handleCreateRFQ}
+                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-95 md:active:scale-100 min-h-[52px] md:min-h-[52px] text-base md:text-lg"
                       size="lg"
                     >
-                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> 
+                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                       <span>{t('product.requestQuote') || 'Request Quote'}</span>
                     </Button>
-                    
+
                     <p className="text-xs text-afrikoni-deep/60 text-center -mt-2 mb-1">
                       All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
                     </p>
 
+                    {/* Quick Actions Row: Quick Quote + Sample */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        onClick={() => setShowQuickQuoteModal(true)}
+                        variant="outline"
+                        className="border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 text-sm"
+                        size="sm"
+                      >
+                        <Zap className="w-4 h-4 mr-1.5 text-afrikoni-gold" />
+                        Quick Quote
+                      </Button>
+                      <SampleOrderButton
+                        product={product}
+                        supplier={supplier}
+                        variant="outline"
+                        size="sm"
+                        className="border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 text-sm"
+                      />
+                    </div>
+
                     {/* Payment Protection - Build Confidence */}
                     <PaymentProtectionBanner variant="compact" className="mt-2 mb-3" />
-                    
+
                     {/* SECONDARY CTA: Contact Supplier - Less prominent */}
-                    <Button 
-                      onClick={handleContactSupplier} 
+                    <Button
+                      onClick={handleContactSupplier}
                       variant="outline"
-                      className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation active:scale-95 md:active:scale-100 min-h-[44px] md:min-h-0 text-sm md:text-base" 
+                      className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation active:scale-95 md:active:scale-100 min-h-[44px] md:min-h-0 text-sm md:text-base"
                       size="lg"
                     >
-                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> 
+                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       <span>{t('product.contactSupplier') || 'Contact Supplier'}</span>
                     </Button>
                   </div>
@@ -1172,6 +1195,16 @@ export default function ProductDetail() {
           relatedTo={product.id}
           relatedType="product"
           subject={`Inquiry about: ${product.title}`}
+        />
+      )}
+
+      {/* Quick Quote Modal */}
+      {product && supplier && (
+        <QuickQuoteModal
+          open={showQuickQuoteModal}
+          onOpenChange={setShowQuickQuoteModal}
+          product={product}
+          supplier={supplier}
         />
       )}
 
