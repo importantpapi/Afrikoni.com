@@ -26,26 +26,25 @@ import { supabase } from '@/api/supabaseClient';
  *   }, [canLoadData]);
  */
 export function useDashboardKernel() {
-  // FIX: Use authResolutionComplete for more reliable system ready state
-  const { user, profile, authReady, authResolutionComplete, loading: authLoading } = useAuth();
+  // FIX: Use authReady (not authResolutionComplete) to match CapabilityContext
+  const { user, profile, authReady, loading: authLoading } = useAuth();
   const capabilities = useCapability();
   const navigate = useNavigate();
-  
-  // ✅ FULL-STACK SYNC: Pre-warming state tracking
+
+  // FULL-STACK SYNC: Pre-warming state tracking
   const [preWarming, setPreWarming] = useState(false);
   const preWarmingTimeoutRef = useRef(null);
 
   const result = useMemo(() => {
     const profileCompanyId = profile?.company_id || null;
 
-    // FIX: Use authResolutionComplete instead of authReady for pre-warming check
-    // Pre-warming should only show AFTER resolution is complete and profile is still null
-    // This prevents premature pre-warming during legitimate profile fetch
-    const isPreWarming = authResolutionComplete === true && !authLoading && user && !profile;
+    // FIX: Use authReady (not authResolutionComplete) to match CapabilityContext
+    // Pre-warming shows when auth is ready but profile is null (new user)
+    const isPreWarming = authReady === true && !authLoading && user && !profile;
 
-    // FIX: Use authResolutionComplete for system ready check
-    // System is ready only when: auth resolution is complete AND not loading AND capabilities are ready AND not pre-warming
-    const isSystemReady = authResolutionComplete === true && !authLoading && capabilities.ready === true && !isPreWarming;
+    // FIX: Use authReady for system ready check to match CapabilityContext
+    // System is ready when: auth is ready AND not loading AND capabilities are ready AND not pre-warming
+    const isSystemReady = authReady === true && !authLoading && capabilities.ready === true && !isPreWarming;
     const canLoadData = isSystemReady && !!profileCompanyId;
 
     // ✅ KERNEL HARDENING: Profile lag detection - warn if authReady but profile missing
@@ -73,7 +72,7 @@ export function useDashboardKernel() {
       // ✅ FULL-STACK SYNC: Standardize isHybrid
       isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true
     };
-  }, [user, profile, authResolutionComplete, authLoading, capabilities]);
+  }, [user, profile, authReady, authLoading, capabilities]);
 
   // ✅ NETWORK RECOVERY: Listen for online event to re-trigger handshake
   useEffect(() => {
@@ -129,7 +128,7 @@ export function useDashboardKernel() {
     const timer = setTimeout(() => {
       if (!result.isSystemReady && !result.isPreWarming) {
         console.warn('[useDashboardKernel] Timeout: System not ready after 3s', {
-          authResolutionComplete,
+          authReady,
           authLoading,
           capabilitiesReady: capabilities.ready,
           hasUser: !!user,
@@ -139,7 +138,7 @@ export function useDashboardKernel() {
       }
     }, 3000);
     return () => clearTimeout(timer);
-  }, [result.isSystemReady, result.isPreWarming, authResolutionComplete, authLoading, capabilities.ready, user, profile]);
+  }, [result.isSystemReady, result.isPreWarming, authReady, authLoading, capabilities.ready, user, profile]);
 
   // ✅ FINAL CLEANUP: Return result object (isPreWarming is already included)
   // Removed duplicate preWarming state return - use isPreWarming from result object

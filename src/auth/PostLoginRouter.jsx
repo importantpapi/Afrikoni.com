@@ -13,9 +13,9 @@ import { LoadingScreen } from '@/components/shared/ui/LoadingScreen';
  * ✅ ALIBABA FLOW: Routes based on user role (buyer/seller/hybrid/services)
  */
 export default function PostLoginRouter() {
-  // FIX: Use authResolutionComplete instead of authReady to prevent race condition
-  // authResolutionComplete is only true when profile fetch has completed
-  const { user, profile, authReady, authResolutionComplete } = useAuth();
+  // FIX: Use authReady (not authResolutionComplete) to allow fast-path routing
+  // Profile may still be loading when authReady=true, use timeouts to handle
+  const { user, profile, authReady } = useAuth();
 
   /**
    * ✅ ALIBABA FLOW: Determine onboarding path based on role
@@ -55,18 +55,17 @@ export default function PostLoginRouter() {
   const hasNavigatedRef = useRef(false);
 
   // FIX: Fast-path for new users without company_id
-  // Use authResolutionComplete to ensure profile fetch has completed before routing
+  // Use authReady to detect when session is known, then route based on profile state
   // ALIBABA FLOW: Route based on user role
   useEffect(() => {
     if (hasNavigatedRef.current) return;
 
-    // FIX: Wait for authResolutionComplete, not just authReady
-    // This ensures profile fetch has completed before we make routing decisions
-    if (!authResolutionComplete) {
-      return; // Still resolving - wait
+    // Wait for authReady - session state must be known
+    if (!authReady) {
+      return;
     }
 
-    // Fast-path: Resolution complete + user exists + no company_id → role-specific onboarding
+    // Fast-path: Auth ready + user + profile without company_id → onboarding
     if (user && profile && !profile.company_id) {
       const userRole = profile.role || 'buyer';
       const onboardingPath = getOnboardingPath(userRole);
@@ -76,17 +75,21 @@ export default function PostLoginRouter() {
       return;
     }
 
-    // Fast-path: Resolution complete + user exists + no profile → onboarding
-    // Profile doesn't exist in DB (new OAuth user) - route to onboarding
+    // Fast-path with timeout: Auth ready + user but no profile → wait 2s then onboarding
+    // Profile might still be loading, give it time before routing
     if (user && !profile) {
-      const userRole = user.user_metadata?.intended_role || user.user_metadata?.role || 'buyer';
-      const onboardingPath = getOnboardingPath(userRole);
-      console.log(`🚀 FAST-PATH: User without profile (${userRole}) → ${onboardingPath}`);
-      hasNavigatedRef.current = true;
-      navigate(onboardingPath, { replace: true });
-      return;
+      const timer = setTimeout(() => {
+        if (!hasNavigatedRef.current) {
+          const userRole = user.user_metadata?.intended_role || user.user_metadata?.role || 'buyer';
+          const onboardingPath = getOnboardingPath(userRole);
+          console.log(`🚀 FAST-PATH: User without profile after 2s (${userRole}) → ${onboardingPath}`);
+          hasNavigatedRef.current = true;
+          navigate(onboardingPath, { replace: true });
+        }
+      }, 2000); // Wait 2s for profile to load
+      return () => clearTimeout(timer);
     }
-  }, [authResolutionComplete, user, profile, navigate]);
+  }, [authReady, user, profile, navigate]);
 
   // ✅ Standard path: Wait for full Kernel readiness
   // ✅ ALIBABA FLOW: Route based on role + company status
@@ -116,24 +119,24 @@ export default function PostLoginRouter() {
 
   }, [isSystemReady, capabilities?.ready, userId, profileCompanyId, navigate]);
 
-  // FIX: Fallback timeout only fires if authResolutionComplete but Kernel still not ready
+  // Fallback timeout: If nothing else routes within 5s, force redirect
   // This catches edge cases where capabilities fail to load
   // ALIBABA FLOW: Use role-based routing in fallback too
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
-      if (!hasNavigatedRef.current && authResolutionComplete && user) {
+      if (!hasNavigatedRef.current && authReady && user) {
         const userRole = profile?.role || user.user_metadata?.intended_role || 'buyer';
         const fallbackPath = profile?.company_id
           ? getDashboardPath(userRole)
           : getOnboardingPath(userRole);
-        console.warn(`[PostLoginRouter] Fallback: 5s timeout after resolution - forcing redirect to ${fallbackPath}`);
+        console.warn(`[PostLoginRouter] Fallback: 5s timeout - forcing redirect to ${fallbackPath}`);
         hasNavigatedRef.current = true;
         window.location.href = fallbackPath;
       }
     }, 5000);
 
     return () => clearTimeout(fallbackTimer);
-  }, [authResolutionComplete, user, profile]);
+  }, [authReady, user, profile]);
 
   // ✅ Show loading while routing
   return <LoadingScreen message="Unlocking Workspace..." />;

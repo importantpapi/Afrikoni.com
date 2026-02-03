@@ -544,11 +544,10 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // CRITICAL FIX: Wrap in try/catch to prevent blocking
     try {
-      // FIX: Wait for authResolutionComplete, not just authReady
-      // authReady can be true before profile fetch completes, causing race condition
-      // authResolutionComplete is only true when profile fetch has completed (or timed out)
-      if (!authResolutionComplete) {
-        console.log('[CapabilityContext] Waiting for auth resolution to complete...');
+      // FIX: Use authReady (NOT authResolutionComplete) to allow fast-path for new users
+      // The "no companyId" check below MUST run as soon as authReady=true
+      // Otherwise new users get stuck in infinite loading
+      if (!authReady) {
         setCapabilities(prev => ({
           ...prev,
           ready: false,
@@ -621,7 +620,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         kernelError: 'Capability initialization error - using defaults', // ✅ KERNEL-CENTRIC: Set kernelError
       }));
     }
-  }, [authResolutionComplete, currentUserId, currentCompanyId]); // FIX: Use authResolutionComplete instead of authReady
+  }, [authReady, currentUserId, currentCompanyId]); // Use authReady to allow fast-path for new users
 
   // ✅ CRITICAL FIX: Safe value with defaults
   // refreshCapabilities now supports force refresh
