@@ -26,9 +26,10 @@ import { supabase } from '@/api/supabaseClient';
  *   }, [canLoadData]);
  */
 export function useDashboardKernel() {
-  const { user, profile, authReady, loading: authLoading } = useAuth();
+  // FIX: Use authResolutionComplete for more reliable system ready state
+  const { user, profile, authReady, authResolutionComplete, loading: authLoading } = useAuth();
   const capabilities = useCapability();
-  const navigate = useNavigate(); // ✅ TOTAL VIBRANIUM RESET: Add navigate for pre-warming failure redirect
+  const navigate = useNavigate();
   
   // ✅ FULL-STACK SYNC: Pre-warming state tracking
   const [preWarming, setPreWarming] = useState(false);
@@ -36,14 +37,15 @@ export function useDashboardKernel() {
 
   const result = useMemo(() => {
     const profileCompanyId = profile?.company_id || null;
-    
-    // ✅ FULL-STACK SYNC: Pre-warming logic
-    // If authReady is true but profile is null, show "Synchronizing World" for 3 seconds
-    const isPreWarming = authReady === true && !authLoading && user && !profile;
-    
-    // ✅ FORENSIC RECOVERY: Ensure authReady is explicitly checked
-    // System is ready only when: auth is ready AND not loading AND capabilities are ready AND not pre-warming
-    const isSystemReady = authReady === true && !authLoading && capabilities.ready === true && !isPreWarming;
+
+    // FIX: Use authResolutionComplete instead of authReady for pre-warming check
+    // Pre-warming should only show AFTER resolution is complete and profile is still null
+    // This prevents premature pre-warming during legitimate profile fetch
+    const isPreWarming = authResolutionComplete === true && !authLoading && user && !profile;
+
+    // FIX: Use authResolutionComplete for system ready check
+    // System is ready only when: auth resolution is complete AND not loading AND capabilities are ready AND not pre-warming
+    const isSystemReady = authResolutionComplete === true && !authLoading && capabilities.ready === true && !isPreWarming;
     const canLoadData = isSystemReady && !!profileCompanyId;
 
     // ✅ KERNEL HARDENING: Profile lag detection - warn if authReady but profile missing
@@ -71,7 +73,7 @@ export function useDashboardKernel() {
       // ✅ FULL-STACK SYNC: Standardize isHybrid
       isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true
     };
-  }, [user, profile, authReady, authLoading, capabilities]);
+  }, [user, profile, authResolutionComplete, authLoading, capabilities]);
 
   // ✅ NETWORK RECOVERY: Listen for online event to re-trigger handshake
   useEffect(() => {
@@ -93,19 +95,20 @@ export function useDashboardKernel() {
     };
   }, [user, result.isSystemReady, result.isPreWarming]);
 
-  // ✅ SKELETON FIX: Reduced pre-warming timeout from 3s to 2s for faster UX
-  // If profile doesn't load in 2s, redirect to onboarding immediately
+  // FIX: Increased pre-warming timeout from 2s to 5s to prevent race condition
+  // Profile fetch can legitimately take 2-3s on slow networks during auth resolution
+  // This timeout should be LONGER than PostLoginRouter's no-profile timeout (3s)
   useEffect(() => {
     if (result.isPreWarming) {
       setPreWarming(true);
       preWarmingTimeoutRef.current = setTimeout(async () => {
-        console.warn('[useDashboardKernel] Pre-warming timeout (2s) - redirecting to onboarding');
+        console.warn('[useDashboardKernel] Pre-warming timeout (5s) - redirecting to onboarding');
 
-        // ✅ ENTERPRISE: Don't retry forever - redirect immediately
-        // If user has no profile after 2s, they need to create one
+        // ENTERPRISE: Don't retry forever - redirect after 5s
+        // If user has no profile after 5s, they likely need to create one
         setPreWarming(false);
         navigate('/onboarding/company', { replace: true });
-      }, 2000); // ✅ SKELETON FIX: Reduced from 3s to 2s
+      }, 5000); // FIX: Increased from 2s to 5s to allow profile fetch to complete
     } else {
       setPreWarming(false);
       if (preWarmingTimeoutRef.current) {
@@ -121,12 +124,12 @@ export function useDashboardKernel() {
     };
   }, [result.isPreWarming]);
 
-  // ✅ SKELETON FIX: Debug timeout reduced to 3s for faster feedback
+  // Debug timeout - log if system not ready after 3s (for troubleshooting)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!result.isSystemReady && !result.isPreWarming) {
         console.warn('[useDashboardKernel] Timeout: System not ready after 3s', {
-          authReady,
+          authResolutionComplete,
           authLoading,
           capabilitiesReady: capabilities.ready,
           hasUser: !!user,
@@ -134,9 +137,9 @@ export function useDashboardKernel() {
           hasCompanyId: !!profile?.company_id,
         });
       }
-    }, 3000); // ✅ SKELETON FIX: Reduced from 5s to 3s
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [result.isSystemReady, result.isPreWarming, authReady, authLoading, capabilities.ready, user, profile]);
+  }, [result.isSystemReady, result.isPreWarming, authResolutionComplete, authLoading, capabilities.ready, user, profile]);
 
   // ✅ FINAL CLEANUP: Return result object (isPreWarming is already included)
   // Removed duplicate preWarming state return - use isPreWarming from result object
