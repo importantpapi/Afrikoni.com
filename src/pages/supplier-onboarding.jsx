@@ -398,12 +398,32 @@ export default function SupplierOnboarding() {
     try {
       // ✅ ALIBABA FLOW: Role-aware completion
       if (userRole === 'buyer') {
-        // Buyers: minimal setup - just update profile with preferences
+        // ✅ FIX: Buyers also need a company to access the dashboard
+        // Create a minimal company for buyers if they don't have one
+        let buyerCompanyId = companyId;
+        if (!buyerCompanyId) {
+          try {
+            buyerCompanyId = await getOrCreateCompany(supabase, {
+              id: user.id,
+              company_name: formData.company_name || user.user_metadata?.full_name || 'My Business',
+              email: user.email,
+              country: formData.country,
+              business_type: formData.business_type || 'buyer',
+              role: 'buyer',
+            });
+            setCompanyId(buyerCompanyId);
+          } catch (err) {
+            console.error('[Onboarding] Error creating buyer company:', err);
+          }
+        }
+
+        // Update profile with preferences and company
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             country: formData.country || null,
             onboarding_completed: true,
+            ...(buyerCompanyId && { company_id: buyerCompanyId }),
           })
           .eq('id', user.id);
 
