@@ -363,12 +363,20 @@ function DashboardProductsInner() {
             <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Products & Listings</h1>
             <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Manage your product listings</p>
           </div>
-          <Link to="/dashboard/products/new">
-            <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-6">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/dashboard/products/quick-add">
+              <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-6">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Quick Add
+              </Button>
+            </Link>
+            <Link to="/dashboard/products/new">
+              <Button variant="outline" className="border-afrikoni-gold/50 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-medium rounded-afrikoni">
+                <Plus className="w-4 h-4 mr-2" />
+                Detailed Form
+              </Button>
+            </Link>
+          </div>
         </motion.div>
 
         {/* Stats Bar */}
@@ -378,10 +386,16 @@ function DashboardProductsInner() {
         <Card className="border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-white">
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-3">
-              <Link to="/dashboard/products/new">
+              <Link to="/dashboard/products/quick-add">
                 <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Quick Add with AI
+                </Button>
+              </Link>
+              <Link to="/dashboard/products/new">
+                <Button variant="outline" className="border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/10">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add New Product
+                  Detailed Form
                 </Button>
               </Link>
               <Button variant="outline" className="border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/10" disabled>
@@ -488,12 +502,12 @@ function DashboardProductsInner() {
           <div className="space-y-6">
             <Card>
               <CardContent className="p-0">
-                <EmptyState 
-                  type="products" 
+                <EmptyState
+                  type="products"
                   title={searchQuery || statusFilter !== 'all' || categoryFilter ? 'No products match your filters' : 'No products yet'}
-                  description={searchQuery || statusFilter !== 'all' || categoryFilter ? 'Try adjusting your search or filters' : 'Start by adding your first product listing'}
-                  cta="Add Product"
-                  ctaLink="/dashboard/products/new"
+                  description={searchQuery || statusFilter !== 'all' || categoryFilter ? 'Try adjusting your search or filters' : 'Start by adding your first product listing with AI assistance'}
+                  cta="Quick Add Product"
+                  ctaLink="/dashboard/products/quick-add"
                 />
               </CardContent>
             </Card>

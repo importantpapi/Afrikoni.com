@@ -53,6 +53,7 @@ import PostLoginRouter from './auth/PostLoginRouter';
 // 1. SELLER ENGINE (Supply Chain)
 const ProductsPage = lazy(() => import('./pages/dashboard/products'));
 const ProductsNewPage = lazy(() => import('./pages/dashboard/products/new'));
+const QuickAddProductPage = lazy(() => import('./pages/dashboard/products/QuickAddProduct'));
 const SalesPage = lazy(() => import('./pages/dashboard/sales'));
 const SupplierRFQsPage = lazy(() => import('./pages/dashboard/supplier-rfqs'));
 const SupplierAnalyticsPage = lazy(() => import('./pages/dashboard/supplier-analytics'));
@@ -414,6 +415,8 @@ function AppContent() {
             {/* 1. SELLER ENGINE (Supply Chain) */}
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/new" element={<ProductsNewPage />} />
+            <Route path="products/quick-add" element={<QuickAddProductPage />} />
+            <Route path="products/quick-add/:id" element={<QuickAddProductPage />} />
             <Route path="sales" element={<SalesPage />} />
             <Route path="supplier-rfqs" element={<SupplierRFQsPage />} />
             <Route path="supplier-analytics" element={<SupplierAnalyticsPage />} />
