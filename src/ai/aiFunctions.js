@@ -544,22 +544,44 @@ Guidelines:
   const productHash = productDraft.title ? productDraft.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
   const randomComponent = Math.floor(Math.random() * 10000);
   const variationSeed = (parseInt(uniqueId) || 0) + productHash + randomComponent;
-  
-  // Create unique writing style seed
+
+  // Enhanced style variations with different focuses
   const styleVariations = [
-    'professional and detailed',
-    'concise and impactful',
-    'descriptive and engaging',
-    'technical and precise',
-    'marketing-focused and persuasive',
-    'informative and comprehensive'
+    { style: 'professional and detailed', opening: 'factual overview', focus: 'quality standards' },
+    { style: 'concise and impactful', opening: 'key benefit statement', focus: 'value proposition' },
+    { style: 'descriptive and engaging', opening: 'origin story', focus: 'authenticity' },
+    { style: 'technical and precise', opening: 'specification highlight', focus: 'technical details' },
+    { style: 'buyer-focused and practical', opening: 'use case scenario', focus: 'applications' },
+    { style: 'informative and comprehensive', opening: 'market context', focus: 'industry standards' },
+    { style: 'trust-building and transparent', opening: 'quality assurance', focus: 'reliability' },
+    { style: 'solution-oriented', opening: 'problem-solution', focus: 'business benefits' }
   ];
+
+  // Use passed style or select based on seed
   const styleIndex = variationSeed % styleVariations.length;
-  const selectedStyle = styleVariations[styleIndex];
-  
+  const defaultStyleObj = styleVariations[styleIndex];
+  const selectedStyle = productDraft.style || defaultStyleObj.style;
+  const selectedFocus = productDraft.focus || defaultStyleObj.focus;
+  const selectedOpening = defaultStyleObj.opening;
+
+  // Dynamic temperature based on style for more variation
+  const baseTemperature = 0.4;
+  const temperatureVariation = (variationSeed % 20) / 100; // 0.00 to 0.19
+  const dynamicTemperature = Math.min(0.6, baseTemperature + temperatureVariation);
+
   const uniqueContext = productDraft.uniqueSeed ? `\nUnique Request ID: ${productDraft.uniqueSeed}` : '';
-  const timestampContext = productDraft.timestamp ? `\nGenerated at: ${productDraft.timestamp}` : '';
+  const timestampContext = `\nGenerated at: ${new Date().toISOString()}`;
   const contextInfo = productDraft.context ? `\nAdditional Context: ${JSON.stringify(productDraft.context)}` : '';
+
+  // Additional product details for richer descriptions
+  const moqInfo = productDraft.moq ? `\nMinimum Order: ${productDraft.moq}` : '';
+  const priceInfo = productDraft.price ? `\nPrice Point: ${productDraft.price}` : '';
+  const specsInfo = productDraft.specifications && Object.keys(productDraft.specifications).length > 0
+    ? `\nSpecifications: ${JSON.stringify(productDraft.specifications)}`
+    : '';
+  const certsInfo = productDraft.certifications?.length > 0
+    ? `\nCertifications: ${productDraft.certifications.join(', ')}`
+    : '';
 
   const user = `
 Product Information:
@@ -575,20 +597,45 @@ ${JSON.stringify(
     null,
     2
   )}
-${uniqueContext}${timestampContext}${contextInfo}
+${uniqueContext}${timestampContext}${contextInfo}${moqInfo}${priceInfo}${specsInfo}${certsInfo}
 
-CRITICAL UNIQUENESS REQUIREMENTS:
-- This is product variation #${variationSeed % 10000} (unique identifier: ${variationSeed})
-- Writing style: ${selectedStyle} (vary this for each product)
-- Create a completely original description that differs from ANY previous descriptions
-- NEVER reuse phrases, sentences, or descriptions from other products
-- Use unique phrasing, different sentence structures, and varied vocabulary
-- Focus on what makes THIS specific product unique (name: "${productDraft.title}")
-- Do NOT use generic templates or repeated phrases
-- Vary the opening sentence, key points, and closing statement
-- Include specific details about: ${productDraft.country ? `origin (${productDraft.country}${productDraft.city ? `, ${productDraft.city}` : ''})` : 'African origin'}
-- Make the description feel personalized and specific to this exact product
-- Each word should be chosen to highlight this product's unique value proposition
+CRITICAL UNIQUENESS REQUIREMENTS (Variation #${variationSeed % 10000}):
+═══════════════════════════════════════════════════════════════════
+STYLE DIRECTIVE: Write in a "${selectedStyle}" manner
+OPENING APPROACH: Start with a ${selectedOpening}
+PRIMARY FOCUS: Emphasize ${selectedFocus}
+═══════════════════════════════════════════════════════════════════
+
+MANDATORY VARIATION RULES:
+1. Opening Statement: DO NOT start with "Introducing" or generic phrases
+   - Instead use: ${selectedOpening === 'factual overview' ? 'A direct statement about the product category and origin'
+     : selectedOpening === 'key benefit statement' ? 'The primary business benefit buyers will receive'
+     : selectedOpening === 'origin story' ? 'Where and how this product is sourced in Africa'
+     : selectedOpening === 'specification highlight' ? 'A key technical specification that sets this apart'
+     : selectedOpening === 'use case scenario' ? 'A specific industry or application where this excels'
+     : selectedOpening === 'market context' ? 'The market demand or industry trend this addresses'
+     : selectedOpening === 'quality assurance' ? 'The quality standards or certifications backing this'
+     : 'How this product solves a specific business problem'}
+
+2. Vocabulary Variation: Use terminology specific to "${productDraft.category || 'general trade'}" industry
+   - Avoid overused phrases: "high-quality", "premium grade", "best-in-class"
+   - Use specific, measurable descriptors instead
+
+3. Structure Variation: For this ${selectedStyle} style:
+   - ${selectedStyle.includes('concise') ? 'Keep sentences short and punchy (max 15 words)'
+     : selectedStyle.includes('technical') ? 'Include precise measurements and standards'
+     : selectedStyle.includes('detailed') ? 'Add context and background information'
+     : 'Balance detail with readability'}
+
+4. Unique Hook: Create a memorable angle based on:
+   - Product: "${productDraft.title}"
+   - Origin: ${productDraft.country || 'Africa'}
+   - Focus: ${selectedFocus}
+
+5. Call-to-Action Variation: End differently each time
+   - This variation should emphasize: ${selectedFocus}
+
+Generate content that would be IMPOSSIBLE to confuse with any other product listing.
 `.trim();
 
   const fallback = {
@@ -598,15 +645,15 @@ CRITICAL UNIQUENESS REQUIREMENTS:
     suggestedCategory: productDraft.category || 'General Products'
   };
 
-  // Lower temperature for consistency, neutrality, and trust-focused outputs
-  const temperature = 0.4;
-  
+  // Dynamic temperature for balance between consistency and uniqueness
+  // Higher temps (0.4-0.6) create more varied outputs while maintaining quality
+
   const { success, data } = await callChatAsJson(
-    { 
-      system, 
-      user, 
-      maxTokens: 1000, // Increased for longer, more detailed descriptions
-      temperature: temperature // Pass temperature for uniqueness
+    {
+      system,
+      user,
+      maxTokens: 1200, // Increased for richer, more detailed descriptions
+      temperature: dynamicTemperature // Dynamic temperature for variation
     },
     {
       fallback,
