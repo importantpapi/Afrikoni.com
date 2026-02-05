@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeManager';
@@ -39,15 +39,34 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
  */
 export default function WorkspaceDashboard() {
   const location = useLocation();
-  
+  const navigate = useNavigate();
+  const hasRedirectedRef = useRef(false);
+
   // ✅ KERNEL MIGRATION: Get everything from the Single Source of Truth
-  const { 
-    userId, 
-    profileCompanyId, 
-    capabilities, 
+  const {
+    userId,
+    profileCompanyId,
+    capabilities,
     isSystemReady,
-    isPreWarming // ✅ FULL-STACK SYNC: Pre-warming state
+    isPreWarming, // ✅ FULL-STACK SYNC: Pre-warming state
+    profile // ✅ FIX: Get profile to check if user needs onboarding
   } = useDashboardKernel();
+
+  // ✅ FIX: Redirect users without company_id to onboarding
+  // This catches users who have a profile but no company associated
+  useEffect(() => {
+    if (hasRedirectedRef.current) return;
+
+    // Wait for system to be ready before checking
+    if (!isSystemReady || isPreWarming) return;
+
+    // If user has a profile but no company_id, redirect to onboarding
+    if (userId && !profileCompanyId) {
+      console.log('[WorkspaceDashboard] User has no company_id - redirecting to onboarding');
+      hasRedirectedRef.current = true;
+      navigate('/onboarding/company', { replace: true });
+    }
+  }, [isSystemReady, isPreWarming, userId, profileCompanyId, navigate]);
 
   // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
   const handleRealtimeUpdate = useCallback((payload) => {
