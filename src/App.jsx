@@ -21,6 +21,7 @@ import { supabase } from './api/supabaseClient';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
 import { useBrowserNavigation } from './hooks/useBrowserNavigation';
+import KoniAIChat from './components/ai/KoniAIChat';
 
 /* ===== Public pages (eager) ===== */
 import Home from './pages/index';
@@ -642,6 +643,9 @@ function App() {
                 
                 {/* Debug component to detect stuck auth */}
                 <DebugAuth />
+
+                {/* KoniAI+ Global Chat Assistant */}
+                <KoniAIChat />
 
                 <AppContent />
               </CapabilityProvider>

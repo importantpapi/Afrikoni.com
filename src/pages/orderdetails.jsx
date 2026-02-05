@@ -11,6 +11,7 @@ import { Package, DollarSign, MapPin, Calendar, CheckCircle } from 'lucide-react
 import { toast } from 'sonner';
 import ReviewForm from '../components/reviews/ReviewForm';
 import { isValidUUID } from '@/utils/security';
+import TradeWorkflowVisualizer from '@/components/trade/TradeWorkflowVisualizer';
 
 export default function OrderDetail() {
   // Use centralized AuthProvider
@@ -136,6 +137,19 @@ export default function OrderDetail() {
           <Link to={createPageUrl('Orders')} className="text-amber-600 hover:text-amber-700">
             ← Back to Orders
           </Link>
+        </div>
+
+        {/* Trade Workflow Visualizer */}
+        <div className="mb-6">
+          <TradeWorkflowVisualizer
+            status={order.status}
+            paymentStatus={order.payment_status}
+            isCrossBorder={buyer?.country !== seller?.country}
+            hasQualityCheck={order.has_quality_check}
+            createdAt={order.created_at}
+            estimatedDelivery={order.delivery_date}
+            variant="compact"
+          />
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">

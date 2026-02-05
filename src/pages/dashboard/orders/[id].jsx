@@ -27,6 +27,7 @@ import { TimelineItem } from '@/components/shared/ui/reusable/TimelineItem';
 import { StatusBadge } from '@/components/shared/ui/reusable/StatusBadge';
 import BuyerProtectionOption from '@/components/upsell/BuyerProtectionOption';
 import { DealMilestoneTracker } from '@/components/orders/DealMilestoneTracker';
+import TradeWorkflowVisualizer from '@/components/trade/TradeWorkflowVisualizer';
 
 export default function OrderDetail() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -502,6 +503,22 @@ export default function OrderDetail() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Trade Workflow Visualizer */}
+        <TradeWorkflowVisualizer
+          status={order.status}
+          paymentStatus={order.payment_status}
+          isCrossBorder={buyerCompany?.country !== sellerCompany?.country}
+          hasQualityCheck={order.buyer_protection_enabled || order.has_quality_check}
+          createdAt={order.created_at}
+          estimatedDelivery={shipment?.estimated_delivery || order.estimated_delivery}
+          events={timeline.map(t => ({
+            step: t.status,
+            timestamp: t.timestamp,
+            note: t.description
+          }))}
+          variant="full"
+        />
 
         <div className="grid md:grid-cols-3 gap-4">
           {/* Main Content */}
