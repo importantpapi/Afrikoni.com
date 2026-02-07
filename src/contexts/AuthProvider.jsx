@@ -2,6 +2,42 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import { supabase } from '@/api/supabaseClient';
 import { verifySchemaIntegrity, getSchemaErrorMessage } from '@/services/SchemaValidator';
 
+/**
+ * Client-side fallback: Create profile when database trigger doesn't fire.
+ */
+async function ensureProfileExists(user) {
+  if (!user?.id) return null;
+
+  const role = user.user_metadata?.intended_role || user.user_metadata?.role || 'buyer';
+  const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: fullName,
+        role: role,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[Auth] Failed to create fallback profile:', error.message);
+      return null;
+    }
+
+    console.log('[Auth] ✅ Fallback profile created:', { id: user.id, role });
+    return data;
+  } catch (err) {
+    console.error('[Auth] Fallback profile creation exception:', err);
+    return null;
+  }
+}
+
 const AuthContext = createContext(null);
 
 /**
@@ -83,22 +119,23 @@ export function AuthProvider({ children }) {
         .eq('id', session.user.id)
         .single();
       
+      let resolvedProfile = profileData || null;
+
       // Handle profile not found gracefully (PGRST116 = not found)
       if (profileError) {
         if (profileError.code === 'PGRST116') {
-          // ✅ ENTERPRISE FIX: Profile not found - don't trigger refresh loop
-          // New users will be redirected to onboarding by PostLoginRouter
-          // Don't call refreshSession() here - it causes infinite event loops
-          console.log('[Auth] Silent refresh - profile not found (new user → will be redirected to onboarding)');
+          // Profile not found - create it client-side as fallback
+          console.log('[Auth] Silent refresh - profile not found, creating fallback profile');
+          resolvedProfile = await ensureProfileExists(session.user);
         } else {
           console.error('[Auth] Silent refresh profile fetch error:', profileError);
         }
       }
 
       setUser(session.user);
-      setProfile(profileData || null); // Ensure null if not found
-      setRole(profileData?.role || null);
-      
+      setProfile(resolvedProfile);
+      setRole(resolvedProfile?.role || null);
+
       console.log('[Auth] Silent refresh complete');
     } catch (err) {
       console.error('[Auth] Silent refresh error:', err);
@@ -168,20 +205,27 @@ export function AuthProvider({ children }) {
         .eq('id', session.user.id)
         .single();
 
-      // Handle profile not found gracefully
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('[Auth] Profile fetch error:', profileError);
+      let resolvedProfile = profileData || null;
+
+      // Handle profile not found - create as fallback
+      if (profileError) {
+        if (profileError.code === 'PGRST116') {
+          console.log('[Auth] Profile not found during resolution - creating fallback profile');
+          resolvedProfile = await ensureProfileExists(session.user);
+        } else {
+          console.error('[Auth] Profile fetch error:', profileError);
+        }
       }
 
       setUser(session.user);
-      setProfile(profileData);
-      setRole(profileData?.role || null);
+      setProfile(resolvedProfile);
+      setRole(resolvedProfile?.role || null);
       setAuthReady(true);
       setLoading(false);
       setAuthResolutionComplete(true); // FIX: Signal that resolution is fully complete (with profile)
       hasInitializedRef.current = true;
 
-      console.log('[Auth] ✅ Resolved:', { role: profileData?.role || 'none' });
+      console.log('[Auth] ✅ Resolved:', { role: resolvedProfile?.role || 'none' });
     } catch (err) {
       console.error('[Auth] Error:', err);
       setUser(null);
@@ -344,18 +388,19 @@ export function AuthProvider({ children }) {
       .eq('id', user.id)
       .single();
     
-    // Handle profile not found gracefully (PGRST116 = not found)
+    let resolvedProfile = data || null;
+
     if (error) {
       if (error.code === 'PGRST116') {
-        // Profile not found - this is OK for new users
-        console.log('[Auth] Refresh profile - profile not found (new user)');
+        console.log('[Auth] Refresh profile - profile not found, creating fallback');
+        resolvedProfile = await ensureProfileExists(user);
       } else {
         console.error('[Auth] Refresh profile error:', error);
       }
     }
 
-    setProfile(data || null); // Ensure null if not found
-    setRole(data?.role || null);
+    setProfile(resolvedProfile);
+    setRole(resolvedProfile?.role || null);
   }, [user?.id]);
 
   // ✅ VIBRANIUM STABILIZATION: Logout function that clears ALL local state
