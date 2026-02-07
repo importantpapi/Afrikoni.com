@@ -90,7 +90,7 @@ export default function SupplierVerificationModal({ open, onOpenChange, companyI
           tax_number: formData.tax_number || null,
           address_country: formData.address_country || null,
           certificate_uploads: formData.certificate_uploads.length > 0 ? formData.certificate_uploads : null,
-          verification_status: 'pending' // Set status to pending for admin review
+          verification_status: 'PENDING' // Set status to pending for admin review (matches verification_status enum)
         })
         .eq('id', companyId);
 

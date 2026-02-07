@@ -1094,14 +1094,14 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
     ],
     seller: [
       { icon: Plus, label: t('dashboard.addProduct'), link: '/dashboard/products/new', color: 'bg-afrikoni-gold' },
-      { icon: FileText, label: t('dashboard.viewRFQs'), link: '/dashboard/rfqs', color: 'bg-afrikoni-purple' },
+      { icon: FileText, label: t('dashboard.viewRFQs'), link: '/dashboard/supplier-rfqs', color: 'bg-afrikoni-purple' },
       { icon: ShoppingCart, label: t('dashboard.viewSales'), link: '/dashboard/sales', color: 'bg-afrikoni-green' },
       { icon: Building2, label: t('dashboard.manageCompany'), link: '/dashboard/company-info', color: 'bg-afrikoni-clay' }
     ],
     logistics: [
       { icon: Truck, label: t('dashboard.trackShipments') || 'Track Shipments', link: '/dashboard/shipments', color: 'bg-afrikoni-gold' },
-      { icon: FileText, label: t('dashboard.viewRFQs'), link: '/dashboard/rfqs', color: 'bg-afrikoni-purple' },
-      { icon: MessageSquare, label: t('dashboard.messages'), link: '/messages', color: 'bg-afrikoni-green' }
+      { icon: FileText, label: t('dashboard.viewRFQs'), link: '/dashboard/supplier-rfqs', color: 'bg-afrikoni-purple' },
+      { icon: MessageSquare, label: t('dashboard.messages'), link: '/dashboard/notifications', color: 'bg-afrikoni-green' }
     ]
   };
 

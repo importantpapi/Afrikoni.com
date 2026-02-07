@@ -66,7 +66,14 @@ export default function PostLoginRouter() {
     }
 
     // Fast-path: Auth ready + user + profile without company_id → onboarding
+    // BUT: If onboarding already completed, go to dashboard (prevents infinite redirect loop)
     if (user && profile && !profile.company_id) {
+      if (profile.onboarding_completed) {
+        console.log('🚀 FAST-PATH: Onboarding completed but no company_id → dashboard');
+        hasNavigatedRef.current = true;
+        navigate('/dashboard', { replace: true });
+        return;
+      }
       const userRole = profile.role || 'buyer';
       const onboardingPath = getOnboardingPath(userRole);
       console.log(`🚀 FAST-PATH: New ${userRole} without company_id → ${onboardingPath}`);

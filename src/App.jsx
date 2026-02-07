@@ -103,6 +103,8 @@ const HelpPage = lazy(() => import('./pages/dashboard/help'));
 const AnalyticsPage = lazy(() => import('./pages/dashboard/analytics'));
 const PerformancePage = lazy(() => import('./pages/dashboard/performance'));
 const KoniAIPage = lazy(() => import('./pages/dashboard/koniai'));
+const BuyerIntelligencePage = lazy(() => import('./pages/dashboard/buyer/intelligence'));
+const SellerIntelligencePage = lazy(() => import('./pages/dashboard/seller/intelligence'));
 
 // 8. SYSTEM SETTINGS & UTILITIES
 const SettingsPage = lazy(() => import('./pages/dashboard/settings'));
@@ -337,7 +339,11 @@ function AppContent() {
               <InboxMobile />
             </ProtectedRoute>
           } />
-          <Route path="/rfq/create-mobile" element={<RFQMobileWizard />} />
+          <Route path="/rfq/create-mobile" element={
+            <ProtectedRoute>
+              <RFQMobileWizard />
+            </ProtectedRoute>
+          } />
 
           {/* Onboarding */}
           <Route 
@@ -482,6 +488,8 @@ function AppContent() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="performance" element={<PerformancePage />} />
             <Route path="koniai" element={<KoniAIPage />} />
+            <Route path="buyer-intelligence" element={<BuyerIntelligencePage />} />
+            <Route path="seller-intelligence" element={<SellerIntelligencePage />} />
 
             {/* 8. SYSTEM SETTINGS & UTILITIES */}
             <Route path="settings" element={<SettingsPage />} />
