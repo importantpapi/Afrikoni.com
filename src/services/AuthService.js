@@ -17,6 +17,45 @@
 import { supabase } from '@/api/supabaseClient';
 
 /**
+ * Client-side fallback: Create profile when database trigger doesn't fire.
+ * This handles the case where on_auth_user_created trigger is missing or fails.
+ * @param {object} user - Supabase auth user object
+ * @returns {object|null} - Created profile data or null
+ */
+async function createProfileFallback(user) {
+  if (!user?.id) return null;
+
+  const role = user.user_metadata?.intended_role || user.user_metadata?.role || 'buyer';
+  const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+
+  try {
+    const { data: newProfile, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: fullName,
+        role: role,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[AuthService] Failed to create fallback profile:', error.message);
+      return null;
+    }
+
+    console.log('[AuthService] ✅ Fallback profile created successfully:', { id: user.id, role });
+    return newProfile;
+  } catch (err) {
+    console.error('[AuthService] Fallback profile creation exception:', err);
+    return null;
+  }
+}
+
+/**
  * Login with atomic profile verification
  * @param {string} email - User email
  * @param {string} password - User password
@@ -52,7 +91,7 @@ export async function login(email, password) {
             .single(); // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle()
 
           if (profileError) {
-            // Handle PGRST116 (not found) - return null after all retries
+            // Handle PGRST116 (not found) - retry or create fallback
             if (profileError.code === 'PGRST116') {
               if (attempt < maxAttempts) {
                 const delayMs = 500 * Math.pow(2, attempt - 1); // Exponential backoff
@@ -60,9 +99,10 @@ export async function login(email, password) {
                 await new Promise(resolve => setTimeout(resolve, delayMs));
                 continue;
               }
-              // Last attempt - profile doesn't exist, return null
-              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - returning null`);
-              return null;
+              // Last attempt failed - create profile client-side as fallback
+              // This handles cases where the database trigger didn't fire
+              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - creating profile client-side`);
+              return await createProfileFallback(authData.user);
             }
             // Network errors or other errors - throw
             throw profileError;
@@ -74,8 +114,8 @@ export async function login(email, password) {
           // If it's the last attempt and not PGRST116, throw
           if (attempt === maxAttempts) {
             if (error.code === 'PGRST116') {
-              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - returning null`);
-              return null;
+              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - creating profile client-side`);
+              return await createProfileFallback(authData.user);
             }
             throw error;
           }
