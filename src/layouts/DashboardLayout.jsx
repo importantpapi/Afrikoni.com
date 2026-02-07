@@ -469,6 +469,7 @@ export default function DashboardLayout({
       const isApproved = caps.sell_status === 'approved';
       const sellItems = [
         { icon: Package, label: 'Products', path: '/dashboard/products' },
+        { icon: Plus, label: 'Quick Add Product', path: '/dashboard/products/quick-add' },
         { icon: ShoppingCart, label: 'Sales', path: '/dashboard/sales' },
         { icon: FileText, label: 'RFQs Received', path: '/dashboard/supplier-rfqs' },
       ];

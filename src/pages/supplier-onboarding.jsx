@@ -402,17 +402,46 @@ export default function SupplierOnboarding() {
     try {
       // ✅ ALIBABA FLOW: Role-aware completion
       if (userRole === 'buyer') {
-        // Buyers: minimal setup - just update profile with preferences
+        // Buyers: create company (needed for capability engine) + update profile
+        let buyerCompanyId = companyId;
+        if (!buyerCompanyId) {
+          const result = await getOrCreateCompany(supabase, {
+            id: user.id,
+            email: user.email,
+            full_name: profile?.full_name || user.email?.split('@')[0] || 'My Company',
+            role: 'buyer',
+            company_name: profile?.full_name || user.email?.split('@')[0] || 'My Company',
+            country: formData.country || null,
+          }, { returnError: true });
+          if (result.error) {
+            console.warn('[Onboarding] Buyer company creation error:', result.error);
+          }
+          buyerCompanyId = result.companyId;
+        }
+
+        const profileUpdate = {
+          country: formData.country || null,
+          onboarding_completed: true,
+        };
+        if (buyerCompanyId) {
+          profileUpdate.company_id = buyerCompanyId;
+        }
+
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({
-            country: formData.country || null,
-            onboarding_completed: true,
-          })
+          .update(profileUpdate)
           .eq('id', user.id);
 
         if (profileError) {
           console.warn('[Onboarding] Profile update error:', profileError);
+        }
+
+        // Send welcome email
+        try {
+          const { sendWelcomeEmail } = await import('@/services/emailService');
+          await sendWelcomeEmail(user.email, profile?.full_name || user.email?.split('@')[0]);
+        } catch (emailErr) {
+          console.warn('[Onboarding] Welcome email failed:', emailErr);
         }
 
         toast.success('Welcome to Afrikoni! Start exploring.');
@@ -439,6 +468,14 @@ export default function SupplierOnboarding() {
           .eq('id', companyId);
 
         if (error) throw error;
+      }
+
+      // Send welcome email on onboarding completion
+      try {
+        const { sendWelcomeEmail } = await import('@/services/emailService');
+        await sendWelcomeEmail(user.email, profile?.full_name || formData.company_name || user.email?.split('@')[0]);
+      } catch (emailErr) {
+        console.warn('[Onboarding] Welcome email failed:', emailErr);
       }
 
       toast.success('Onboarding completed! Welcome to Afrikoni!');

@@ -47,7 +47,7 @@ export async function getOrCreateCompany(supabase, userData, options = {}) {
         description: userData.company_description || null,
         // All new companies start as unverified - admin must approve
         verified: false,
-        verification_status: 'unverified'
+        verification_status: 'PENDING'
       })
       .select('id')
       .single();
