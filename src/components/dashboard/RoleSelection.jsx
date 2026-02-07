@@ -77,7 +77,15 @@ export default function RoleSelection({ onRoleSelected }) {
         company_name: profile?.company_name || profile?.full_name || user.email?.split('@')[0] || 'My Company'
       };
 
-      const companyId = await getOrCreateCompany(supabase, userData);
+      const result = await getOrCreateCompany(supabase, userData, { returnError: true });
+
+      if (result.error) {
+        toast.error(result.error);
+        setLoading(false);
+        return;
+      }
+
+      const companyId = result.companyId;
 
       // Update profile with selected role and company_id
       // Only update role field (single source of truth)

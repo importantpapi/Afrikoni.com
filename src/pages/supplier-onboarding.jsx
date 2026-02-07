@@ -314,11 +314,15 @@ export default function SupplierOnboarding() {
   const saveCompanyInfo = async () => {
     try {
       if (!companyId) {
-        const newCompanyId = await getOrCreateCompany(supabase, {
+        const result = await getOrCreateCompany(supabase, {
           ...formData,
           email: user.email,
-        });
-        setCompanyId(newCompanyId);
+        }, { returnError: true });
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+        setCompanyId(result.companyId);
       } else {
         // Convert year_established to integer or null (database expects integer, not empty string)
         let yearEstablished = null;

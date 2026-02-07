@@ -409,7 +409,7 @@ export default function DashboardLayout({
     // Always show: Overview, Messages
     menuItems.push(
       { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-      { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' }
+      { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' }
     );
     
     // ✅ FULL-STACK SYNC: Hybrid Navigation - Show both Buyer and Seller workspace tabs
@@ -570,7 +570,7 @@ export default function DashboardLayout({
       // Return minimal safe sidebar instead of crashing
       return [
         { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-        { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+        { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
         { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
       ];
     }
@@ -590,7 +590,7 @@ export default function DashboardLayout({
         console.error('[DashboardLayout] Capabilities build returned invalid data, showing minimal sidebar');
         menuItems = [
           { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-          { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+          { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
           { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
         ];
       }
@@ -610,7 +610,7 @@ export default function DashboardLayout({
         console.warn('[DashboardLayout] Capabilities not ready, showing minimal sidebar');
         menuItems = [
           { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-          { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+          { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
           { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
         ];
       }
@@ -620,7 +620,7 @@ export default function DashboardLayout({
     console.error('[DashboardLayout] Critical error building sidebar:', error);
     menuItems = [
       { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-      { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
+      { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
       { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
     ];
   }
@@ -792,7 +792,7 @@ export default function DashboardLayout({
                     {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />}
                     <span className="flex-1">{item.label || 'Menu Item'}</span>
                     {/* Notification Badges */}
-                    {item.path === '/messages' && notificationCounts.messages > 0 && (
+                    {item.path === '/dashboard/notifications' && notificationCounts.messages > 0 && (
                       <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
                         {notificationCounts.messages > 9 ? '9+' : notificationCounts.messages}
                       </Badge>
@@ -1048,7 +1048,7 @@ export default function DashboardLayout({
                             View Profile
                           </Link>
                           <Link 
-                            to="/messages" 
+                            to="/dashboard/notifications"
                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
