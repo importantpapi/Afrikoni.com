@@ -10,19 +10,12 @@ import {
 import { Badge } from '@/components/shared/ui/badge';
 import { Logo } from '@/components/shared/ui/Logo';
 
-/**
- * TradeOSSidebar - Premium Trade OS sidebar navigation
- *
- * Dark, dense, Bloomberg Terminal-grade navigation.
- * Every item feels like accessing a trading system module.
- */
-
 function NavSection({ title, children }) {
   return (
     <div className="mb-1">
       {title && (
         <div className="px-4 pt-4 pb-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-600">
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 dark:text-gray-600">
             {title}
           </span>
         </div>
@@ -38,7 +31,7 @@ function NavItem({ icon: Icon, label, path, badge, locked, lockReason, active, o
   if (locked) {
     return (
       <div
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-600 cursor-not-allowed text-[13px]"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed text-[13px]"
         title={lockReason || 'Locked'}
       >
         <Icon className="w-4 h-4 flex-shrink-0" />
@@ -56,7 +49,7 @@ function NavItem({ icon: Icon, label, path, badge, locked, lockReason, active, o
         flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all relative group
         ${active
           ? 'bg-[#D4A937]/10 text-[#D4A937]'
-          : 'text-gray-400 hover:text-gray-200 hover:bg-[#1A1A1A]'
+          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'
         }
       `}
     >
@@ -67,10 +60,10 @@ function NavItem({ icon: Icon, label, path, badge, locked, lockReason, active, o
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
         />
       )}
-      <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#D4A937]' : 'text-gray-500 group-hover:text-gray-400'}`} />
+      <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400'}`} />
       <span className="flex-1 truncate">{label}</span>
       {badge > 0 && (
-        <span className="min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-[#D4A937] text-[#0A0A0A] rounded-full">
+        <span className="min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-[#D4A937] text-white dark:text-[#0A0A0A] rounded-full">
           {badge > 9 ? '9+' : badge}
         </span>
       )}
@@ -85,7 +78,7 @@ function CollapsibleNav({ icon: Icon, label, children, defaultOpen = false, lock
   if (locked) {
     return (
       <div className="px-2">
-        <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-600 cursor-not-allowed text-[13px]">
+        <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed text-[13px]">
           <Icon className="w-4 h-4 flex-shrink-0" />
           <span className="flex-1 truncate">{label}</span>
           <Lock className="w-3 h-3" />
@@ -98,9 +91,9 @@ function CollapsibleNav({ icon: Icon, label, children, defaultOpen = false, lock
     <div className="px-2">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-gray-400 hover:text-gray-200 hover:bg-[#1A1A1A] transition-all"
+        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
       >
-        <Icon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+        <Icon className="w-4 h-4 flex-shrink-0 text-gray-400 dark:text-gray-500" />
         <span className="flex-1 text-left truncate">{label}</span>
         <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -113,7 +106,7 @@ function CollapsibleNav({ icon: Icon, label, children, defaultOpen = false, lock
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
-            <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#1E1E1E] pl-3">
+            <div className="ml-4 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-[#1E1E1E] pl-3">
               {children}
             </div>
           </motion.div>
@@ -147,25 +140,25 @@ export default function TradeOSSidebar({
 
   return (
     <aside className={`
-      fixed left-0 top-0 h-screen w-[240px] bg-[#0A0A0A] border-r border-[#1E1E1E]
+      fixed left-0 top-0 h-screen w-[240px] bg-white dark:bg-[#0A0A0A] border-r border-gray-200 dark:border-[#1E1E1E]
       flex flex-col z-50 transition-transform duration-200
       ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       md:translate-x-0
     `}>
       {/* Logo */}
-      <div className="h-14 flex items-center justify-between px-4 border-b border-[#1E1E1E]">
+      <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-[#1E1E1E]">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-[#D4A937] flex items-center justify-center">
-            <span className="text-[#0A0A0A] text-xs font-black">A</span>
+            <span className="text-white dark:text-[#0A0A0A] text-xs font-black">A</span>
           </div>
           <div>
-            <span className="text-sm font-bold text-[#F5F0E8] tracking-tight">AFRIKONI</span>
-            <span className="text-[9px] font-medium text-gray-600 block -mt-0.5 tracking-wider">TRADE OS</span>
+            <span className="text-sm font-bold text-gray-900 dark:text-[#F5F0E8] tracking-tight">AFRIKONI</span>
+            <span className="text-[9px] font-medium text-gray-400 dark:text-gray-600 block -mt-0.5 tracking-wider">TRADE OS</span>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="md:hidden p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-[#1A1A1A] transition-colors"
+          className="md:hidden p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -229,7 +222,7 @@ export default function TradeOSSidebar({
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-[#1E1E1E] p-2 space-y-0.5">
+      <div className="border-t border-gray-200 dark:border-[#1E1E1E] p-2 space-y-0.5">
         <NavItem icon={Settings} label="Settings" path="/dashboard/settings" active={isActive('/dashboard/settings')} onClick={closeMobile} />
         <NavItem icon={HelpCircle} label="Help" path="/dashboard/help" active={isActive('/dashboard/help')} onClick={closeMobile} />
       </div>

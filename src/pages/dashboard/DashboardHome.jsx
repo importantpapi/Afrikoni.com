@@ -1146,16 +1146,16 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </div>
         <StatCardSkeleton count={5} />
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl">
+          <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
             <CardContent className="p-6">
-              <div className="h-6 w-32 bg-afrikoni-cream rounded mb-4 animate-pulse" />
-              <div className="h-64 bg-afrikoni-cream rounded animate-pulse" />
+              <div className="h-6 w-32 bg-gray-100 dark:bg-afrikoni-cream rounded mb-4 animate-pulse" />
+              <div className="h-64 bg-gray-100 dark:bg-afrikoni-cream rounded animate-pulse" />
             </CardContent>
           </Card>
-          <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl">
+          <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
             <CardContent className="p-6">
-              <div className="h-6 w-32 bg-afrikoni-cream rounded mb-4 animate-pulse" />
-              <div className="h-64 bg-afrikoni-cream rounded animate-pulse" />
+              <div className="h-6 w-32 bg-gray-100 dark:bg-afrikoni-cream rounded mb-4 animate-pulse" />
+              <div className="h-64 bg-gray-100 dark:bg-afrikoni-cream rounded animate-pulse" />
             </CardContent>
           </Card>
         </div>
@@ -1169,15 +1169,15 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
       {/* Trade OS Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#F5F0E8] mb-1 leading-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#F5F0E8] mb-1 leading-tight">
             {welcomeMessage}
           </h1>
           <p className="text-sm text-gray-500">
             {subtitle}
           </p>
         </div>
-        <div className="hidden md:flex items-center gap-2 text-xs text-gray-600">
-          <kbd className="px-2 py-1 bg-[#1A1A1A] rounded border border-[#2A2A2A] font-mono text-[11px] text-gray-500">
+        <div className="hidden md:flex items-center gap-2 text-xs text-gray-400 dark:text-gray-600">
+          <kbd className="px-2 py-1 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] font-mono text-[11px] text-gray-500">
             {navigator.platform?.includes('Mac') ? '\u2318' : 'Ctrl'}+K
           </kbd>
           <span>Quick actions</span>
@@ -1191,7 +1191,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Card className="border border-[#D4A937]/30 bg-gradient-to-r from-[#D4A937]/10 via-[#D4A937]/5 to-[#8140FF]/5 rounded-xl shadow-xl mb-5">
+          <Card className="border border-[#D4A937]/30 bg-gradient-to-r from-[#D4A937]/10 via-[#D4A937]/5 to-[#8140FF]/5 rounded-xl shadow-lg dark:shadow-xl mb-5">
             <CardContent className="p-6 md:p-8">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex-1">
@@ -1200,10 +1200,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       {isNewSeller ? <Package className="w-6 h-6 text-[#0A0A0A]" /> : <FileText className="w-6 h-6 text-[#0A0A0A]" />}
                     </div>
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-bold text-[#0A0A0A] mb-1">
+                      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
                         {isNewHybrid ? 'Get Started' : isNewSeller ? 'Add Your First Product' : 'Post Your First RFQ'}
                       </h2>
-                      <p className="text-gray-400 text-sm md:text-base">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm md:text-base">
                         {isNewHybrid
                           ? 'Add products to sell or post RFQs to buy. You can do both!'
                           : isNewSeller
@@ -1248,7 +1248,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
       {/* Quick RFQ Bar - AI Speed Layer for buyers */}
       {isBuyer && (
-        <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardContent className="p-4">
             <QuickRFQBar />
           </CardContent>
@@ -1265,10 +1265,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.06 }}
             >
-              <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl hover:border-[#D4A937]/20 transition-all">
+              <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl hover:border-[#D4A937]/20 transition-all">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center">
                       <kpi.icon className="w-4 h-4 text-[#D4A937]" />
                     </div>
                     {kpi.change && (
@@ -1277,7 +1277,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       </span>
                     )}
                   </div>
-                  <p className="text-2xl font-bold text-[#F5F0E8] font-mono">{kpi.value}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8] font-mono">{kpi.value}</p>
                   <p className="text-[11px] text-gray-500 mt-0.5">{kpi.label}</p>
                 </CardContent>
               </Card>
@@ -1294,9 +1294,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
       {/* Charts Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Sales/Orders Chart */}
-        <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#F5F0E8] flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-afrikoni-gold" />
               {isSeller ? 'Sales Activity' : 'Order Activity'}
             </CardTitle>
@@ -1305,7 +1305,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             {salesChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={salesChartData.slice(-14)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1E1E1E" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -1330,9 +1330,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </Card>
 
         {/* RFQ Chart */}
-        <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#F5F0E8] flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
               <FileText className="w-5 h-5 text-afrikoni-purple" />
               RFQ Activity
             </CardTitle>
@@ -1341,7 +1341,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             {rfqChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={rfqChartData.slice(-14)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1E1E1E" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -1373,9 +1373,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
       </div>
 
       {/* Quick Actions */}
-      <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl">
+      <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-[#F5F0E8]">
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8]">
             Quick Actions
           </CardTitle>
         </CardHeader>
@@ -1385,12 +1385,12 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
               <Link key={action.link + index} to={action.link}>
                 <Button
                   variant="outline"
-                  className="w-full h-auto py-4 flex flex-col items-center gap-2 border-[#2A2A2A] hover:border-[#D4A937]/40 hover:bg-[#1A1A1A] bg-[#0E0E0E] transition-all"
+                  className="w-full h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-[#2A2A2A] hover:border-[#D4A937]/40 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] bg-gray-50 dark:bg-[#0E0E0E] transition-all"
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${action.color}`}>
                     <action.icon className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-[#F5F0E8]">{action.label}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-[#F5F0E8]">{action.label}</span>
                 </Button>
               </Link>
             ))}
@@ -1400,9 +1400,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
       {/* Recent Activity - Unified feed */}
       {(recentOrders.length > 0 || recentRFQs.length > 0 || recentMessages.length > 0) && (
-        <Card className="border-[#1E1E1E] bg-[#141414] rounded-xl">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#F5F0E8] flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
               <Clock className="w-5 h-5 text-afrikoni-gold" />
               Recent Activity
             </CardTitle>
@@ -1421,16 +1421,16 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       <ShoppingCart className="w-4 h-4 text-afrikoni-gold" />
                     </div>
                     <div>
-                      <p className="font-medium text-[#F5F0E8] text-sm">
+                      <p className="font-medium text-gray-900 dark:text-[#F5F0E8] text-sm">
                         Order #{order.id?.slice(-8)}
                       </p>
-                      <p className="text-xs text-[#F5F0E8]/60">
+                      <p className="text-xs text-gray-500 dark:text-[#F5F0E8]/60">
                         {order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-[#F5F0E8] text-sm">
+                    <p className="font-semibold text-gray-900 dark:text-[#F5F0E8] text-sm">
                       ${parseFloat(order.total_amount || 0).toLocaleString()}
                     </p>
                     <Badge variant={order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : 'default'}>
@@ -1452,10 +1452,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       <FileText className="w-4 h-4 text-afrikoni-purple" />
                     </div>
                     <div>
-                      <p className="font-medium text-[#F5F0E8] text-sm">
+                      <p className="font-medium text-gray-900 dark:text-[#F5F0E8] text-sm">
                         {rfq.title || `RFQ #${rfq.id?.slice(-8)}`}
                       </p>
-                      <p className="text-xs text-[#F5F0E8]/60">
+                      <p className="text-xs text-gray-500 dark:text-[#F5F0E8]/60">
                         {rfq.created_at ? format(new Date(rfq.created_at), 'MMM dd, yyyy') : 'N/A'}
                       </p>
                     </div>
@@ -1478,10 +1478,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       <MessageSquare className="w-4 h-4 text-afrikoni-green" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium text-[#F5F0E8] text-sm truncate ${!message.read ? 'font-bold' : ''}`}>
+                      <p className={`font-medium text-gray-900 dark:text-[#F5F0E8] text-sm truncate ${!message.read ? 'font-bold' : ''}`}>
                         {message.content?.slice(0, 50)}...
                       </p>
-                      <p className="text-xs text-[#F5F0E8]/60">
+                      <p className="text-xs text-gray-500 dark:text-[#F5F0E8]/60">
                         {message.created_at ? format(new Date(message.created_at), 'MMM dd, h:mm a') : 'N/A'}
                       </p>
                     </div>

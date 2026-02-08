@@ -663,7 +663,7 @@ export default function DashboardLayout({
   // TRADE OS SHELL - 2026 Premium Layout
   // ====================================================================
   return (
-    <div className="flex min-h-screen w-full bg-[#0E0E0E] relative">
+    <div className="flex min-h-screen w-full bg-gray-50 dark:bg-[#0E0E0E] relative">
 
       {/* Trade OS Sidebar */}
       <TradeOSSidebar
@@ -687,173 +687,6 @@ export default function DashboardLayout({
           />
         )}
       </AnimatePresence>
-
-      {/* ====================================================================
-          LEGACY SIDEBAR - HIDDEN (replaced by TradeOSSidebar above)
-          Kept for backward compatibility with CollapsibleMenuSection
-          ==================================================================== */}
-      <motion.aside
-        initial={false}
-        animate={{ x: '-200%' }}
-        className="fixed left-0 top-0 h-screen bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:shadow-none transition-all shrink-0 hidden"
-        style={{
-          zIndex: -1,
-          width: 0,
-        }}
-      >
-        <div className="flex flex-col min-h-screen relative">
-          {/* Logo Section */}
-          <div className="flex items-center justify-between p-5 border-b border-afrikoni-gold/20">
-            <Logo type="full" size="sm" link={true} showTagline={false} className="text-afrikoni-gold" />
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="md:hidden p-1.5 rounded-lg hover:bg-afrikoni-gold/20 text-afrikoni-gold transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1">
-            {menuItems.map((item, idx) => {
-              // ✅ Handle items with children (collapsible sections like "Manage" and "Insights")
-              if (item.children && item.children.length > 0) {
-                return (
-                  <CollapsibleMenuSection
-                    key={`${item.label}-${idx}-capabilities`}
-                    item={item}
-                    location={location}
-                    setSidebarOpen={setSidebarOpen}
-                  />
-                );
-              }
-
-              // ✅ Skip items without path AND without children (invalid items)
-              // Items with path null but children are handled above
-              if (!item.path) {
-                return null;
-              }
-
-              if (!item.icon) {
-                console.warn('Menu item missing icon:', item);
-                return null;
-              }
-
-              const Icon = item.icon;
-              const isLocked = item.locked || item.disabled;
-              const isActive = !isLocked && (
-                location.pathname === item.path || 
-                               (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products') && !location.pathname.startsWith('/dashboard/admin')) ||
-                               (item.path === '/dashboard/admin' && location.pathname.startsWith('/dashboard/admin')) ||
-                (item.path === '/dashboard/risk' && location.pathname.startsWith('/dashboard/risk'))
-              );
-              
-              // Check if this is a section header (Risk & Compliance) or admin section
-              const isSection = item.isSection;
-              const isAdminSection = item.isAdminSection;
-              
-              // Render locked item (disabled)
-              if (isLocked) {
-                return (
-                  <div
-                    key={`${item.path}-${idx}`}
-                    className={`
-                      flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative cursor-not-allowed
-                      text-afrikoni-sand/40
-                      ${isSection || isAdminSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
-                    `}
-                    title={item.lockReason || 'Locked'}
-                  >
-                    {Icon && <Icon className="w-5 h-5 flex-shrink-0 text-afrikoni-sand/40" />}
-                    <span className="flex-1">{item.label || 'Menu Item'}</span>
-                    <Lock className="w-4 h-4 text-afrikoni-sand/40" />
-                  </div>
-                );
-              }
-              
-              return (
-                <motion.div
-                  key={`${item.path}-${idx}`}
-                  whileHover={{ x: 2 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Link
-                    to={item.path}
-                    onClick={(e) => {
-                      try {
-                        // Close sidebar on mobile after navigation
-                        if (window.innerWidth < 768) {
-                          setSidebarOpen(false);
-                        }
-                      } catch (error) {
-                        console.error('Error navigating to:', item.path, error);
-                        toast.error('Navigation error. Please try again.');
-                      }
-                    }}
-                    className={`
-                      flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative
-                      ${isActive 
-                        ? 'bg-afrikoni-gold text-white shadow-afrikoni-gold' 
-                        : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
-                      }
-                      ${isSection || isAdminSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
-                      ${isAdminSection ? 'bg-red-50/50 border-red-200' : ''}
-                    `}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeSidebarItem"
-                        className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    )}
-                    {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />}
-                    <span className="flex-1">{item.label || 'Menu Item'}</span>
-                    {/* Notification Badges */}
-                    {item.path === '/dashboard/notifications' && notificationCounts.messages > 0 && (
-                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-                        {notificationCounts.messages > 9 ? '9+' : notificationCounts.messages}
-                      </Badge>
-                    )}
-                    {item.path === '/dashboard/rfqs' && notificationCounts.rfqs > 0 && (
-                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-                        {notificationCounts.rfqs > 9 ? '9+' : notificationCounts.rfqs}
-                      </Badge>
-                    )}
-                    {item.path === '/dashboard/admin/review' && notificationCounts.approvals > 0 && (
-                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-                        {notificationCounts.approvals > 9 ? '9+' : notificationCounts.approvals}
-                      </Badge>
-                    )}
-                    {isActive && <ChevronRight className="w-4 h-4 text-white" />}
-                  </Link>
-                  
-                  {/* Admin sub-menu items are handled by CollapsibleMenuSection */}
-                </motion.div>
-              );
-            })}
-          </nav>
-
-          {/* Bottom Section - Help Only (Settings is in main menu) */}
-          <div className="p-3 border-t border-afrikoni-gold/20 space-y-1">
-            <Link
-              to="/dashboard/help"
-              className="flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-medium text-afrikoni-sand hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold transition-all"
-            >
-              <HelpCircle className="w-5 h-5" />
-              <span>Help Center</span>
-            </Link>
-          </div>
-
-          {/* Afrikoni Watermark Logo at Bottom - v2.5 */}
-          <div className="absolute bottom-4 left-4 opacity-[0.08] pointer-events-none">
-            <Logo type="icon" size="lg" link={false} className="text-afrikoni-gold" />
-          </div>
-          
-          {/* Thin gold divider lines between groups */}
-          <div className="absolute top-[280px] left-3 right-3 h-px bg-afrikoni-gold/20" />
-        </div>
-      </motion.aside>
 
       {/* ====================================================================
           TRADE OS MAIN CONTENT AREA
@@ -880,7 +713,7 @@ export default function DashboardLayout({
         />
 
         {/* Kernel Status Bar */}
-        <div className="hidden md:flex items-center px-4 md:px-5 py-1.5 bg-[#0A0A0A] border-b border-[#1E1E1E] overflow-x-auto">
+        <div className="hidden md:flex items-center px-4 md:px-5 py-1.5 bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#1E1E1E] overflow-x-auto">
           <KernelStatusBar />
         </div>
 
@@ -898,7 +731,7 @@ export default function DashboardLayout({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="fixed w-56 bg-[#141414] border border-[#2A2A2A] rounded-xl shadow-2xl shadow-black/50"
+              className="fixed w-56 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2A2A2A] rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/50"
               style={{
                 top: `${menuPosition.top}px`,
                 right: `${menuPosition.right}px`,
@@ -907,8 +740,8 @@ export default function DashboardLayout({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="py-1">
-                <div className="px-4 py-3 border-b border-[#1E1E1E]">
-                  <div className="font-semibold text-[#F5F0E8] text-sm truncate">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-[#1E1E1E]">
+                  <div className="font-semibold text-gray-900 dark:text-[#F5F0E8] text-sm truncate">
                     {mergedUser?.email || contextProfile?.email || 'user@example.com'}
                   </div>
                   <div className="text-[11px] text-gray-500 capitalize mt-0.5">
@@ -927,7 +760,7 @@ export default function DashboardLayout({
                   <Link
                     key={item.to}
                     to={item.to}
-                    className="flex items-center gap-3 px-4 py-2 hover:bg-[#1A1A1A] text-sm text-gray-300 hover:text-[#F5F0E8] transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-[#F5F0E8] transition-colors"
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <item.icon className="w-4 h-4 text-gray-500" />
@@ -936,7 +769,7 @@ export default function DashboardLayout({
                 ))}
                 {isUserAdmin && (
                   <>
-                    <div className="border-t border-[#1E1E1E] my-1"></div>
+                    <div className="border-t border-gray-200 dark:border-[#1E1E1E] my-1"></div>
                     <Link
                       to="/dashboard/admin"
                       className="flex items-center gap-3 px-4 py-2 hover:bg-[#D4A937]/10 text-sm text-[#D4A937] font-medium transition-colors"
@@ -949,7 +782,7 @@ export default function DashboardLayout({
                 )}
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleTheme(); }}
-                  className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-[#1A1A1A] text-sm text-gray-400 hover:text-[#D4A937] transition-colors"
+                  className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-sm text-gray-500 dark:text-gray-400 hover:text-[#D4A937] transition-colors"
                   type="button"
                 >
                   <Globe className="w-4 h-4" />
@@ -971,7 +804,7 @@ export default function DashboardLayout({
 
         {/* Page Content - Trade OS Dark Canvas */}
         <main
-          className="relative flex-1 w-full bg-[#0E0E0E] overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6"
+          className="relative flex-1 w-full bg-gray-50 dark:bg-[#0E0E0E] overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6"
           style={{
             zIndex: zIndex.content,
             minHeight: 'var(--content-min-height-mobile)',
