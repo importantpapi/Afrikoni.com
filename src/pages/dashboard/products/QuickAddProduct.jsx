@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/shared/ui/badge';
 import {
   ArrowLeft, Send, Save, Loader2, Wand2,
-  ChevronDown, ChevronUp, RefreshCw, X, Plus
+  ChevronDown, ChevronUp, RefreshCw, X, Plus, Camera
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ProductImageUploader from '@/components/products/ProductImageUploader';
@@ -75,6 +75,7 @@ export default function QuickAddProduct() {
   const [errors, setErrors] = useState({});
   const [showMoreDetails, setShowMoreDetails] = useState(false);
   const [specFields, setSpecFields] = useState([{ key: '', value: '' }]);
+  const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -226,6 +227,109 @@ export default function QuickAddProduct() {
     }
   };
 
+  // Photo-to-Listing: Upload photo → AI extracts product info
+  const handlePhotoToListing = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10MB');
+      return;
+    }
+
+    setIsAnalyzingPhoto(true);
+    try {
+      // Convert image to base64 for AI vision
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+
+      const { callChat } = await import('@/ai/aiClient');
+      const result = await callChat({
+        model: import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an African B2B product listing expert. Analyze the product photo and extract: title, description (2-3 sentences), suggested category name, estimated price range in USD, and country of origin if visible. Return JSON: { "title": "", "description": "", "category": "", "price_estimate": "", "country": "" }'
+          },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Analyze this product photo and generate a B2B listing. Return JSON only.' },
+              { type: 'image_url', image_url: { url: base64 } }
+            ]
+          }
+        ],
+        temperature: 0.3,
+        maxTokens: 500,
+      });
+
+      if (result.success && result.content) {
+        // Parse JSON from response
+        let parsed;
+        try {
+          const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+          parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+        } catch {
+          parsed = null;
+        }
+
+        if (parsed) {
+          setFormData(prev => ({
+            ...prev,
+            title: parsed.title || prev.title,
+            description: parsed.description || prev.description,
+            country_of_origin: parsed.country || prev.country_of_origin,
+          }));
+
+          // Try to match category
+          if (parsed.category && categories.length > 0) {
+            const matchedCat = categories.find(c =>
+              c.name.toLowerCase().includes(parsed.category.toLowerCase()) ||
+              parsed.category.toLowerCase().includes(c.name.toLowerCase())
+            );
+            if (matchedCat) {
+              setFormData(prev => ({ ...prev, category_id: matchedCat.id }));
+            }
+          }
+
+          // Try to set price
+          if (parsed.price_estimate) {
+            const priceMatch = String(parsed.price_estimate).match(/[\d.]+/);
+            if (priceMatch) {
+              setFormData(prev => ({ ...prev, price_min: priceMatch[0] }));
+            }
+          }
+
+          // Also add the photo as a product image
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, { url: base64, alt_text: parsed.title || 'Product photo', is_primary: prev.images.length === 0, sort_order: prev.images.length }]
+          }));
+
+          setShowMoreDetails(true);
+          toast.success('AI analyzed your photo and filled in the details!');
+        } else {
+          toast.error('Could not extract product info from this photo. Try a clearer image.');
+        }
+      } else {
+        toast.error('Photo analysis failed. You can still fill in the details manually.');
+      }
+    } catch (err) {
+      console.error('[QuickAddProduct] Photo analysis error:', err);
+      toast.error('Photo analysis failed. Fill in the details manually.');
+    } finally {
+      setIsAnalyzingPhoto(false);
+    }
+  };
+
   // Handle certifications
   const handleCertificationAdd = (e) => {
     if (e.key === 'Enter' && e.target.value.trim()) {
@@ -343,6 +447,35 @@ export default function QuickAddProduct() {
 
       <Card>
         <CardContent className="p-6 space-y-5">
+          {/* Photo-to-Listing: AI Speed Layer */}
+          {!productId && (
+            <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-4 text-center hover:border-afrikoni-gold transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoToListing}
+                className="hidden"
+                id="photo-to-listing"
+                disabled={isAnalyzingPhoto}
+              />
+              <label htmlFor="photo-to-listing" className="cursor-pointer">
+                {isAnalyzingPhoto ? (
+                  <div className="flex items-center justify-center gap-2 text-afrikoni-gold">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-sm font-medium">AI analyzing your photo...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-afrikoni-deep/70">
+                    <Camera className="w-5 h-5 text-afrikoni-gold" />
+                    <span className="text-sm">
+                      <span className="font-medium text-afrikoni-gold">Upload a photo</span> and AI will fill in the details
+                    </span>
+                  </div>
+                )}
+              </label>
+            </div>
+          )}
+
           {/* REQUIRED: Title */}
           <div>
             <Label htmlFor="title">

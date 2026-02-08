@@ -18,6 +18,7 @@ import { StatCardSkeleton, CardSkeleton } from '@/components/shared/ui/skeletons
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import OnboardingProgressTracker from '@/components/dashboard/OnboardingProgressTracker';
+import QuickRFQBar from '@/components/dashboard/QuickRFQBar';
 import { getActivityMetrics, getSearchAppearanceCount } from '@/services/activityTracking';
 import { toast } from 'sonner';
 import { getUserDisplayName } from '@/utils/userHelpers';
@@ -1235,6 +1236,15 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             </CardContent>
           </Card>
         </motion.div>
+      )}
+
+      {/* Quick RFQ Bar - AI Speed Layer for buyers */}
+      {isBuyer && (
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <CardContent className="p-4">
+            <QuickRFQBar />
+          </CardContent>
+        </Card>
       )}
 
       {/* KPI Cards */}

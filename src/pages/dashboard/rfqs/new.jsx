@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useSearchParams } from 'react-router-dom';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
@@ -38,6 +39,7 @@ export default function CreateRFQ() {
   // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
   const { user, profile, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
@@ -89,6 +91,32 @@ export default function CreateRFQ() {
     // Now safe to load data
     loadData();
   }, [canLoadData, user, profile, capabilities, navigate]);
+
+  // Phase 4: Pre-fill form from URL params (AI QuickRFQBar)
+  useEffect(() => {
+    const aiParam = searchParams.get('ai');
+    const title = searchParams.get('title');
+    const description = searchParams.get('description');
+    const quantity = searchParams.get('quantity');
+    const unit = searchParams.get('unit');
+    const deliveryLocation = searchParams.get('delivery_location');
+
+    if (title || description || quantity) {
+      setFormData(prev => ({
+        ...prev,
+        title: title || prev.title,
+        description: description || prev.description,
+        quantity: quantity || prev.quantity,
+        unit: unit || prev.unit,
+        delivery_location: deliveryLocation || prev.delivery_location,
+      }));
+
+      if (aiParam) {
+        // Show optional fields if AI pre-filled delivery info
+        if (deliveryLocation) setShowOptionalFields(true);
+      }
+    }
+  }, [searchParams]);
 
   const loadData = async () => {
     try {
