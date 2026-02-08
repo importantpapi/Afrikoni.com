@@ -134,6 +134,103 @@
   color: #666;
 }
 
+/* ============================================
+   GLASSMORPHISM EFFECTS - Bloomberg Terminal Aesthetic
+   ============================================ */
+
+/* Glass card surfaces */
+.dark .glass-card,
+.dark .shadow-premium {
+  background: rgba(26, 26, 26, 0.85) !important;
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  border-color: rgba(212, 169, 55, 0.12) !important;
+}
+
+/* Glass sidebar */
+.dark .bg-afrikoni-charcoal {
+  background: rgba(10, 10, 10, 0.92) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Glass header */
+.dark .bg-afrikoni-ivory {
+  background-color: rgba(18, 18, 18, 0.9) !important;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+}
+
+/* Dark mode gold glow on interactive elements */
+.dark .hover-lift:hover,
+.dark .card-hover-lift:hover {
+  box-shadow: 0 8px 30px rgba(212, 169, 55, 0.2), 0 0 1px rgba(212, 169, 55, 0.3);
+}
+
+/* Premium gold border glow for active states */
+.dark .border-afrikoni-gold {
+  box-shadow: 0 0 8px rgba(212, 169, 55, 0.15);
+}
+
+/* Dark mode scrollbar styling */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Dark mode table zebra stripes */
+.dark tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Dark mode dropdown menus */
+.dark [role="menu"],
+.dark [role="listbox"] {
+  background-color: #1A1A1A;
+  border-color: #2A2A2A;
+}
+
+/* State-change micro-animations */
+@keyframes escrow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 169, 55, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(212, 169, 55, 0); }
+}
+
+@keyframes verification-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(58, 183, 149, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(58, 183, 149, 0.4); }
+}
+
+@keyframes shipment-move {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+.animate-escrow-pulse {
+  animation: escrow-pulse 2s ease-in-out infinite;
+}
+
+.animate-verification-glow {
+  animation: verification-glow 3s ease-in-out infinite;
+}
+
+.animate-shipment-move {
+  animation: shipment-move 2s ease-in-out infinite;
+}
+
 /* Global overflow protection to avoid horizontal scroll / white space */
 html, body {
   overflow-x: hidden;

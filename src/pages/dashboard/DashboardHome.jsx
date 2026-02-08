@@ -26,6 +26,8 @@ import { useTranslation } from 'react-i18next';
 // REMOVED: Realtime is now owned by WorkspaceDashboard via DashboardRealtimeManager
 // import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import TradeCorridorWidget from '@/components/dashboard/TradeCorridorWidget';
+import EscrowMilestoneProgress from '@/components/dashboard/EscrowMilestoneProgress';
 
 // ============================================================================
 // CONSTANTS & HELPERS (Section 2)
@@ -1356,6 +1358,18 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Trade Corridor + Escrow Milestone Widgets */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <TradeCorridorWidget />
+        <EscrowMilestoneProgress
+          totalAmount={64000}
+          releasedAmount={19200}
+          heldAmount={44800}
+          currentMilestone="order_confirmed"
+          fxRate="1 USD = 1.08 EUR"
+        />
       </div>
 
       {/* Quick Actions */}
