@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/shared/ui/card';
 import OptimizedImage from '@/components/OptimizedImage';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import Price from '@/components/shared/ui/Price';
+import VerificationBadge from '@/components/shared/ui/VerificationBadge';
 
 // Country name to flag mapping
 const COUNTRY_FLAGS = {
@@ -40,7 +41,8 @@ export default function ProductCard({ product, priority = false }) {
   const imageUrl = getPrimaryImageFromProduct(product);
   const countryName = product.country_of_origin || product.companies?.country || '';
   const flag = getCountryFlag(countryName);
-  const isVerified = product.companies?.verification_status === 'verified';
+  const verificationStatus = product.companies?.verification_status || 'unverified';
+  const isVerified = verificationStatus === 'verified' || verificationStatus === 'VERIFIED';
   
   // Format MOQ
   const moqDisplay = product.min_order_quantity
@@ -74,12 +76,16 @@ export default function ProductCard({ product, priority = false }) {
             </div>
           )}
           
-          {/* Verified Badge Overlay - Top-right */}
-          {isVerified && (
-            <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
-              <Shield className="w-4 h-4 text-afrikoni-gold" />
+          {/* Verification Badge Overlay - Top-right */}
+          {isVerified ? (
+            <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-full shadow-sm">
+              <VerificationBadge status="VERIFIED" size="xs" showLabel variant="badge" />
             </div>
-          )}
+          ) : verificationStatus === 'PENDING' ? (
+            <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-full shadow-sm">
+              <VerificationBadge status="PENDING" size="xs" variant="badge" />
+            </div>
+          ) : null}
 
           {/* Country Flag Badge Overlay - Bottom-left */}
           {flag && (
