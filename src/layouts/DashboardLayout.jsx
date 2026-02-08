@@ -45,6 +45,10 @@ import { layoutConfig } from '@/config/layout';
 import { getHeaderComponent } from '@/config/headerMapping';
 import CommandPalette from '@/components/dashboard/CommandPalette';
 import { useTheme } from '@/contexts/ThemeContext';
+import TradeOSSidebar from '@/components/dashboard/TradeOSSidebar';
+import TradeOSHeader from '@/components/dashboard/TradeOSHeader';
+import KernelStatusBar from '@/components/dashboard/KernelStatusBar';
+import AITradeCopilot from '@/components/dashboard/AITradeCopilot';
 
 // Collapsible menu section component for items with children
 function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
@@ -655,15 +659,19 @@ export default function DashboardLayout({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // ====================================================================
+  // TRADE OS SHELL - 2026 Premium Layout
+  // ====================================================================
   return (
-    <div className="flex min-h-screen w-full bg-afrikoni-ivory relative">
-      {/* Premium African Geometric Background Pattern - v2.5 */}
-      <div 
-        className="fixed inset-0 opacity-[0.05] pointer-events-none"
-        style={{
-          zIndex: zIndex.background,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A937' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
+    <div className="flex min-h-screen w-full bg-gray-50 dark:bg-[#0E0E0E] relative">
+
+      {/* Trade OS Sidebar */}
+      <TradeOSSidebar
+        capabilities={capabilitiesData}
+        isAdmin={isUserAdmin}
+        notificationCounts={notificationCounts}
+        onClose={() => setSidebarOpen(false)}
+        sidebarOpen={sidebarOpen}
       />
 
       {/* Mobile Sidebar Overlay */}
@@ -673,258 +681,43 @@ export default function DashboardLayout({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm md:hidden"
             style={{ zIndex: zIndex.overlay }}
             onClick={() => setSidebarOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Premium Sidebar - Charcoal Black */}
-      <motion.aside
-        initial={false}
-        animate={{ 
-          x: sidebarOpen ? 0 : '-100%',
-        }}
-        className="fixed left-0 top-0 h-screen bg-afrikoni-charcoal border-r border-afrikoni-gold/20 shadow-premium-lg md:shadow-none transition-all shrink-0"
-        style={{
-          zIndex: zIndex.sidebar,
-          width: sidebarOpen ? 'var(--sidebar-current-width)' : '0',
-        }}
+      {/* ====================================================================
+          TRADE OS MAIN CONTENT AREA
+          ==================================================================== */}
+      <div
+        className="flex flex-col flex-1 w-full min-h-screen relative overflow-visible md:ml-[240px]"
+        style={{ zIndex: zIndex.content }}
       >
-        <div className="flex flex-col min-h-screen relative">
-          {/* Logo Section */}
-          <div className="flex items-center justify-between p-5 border-b border-afrikoni-gold/20">
-            <Logo type="full" size="sm" link={true} showTagline={false} className="text-afrikoni-gold" />
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="md:hidden p-1.5 rounded-lg hover:bg-afrikoni-gold/20 text-afrikoni-gold transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+        {/* Trade OS Header */}
+        <TradeOSHeader
+          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          notificationCount={notificationCounts.messages || 0}
+          userAvatar={
+            <UserAvatar
+              user={mergedUser}
+              profile={contextProfile}
+              userMenuOpen={userMenuOpen}
+              setUserMenuOpen={setUserMenuOpen}
+              userMenuButtonRef={userMenuButtonRef}
+              getUserInitial={getUserInitial}
+            />
+          }
+        />
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1">
-            {menuItems.map((item, idx) => {
-              // ✅ Handle items with children (collapsible sections like "Manage" and "Insights")
-              if (item.children && item.children.length > 0) {
-                return (
-                  <CollapsibleMenuSection
-                    key={`${item.label}-${idx}-capabilities`}
-                    item={item}
-                    location={location}
-                    setSidebarOpen={setSidebarOpen}
-                  />
-                );
-              }
-
-              // ✅ Skip items without path AND without children (invalid items)
-              // Items with path null but children are handled above
-              if (!item.path) {
-                return null;
-              }
-
-              if (!item.icon) {
-                console.warn('Menu item missing icon:', item);
-                return null;
-              }
-
-              const Icon = item.icon;
-              const isLocked = item.locked || item.disabled;
-              const isActive = !isLocked && (
-                location.pathname === item.path || 
-                               (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') && !location.pathname.includes('/orders') && !location.pathname.includes('/rfqs') && !location.pathname.includes('/products') && !location.pathname.startsWith('/dashboard/admin')) ||
-                               (item.path === '/dashboard/admin' && location.pathname.startsWith('/dashboard/admin')) ||
-                (item.path === '/dashboard/risk' && location.pathname.startsWith('/dashboard/risk'))
-              );
-              
-              // Check if this is a section header (Risk & Compliance) or admin section
-              const isSection = item.isSection;
-              const isAdminSection = item.isAdminSection;
-              
-              // Render locked item (disabled)
-              if (isLocked) {
-                return (
-                  <div
-                    key={`${item.path}-${idx}`}
-                    className={`
-                      flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative cursor-not-allowed
-                      text-afrikoni-sand/40
-                      ${isSection || isAdminSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
-                    `}
-                    title={item.lockReason || 'Locked'}
-                  >
-                    {Icon && <Icon className="w-5 h-5 flex-shrink-0 text-afrikoni-sand/40" />}
-                    <span className="flex-1">{item.label || 'Menu Item'}</span>
-                    <Lock className="w-4 h-4 text-afrikoni-sand/40" />
-                  </div>
-                );
-              }
-              
-              return (
-                <motion.div
-                  key={`${item.path}-${idx}`}
-                  whileHover={{ x: 2 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Link
-                    to={item.path}
-                    onClick={(e) => {
-                      try {
-                        // Close sidebar on mobile after navigation
-                        if (window.innerWidth < 768) {
-                          setSidebarOpen(false);
-                        }
-                      } catch (error) {
-                        console.error('Error navigating to:', item.path, error);
-                        toast.error('Navigation error. Please try again.');
-                      }
-                    }}
-                    className={`
-                      flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group relative
-                      ${isActive 
-                        ? 'bg-afrikoni-gold text-white shadow-afrikoni-gold' 
-                        : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
-                      }
-                      ${isSection || isAdminSection ? 'border-t border-afrikoni-gold/20 mt-2 pt-4' : ''}
-                      ${isAdminSection ? 'bg-red-50/50 border-red-200' : ''}
-                    `}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeSidebarItem"
-                        className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    )}
-                    {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-afrikoni-gold'}`} />}
-                    <span className="flex-1">{item.label || 'Menu Item'}</span>
-                    {/* Notification Badges */}
-                    {item.path === '/dashboard/notifications' && notificationCounts.messages > 0 && (
-                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-                        {notificationCounts.messages > 9 ? '9+' : notificationCounts.messages}
-                      </Badge>
-                    )}
-                    {item.path === '/dashboard/rfqs' && notificationCounts.rfqs > 0 && (
-                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-                        {notificationCounts.rfqs > 9 ? '9+' : notificationCounts.rfqs}
-                      </Badge>
-                    )}
-                    {item.path === '/dashboard/admin/review' && notificationCounts.approvals > 0 && (
-                      <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
-                        {notificationCounts.approvals > 9 ? '9+' : notificationCounts.approvals}
-                      </Badge>
-                    )}
-                    {isActive && <ChevronRight className="w-4 h-4 text-white" />}
-                  </Link>
-                  
-                  {/* Admin sub-menu items are handled by CollapsibleMenuSection */}
-                </motion.div>
-              );
-            })}
-          </nav>
-
-          {/* Bottom Section - Help Only (Settings is in main menu) */}
-          <div className="p-3 border-t border-afrikoni-gold/20 space-y-1">
-            <Link
-              to="/dashboard/help"
-              className="flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-medium text-afrikoni-sand hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold transition-all"
-            >
-              <HelpCircle className="w-5 h-5" />
-              <span>Help Center</span>
-            </Link>
-          </div>
-
-          {/* Afrikoni Watermark Logo at Bottom - v2.5 */}
-          <div className="absolute bottom-4 left-4 opacity-[0.08] pointer-events-none">
-            <Logo type="icon" size="lg" link={false} className="text-afrikoni-gold" />
-          </div>
-          
-          {/* Thin gold divider lines between groups */}
-          <div className="absolute top-[280px] left-3 right-3 h-px bg-afrikoni-gold/20" />
-        </div>
-      </motion.aside>
-
-      {/* Main Content Area */}
-      <div 
-        className="flex flex-col flex-1 w-full min-h-screen relative overflow-visible md:ml-[var(--sidebar-width)]"
-        style={{
-          zIndex: zIndex.content,
-        }}
-      >
-        {/* Premium Top Bar - Enterprise Pattern (headers render their own <header> tag) */}
-        <div 
-          className="sticky top-0 bg-afrikoni-ivory shadow-sm"
-          style={{ zIndex: zIndex.header }}
-        >
-          {/* Header Content - Direct child, no wrapper */}
-          <div className="relative h-full w-full flex items-center gap-2 px-4">
-            {/* ✅ ARCHITECTURAL FIX: Global Sync Button (Founder's Control) */}
-            {refreshCapabilities && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refreshCapabilities(true)}
-                className={`${capabilitiesLoading ? 'animate-spin' : ''}`}
-                title="Force refresh all data"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            )}
-            
-            {(() => {
-              {/* Shared user avatar for all headers */}
-              const userAvatarComponent = (
-                <UserAvatar
-                  user={mergedUser}
-                  profile={contextProfile}
-                  userMenuOpen={userMenuOpen}
-                  setUserMenuOpen={setUserMenuOpen}
-                  userMenuButtonRef={userMenuButtonRef}
-                  getUserInitial={getUserInitial}
-                />
-              );
-
-              // Determine header component using centralized mapping
-              const headerConfig = getHeaderComponent({
-                isAdminPath: location.pathname.startsWith('/dashboard/admin'),
-                isUserAdmin,
-                isSeller,
-                isLogistics,
-                isHybridCapability,
-              });
-
-              const HeaderComponent = headerConfig.component;
-              
-              // Build props based on header requirements
-              const headerProps = {
-                t,
-                setSidebarOpen,
-                setSearchOpen,
-                navigate,
-                userAvatar: userAvatarComponent,
-              };
-
-              // Add alertCount for admin header
-              if (headerConfig.requiresAlertCount) {
-                headerProps.alertCount = 0;
-              }
-
-              // Add hybrid-specific props for hybrid header
-              if (headerConfig.requiresHybridProps) {
-                headerProps.activeView = activeView;
-                headerProps.setActiveView = setActiveView;
-                headerProps.openWhatsAppCommunity = openWhatsAppCommunity;
-              }
-
-              // Render the selected header component
-              return <HeaderComponent {...headerProps} />;
-            })()}
-          </div>
+        {/* Kernel Status Bar */}
+        <div className="hidden md:flex items-center px-4 md:px-5 py-1.5 bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#1E1E1E] overflow-x-auto">
+          <KernelStatusBar />
         </div>
 
-        {/* User Menu Dropdown - Fixed position for visibility */}
+        {/* User Menu Dropdown - Trade OS styled */}
         {userMenuOpen && (
           <>
             <div
@@ -937,156 +730,81 @@ export default function DashboardLayout({
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="fixed w-56 bg-white border-2 border-afrikoni-gold/30 rounded-afrikoni shadow-2xl"
-              style={{ 
+              transition={{ duration: 0.15 }}
+              className="fixed w-56 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2A2A2A] rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/50"
+              style={{
                 top: `${menuPosition.top}px`,
                 right: `${menuPosition.right}px`,
                 zIndex: zIndex.dropdown,
               }}
               onClick={(e) => e.stopPropagation()}
             >
-                        <div className="py-1">
-                          <div className="px-4 py-3 border-b border-afrikoni-gold/20">
-                            <div className="font-semibold text-afrikoni-text-dark text-sm">
-                              {mergedUser?.email || contextProfile?.email || mergedUser?.user_email || 'user@example.com'}
-                            </div>
-                            {/* PHASE 5B: Capability-based role display */}
-                            <div className="text-xs text-afrikoni-text-dark/70 capitalize">
-                              {isHybridCapability ? 'Hybrid' : isSeller ? 'Seller' : isLogistics ? 'Logistics' : 'Buyer'}
-                            </div>
-                          </div>
-                          <Link 
-                            to="/dashboard" 
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <LayoutDashboard className="w-4 h-4" />
-                            Dashboard
-                          </Link>
-                          <Link 
-                            to={contextProfile?.company_id ? `/business/${contextProfile.company_id}` : '/dashboard/settings'} 
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <User className="w-4 h-4" />
-                            View Profile
-                          </Link>
-                          <Link 
-                            to="/dashboard/notifications"
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                            Messages
-                          </Link>
-                          <Link 
-                            to="/dashboard/orders" 
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <Package className="w-4 h-4" />
-                            Orders
-                          </Link>
-                          <Link 
-                            to="/dashboard/rfqs" 
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <FileText className="w-4 h-4" />
-                            RFQs
-                          </Link>
-                          <Link 
-                            to="/verification-center" 
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <Shield className="w-4 h-4" />
-                            Verification
-                          </Link>
-                          <Link 
-                            to="/dashboard/settings" 
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <Settings className="w-4 h-4" />
-                            Settings
-                          </Link>
-                          {isUserAdmin && (
-                            <>
-                              <div className="border-t border-afrikoni-gold/20 my-1"></div>
-                              <Link 
-                                to="/dashboard/risk" 
-                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-gold/10 text-sm text-afrikoni-gold font-semibold transition-colors"
-                                onClick={(e) => {
-                                  try {
-                                    setUserMenuOpen(false);
-                                  } catch (error) {
-                                    console.error('Error navigating:', error);
-                                  }
-                                }}
-                              >
-                                <AlertTriangle className="w-4 h-4" />
-                                Admin Panel
-                              </Link>
-                              <Link 
-                                to="/dashboard/admin/users" 
-                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-sand/20 text-sm text-afrikoni-text-dark transition-colors"
-                                onClick={(e) => {
-                                  try {
-                                    setUserMenuOpen(false);
-                                  } catch (error) {
-                                    console.error('Error navigating:', error);
-                                  }
-                                }}
-                              >
-                                <Users className="w-4 h-4" />
-                                User Management
-                              </Link>
-                            </>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toggleTheme();
-                            }}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-afrikoni-gold/10 text-sm text-afrikoni-gold transition-colors"
-                            type="button"
-                          >
-                            {theme === 'dark' ? (
-                              <><Globe className="w-4 h-4" /> Light Mode</>
-                            ) : (
-                              <><Globe className="w-4 h-4" /> Dark Mode</>
-                            )}
-                          </button>
-                          <div className="border-t border-afrikoni-gold/20 my-1"></div>
-                          <button
-                            onClick={(e) => {
-                              try {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleLogout();
-                                setUserMenuOpen(false);
-                              } catch (error) {
-                                console.error('Error logging out:', error);
-                                toast.error('Error logging out. Please try again.');
-                              }
-                            }}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-red-50 text-sm text-afrikoni-red transition-colors"
-                            type="button"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            Logout
-                          </button>
-                        </div>
+              <div className="py-1">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-[#1E1E1E]">
+                  <div className="font-semibold text-gray-900 dark:text-[#F5F0E8] text-sm truncate">
+                    {mergedUser?.email || contextProfile?.email || 'user@example.com'}
+                  </div>
+                  <div className="text-[11px] text-gray-500 capitalize mt-0.5">
+                    {isHybridCapability ? 'Hybrid Trader' : isSeller ? 'Seller' : isLogistics ? 'Logistics' : 'Buyer'}
+                  </div>
+                </div>
+                {[
+                  { to: '/dashboard', icon: LayoutDashboard, label: 'Command Center' },
+                  { to: contextProfile?.company_id ? `/business/${contextProfile.company_id}` : '/dashboard/settings', icon: User, label: 'Profile' },
+                  { to: '/dashboard/notifications', icon: MessageSquare, label: 'Trade Signals' },
+                  { to: '/dashboard/orders', icon: Package, label: 'Orders' },
+                  { to: '/dashboard/rfqs', icon: FileText, label: 'RFQs' },
+                  { to: '/verification-center', icon: Shield, label: 'Verification' },
+                  { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+                ].map(item => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-[#F5F0E8] transition-colors"
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4 text-gray-500" />
+                    {item.label}
+                  </Link>
+                ))}
+                {isUserAdmin && (
+                  <>
+                    <div className="border-t border-gray-200 dark:border-[#1E1E1E] my-1"></div>
+                    <Link
+                      to="/dashboard/admin"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-[#D4A937]/10 text-sm text-[#D4A937] font-medium transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <AlertTriangle className="w-4 h-4" />
+                      Admin Panel
+                    </Link>
+                  </>
+                )}
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleTheme(); }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-sm text-gray-500 dark:text-gray-400 hover:text-[#D4A937] transition-colors"
+                  type="button"
+                >
+                  <Globe className="w-4 h-4" />
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </button>
+                <div className="border-t border-[#1E1E1E] my-1"></div>
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLogout(); setUserMenuOpen(false); }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-red-950/30 text-sm text-red-400 transition-colors"
+                  type="button"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
             </motion.div>
           </>
         )}
 
-        {/* Page Content - Mobile optimized padding */}
-        <main 
-          className="relative flex-1 w-full bg-afrikoni-ivory overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6"
+        {/* Page Content - Trade OS Dark Canvas */}
+        <main
+          className="relative flex-1 w-full bg-gray-50 dark:bg-[#0E0E0E] overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-24 md:pb-6"
           style={{
             zIndex: zIndex.content,
             minHeight: 'var(--content-min-height-mobile)',
@@ -1096,15 +814,16 @@ export default function DashboardLayout({
         </main>
       </div>
 
-      {/* PHASE 5B: Mobile Bottom Navigation - pass capability flags instead of role */}
-      <MobileBottomNav 
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
         isBuyer={isBuyer}
         isSeller={isSeller}
         isLogistics={isLogistics}
         isHybrid={isHybridCapability}
       />
 
-      {/* PHASE 5B: Dev role switcher UI completely removed - capabilities are company-level */}
+      {/* AI Trade Copilot - Persistent floating assistant */}
+      <AITradeCopilot />
 
       {/* 2026 Trade OS: Command Palette (Cmd+K / Ctrl+K) */}
       <CommandPalette

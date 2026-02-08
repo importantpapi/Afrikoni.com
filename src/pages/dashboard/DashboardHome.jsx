@@ -1146,16 +1146,16 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </div>
         <StatCardSkeleton count={5} />
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
             <CardContent className="p-6">
-              <div className="h-6 w-32 bg-afrikoni-cream rounded mb-4 animate-pulse" />
-              <div className="h-64 bg-afrikoni-cream rounded animate-pulse" />
+              <div className="h-6 w-32 bg-gray-100 dark:bg-afrikoni-cream rounded mb-4 animate-pulse" />
+              <div className="h-64 bg-gray-100 dark:bg-afrikoni-cream rounded animate-pulse" />
             </CardContent>
           </Card>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
             <CardContent className="p-6">
-              <div className="h-6 w-32 bg-afrikoni-cream rounded mb-4 animate-pulse" />
-              <div className="h-64 bg-afrikoni-cream rounded animate-pulse" />
+              <div className="h-6 w-32 bg-gray-100 dark:bg-afrikoni-cream rounded mb-4 animate-pulse" />
+              <div className="h-64 bg-gray-100 dark:bg-afrikoni-cream rounded animate-pulse" />
             </CardContent>
           </Card>
         </div>
@@ -1165,19 +1165,19 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
   }
 
   return (
-    <div className="space-y-6 pb-8">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-5 pb-8">
+      {/* Trade OS Welcome Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#F5F0E8] mb-1 leading-tight">
             {welcomeMessage}
           </h1>
-          <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">
+          <p className="text-sm text-gray-500">
             {subtitle}
           </p>
         </div>
-        <div className="hidden md:flex items-center gap-2 text-xs text-afrikoni-text-dark/40">
-          <kbd className="px-2 py-1 bg-gray-100 rounded border border-gray-200 font-mono text-[11px]">
+        <div className="hidden md:flex items-center gap-2 text-xs text-gray-400 dark:text-gray-600">
+          <kbd className="px-2 py-1 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] font-mono text-[11px] text-gray-500">
             {navigator.platform?.includes('Mac') ? '\u2318' : 'Ctrl'}+K
           </kbd>
           <span>Quick actions</span>
@@ -1191,19 +1191,19 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
+          <Card className="border border-[#D4A937]/30 bg-gradient-to-r from-[#D4A937]/10 via-[#D4A937]/5 to-[#8140FF]/5 rounded-xl shadow-lg dark:shadow-xl mb-5">
             <CardContent className="p-6 md:p-8">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
-                      {isNewSeller ? <Package className="w-6 h-6 text-afrikoni-chestnut" /> : <FileText className="w-6 h-6 text-afrikoni-chestnut" />}
+                      {isNewSeller ? <Package className="w-6 h-6 text-[#0A0A0A]" /> : <FileText className="w-6 h-6 text-[#0A0A0A]" />}
                     </div>
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
+                      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
                         {isNewHybrid ? 'Get Started' : isNewSeller ? 'Add Your First Product' : 'Post Your First RFQ'}
                       </h2>
-                      <p className="text-afrikoni-deep/80 text-sm md:text-base">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm md:text-base">
                         {isNewHybrid
                           ? 'Add products to sell or post RFQs to buy. You can do both!'
                           : isNewSeller
@@ -1220,7 +1220,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                         size="lg"
                         variant={isNewHybrid ? 'outline' : 'default'}
                         className={`w-full sm:w-auto px-6 py-4 text-base font-bold ${
-                          isNewHybrid ? 'border-2 border-afrikoni-gold text-afrikoni-chestnut' : 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut shadow-xl'
+                          isNewHybrid ? 'border-2 border-afrikoni-gold text-[#0A0A0A]' : 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-[#0A0A0A] shadow-xl'
                         }`}
                       >
                         Add Product
@@ -1232,7 +1232,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                     <Link to="/dashboard/rfqs/new" className="w-full sm:w-auto">
                       <Button
                         size="lg"
-                        className="w-full sm:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-6 py-4 text-base font-bold shadow-xl"
+                        className="w-full sm:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-[#0A0A0A] px-6 py-4 text-base font-bold shadow-xl"
                       >
                         Post RFQ
                         <ArrowRight className="w-5 h-5 ml-2" />
@@ -1248,37 +1248,37 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
       {/* Quick RFQ Bar - AI Speed Layer for buyers */}
       {isBuyer && (
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardContent className="p-4">
             <QuickRFQBar />
           </CardContent>
         </Card>
       )}
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Trade OS Dark */}
       {kpis.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {kpis.map((kpi, index) => (
             <motion.div
               key={kpi.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.06 }}
             >
-              <Card className={`border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium hover:shadow-premium-lg transition-shadow ${kpi.color}`}>
+              <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl hover:border-[#D4A937]/20 transition-all">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${kpi.iconBg}`}>
-                      <kpi.icon className="w-5 h-5" />
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center">
+                      <kpi.icon className="w-4 h-4 text-[#D4A937]" />
                     </div>
                     {kpi.change && (
-                      <Badge variant="outline" className="text-xs">
+                      <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/50 px-1.5 py-0.5 rounded">
                         {kpi.change}
-                      </Badge>
+                      </span>
                     )}
                   </div>
-                  <p className="text-2xl font-bold text-afrikoni-text-dark">{kpi.value}</p>
-                  <p className="text-sm text-afrikoni-text-dark/70">{kpi.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8] font-mono">{kpi.value}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">{kpi.label}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -1294,9 +1294,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
       {/* Charts Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Sales/Orders Chart */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-afrikoni-text-dark flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-afrikoni-gold" />
               {isSeller ? 'Sales Activity' : 'Order Activity'}
             </CardTitle>
@@ -1305,7 +1305,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             {salesChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={salesChartData.slice(-14)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -1330,9 +1330,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </Card>
 
         {/* RFQ Chart */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-afrikoni-text-dark flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
               <FileText className="w-5 h-5 text-afrikoni-purple" />
               RFQ Activity
             </CardTitle>
@@ -1341,7 +1341,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             {rfqChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={rfqChartData.slice(-14)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -1373,9 +1373,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
       </div>
 
       {/* Quick Actions */}
-      <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+      <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-afrikoni-text-dark">
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8]">
             Quick Actions
           </CardTitle>
         </CardHeader>
@@ -1385,12 +1385,12 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
               <Link key={action.link + index} to={action.link}>
                 <Button
                   variant="outline"
-                  className="w-full h-auto py-4 flex flex-col items-center gap-2 border-afrikoni-gold/20 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 transition-all"
+                  className="w-full h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-[#2A2A2A] hover:border-[#D4A937]/40 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] bg-gray-50 dark:bg-[#0E0E0E] transition-all"
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${action.color}`}>
                     <action.icon className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-afrikoni-text-dark">{action.label}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-[#F5F0E8]">{action.label}</span>
                 </Button>
               </Link>
             ))}
@@ -1400,9 +1400,9 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
       {/* Recent Activity - Unified feed */}
       {(recentOrders.length > 0 || recentRFQs.length > 0 || recentMessages.length > 0) && (
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+        <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-afrikoni-text-dark flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
               <Clock className="w-5 h-5 text-afrikoni-gold" />
               Recent Activity
             </CardTitle>
@@ -1421,16 +1421,16 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       <ShoppingCart className="w-4 h-4 text-afrikoni-gold" />
                     </div>
                     <div>
-                      <p className="font-medium text-afrikoni-text-dark text-sm">
+                      <p className="font-medium text-gray-900 dark:text-[#F5F0E8] text-sm">
                         Order #{order.id?.slice(-8)}
                       </p>
-                      <p className="text-xs text-afrikoni-text-dark/60">
+                      <p className="text-xs text-gray-500 dark:text-[#F5F0E8]/60">
                         {order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-afrikoni-text-dark text-sm">
+                    <p className="font-semibold text-gray-900 dark:text-[#F5F0E8] text-sm">
                       ${parseFloat(order.total_amount || 0).toLocaleString()}
                     </p>
                     <Badge variant={order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : 'default'}>
@@ -1452,10 +1452,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       <FileText className="w-4 h-4 text-afrikoni-purple" />
                     </div>
                     <div>
-                      <p className="font-medium text-afrikoni-text-dark text-sm">
+                      <p className="font-medium text-gray-900 dark:text-[#F5F0E8] text-sm">
                         {rfq.title || `RFQ #${rfq.id?.slice(-8)}`}
                       </p>
-                      <p className="text-xs text-afrikoni-text-dark/60">
+                      <p className="text-xs text-gray-500 dark:text-[#F5F0E8]/60">
                         {rfq.created_at ? format(new Date(rfq.created_at), 'MMM dd, yyyy') : 'N/A'}
                       </p>
                     </div>
@@ -1478,10 +1478,10 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
                       <MessageSquare className="w-4 h-4 text-afrikoni-green" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium text-afrikoni-text-dark text-sm truncate ${!message.read ? 'font-bold' : ''}`}>
+                      <p className={`font-medium text-gray-900 dark:text-[#F5F0E8] text-sm truncate ${!message.read ? 'font-bold' : ''}`}>
                         {message.content?.slice(0, 50)}...
                       </p>
-                      <p className="text-xs text-afrikoni-text-dark/60">
+                      <p className="text-xs text-gray-500 dark:text-[#F5F0E8]/60">
                         {message.created_at ? format(new Date(message.created_at), 'MMM dd, h:mm a') : 'N/A'}
                       </p>
                     </div>

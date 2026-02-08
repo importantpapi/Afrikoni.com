@@ -7,8 +7,8 @@
    Centralized configuration for easy customization
    ============================================ */
 :root {
-  /* Sidebar Dimensions */
-  --sidebar-width: 260px;
+  /* Trade OS Sidebar Dimensions */
+  --sidebar-width: 240px;
   --sidebar-collapsed-width: 80px;
   --sidebar-mobile-width: 16rem;
   

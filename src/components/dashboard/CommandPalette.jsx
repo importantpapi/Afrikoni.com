@@ -8,20 +8,10 @@ import {
   Receipt, FileSearch, Target, Globe
 } from 'lucide-react';
 
-/**
- * CommandPalette - Universal action launcher (⌘K / Ctrl+K)
- *
- * Bloomberg-grade command palette for the Afrikoni Trade OS.
- * Fuzzy-searches across navigation, quick actions, and AI commands.
- */
-
 const ACTIONS = [
-  // Quick Actions (top priority)
   { id: 'new-rfq', label: 'Create New RFQ', keywords: 'rfq request quote new create buy source', icon: Plus, path: '/dashboard/rfqs/new', group: 'Quick Actions' },
   { id: 'new-product', label: 'Add New Product', keywords: 'product add new create sell listing', icon: Plus, path: '/dashboard/products/quick-add', group: 'Quick Actions' },
   { id: 'new-shipment', label: 'Create Shipment', keywords: 'shipment logistics ship create new freight', icon: Plus, path: '/dashboard/shipments/new', group: 'Quick Actions' },
-
-  // Navigation - Core
   { id: 'nav-dashboard', label: 'Dashboard Home', keywords: 'home dashboard overview main', icon: LayoutDashboard, path: '/dashboard', group: 'Navigation' },
   { id: 'nav-pipeline', label: 'Trade Pipeline', keywords: 'pipeline trade flow inquiry quote escrow shipment delivery tracking', icon: BarChart3, path: '/dashboard/trade-pipeline', group: 'Navigation' },
   { id: 'nav-products', label: 'Products', keywords: 'products catalog inventory items listings', icon: Package, path: '/dashboard/products', group: 'Navigation' },
@@ -32,23 +22,15 @@ const ACTIONS = [
   { id: 'nav-messages', label: 'Messages', keywords: 'messages notifications inbox chat', icon: MessageSquare, path: '/dashboard/notifications', group: 'Navigation' },
   { id: 'nav-payments', label: 'Payments', keywords: 'payments wallet money transactions', icon: Wallet, path: '/dashboard/payments', group: 'Navigation' },
   { id: 'nav-invoices', label: 'Invoices', keywords: 'invoices billing receipts', icon: Receipt, path: '/dashboard/invoices', group: 'Navigation' },
-
-  // Navigation - Logistics
   { id: 'nav-shipments', label: 'Shipments', keywords: 'shipments tracking delivery freight', icon: Truck, path: '/dashboard/shipments', group: 'Navigation' },
   { id: 'nav-fulfillment', label: 'Fulfillment', keywords: 'fulfillment warehouse packing', icon: Truck, path: '/dashboard/fulfillment', group: 'Navigation' },
-
-  // Navigation - Intelligence
   { id: 'nav-analytics', label: 'Analytics', keywords: 'analytics reports data insights charts', icon: BarChart3, path: '/dashboard/analytics', group: 'Intelligence' },
   { id: 'nav-performance', label: 'Performance Metrics', keywords: 'performance metrics kpi stats', icon: Target, path: '/dashboard/performance', group: 'Intelligence' },
   { id: 'nav-koniai', label: 'KoniAI Assistant', keywords: 'ai assistant koni intelligence copilot', icon: Sparkles, path: '/dashboard/koniai', group: 'Intelligence' },
-
-  // Navigation - Trust & Compliance
   { id: 'nav-reviews', label: 'Reviews & Trust', keywords: 'reviews trust ratings feedback', icon: Star, path: '/dashboard/reviews', group: 'Trust & Compliance' },
   { id: 'nav-disputes', label: 'Disputes', keywords: 'disputes resolution conflict', icon: AlertCircle, path: '/dashboard/disputes', group: 'Trust & Compliance' },
   { id: 'nav-kyc', label: 'KYC Verification', keywords: 'kyc verification identity documents', icon: Shield, path: '/dashboard/kyc', group: 'Trust & Compliance' },
   { id: 'nav-compliance', label: 'Compliance', keywords: 'compliance regulations rules', icon: Shield, path: '/dashboard/compliance', group: 'Trust & Compliance' },
-
-  // Settings & Support
   { id: 'nav-settings', label: 'Settings', keywords: 'settings preferences account profile', icon: Settings, path: '/dashboard/settings', group: 'Settings' },
   { id: 'nav-company', label: 'Company Info', keywords: 'company business profile organization', icon: Building2, path: '/dashboard/company-info', group: 'Settings' },
   { id: 'nav-team', label: 'Team Members', keywords: 'team members staff users invite', icon: Users, path: '/dashboard/team-members', group: 'Settings' },
@@ -58,7 +40,6 @@ const ACTIONS = [
 function fuzzyMatch(text, query) {
   const lower = text.toLowerCase();
   const q = query.toLowerCase();
-  // Simple substring match on label + keywords
   return lower.includes(q);
 }
 
@@ -69,7 +50,6 @@ export default function CommandPalette({ open, onClose }) {
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  // Filter actions based on query
   const filtered = useMemo(() => {
     if (!query.trim()) return ACTIONS;
     return ACTIONS.filter(a =>
@@ -77,7 +57,6 @@ export default function CommandPalette({ open, onClose }) {
     );
   }, [query]);
 
-  // Group filtered results
   const grouped = useMemo(() => {
     const groups = {};
     filtered.forEach(action => {
@@ -87,14 +66,12 @@ export default function CommandPalette({ open, onClose }) {
     return groups;
   }, [filtered]);
 
-  // Flat list for keyboard nav
   const flatList = useMemo(() => {
     const result = [];
     Object.values(grouped).forEach(items => result.push(...items));
     return result;
   }, [grouped]);
 
-  // Reset on open
   useEffect(() => {
     if (open) {
       setQuery('');
@@ -103,7 +80,6 @@ export default function CommandPalette({ open, onClose }) {
     }
   }, [open]);
 
-  // Scroll selected into view
   useEffect(() => {
     const el = listRef.current?.querySelector(`[data-index="${selectedIndex}"]`);
     el?.scrollIntoView({ block: 'nearest' });
@@ -144,7 +120,7 @@ export default function CommandPalette({ open, onClose }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
           onClick={onClose}
         />
 
@@ -154,10 +130,10 @@ export default function CommandPalette({ open, onClose }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -20 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-xl bg-white dark:bg-[#1A1A1A] rounded-xl shadow-2xl border border-gray-200 dark:border-[#2A2A2A] overflow-hidden backdrop-blur-xl dark:backdrop-blur-xl"
+          className="relative w-full max-w-xl bg-white dark:bg-[#0F0F0F] rounded-xl shadow-2xl shadow-black/20 dark:shadow-black/60 border border-gray-200 dark:border-[#2A2A2A] overflow-hidden backdrop-blur-xl"
         >
           {/* Search Input */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-[#2A2A2A]">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-[#1E1E1E]">
             <Search className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
             <input
               ref={inputRef}
@@ -170,7 +146,7 @@ export default function CommandPalette({ open, onClose }) {
               placeholder="Search actions, pages, or type a command..."
               className="flex-1 text-base outline-none bg-transparent text-gray-900 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
             />
-            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333]">
+            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A]">
               ESC
             </kbd>
           </div>
@@ -178,13 +154,13 @@ export default function CommandPalette({ open, onClose }) {
           {/* Results */}
           <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-2">
             {flatList.length === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+              <div className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm">
                 No results for &ldquo;{query}&rdquo;
               </div>
             ) : (
               Object.entries(grouped).map(([group, items]) => (
                 <div key={group}>
-                  <div className="px-4 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                  <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-[0.1em]">
                     {group}
                   </div>
                   {items.map((action) => {
@@ -199,16 +175,16 @@ export default function CommandPalette({ open, onClose }) {
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                           isSelected
-                            ? 'bg-afrikoni-gold/10 text-afrikoni-charcoal dark:text-[#F5F0E8]'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#222]'
+                            ? 'bg-[#D4A937]/10 text-gray-900 dark:text-[#F5F0E8]'
+                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] hover:text-gray-700 dark:hover:text-gray-200'
                         }`}
                       >
                         <Icon className={`w-4 h-4 flex-shrink-0 ${
-                          isSelected ? 'text-afrikoni-gold' : 'text-gray-400 dark:text-gray-500'
+                          isSelected ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-600'
                         }`} />
                         <span className="flex-1 text-sm font-medium">{action.label}</span>
                         {isSelected && (
-                          <ArrowRight className="w-4 h-4 text-afrikoni-gold" />
+                          <ArrowRight className="w-4 h-4 text-[#D4A937]" />
                         )}
                       </button>
                     );
@@ -219,17 +195,17 @@ export default function CommandPalette({ open, onClose }) {
           </div>
 
           {/* Footer hint */}
-          <div className="px-4 py-2 border-t border-gray-100 dark:border-[#2A2A2A] flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
+          <div className="px-4 py-2 border-t border-gray-200 dark:border-[#1E1E1E] flex items-center gap-4 text-xs text-gray-400 dark:text-gray-600">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333] text-[10px]">&uarr;&darr;</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] text-[10px]">&uarr;&darr;</kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333] text-[10px]">Enter</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] text-[10px]">Enter</kbd>
               Open
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333] text-[10px]">Esc</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] text-[10px]">Esc</kbd>
               Close
             </span>
           </div>
