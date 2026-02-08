@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useSearchParams } from 'react-router-dom';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
@@ -14,7 +15,7 @@ import { Textarea } from '@/components/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Calendar } from '@/components/shared/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shared/ui/popover';
-import { CalendarIcon, Upload, ArrowLeft, Sparkles } from 'lucide-react';
+import { CalendarIcon, Upload, ArrowLeft, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { AIDescriptionService } from '@/components/services/AIDescriptionService';
@@ -38,6 +39,7 @@ export default function CreateRFQ() {
   // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
   const { user, profile, userId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
@@ -49,6 +51,7 @@ export default function CreateRFQ() {
   const derivedRole = capabilities.can_buy ? 'buyer' : 'seller';
   const [currentRole, setCurrentRole] = useState(derivedRole);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -88,6 +91,32 @@ export default function CreateRFQ() {
     // Now safe to load data
     loadData();
   }, [canLoadData, user, profile, capabilities, navigate]);
+
+  // Phase 4: Pre-fill form from URL params (AI QuickRFQBar)
+  useEffect(() => {
+    const aiParam = searchParams.get('ai');
+    const title = searchParams.get('title');
+    const description = searchParams.get('description');
+    const quantity = searchParams.get('quantity');
+    const unit = searchParams.get('unit');
+    const deliveryLocation = searchParams.get('delivery_location');
+
+    if (title || description || quantity) {
+      setFormData(prev => ({
+        ...prev,
+        title: title || prev.title,
+        description: description || prev.description,
+        quantity: quantity || prev.quantity,
+        unit: unit || prev.unit,
+        delivery_location: deliveryLocation || prev.delivery_location,
+      }));
+
+      if (aiParam) {
+        // Show optional fields if AI pre-filled delivery info
+        if (deliveryLocation) setShowOptionalFields(true);
+      }
+    }
+  }, [searchParams]);
 
   const loadData = async () => {
     try {
@@ -391,7 +420,6 @@ export default function CreateRFQ() {
     setIsLoadingCities(false); // Ensure city loading is also reset
     
     try {
-      setIsSubmitting(true);
       setError(null);
       
       // ✅ KERNEL COMPLIANCE: Use userId from kernel instead of direct auth API call
@@ -547,41 +575,10 @@ export default function CreateRFQ() {
           </div>
         </div>
 
-        {/* Simple explanation of how RFQs work */}
-        <Card className="border-afrikoni-gold/30 bg-afrikoni-offwhite/60">
-          <CardContent className="p-4 md:p-5">
-            <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut mb-2 uppercase tracking-wide">
-              How it works on Afrikoni
-            </p>
-            <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-afrikoni-deep">
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 1 — Tell us what you need</p>
-                <p>Fill this form with quantity, quality and delivery details. The clearer you are, the better the quotes.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 2 — Suppliers send quotes</p>
-                <p>Verified suppliers across Africa review your RFQ and respond with prices and terms inside Afrikoni.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 3 — Choose and confirm</p>
-                <p>You compare offers, chat with suppliers, then confirm the one that fits your budget and timeline.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">Step 4 — Pay safely with Shield™</p>
-                <p>
-                  Payments are protected by Afrikoni Shield™ escrow. Funds are held until delivery is confirmed.
-                  <span className="block mt-1 font-semibold text-red-700">
-                    Never pay suppliers outside Afrikoni.
-                  </span>
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* REQUIRED FIELDS - Always visible */}
               <div>
                 <Label htmlFor="title">What are you looking for? *</Label>
                 <Input
@@ -605,7 +602,7 @@ export default function CreateRFQ() {
                     className="flex items-center gap-1 text-xs border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10"
                   >
                     <Sparkles className="w-3 h-3" />
-                    {isGenerating ? 'Generating…' : 'Afrikoni AI help'}
+                    {isGenerating ? 'Generating...' : 'Afrikoni AI help'}
                   </Button>
                 </div>
                 <Textarea
@@ -613,32 +610,14 @@ export default function CreateRFQ() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe your need in your own words. Afrikoni AI will help you turn it into a clear RFQ."
-                  rows={6}
+                  rows={4}
                   required
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={formData.category_id} onValueChange={(v) => setFormData({ ...formData, category_id: v })}>
-                    <SelectTrigger>
-                      {/* ✅ FIX: Replace raw SelectValue with lookup to ensure user sees "Agriculture" instead of UUID code */}
-                      {categories.find(c => c.id === formData.category_id)?.name || "Select Category"}
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {/* ✅ SCHEMA ALIGNMENT FIX: Use cat.id for value (UUID), cat.name for label (display) */}
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="quantity">Quantity Needed *</Label>
+                  <Label htmlFor="quantity">Quantity *</Label>
                   <Input
                     id="quantity"
                     type="number"
@@ -648,7 +627,6 @@ export default function CreateRFQ() {
                     required
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="unit">Unit</Label>
                   <Select value={formData.unit} onValueChange={(v) => setFormData({ ...formData, unit: v })}>
@@ -662,169 +640,194 @@ export default function CreateRFQ() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
-                  <Label htmlFor="target_price">Target Price per Unit</Label>
-                  <Input
-                    id="target_price"
-                    type="number"
-                    step="0.01"
-                    value={formData.target_price}
-                    onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
-                    placeholder="Optional"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select value={formData.currency} onValueChange={(v) => setFormData({ ...formData, currency: v })}>
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={formData.category_id} onValueChange={(v) => setFormData({ ...formData, category_id: v })}>
                     <SelectTrigger>
-                      <SelectValue />
+                      {categories.find(c => c.id === formData.category_id)?.name || "Select Category"}
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="NGN">NGN</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
+                      {categories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="target_country">Target Country</Label>
-                  <Select 
-                    value={formData.target_country} 
-                    onValueChange={(v) => {
-                      setFormData({ ...formData, target_country: v, target_city: '' }); // Reset city when country changes
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.length > 0 ? (
-                        countries.map(country => (
-                          <SelectItem key={country.id || country.name} value={country.name}>
-                            {country.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        AFRICAN_COUNTRIES.map(country => (
-                          <SelectItem key={country} value={country}>{country}</SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="relative">
-                  <Label htmlFor="target_city">City</Label>
-                  {formData.target_country ? (
-                    <div className="relative">
-                      <Input
-                        id="target_city"
-                        value={formData.target_city}
-                        onChange={(e) => {
-                          setFormData({ ...formData, target_city: e.target.value });
-                          setShowCitySuggestions(true);
-                        }}
-                        onFocus={() => setShowCitySuggestions(true)}
-                        onBlur={() => {
-                          // Delay hiding to allow click on suggestions
-                          setTimeout(() => setShowCitySuggestions(false), 200);
-                        }}
-                        placeholder={isLoadingCities ? "Loading cities..." : "Type city name or select from list"}
-                        // ✅ FIX: Only disabled when isLoadingCities is true, NOT disabled if cities.length === 0
-                        // If database fetch returns nothing, user must be able to type manually
-                        disabled={isLoadingCities}
-                        list="city-suggestions"
-                        className="w-full"
-                      />
-                      {/* ✅ Creatable Select: Show suggestions dropdown */}
-                      {showCitySuggestions && formData.target_city && filteredCitySuggestions.length > 0 && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-afrikoni-gold/30 rounded-md shadow-lg max-h-60 overflow-auto">
-                          {filteredCitySuggestions.map((city) => (
-                            <div
-                              key={city.id}
-                              className="px-4 py-2 hover:bg-afrikoni-gold/10 cursor-pointer"
-                              onMouseDown={(e) => {
-                                e.preventDefault(); // Prevent input blur
-                                setFormData({ ...formData, target_city: city.name });
-                                setShowCitySuggestions(false);
-                              }}
-                            >
-                              {city.name}{city.state_code ? `, ${city.state_code}` : ''}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {/* ✅ Show message if no cities found but user can still type */}
-                      {!isLoadingCities && cities.length === 0 && formData.target_city && (
-                        <p className="text-xs text-afrikoni-deep/70 mt-1">
-                          No cities found in database. Your typed city "{formData.target_city}" will be saved.
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <Input
-                      id="target_city"
-                      value={formData.target_city}
-                      onChange={(e) => setFormData({ ...formData, target_city: e.target.value })}
-                      placeholder="Select country first"
-                      disabled
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="delivery_location">Delivery Location (Additional Details)</Label>
-                  <Input
-                    id="delivery_location"
-                    value={formData.delivery_location}
-                    onChange={(e) => setFormData({ ...formData, delivery_location: e.target.value })}
-                    placeholder="Street address, landmark, etc. (optional)"
-                  />
-                </div>
-
-                <div>
-                  <Label>Closing Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {/* ✅ FIX: Wrap closing_date in conditional check and format function to prevent "Objects are not valid as a React child" error */}
-                        {formData.closing_date && typeof formData.closing_date !== 'string' 
-                          ? format(formData.closing_date, 'PPP') 
-                          : formData.closing_date || 'Pick a date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={formData.closing_date}
-                        onSelect={(date) => setFormData({ ...formData, closing_date: date })}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
               </div>
 
-              <div>
-                <Label>Attachments</Label>
-                <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-6 text-center hover:border-afrikoni-gold transition">
-                  <input type="file" onChange={handleFileUpload} className="hidden" id="file-upload" />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <Upload className="w-10 h-10 text-afrikoni-deep/70 mx-auto mb-2" />
-                    <div className="text-sm text-afrikoni-deep">Upload specifications, drawings, or reference files</div>
-                  </label>
-                </div>
-                {formData.attachments.length > 0 && (
-                  <div className="mt-2 text-sm text-afrikoni-deep">{formData.attachments.length} file(s) uploaded</div>
+              {/* OPTIONAL FIELDS - Expandable section */}
+              <div className="border border-afrikoni-gold/20 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowOptionalFields(!showOptionalFields)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-afrikoni-cream/50 transition-colors text-sm"
+                >
+                  <span className="font-medium text-afrikoni-chestnut">
+                    Additional details (pricing, delivery, attachments)
+                  </span>
+                  {showOptionalFields ? (
+                    <ChevronUp className="w-4 h-4 text-afrikoni-deep" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-afrikoni-deep" />
+                  )}
+                </button>
+
+                {showOptionalFields && (
+                  <div className="p-4 pt-0 border-t border-afrikoni-gold/10 space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="target_price">Target Price per Unit</Label>
+                        <Input
+                          id="target_price"
+                          type="number"
+                          step="0.01"
+                          value={formData.target_price}
+                          onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
+                          placeholder="Optional"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="currency">Currency</Label>
+                        <Select value={formData.currency} onValueChange={(v) => setFormData({ ...formData, currency: v })}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="USD">USD</SelectItem>
+                            <SelectItem value="NGN">NGN</SelectItem>
+                            <SelectItem value="EUR">EUR</SelectItem>
+                            <SelectItem value="GBP">GBP</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="target_country">Delivery Country</Label>
+                        <Select
+                          value={formData.target_country}
+                          onValueChange={(v) => {
+                            setFormData({ ...formData, target_country: v, target_city: '' });
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countries.length > 0 ? (
+                              countries.map(country => (
+                                <SelectItem key={country.id || country.name} value={country.name}>
+                                  {country.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              AFRICAN_COUNTRIES.map(country => (
+                                <SelectItem key={country} value={country}>{country}</SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="relative">
+                        <Label htmlFor="target_city">City</Label>
+                        {formData.target_country ? (
+                          <div className="relative">
+                            <Input
+                              id="target_city"
+                              value={formData.target_city}
+                              onChange={(e) => {
+                                setFormData({ ...formData, target_city: e.target.value });
+                                setShowCitySuggestions(true);
+                              }}
+                              onFocus={() => setShowCitySuggestions(true)}
+                              onBlur={() => {
+                                setTimeout(() => setShowCitySuggestions(false), 200);
+                              }}
+                              placeholder={isLoadingCities ? "Loading cities..." : "Type city name"}
+                              disabled={isLoadingCities}
+                              className="w-full"
+                            />
+                            {showCitySuggestions && formData.target_city && filteredCitySuggestions.length > 0 && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-afrikoni-gold/30 rounded-md shadow-lg max-h-60 overflow-auto">
+                                {filteredCitySuggestions.map((city) => (
+                                  <div
+                                    key={city.id}
+                                    className="px-4 py-2 hover:bg-afrikoni-gold/10 cursor-pointer"
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      setFormData({ ...formData, target_city: city.name });
+                                      setShowCitySuggestions(false);
+                                    }}
+                                  >
+                                    {city.name}{city.state_code ? `, ${city.state_code}` : ''}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Input
+                            id="target_city"
+                            placeholder="Select country first"
+                            disabled
+                          />
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="delivery_location">Delivery Address</Label>
+                        <Input
+                          id="delivery_location"
+                          value={formData.delivery_location}
+                          onChange={(e) => setFormData({ ...formData, delivery_location: e.target.value })}
+                          placeholder="Street address, landmark, etc."
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Closing Date</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left font-normal">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {formData.closing_date && typeof formData.closing_date !== 'string'
+                                ? format(formData.closing_date, 'PPP')
+                                : formData.closing_date || 'Pick a date'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={formData.closing_date}
+                              onSelect={(date) => setFormData({ ...formData, closing_date: date })}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label>Attachments</Label>
+                      <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-4 text-center hover:border-afrikoni-gold transition">
+                        <input type="file" onChange={handleFileUpload} className="hidden" id="file-upload" />
+                        <label htmlFor="file-upload" className="cursor-pointer">
+                          <Upload className="w-8 h-8 text-afrikoni-deep/70 mx-auto mb-1" />
+                          <div className="text-sm text-afrikoni-deep">Upload specs, drawings, or reference files</div>
+                        </label>
+                      </div>
+                      {formData.attachments.length > 0 && (
+                        <div className="mt-2 text-sm text-afrikoni-deep">{formData.attachments.length} file(s) uploaded</div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -833,9 +836,9 @@ export default function CreateRFQ() {
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isLoading} 
+                <Button
+                  type="submit"
+                  disabled={isLoading}
                   className="flex-1"
                 >
                   {isLoading ? 'Creating...' : 'Publish RFQ'}

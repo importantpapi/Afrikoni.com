@@ -22,7 +22,7 @@ import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import { DashboardContextProvider } from '@/contexts/DashboardContext';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { useNotificationCounts } from '@/hooks/useNotificationCounts';
-import { useLiveStats } from '@/hooks/useLiveStats';
+// Removed: useLiveStats (social proof footer removed in Phase 2)
 import { getUserInitial, extractUserName } from '@/utils/userHelpers';
 // REMOVED: Realtime is now owned by DashboardRealtimeManager in WorkspaceDashboard
 // import { useRealTimeDashboardData } from '@/hooks/useRealTimeData';
@@ -265,8 +265,7 @@ export default function DashboardLayout({
   // Get notification counts for sidebar badges
   const notificationCounts = useNotificationCounts(contextUser?.id, profileCompanyId);
   
-  // Get live marketplace statistics
-  const liveStats = useLiveStats();
+  // Removed: liveStats (social proof footer removed in Phase 2)
   
   // ==========================================================================
   // REALTIME - REMOVED (Owned by DashboardRealtimeManager in WorkspaceDashboard)
@@ -539,24 +538,16 @@ export default function DashboardLayout({
       }
     }
     
-    // Community & Engagement
+    // Community
     menuItems.push(
       { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews', priority: 'secondary' },
-      { icon: AlertCircle, label: 'Disputes', path: '/dashboard/disputes', priority: 'secondary' },
-      { icon: Bell, label: 'Notifications', path: '/dashboard/notifications', priority: 'secondary' }
+      { icon: AlertCircle, label: 'Disputes', path: '/dashboard/disputes', priority: 'secondary' }
     );
-    
-    // Verification & Security
-    menuItems.push(
-      { icon: Shield, label: 'Verification Status', path: '/dashboard/verification-status', priority: 'secondary' },
-      { icon: FileCheck, label: 'KYC', path: '/dashboard/kyc', priority: 'secondary' }
-    );
-    
+
     // Always show: Settings, Help at bottom
     menuItems.push(
-      { icon: HelpCircle, label: 'Support Chat', path: '/dashboard/support-chat', priority: 'support' },
-      { icon: HelpCircle, label: 'Help', path: '/dashboard/help', priority: 'support' },
-      { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
+      { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' },
+      { icon: HelpCircle, label: 'Help & Support', path: '/dashboard/help', priority: 'support' }
     );
     
     return menuItems;
@@ -811,91 +802,7 @@ export default function DashboardLayout({
                     {isActive && <ChevronRight className="w-4 h-4 text-white" />}
                   </Link>
                   
-                  {/* Sub-menu items for Risk & Compliance - Admin Only */}
-                  {isSection && isUserAdmin && item.path === '/dashboard/risk' && (location.pathname.startsWith('/dashboard/risk') || location.pathname.startsWith('/dashboard/compliance') || location.pathname.startsWith('/dashboard/kyc') || location.pathname.startsWith('/dashboard/anticorruption') || location.pathname.startsWith('/dashboard/crisis') || location.pathname.startsWith('/dashboard/audit')) && (
-                    <div className="ml-4 mt-1 space-y-1">
-                      <Link
-                        to="/dashboard/compliance"
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          location.pathname === '/dashboard/compliance'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
-                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
-                        }`}
-                        onClick={() => {
-                          if (window.innerWidth < 768) {
-                            setSidebarOpen(false);
-                          }
-                        }}
-                      >
-                        <FileCheck className="w-3 h-3" />
-                        Compliance Center
-                      </Link>
-                      <Link
-                        to="/dashboard/kyc"
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          location.pathname === '/dashboard/kyc'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
-                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
-                        }`}
-                        onClick={() => {
-                          if (window.innerWidth < 768) {
-                            setSidebarOpen(false);
-                          }
-                        }}
-                      >
-                        <Shield className="w-3 h-3" />
-                        KYC/AML Tracker
-                      </Link>
-                      <Link
-                        to="/dashboard/anticorruption"
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          location.pathname === '/dashboard/anticorruption'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
-                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
-                        }`}
-                        onClick={() => {
-                          if (window.innerWidth < 768) {
-                            setSidebarOpen(false);
-                          }
-                        }}
-                      >
-                        <Lock className="w-3 h-3" />
-                        Anti-Corruption
-                      </Link>
-                      <Link
-                        to="/dashboard/crisis"
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          location.pathname === '/dashboard/crisis'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
-                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
-                        }`}
-                        onClick={() => {
-                          if (window.innerWidth < 768) {
-                            setSidebarOpen(false);
-                          }
-                        }}
-                      >
-                        <AlertCircle className="w-3 h-3" />
-                        Crisis Management
-                      </Link>
-                      <Link
-                        to="/dashboard/audit"
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          location.pathname === '/dashboard/audit'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
-                            : 'text-afrikoni-sand/70 hover:text-afrikoni-gold hover:bg-afrikoni-gold/10'
-                        }`}
-                        onClick={() => {
-                          if (window.innerWidth < 768) {
-                            setSidebarOpen(false);
-                          }
-                        }}
-                      >
-                        <FileText className="w-3 h-3" />
-                        Audit Logs
-                      </Link>
-                    </div>
-                  )}
+                  {/* Admin sub-menu items are handled by CollapsibleMenuSection */}
                 </motion.div>
               );
             })}
@@ -1166,42 +1073,6 @@ export default function DashboardLayout({
       />
 
       {/* PHASE 5B: Dev role switcher UI completely removed - capabilities are company-level */}
-
-
-      {/* Social Proof Footer Widget */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-        className="fixed bottom-0 left-0 right-0 bg-afrikoni-chestnut/95 backdrop-blur-sm border-t border-afrikoni-gold/30 px-4 py-2 hidden md:block"
-        style={{ zIndex: zIndex.footer }}
-      >
-        <div className="w-full px-4 md:px-6 lg:px-8 flex items-center gap-6 text-xs text-afrikoni-sand">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-afrikoni-gold" />
-            {liveStats.isLoading ? (
-              <span className="font-semibold text-afrikoni-gold animate-pulse">...</span>
-            ) : (
-              <>
-                <span className="font-semibold text-afrikoni-gold">{liveStats.suppliersActiveToday}</span>
-                <span>suppliers active today</span>
-              </>
-            )}
-          </div>
-          <span className="text-afrikoni-gold/50">·</span>
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-afrikoni-gold" />
-            {liveStats.isLoading ? (
-              <span className="font-semibold text-afrikoni-gold animate-pulse">...</span>
-            ) : (
-              <>
-                <span className="font-semibold text-afrikoni-gold">{liveStats.rfqsSubmittedThisWeek}</span>
-                <span>RFQs submitted this week</span>
-              </>
-            )}
-          </div>
-        </div>
-      </motion.div>
     </div>
   );
 }
