@@ -56,6 +56,84 @@
   --breakpoint-xl: 1280px;
 }
 
+/* ============================================
+   DARK MODE - Trade OS Premium Theme
+   Gold accent on charcoal/black backgrounds
+   ============================================ */
+.dark {
+  --sidebar-bg: #0A0A0A;
+  --header-bg: #0F0F0F;
+  --content-bg: #121212;
+  --card-bg: #1A1A1A;
+  --card-border: #2A2A2A;
+  --text-primary: #F5F0E8;
+  --text-secondary: #A09888;
+  --gold-accent: #D4A937;
+  --gold-glow: rgba(212, 169, 55, 0.15);
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #121212;
+  color: #F5F0E8;
+}
+
+/* Dark mode card surfaces */
+.dark .bg-white,
+.dark .bg-afrikoni-ivory,
+.dark .bg-afrikoni-offwhite {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+}
+
+/* Dark mode text adjustments */
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-afrikoni-charcoal,
+.dark .text-afrikoni-chestnut,
+.dark .text-afrikoni-text-dark {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-afrikoni-deep,
+.dark .text-afrikoni-text-deep {
+  color: var(--text-secondary) !important;
+}
+
+/* Dark mode borders */
+.dark .border-gray-200,
+.dark .border-gray-100,
+.dark .border-afrikoni-cream {
+  border-color: var(--card-border) !important;
+}
+
+/* Dark mode gold accents glow */
+.dark .bg-afrikoni-gold {
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+
+/* Dark mode sidebar */
+.dark .bg-afrikoni-charcoal {
+  background-color: var(--sidebar-bg) !important;
+}
+
+/* Dark mode inputs */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1E1E1E;
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #666;
+}
+
 /* Global overflow protection to avoid horizontal scroll / white space */
 html, body {
   overflow-x: hidden;

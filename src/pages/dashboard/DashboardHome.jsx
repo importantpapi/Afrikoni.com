@@ -1174,6 +1174,12 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             {subtitle}
           </p>
         </div>
+        <div className="hidden md:flex items-center gap-2 text-xs text-afrikoni-text-dark/40">
+          <kbd className="px-2 py-1 bg-gray-100 rounded border border-gray-200 font-mono text-[11px]">
+            {navigator.platform?.includes('Mac') ? '\u2318' : 'Ctrl'}+K
+          </kbd>
+          <span>Quick actions</span>
+        </div>
       </div>
 
       {/* Smart CTA Banner - Shows contextual action for new users */}

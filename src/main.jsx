@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
+import { ThemeProvider } from './contexts/ThemeContext';
 // ⚠️ CRITICAL: Initialize extension protection FIRST (before anything else)
 // This prevents browser extension errors from breaking React rendering
 import { initExtensionProtection } from './utils/extensionProtection';
@@ -73,14 +74,16 @@ if (!rootElement) {
         // This stops the "🚀 Afrikoni app booting twice" and prevents 5s timeout
         // <React.StrictMode>
           <ErrorBoundary>
-            <BrowserRouter
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true
-              }}
-            >
-              <App />
-            </BrowserRouter>
+            <ThemeProvider>
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true
+                }}
+              >
+                <App />
+              </BrowserRouter>
+            </ThemeProvider>
           </ErrorBoundary>
         // </React.StrictMode>,
       );

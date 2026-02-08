@@ -43,6 +43,8 @@ import UserAvatar from '@/components/headers/UserAvatar';
 import { zIndex } from '@/config/zIndex';
 import { layoutConfig } from '@/config/layout';
 import { getHeaderComponent } from '@/config/headerMapping';
+import CommandPalette from '@/components/dashboard/CommandPalette';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Collapsible menu section component for items with children
 function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
@@ -238,6 +240,8 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const [companyId, setCompanyId] = useState(null);
   // PHASE 5B: Derive capability flags from capabilities (NO role variables)
   const isBuyer = capabilitiesData?.can_buy === true;
@@ -638,6 +642,18 @@ export default function DashboardLayout({
   // PHASE 5B: All role-switching code removed - capabilities are the only authority
   // Capabilities are managed at company level in Settings, not per-user session
 
+  // Command Palette keyboard shortcut (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="flex min-h-screen w-full bg-afrikoni-ivory relative">
       {/* Premium African Geometric Background Pattern - v2.5 */}
@@ -1028,6 +1044,21 @@ export default function DashboardLayout({
                               </Link>
                             </>
                           )}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleTheme();
+                            }}
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-afrikoni-gold/10 text-sm text-afrikoni-gold transition-colors"
+                            type="button"
+                          >
+                            {theme === 'dark' ? (
+                              <><Globe className="w-4 h-4" /> Light Mode</>
+                            ) : (
+                              <><Globe className="w-4 h-4" /> Dark Mode</>
+                            )}
+                          </button>
                           <div className="border-t border-afrikoni-gold/20 my-1"></div>
                           <button
                             onClick={(e) => {
@@ -1073,6 +1104,12 @@ export default function DashboardLayout({
       />
 
       {/* PHASE 5B: Dev role switcher UI completely removed - capabilities are company-level */}
+
+      {/* 2026 Trade OS: Command Palette (Cmd+K / Ctrl+K) */}
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+      />
     </div>
   );
 }
