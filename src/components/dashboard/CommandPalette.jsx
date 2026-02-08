@@ -23,6 +23,7 @@ const ACTIONS = [
 
   // Navigation - Core
   { id: 'nav-dashboard', label: 'Dashboard Home', keywords: 'home dashboard overview main', icon: LayoutDashboard, path: '/dashboard', group: 'Navigation' },
+  { id: 'nav-pipeline', label: 'Trade Pipeline', keywords: 'pipeline trade flow inquiry quote escrow shipment delivery tracking', icon: BarChart3, path: '/dashboard/trade-pipeline', group: 'Navigation' },
   { id: 'nav-products', label: 'Products', keywords: 'products catalog inventory items listings', icon: Package, path: '/dashboard/products', group: 'Navigation' },
   { id: 'nav-orders', label: 'Orders', keywords: 'orders purchases buying', icon: ShoppingCart, path: '/dashboard/orders', group: 'Navigation' },
   { id: 'nav-sales', label: 'Sales', keywords: 'sales revenue selling', icon: ShoppingCart, path: '/dashboard/sales', group: 'Navigation' },
@@ -153,11 +154,11 @@ export default function CommandPalette({ open, onClose }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -20 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-xl bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
+          className="relative w-full max-w-xl bg-white dark:bg-[#1A1A1A] rounded-xl shadow-2xl border border-gray-200 dark:border-[#2A2A2A] overflow-hidden backdrop-blur-xl dark:backdrop-blur-xl"
         >
           {/* Search Input */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-            <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-[#2A2A2A]">
+            <Search className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
             <input
               ref={inputRef}
               value={query}
@@ -167,9 +168,9 @@ export default function CommandPalette({ open, onClose }) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Search actions, pages, or type a command..."
-              className="flex-1 text-base outline-none bg-transparent text-gray-900 placeholder:text-gray-400"
+              className="flex-1 text-base outline-none bg-transparent text-gray-900 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
             />
-            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-400 bg-gray-100 rounded border border-gray-200">
+            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333]">
               ESC
             </kbd>
           </div>
@@ -177,13 +178,13 @@ export default function CommandPalette({ open, onClose }) {
           {/* Results */}
           <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-2">
             {flatList.length === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-500 text-sm">
+              <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                 No results for &ldquo;{query}&rdquo;
               </div>
             ) : (
               Object.entries(grouped).map(([group, items]) => (
                 <div key={group}>
-                  <div className="px-4 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  <div className="px-4 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     {group}
                   </div>
                   {items.map((action) => {
@@ -198,12 +199,12 @@ export default function CommandPalette({ open, onClose }) {
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                           isSelected
-                            ? 'bg-afrikoni-gold/10 text-afrikoni-charcoal'
-                            : 'text-gray-700 hover:bg-gray-50'
+                            ? 'bg-afrikoni-gold/10 text-afrikoni-charcoal dark:text-[#F5F0E8]'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#222]'
                         }`}
                       >
                         <Icon className={`w-4 h-4 flex-shrink-0 ${
-                          isSelected ? 'text-afrikoni-gold' : 'text-gray-400'
+                          isSelected ? 'text-afrikoni-gold' : 'text-gray-400 dark:text-gray-500'
                         }`} />
                         <span className="flex-1 text-sm font-medium">{action.label}</span>
                         {isSelected && (
@@ -218,17 +219,17 @@ export default function CommandPalette({ open, onClose }) {
           </div>
 
           {/* Footer hint */}
-          <div className="px-4 py-2 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-400">
+          <div className="px-4 py-2 border-t border-gray-100 dark:border-[#2A2A2A] flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200 text-[10px]">&uarr;&darr;</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333] text-[10px]">&uarr;&darr;</kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200 text-[10px]">Enter</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333] text-[10px]">Enter</kbd>
               Open
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200 text-[10px]">Esc</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#2A2A2A] rounded border border-gray-200 dark:border-[#333] text-[10px]">Esc</kbd>
               Close
             </span>
           </div>

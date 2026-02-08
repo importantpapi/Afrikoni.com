@@ -409,9 +409,10 @@ export default function DashboardLayout({
       });
     }
     
-    // Always show: Overview, Messages
+    // Always show: Overview, Trade Pipeline, Messages
     menuItems.push(
       { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
+      { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
       { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' }
     );
     

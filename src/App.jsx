@@ -99,6 +99,9 @@ const NotificationsPage = lazy(() => import('./pages/dashboard/notifications'));
 const SupportChatPage = lazy(() => import('./pages/dashboard/support-chat'));
 const HelpPage = lazy(() => import('./pages/dashboard/help'));
 
+// TRADE PIPELINE
+const TradePipelinePage = lazy(() => import('./pages/dashboard/trade-pipeline'));
+
 // 7. ANALYTICS & INTELLIGENCE
 const AnalyticsPage = lazy(() => import('./pages/dashboard/analytics'));
 const PerformancePage = lazy(() => import('./pages/dashboard/performance'));
@@ -483,6 +486,9 @@ function AppContent() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="support-chat" element={<SupportChatPage />} />
             <Route path="help" element={<HelpPage />} />
+
+            {/* TRADE PIPELINE */}
+            <Route path="trade-pipeline" element={<TradePipelinePage />} />
 
             {/* 7. ANALYTICS & INTELLIGENCE */}
             <Route path="analytics" element={<AnalyticsPage />} />
