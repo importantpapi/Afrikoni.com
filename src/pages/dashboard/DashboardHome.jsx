@@ -303,7 +303,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           icon: ShoppingCart,
           label: t('dashboard.totalOrders') || 'Total Orders',
           value: totalOrders.toLocaleString(),
-          change: totalOrders > 0 ? '+12.5%' : null,
+          change: null,
           color: 'bg-afrikoni-gold/15 text-afrikoni-gold',
           iconBg: 'bg-afrikoni-gold/20'
         });
@@ -312,7 +312,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           icon: ShoppingCart,
           label: t('dashboard.totalOrders') || 'Total Orders',
           value: totalOrders.toLocaleString(),
-          change: '+12.5%',
+          change: null,
           color: 'bg-afrikoni-gold/15 text-afrikoni-gold',
           iconBg: 'bg-afrikoni-gold/20'
         });
@@ -323,7 +323,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           icon: FileText,
           label: t('dashboard.totalRFQs') || 'Total RFQs',
           value: totalRFQs.toLocaleString(),
-          change: totalRFQs > 0 ? '+8.2%' : null,
+          change: null,
           color: 'bg-afrikoni-purple/15 text-afrikoni-purple',
           iconBg: 'bg-afrikoni-purple/20'
         });
@@ -334,7 +334,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           icon: Package,
           label: t('dashboard.products') || 'Products',
           value: totalProducts.toLocaleString(),
-          change: '+5.1%',
+          change: null,
           color: 'bg-afrikoni-green/15 text-afrikoni-green',
           iconBg: 'bg-afrikoni-green/20'
         });
@@ -354,7 +354,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           icon: Users,
           label: t('dashboard.suppliers') || 'Suppliers',
           value: supplierCount.toLocaleString(),
-          change: supplierCount > 0 ? '+3.2%' : null,
+          change: null,
           color: 'bg-afrikoni-clay/10 text-afrikoni-clay',
           iconBg: 'bg-afrikoni-clay/20'
         });
@@ -365,7 +365,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
           icon: Wallet,
           label: t('dashboard.payoutBalance') || 'Payout Balance',
           value: `$${payoutBalance.toLocaleString()}`,
-          change: '+15.3%',
+          change: null,
           color: 'bg-afrikoni-green/10 text-afrikoni-green',
           iconBg: 'bg-afrikoni-green/20'
         });
