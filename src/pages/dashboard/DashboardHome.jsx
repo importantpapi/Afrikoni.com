@@ -1175,188 +1175,66 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </div>
       </div>
 
-      {/* Primary CTA Banner - New Buyer */}
-      {isNewBuyer && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-afrikoni-chestnut" />
-                        </div>
-                        <div>
-                          <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
-                            Post Your First RFQ
-                          </h2>
-                          <p className="text-afrikoni-deep/80 text-sm md:text-base">
-                            Tell suppliers what you need. We'll match you with verified African suppliers who can deliver.
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-afrikoni-deep/70 mt-2">
-                        💰 <strong>Success fee only when deal closes</strong> - No upfront costs
+      {/* Smart CTA Banner - Shows contextual action for new users */}
+      {(isNewBuyer || isNewSeller || isNewHybrid) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
+                      {isNewSeller ? <Package className="w-6 h-6 text-afrikoni-chestnut" /> : <FileText className="w-6 h-6 text-afrikoni-chestnut" />}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
+                        {isNewHybrid ? 'Get Started' : isNewSeller ? 'Add Your First Product' : 'Post Your First RFQ'}
+                      </h2>
+                      <p className="text-afrikoni-deep/80 text-sm md:text-base">
+                        {isNewHybrid
+                          ? 'Add products to sell or post RFQs to buy. You can do both!'
+                          : isNewSeller
+                          ? 'List your products to start receiving RFQs from buyers.'
+                          : "Tell suppliers what you need. We'll match you with verified African suppliers."}
                       </p>
                     </div>
-                    <Link to="/dashboard/rfqs/new" className="w-full md:w-auto">
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                  {(isNewHybrid || isNewSeller) && (
+                    <Link to="/dashboard/products/quick-add" className="w-full sm:w-auto">
                       <Button
                         size="lg"
-                        className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all min-h-[52px]"
+                        variant={isNewHybrid ? 'outline' : 'default'}
+                        className={`w-full sm:w-auto px-6 py-4 text-base font-bold ${
+                          isNewHybrid ? 'border-2 border-afrikoni-gold text-afrikoni-chestnut' : 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut shadow-xl'
+                        }`}
                       >
-                        Post RFQ Now
+                        Add Product
+                        {!isNewHybrid && <ArrowRight className="w-5 h-5 ml-2" />}
+                      </Button>
+                    </Link>
+                  )}
+                  {(isNewHybrid || isNewBuyer) && (
+                    <Link to="/dashboard/rfqs/new" className="w-full sm:w-auto">
+                      <Button
+                        size="lg"
+                        className="w-full sm:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-6 py-4 text-base font-bold shadow-xl"
+                      >
+                        Post RFQ
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
                     </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-      )}
-
-      {/* Primary CTA Banner - New Seller */}
-      {isNewSeller && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
-                          <Package className="w-6 h-6 text-afrikoni-chestnut" />
-                        </div>
-                        <div>
-                          <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
-                            Add Your First Product
-                          </h2>
-                          <p className="text-afrikoni-deep/80 text-sm md:text-base">
-                            List your products to start receiving RFQs from buyers. Verified suppliers get priority matching.
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-afrikoni-deep/70 mt-2">
-                        💰 <strong>Success fee only when deal closes</strong> - No listing fees
-                      </p>
-                    </div>
-                    <Link to="/dashboard/products/new" className="w-full md:w-auto">
-                      <Button
-                        size="lg"
-                        className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all min-h-[52px]"
-                      >
-                        Add Product Now
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-      )}
-
-      {/* Primary CTA Banner - New Hybrid */}
-      {isNewHybrid && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-afrikoni-lg shadow-xl mb-6">
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
-                          <Plus className="w-6 h-6 text-afrikoni-chestnut" />
-                        </div>
-                        <div>
-                          <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
-                            Get Started
-                          </h2>
-                          <p className="text-afrikoni-deep/80 text-sm md:text-base">
-                            Add products to sell or post RFQs to buy. You can do both!
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-afrikoni-deep/70 mt-2">
-                        💰 <strong>Success fee only when deal closes</strong> - No upfront costs
-                      </p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                      <Link to="/dashboard/products/new" className="w-full sm:w-auto">
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="w-full sm:w-auto border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-4 text-base font-bold"
-                        >
-                          Add Product
-                        </Button>
-                      </Link>
-                      <Link to="/dashboard/rfqs/new" className="w-full sm:w-auto">
-                        <Button
-                          size="lg"
-                          className="w-full sm:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-6 py-4 text-base font-bold shadow-xl"
-                        >
-                          Post RFQ
-                          <ArrowRight className="w-5 h-5 ml-2" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-      )}
-
-      {/* Onboarding Progress Tracker - For Suppliers */}
-      {isSeller && companyId && (
-        <OnboardingProgressTracker companyId={companyId} userId={userId} />
-      )}
-
-      {/* Activity Metrics - For Suppliers */}
-      {isSeller && (
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-afrikoni-gold/5 to-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-afrikoni-deep/70 mb-1">Search Visibility</p>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    {searchAppearances}
-                  </p>
-                  <p className="text-xs text-afrikoni-deep/60 mt-1">
-                    You appeared in searches today
-                  </p>
+                  )}
                 </div>
-                <TrendingUp className="w-8 h-8 text-afrikoni-gold/60" />
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-afrikoni-purple/5 to-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-afrikoni-deep/70 mb-1">Buyer Interest</p>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut">
-                    {buyersLooking}
-                  </p>
-                  <p className="text-xs text-afrikoni-deep/60 mt-1">
-                    Buyers are looking for products like yours
-                  </p>
-                </div>
-                <Users className="w-8 h-8 text-afrikoni-purple/60" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        </motion.div>
       )}
 
       {/* KPI Cards */}
@@ -1388,6 +1266,11 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             </motion.div>
           ))}
         </div>
+      )}
+
+      {/* Onboarding Progress Tracker - For Suppliers */}
+      {isSeller && companyId && (
+        <OnboardingProgressTracker companyId={companyId} userId={userId} />
       )}
 
       {/* Charts Section */}
@@ -1485,168 +1368,99 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </CardContent>
       </Card>
 
-      {/* Recent Orders */}
-      {recentOrders.length > 0 && (
+      {/* Recent Activity - Unified feed */}
+      {(recentOrders.length > 0 || recentRFQs.length > 0 || recentMessages.length > 0) && (
         <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle className="text-lg font-semibold text-afrikoni-text-dark flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-afrikoni-gold" />
-              Recent Orders
+              <Clock className="w-5 h-5 text-afrikoni-gold" />
+              Recent Activity
             </CardTitle>
-            <Link to="/dashboard/orders">
-              <Button variant="ghost" size="sm" className="text-afrikoni-gold hover:text-afrikoni-goldDark">
-                View All <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between p-3 bg-afrikoni-cream/30 rounded-lg"
+              {/* Orders */}
+              {recentOrders.slice(0, 3).map((order) => (
+                <Link
+                  key={`order-${order.id}`}
+                  to="/dashboard/orders"
+                  className="flex items-center justify-between p-3 bg-afrikoni-cream/30 rounded-lg hover:bg-afrikoni-cream/50 transition-colors"
                 >
-                  <div>
-                    <p className="font-medium text-afrikoni-text-dark">
-                      Order #{order.id?.slice(-8)}
-                    </p>
-                    <p className="text-sm text-afrikoni-text-dark/60">
-                      {order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
+                      <ShoppingCart className="w-4 h-4 text-afrikoni-gold" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-afrikoni-text-dark text-sm">
+                        Order #{order.id?.slice(-8)}
+                      </p>
+                      <p className="text-xs text-afrikoni-text-dark/60">
+                        {order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}
+                      </p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-afrikoni-text-dark">
+                    <p className="font-semibold text-afrikoni-text-dark text-sm">
                       ${parseFloat(order.total_amount || 0).toLocaleString()}
                     </p>
-                    <Badge
-                      variant={order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : 'default'}
-                    >
+                    <Badge variant={order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : 'default'}>
                       {order.status}
                     </Badge>
                   </div>
-                </div>
+                </Link>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Recent RFQs - Buyers only */}
-      {isBuyer && recentRFQs.length > 0 && (
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-afrikoni-text-dark flex items-center gap-2">
-              <FileText className="w-5 h-5 text-afrikoni-purple" />
-              Recent RFQs
-            </CardTitle>
-            <Link to="/dashboard/rfqs">
-              <Button variant="ghost" size="sm" className="text-afrikoni-gold hover:text-afrikoni-goldDark">
-                View All <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentRFQs.map((rfq) => (
-                <div
-                  key={rfq.id}
-                  className="flex items-center justify-between p-3 bg-afrikoni-cream/30 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-afrikoni-text-dark">
-                      {rfq.title || `RFQ #${rfq.id?.slice(-8)}`}
-                    </p>
-                    <p className="text-sm text-afrikoni-text-dark/60">
-                      {rfq.created_at ? format(new Date(rfq.created_at), 'MMM dd, yyyy') : 'N/A'}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={rfq.status === 'open' ? 'success' : rfq.status === 'closed' ? 'default' : 'warning'}
-                  >
-                    {rfq.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recent Messages */}
-      {recentMessages.length > 0 && (
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-afrikoni-text-dark flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-afrikoni-green" />
-              Recent Messages
-            </CardTitle>
-            <Link to="/messages">
-              <Button variant="ghost" size="sm" className="text-afrikoni-gold hover:text-afrikoni-goldDark">
-                View All <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentMessages.map((message) => (
+              {/* RFQs */}
+              {isBuyer && recentRFQs.slice(0, 3).map((rfq) => (
                 <Link
-                  key={message.id}
-                  to={`/messages/${message.conversation_id}`}
+                  key={`rfq-${rfq.id}`}
+                  to="/dashboard/rfqs"
                   className="flex items-center justify-between p-3 bg-afrikoni-cream/30 rounded-lg hover:bg-afrikoni-cream/50 transition-colors"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-medium text-afrikoni-text-dark truncate ${!message.read ? 'font-bold' : ''}`}>
-                      {message.content?.slice(0, 50)}...
-                    </p>
-                    <p className="text-sm text-afrikoni-text-dark/60">
-                      {message.created_at ? format(new Date(message.created_at), 'MMM dd, h:mm a') : 'N/A'}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-afrikoni-purple/20 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-afrikoni-purple" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-afrikoni-text-dark text-sm">
+                        {rfq.title || `RFQ #${rfq.id?.slice(-8)}`}
+                      </p>
+                      <p className="text-xs text-afrikoni-text-dark/60">
+                        {rfq.created_at ? format(new Date(rfq.created_at), 'MMM dd, yyyy') : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={rfq.status === 'open' ? 'success' : rfq.status === 'closed' ? 'default' : 'warning'}>
+                    {rfq.status}
+                  </Badge>
+                </Link>
+              ))}
+
+              {/* Messages */}
+              {recentMessages.slice(0, 3).map((message) => (
+                <Link
+                  key={`msg-${message.id}`}
+                  to="/dashboard/notifications"
+                  className="flex items-center justify-between p-3 bg-afrikoni-cream/30 rounded-lg hover:bg-afrikoni-cream/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-afrikoni-green/20 flex items-center justify-center">
+                      <MessageSquare className="w-4 h-4 text-afrikoni-green" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium text-afrikoni-text-dark text-sm truncate ${!message.read ? 'font-bold' : ''}`}>
+                        {message.content?.slice(0, 50)}...
+                      </p>
+                      <p className="text-xs text-afrikoni-text-dark/60">
+                        {message.created_at ? format(new Date(message.created_at), 'MMM dd, h:mm a') : 'N/A'}
+                      </p>
+                    </div>
                   </div>
                   {!message.read && (
                     <div className="w-2 h-2 bg-afrikoni-gold rounded-full ml-2" />
                   )}
                 </Link>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Approval Summary - Sellers only */}
-      {isSeller && approvalSummary && (
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-afrikoni-text-dark flex items-center gap-2">
-              <Shield className="w-5 h-5 text-afrikoni-gold" />
-              Approval Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-afrikoni-cream/30 rounded-lg">
-                <p className="text-2xl font-bold text-afrikoni-green">{approvalSummary.activeCount}</p>
-                <p className="text-sm text-afrikoni-text-dark/70">Active Products</p>
-              </div>
-              <div className="text-center p-3 bg-afrikoni-cream/30 rounded-lg">
-                <p className="text-2xl font-bold text-afrikoni-gold">{approvalSummary.pendingCount}</p>
-                <p className="text-sm text-afrikoni-text-dark/70">Pending Review</p>
-              </div>
-              <div className="text-center p-3 bg-afrikoni-cream/30 rounded-lg">
-                <p className="text-2xl font-bold text-afrikoni-red">{approvalSummary.rejectedCount}</p>
-                <p className="text-sm text-afrikoni-text-dark/70">Rejected</p>
-              </div>
-              <div className="text-center p-3 bg-afrikoni-cream/30 rounded-lg">
-                <div className="flex items-center justify-center gap-1">
-                  {approvalSummary.verified ? (
-                    <CheckCircle className="w-6 h-6 text-afrikoni-green" />
-                  ) : (
-                    <Clock className="w-6 h-6 text-afrikoni-gold" />
-                  )}
-                </div>
-                <p className="text-sm text-afrikoni-text-dark/70">
-                  {approvalSummary.verified ? 'Verified' : approvalSummary.verificationStatus}
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
