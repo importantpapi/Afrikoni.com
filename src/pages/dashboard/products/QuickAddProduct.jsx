@@ -420,7 +420,7 @@ export default function QuickAddProduct() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4A937]" />
       </div>
     );
   }
@@ -435,21 +435,21 @@ export default function QuickAddProduct() {
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-afrikoni-chestnut">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8]">
               {productId ? 'Edit Product' : 'Quick Add Product'}
             </h1>
-            <p className="text-sm text-afrikoni-deep mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               4 fields to publish. Add more details anytime.
             </p>
           </div>
         </div>
       </div>
 
-      <Card>
+      <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
         <CardContent className="p-6 space-y-5">
           {/* Photo-to-Listing: AI Speed Layer */}
           {!productId && (
-            <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-4 text-center hover:border-afrikoni-gold transition-colors">
+            <div className="border-2 border-dashed border-gray-200 dark:border-[#2A2A2A] rounded-xl p-4 text-center hover:border-[#D4A937]/50 transition-colors bg-gray-50 dark:bg-[#1A1A1A]">
               <input
                 type="file"
                 accept="image/*"
@@ -460,15 +460,15 @@ export default function QuickAddProduct() {
               />
               <label htmlFor="photo-to-listing" className="cursor-pointer">
                 {isAnalyzingPhoto ? (
-                  <div className="flex items-center justify-center gap-2 text-afrikoni-gold">
+                  <div className="flex items-center justify-center gap-2 text-[#D4A937]">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     <span className="text-sm font-medium">AI analyzing your photo...</span>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-2 text-afrikoni-deep/70">
-                    <Camera className="w-5 h-5 text-afrikoni-gold" />
+                  <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Camera className="w-5 h-5 text-[#D4A937]" />
                     <span className="text-sm">
-                      <span className="font-medium text-afrikoni-gold">Upload a photo</span> and AI will fill in the details
+                      <span className="font-medium text-[#D4A937]">Upload a photo</span> and AI will fill in the details
                     </span>
                   </div>
                 )}
@@ -580,7 +580,7 @@ export default function QuickAddProduct() {
             <Button
               onClick={() => handleSave(true)}
               disabled={isSaving}
-              className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white font-semibold"
+              className="flex-1 bg-[#D4A937] hover:bg-[#C09830] text-white dark:text-[#0A0A0A] font-semibold"
             >
               {isSaving ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
@@ -599,24 +599,24 @@ export default function QuickAddProduct() {
           </div>
 
           {/* OPTIONAL: Expandable "More Details" section */}
-          <div className="border border-afrikoni-gold/20 rounded-lg overflow-hidden">
+          <div className="border border-gray-200 dark:border-[#2A2A2A] rounded-xl overflow-hidden">
             <button
               type="button"
               onClick={() => setShowMoreDetails(!showMoreDetails)}
-              className="w-full flex items-center justify-between p-4 hover:bg-afrikoni-cream/50 transition-colors text-sm"
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors text-sm"
             >
-              <span className="font-medium text-afrikoni-chestnut">
+              <span className="font-medium text-gray-900 dark:text-[#F5F0E8]">
                 More details (description, images, shipping, specs)
               </span>
               {showMoreDetails ? (
-                <ChevronUp className="w-4 h-4 text-afrikoni-deep" />
+                <ChevronUp className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-afrikoni-deep" />
+                <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               )}
             </button>
 
             {showMoreDetails && (
-              <div className="p-4 pt-0 border-t border-afrikoni-gold/10 space-y-5">
+              <div className="p-4 pt-0 border-t border-gray-200 dark:border-[#2A2A2A] space-y-5">
                 {/* Description with AI */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
@@ -641,7 +641,7 @@ export default function QuickAddProduct() {
                         size="sm"
                         onClick={handleGenerateAI}
                         disabled={isGeneratingAI || !formData.title}
-                        className="text-xs border-afrikoni-gold/50 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                        className="text-xs border-[#D4A937]/30 text-[#D4A937] hover:bg-[#D4A937]/10"
                       >
                         {isGeneratingAI ? (
                           <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -740,7 +740,7 @@ export default function QuickAddProduct() {
                         variant={formData.shipping_terms.includes(term) ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => toggleShippingTerm(term)}
-                        className={formData.shipping_terms.includes(term) ? 'bg-afrikoni-gold hover:bg-afrikoni-gold/90' : ''}
+                        className={formData.shipping_terms.includes(term) ? 'bg-[#D4A937] hover:bg-[#C09830] text-white dark:text-[#0A0A0A]' : 'border-gray-200 dark:border-[#2A2A2A]'}
                       >
                         {term}
                       </Button>

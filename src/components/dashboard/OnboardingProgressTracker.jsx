@@ -1,5 +1,5 @@
 /**
- * Onboarding Progress Tracker
+ * Onboarding Progress Tracker - Trade OS 2026
  * Shows supplier onboarding steps with progress percentage
  */
 
@@ -23,7 +23,6 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ SCHEMA ALIGNMENT: Guard with companyId check before loading
     if (!companyId) {
       setIsLoading(false);
       return;
@@ -38,38 +37,33 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
         return;
       }
 
-      // Check company profile completion
-      const { data: company, error: companyError } = await supabase
+      const { data: company } = await supabase
         .from('companies')
         .select('company_name, country, city, phone, email, website')
         .eq('id', companyId)
-        .maybeSingle(); // Use maybeSingle() to handle no rows gracefully
+        .maybeSingle();
 
-      const companyProfileComplete = company && 
-        company.company_name && 
-        company.country && 
+      const companyProfileComplete = company &&
+        company.company_name &&
+        company.country &&
         (company.phone || company.email);
 
-      // Check verification status
       let verificationComplete = false;
       try {
-        // ✅ SCHEMA ALIGNMENT: KYC verifications table uses company_id only (no user_id column)
         const { data: verification, error: verificationError } = await supabase
           .from('kyc_verifications')
           .select('status')
           .eq('company_id', companyId)
           .order('created_at', { ascending: false })
           .limit(1)
-          .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows
+          .maybeSingle();
 
         verificationComplete = !verificationError && verification && (verification.status === 'approved' || verification.status === 'verified');
       } catch (error) {
-        // Table might not exist yet - default to false
         console.warn('KYC verifications table may not exist:', error);
         verificationComplete = false;
       }
 
-      // Check if has products
       let hasProducts = false;
       try {
         const { data: products } = await supabase
@@ -83,17 +77,14 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
         hasProducts = false;
       }
 
-      // Check if has interactions (RFQ or message)
       let hasInteractions = false;
       try {
-        // ✅ SCHEMA ALIGNMENT: RFQs table uses buyer_company_id (not company_id)
         const { data: rfqs } = await supabase
           .from('rfqs')
           .select('id')
           .eq('buyer_company_id', companyId)
           .limit(1);
 
-        // ✅ SCHEMA ALIGNMENT: Messages table uses sender_company_id and receiver_company_id (not sender_id/receiver_id)
         const { data: messages } = await supabase
           .from('messages')
           .select('id')
@@ -114,8 +105,6 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
       };
 
       setProgress(newProgress);
-
-      // Calculate percentage
       const completed = Object.values(newProgress).filter(Boolean).length;
       setProgressPercent((completed / 4) * 100);
     } catch (error) {
@@ -126,46 +115,22 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
   };
 
   const steps = [
-    {
-      id: 'companyProfile',
-      label: 'Complete Company Profile',
-      icon: Building2,
-      path: '/dashboard/company-info',
-      completed: progress.companyProfile
-    },
-    {
-      id: 'verification',
-      label: 'Verify Supplier (KYC)',
-      icon: Shield,
-      path: '/dashboard/kyc',
-      completed: progress.verification
-    },
-    {
-      id: 'firstProduct',
-      label: 'Add First Product',
-      icon: Package,
-      path: '/dashboard/products/new',
-      completed: progress.firstProduct
-    },
-    {
-      id: 'firstInteraction',
-      label: 'Respond to RFQ or Message',
-      icon: MessageSquare,
-      path: '/dashboard/rfqs',
-      completed: progress.firstInteraction
-    }
+    { id: 'companyProfile', label: 'Complete Company Profile', icon: Building2, path: '/dashboard/company-info', completed: progress.companyProfile },
+    { id: 'verification', label: 'Verify Supplier (KYC)', icon: Shield, path: '/dashboard/kyc', completed: progress.verification },
+    { id: 'firstProduct', label: 'Add First Product', icon: Package, path: '/dashboard/products/new', completed: progress.firstProduct },
+    { id: 'firstInteraction', label: 'Respond to RFQ or Message', icon: MessageSquare, path: '/dashboard/rfqs', completed: progress.firstInteraction }
   ];
 
   if (isLoading) {
     return (
-      <Card className="border-afrikoni-gold/20 mb-6">
-        <CardContent className="p-6">
+      <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
+        <CardContent className="p-5">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-afrikoni-gold/20 rounded w-3/4"></div>
-            <div className="h-2 bg-afrikoni-gold/10 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-[#2A2A2A] rounded w-3/4" />
+            <div className="h-2 bg-gray-200 dark:bg-[#2A2A2A] rounded" />
             <div className="space-y-2">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-8 bg-afrikoni-gold/10 rounded"></div>
+                <div key={i} className="h-10 bg-gray-100 dark:bg-[#1A1A1A] rounded-lg" />
               ))}
             </div>
           </div>
@@ -174,73 +139,61 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
     );
   }
 
-  // Hide if all steps completed
-  if (progressPercent === 100) {
-    return null;
-  }
+  if (progressPercent === 100) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-afrikoni-chestnut/5 mb-6">
-        <CardContent className="p-6">
+    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <Card className="border-[#D4A937]/20 bg-gradient-to-br from-[#D4A937]/5 to-transparent dark:from-[#D4A937]/5 dark:to-[#141414] rounded-xl">
+        <CardContent className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-afrikoni-chestnut mb-1">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-[#F5F0E8] mb-0.5">
                 Onboarding Progress
               </h3>
-              <p className="text-sm text-afrikoni-deep/70">
-                Complete these steps to unlock Verified Supplier Badge & search boost
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                Complete these steps to unlock Verified Supplier Badge
               </p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-afrikoni-gold">
+              <div className="text-xl font-bold font-mono text-[#D4A937]">
                 {Math.round(progressPercent)}%
               </div>
-              <div className="text-xs text-afrikoni-deep/60">Complete</div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-afrikoni-gold/10 rounded-full h-2 mb-6 overflow-hidden">
+          <div className="w-full bg-gray-200 dark:bg-[#2A2A2A] rounded-full h-1.5 mb-5 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="h-full bg-gradient-to-r from-afrikoni-gold to-afrikoni-goldDark rounded-full"
+              className="h-full bg-[#D4A937] rounded-full"
             />
           </div>
 
-          {/* Steps Checklist */}
-          <div className="space-y-3">
+          {/* Steps */}
+          <div className="space-y-2">
             {steps.map((step, idx) => {
               const Icon = step.icon;
               const isCompleted = step.completed;
-              
+
               return (
                 <motion.div
                   key={step.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                  transition={{ duration: 0.4, delay: idx * 0.08 }}
                   className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-                    isCompleted 
-                      ? 'bg-green-50 border border-green-200' 
-                      : 'bg-white border border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-md'
+                    isCompleted
+                      ? 'bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30'
+                      : 'bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#D4A937]/30'
                   }`}
                 >
-                  <div className={`flex-shrink-0 ${isCompleted ? 'text-green-600' : 'text-afrikoni-gold/40'}`}>
-                    {isCompleted ? (
-                      <CheckCircle className="w-5 h-5" />
-                    ) : (
-                      <Circle className="w-5 h-5" />
-                    )}
+                  <div className={`flex-shrink-0 ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'}`}>
+                    {isCompleted ? <CheckCircle className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                   </div>
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${isCompleted ? 'text-green-600' : 'text-afrikoni-deep/60'}`} />
-                  <span className={`flex-1 text-sm ${isCompleted ? 'text-green-800 line-through' : 'text-afrikoni-deep font-medium'}`}>
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                  <span className={`flex-1 text-[13px] ${isCompleted ? 'text-emerald-700 dark:text-emerald-300 line-through' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
                     {step.label}
                   </span>
                   {!isCompleted && (
@@ -248,7 +201,7 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
                       size="sm"
                       variant="outline"
                       onClick={() => navigate(step.path)}
-                      className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs"
+                      className="h-7 px-3 text-[11px] font-semibold border-[#D4A937]/30 text-[#D4A937] hover:bg-[#D4A937]/10 dark:border-[#D4A937]/30 dark:text-[#D4A937]"
                     >
                       Complete
                     </Button>
@@ -262,11 +215,11 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 p-4 bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-chestnut/20 rounded-lg text-center"
+              className="mt-4 p-4 bg-[#D4A937]/10 rounded-lg text-center"
             >
-              <Sparkles className="w-6 h-6 text-afrikoni-gold mx-auto mb-2" />
-              <p className="text-sm font-semibold text-afrikoni-chestnut">
-                🎉 Congratulations! You're now a Verified Supplier!
+              <Sparkles className="w-5 h-5 text-[#D4A937] mx-auto mb-2" />
+              <p className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                Congratulations! You're now a Verified Supplier!
               </p>
             </motion.div>
           )}
@@ -275,4 +228,3 @@ export default function OnboardingProgressTracker({ companyId, userId }) {
     </motion.div>
   );
 }
-
