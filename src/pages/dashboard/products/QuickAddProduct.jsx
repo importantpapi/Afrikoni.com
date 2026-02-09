@@ -445,7 +445,7 @@ export default function QuickAddProduct() {
         </div>
       </div>
 
-      <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
+      <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
         <CardContent className="p-6 space-y-5">
           {/* Photo-to-Listing: AI Speed Layer */}
           {!productId && (
@@ -599,7 +599,7 @@ export default function QuickAddProduct() {
           </div>
 
           {/* OPTIONAL: Expandable "More Details" section */}
-          <div className="border border-gray-200 dark:border-[#2A2A2A] rounded-xl overflow-hidden">
+          <div className="border border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-md overflow-hidden">
             <button
               type="button"
               onClick={() => setShowMoreDetails(!showMoreDetails)}
@@ -616,7 +616,7 @@ export default function QuickAddProduct() {
             </button>
 
             {showMoreDetails && (
-              <div className="p-4 pt-0 border-t border-gray-200 dark:border-[#2A2A2A] space-y-5">
+              <div className="p-4 pt-0 border-t border-afrikoni-gold/20 bg-gradient-to-br from-afrikoni-gold/5 to-white space-y-5">
                 {/* Description with AI */}
                 <div>
                   <div className="flex items-center justify-between mb-1">

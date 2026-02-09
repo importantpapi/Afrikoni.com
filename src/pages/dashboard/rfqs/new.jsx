@@ -575,7 +575,7 @@ export default function CreateRFQ() {
           </div>
         </div>
 
-        <Card>
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* REQUIRED FIELDS - Always visible */}

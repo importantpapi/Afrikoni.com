@@ -645,7 +645,7 @@ export default function ProductForm() {
         </motion.div>
 
         {/* Step Indicator */}
-        <Card>
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
           <CardContent className="p-5 md:p-6">
             <div className="flex items-center justify-between overflow-x-auto">
               {steps.map((step, idx) => (
@@ -683,7 +683,7 @@ export default function ProductForm() {
         </Card>
 
         {/* Form Content */}
-        <Card>
+        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
           <CardContent className="p-5 md:p-6">
             <AnimatePresence mode="wait">
               {/* Step 1: Basic Info */}
