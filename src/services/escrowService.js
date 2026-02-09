@@ -21,6 +21,7 @@
 
 import { supabase } from '@/api/supabaseClient';
 import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
+import { createPaymentIntent, initiateRefund as refundViaPaymentService } from './paymentService';
 
 /**
  * Create escrow for a trade
@@ -81,12 +82,14 @@ export async function createEscrow({
 }
 
 /**
- * Fund escrow (buyer makes payment)
+ * Create payment intent for escrow funding (Stripe integration)
+ * Called when buyer clicks "Fund Escrow" button
  */
-export async function fundEscrow({
+export async function initiateEscrowPayment({
   escrowId,
-  transactionId,
-  paymentDetails = {}
+  buyerEmail,
+  amount,
+  currency = 'USD'
 }) {
   try {
     // KERNEL: Get escrow
@@ -105,15 +108,60 @@ export async function fundEscrow({
       return { success: false, error: `Cannot fund escrow in ${escrow.status} status` };
     }
 
-    // KERNEL: Update escrow status
+    // Call payment service to create Stripe PaymentIntent
+    const paymentIntent = await createPaymentIntent(
+      escrowId,
+      amount,
+      currency,
+      buyerEmail
+    );
+
+    return {
+      success: true,
+      paymentIntent,
+      escrow
+    };
+  } catch (err) {
+    console.error('[escrowService] Initiate escrow payment failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fund escrow (buyer confirms payment via Stripe webhook)
+ * This is called AFTER Stripe webhook confirms payment intent succeeded
+ */
+export async function fundEscrow({
+  escrowId,
+  stripePaymentIntentId,
+  paymentMethod = 'stripe'
+}) {
+  try {
+    // KERNEL: Get escrow
+    const { data: escrow, error: getError } = await supabase
+      .from('escrows')
+      .select('*')
+      .eq('id', escrowId)
+      .single();
+
+    if (getError || !escrow) {
+      return { success: false, error: 'Escrow not found' };
+    }
+
+    // KERNEL: Validate status
+    if (escrow.status !== 'pending') {
+      return { success: false, error: `Cannot fund escrow in ${escrow.status} status` };
+    }
+
+    // KERNEL: Update escrow status to FUNDED
     const { data: updatedEscrow, error: updateError } = await supabase
       .from('escrows')
       .update({
         status: 'funded',
         balance: escrow.amount,
         funded_at: new Date(),
-        payment_transaction_id: transactionId,
-        payment_details: paymentDetails
+        stripe_payment_intent_id: stripePaymentIntentId,
+        payment_method: paymentMethod
       })
       .eq('id', escrowId)
       .select()
@@ -129,7 +177,9 @@ export async function fundEscrow({
       eventType: TRADE_EVENT_TYPE.ESCROW_FUNDED,
       metadata: {
         escrow_id: escrowId,
-        transaction_id: transactionId
+        stripe_payment_intent_id: stripePaymentIntentId,
+        amount: escrow.amount,
+        currency: escrow.currency
       }
     });
 
