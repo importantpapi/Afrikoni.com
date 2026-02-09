@@ -1,16 +1,18 @@
 /**
  * Logistics Service
- * Handles shipping quotes with Afrikoni markup
+ * Handles shipping quotes, tracking, and real-time shipment updates
+ * Integrates with partners: DHL, FedEx, UPS, Afrikoni logistics
  */
 
 import { supabase } from '@/api/supabaseClient';
+import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
 
-// Mock logistics partners (in production, these would be real APIs)
+// Logistics partners (in production, these would be real APIs)
 const LOGISTICS_PARTNERS = [
-  { id: 'dhl', name: 'DHL Express', baseRate: 0.15 }, // $0.15 per kg
-  { id: 'fedex', name: 'FedEx', baseRate: 0.18 },
-  { id: 'ups', name: 'UPS', baseRate: 0.16 },
-  { id: 'afrikoni', name: 'Afrikoni Preferred', baseRate: 0.14, recommended: true }
+  { id: 'dhl', name: 'DHL Express', baseRate: 0.15, api: 'https://api.dhl.com' },
+  { id: 'fedex', name: 'FedEx', baseRate: 0.18, api: 'https://api.fedex.com' },
+  { id: 'ups', name: 'UPS', baseRate: 0.16, api: 'https://onlinetools.ups.com' },
+  { id: 'afrikoni', name: 'Afrikoni Logistics', baseRate: 0.14, api: 'internal', recommended: true }
 ];
 
 /**
@@ -46,6 +48,273 @@ export async function calculateShippingQuote(params) {
   });
   
   return quotes.sort((a, b) => a.finalPrice - b.finalPrice);
+}
+
+/**
+ * Create shipment record for a trade
+ */
+export async function createShipment({
+  tradeId,
+  trackingNumber,
+  carrier,
+  pickupDate,
+  estimatedDeliveryDate
+}) {
+  try {
+    // KERNEL: Validate required fields
+    if (!tradeId || !trackingNumber || !carrier) {
+      return { success: false, error: 'Missing required fields' };
+    }
+
+    // KERNEL: Create shipment
+    const { data: shipment, error } = await supabase
+      .from('shipments')
+      .insert({
+        trade_id: tradeId,
+        tracking_number: trackingNumber,
+        carrier: carrier,
+        status: 'pending',
+        pickup_scheduled_date: pickupDate,
+        estimated_delivery_date: estimatedDeliveryDate,
+        milestones: [
+          {
+            name: 'Pending',
+            timestamp: new Date().toISOString(),
+            location: null,
+            status: 'completed'
+          }
+        ],
+        created_at: new Date()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Emit event
+    await emitTradeEvent({
+      tradeId,
+      eventType: TRADE_EVENT_TYPE.SHIPMENT_CREATED,
+      metadata: {
+        shipment_id: shipment.id,
+        tracking_number: trackingNumber,
+        carrier,
+        estimated_delivery_date: estimatedDeliveryDate
+      }
+    });
+
+    return { success: true, shipment };
+  } catch (err) {
+    console.error('[logisticsService] Create shipment failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Update shipment milestone (pickup, in transit, delivery, etc.)
+ */
+export async function updateShipmentMilestone({
+  shipmentId,
+  milestoneName,
+  location,
+  timestamp = new Date(),
+  notes = ''
+}) {
+  try {
+    // KERNEL: Get current shipment
+    const { data: shipment, error: getError } = await supabase
+      .from('shipments')
+      .select('*')
+      .eq('id', shipmentId)
+      .single();
+
+    if (getError) throw getError;
+
+    // KERNEL: Add milestone
+    const milestones = shipment.milestones || [];
+    const newMilestone = {
+      name: milestoneName,
+      timestamp: timestamp.toISOString(),
+      location: location,
+      notes: notes,
+      status: 'completed'
+    };
+
+    milestones.push(newMilestone);
+
+    // Determine shipment status based on milestone
+    let newStatus = shipment.status;
+    if (milestoneName.toLowerCase().includes('pickup')) {
+      newStatus = 'picked_up';
+    } else if (milestoneName.toLowerCase().includes('transit')) {
+      newStatus = 'in_transit';
+    } else if (milestoneName.toLowerCase().includes('delivery')) {
+      newStatus = 'delivered';
+    }
+
+    // KERNEL: Update shipment
+    const { data: updatedShipment, error: updateError } = await supabase
+      .from('shipments')
+      .update({
+        status: newStatus,
+        milestones: milestones,
+        last_update_timestamp: timestamp,
+        last_update_location: location
+      })
+      .eq('id', shipmentId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    // Emit event
+    const eventTypeMap = {
+      'pickup': TRADE_EVENT_TYPE.SHIPMENT_PICKED_UP,
+      'in_transit': TRADE_EVENT_TYPE.SHIPMENT_IN_TRANSIT,
+      'delivery': TRADE_EVENT_TYPE.SHIPMENT_DELIVERED
+    };
+
+    const eventType = eventTypeMap[milestoneName.toLowerCase().split(' ')[0]] || TRADE_EVENT_TYPE.SHIPMENT_UPDATED;
+
+    await emitTradeEvent({
+      tradeId: shipment.trade_id,
+      eventType: eventType,
+      metadata: {
+        shipment_id: shipmentId,
+        milestone: milestoneName,
+        location: location,
+        timestamp: timestamp.toISOString()
+      }
+    });
+
+    return { success: true, shipment: updatedShipment };
+  } catch (err) {
+    console.error('[logisticsService] Update shipment milestone failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Get shipment details for a trade
+ */
+export async function getShipment(tradeId) {
+  try {
+    const { data, error } = await supabase
+      .from('shipments')
+      .select('*')
+      .eq('trade_id', tradeId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+
+    return { success: true, shipment: data };
+  } catch (err) {
+    console.error('[logisticsService] Get shipment failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Get all shipments for a logistics partner
+ */
+export async function getLogisticsPartnerShipments(partnerId) {
+  try {
+    const { data, error } = await supabase
+      .from('shipments')
+      .select(`
+        *,
+        trades!trade_id (
+          id,
+          title,
+          status,
+          companies!buyer_company_id (
+            id,
+            name,
+            country
+          )
+        )
+      `)
+      .eq('carrier', partnerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return { success: true, shipments: data || [] };
+  } catch (err) {
+    console.error('[logisticsService] Get logistics partner shipments failed:', err);
+    return { success: false, error: err.message, shipments: [] };
+  }
+}
+
+/**
+ * Bulk update shipments from logistics partner API webhook
+ * Called via webhook from logistics partner
+ */
+export async function bulkUpdateShipments(updates) {
+  try {
+    // updates should be array of { tracking_number, status, location, timestamp }
+    const results = [];
+
+    for (const update of updates) {
+      // Find shipment by tracking number
+      const { data: shipment, error: findError } = await supabase
+        .from('shipments')
+        .select('id')
+        .eq('tracking_number', update.tracking_number)
+        .single();
+
+      if (findError || !shipment) {
+        results.push({ tracking_number: update.tracking_number, success: false });
+        continue;
+      }
+
+      // Update shipment
+      const updateResult = await updateShipmentMilestone({
+        shipmentId: shipment.id,
+        milestoneName: update.status,
+        location: update.location,
+        timestamp: new Date(update.timestamp),
+        notes: update.notes || ''
+      });
+
+      results.push({
+        tracking_number: update.tracking_number,
+        success: updateResult.success
+      });
+    }
+
+    return { success: true, results };
+  } catch (err) {
+    console.error('[logisticsService] Bulk update shipments failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Estimate delivery date based on lead time
+ */
+export function estimateDeliveryDate(leadTimeDays, startDate = new Date()) {
+  const estimatedDate = new Date(startDate);
+  estimatedDate.setDate(estimatedDate.getDate() + leadTimeDays);
+  return estimatedDate;
+}
+
+/**
+ * Check shipment delay
+ */
+export function isShipmentDelayed(estimatedDate, currentDate = new Date()) {
+  return currentDate > estimatedDate;
+}
+
+/**
+ * Calculate days remaining until delivery
+ */
+export function getDaysUntilDelivery(estimatedDate, currentDate = new Date()) {
+  const diff = estimatedDate - currentDate;
+  const daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return daysRemaining;
 }
 
 /**
