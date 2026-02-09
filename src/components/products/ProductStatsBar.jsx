@@ -9,30 +9,30 @@ export default function ProductStatsBar({ stats }) {
       label: 'Total Products',
       value: stats.total || 0,
       icon: Package,
-      color: 'text-afrikoni-gold'
+      color: 'text-[#D4A937]'
     },
     {
       label: 'Active',
       value: stats.active || 0,
       icon: TrendingUp,
-      color: 'text-green-600'
+      color: 'text-emerald-500'
     },
     {
       label: 'Total Views',
       value: stats.totalViews || 0,
       icon: Eye,
-      color: 'text-blue-600'
+      color: 'text-blue-500 dark:text-blue-400'
     },
     {
       label: 'Inquiries',
       value: stats.inquiries || 0,
       icon: MessageSquare,
-      color: 'text-purple-600'
+      color: 'text-purple-500 dark:text-purple-400'
     }
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {statItems.map((item, idx) => {
         const Icon = item.icon;
         return (
@@ -42,16 +42,18 @@ export default function ProductStatsBar({ stats }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: idx * 0.05 }}
           >
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl hover:border-[#D4A937]/20 transition-all">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-afrikoni-deep">{item.label}</p>
-                    <p className="text-2xl font-bold text-afrikoni-chestnut">
+                    <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{item.label}</p>
+                    <p className="text-2xl font-bold font-mono text-gray-900 dark:text-[#F5F0E8]">
                       {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
                     </p>
                   </div>
-                  <Icon className={`w-8 h-8 ${item.color}`} />
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center">
+                    <Icon className={`w-5 h-5 ${item.color}`} />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -61,4 +63,3 @@ export default function ProductStatsBar({ stats }) {
     </div>
   );
 }
-

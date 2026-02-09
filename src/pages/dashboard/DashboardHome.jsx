@@ -1200,8 +1200,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
               {subtitle}
             </p>
-            {/* Kernel Status Bar - inline system metrics */}
-            <KernelStatusBar className="hidden sm:flex" />
+            {/* KernelStatusBar is rendered in DashboardLayout — no duplicate here */}
           </div>
         </div>
       </div>
