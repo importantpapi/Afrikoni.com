@@ -11,11 +11,6 @@ import { toast } from 'sonner';
  * A single text input that converts one sentence into a full RFQ.
  * Uses KoniAI Edge Function to parse natural language into structured RFQ data,
  * then navigates to the RFQ form with pre-filled fields.
- *
- * Example inputs:
- * - "I need 500kg of cocoa beans delivered to Lagos"
- * - "Looking for 1000 printed packaging boxes under $2 each"
- * - "Need shea butter supplier in Ghana, 200kg monthly"
  */
 export default function QuickRFQBar() {
   const navigate = useNavigate();
@@ -40,7 +35,6 @@ export default function QuickRFQBar() {
       });
 
       if (result?.rfq) {
-        // Navigate to RFQ form with AI-generated data pre-filled
         const params = new URLSearchParams();
         params.set('ai', '1');
         if (result.rfq.title) params.set('title', result.rfq.title);
@@ -79,7 +73,6 @@ export default function QuickRFQBar() {
       navigate(`/dashboard/rfqs/new?${params.toString()}`);
     } catch (err) {
       console.error('[QuickRFQBar] AI generation error:', err);
-      // On any error, still navigate with the raw text
       const params = new URLSearchParams();
       params.set('title', text);
       navigate(`/dashboard/rfqs/new?${params.toString()}`);
@@ -91,24 +84,24 @@ export default function QuickRFQBar() {
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 items-center">
       <div className="relative flex-1">
-        <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-gold" />
+        <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D4A937]" />
         <Input
           value={sentence}
           onChange={(e) => setSentence(e.target.value)}
-          placeholder='Describe what you need in one sentence, e.g. "500kg cocoa beans to Lagos"'
-          className="pl-10 h-12 text-base border-afrikoni-gold/30 focus:border-afrikoni-gold"
+          placeholder='Describe what you need, e.g. "500kg cocoa beans to Lagos"'
+          className="pl-10 h-11 text-sm bg-gray-50 dark:bg-[#141414] border-gray-200 dark:border-[#2A2A2A] focus:border-[#D4A937]/50 text-gray-900 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
           disabled={isProcessing}
         />
       </div>
       <Button
         type="submit"
         disabled={isProcessing || !sentence.trim()}
-        className="h-12 px-6 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold whitespace-nowrap"
+        className="h-11 px-5 bg-[#D4A937] hover:bg-[#C09830] text-white dark:text-[#0A0A0A] font-semibold whitespace-nowrap text-sm"
       >
         {isProcessing ? (
-          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> AI Drafting...</>
+          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Drafting...</>
         ) : (
-          <>Create RFQ <ArrowRight className="w-4 h-4 ml-2" /></>
+          <>Create RFQ <ArrowRight className="w-4 h-4 ml-1.5" /></>
         )}
       </Button>
     </form>
