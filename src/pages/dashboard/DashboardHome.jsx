@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import TradeCorridorWidget from '@/components/dashboard/TradeCorridorWidget';
 import EscrowMilestoneProgress from '@/components/dashboard/EscrowMilestoneProgress';
+import KernelStatusBar from '@/components/dashboard/KernelStatusBar';
 
 // ============================================================================
 // CONSTANTS & HELPERS (Section 2)
@@ -1166,21 +1167,42 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Trade OS Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#F5F0E8] mb-1 leading-tight">
-            {welcomeMessage}
-          </h1>
-          <p className="text-sm text-gray-500">
-            {subtitle}
-          </p>
+      {/* ═══ TRADE OS COMMAND CENTER HEADER ═══ */}
+      <div className="relative">
+        {/* System Status Bar */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                SYSTEM ONLINE
+              </span>
+            </div>
+            <div className="hidden md:block h-3 w-px bg-gray-300 dark:bg-[#2A2A2A]" />
+            <span className="hidden md:inline text-[10px] font-mono text-gray-400 dark:text-gray-600">
+              {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} &middot; {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+          <div className="hidden md:flex items-center gap-2 text-xs text-gray-400 dark:text-gray-600">
+            <kbd className="px-2 py-1 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] font-mono text-[11px] text-gray-500">
+              {navigator.platform?.includes('Mac') ? '\u2318' : 'Ctrl'}+K
+            </kbd>
+            <span>Command</span>
+          </div>
         </div>
-        <div className="hidden md:flex items-center gap-2 text-xs text-gray-400 dark:text-gray-600">
-          <kbd className="px-2 py-1 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] font-mono text-[11px] text-gray-500">
-            {navigator.platform?.includes('Mac') ? '\u2318' : 'Ctrl'}+K
-          </kbd>
-          <span>Quick actions</span>
+
+        {/* Operator Greeting */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#F5F0E8] mb-1 leading-tight">
+              {welcomeMessage}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              {subtitle}
+            </p>
+            {/* Kernel Status Bar - inline system metrics */}
+            <KernelStatusBar className="hidden sm:flex" />
+          </div>
         </div>
       </div>
 
@@ -1255,7 +1277,7 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </Card>
       )}
 
-      {/* KPI Cards - Trade OS Dark */}
+      {/* ═══ KPI TELEMETRY GRID ═══ */}
       {kpis.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {kpis.map((kpi, index) => (
@@ -1265,20 +1287,20 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.06 }}
             >
-              <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl hover:border-[#D4A937]/20 transition-all">
+              <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl hover:border-[#D4A937]/20 hover:shadow-lg hover:shadow-[#D4A937]/5 transition-all group cursor-default">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center group-hover:border-[#D4A937]/20 transition-colors">
                       <kpi.icon className="w-4 h-4 text-[#D4A937]" />
                     </div>
                     {kpi.change && (
-                      <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/50 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded">
                         {kpi.change}
                       </span>
                     )}
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8] font-mono">{kpi.value}</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">{kpi.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8] font-mono tracking-tight">{kpi.value}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5 font-medium uppercase tracking-wider">{kpi.label}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -1291,15 +1313,18 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         <OnboardingProgressTracker companyId={companyId} userId={userId} />
       )}
 
-      {/* Charts Section */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* ═══ TRADE ANALYTICS ═══ */}
+      <div className="grid md:grid-cols-2 gap-4">
         {/* Sales/Orders Chart */}
         <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-afrikoni-gold" />
-              {isSeller ? 'Sales Activity' : 'Order Activity'}
-            </CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#D4A937]" />
+                {isSeller ? 'Sales Activity' : 'Order Activity'}
+              </CardTitle>
+              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-600">30D</span>
+            </div>
           </CardHeader>
           <CardContent>
             {salesChartData.length > 0 ? (
@@ -1331,11 +1356,14 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
 
         {/* RFQ Chart */}
         <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
-              <FileText className="w-5 h-5 text-afrikoni-purple" />
-              RFQ Activity
-            </CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
+                <FileText className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                RFQ Activity
+              </CardTitle>
+              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-600">30D</span>
+            </div>
           </CardHeader>
           <CardContent>
             {rfqChartData.length > 0 ? (
@@ -1360,8 +1388,8 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </Card>
       </div>
 
-      {/* Trade Corridor + Escrow Milestone Widgets */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* ═══ TRADE CORRIDOR & ESCROW INTELLIGENCE ═══ */}
+      <div className="grid md:grid-cols-2 gap-4">
         <TradeCorridorWidget />
         <EscrowMilestoneProgress
           totalAmount={64000}
@@ -1372,10 +1400,11 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         />
       </div>
 
-      {/* Quick Actions */}
+      {/* ═══ OPERATOR QUICK ACTIONS ═══ */}
       <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8]">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
+            <Plus className="w-4 h-4 text-[#D4A937]" />
             Quick Actions
           </CardTitle>
         </CardHeader>
@@ -1398,14 +1427,20 @@ export default function DashboardHome({ activeView = 'all', capabilities: capabi
         </CardContent>
       </Card>
 
-      {/* Recent Activity - Unified feed */}
+      {/* ═══ LIVE ACTIVITY FEED ═══ */}
       {(recentOrders.length > 0 || recentRFQs.length > 0 || recentMessages.length > 0) && (
         <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
-              <Clock className="w-5 h-5 text-afrikoni-gold" />
-              Recent Activity
-            </CardTitle>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[#D4A937]" />
+                Live Activity Feed
+              </CardTitle>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">LIVE</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

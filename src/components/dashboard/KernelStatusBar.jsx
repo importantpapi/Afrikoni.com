@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   ShieldCheck, DollarSign, Truck, Activity, TrendingUp,
-  AlertTriangle, CheckCircle, Clock
+  AlertTriangle, CheckCircle, Clock, Cpu
 } from 'lucide-react';
 
 function StatusPill({ icon: Icon, label, value, status = 'normal', className = '' }) {
@@ -37,6 +37,18 @@ export default function KernelStatusBar({
 
   return (
     <div className={`flex items-center gap-1.5 flex-wrap ${className}`}>
+      {/* System Brain Indicator */}
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[#D4A937]/20 bg-[#D4A937]/5 mr-1">
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        >
+          <Cpu className="w-3.5 h-3.5 text-[#D4A937]" />
+        </motion.div>
+        <span className="text-[10px] font-mono font-bold text-[#D4A937] uppercase tracking-wider">KERNEL</span>
+        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+      </div>
+
       <StatusPill
         icon={ShieldCheck}
         label="Trust"

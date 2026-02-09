@@ -221,10 +221,23 @@ export default function TradeOSSidebar({
         </CollapsibleNav>
       </nav>
 
-      {/* Bottom */}
+      {/* Bottom Section */}
       <div className="border-t border-gray-200 dark:border-[#1E1E1E] p-2 space-y-0.5">
         <NavItem icon={Settings} label="Settings" path="/dashboard/settings" active={isActive('/dashboard/settings')} onClick={closeMobile} />
         <NavItem icon={HelpCircle} label="Help" path="/dashboard/help" active={isActive('/dashboard/help')} onClick={closeMobile} />
+      </div>
+
+      {/* System Status Footer */}
+      <div className="px-4 py-2.5 border-t border-gray-200 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#0D0D0D]">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-mono text-gray-400 dark:text-gray-600">
+            Trade OS v2.0
+          </span>
+          <span className="text-[10px] text-gray-300 dark:text-gray-700 ml-auto">
+            {isBuyer && isSeller ? 'HYBRID' : isSeller ? 'SELLER' : isBuyer ? 'BUYER' : isLogistics ? 'LOGISTICS' : 'USER'}
+          </span>
+        </div>
       </div>
     </aside>
   );
