@@ -26,6 +26,12 @@ import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
 import { supabase } from '@/api/supabaseClient';
 import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
 import { emitTradeEvent } from '@/services/tradeEvents';
+import RFQCreationPanel from '@/components/trade/RFQCreationPanel';
+import QuoteReviewPanel from '@/components/trade/QuoteReviewPanel';
+import ContractSigningPanel from '@/components/trade/ContractSigningPanel';
+import EscrowFundingPanel from '@/components/trade/EscrowFundingPanel';
+import ShipmentTrackingPanel from '@/components/trade/ShipmentTrackingPanel';
+import DeliveryAcceptancePanel from '@/components/trade/DeliveryAcceptancePanel';
 import { ArrowLeft } from 'lucide-react';
 
 /**
