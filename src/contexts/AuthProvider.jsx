@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
     try {
       console.log('[Auth] Validating schema integrity...');
       const validation = await verifySchemaIntegrity();
-      
+
       if (!validation.valid) {
         console.error('[Auth] Schema validation failed:', validation.error);
         const errorMessage = getSchemaErrorMessage(validation);
@@ -101,9 +101,9 @@ export function AuthProvider({ children }) {
   const silentRefresh = useCallback(async () => {
     try {
       console.log('[Auth] Silent refresh...');
-      
+
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         console.log('[Auth] Silent refresh - no session');
         setUser(null);
@@ -111,14 +111,14 @@ export function AuthProvider({ children }) {
         setRole(null);
         return;
       }
-    
+
       // ✅ CLEANUP: Use .single() to avoid empty array logic that keeps loading state active
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
-      
+
       let resolvedProfile = profileData || null;
 
       // Handle profile not found gracefully (PGRST116 = not found)
@@ -180,9 +180,11 @@ export function AuthProvider({ children }) {
         }
       };
       // Fire-and-forget - don't await, don't block auth flow
-      validateSchemaWithTimeout();
-
       const { data: { session } } = await supabase.auth.getSession();
+
+      // ✅ MOVED: Schema validation now runs AFTER getting session to avoid blocking critical path
+      // Fire-and-forget - don't await, don't block auth flow
+      validateSchemaWithTimeout();
 
       if (!session?.user) {
         console.log('[Auth] No session - guest mode');
@@ -255,9 +257,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let isMounted = true;
     let timeoutId = null;
-    
+
     // ✅ CROSS-TAB SYNC: Set up BroadcastChannel for auth sync
-    const authChannel = typeof BroadcastChannel !== 'undefined' 
+    const authChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('auth_sync')
       : null;
 
@@ -269,7 +271,7 @@ export function AuthProvider({ children }) {
         }
       };
     }
-    
+
     // Safety timeout - force loading to false after 10 seconds
     timeoutId = setTimeout(() => {
       if (isMounted && loading && !hasInitializedRef.current) {
@@ -280,7 +282,7 @@ export function AuthProvider({ children }) {
         hasInitializedRef.current = true;
       }
     }, 10000);
-    
+
     const initAuth = async () => {
       // ✅ FIX: Check both hasInitialized AND isResolving to prevent duplicate calls
       if (hasInitializedRef.current || isResolvingRef.current) {
@@ -380,14 +382,14 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = useCallback(async () => {
     if (!user?.id) return;
-    
+
     // ✅ CLEANUP: Use .single() to avoid empty array logic
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
-    
+
     let resolvedProfile = data || null;
 
     if (error) {
@@ -407,20 +409,20 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try {
       console.log('[AuthProvider] Logout called - clearing all state');
-      
+
       // Clear all local state immediately
       setUser(null);
       setProfile(null);
       setRole(null);
-      
+
       // Sign out from Supabase (this will trigger SIGNED_OUT event)
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.error('[AuthProvider] Sign out error:', error);
         throw error;
       }
-      
+
       // ✅ VIBRANIUM STABILIZATION: Clear all storage on logout
       try {
         if (typeof window !== 'undefined') {
@@ -430,7 +432,7 @@ export function AuthProvider({ children }) {
       } catch (storageError) {
         console.error('[AuthProvider] Storage clear error:', storageError);
       }
-      
+
       // ✅ CROSS-TAB SYNC: Broadcast logout to other tabs
       // Note: This is handled by the SIGNED_OUT event handler in useEffect
       // which has access to the authChannel. No need to duplicate here.

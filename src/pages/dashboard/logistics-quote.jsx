@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Truck, Package, Sparkles } from 'lucide-react';
+import { Truck, Package, Sparkles, Map, AlertTriangle, TrendingUp } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -21,7 +21,9 @@ import {
   saveLogisticsQuote,
   acceptLogisticsQuote,
   getLogisticsQuotes,
+  getLogisticsQuotes,
 } from '@/services/logisticsService';
+import { optimizeRoute, getCorridorAlerts } from '@/services/routingEngine';
 import { recordLogisticsRevenue } from '@/services/revenueService';
 import RequireCapability from '@/guards/RequireCapability';
 import { Surface } from '@/components/system/Surface';
@@ -71,11 +73,11 @@ function LogisticsQuoteInner() {
     if (!canLoadData) {
       return;
     }
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       if (!profileCompanyId) {
         toast.error('Company ID not found.');
@@ -132,6 +134,8 @@ function LogisticsQuoteInner() {
     }
   };
 
+  const [optimizedRoutes, setOptimizedRoutes] = useState(null);
+
   const handleRequestQuotes = async () => {
     if (!pickupCountry || !deliveryCountry || !weightKg) {
       toast.error('Missing required fields');
@@ -140,6 +144,10 @@ function LogisticsQuoteInner() {
 
     setIsRequesting(true);
     try {
+      // OPERATIONAL INTELLIGENCE: Corridor Optimization
+      const routeAnalysis = await optimizeRoute(pickupCountry, deliveryCountry, parseFloat(weightKg), 'BALANCED');
+      setOptimizedRoutes(routeAnalysis);
+
       const calculated = await calculateShippingQuote({
         pickupCountry,
         deliveryCountry,
@@ -167,7 +175,7 @@ function LogisticsQuoteInner() {
         );
       }
 
-      toast.success('Quotes generated');
+      toast.success('Quotes generated & Routes Optimized');
     } catch (err) {
       toast.error('Failed to generate quotes');
       console.error(err);
@@ -216,12 +224,12 @@ function LogisticsQuoteInner() {
       </div>
     );
   }
-  
+
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           loadData();
@@ -244,6 +252,46 @@ function LogisticsQuoteInner() {
         </Button>
       </Surface>
 
+      {optimizedRoutes && (
+        <Surface variant="glass" className="p-6 border-emerald-500/20 bg-emerald-500/5">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-emerald-500/10 rounded-lg">
+              <Map className="w-6 h-6 text-emerald-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-white mb-1">Corridor Intelligence Active</h3>
+              <p className="text-sm text-emerald-200/70 mb-4">
+                {optimizedRoutes.analysis}
+              </p>
+
+              <div className="space-y-3">
+                {optimizedRoutes.options.slice(0, 2).map((route, i) => (
+                  <div key={i} className={`p-4 rounded-lg flex items-center justify-between ${route.recommended ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-white/5'}`}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-white">{route.mode}</span>
+                        {route.recommended && <Badge className="bg-emerald-500 text-black hover:bg-emerald-400">Optimal</Badge>}
+                      </div>
+                      <div className="text-xs text-white/50 flex gap-3">
+                        <span>{route.origin} → {route.destination}</span>
+                        <span>•</span>
+                        <span>{route.transitTimeDays} Days</span>
+                        <span>•</span>
+                        <span>{route.reliability}% Reliability</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-mono font-bold text-white">${route.totalCost.toLocaleString()}</div>
+                      <div className="text-xs text-white/50">${route.costPerKg}/kg</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Surface>
+      )}
+
       {quotes.length > 0 && (
         <div className="grid md:grid-cols-2 gap-4">
           {quotes.map((q, i) => (
@@ -256,7 +304,7 @@ function LogisticsQuoteInner() {
                   </Badge>
                 )}
               </div>
-              <p className="mt-2 font-semibold text-[var(--os-text-primary)]">${q.finalPrice}</p>
+              <p className="mt-2 text-2xl font-bold text-[var(--os-text-primary)]">${q.finalPrice}</p>
               <Button className="mt-4 w-full" onClick={() => handleAcceptQuote(q)}>
                 Accept Quote
               </Button>

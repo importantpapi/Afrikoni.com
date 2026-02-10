@@ -15,6 +15,7 @@ import { AuthProvider } from './contexts/AuthProvider';
 import { UserProvider } from './contexts/UserContext';
 import { RoleProvider } from './context/RoleContext';
 import { CapabilityProvider } from './context/CapabilityContext';
+import { TradeProvider } from './context/TradeContext';
 import RequireCapability from './components/auth/RequireCapability';
 import { useAuth } from './contexts/AuthProvider';
 import { useCapability } from './context/CapabilityContext';
@@ -59,6 +60,7 @@ const SupplierAnalyticsPage = lazy(() => import('./pages/dashboard/supplier-anal
 
 // 2. BUYER ENGINE (Sourcing)
 const OrdersPage = lazy(() => import('./pages/dashboard/orders'));
+const TraceCenterPage = lazy(() => import('./pages/dashboard/TraceCenter')); // [NEW] The Unbroken Flow
 const RFQsPage = lazy(() => import('./pages/dashboard/rfqs'));
 const RFQsNewPage = lazy(() => import('./pages/dashboard/rfqs/new'));
 const TradeWorkspacePage = lazy(() => import('./pages/dashboard/trade/[id]'));
@@ -113,6 +115,12 @@ const SettingsPage = lazy(() => import('./pages/dashboard/settings'));
 const CompanyInfoPage = lazy(() => import('./pages/dashboard/company-info'));
 const TeamMembersPage = lazy(() => import('./pages/dashboard/team-members'));
 const SubscriptionsPage = lazy(() => import('./pages/dashboard/subscriptions'));
+
+// 10. NEW TRADE OS MODULES (2026 Evolution)
+const CorridorsPage = lazy(() => import('./pages/dashboard/corridors'));
+const DocumentsPage = lazy(() => import('./pages/dashboard/documents'));
+const RevenuePage = lazy(() => import('./pages/dashboard/revenue'));
+const MessagesPage = lazy(() => import('./pages/MessagesPremium'));
 
 // 9. DEV TOOLS (Development only)
 const TestEmailsPage = lazy(() => import('./pages/dashboard/test-emails'));
@@ -466,6 +474,7 @@ function AppContent() {
 
             {/* TRADE PIPELINE */}
             <Route path="trade-pipeline" element={<TradePipelinePage />} />
+            <Route path="trace-center" element={<TraceCenterPage />} /> {/* [NEW] Visual Command */}
 
             {/* 7. ANALYTICS & INTELLIGENCE */}
             <Route path="analytics" element={<AnalyticsPage />} />
@@ -483,6 +492,12 @@ function AppContent() {
             <Route path="company-info" element={<CompanyInfoPage />} />
             <Route path="team-members" element={<TeamMembersPage />} />
             <Route path="subscriptions" element={<SubscriptionsPage />} />
+
+            {/* 10. TRADE OS MODULES */}
+            <Route path="corridors" element={<CorridorsPage />} />
+            <Route path="documents" element={<DocumentsPage />} />
+            <Route path="revenue" element={<RevenuePage />} />
+            <Route path="messages" element={<MessagesPage />} />
 
             {/* 9. DEV TOOLS (Development only - hidden in production) */}
             {import.meta.env.DEV && (
@@ -518,15 +533,17 @@ function App() {
               {/* This enables NotificationBell and other global components to access capabilities */}
               {/* even on public routes (/, /products, /marketplace, etc.) */}
               <CapabilityProvider>
-                <ScrollToTop />
-                <Toaster position="top-right" />
+                <TradeProvider>
+                  <ScrollToTop />
+                  <Toaster position="top-right" />
 
-                {/* Debug component to detect stuck auth */}
-                <DebugAuth />
+                  {/* Debug component to detect stuck auth */}
+                  <DebugAuth />
 
-                {/* KoniAI+ Global Chat Assistant */}
+                  {/* KoniAI+ Global Chat Assistant */}
 
-                <AppContent />
+                  <AppContent />
+                </TradeProvider>
               </CapabilityProvider>
             </RoleProvider>
           </UserProvider>

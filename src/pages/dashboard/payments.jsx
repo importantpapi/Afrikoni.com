@@ -5,6 +5,8 @@ import {
   Lock,
   TrendingUp,
   CheckCircle2,
+  PieChart,
+  ArrowRightLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import EscrowWidget from "@/components/dashboard/EscrowWidget";
@@ -12,6 +14,7 @@ import { Surface } from "@/components/system/Surface";
 import { StatusBadge } from "@/components/system/StatusBadge";
 import { supabase } from "@/api/supabaseClient";
 import { useDashboardKernel } from "@/hooks/useDashboardKernel";
+import { calculateTradeFees, estimateFX } from "@/services/revenueEngine";
 
 const Payments = () => {
   const { canLoadData, isSystemReady, profileCompanyId } = useDashboardKernel();
@@ -24,21 +27,25 @@ const Payments = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Revenue Engine State
+  const [feePreview, setFeePreview] = useState(null);
+  const [fxPreview, setFxPreview] = useState(null);
+
   useEffect(() => {
     let active = true;
     const load = async () => {
       if (!isSystemReady || !canLoadData) return;
       try {
-          const { data: escrows } = await supabase
-            .from("escrows")
-            .select("id, amount, balance, status, trade_id, buyer_id, seller_id")
-            .or(`buyer_id.eq.${profileCompanyId},seller_id.eq.${profileCompanyId}`);
+        const { data: escrows } = await supabase
+          .from("escrows")
+          .select("id, amount, balance, status, trade_id, buyer_id, seller_id")
+          .or(`buyer_id.eq.${profileCompanyId},seller_id.eq.${profileCompanyId}`);
 
-          const { data: payments } = await supabase
-            .from("payments")
-            .select("id, trade_id, amount, payment_type, status, created_at")
-            .order("created_at", { ascending: false })
-            .limit(20);
+        const { data: payments } = await supabase
+          .from("payments")
+          .select("id, trade_id, amount, payment_type, status, created_at")
+          .order("created_at", { ascending: false })
+          .limit(20);
 
         if (!active) return;
 
@@ -54,6 +61,14 @@ const Payments = () => {
           heldAmount,
           fxRate: 1.0,
         });
+
+        // Revenue Engine: Calculate Fees on Total Volume
+        const fees = calculateTradeFees(totalAmount);
+        setFeePreview(fees);
+
+        // Revenue Engine: Estimate Netting (Example: NGN)
+        const fx = estimateFX(1000, 'NGN'); // Simulating 1k USD conversion
+        setFxPreview(fx);
 
         const tx = (payments || []).map((row) => ({
           id: row.id,
@@ -118,7 +133,7 @@ const Payments = () => {
             bg: "bg-amber-400/10",
           },
           {
-            label: "FX Rate",
+            label: "FX Rate (Vol)",
             value: fxLabel,
             icon: TrendingUp,
             tone: "info",
@@ -150,6 +165,58 @@ const Payments = () => {
           </Surface>
         ))}
       </div>
+
+      {/* REVENUE ENGINE: Fee Breakdown Visualization */}
+      {feePreview && (
+        <div className="grid md:grid-cols-2 gap-6">
+          <Surface variant="panel" className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <PieChart className="w-5 h-5 text-os-muted" />
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-os-muted">Protocol Take-Rate (8%)</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-os-muted">Escrow Platform (5%)</span>
+                <span className="font-mono">${feePreview.breakdown.escrow.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-os-muted">Service Margin (1.8%)</span>
+                <span className="font-mono">${feePreview.breakdown.service.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-os-muted">FX Spread (1.2%)</span>
+                <span className="font-mono">${feePreview.breakdown.fxValuation.toLocaleString()}</span>
+              </div>
+              <div className="h-px bg-white/10 my-2" />
+              <div className="flex justify-between text-sm font-bold text-amber-400">
+                <span>Projected Revenue</span>
+                <span className="font-mono">${feePreview.total.toLocaleString()}</span>
+              </div>
+            </div>
+          </Surface>
+
+          <Surface variant="panel" className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <ArrowRightLeft className="w-5 h-5 text-os-muted" />
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-os-muted">Sovereign FX Rail</h3>
+            </div>
+            <div className="bg-white/5 p-4 rounded-lg mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs text-os-muted uppercase">You Pay (Local)</span>
+                <span className="text-xs text-os-muted uppercase">We Settle (USD)</span>
+              </div>
+              <div className="flex justify-between items-center text-xl font-mono">
+                <span className="text-emerald-400">₦1,650,500</span>
+                <ArrowUpRight className="w-4 h-4 text-os-muted" />
+                <span className="text-white">$1,000.00</span>
+              </div>
+            </div>
+            <p className="text-xs text-os-muted">
+              *Treasury Bridge active. Spread captured automatically via instant-netting.
+            </p>
+          </Surface>
+        </div>
+      )}
 
       <EscrowWidget payment={payment} />
 

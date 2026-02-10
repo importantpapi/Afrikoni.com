@@ -139,7 +139,10 @@ export default function DashboardHome() {
   const riskCount = activeTrades?.filter(t => t.riskLevel === 'high' || t.status === 'disputed').length || 0;
 
   if (isLoading) {
-    return <SpinnerWithTimeout message="Initializing Trade OS Command Center..." ready={isSystemReady} />;
+    // ✅ FIX: Don't pass isSystemReady as 'ready' if we are still waiting for kernel/trades
+    // If we are here, we WANT the spinner. The 'ready' prop in SpinnerWithTimeout 
+    // forces it to return null (blank) if true. So we must pass false or !isLoading.
+    return <SpinnerWithTimeout message="Initializing Trade OS Command Center..." ready={false} />;
   }
 
   return (

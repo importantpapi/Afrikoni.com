@@ -7,7 +7,7 @@ import {
   User, Users, LogOut, Calendar, Globe, Menu, X, Building2, Plus, ChevronRight,
   AlertTriangle, Lock, FileCheck, AlertCircle, Star, DollarSign, TrendingUp, Sparkles,
   Receipt, RotateCcw, Star as StarIcon, Warehouse, TrendingDown, Users as UsersIcon,
-  FileSearch, Target, MessageCircle, GitBranch
+  FileSearch, Target, MessageCircle, GitBranch, Landmark
 } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
@@ -399,7 +399,9 @@ export default function DashboardLayout({
       menuItems.push(
         { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
         { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
-        { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' }
+        { icon: Landmark, label: 'Sovereign Treasury', path: '/dashboard/revenue', priority: 'primary' },
+        { icon: MessageSquare, label: 'Messages', path: '/dashboard/messages', priority: 'primary' },
+        { icon: Bell, label: 'Signals', path: '/dashboard/notifications', priority: 'primary' }
       );
 
       // ✅ FULL-STACK SYNC: Hybrid Navigation - Show both Buyer and Seller workspace tabs
@@ -553,7 +555,10 @@ export default function DashboardLayout({
       // Return minimal safe sidebar instead of crashing
       return [
         { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-        { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
+        { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
+        { icon: Landmark, label: 'Sovereign Treasury', path: '/dashboard/revenue', priority: 'primary' },
+        { icon: MessageSquare, label: 'Messages', path: '/dashboard/messages', priority: 'primary' },
+        { icon: Bell, label: 'Signals', path: '/dashboard/notifications', priority: 'primary' },
         { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
       ];
     }
@@ -573,7 +578,10 @@ export default function DashboardLayout({
         console.error('[DashboardLayout] Capabilities build returned invalid data, showing minimal sidebar');
         menuItems = [
           { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-          { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
+          { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
+          { icon: Landmark, label: 'Sovereign Treasury', path: '/dashboard/revenue', priority: 'primary' },
+          { icon: MessageSquare, label: 'Messages', path: '/dashboard/messages', priority: 'primary' },
+          { icon: Bell, label: 'Signals', path: '/dashboard/notifications', priority: 'primary' },
           { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
         ];
       }
@@ -593,7 +601,10 @@ export default function DashboardLayout({
         console.warn('[DashboardLayout] Capabilities not ready, showing minimal sidebar');
         menuItems = [
           { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-          { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
+          { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
+          { icon: Landmark, label: 'Sovereign Treasury', path: '/dashboard/revenue', priority: 'primary' },
+          { icon: MessageSquare, label: 'Messages', path: '/dashboard/messages', priority: 'primary' },
+          { icon: Bell, label: 'Signals', path: '/dashboard/notifications', priority: 'primary' },
           { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
         ];
       }
@@ -603,7 +614,10 @@ export default function DashboardLayout({
     console.error('[DashboardLayout] Critical error building sidebar:', error);
     menuItems = [
       { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-      { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' },
+      { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
+      { icon: Landmark, label: 'Sovereign Treasury', path: '/dashboard/revenue', priority: 'primary' },
+      { icon: MessageSquare, label: 'Messages', path: '/dashboard/messages', priority: 'primary' },
+      { icon: Bell, label: 'Signals', path: '/dashboard/notifications', priority: 'primary' },
       { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
     ];
   }

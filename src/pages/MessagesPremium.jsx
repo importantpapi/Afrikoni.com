@@ -22,6 +22,7 @@ import { AIDescriptionService } from '@/components/services/AIDescriptionService
 import { useLanguage } from '@/i18n/LanguageContext';
 import { generateBuyerInquiry } from '@/ai/aiFunctions';
 import OffPlatformDisclaimer from '@/components/OffPlatformDisclaimer';
+import { scanForLeakage, SOVEREIGN_WARNING } from '@/services/forensicSentinel';
 
 export default function MessagesPremium() {
   const { t } = useLanguage();
@@ -46,11 +47,11 @@ export default function MessagesPremium() {
     // If we have a "from" state, go back there
     if (location.state?.from) {
       navigate(location.state.from);
-    } 
+    }
     // If browser history exists, go back
     else if (window.history.length > 1) {
       navigate(-1);
-    } 
+    }
     // Fallback to dashboard
     else {
       navigate('/dashboard');
@@ -59,14 +60,14 @@ export default function MessagesPremium() {
 
   const generateSmartInquiry = async (product) => {
     if (!product) return;
-    
+
     setIsGeneratingAI(true);
     try {
       const result = await generateBuyerInquiry(product, {
         companyName: currentUser?.company_name || '',
         country: currentUser?.country || ''
       });
-      
+
       if (result.success && result.message) {
         setNewMessage(result.message);
         toast.success('✨ Smart message draft generated! Review and edit as needed.');
@@ -80,7 +81,7 @@ export default function MessagesPremium() {
 
   const createConversationWithRecipient = async (recipientCompanyId, productInfo = null) => {
     if (!companyId || !recipientCompanyId) return;
-    
+
     try {
       // Get recipient company
       const { data: recipientCompany } = await supabase
@@ -95,7 +96,7 @@ export default function MessagesPremium() {
       }
 
       // Create subject based on product if available
-      const subject = productInfo?.productTitle 
+      const subject = productInfo?.productTitle
         ? `Inquiry about ${productInfo.productTitle}`
         : t('messages.newConversation');
 
@@ -115,7 +116,7 @@ export default function MessagesPremium() {
       if (convError) throw convError;
 
       setSelectedConversation(newConv.id);
-      
+
       // If product context exists, generate smart message
       if (productInfo && productInfo.productId) {
         try {
@@ -125,7 +126,7 @@ export default function MessagesPremium() {
             .select('*')
             .eq('id', productInfo.productId)
             .single();
-            
+
           if (product) {
             setProductContext(product);
             // Generate smart inquiry message
@@ -135,7 +136,7 @@ export default function MessagesPremium() {
           // Silently fail - product loading is optional
         }
       }
-      
+
       // Reload conversations
       loadUserAndConversations();
     } catch (error) {
@@ -152,7 +153,7 @@ export default function MessagesPremium() {
     const recipientParam = searchParams.get('recipient');
     const productParam = searchParams.get('product');
     const productTitleParam = searchParams.get('productTitle');
-    
+
     // Check for product context from sessionStorage (set by marketplace)
     const storedContext = sessionStorage.getItem('contactProductContext');
     let productInfo = null;
@@ -164,7 +165,7 @@ export default function MessagesPremium() {
         // Invalid JSON, ignore
       }
     }
-    
+
     // Also check URL params
     if (productParam && productTitleParam) {
       productInfo = {
@@ -172,12 +173,12 @@ export default function MessagesPremium() {
         productTitle: decodeURIComponent(productTitleParam)
       };
     }
-    
+
     if (conversationParam && Array.isArray(conversations) && conversations.length > 0) {
       setSelectedConversation(conversationParam);
     } else if (recipientParam && companyId) {
       // Find or create conversation with recipient
-      const existingConv = Array.isArray(conversations) ? conversations.find(c => 
+      const existingConv = Array.isArray(conversations) ? conversations.find(c =>
         c.otherCompany?.id === recipientParam
       ) : null;
       if (existingConv) {
@@ -233,7 +234,7 @@ export default function MessagesPremium() {
         },
         async (payload) => {
           const newMessage = payload.new;
-          
+
           // Get sender company info for toast
           let senderCompanyName = 'Someone';
           try {
@@ -248,14 +249,14 @@ export default function MessagesPremium() {
           } catch (err) {
             // Ignore error
           }
-          
+
           // If this message is for the currently selected conversation, add it to the UI
           if (newMessage.conversation_id === selectedConversation) {
             setMessages(prev => {
               const prevArray = Array.isArray(prev) ? prev : [];
               return [...prevArray, newMessage];
             });
-            
+
             // Mark as read if viewing the conversation
             if (companyId === newMessage.receiver_company_id) {
               await supabase
@@ -263,7 +264,7 @@ export default function MessagesPremium() {
                 .update({ read: true })
                 .eq('id', newMessage.id);
             }
-            
+
             // Don't show toast if viewing conversation - message is already visible
             // Toasts are for UI feedback, not business events
           } else {
@@ -280,9 +281,9 @@ export default function MessagesPremium() {
               .from('messages')
               .select('id', { count: 'exact' })
               .eq('conversation_id', newMessage.conversation_id);
-            
+
             const isFirstMessage = (messageCount?.length || 0) <= 1;
-            
+
             await notifyNewMessage(
               newMessage.id,
               newMessage.conversation_id,
@@ -314,7 +315,7 @@ export default function MessagesPremium() {
   const loadUserAndConversations = async () => {
     try {
       setIsLoading(true);
-      
+
       // Use auth from context (no duplicate call)
       const userCompanyId = profile?.company_id || null;
       if (!userCompanyId) {
@@ -338,8 +339,8 @@ export default function MessagesPremium() {
 
       // Format conversations
       const formattedConversations = (conversationsData || []).map(conv => {
-        const otherCompany = userCompanyId === conv.buyer_company_id 
-          ? conv.seller_company 
+        const otherCompany = userCompanyId === conv.buyer_company_id
+          ? conv.seller_company
           : conv.buyer_company;
 
         return {
@@ -372,7 +373,7 @@ export default function MessagesPremium() {
       console.warn('loadMessages called without conversationId');
       return;
     }
-    
+
     try {
       const { data: messagesData, error } = await supabase
         .from('messages')
@@ -387,7 +388,7 @@ export default function MessagesPremium() {
       }
 
       const messages = messagesData || [];
-      
+
       // Check if there are more messages
       setHasMoreMessages(messages.length === messagesPageSize);
 
@@ -415,7 +416,7 @@ export default function MessagesPremium() {
             .from('messages')
             .update({ read: true })
             .in('id', unreadMessages.map(m => m.id));
-          
+
           if (updateError) {
             console.error('Error marking messages as read:', updateError);
           }
@@ -432,7 +433,7 @@ export default function MessagesPremium() {
 
   const loadMoreMessages = async () => {
     if (loadingMore || !hasMoreMessages || !selectedConversation) return;
-    
+
     setLoadingMore(true);
     try {
       const currentPage = Math.floor(messages.length / messagesPageSize);
@@ -489,17 +490,17 @@ export default function MessagesPremium() {
   // Typing indicator: send typing status
   const handleTyping = useCallback(() => {
     if (!selectedConversation || !companyId) return;
-    
+
     setIsTyping(true);
-    
+
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     // Send typing indicator via real-time (using a separate channel or payload)
     // For now, we'll use a simple debounce approach
-    
+
     // Stop typing after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
@@ -509,11 +510,11 @@ export default function MessagesPremium() {
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    
+
     // Validate files
     const maxSize = 10 * 1024 * 1024; // 10MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-    
+
     const validFiles = files.filter(file => {
       if (file.size > maxSize) {
         toast.error(`${file.name} is too large (max 10MB)`);
@@ -525,9 +526,9 @@ export default function MessagesPremium() {
       }
       return true;
     });
-    
+
     if (validFiles.length === 0) return;
-    
+
     setUploadingFile(true);
     try {
       // Use Promise.allSettled to handle individual failures
@@ -559,9 +560,9 @@ export default function MessagesPremium() {
           };
         }
       });
-      
+
       const results = await Promise.allSettled(uploadPromises);
-      
+
       // Process results
       const uploadedFiles = [];
       const failedFiles = [];
@@ -575,8 +576,8 @@ export default function MessagesPremium() {
             size: result.value.size
           });
         } else {
-          const fileName = result.status === 'fulfilled' 
-            ? result.value.name 
+          const fileName = result.status === 'fulfilled'
+            ? result.value.name
             : 'unknown';
           failedFiles.push(fileName);
         }
@@ -627,10 +628,22 @@ export default function MessagesPremium() {
 
   const [isSending, setIsSending] = useState(false);
 
-  const handleSendMessage = async () => {
+  const [leakageWarning, setLeakageWarning] = useState(null);
+
+  const handleSendMessage = async (force = false) => {
     if ((!newMessage.trim() && attachments.length === 0) || !selectedConversation || !companyId) {
       toast.error('Please enter a message or attach a file');
       return;
+    }
+
+    // FORENSIC SENTINEL: Leakage Check
+    // If 'force' is true, we skip the check (user acknowledged warning)
+    if (!force) {
+      const leakageCheck = scanForLeakage(newMessage);
+      if (leakageCheck.detected) {
+        setLeakageWarning(leakageCheck.warning);
+        return;
+      }
     }
 
     if (isSending) {
@@ -645,8 +658,8 @@ export default function MessagesPremium() {
         return;
       }
 
-      const receiverCompanyId = companyId === selectedConv.otherCompany?.id 
-        ? null 
+      const receiverCompanyId = companyId === selectedConv.otherCompany?.id
+        ? null
         : selectedConv.otherCompany?.id;
 
       if (!receiverCompanyId) {
@@ -713,12 +726,12 @@ export default function MessagesPremium() {
       console.error('Error sending message:', error);
       const errorMessage = error?.message || t('messages.sendError') || 'Failed to send message. Please try again.';
       toast.error(errorMessage);
-      
+
       // Log to Sentry in production
       if (import.meta.env.PROD) {
         import('@/utils/sentry').then(({ captureException }) => {
-          captureException(error, { 
-            context: { 
+          captureException(error, {
+            context: {
               conversationId: selectedConversation,
               companyId,
               hasAttachments: attachments.length > 0
@@ -750,8 +763,8 @@ export default function MessagesPremium() {
   // Filter messages by search query
   const filteredMessages = messageSearchQuery
     ? (Array.isArray(messages) ? messages.filter(msg =>
-        msg.content?.toLowerCase().includes(messageSearchQuery.toLowerCase())
-      ) : [])
+      msg.content?.toLowerCase().includes(messageSearchQuery.toLowerCase())
+    ) : [])
     : (Array.isArray(messages) ? messages : []);
 
   const filteredConversations = Array.isArray(conversations) ? conversations.filter(conv =>
@@ -770,6 +783,40 @@ export default function MessagesPremium() {
 
   return (
     <div className="min-h-screen bg-afrikoni-offwhite">
+      {/* FORENSIC SENTINEL: Sovereign Warning Modal */}
+      {leakageWarning && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-[#1a1a1a] border border-red-500/30 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl shadow-red-900/20 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-orange-600" />
+            <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">{leakageWarning.title}</h3>
+            <p className="text-gray-400 mb-6 leading-relaxed">
+              {leakageWarning.message}
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button
+                className="w-full bg-white text-black hover:bg-gray-200 font-bold"
+                onClick={() => setLeakageWarning(null)}
+              >
+                I Understand - Return to Safety
+              </Button>
+              <button
+                className="text-xs text-red-500 hover:text-red-400 font-medium underline decoration-red-500/30 underline-offset-4"
+                onClick={() => {
+                  setLeakageWarning(null);
+                  handleSendMessage(true);
+                }}
+              >
+                Proceed (Void Warranty)
+              </button>
+              <p className="text-[10px] text-red-500/50 uppercase tracking-widest font-mono mt-2">
+                Protocol Violation Detected will be logged on blockchain
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -840,9 +887,9 @@ export default function MessagesPremium() {
                     renderItem={(conv) => {
                       const isSelected = selectedConversation === conv.id;
                       const unreadCount = Array.isArray(messages) ? messages.filter(
-                        m => m.conversation_id === conv.id && 
-                        !m.read && 
-                        m.receiver_company_id === companyId
+                        m => m.conversation_id === conv.id &&
+                          !m.read &&
+                          m.receiver_company_id === companyId
                       ).length : 0;
 
                       return (
@@ -857,8 +904,8 @@ export default function MessagesPremium() {
                             <div className="relative flex-shrink-0">
                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
                                 {conv.otherCompany?.logo_url ? (
-                                  <img 
-                                    src={conv.otherCompany.logo_url} 
+                                  <img
+                                    src={conv.otherCompany.logo_url}
                                     alt={conv.otherCompany.company_name}
                                     className="w-full h-full rounded-full object-cover"
                                   />
@@ -944,8 +991,8 @@ export default function MessagesPremium() {
                         <div className="relative">
                           <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
                             {selectedConv.otherCompany?.logo_url ? (
-                              <img 
-                                src={selectedConv.otherCompany.logo_url} 
+                              <img
+                                src={selectedConv.otherCompany.logo_url}
                                 alt={selectedConv.otherCompany.company_name}
                                 className="w-full h-full rounded-full object-cover"
                               />
@@ -1063,14 +1110,14 @@ export default function MessagesPremium() {
                         </Button>
                       </div>
                     )}
-                    
+
                     <AnimatePresence>
                       {Array.isArray(filteredMessages) && filteredMessages.map((msg, idx) => {
                         const isMine = msg.sender_company_id === companyId;
                         const prevMsg = idx > 0 ? filteredMessages[idx - 1] : null;
                         const showAvatar = !prevMsg || prevMsg.sender_company_id !== msg.sender_company_id;
                         const msgAttachments = msg.payload?.attachments || [];
-                        
+
                         return (
                           <motion.div
                             key={msg.id}
@@ -1082,8 +1129,8 @@ export default function MessagesPremium() {
                             {!isMine && showAvatar && (
                               <div className="w-8 h-8 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
                                 {selectedConv.otherCompany?.logo_url ? (
-                                  <img 
-                                    src={selectedConv.otherCompany.logo_url} 
+                                  <img
+                                    src={selectedConv.otherCompany.logo_url}
                                     alt={selectedConv.otherCompany.company_name}
                                     className="w-full h-full rounded-full object-cover"
                                   />
@@ -1111,14 +1158,14 @@ export default function MessagesPremium() {
                                 {msg.content && (
                                   <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                                 )}
-                                
+
                                 {/* Attachments */}
                                 {msgAttachments.length > 0 && (
                                   <div className={`mt-2 space-y-2 ${msg.content ? 'mt-3' : ''}`}>
                                     {msgAttachments.map((attachment, attIdx) => {
                                       const FileIcon = getFileIcon(attachment.type);
                                       const isImage = attachment.type?.startsWith('image/');
-                                      
+
                                       return (
                                         <div
                                           key={attIdx}
@@ -1169,19 +1216,19 @@ export default function MessagesPremium() {
                                     })}
                                   </div>
                                 )}
-                                
+
                                 <div className={`flex items-center gap-1 mt-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
                                   <span className={`text-xs ${isMine ? 'text-afrikoni-cream/80' : 'text-afrikoni-deep/70'}`}>
                                     {(() => {
                                       const msgDate = new Date(msg.created_at);
                                       const today = new Date();
                                       const isToday = msgDate.toDateString() === today.toDateString();
-                                      
+
                                       if (isToday) {
                                         return format(msgDate, 'h:mm a');
                                       } else {
                                         const isThisYear = msgDate.getFullYear() === today.getFullYear();
-                                        return isThisYear 
+                                        return isThisYear
                                           ? format(msgDate, 'MMM d, h:mm a')
                                           : format(msgDate, 'MMM d, yyyy h:mm a');
                                       }
@@ -1209,7 +1256,7 @@ export default function MessagesPremium() {
                         );
                       })}
                     </AnimatePresence>
-                    
+
                     {/* Typing Indicator */}
                     {isTyping && selectedConv && (
                       <motion.div
@@ -1220,8 +1267,8 @@ export default function MessagesPremium() {
                       >
                         <div className="w-8 h-8 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
                           {selectedConv.otherCompany?.logo_url ? (
-                            <img 
-                              src={selectedConv.otherCompany.logo_url} 
+                            <img
+                              src={selectedConv.otherCompany.logo_url}
                               alt={selectedConv.otherCompany.company_name}
                               className="w-full h-full rounded-full object-cover"
                             />
@@ -1238,7 +1285,7 @@ export default function MessagesPremium() {
                         </div>
                       </motion.div>
                     )}
-                    
+
                     <div ref={messagesEndRef} />
                   </div>
 
@@ -1249,7 +1296,7 @@ export default function MessagesPremium() {
                         {attachments.map((attachment, idx) => {
                           const FileIcon = getFileIcon(attachment.type);
                           const isImage = attachment.type?.startsWith('image/');
-                          
+
                           return (
                             <div
                               key={idx}
@@ -1530,17 +1577,15 @@ export default function MessagesPremium() {
                           { step: 'Released', status: 'pending', date: '2024-01-23' }
                         ].map((item, idx) => (
                           <div key={idx} className="flex items-start gap-2">
-                            <div className={`w-2 h-2 rounded-full mt-1.5 ${
-                              item.status === 'completed' ? 'bg-green-500' :
+                            <div className={`w-2 h-2 rounded-full mt-1.5 ${item.status === 'completed' ? 'bg-green-500' :
                               item.status === 'active' ? 'bg-afrikoni-gold' :
-                              'bg-gray-300'
-                            }`} />
+                                'bg-gray-300'
+                              }`} />
                             <div className="flex-1">
-                              <p className={`text-xs font-medium ${
-                                item.status === 'completed' ? 'text-green-700' :
+                              <p className={`text-xs font-medium ${item.status === 'completed' ? 'text-green-700' :
                                 item.status === 'active' ? 'text-afrikoni-gold' :
-                                'text-gray-500'
-                              }`}>
+                                  'text-gray-500'
+                                }`}>
                                 {item.step}
                               </p>
                               <p className="text-[10px] text-afrikoni-deep/60">{item.date}</p>

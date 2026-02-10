@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { logVerificationEvent } from '@/utils/auditLogger';
 import SEO from '@/components/SEO';
 import { SystemPageHero, SystemPageSection, SystemPageCard, SystemPageCTA } from '@/components/system/SystemPageLayout';
+import { generateHeritageDNA } from '@/services/forensicSentinel';
 
 const verificationSteps = [
   {
@@ -90,7 +91,7 @@ export default function VerificationCenter() {
   const [submittingStep, setSubmittingStep] = useState(null);
   const [stepSubmissions, setStepSubmissions] = useState({}); // Track which steps have been submitted
   const [expandedSteps, setExpandedSteps] = useState(new Set()); // Track which steps are expanded (progressive disclosure)
-  
+
   // ✅ Bank Account Information Fields
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [bankName, setBankName] = useState('');
@@ -98,9 +99,39 @@ export default function VerificationCenter() {
   const [swiftCode, setSwiftCode] = useState('');
   const [bankCountry, setBankCountry] = useState('');
   const [bankAddress, setBankAddress] = useState('');
-  
+
+  const [bankCountry, setBankCountry] = useState('');
+  const [bankAddress, setBankAddress] = useState('');
+
+  // FORENSIC AUDIT STATE
+  const [forensicFile, setForensicFile] = useState(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditResult, setAuditResult] = useState(null);
+
+  const handleForensicAudit = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setForensicFile(file);
+    setIsAuditing(true);
+    setAuditResult(null);
+
+    try {
+      // Simulate file URL (in prod, upload first)
+      const mockUrl = URL.createObjectURL(file);
+      const result = await generateHeritageDNA(mockUrl);
+      setAuditResult(result);
+      toast.success('Forensic Heritage Audit Complete');
+    } catch (error) {
+      console.error('Audit failed:', error);
+      toast.error('Audit failed');
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
   const navigate = useNavigate();
-  
+
   const AFRICAN_COUNTRIES = [
     'Nigeria', 'South Africa', 'Kenya', 'Egypt', 'Ghana', 'Morocco', 'Ethiopia',
     'Tanzania', 'Uganda', 'Rwanda', 'Senegal', 'Algeria', 'Sudan', 'Mozambique',
@@ -165,17 +196,17 @@ export default function VerificationCenter() {
   // Refresh verification status periodically (silent background refresh)
   useEffect(() => {
     if (!user?.email || !companyId) return;
-    
+
     const interval = setInterval(async () => {
       try {
         // Only check email verification status, don't reload everything
         const emailVerified = await isEmailVerified(supabase);
         const currentVerified = user?.email_verified || user?.email_confirmed_at;
-        
+
         if (emailVerified !== !!currentVerified) {
-        // Email verification status tracked in auth context - no local state needed
+          // Email verification status tracked in auth context - no local state needed
         }
-        
+
         // Silently refresh verification status from database (no loading state)
         const { data: verificationData } = await supabase
           .from('verifications')
@@ -184,7 +215,7 @@ export default function VerificationCenter() {
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
-        
+
         if (verificationData) {
           // Only update if status actually changed
           if (verification?.status !== verificationData.status) {
@@ -203,34 +234,34 @@ export default function VerificationCenter() {
     try {
       setIsLoading(true);
       // Use auth from context (no duplicate call)
-      
+
       // ✅ FOUNDATION FIX: Check capabilities instead of role
       // Wait for capabilities to be ready
       if (!capabilities.ready) {
         setIsLoading(false);
         return; // Will retry when capabilities load
       }
-      
+
       // Only sellers (approved) or hybrid users can verify
       const isSellerApproved = capabilities.can_sell === true && capabilities.sell_status === 'approved';
       const isHybridCapability = capabilities.can_buy === true && isSellerApproved;
-      
+
       if (!isSellerApproved && !isHybridCapability) {
         toast.error('Verification is only available for suppliers and hybrid accounts.');
         navigate('/dashboard');
         return;
       }
-      
+
       // Get or create company
       const cid = profile?.company_id || null;
       const finalCompanyId = cid || await getOrCreateCompany(supabase, user);
-      
+
       if (!finalCompanyId) {
         toast.error('Unable to create company profile. Please select your role first.');
         navigate('/auth/post-login');
         return;
       }
-      
+
       setCompanyId(finalCompanyId);
 
       // Verify company ownership for RLS policies
@@ -247,7 +278,7 @@ export default function VerificationCenter() {
           .from('companies')
           .update({ owner_email: userData.email })
           .eq('id', finalCompanyId);
-        
+
         if (updateError) {
           console.warn('Could not update company owner_email (may be RLS restricted):', updateError);
         }
@@ -285,7 +316,7 @@ export default function VerificationCenter() {
               }
             });
             setUploadedFiles(docUrls);
-            
+
             // ✅ Load bank account information from documents JSONB
             if (verificationData.documents.bank_account_info) {
               const bankInfo = verificationData.documents.bank_account_info;
@@ -326,7 +357,7 @@ export default function VerificationCenter() {
             status: companyData.verification_status || 'unverified',
             business_id_number: companyData.business_license || null,
             country_of_registration: companyData.address_country || null,
-            documents: companyData.certificate_uploads && companyData.certificate_uploads.length > 0 
+            documents: companyData.certificate_uploads && companyData.certificate_uploads.length > 0
               ? { certificates: companyData.certificate_uploads }
               : {}
           };
@@ -344,13 +375,13 @@ export default function VerificationCenter() {
       }
     } catch (error) {
       console.error('Load verification data error:', error);
-      const isNonCriticalError = 
-        error.code === 'PGRST116' || 
+      const isNonCriticalError =
+        error.code === 'PGRST116' ||
         error.message?.includes('PGRST116') ||
         error.message?.includes('no rows') ||
         error.message?.includes('permission denied') ||
         error.code === '42501';
-      
+
       if (!isNonCriticalError) {
         console.warn('Non-critical verification load error (user can still proceed):', error);
       }
@@ -380,7 +411,7 @@ export default function VerificationCenter() {
           }
         });
       }
-      
+
       const verificationData = {
         company_id: companyId,
         business_id_number: businessIdNumber || null,
@@ -400,7 +431,7 @@ export default function VerificationCenter() {
           throw error;
         }
         if (showToast) {
-        toast.success('Business information saved');
+          toast.success('Business information saved');
         }
       } else {
         const { data: newVerification, error } = await supabase
@@ -415,13 +446,13 @@ export default function VerificationCenter() {
         }
         setVerification(newVerification);
         if (showToast) {
-        toast.success('Business information saved');
+          toast.success('Business information saved');
         }
       }
     } catch (error) {
       console.error('Failed to save business info:', error);
       if (showToast) {
-      toast.error('Failed to save business information. Please try again.');
+        toast.error('Failed to save business information. Please try again.');
       }
     }
   };
@@ -464,13 +495,13 @@ export default function VerificationCenter() {
     try {
       const filePath = `verifications/${companyId}/${step.docType}_${Date.now()}_${file.name}`;
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', filePath);
-      
+
       // ✅ For bank statement, include bank account info in documents structure
       const newFiles = {
         ...uploadedFiles,
         [step.docType]: file_url
       };
-      
+
       // ✅ If this is bank statement upload, include bank account information
       if (step.docType === 'bank_statement') {
         newFiles.bank_account_info = {
@@ -482,15 +513,15 @@ export default function VerificationCenter() {
           bank_address: bankAddress || null
         };
       }
-      
+
       setUploadedFiles(newFiles);
 
       // AI Verification
       setVerifying(prev => ({ ...prev, [stepId]: true }));
       try {
         const { verifyDocument, compareDocuments } = await import('@/ai/documentVerification');
-        
-        const previousDoc = verification?.documents?.[step.docType] 
+
+        const previousDoc = verification?.documents?.[step.docType]
           ? { url: verification.documents[step.docType], type: step.docType, uploaded_at: verification.created_at, status: verification.status }
           : null;
 
@@ -570,7 +601,7 @@ export default function VerificationCenter() {
       const documentsData = {
         ...newFiles
       };
-      
+
       // ✅ Ensure bank account info is included if we have it
       if (step.docType === 'bank_statement' || (verification?.documents?.bank_account_info)) {
         documentsData.bank_account_info = {
@@ -582,7 +613,7 @@ export default function VerificationCenter() {
           bank_address: bankAddress || verification?.documents?.bank_account_info?.bank_address || null
         };
       }
-      
+
       const verificationData = {
         company_id: companyId,
         documents: documentsData,
@@ -624,19 +655,19 @@ export default function VerificationCenter() {
         try {
           const { notifyVerificationStatusChange } = await import('@/services/notificationService');
           await notifyVerificationStatusChange(companyId, 'pending');
-          
+
           const { createNotification } = await import('@/services/notificationService');
           const { sendEmail } = await import('@/services/emailService');
-          
+
           const { data: company } = await supabase
             .from('companies')
             .select('company_name, owner_email, country')
             .eq('id', companyId)
             .single();
-          
+
           const companyName = company?.company_name || 'Unknown Company';
           const ownerEmail = company?.owner_email || user?.email || 'Unknown';
-          
+
           await createNotification({
             company_id: null,
             user_email: 'hello@afrikoni.com',
@@ -647,7 +678,7 @@ export default function VerificationCenter() {
             sendEmail: true,
             emailSubject: `📋 New KYC Verification: ${companyName}`
           });
-          
+
           await sendEmail({
             to: 'hello@afrikoni.com',
             subject: `📋 New KYC Verification Submission: ${companyName}`,
@@ -681,7 +712,7 @@ export default function VerificationCenter() {
         .select('id')
         .eq('company_id', companyId)
         .single())?.data?.id);
-      
+
       await logVerificationEvent({
         action: 'document_uploaded',
         verification_id: verificationId,
@@ -730,7 +761,7 @@ export default function VerificationCenter() {
         // If resend fails, try alternative method
         const { sendEmail } = await import('@/services/emailService');
         const verificationLink = `${window.location.origin}/auth-callback?token=verify&email=${encodeURIComponent(user.email)}`;
-        
+
         const emailResult = await sendEmail({
           to: user.email,
           subject: 'Verify Your Email - Afrikoni',
@@ -766,7 +797,7 @@ export default function VerificationCenter() {
       // For now, we'll use a simple OTP system or mark as verified
       // In production, integrate with SMS service (Twilio, etc.)
       const phoneNumber = user.phone;
-      
+
       // Check if phone is already verified
       if (user.phone_verified) {
         toast.success('Phone number is already verified!');
@@ -856,7 +887,7 @@ export default function VerificationCenter() {
   // Check if a step can be accessed (sequential workflow)
   const canAccessStep = (stepIndex) => {
     if (stepIndex === 0) return true; // First step is always accessible
-    
+
     // Check if all previous required steps are completed
     for (let i = 0; i < stepIndex; i++) {
       const prevStep = verificationSteps[i];
@@ -876,7 +907,7 @@ export default function VerificationCenter() {
       const step = verificationSteps[i];
       const status = getStepStatus(step);
       const accessible = canAccessStep(i);
-      
+
       if (accessible && status !== true) {
         return i; // This is the next step to complete
       }
@@ -888,7 +919,7 @@ export default function VerificationCenter() {
   useEffect(() => {
     const nextStep = getNextActionableStep();
     const expanded = new Set();
-    
+
     // Always show completed steps
     verificationSteps.forEach((step, idx) => {
       const status = getStepStatus(step);
@@ -896,12 +927,12 @@ export default function VerificationCenter() {
         expanded.add(idx);
       }
     });
-    
+
     // Show next actionable step
     if (nextStep !== null) {
       expanded.add(nextStep);
     }
-    
+
     setExpandedSteps(expanded);
   }, [verification, user, uploadedFiles, stepSubmissions]);
 
@@ -943,7 +974,7 @@ export default function VerificationCenter() {
           }
         };
       }
-      
+
       // Update verification record
       const updateData = {
         step_submissions: newSubmissions,
@@ -974,7 +1005,7 @@ export default function VerificationCenter() {
             }
           };
         }
-        
+
         // Create verification record if it doesn't exist
         const { data: newVerification, error } = await supabase
           .from('verifications')
@@ -1259,14 +1290,14 @@ export default function VerificationCenter() {
         description="Complete your KYC verification to unlock all Afrikoni features and build trust with serious buyers and suppliers."
         url="/verification-center"
       />
-      
+
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section with Dominant CTA */}
         <div className="bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700 py-16 md:py-20 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
               <Badge className="mb-6 bg-afrikoni-gold/20 text-afrikoni-goldLight border-afrikoni-gold/30">
@@ -1279,7 +1310,7 @@ export default function VerificationCenter() {
               <p className="text-body font-normal leading-[1.6] text-white/95 max-w-3xl mx-auto mb-8">
                 Complete your verification to unlock buyers, higher limits, and trade protection.
               </p>
-              
+
               {/* Dominant CTA */}
               {getNextActionableStep() !== null && (
                 <motion.div
@@ -1309,19 +1340,19 @@ export default function VerificationCenter() {
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
                       <span>Estimated time: 10–15 minutes</span>
-          </div>
+                    </div>
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       <span>Documents needed: ID, Business registration, Bank proof</span>
-                </div>
-                </div>
-        </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
               )}
 
               {getNextActionableStep() === null && (
-        <motion.div
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                 >
                   <div className="inline-flex items-center gap-2 bg-afrikoni-gold/20 text-afrikoni-goldLight px-6 py-3 rounded-lg border border-afrikoni-gold/30">
@@ -1342,55 +1373,55 @@ export default function VerificationCenter() {
         >
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             <Card className="border-afrikoni-gold/30 bg-afrikoni-cream">
-            <CardHeader>
+              <CardHeader>
                 <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2">
                   <Shield className="w-6 h-6 text-afrikoni-gold" />
-                Profile Completeness
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
+                  Profile Completeness
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-h1-mobile md:text-h1 font-bold text-afrikoni-gold">{profileCompleteness}%</span>
                     <span className="text-meta font-medium text-afrikoni-chestnut/70">{completedCount} of {verificationSteps.length} completed</span>
+                  </div>
+                  <Progress value={profileCompleteness} className="h-3" />
                 </div>
-                <Progress value={profileCompleteness} className="h-3" />
-              </div>
                 <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80">
-                Complete all steps to maximize your account benefits
-              </p>
-            </CardContent>
-          </Card>
+                  Complete all steps to maximize your account benefits
+                </p>
+              </CardContent>
+            </Card>
 
             <Card className="border-afrikoni-gold/30 bg-afrikoni-cream">
-            <CardHeader>
+              <CardHeader>
                 <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2">
                   <Lock className="w-6 h-6 text-afrikoni-gold" />
-                Verification Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
+                  Verification Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-h1-mobile md:text-h1 font-bold text-afrikoni-gold">{verificationProgress}%</span>
                     <span className="text-meta font-medium text-afrikoni-chestnut/70">{requiredCompleted} of {requiredTotal} required</span>
+                  </div>
+                  <Progress value={verificationProgress} className="h-3" />
                 </div>
-                <Progress value={verificationProgress} className="h-3" />
-              </div>
-              {verification?.status === 'verified' ? (
+                {verification?.status === 'verified' ? (
                   <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30">
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Fully Verified
                   </Badge>
-              ) : verification?.status === 'rejected' ? (
-                <Badge variant="destructive" className="text-xs">Rejected - Please resubmit</Badge>
-              ) : verification?.status === 'pending' ? (
+                ) : verification?.status === 'rejected' ? (
+                  <Badge variant="destructive" className="text-xs">Rejected - Please resubmit</Badge>
+                ) : verification?.status === 'pending' ? (
                   <Badge className="bg-amber-100 text-amber-700 border-amber-300">Pending Review</Badge>
-              ) : (
-                <Badge variant="outline" className="text-xs">Not Started</Badge>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <Badge variant="outline" className="text-xs">Not Started</Badge>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </SystemPageSection>
 
@@ -1426,7 +1457,7 @@ export default function VerificationCenter() {
                   This is the official registration number from your business certificate. Your information is saved automatically.
                 </p>
               </div>
-              
+
               <div>
                 <Label htmlFor="country_registration" className="flex items-center gap-2 mb-2 text-meta font-medium text-afrikoni-chestnut">
                   <Globe className="w-4 h-4 text-afrikoni-gold" />
@@ -1453,6 +1484,113 @@ export default function VerificationCenter() {
                 <p className="text-meta font-medium text-afrikoni-chestnut/70 mt-1">
                   The country where your business is legally registered. Your information is saved automatically.
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+        </SystemPageSection>
+
+        {/* Forensic Heritage Lab (Beta) */}
+        <SystemPageSection
+          title="Forensic Heritage Lab (Beta)"
+          subtitle="Test your product authenticity with our AI-powered Heritage DNA scanner"
+          className="bg-afrikoni-offwhite"
+        >
+          <Card className="border-afrikoni-gold/30 bg-afrikoni-cream mb-12 overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Shield className="w-64 h-64 text-afrikoni-gold" />
+            </div>
+            <CardContent className="p-8 relative z-10">
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <Badge variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut mb-2">New Power-Up</Badge>
+                    <h3 className="text-2xl font-bold text-afrikoni-chestnut">Generate Trade DNA</h3>
+                    <p className="text-afrikoni-chestnut/70 mt-2">
+                      Upload a product image to generate its unique "Visual Cryptographic Hash".
+                      This DNA certifies authenticity and protects against counterfeits in the Sovereign Trade Protocol.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      className="relative overflow-hidden border-afrikoni-gold/50 hover:bg-afrikoni-gold/10 text-afrikoni-chestnut"
+                      disabled={isAuditing}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={handleForensicAudit}
+                      />
+                      {isAuditing ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing Weave Patterns...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Sample Image
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* RESULTS DISPLAY */}
+                <div className="flex-1 w-full bg-black/5 rounded-xl p-6 border border-afrikoni-gold/10 min-h-[200px] flex items-center justify-center">
+                  {!auditResult && !isAuditing && (
+                    <div className="text-center text-afrikoni-chestnut/40">
+                      <Shield className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Waiting for artifact...</p>
+                    </div>
+                  )}
+
+                  {isAuditing && (
+                    <div className="text-center space-y-3">
+                      <div className="w-16 h-16 border-4 border-afrikoni-gold border-t-transparent rounded-full animate-spin mx-auto" />
+                      <p className="text-sm font-mono text-afrikoni-chestnut/70 animate-pulse">Extracting Tectonic Features...</p>
+                    </div>
+                  )}
+
+                  {auditResult && (
+                    <div className="w-full space-y-4 animate-in fade-in zoom-in duration-500">
+                      <div className="flex items-center justify-between border-b border-afrikoni-gold/20 pb-2">
+                        <span className="text-xs uppercase tracking-widest text-afrikoni-chestnut/60">Heritage DNA Score</span>
+                        <span className="text-2xl font-bold text-emerald-600">99.2/100</span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-afrikoni-chestnut/70">Visual Hash:</span>
+                          <span className="font-mono text-xs bg-white px-2 py-1 rounded border border-afrikoni-gold/20">
+                            {auditResult.hash}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-afrikoni-chestnut/70">Confidence:</span>
+                          <span className="font-medium">{(auditResult.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-lg">
+                        <p className="text-xs text-emerald-800 font-medium mb-1">Authenticity Markers Detected:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {auditResult.features.map((f, i) => (
+                            <Badge key={i} className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[10px] hover:bg-emerald-200">
+                              {f}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <p className="text-[10px] text-center text-afrikoni-chestnut/40 uppercase tracking-widest mt-2">
+                        Certified by Forensic Sentinel
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -1554,31 +1692,31 @@ export default function VerificationCenter() {
                               </p>
                             </div>
                           )}
-                          
+
                           <div className={`
                             relative flex items-start gap-4 p-5 rounded-xl border-2 transition-all
-                            ${!accessible 
+                            ${!accessible
                               ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
-                              : isCompleted 
-                              ? 'border-afrikoni-gold bg-afrikoni-gold/10' 
-                              : isRejected
-                              ? 'border-red-300 bg-red-50/50'
-                              : isPending
-                              ? 'border-amber-300 bg-amber-50/50'
-                              : isNextStep
-                              ? 'border-afrikoni-gold bg-afrikoni-gold/5 shadow-md'
-                              : 'border-afrikoni-gold/20 bg-white hover:border-afrikoni-gold/40 hover:shadow-md'
+                              : isCompleted
+                                ? 'border-afrikoni-gold bg-afrikoni-gold/10'
+                                : isRejected
+                                  ? 'border-red-300 bg-red-50/50'
+                                  : isPending
+                                    ? 'border-amber-300 bg-amber-50/50'
+                                    : isNextStep
+                                      ? 'border-afrikoni-gold bg-afrikoni-gold/5 shadow-md'
+                                      : 'border-afrikoni-gold/20 bg-white hover:border-afrikoni-gold/40 hover:shadow-md'
                             }
                           `}>
                             <div className={`
                               relative w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all
-                              ${isCompleted 
-                            ? 'bg-afrikoni-gold/20 ring-2 ring-afrikoni-gold' 
-                            : isRejected
-                            ? 'bg-red-100 ring-2 ring-red-300'
-                            : isPending
-                            ? 'bg-amber-100 ring-2 ring-amber-300'
-                            : 'bg-afrikoni-gold/10 ring-2 ring-afrikoni-gold/20'
+                              ${isCompleted
+                                ? 'bg-afrikoni-gold/20 ring-2 ring-afrikoni-gold'
+                                : isRejected
+                                  ? 'bg-red-100 ring-2 ring-red-300'
+                                  : isPending
+                                    ? 'bg-amber-100 ring-2 ring-amber-300'
+                                    : 'bg-afrikoni-gold/10 ring-2 ring-afrikoni-gold/20'
                               }
                             `}>
                               {isCompleted ? (
@@ -1598,393 +1736,392 @@ export default function VerificationCenter() {
                             </div>
 
                             <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut">{step.label}</h3>
-                                {step.required && (
-                                  <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 text-xs">
-                                    Required
-                                  </Badge>
-                                )}
-                                {!step.required && (
-                                  <Badge variant="outline" className="text-xs">Optional</Badge>
-                                )}
-                              </div>
-                              <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80 mb-2">{step.description}</p>
-                              
-                              {/* Helpful instructions for each step */}
-                              {!isCompleted && !hasFile && step.docType && (
-                                <div className="mt-2 p-3 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
-                                  <p className="text-meta font-medium text-afrikoni-chestnut/70">
-                                    <strong>Tip:</strong> {step.docType === 'business_registration' 
-                                      ? 'Upload your official business registration certificate or license.'
-                                      : step.docType === 'kyc'
-                                      ? 'Upload a clear photo of your government-issued ID (passport, national ID, or driver\'s license).'
-                                      : step.docType === 'bank_statement'
-                                      ? 'Upload a recent bank statement (last 3 months) showing your account details.'
-                                      : 'Upload a clear, readable document.'}
-                                  </p>
-                                </div>
-                              )}
-                              
-                              {isCompleted && (
-                                <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
-                                  <CheckCircle className="w-4 h-4" />
-                                  <span>Verified and complete</span>
-                                </div>
-                              )}
-                              {isRejected && (
-                                <div className="flex items-center gap-2 text-meta font-medium text-red-700">
-                                  <XCircle className="w-4 h-4" />
-                                  <span>Rejected - Please resubmit</span>
-                                </div>
-                              )}
-                              {isPending && (
-                                <div className="flex items-center gap-2 text-meta font-medium text-amber-700">
-                                  <Clock className="w-4 h-4" />
-                                  <span>Under review - Our team will review this within 1-3 business days</span>
-                                </div>
-                              )}
-                              {hasFile && !isCompleted && !isPending && !isRejected && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-chestnut">
-                                    <FileText className="w-4 h-4" />
-                                    <span>Document uploaded - pending review</span>
+                              <div className="flex items-start justify-between gap-3 mb-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut">{step.label}</h3>
+                                    {step.required && (
+                                      <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 text-xs">
+                                        Required
+                                      </Badge>
+                                    )}
+                                    {!step.required && (
+                                      <Badge variant="outline" className="text-xs">Optional</Badge>
+                                    )}
                                   </div>
-                                  {verificationResults[step.docType] && (
-                                    <div className={`mt-2 p-3 rounded-lg border text-sm ${
-                                      verificationResults[step.docType].verified
-                                        ? 'bg-afrikoni-gold/10 border-afrikoni-gold/30 text-afrikoni-chestnut'
-                                        : 'bg-amber-50 border-amber-200 text-amber-800'
-                                    }`}>
-                                      <div className="flex items-start gap-2">
-                                        {verificationResults[step.docType].verified ? (
-                                          <CheckCircle className="w-4 h-4 text-afrikoni-gold flex-shrink-0 mt-0.5" />
-                                        ) : (
-                                          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                                        )}
-                                        <div className="flex-1">
-                                          <div className="font-semibold mb-1">
-                                            AI Verification: {verificationResults[step.docType].verified ? 'Verified' : 'Needs Review'}
-                                          </div>
-                                          <p className="text-xs opacity-90 mb-1">
-                                            {verificationResults[step.docType].summary}
-                                          </p>
+                                  <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80 mb-2">{step.description}</p>
+
+                                  {/* Helpful instructions for each step */}
+                                  {!isCompleted && !hasFile && step.docType && (
+                                    <div className="mt-2 p-3 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                                      <p className="text-meta font-medium text-afrikoni-chestnut/70">
+                                        <strong>Tip:</strong> {step.docType === 'business_registration'
+                                          ? 'Upload your official business registration certificate or license.'
+                                          : step.docType === 'kyc'
+                                            ? 'Upload a clear photo of your government-issued ID (passport, national ID, or driver\'s license).'
+                                            : step.docType === 'bank_statement'
+                                              ? 'Upload a recent bank statement (last 3 months) showing your account details.'
+                                              : 'Upload a clear, readable document.'}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {isCompleted && (
+                                    <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
+                                      <CheckCircle className="w-4 h-4" />
+                                      <span>Verified and complete</span>
+                                    </div>
+                                  )}
+                                  {isRejected && (
+                                    <div className="flex items-center gap-2 text-meta font-medium text-red-700">
+                                      <XCircle className="w-4 h-4" />
+                                      <span>Rejected - Please resubmit</span>
+                                    </div>
+                                  )}
+                                  {isPending && (
+                                    <div className="flex items-center gap-2 text-meta font-medium text-amber-700">
+                                      <Clock className="w-4 h-4" />
+                                      <span>Under review - Our team will review this within 1-3 business days</span>
+                                    </div>
+                                  )}
+                                  {hasFile && !isCompleted && !isPending && !isRejected && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-chestnut">
+                                        <FileText className="w-4 h-4" />
+                                        <span>Document uploaded - pending review</span>
+                                      </div>
+                                      {verificationResults[step.docType] && (
+                                        <div className={`mt-2 p-3 rounded-lg border text-sm ${verificationResults[step.docType].verified
+                                          ? 'bg-afrikoni-gold/10 border-afrikoni-gold/30 text-afrikoni-chestnut'
+                                          : 'bg-amber-50 border-amber-200 text-amber-800'
+                                          }`}>
+                                          <div className="flex items-start gap-2">
+                                            {verificationResults[step.docType].verified ? (
+                                              <CheckCircle className="w-4 h-4 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                                            ) : (
+                                              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                                            )}
+                                            <div className="flex-1">
+                                              <div className="font-semibold mb-1">
+                                                AI Verification: {verificationResults[step.docType].verified ? 'Verified' : 'Needs Review'}
+                                              </div>
+                                              <p className="text-xs opacity-90 mb-1">
+                                                {verificationResults[step.docType].summary}
+                                              </p>
                                             </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {verifying[step.id] && (
+                                        <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-chestnut">
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-gold"></div>
+                                          <span>AI is verifying document...</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 space-y-2">
+                              {/* ✅ Bank Account Information Form Fields - Show for bank verification step */}
+                              {!isCompleted && step.docType === 'bank_statement' && canAccessStep(idx) && (
+                                <Card className="mb-4 border-afrikoni-gold/30 bg-afrikoni-cream">
+                                  <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg font-semibold text-afrikoni-chestnut">
+                                      Bank Account Details
+                                    </CardTitle>
+                                    <p className="text-sm text-afrikoni-chestnut/70">
+                                      Please provide your bank account information. All fields are required.
+                                    </p>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      <div>
+                                        <Label htmlFor="bank_account_number" className="mb-2">
+                                          Account Number <span className="text-red-500">*</span>
+                                        </Label>
+                                        <Input
+                                          id="bank_account_number"
+                                          type="text"
+                                          placeholder="Enter account number"
+                                          value={bankAccountNumber}
+                                          onChange={(e) => setBankAccountNumber(e.target.value)}
+                                          className="border-afrikoni-gold/30"
+                                          required
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="bank_name" className="mb-2">
+                                          Bank Name <span className="text-red-500">*</span>
+                                        </Label>
+                                        <Input
+                                          id="bank_name"
+                                          type="text"
+                                          placeholder="Enter bank name"
+                                          value={bankName}
+                                          onChange={(e) => setBankName(e.target.value)}
+                                          className="border-afrikoni-gold/30"
+                                          required
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="account_holder_name" className="mb-2">
+                                          Account Holder Name <span className="text-red-500">*</span>
+                                        </Label>
+                                        <Input
+                                          id="account_holder_name"
+                                          type="text"
+                                          placeholder="Enter account holder name"
+                                          value={accountHolderName}
+                                          onChange={(e) => setAccountHolderName(e.target.value)}
+                                          className="border-afrikoni-gold/30"
+                                          required
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="swift_code" className="mb-2">
+                                          SWIFT/BIC Code <span className="text-red-500">*</span>
+                                        </Label>
+                                        <Input
+                                          id="swift_code"
+                                          type="text"
+                                          placeholder="Enter SWIFT code"
+                                          value={swiftCode}
+                                          onChange={(e) => setSwiftCode(e.target.value.toUpperCase())}
+                                          className="border-afrikoni-gold/30"
+                                          maxLength={11}
+                                          required
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="bank_country" className="mb-2">
+                                          Bank Country <span className="text-red-500">*</span>
+                                        </Label>
+                                        <Select
+                                          value={bankCountry}
+                                          onValueChange={setBankCountry}
+                                        >
+                                          <SelectTrigger id="bank_country" className="border-afrikoni-gold/30">
+                                            <SelectValue placeholder="Select bank country" />
+                                          </SelectTrigger>
+                                          <SelectContent className="max-h-[300px]">
+                                            {AFRICAN_COUNTRIES.map((country) => (
+                                              <SelectItem key={country} value={country}>
+                                                {country}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="bank_address" className="mb-2">
+                                          Bank Address
+                                        </Label>
+                                        <Input
+                                          id="bank_address"
+                                          type="text"
+                                          placeholder="Enter bank address (optional)"
+                                          value={bankAddress}
+                                          onChange={(e) => setBankAddress(e.target.value)}
+                                          className="border-afrikoni-gold/30"
+                                        />
                                       </div>
                                     </div>
-                                  )}
-                                  {verifying[step.id] && (
-                                    <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-chestnut">
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-gold"></div>
-                                      <span>AI is verifying document...</span>
-                                    </div>
-                                  )}
-                                </div>
+                                  </CardContent>
+                                </Card>
                               )}
-                            </div>
-                            </div>
-                          </div>
 
-                          <div className="mt-3 space-y-2">
-                            {/* ✅ Bank Account Information Form Fields - Show for bank verification step */}
-                            {!isCompleted && step.docType === 'bank_statement' && canAccessStep(idx) && (
-                              <Card className="mb-4 border-afrikoni-gold/30 bg-afrikoni-cream">
-                                <CardHeader className="pb-3">
-                                  <CardTitle className="text-lg font-semibold text-afrikoni-chestnut">
-                                    Bank Account Details
-                                  </CardTitle>
-                                  <p className="text-sm text-afrikoni-chestnut/70">
-                                    Please provide your bank account information. All fields are required.
-                                  </p>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                      <Label htmlFor="bank_account_number" className="mb-2">
-                                        Account Number <span className="text-red-500">*</span>
-                                      </Label>
-                                      <Input
-                                        id="bank_account_number"
-                                        type="text"
-                                        placeholder="Enter account number"
-                                        value={bankAccountNumber}
-                                        onChange={(e) => setBankAccountNumber(e.target.value)}
-                                        className="border-afrikoni-gold/30"
-                                        required
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="bank_name" className="mb-2">
-                                        Bank Name <span className="text-red-500">*</span>
-                                      </Label>
-                                      <Input
-                                        id="bank_name"
-                                        type="text"
-                                        placeholder="Enter bank name"
-                                        value={bankName}
-                                        onChange={(e) => setBankName(e.target.value)}
-                                        className="border-afrikoni-gold/30"
-                                        required
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="account_holder_name" className="mb-2">
-                                        Account Holder Name <span className="text-red-500">*</span>
-                                      </Label>
-                                      <Input
-                                        id="account_holder_name"
-                                        type="text"
-                                        placeholder="Enter account holder name"
-                                        value={accountHolderName}
-                                        onChange={(e) => setAccountHolderName(e.target.value)}
-                                        className="border-afrikoni-gold/30"
-                                        required
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="swift_code" className="mb-2">
-                                        SWIFT/BIC Code <span className="text-red-500">*</span>
-                                      </Label>
-                                      <Input
-                                        id="swift_code"
-                                        type="text"
-                                        placeholder="Enter SWIFT code"
-                                        value={swiftCode}
-                                        onChange={(e) => setSwiftCode(e.target.value.toUpperCase())}
-                                        className="border-afrikoni-gold/30"
-                                        maxLength={11}
-                                        required
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="bank_country" className="mb-2">
-                                        Bank Country <span className="text-red-500">*</span>
-                                      </Label>
-                                      <Select
-                                        value={bankCountry}
-                                        onValueChange={setBankCountry}
-                                      >
-                                        <SelectTrigger id="bank_country" className="border-afrikoni-gold/30">
-                                          <SelectValue placeholder="Select bank country" />
-                                        </SelectTrigger>
-                                        <SelectContent className="max-h-[300px]">
-                                          {AFRICAN_COUNTRIES.map((country) => (
-                                            <SelectItem key={country} value={country}>
-                                              {country}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="bank_address" className="mb-2">
-                                        Bank Address
-                                      </Label>
-                                      <Input
-                                        id="bank_address"
-                                        type="text"
-                                        placeholder="Enter bank address (optional)"
-                                        value={bankAddress}
-                                        onChange={(e) => setBankAddress(e.target.value)}
-                                        className="border-afrikoni-gold/30"
-                                      />
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            )}
-                            
-                            {!isCompleted && step.docType && canAccessStep(idx) && (
-                              <>
-                              <label className="cursor-pointer inline-block">
-                                <input
-                                  type="file"
-                                  accept=".pdf,.jpg,.jpeg,.png"
-                                  className="hidden"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleFileUpload(step.id, file);
-                                  }}
-                                    disabled={uploading[step.id] || !canAccessStep(idx)}
-                                />
-                                <Button
-                                  variant={isRejected ? "destructive" : "default"}
-                                  size="sm"
-                                    disabled={uploading[step.id] || !canAccessStep(idx)}
-                                  className={`
-                                    ${isRejected 
-                                      ? 'bg-red-600 hover:bg-red-700' 
-                                        : 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white'
-                                    }
+                              {!isCompleted && step.docType && canAccessStep(idx) && (
+                                <>
+                                  <label className="cursor-pointer inline-block">
+                                    <input
+                                      type="file"
+                                      accept=".pdf,.jpg,.jpeg,.png"
+                                      className="hidden"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleFileUpload(step.id, file);
+                                      }}
+                                      disabled={uploading[step.id] || !canAccessStep(idx)}
+                                    />
+                                    <Button
+                                      variant={isRejected ? "destructive" : "default"}
+                                      size="sm"
+                                      disabled={uploading[step.id] || !canAccessStep(idx)}
+                                      className={`
+                                    ${isRejected
+                                          ? 'bg-red-600 hover:bg-red-700'
+                                          : 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white'
+                                        }
                                     min-h-[44px] touch-manipulation
                                   `}
-                                  as="span"
-                                >
-                                  {uploading[step.id] ? (
-                                      <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
-                                        Uploading...
-                                      </>
-                                  ) : (
-                                    <>
-                                      <Upload className="w-4 h-4 mr-2" />
-                                      {hasFile ? 'Re-upload Document' : 'Upload Document'}
-                                    </>
+                                      as="span"
+                                    >
+                                      {uploading[step.id] ? (
+                                        <>
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                                          Uploading...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Upload className="w-4 h-4 mr-2" />
+                                          {hasFile ? 'Re-upload Document' : 'Upload Document'}
+                                        </>
+                                      )}
+                                    </Button>
+                                  </label>
+
+                                  {/* Submit for Review Button - Show after document is uploaded (and bank info if bank step) */}
+                                  {hasFile && !isStepSubmitted(step.id) && (
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      onClick={() => {
+                                        // ✅ Validate bank account fields if this is bank step
+                                        if (step.docType === 'bank_statement') {
+                                          if (!bankAccountNumber || !bankName || !accountHolderName || !swiftCode || !bankCountry) {
+                                            toast.error('Please fill in all required bank account fields');
+                                            return;
+                                          }
+                                        }
+                                        handleSubmitStep(step);
+                                      }}
+                                      disabled={submittingStep === step.id || !canAccessStep(idx)}
+                                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white ml-2 min-h-[44px] touch-manipulation"
+                                    >
+                                      {submittingStep === step.id ? (
+                                        <>
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                                          Submitting...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <FileText className="w-4 h-4 mr-2" />
+                                          Submit for Review
+                                        </>
+                                      )}
+                                    </Button>
                                   )}
-                                </Button>
-                              </label>
-                                
-                                {/* Submit for Review Button - Show after document is uploaded (and bank info if bank step) */}
-                                {hasFile && !isStepSubmitted(step.id) && (
+
+                                  {/* Show submitted status */}
+                                  {isStepSubmitted(step.id) && !isCompleted && (
+                                    <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
+                                      <Clock className="w-4 h-4" />
+                                      <span>Submitted - Awaiting admin review</span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {!accessible && step.docType && (
+                                <div className="text-meta font-medium text-afrikoni-chestnut/60">
+                                  <Lock className="w-4 h-4 inline mr-2" />
+                                  This step will unlock automatically once the previous one is approved.
+                                </div>
+                              )}
+
+                              {/* Non-document steps (email, phone, trade) */}
+                              {!isCompleted && !step.docType && accessible && (
+                                <div className="space-y-2">
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    onClick={() => {
-                                      // ✅ Validate bank account fields if this is bank step
-                                      if (step.docType === 'bank_statement') {
-                                        if (!bankAccountNumber || !bankName || !accountHolderName || !swiftCode || !bankCountry) {
-                                          toast.error('Please fill in all required bank account fields');
-                                          return;
-                                        }
+                                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] touch-manipulation"
+                                    onClick={async () => {
+                                      if (step.id === 'email') {
+                                        await handleEmailVerification();
+                                      } else if (step.id === 'phone') {
+                                        await handlePhoneVerification();
+                                      } else if (step.id === 'trade') {
+                                        await handleTradeAssurance();
                                       }
-                                      handleSubmitStep(step);
                                     }}
-                                    disabled={submittingStep === step.id || !canAccessStep(idx)}
-                                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white ml-2 min-h-[44px] touch-manipulation"
+                                    disabled={!canAccessStep(idx)}
                                   >
-                                    {submittingStep === step.id ? (
-                                      <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
-                                        Submitting...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FileText className="w-4 h-4 mr-2" />
-                                        Submit for Review
-                                      </>
-                                    )}
+                                    {step.id === 'email' && 'Send Verification Email'}
+                                    {step.id === 'phone' && 'Verify Phone Number'}
+                                    {step.id === 'trade' && 'Enable Trade Assurance'}
                                   </Button>
-                                )}
-                                
-                                {/* Show submitted status */}
-                                {isStepSubmitted(step.id) && !isCompleted && (
-                                  <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
-                                    <Clock className="w-4 h-4" />
-                                    <span>Submitted - Awaiting admin review</span>
-                                  </div>
-                                )}
-                              </>
-                            )}
-                            
-                            {!accessible && step.docType && (
-                              <div className="text-meta font-medium text-afrikoni-chestnut/60">
-                                <Lock className="w-4 h-4 inline mr-2" />
-                                This step will unlock automatically once the previous one is approved.
-                              </div>
-                            )}
-                            
-                            {/* Non-document steps (email, phone, trade) */}
-                            {!isCompleted && !step.docType && accessible && (
-                              <div className="space-y-2">
-                              <Button
-                                variant="default"
-                                size="sm"
-                                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] touch-manipulation"
-                                  onClick={async () => {
-                                  if (step.id === 'email') {
-                                      await handleEmailVerification();
-                                  } else if (step.id === 'phone') {
-                                      await handlePhoneVerification();
-                                  } else if (step.id === 'trade') {
-                                      await handleTradeAssurance();
-                                  }
-                                }}
-                                  disabled={!canAccessStep(idx)}
-                              >
-                                  {step.id === 'email' && 'Send Verification Email'}
-                                  {step.id === 'phone' && 'Verify Phone Number'}
-                                {step.id === 'trade' && 'Enable Trade Assurance'}
-                              </Button>
-                                
-                                {/* Submit button for email/phone after verification initiated */}
-                                {(step.id === 'email' || step.id === 'phone') && !isStepSubmitted(step.id) && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleSubmitStep(step)}
-                                    disabled={submittingStep === step.id || !canAccessStep(idx)}
-                                    className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10 ml-2"
-                                  >
-                                    {submittingStep === step.id ? (
-                                      <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-gold mr-2 inline-block"></div>
-                                        Submitting...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FileText className="w-4 h-4 mr-2" />
-                                        Submit for Review
-                                      </>
-                                    )}
-                                  </Button>
-                                )}
-                                
-                                {step.id === 'email' && (
-                                  <p className="text-xs text-afrikoni-chestnut/60">
-                                    We'll send a verification link to <strong>{user?.email}</strong>. After verifying, click "Submit for Review".
-                                  </p>
-                                )}
-                                {step.id === 'phone' && !user?.phone && (
-                                  <p className="text-xs text-afrikoni-chestnut/60">
-                                    <strong>Note:</strong> Please add your phone number in your profile first.
-                                  </p>
-                                )}
-                                {step.id === 'trade' && requiredCompleted < requiredTotal && (
-                                  <p className="text-xs text-afrikoni-chestnut/60">
-                                    Complete all required steps ({requiredCompleted}/{requiredTotal}) to enable Trade Assurance.
-                                  </p>
-                                )}
-                                
-                                {/* Show submitted status */}
-                                {isStepSubmitted(step.id) && !isCompleted && (
-                                  <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
-                                    <Clock className="w-4 h-4" />
-                                    <span>Submitted - Awaiting admin review</span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            
-                            {!accessible && !step.docType && (
-                              <div className="text-meta font-medium text-afrikoni-chestnut/60">
-                                <Lock className="w-4 h-4 inline mr-2" />
-                                This step will unlock automatically once the previous one is approved.
-                              </div>
-                            )}
-                            
-                            {/* Collapse button for expanded steps */}
-                            {isExpanded && !isCompleted && accessible && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setExpandedSteps(prev => {
-                                    const newSet = new Set(prev);
-                                    newSet.delete(idx);
-                                    return newSet;
-                                  });
-                                }}
-                                className="mt-2 text-afrikoni-chestnut/60 hover:text-afrikoni-chestnut"
-                              >
-                                Collapse ↑
-                              </Button>
-                            )}
+
+                                  {/* Submit button for email/phone after verification initiated */}
+                                  {(step.id === 'email' || step.id === 'phone') && !isStepSubmitted(step.id) && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleSubmitStep(step)}
+                                      disabled={submittingStep === step.id || !canAccessStep(idx)}
+                                      className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10 ml-2"
+                                    >
+                                      {submittingStep === step.id ? (
+                                        <>
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-gold mr-2 inline-block"></div>
+                                          Submitting...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <FileText className="w-4 h-4 mr-2" />
+                                          Submit for Review
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+
+                                  {step.id === 'email' && (
+                                    <p className="text-xs text-afrikoni-chestnut/60">
+                                      We'll send a verification link to <strong>{user?.email}</strong>. After verifying, click "Submit for Review".
+                                    </p>
+                                  )}
+                                  {step.id === 'phone' && !user?.phone && (
+                                    <p className="text-xs text-afrikoni-chestnut/60">
+                                      <strong>Note:</strong> Please add your phone number in your profile first.
+                                    </p>
+                                  )}
+                                  {step.id === 'trade' && requiredCompleted < requiredTotal && (
+                                    <p className="text-xs text-afrikoni-chestnut/60">
+                                      Complete all required steps ({requiredCompleted}/{requiredTotal}) to enable Trade Assurance.
+                                    </p>
+                                  )}
+
+                                  {/* Show submitted status */}
+                                  {isStepSubmitted(step.id) && !isCompleted && (
+                                    <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
+                                      <Clock className="w-4 h-4" />
+                                      <span>Submitted - Awaiting admin review</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {!accessible && !step.docType && (
+                                <div className="text-meta font-medium text-afrikoni-chestnut/60">
+                                  <Lock className="w-4 h-4 inline mr-2" />
+                                  This step will unlock automatically once the previous one is approved.
+                                </div>
+                              )}
+
+                              {/* Collapse button for expanded steps */}
+                              {isExpanded && !isCompleted && accessible && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setExpandedSteps(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(idx);
+                                      return newSet;
+                                    });
+                                  }}
+                                  className="mt-2 text-afrikoni-chestnut/60 hover:text-afrikoni-chestnut"
+                                >
+                                  Collapse ↑
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </>
-                    )}
+                        </>
+                      )}
                     </motion.div>
                   );
                 })}
@@ -2020,11 +2157,11 @@ export default function VerificationCenter() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
             {benefits.map((benefit, idx) => (
               <div key={idx} className="flex items-center gap-2 p-4 bg-afrikoni-cream rounded-lg border border-afrikoni-gold/30">
-                    <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
                 <span className="text-body font-normal leading-[1.6] text-afrikoni-chestnut">{benefit}</span>
-                  </div>
-                ))}
               </div>
+            ))}
+          </div>
         </SystemPageSection>
 
         {/* CTA Footer */}

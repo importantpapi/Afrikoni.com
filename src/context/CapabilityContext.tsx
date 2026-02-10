@@ -68,12 +68,12 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     authReady = false;
     authResolutionComplete = false;
   }
-  
+
   const hasFetchedRef = useRef(false);
   const fetchedCompanyIdRef = useRef<string | null>(null);
   const isFetchingRef = useRef(false); // ✅ Track if fetch is in progress (not loading state)
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null); // ✅ Track timeout to clear on success
-  
+
   // ✅ FIX STATE STAGNATION: Start with ready=false to ensure React detects state transitions
   const [capabilities, setCapabilities] = useState<CapabilityData>({
     can_buy: true,
@@ -97,7 +97,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   const fetchCapabilities = async (forceRefresh = false) => {
     // ✅ CRITICAL FIX: Safe access with optional chaining
     const targetCompanyId = profile?.company_id;
-    
+
     // =========================================================================
     // ✅ KERNEL HANDSHAKE: IMMEDIATE ADMIN BYPASS (FIRST CHECK)
     // Admins should bypass capability check entirely - if JWT says is_admin, grant everything immediately
@@ -106,17 +106,17 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     // =========================================================================
     if (profile?.is_admin === true) {
       console.log('[CapabilityContext] ✅ KERNEL HANDSHAKE: Admin user detected - granting full capabilities immediately (bypassing fetch)');
-          setCapabilities({
-            ...SUPER_USER_CAPS,
-            company_id: targetCompanyId || null, // Preserve company_id if it exists
-            ready: true, // ✅ FIX: Set ready=true for admin (immediate grant)
-            kernelError: null, // ✅ KERNEL-CENTRIC: Clear error for admin
-          });
+      setCapabilities({
+        ...SUPER_USER_CAPS,
+        company_id: targetCompanyId || null, // Preserve company_id if it exists
+        ready: true, // ✅ FIX: Set ready=true for admin (immediate grant)
+        kernelError: null, // ✅ KERNEL-CENTRIC: Clear error for admin
+      });
       hasFetchedRef.current = true;
       fetchedCompanyIdRef.current = targetCompanyId || 'admin'; // Mark as fetched for admin
       return;
     }
-    
+
     // =========================================================================
     // GUARD 1: IDEMPOTENCY - Already fetched for this company_id (unless force refresh)
     // =========================================================================
@@ -129,7 +129,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       console.log('[CapabilityContext] Already fetched for company_id:', targetCompanyId, '- skipping');
       return;
     }
-    
+
     // If force refresh, reset the fetch flags
     if (forceRefresh) {
       console.log('[CapabilityContext] 🔄 Force refresh requested - resetting fetch flags');
@@ -151,7 +151,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         console.log('[CapabilityContext] Kernel is WARM - skipping prerequisite check during authReady flicker');
         return; // Keep existing state - Kernel is warm, just authReady flickered
       }
-      
+
       console.log('[CapabilityContext] Prerequisites not ready - authReady:', authReady, 'user:', !!user, 'companyId:', targetCompanyId);
       // ✅ FIX STATE STAGNATION: Keep ready=false until prerequisites are met and capabilities are loaded
       // The useEffect will handle setting ready=true after timeout if needed (for onboarding flow)
@@ -164,7 +164,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       }));
       return;
     }
-    
+
     // =========================================================================
     // GUARD 3: Already fetching (prevent concurrent fetches)
     // ✅ FIXED: Use ref instead of loading state to prevent blocking initial fetch
@@ -179,14 +179,14 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
 
     try {
       console.log('[CapabilityContext] Fetching capabilities for company:', targetCompanyId);
-      
+
       // ✅ FIX: Only show loading on INITIAL fetch, not refresh
       const isInitialFetch = !hasFetchedRef.current;
-      
+
       if (isInitialFetch) {
-        setCapabilities(prev => ({ 
-          ...prev, 
-          loading: true, 
+        setCapabilities(prev => ({
+          ...prev,
+          loading: true,
           error: null,
           ready: false, // ✅ FIX: Keep ready=false during loading - will be set to true after success
         }));
@@ -200,7 +200,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           .select('id')
           .eq('id', targetCompanyId)
           .single();
-        
+
         if (companyError && companyError.code !== 'PGRST116') {
           console.warn('[CapabilityContext] Company pre-check error (non-fatal):', companyError);
         }
@@ -219,7 +219,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       let data, error;
       let fetchAttempt = 0;
       const maxAttempts = 2;
-      
+
       while (fetchAttempt < maxAttempts) {
         fetchAttempt++;
         try {
@@ -229,10 +229,10 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
             .select('*')
             .eq('company_id', targetCompanyId)
             .maybeSingle();
-          
+
           data = result?.data;
           error = result?.error;
-          
+
           // ✅ OPTIMIZE CAPABILITY HANDSHAKE: Add error log specifically for Supabase response
           if (error) {
             console.error(`[CapabilityContext] Supabase response error (attempt ${fetchAttempt}/${maxAttempts}):`, {
@@ -253,19 +253,19 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           } else {
             console.log(`[CapabilityContext] Supabase response: no data, no error (attempt ${fetchAttempt}/${maxAttempts})`);
           }
-          
+
           // If successful or non-retryable error, break
           if (!error || (error.code !== 'PGRST116' && fetchAttempt === 1)) {
             break;
           }
-          
+
           // If PGRST116 (not found) on first attempt, retry once
           if (error.code === 'PGRST116' && fetchAttempt < maxAttempts) {
             console.log(`[CapabilityContext] Capabilities not found (attempt ${fetchAttempt}/${maxAttempts}) - retrying...`);
             await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay before retry
             continue;
           }
-          
+
           break;
         } catch (dbError: any) {
           console.error(`[CapabilityContext] Database query error (attempt ${fetchAttempt}/${maxAttempts}):`, {
@@ -275,18 +275,18 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           });
           error = dbError;
           data = null;
-          
+
           // Retry on network/timeout errors
           if (fetchAttempt < maxAttempts && (
-            dbError.message?.includes('fetch') || 
-            dbError.message?.includes('network') || 
+            dbError.message?.includes('fetch') ||
+            dbError.message?.includes('network') ||
             dbError.message?.includes('timeout')
           )) {
             console.log(`[CapabilityContext] Network error detected - retrying...`);
             await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay before retry
             continue;
           }
-          
+
           break;
         }
       }
@@ -295,11 +295,11 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         if (error.code === 'PGRST116') {
           // Capabilities don't exist, create them using upsert for idempotency
           console.log('[CapabilityContext] Capabilities not found, creating/upserting...');
-          
+
           // ✅ CAPABILITY RESILIENCE: Use upsert with retry loop (2 attempts)
           let newCapabilities = null;
           let insertError = null;
-          
+
           for (let attempt = 1; attempt <= 2; attempt++) {
             try {
               const result = await supabase
@@ -342,16 +342,16 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           if (insertError || !newCapabilities) {
             throw insertError || new Error('Failed to create capabilities after 2 attempts');
           }
-          
+
           console.log('[CapabilityContext] ✅ Created/upserted capabilities for company:', targetCompanyId);
-          
+
           // ✅ ELIMINATE TIMEOUT RACE: Clear timeout immediately upon successful creation
           if (timeoutIdRef.current) {
             clearTimeout(timeoutIdRef.current);
             timeoutIdRef.current = null;
             console.log('[CapabilityContext] ✅ Cleared timeout - capabilities created successfully');
           }
-          
+
           setCapabilities({
             can_buy: newCapabilities.can_buy,
             can_sell: newCapabilities.can_sell,
@@ -371,14 +371,14 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         }
       } else if (data) {
         console.log('[CapabilityContext] ✅ Loaded capabilities for company:', targetCompanyId);
-        
+
         // ✅ ELIMINATE TIMEOUT RACE: Clear timeout immediately upon successful database response
         if (timeoutIdRef.current) {
           clearTimeout(timeoutIdRef.current);
           timeoutIdRef.current = null;
           console.log('[CapabilityContext] ✅ Cleared timeout - capabilities loaded successfully');
         }
-        
+
         // ✅ CAPABILITY RESILIENCE: Only set ready=true after successful fetch
         setCapabilities({
           can_buy: data.can_buy,
@@ -407,14 +407,14 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       }
     } catch (err: any) {
       console.error('[CapabilityContext] Error fetching capabilities:', err);
-      
+
       // ✅ FOUNDATION FIX: Fail-safe error handling
       // Check if error is due to missing table (critical database sync issue)
       const errorMessage = err.message || 'Failed to load capabilities';
-      const isTableMissing = errorMessage.includes('table') || 
-                            errorMessage.includes('does not exist') ||
-                            errorMessage.includes('schema cache');
-      
+      const isTableMissing = errorMessage.includes('table') ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('schema cache');
+
       if (isTableMissing) {
         // Critical error: Table missing - but STILL ALLOW RENDERING
         console.error('[CapabilityContext] 🔴 CRITICAL: Database table missing. Using defaults.');
@@ -430,7 +430,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         fetchedCompanyIdRef.current = targetCompanyId;
         return;
       }
-      
+
       // Network/timeout error - allow access with warning (RLS will enforce)
       // ✅ TOTAL VIBRANIUM RESET: Use kernelError instead of error for consistency
       setCapabilities(prev => ({
@@ -439,7 +439,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         ready: true, // ✅ CRITICAL: Always allow rendering
         kernelError: errorMessage, // ✅ TOTAL VIBRANIUM RESET: Use kernelError state
       }));
-      
+
       // Still mark as fetched to prevent retry loops
       if (targetCompanyId) {
         hasFetchedRef.current = true;
@@ -465,10 +465,10 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   // - profile?.company_id: string primitive, stable after profile load
   // - fetchCapabilities has internal idempotency guard
   // =========================================================================
-  
+
   const currentUserId = user?.id || null;
   const currentCompanyId = profile?.company_id || null;
-  
+
   // =========================================================================
   // AUTH CHANGE LISTENER: Reset capabilities on signout
   // =========================================================================
@@ -502,10 +502,10 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           // ✅ KERNEL LOCK: Maintain "Warm" state during token refresh
           // During TOKEN_REFRESHED, profile may be momentarily null, but we should NOT reset
           // if we already have valid capabilities loaded. This prevents the 5-second hang.
-          
+
           // Check if we ALREADY have valid capabilities loaded
           const hasValidCapabilities = hasFetchedRef.current && fetchedCompanyIdRef.current !== null;
-          
+
           if (hasValidCapabilities) {
             // ✅ KERNEL LOCK: We have valid capabilities - DO NOT RESET
             // Maintain the current "Ready" state and keep fetch flags intact
@@ -516,7 +516,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
             // DO NOT reset flags - keep Kernel warm
             return; // Exit early - no reset needed
           }
-          
+
           // Only reset if we DON'T have valid capabilities yet
           // This handles the case where TOKEN_REFRESHED fires before initial fetch completes
           console.log('[CapabilityContext] TOKEN_REFRESHED detected - no valid capabilities yet, allowing reset', {
@@ -572,11 +572,13 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // ✅ KERNEL LOCK: Only fetch if we haven't fetched yet (prevents double-booting)
-      if (!hasFetchedRef.current) {
+      // ✅ KERNEL LOCK: Fetch if we haven't fetched yet OR if we fell out of readiness
+      // This fixes the "Infinite Loading" bug where ready=false but hasFetched=true
+      if (!hasFetchedRef.current || !capabilities.ready) {
+        console.log('[CapabilityContext] Ensuring capabilities are loaded (fetched:', hasFetchedRef.current, 'ready:', capabilities.ready, ')');
         fetchCapabilities();
       } else {
-        console.log('[CapabilityContext] ✅ Kernel is WARM - skipping fetch (already loaded)');
+        console.log('[CapabilityContext] ✅ Kernel is WARM - skipping fetch (already loaded & ready)');
       }
 
       // ✅ HARDEN CAPABILITY FETCH: Reduced timeout from 10s to 5s with automatic retry

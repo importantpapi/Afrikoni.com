@@ -22,14 +22,14 @@ import { StatusBadge } from '@/components/system/StatusBadge';
 export default function NotificationsCenter() {
   // ✅ FINAL 3% FIX: Use unified Dashboard Kernel with capabilities for hybrid check
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
-  
+
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-      const [filter, setFilter] = useState('all');
-      const [searchQuery, setSearchQuery] = useState('');
-      const [selectedNotifications, setSelectedNotifications] = useState([]);
-      const navigate = useNavigate();
+  const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedNotifications, setSelectedNotifications] = useState([]);
+  const navigate = useNavigate();
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -53,7 +53,7 @@ export default function NotificationsCenter() {
     }
 
     loadNotifications();
-    
+
     // ✅ FULL-STACK SYNC: Listen to centralized DashboardRealtimeManager updates
     // DashboardRealtimeManager subscribes to notifications via dashboard-${companyId} channel
     // Listen for custom events dispatched by DashboardRealtimeManager
@@ -63,13 +63,13 @@ export default function NotificationsCenter() {
         loadNotifications();
       }
     };
-    
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         loadNotifications();
       }
     };
-    
+
     window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', loadNotifications);
@@ -86,7 +86,7 @@ export default function NotificationsCenter() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // ✅ FULL-STACK SYNC: Removed role-based logic - use capabilities instead
 
       // ✅ KERNEL-SCHEMA ALIGNMENT: Admin users can access notifications without company_id
@@ -106,7 +106,7 @@ export default function NotificationsCenter() {
       // ✅ FULL-STACK SYNC: Standardize isHybrid as (can_buy && can_sell)
       const isHybrid = capabilities?.can_buy === true && capabilities?.can_sell === true;
       const isAdminOrHybrid = isAdmin || isHybrid;
-      
+
       // ✅ FULL-STACK SYNC: Admin/hybrid users can see all notifications - RLS policy handles filtering
       if (!isAdminOrHybrid) {
         // Regular users: apply filters
@@ -147,7 +147,7 @@ export default function NotificationsCenter() {
     }
 
     loadNotifications();
-    
+
     // ✅ FULL-STACK SYNC: Listen to centralized DashboardRealtimeManager updates
     // DashboardRealtimeManager subscribes to notifications via dashboard-${companyId} channel
     // Listen for custom events dispatched by DashboardRealtimeManager
@@ -157,13 +157,13 @@ export default function NotificationsCenter() {
         loadNotifications();
       }
     };
-    
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         loadNotifications();
       }
     };
-    
+
     window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', loadNotifications);
@@ -250,7 +250,7 @@ export default function NotificationsCenter() {
   const groupedNotifications = filteredNotifications.reduce((groups, notification) => {
     const date = new Date(notification.created_at);
     let groupKey;
-    
+
     if (isToday(date)) {
       groupKey = 'Today';
     } else if (isYesterday(date)) {
@@ -262,7 +262,7 @@ export default function NotificationsCenter() {
     } else {
       groupKey = format(date, 'MMMM yyyy');
     }
-    
+
     if (!groups[groupKey]) {
       groups[groupKey] = [];
     }
@@ -272,7 +272,7 @@ export default function NotificationsCenter() {
 
   const markSelectedAsRead = async () => {
     if (selectedNotifications.length === 0) return;
-    
+
     try {
       const { error } = await supabase
         .from('notifications')
@@ -290,9 +290,9 @@ export default function NotificationsCenter() {
 
   const deleteSelectedNotifications = async () => {
     if (selectedNotifications.length === 0) return;
-    
+
     if (!confirm(`Are you sure you want to delete ${selectedNotifications.length} notification(s)?`)) return;
-    
+
     try {
       const { error } = await supabase
         .from('notifications')
@@ -326,7 +326,7 @@ export default function NotificationsCenter() {
 
   const handleNotificationClick = (notification) => {
     markAsRead(notification.id);
-    
+
     // Navigate based on type and link
     if (notification.link) {
       navigate(notification.link);
@@ -335,7 +335,7 @@ export default function NotificationsCenter() {
     } else if (notification.type === 'rfq' && notification.related_id) {
       navigate(`/dashboard/rfqs/${notification.related_id}`);
     } else if (notification.type === 'message' && notification.related_id) {
-      navigate(`/messages?conversation=${notification.related_id}`);
+      navigate(`/dashboard/messages?conversation=${notification.related_id}`);
     } else if (notification.type === 'support' || notification.type === 'support_ticket') {
       // Support notifications - navigate to support chat
       if (notification.related_id) {
@@ -360,208 +360,205 @@ export default function NotificationsCenter() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadNotifications}
       />
     );
   }
 
   return (
-      <div className="os-page os-stagger space-y-4 pb-10">
-        <Surface variant="panel" className="p-6 os-rail-glow">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="os-label">Signals Center</div>
-              <h1 className="os-title mt-2">Signals Center</h1>
-              <p className="text-sm text-os-muted mt-1">
-                {unreadCount > 0 ? `${unreadCount} unread signals` : 'All signals processed.'}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <StatusBadge label="LIVE" tone="info" />
-              <StatusBadge label={filter.toUpperCase()} tone="neutral" />
-            </div>
+    <div className="os-page os-stagger space-y-4 pb-10">
+      <Surface variant="panel" className="p-6 os-rail-glow">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="os-label">Signals Center</div>
+            <h1 className="os-title mt-2">Signals Center</h1>
+            <p className="text-sm text-os-muted mt-1">
+              {unreadCount > 0 ? `${unreadCount} unread signals` : 'All signals processed.'}
+            </p>
           </div>
-        </Surface>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-2">
-            {selectedNotifications.length > 0 && (
-              <>
-                <Button onClick={markSelectedAsRead} variant="outline" size="sm">
-                  <CheckSquare className="w-4 h-4 mr-2" />
-                  Mark Read ({selectedNotifications.length})
-                </Button>
-                <Button onClick={deleteSelectedNotifications} variant="outline" size="sm" className="hover:text-red-700 hover:bg-red-50">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete ({selectedNotifications.length})
-                </Button>
-              </>
-            )}
-            {unreadCount > 0 && (
-              <Button onClick={markAllAsRead} variant="outline" size="sm">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Mark all as read
-              </Button>
-            )}
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge label="LIVE" tone="info" />
+            <StatusBadge label={filter.toUpperCase()} tone="neutral" />
           </div>
         </div>
+      </Surface>
 
-        <Surface variant="panel" className="p-5">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
-                  <Input
-                    placeholder="Search notifications..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 os-input"
-                  />
-                </div>
-              </div>
-              <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-full md:w-48 os-input">
-                  <SelectValue placeholder="Filter notifications" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All ({notifications.length})</SelectItem>
-                  <SelectItem value="unread">Unread ({unreadCount})</SelectItem>
-                  <SelectItem value="alerts">Alerts</SelectItem>
-                  <SelectItem value="opportunities">Opportunities</SelectItem>
-                  <SelectItem value="compliance">Compliance</SelectItem>
-                  <SelectItem value="logistics">Logistics</SelectItem>
-                  <SelectItem value="messages">Messages</SelectItem>
-                </SelectContent>
-              </Select>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          {selectedNotifications.length > 0 && (
+            <>
+              <Button onClick={markSelectedAsRead} variant="outline" size="sm">
+                <CheckSquare className="w-4 h-4 mr-2" />
+                Mark Read ({selectedNotifications.length})
+              </Button>
+              <Button onClick={deleteSelectedNotifications} variant="outline" size="sm" className="hover:text-red-700 hover:bg-red-50">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete ({selectedNotifications.length})
+              </Button>
+            </>
+          )}
+          {unreadCount > 0 && (
+            <Button onClick={markAllAsRead} variant="outline" size="sm">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Mark all as read
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Surface variant="panel" className="p-5">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
+              <Input
+                placeholder="Search notifications..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 os-input"
+              />
             </div>
-        </Surface>
+          </div>
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-full md:w-48 os-input">
+              <SelectValue placeholder="Filter notifications" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All ({notifications.length})</SelectItem>
+              <SelectItem value="unread">Unread ({unreadCount})</SelectItem>
+              <SelectItem value="alerts">Alerts</SelectItem>
+              <SelectItem value="opportunities">Opportunities</SelectItem>
+              <SelectItem value="compliance">Compliance</SelectItem>
+              <SelectItem value="logistics">Logistics</SelectItem>
+              <SelectItem value="messages">Messages</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Surface>
 
-        {/* Notifications List */}
-        {filteredNotifications.length === 0 ? (
-          <EmptyState 
-            type="notifications"
-            title={filter === 'unread' ? 'No unread notifications' : searchQuery ? 'No matching notifications' : 'No notifications yet'}
-            description={searchQuery ? "Try adjusting your search or filter" : "You'll see notifications here when you receive messages, order updates, and more"}
-          />
-        ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedNotifications).map(([groupKey, groupNotifications]) => (
-              <div key={groupKey}>
-                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3 px-2">
-                  {groupKey}
-                </h3>
-                <div className="space-y-3">
-                  {groupNotifications.map((notification) => {
-                    const Icon = getNotificationIcon(notification.type);
-                    return (
-                      <motion.div
-                        key={notification.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                      >
-                        <Card className={`os-panel-soft hover:shadow-premium-lg transition-all cursor-pointer ${
-                          !notification.read ? 'border border-[rgba(212,169,55,0.3)] bg-[rgba(212,169,55,0.08)]' : 'border border-white/10 bg-white/5'
+      {/* Notifications List */}
+      {filteredNotifications.length === 0 ? (
+        <EmptyState
+          type="notifications"
+          title={filter === 'unread' ? 'No unread notifications' : searchQuery ? 'No matching notifications' : 'No notifications yet'}
+          description={searchQuery ? "Try adjusting your search or filter" : "You'll see notifications here when you receive messages, order updates, and more"}
+        />
+      ) : (
+        <div className="space-y-6">
+          {Object.entries(groupedNotifications).map(([groupKey, groupNotifications]) => (
+            <div key={groupKey}>
+              <h3 className="text-sm font-semibold uppercase tracking-wide mb-3 px-2">
+                {groupKey}
+              </h3>
+              <div className="space-y-3">
+                {groupNotifications.map((notification) => {
+                  const Icon = getNotificationIcon(notification.type);
+                  return (
+                    <motion.div
+                      key={notification.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className={`os-panel-soft hover:shadow-premium-lg transition-all cursor-pointer ${!notification.read ? 'border border-[rgba(212,169,55,0.3)] bg-[rgba(212,169,55,0.08)]' : 'border border-white/10 bg-white/5'
                         }`}>
-                          <CardContent className="p-5 md:p-6">
-                            <div className="flex items-start gap-4">
-                              <input
-                                type="checkbox"
-                                checked={selectedNotifications.includes(notification.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedNotifications([...selectedNotifications, notification.id]);
-                                  } else {
-                                    setSelectedNotifications(selectedNotifications.filter(id => id !== notification.id));
-                                  }
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="mt-1 w-4 h-4 rounded"
-                              />
-                              <div
-                                onClick={() => handleNotificationClick(notification)}
-                                className="flex items-start gap-4 flex-1"
-                              >
-                                <div className={`p-2.5 rounded-lg flex-shrink-0 ${
-                                  notification.type === 'message' ? 'bg-blue-50 text-blue-600' :
-                                  notification.type === 'order' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
+                        <CardContent className="p-5 md:p-6">
+                          <div className="flex items-start gap-4">
+                            <input
+                              type="checkbox"
+                              checked={selectedNotifications.includes(notification.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedNotifications([...selectedNotifications, notification.id]);
+                                } else {
+                                  setSelectedNotifications(selectedNotifications.filter(id => id !== notification.id));
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1 w-4 h-4 rounded"
+                            />
+                            <div
+                              onClick={() => handleNotificationClick(notification)}
+                              className="flex items-start gap-4 flex-1"
+                            >
+                              <div className={`p-2.5 rounded-lg flex-shrink-0 ${notification.type === 'message' ? 'bg-blue-50 text-blue-600' :
+                                notification.type === 'order' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
                                   notification.type === 'rfq' || notification.type === 'quote' ? 'bg-purple-50 text-purple-600' :
-                                  notification.type === 'payment' ? 'bg-green-50 text-green-600' :
-                                  notification.type === 'review' ? 'bg-yellow-50 text-yellow-600' :
-                                  'bg-afrikoni-cream text-afrikoni-deep'
+                                    notification.type === 'payment' ? 'bg-green-50 text-green-600' :
+                                      notification.type === 'review' ? 'bg-yellow-50 text-yellow-600' :
+                                        'bg-afrikoni-cream text-afrikoni-deep'
                                 }`}>
-                                  <Icon className="w-5 h-5" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between mb-1 gap-2">
-                                    <div className="flex items-center gap-2 flex-1">
-                                      <h4 className="font-semibold">{notification.title}</h4>
-                                      <Badge 
-                                        variant="outline" 
-                                        className={`text-xs ${
-                                          notification.type === 'order' ? 'border-afrikoni-gold text-afrikoni-gold' :
-                                          notification.type === 'message' ? 'border-blue-500 text-blue-600' :
-                                          notification.type === 'payment' ? 'border-green-500 text-green-600' :
-                                          'border-gray-300 text-gray-600'
-                                        }`}
-                                      >
-                                        {notification.type}
-                                      </Badge>
-                                    </div>
-                                    {!notification.read && (
-                                      <Badge className="text-xs">New</Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-sm mb-2">{notification.message}</p>
-                                  <p className="text-xs">
-                                    {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  {/* Reply button for support and message notifications */}
-                                  {(notification.type === 'support' || notification.type === 'support_ticket' || notification.type === 'message') && (
-                                    <Button
+                                <Icon className="w-5 h-5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between mb-1 gap-2">
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <h4 className="font-semibold">{notification.title}</h4>
+                                    <Badge
                                       variant="outline"
-                                      size="sm"
-                                      className="h-8 text-xs hover:bg-afrikoni-gold hover:text-white"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (notification.type === 'support' || notification.type === 'support_ticket') {
-                                          navigate(`/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`);
-                                        } else if (notification.type === 'message' && notification.related_id) {
-                                          navigate(`/messages?conversation=${notification.related_id}`);
-                                        }
-                                      }}
+                                      className={`text-xs ${notification.type === 'order' ? 'border-afrikoni-gold text-afrikoni-gold' :
+                                        notification.type === 'message' ? 'border-blue-500 text-blue-600' :
+                                          notification.type === 'payment' ? 'border-green-500 text-green-600' :
+                                            'border-gray-300 text-gray-600'
+                                        }`}
                                     >
-                                      <MessageSquare className="w-3 h-3 mr-1" />
-                                      Reply
-                                    </Button>
+                                      {notification.type}
+                                    </Badge>
+                                  </div>
+                                  {!notification.read && (
+                                    <Badge className="text-xs">New</Badge>
                                   )}
-                                  {notification.read && (
-                                    <CheckCircle className="w-5 h-5" />
-                                  )}
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 hover:text-red-600"
-                                    onClick={(e) => deleteNotification(notification.id, e)}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
                                 </div>
+                                <p className="text-sm mb-2">{notification.message}</p>
+                                <p className="text-xs">
+                                  {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {/* Reply button for support and message notifications */}
+                                {(notification.type === 'support' || notification.type === 'support_ticket' || notification.type === 'message') && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs hover:bg-afrikoni-gold hover:text-white"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (notification.type === 'support' || notification.type === 'support_ticket') {
+                                        navigate(`/dashboard/support-chat${notification.related_id ? `?ticket=${notification.related_id}` : ''}`);
+                                      } else if (notification.type === 'message' && notification.related_id) {
+                                        navigate(`/dashboard/messages?conversation=${notification.related_id}`);
+                                      }
+                                    }}
+                                  >
+                                    <MessageSquare className="w-3 h-3 mr-1" />
+                                    Reply
+                                  </Button>
+                                )}
+                                {notification.read && (
+                                  <CheckCircle className="w-5 h-5" />
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:text-red-600"
+                                  onClick={(e) => deleteNotification(notification.id, e)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

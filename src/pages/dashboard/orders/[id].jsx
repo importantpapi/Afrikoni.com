@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { checkConsensus } from '@/services/tradeKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import { ORDER_STATUS, getStatusLabel, getNextStatuses, canTransitionTo } from '@/constants/status';
@@ -13,10 +14,10 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
-import { 
-  ShoppingCart, Package, Truck, CheckCircle, Clock, X, 
+import {
+  ShoppingCart, Package, Truck, CheckCircle, Clock, X,
   DollarSign, Calendar, MapPin, MessageSquare, FileText, User, Star,
-  Save, RotateCcw
+  Save, RotateCcw, ShieldCheck, Key, Lock
 } from 'lucide-react';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import { toast } from 'sonner';
@@ -54,7 +55,7 @@ export default function OrderDetail() {
   const [templateName, setTemplateName] = useState('');
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [buyerProtectionEnabled, setBuyerProtectionEnabled] = useState(false);
-  
+
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
     return (
@@ -63,7 +64,7 @@ export default function OrderDetail() {
       </div>
     );
   }
-  
+
   // ✅ KERNEL MIGRATION: Check if user is authenticated
   if (!userId) {
     navigate('/login');
@@ -90,7 +91,7 @@ export default function OrderDetail() {
   const loadOrderData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Use auth from context (no duplicate call)
       // Role derived from capabilities above
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
@@ -137,7 +138,7 @@ export default function OrderDetail() {
           .select('*')
           .eq('order_id', id)
           .single();
-        
+
         if (shipmentError) {
           // Handle PGRST116 (not found) - shipment doesn't exist yet, this is OK
           if (shipmentError.code !== 'PGRST116') {
@@ -177,7 +178,7 @@ export default function OrderDetail() {
             .eq('order_id', id)
             .eq('reviewer_company_id', userCompanyId)
             .single();
-          
+
           if (reviewError) {
             // Handle PGRST116 (not found) - review doesn't exist yet, this is OK
             if (reviewError.code !== 'PGRST116') {
@@ -222,7 +223,7 @@ export default function OrderDetail() {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ 
+        .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         })
@@ -239,7 +240,7 @@ export default function OrderDetail() {
         } catch (err) {
           // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
           const userEmail = user?.email || '';
-          
+
           if (userEmail && userId) {
             const { error: notifError } = await supabase.from('notifications').insert({
               company_id: otherCompanyId,
@@ -275,7 +276,7 @@ export default function OrderDetail() {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ 
+        .update({
           payment_status: newPaymentStatus,
           updated_at: new Date().toISOString()
         })
@@ -395,8 +396,8 @@ export default function OrderDetail() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           loadOrderData();
@@ -438,10 +439,10 @@ export default function OrderDetail() {
     );
   }
 
-  const canUpdateStatus = (currentRole === 'seller' || currentRole === 'hybrid') && 
-                          ['pending', 'processing', 'shipped'].includes(order.status);
-  const canConfirmReceipt = (currentRole === 'buyer' || currentRole === 'hybrid') && 
-                            order.status === 'delivered';
+  const canUpdateStatus = (currentRole === 'seller' || currentRole === 'hybrid') &&
+    ['pending', 'processing', 'shipped'].includes(order.status);
+  const canConfirmReceipt = (currentRole === 'buyer' || currentRole === 'hybrid') &&
+    order.status === 'delivered';
 
   return (
     <div className="os-page os-stagger space-y-4">
@@ -500,449 +501,491 @@ export default function OrderDetail() {
         </div>
       </Surface>
 
-        {/* Trade Workflow Visualizer */}
-        <TradeWorkflowVisualizer
-          status={order.status}
-          paymentStatus={order.payment_status}
-          isCrossBorder={buyerCompany?.country !== sellerCompany?.country}
-          hasQualityCheck={order.buyer_protection_enabled || order.has_quality_check}
-          createdAt={order.created_at}
-          estimatedDelivery={shipment?.estimated_delivery || order.estimated_delivery}
-          events={timeline.map(t => ({
-            step: t.status,
-            timestamp: t.timestamp,
-            note: t.description
-          }))}
-          variant="full"
-        />
+      {/* Trade Workflow Visualizer */}
+      <TradeWorkflowVisualizer
+        status={order.status}
+        paymentStatus={order.payment_status}
+        isCrossBorder={buyerCompany?.country !== sellerCompany?.country}
+        hasQualityCheck={order.buyer_protection_enabled || order.has_quality_check}
+        createdAt={order.created_at}
+        estimatedDelivery={shipment?.estimated_delivery || order.estimated_delivery}
+        events={timeline.map(t => ({
+          step: t.status,
+          timestamp: t.timestamp,
+          note: t.description
+        }))}
+        variant="full"
+      />
 
       <div className="grid md:grid-cols-3 gap-4">
-          {/* Main Content */}
-          <div className="md:col-span-2 space-y-4">
-            {/* Order Timeline */}
-            <Surface className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Order Timeline</h2>
-              </div>
-              <div className="space-y-4">
-                {Array.isArray(timeline) && timeline.length > 0 ? (
-                  timeline.map((item, idx) => (
-                    <TimelineItem
-                      key={item.id || idx}
-                      title={item.title}
-                      description={item.description}
-                      timestamp={item.timestamp}
-                      icon={item.icon}
-                      status={item.status || 'pending'}
-                      isLast={idx === timeline.length - 1}
-                    />
-                  ))
-                ) : (
-                  <p className="text-sm text-[var(--os-text-secondary)]">No timeline events available</p>
-                )}
-              </div>
-            </Surface>
+        {/* Main Content */}
+        <div className="md:col-span-2 space-y-4">
+          {/* Order Timeline */}
+          <Surface className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Order Timeline</h2>
+            </div>
+            <div className="space-y-4">
+              {Array.isArray(timeline) && timeline.length > 0 ? (
+                timeline.map((item, idx) => (
+                  <TimelineItem
+                    key={item.id || idx}
+                    title={item.title}
+                    description={item.description}
+                    timestamp={item.timestamp}
+                    icon={item.icon}
+                    status={item.status || 'pending'}
+                    isLast={idx === timeline.length - 1}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-[var(--os-text-secondary)]">No timeline events available</p>
+              )}
+            </div>
+          </Surface>
 
-            {/* Product Details */}
-            {product && (
-              <Surface className="p-5">
-                <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Product Details</h2>
-                <div className="flex gap-4">
-                  {product.images && product.images[0] && (
-                    <img 
-                      src={product.images[0]} 
-                      alt={product.name || product.title}
-                      className="w-24 h-24 object-cover rounded-xl border"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-[var(--os-text-primary)]">{product.name || product.title}</h3>
-                    <p className="text-sm text-[var(--os-text-secondary)] mt-1">{product.short_description}</p>
-                    <div className="mt-2 flex items-center gap-4 text-sm text-[var(--os-text-secondary)]">
-                      <span>Quantity: {order.quantity} {order.products?.unit || 'units'}</span>
-                      <span>Unit Price: {order.currency} {parseFloat(order.unit_price).toLocaleString()}</span>
-                    </div>
+          {/* Product Details */}
+          {product && (
+            <Surface className="p-5">
+              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Product Details</h2>
+              <div className="flex gap-4">
+                {product.images && product.images[0] && (
+                  <img
+                    src={product.images[0]}
+                    alt={product.name || product.title}
+                    className="w-24 h-24 object-cover rounded-xl border"
+                  />
+                )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-[var(--os-text-primary)]">{product.name || product.title}</h3>
+                  <p className="text-sm text-[var(--os-text-secondary)] mt-1">{product.short_description}</p>
+                  <div className="mt-2 flex items-center gap-4 text-sm text-[var(--os-text-secondary)]">
+                    <span>Quantity: {order.quantity} {order.products?.unit || 'units'}</span>
+                    <span>Unit Price: {order.currency} {parseFloat(order.unit_price).toLocaleString()}</span>
                   </div>
                 </div>
-              </Surface>
-            )}
-
-            {/* Shipment Info */}
-            <Surface className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Shipment Information</h2>
-                {canManageShipment && !shipment && (
-                  <Button
-                    size="sm"
-                    className="hover:bg-afrikoni-goldDark"
-                    onClick={handleCreateShipment}
-                    disabled={isUpdating}
-                  >
-                    <Truck className="w-4 h-4 mr-2" />
-                    Create Shipment
-                  </Button>
-                )}
               </div>
-              {shipment ? (
-                <div className="space-y-3">
+            </Surface>
+          )}
+
+          {/* Shipment Info */}
+          <Surface className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Shipment Information</h2>
+              {canManageShipment && !shipment && (
+                <Button
+                  size="sm"
+                  className="hover:bg-afrikoni-goldDark"
+                  onClick={handleCreateShipment}
+                  disabled={isUpdating}
+                >
+                  <Truck className="w-4 h-4 mr-2" />
+                  Create Shipment
+                </Button>
+              )}
+            </div>
+            {shipment ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[var(--os-text-secondary)]">Tracking Number</span>
+                  <span className="font-mono font-medium text-[var(--os-text-primary)]">
+                    {shipment.tracking_number || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[var(--os-text-secondary)]">Status</span>
+                  <Badge variant="outline" className="capitalize text-[var(--os-text-primary)]">
+                    {shipment.status}
+                  </Badge>
+                </div>
+                {shipment.origin_address && (
+                  <div>
+                    <span className="text-sm text-[var(--os-text-secondary)]">Origin</span>
+                    <p className="text-sm text-[var(--os-text-secondary)]">
+                      {shipment.origin_address}
+                    </p>
+                  </div>
+                )}
+                {shipment.destination_address && (
+                  <div>
+                    <span className="text-sm text-[var(--os-text-secondary)]">Destination</span>
+                    <p className="text-sm text-[var(--os-text-secondary)]">
+                      {shipment.destination_address}
+                    </p>
+                  </div>
+                )}
+                {shipment.estimated_delivery && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--os-text-secondary)]">Tracking Number</span>
-                    <span className="font-mono font-medium text-[var(--os-text-primary)]">
-                      {shipment.tracking_number || 'N/A'}
+                    <span className="text-sm text-[var(--os-text-secondary)]">Estimated Delivery</span>
+                    <span className="text-sm text-[var(--os-text-primary)]">
+                      {format(
+                        new Date(shipment.estimated_delivery),
+                        'MMM d, yyyy'
+                      )}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--os-text-secondary)]">Status</span>
-                    <Badge variant="outline" className="capitalize text-[var(--os-text-primary)]">
-                      {shipment.status}
-                    </Badge>
-                  </div>
-                  {shipment.origin_address && (
-                    <div>
-                      <span className="text-sm text-[var(--os-text-secondary)]">Origin</span>
-                      <p className="text-sm text-[var(--os-text-secondary)]">
-                        {shipment.origin_address}
-                      </p>
-                    </div>
-                  )}
-                  {shipment.destination_address && (
-                    <div>
-                      <span className="text-sm text-[var(--os-text-secondary)]">Destination</span>
-                      <p className="text-sm text-[var(--os-text-secondary)]">
-                        {shipment.destination_address}
-                      </p>
-                    </div>
-                  )}
-                  {shipment.estimated_delivery && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--os-text-secondary)]">Estimated Delivery</span>
-                      <span className="text-sm text-[var(--os-text-primary)]">
-                        {format(
-                          new Date(shipment.estimated_delivery),
-                          'MMM d, yyyy'
-                        )}
-                      </span>
-                    </div>
-                  )}
+                )}
 
-                  {canManageShipment && (
-                    <div className="pt-2">
-                      <span className="text-xs text-[var(--os-text-secondary)] block mb-1">
-                        Update shipment status
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {shipmentStatuses.map((status) => (
-                          <Button
-                            key={status}
-                            size="xs"
-                            variant={shipment.status === status ? 'default' : 'outline'}
-                            className={`text-[11px] capitalize ${
-                              shipment.status === status
-                                ? 'bg-afrikoni-gold text-afrikoni-charcoal'
-                                : 'border-white/10 text-[var(--os-text-primary)]'
+                {canManageShipment && (
+                  <div className="pt-2">
+                    <span className="text-xs text-[var(--os-text-secondary)] block mb-1">
+                      Update shipment status
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {shipmentStatuses.map((status) => (
+                        <Button
+                          key={status}
+                          size="xs"
+                          variant={shipment.status === status ? 'default' : 'outline'}
+                          className={`text-[11px] capitalize ${shipment.status === status
+                            ? 'bg-afrikoni-gold text-afrikoni-charcoal'
+                            : 'border-white/10 text-[var(--os-text-primary)]'
                             }`}
-                            onClick={() => handleShipmentStatusUpdate(status)}
-                            disabled={isUpdating || shipment.status === status}
-                          >
-                            {status.replace(/_/g, ' ')}
-                          </Button>
-                        ))}
-                      </div>
+                          onClick={() => handleShipmentStatusUpdate(status)}
+                          disabled={isUpdating || shipment.status === status}
+                        >
+                          {status.replace(/_/g, ' ')}
+                        </Button>
+                      ))}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-[var(--os-text-secondary)]">
-                  No shipment has been created yet for this order.
-                </p>
-              )}
-            </Surface>
-
-            {/* Deal Milestone Tracker */}
-            <DealMilestoneTracker 
-              currentStatus={order?.status || 'pending'}
-              milestones={timeline.map(t => ({
-                status: t.status,
-                completed: t.completed,
-                timestamp: t.timestamp,
-                notes: t.note
-              }))}
-              orderNumber={order?.order_number}
-              estimatedDelivery={order?.estimated_delivery || shipment?.estimated_arrival}
-            />
-
-            {/* Escrow / Wallet Timeline */}
-            {Array.isArray(walletEvents) && walletEvents.length > 0 && (
-              <Surface className="p-5">
-                <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Payment &amp; Escrow Events</h2>
-                <div className="space-y-2 text-sm">
-                  {walletEvents.map((evt) => (
-                    <div
-                      key={evt.id}
-                      className="flex items-center justify-between border-b py-2 last:border-b-0"
-                    >
-                      <div>
-                        <div className="font-medium text-[var(--os-text-primary)]">
-                          {evt.type.replace('_', ' ')}
-                        </div>
-                        <div className="text-[11px] text-[var(--os-text-secondary)]">
-                          {evt.description || 'Wallet transaction'}
-                        </div>
-                      </div>
-                      <div className="text-right text-xs">
-                        <div className="font-semibold text-[var(--os-text-primary)]">
-                          {evt.currency || 'USD'} {parseFloat(evt.amount || 0).toLocaleString()}
-                        </div>
-                        <div className="text-[11px] text-[var(--os-text-secondary)]">
-                          {evt.created_at ? format(new Date(evt.created_at), 'MMM d, HH:mm') : ''}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Surface>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Buyer Protection Option (for buyers, before payment) */}
-            {currentRole === 'buyer' && order.payment_status === 'pending' && !order.buyer_protection_enabled && (
-              <BuyerProtectionOption
-                orderAmount={parseFloat(order.total_amount || 0)}
-                currency={order.currency || 'USD'}
-                onToggle={async (enabled) => {
-                  try {
-                    const protectionFee = enabled ? (parseFloat(order.total_amount) * 0.02) : 0;
-                    const { error } = await supabase
-                      .from('orders')
-                      .update({
-                        buyer_protection_enabled: enabled,
-                        buyer_protection_fee: protectionFee
-                      })
-                      .eq('id', id);
-                    
-                    if (error) throw error;
-                    setBuyerProtectionEnabled(enabled);
-                    
-                    // Create revenue transaction if enabled
-                    if (enabled && protectionFee > 0) {
-                      await supabase.from('revenue_transactions').insert({
-                        transaction_type: 'protection_fee',
-                        amount: protectionFee,
-                        currency: order.currency || 'USD',
-                        order_id: id,
-                        company_id: order.buyer_company_id,
-                        description: 'Buyer protection fee - Trade Inspection',
-                        status: 'completed',
-                        processed_at: new Date().toISOString()
-                      });
-                    }
-                    
-                    toast.success(enabled ? 'Trade Inspection added' : 'Trade Inspection removed');
-                    loadOrderData();
-                  } catch (error) {
-                    console.error('Error updating protection:', error);
-                    toast.error('Failed to update protection option');
-                  }
-                }}
-                isEnabled={buyerProtectionEnabled}
-              />
-            )}
-
-            {/* Order Summary */}
-            <Surface className="p-5">
-              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Order Summary</h2>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[var(--os-text-secondary)]">Subtotal</span>
-                  <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.total_amount).toLocaleString()}</span>
-                </div>
-                {order.buyer_protection_fee > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--os-text-secondary)]">Trade Inspection</span>
-                    <span className="font-medium">{order.currency} {parseFloat(order.buyer_protection_fee).toLocaleString()}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-[var(--os-text-secondary)]">Shipping</span>
-                  <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.shipping_cost || 0).toLocaleString()}</span>
-                </div>
-                <div className="border-t pt-3 flex justify-between font-semibold text-[var(--os-text-primary)]">
-                  <span>Total</span>
-                  <span>{order.currency} {parseFloat((order.total_amount || 0) + (order.buyer_protection_fee || 0) + (order.shipping_cost || 0)).toLocaleString()}</span>
-                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-[var(--os-text-secondary)]">
+                No shipment has been created yet for this order.
+              </p>
+            )}
+          </Surface>
+
+          {/* Deal Milestone Tracker */}
+          <DealMilestoneTracker
+            currentStatus={order?.status || 'pending'}
+            milestones={timeline.map(t => ({
+              status: t.status,
+              completed: t.completed,
+              timestamp: t.timestamp,
+              notes: t.note
+            }))}
+            orderNumber={order?.order_number}
+            estimatedDelivery={order?.estimated_delivery || shipment?.estimated_arrival}
+          />
+
+          {/* Escrow / Wallet Timeline */}
+          {Array.isArray(walletEvents) && walletEvents.length > 0 && (
+            <Surface className="p-5">
+              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Payment &amp; Escrow Events</h2>
+              <div className="space-y-2 text-sm">
+                {walletEvents.map((evt) => (
+                  <div
+                    key={evt.id}
+                    className="flex items-center justify-between border-b py-2 last:border-b-0"
+                  >
+                    <div>
+                      <div className="font-medium text-[var(--os-text-primary)]">
+                        {evt.type.replace('_', ' ')}
+                      </div>
+                      <div className="text-[11px] text-[var(--os-text-secondary)]">
+                        {evt.description || 'Wallet transaction'}
+                      </div>
+                    </div>
+                    <div className="text-right text-xs">
+                      <div className="font-semibold text-[var(--os-text-primary)]">
+                        {evt.currency || 'USD'} {parseFloat(evt.amount || 0).toLocaleString()}
+                      </div>
+                      <div className="text-[11px] text-[var(--os-text-secondary)]">
+                        {evt.created_at ? format(new Date(evt.created_at), 'MMM d, HH:mm') : ''}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </Surface>
+          )}
+        </div>
 
-            {/* Company Info */}
-            <Surface className="p-5">
-              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">
-                {currentRole === 'buyer' || currentRole === 'hybrid' ? 'Supplier' : 'Buyer'}
-              </h2>
-              {currentRole === 'buyer' || currentRole === 'hybrid' ? (
-                sellerCompany ? (
-                  <div>
-                    <h4 className="font-semibold text-[var(--os-text-primary)]">{sellerCompany.company_name}</h4>
-                    <p className="text-sm text-[var(--os-text-secondary)] mt-1">{sellerCompany.country}</p>
-                    <Link to={`/business/${sellerCompany.id}`}>
-                      <Button variant="outline" size="sm" className="w-full mt-3">
-                        View Business Profile
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
-                )
-              ) : (
-                buyerCompany ? (
-                  <div>
-                    <h4 className="font-semibold text-[var(--os-text-primary)]">{buyerCompany.company_name}</h4>
-                    <p className="text-sm text-[var(--os-text-secondary)] mt-1">{buyerCompany.country}</p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
-                )
+        {/* Sidebar */}
+        <div className="space-y-4">
+          {/* Buyer Protection Option (for buyers, before payment) */}
+          {currentRole === 'buyer' && order.payment_status === 'pending' && !order.buyer_protection_enabled && (
+            <BuyerProtectionOption
+              orderAmount={parseFloat(order.total_amount || 0)}
+              currency={order.currency || 'USD'}
+              onToggle={async (enabled) => {
+                try {
+                  const protectionFee = enabled ? (parseFloat(order.total_amount) * 0.02) : 0;
+                  const { error } = await supabase
+                    .from('orders')
+                    .update({
+                      buyer_protection_enabled: enabled,
+                      buyer_protection_fee: protectionFee
+                    })
+                    .eq('id', id);
+
+                  if (error) throw error;
+                  setBuyerProtectionEnabled(enabled);
+
+                  // Create revenue transaction if enabled
+                  if (enabled && protectionFee > 0) {
+                    await supabase.from('revenue_transactions').insert({
+                      transaction_type: 'protection_fee',
+                      amount: protectionFee,
+                      currency: order.currency || 'USD',
+                      order_id: id,
+                      company_id: order.buyer_company_id,
+                      description: 'Buyer protection fee - Trade Inspection',
+                      status: 'completed',
+                      processed_at: new Date().toISOString()
+                    });
+                  }
+
+                  toast.success(enabled ? 'Trade Inspection added' : 'Trade Inspection removed');
+                  loadOrderData();
+                } catch (error) {
+                  console.error('Error updating protection:', error);
+                  toast.error('Failed to update protection option');
+                }
+              }}
+              isEnabled={buyerProtectionEnabled}
+            />
+          )}
+
+          {/* Order Summary */}
+          <Surface className="p-5">
+            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Order Summary</h2>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--os-text-secondary)]">Subtotal</span>
+                <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.total_amount).toLocaleString()}</span>
+              </div>
+              {order.buyer_protection_fee > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-[var(--os-text-secondary)]">Trade Inspection</span>
+                  <span className="font-medium">{order.currency} {parseFloat(order.buyer_protection_fee).toLocaleString()}</span>
+                </div>
               )}
-            </Surface>
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--os-text-secondary)]">Shipping</span>
+                <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.shipping_cost || 0).toLocaleString()}</span>
+              </div>
+              <div className="border-t pt-3 flex justify-between font-semibold text-[var(--os-text-primary)]">
+                <span>Total</span>
+                <span>{order.currency} {parseFloat((order.total_amount || 0) + (order.buyer_protection_fee || 0) + (order.shipping_cost || 0)).toLocaleString()}</span>
+              </div>
+            </div>
+          </Surface>
 
-            {/* Actions */}
-            <Surface className="p-5">
-              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Actions</h2>
-              <div className="space-y-2">
-                {currentRole === 'buyer' && (
-                  <>
+          {/* Company Info */}
+          <Surface className="p-5">
+            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">
+              {currentRole === 'buyer' || currentRole === 'hybrid' ? 'Supplier' : 'Buyer'}
+            </h2>
+            {currentRole === 'buyer' || currentRole === 'hybrid' ? (
+              sellerCompany ? (
+                <div>
+                  <h4 className="font-semibold text-[var(--os-text-primary)]">{sellerCompany.company_name}</h4>
+                  <p className="text-sm text-[var(--os-text-secondary)] mt-1">{sellerCompany.country}</p>
+                  <Link to={`/business/${sellerCompany.id}`}>
+                    <Button variant="outline" size="sm" className="w-full mt-3">
+                      View Business Profile
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
+              )
+            ) : (
+              buyerCompany ? (
+                <div>
+                  <h4 className="font-semibold text-[var(--os-text-primary)]">{buyerCompany.company_name}</h4>
+                  <p className="text-sm text-[var(--os-text-secondary)] mt-1">{buyerCompany.country}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
+              )
+            )}
+          </Surface>
+
+          {/* Actions */}
+          <Surface className="p-5">
+            {/* MULTI-SIG BRIDGE: 3-Key Consensus Visualization */}
+            <div className="mb-6 p-4 bg-black/20 rounded-xl border border-white/5">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Multi-Sig Bridge Active</span>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                {/* Key 1: AI Sentinel (Doc Verified) */}
+                <div className="flex flex-col items-center gap-1.5 flex-1 p-2 bg-amber-500/5 rounded-lg border border-amber-500/20">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-amber-500/20 text-amber-500">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] text-amber-500 font-mono font-bold">AI Sentinel</span>
+                  <span className="text-[9px] text-gray-500">Doc Verified</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                </div>
+
+                {/* Key 2: Logistics Oracle (GPS Verified) */}
+                <div className="flex flex-col items-center gap-1.5 flex-1 p-2 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500/20 text-blue-500">
+                    <Truck className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] text-blue-500 font-mono font-bold">Logistics</span>
+                  <span className="text-[9px] text-gray-500">GPS Verified</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                </div>
+
+                {/* Key 3: Buyer (Final Sig) */}
+                <div className="flex flex-col items-center gap-1.5 flex-1 p-2 bg-emerald-500/5 rounded-lg border border-emerald-500/20">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500/20 text-emerald-500">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] text-emerald-500 font-mono font-bold">Buyer Key</span>
+                  <span className="text-[9px] text-gray-500">Final Sig</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                </div>
+              </div>
+              <div className="mt-3 text-[10px] text-center text-gray-400">
+                <Lock className="w-3 h-3 inline mr-1 opacity-50" />
+                Funds are cryptographically secured until 3-Key Consensus is reached.
+              </div>
+            </div>
+
+            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Actions</h2>
+            <div className="space-y-2">
+              {currentRole === 'buyer' && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      navigate(`/dashboard/rfqs/new?product=${order.product_id}&quantity=${order.quantity}`);
+                      toast.info('Creating new RFQ from this order...');
+                    }}
+                    className="w-full"
+                    size="sm"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reorder
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    size="sm"
+                    onClick={() => setShowTemplateDialog(true)}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save as Template
+                  </Button>
+                  <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Save Order as Template</DialogTitle>
+                        <DialogClose onClose={() => setShowTemplateDialog(false)} />
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="template-name">Template Name</Label>
+                          <Input
+                            id="template-name"
+                            placeholder="e.g., Monthly Coffee Order"
+                            value={templateName}
+                            onChange={(e) => setTemplateName(e.target.value)}
+                          />
+                        </div>
+                        <Button
+                          onClick={() => {
+                            if (!templateName.trim()) {
+                              toast.error('Please enter a template name');
+                              return;
+                            }
+                            const template = {
+                              id: Date.now().toString(),
+                              name: templateName,
+                              order: {
+                                product_id: order.product_id,
+                                quantity: order.quantity,
+                                total_amount: order.total_amount,
+                                currency: order.currency,
+                                shipping_address: order.shipping_address,
+                                notes: order.notes,
+                              },
+                              created_at: new Date().toISOString(),
+                            };
+                            const stored = localStorage.getItem('afrikoni_order_templates');
+                            const templates = stored ? JSON.parse(stored) : [];
+                            templates.push(template);
+                            localStorage.setItem('afrikoni_order_templates', JSON.stringify(templates));
+                            toast.success('Order template saved!');
+                            setTemplateName('');
+                            setShowTemplateDialog(false);
+                          }}
+                          className="w-full hover:bg-afrikoni-goldDark"
+                        >
+                          Save Template
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </>
+              )}
+              <Link to={`/messages?order=${id}`}>
+                <Button variant="outline" className="w-full" size="sm">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Send Message
+                </Button>
+              </Link>
+              {currentRole === 'buyer' && order.payment_status === 'pending' && (
+                <Link to={`/dashboard/orders/${id}/logistics-quote`}>
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Truck className="w-4 h-4 mr-2" />
+                    Request Shipping Quote
+                  </Button>
+                </Link>
+              )}
+
+              {canUpdateStatus && (
+                <>
+                  {getNextStatuses(order.status, 'order').map(nextStatus => (
                     <Button
-                      variant="outline"
-                      onClick={() => {
-                        navigate(`/dashboard/rfqs/new?product=${order.product_id}&quantity=${order.quantity}`);
-                        toast.info('Creating new RFQ from this order...');
-                      }}
+                      key={nextStatus}
+                      onClick={() => handleStatusUpdate(nextStatus)}
+                      disabled={isUpdating || !canTransitionTo(order.status, nextStatus, 'order')}
                       className="w-full"
                       size="sm"
                     >
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Reorder
+                      {getStatusLabel(nextStatus, 'order')}
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      size="sm"
-                      onClick={() => setShowTemplateDialog(true)}
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save as Template
-                    </Button>
-                    <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Save Order as Template</DialogTitle>
-                          <DialogClose onClose={() => setShowTemplateDialog(false)} />
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="template-name">Template Name</Label>
-                            <Input
-                              id="template-name"
-                              placeholder="e.g., Monthly Coffee Order"
-                              value={templateName}
-                              onChange={(e) => setTemplateName(e.target.value)}
-                            />
-                          </div>
-                          <Button
-                            onClick={() => {
-                              if (!templateName.trim()) {
-                                toast.error('Please enter a template name');
-                                return;
-                              }
-                              const template = {
-                                id: Date.now().toString(),
-                                name: templateName,
-                                order: {
-                                  product_id: order.product_id,
-                                  quantity: order.quantity,
-                                  total_amount: order.total_amount,
-                                  currency: order.currency,
-                                  shipping_address: order.shipping_address,
-                                  notes: order.notes,
-                                },
-                                created_at: new Date().toISOString(),
-                              };
-                              const stored = localStorage.getItem('afrikoni_order_templates');
-                              const templates = stored ? JSON.parse(stored) : [];
-                              templates.push(template);
-                              localStorage.setItem('afrikoni_order_templates', JSON.stringify(templates));
-                              toast.success('Order template saved!');
-                              setTemplateName('');
-                              setShowTemplateDialog(false);
-                            }}
-                            className="w-full hover:bg-afrikoni-goldDark"
-                          >
-                            Save Template
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </>
-                )}
-                <Link to={`/messages?order=${id}`}>
-                  <Button variant="outline" className="w-full" size="sm">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Send Message
-                  </Button>
-                </Link>
-                {currentRole === 'buyer' && order.payment_status === 'pending' && (
-                  <Link to={`/dashboard/orders/${id}/logistics-quote`}>
-                    <Button variant="outline" className="w-full" size="sm">
-                      <Truck className="w-4 h-4 mr-2" />
-                      Request Shipping Quote
-                    </Button>
-                  </Link>
-                )}
-                
-                {canUpdateStatus && (
-                  <>
-                    {getNextStatuses(order.status, 'order').map(nextStatus => (
-                      <Button
-                        key={nextStatus}
-                        onClick={() => handleStatusUpdate(nextStatus)}
-                        disabled={isUpdating || !canTransitionTo(order.status, nextStatus, 'order')}
-                        className="w-full"
-                        size="sm"
-                      >
-                        {getStatusLabel(nextStatus, 'order')}
-                      </Button>
-                    ))}
-                  </>
-                )}
+                  ))}
+                </>
+              )}
 
-                {canConfirmReceipt && (
-                  <Button 
-                    onClick={() => handleStatusUpdate(ORDER_STATUS.COMPLETED)}
-                    disabled={isUpdating}
-                    variant="primary"
-                    size="sm"
-                    className="w-full"
-                  >
-                    Confirm Receipt
-                  </Button>
-                )}
+              {canConfirmReceipt && (
+                <Button
+                  onClick={() => handleStatusUpdate(ORDER_STATUS.COMPLETED)}
+                  disabled={isUpdating}
+                  variant="primary"
+                  size="sm"
+                  className="w-full"
+                >
+                  Confirm Receipt
+                </Button>
+              )}
 
-                {currentRole === 'buyer' && order.payment_status === 'pending' && (
-                  <Button 
-                    onClick={() => handlePaymentStatusUpdate('paid')}
-                    disabled={isUpdating}
-                    className="w-full hover:bg-afrikoni-goldDark" 
-                    size="sm"
-                  >
-                    Mark as Paid
-                  </Button>
-                )}
+              {currentRole === 'buyer' && order.payment_status === 'pending' && (
+                <Button
+                  onClick={() => handlePaymentStatusUpdate('paid')}
+                  disabled={isUpdating}
+                  className="w-full hover:bg-afrikoni-goldDark"
+                  size="sm"
+                >
+                  Mark as Paid
+                </Button>
+              )}
 
-                {/* Review Prompt for Completed Orders */}
-                {(order.status === 'completed' || order.status === 'delivered') && 
-                 (currentRole === 'buyer' || currentRole === 'hybrid') && 
-                 !hasReviewed && (
+              {/* Review Prompt for Completed Orders */}
+              {(order.status === 'completed' || order.status === 'delivered') &&
+                (currentRole === 'buyer' || currentRole === 'hybrid') &&
+                !hasReviewed && (
                   <div className="mt-4 p-4 border rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Star className="w-5 h-5" />
@@ -961,51 +1004,50 @@ export default function OrderDetail() {
                   </div>
                 )}
 
-                {hasReviewed && existingReview && (
-                  <div className="mt-4 p-4 border rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="font-semibold">Review Submitted</span>
-                    </div>
-                    <div className="flex items-center gap-1 mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= existingReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    {existingReview.comment && (
-                      <p className="text-sm">{existingReview.comment}</p>
-                    )}
+              {hasReviewed && existingReview && (
+                <div className="mt-4 p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-semibold">Review Submitted</span>
                   </div>
-                )}
-              </div>
-            </Surface>
-          </div>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-4 h-4 ${star <= existingReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'
+                          }`}
+                      />
+                    ))}
+                  </div>
+                  {existingReview.comment && (
+                    <p className="text-sm">{existingReview.comment}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </Surface>
         </div>
+      </div>
 
-        {/* Review Form */}
-        {showReviewForm && order && sellerCompany && product && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6"
-          >
-            <ReviewForm
-              order={order}
-              product={product}
-              company={sellerCompany}
-              onSuccess={() => {
-                setShowReviewForm(false);
-                setHasReviewed(true);
-                loadOrderData();
-              }}
-            />
-          </motion.div>
-        )}
+      {/* Review Form */}
+      {showReviewForm && order && sellerCompany && product && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6"
+        >
+          <ReviewForm
+            order={order}
+            product={product}
+            company={sellerCompany}
+            onSuccess={() => {
+              setShowReviewForm(false);
+              setHasReviewed(true);
+              loadOrderData();
+            }}
+          />
+        </motion.div>
+      )}
     </div>
   );
 }

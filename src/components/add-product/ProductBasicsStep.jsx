@@ -1,33 +1,62 @@
 import { useState } from 'react';
-import { Sparkles, Lightbulb } from 'lucide-react';
+import { Sparkles, Lightbulb, ShieldCheck, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Badge } from '@/components/shared/ui/badge';
 import { CATEGORIES, SUBCATEGORIES } from './types';
 import { cn } from '@/lib/utils';
+import { predictHSCode, calculateDutySavings } from '@/services/taxShield';
+import { analyzeSellerInput } from '@/services/aiGriot';
 
 export default function ProductBasicsStep({ formData, onUpdate }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // Tax Shield State
+  const [isPredictingHS, setIsPredictingHS] = useState(false);
+  const [hsPrediction, setHsPrediction] = useState(null);
 
   const subcategories = formData.category ? (SUBCATEGORIES[formData.category] || []) : [];
 
   const handleGenerateDescription = async () => {
     if (!formData.name || !formData.category) return;
     setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    const categoryLabel = CATEGORIES.find(c => c.value === formData.category)?.label || '';
-    const subcategoryLabel = subcategories.find(s => s.value === formData.subcategory)?.label || '';
-    const generated = `Premium quality ${formData.name.toLowerCase()} sourced directly from verified African suppliers. ${subcategoryLabel ? `This ${subcategoryLabel.toLowerCase()} product` : 'This product'} meets international export standards and is carefully processed to preserve freshness and quality. Available for bulk orders with competitive pricing for international buyers.`;
-    onUpdate({ description: generated });
-    setIsGenerating(false);
-    setShowFeedback(true);
-    setTimeout(() => setShowFeedback(false), 2500);
+
+    try {
+      // Use The Griot (AI Agent) to generate description
+      const inputContext = `${formData.name} ${formData.subcategory || ''}`;
+      const result = await analyzeSellerInput(inputContext, formData.category);
+
+      onUpdate({ description: result.description });
+      setShowFeedback(true);
+      setTimeout(() => setShowFeedback(false), 2500);
+    } catch (error) {
+      console.error('Griot generation failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const descriptionLength = formData.description.length;
+  const handlePredictHS = async () => {
+    if (!formData.name && !formData.description) return;
+    setIsPredictingHS(true);
+    try {
+      const result = await predictHSCode(formData.description || formData.name);
+      setHsPrediction(result);
+      if (result) {
+        onUpdate({ hsCode: result.code });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsPredictingHS(false);
+    }
+  };
+
+  const descriptionLength = formData.description?.length || 0;
   const isDescriptionGood = descriptionLength >= 50 && descriptionLength <= 500;
 
   return (
@@ -114,6 +143,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
           id="description"
           value={formData.description}
           onChange={(e) => onUpdate({ description: e.target.value })}
+          onBlur={handlePredictHS} // Auto-trigger on blur
           placeholder="Describe quality, origin, certifications, and unique features..."
           className="min-h-[120px] resize-none os-input"
         />
@@ -137,6 +167,71 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
             </span>
           )}
         </div>
+      </div>
+
+      {/* TAX SHIELD: HS Code Mapping */}
+      <div className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            <div>
+              <h4 className="text-sm font-semibold text-white">AfCFTA Compliance</h4>
+              <p className="text-xs text-white/50">Auto-mapped Harmonized System Code</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePredictHS}
+            disabled={isPredictingHS}
+            className="text-xs"
+          >
+            {isPredictingHS ? <RefreshCw className="w-3 h-3 animate-spin" /> : 'Map Code'}
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-4 bg-black/20 p-3 rounded-lg border border-white/5">
+          <div className="flex-1">
+            <Label className="text-xs text-white/50 mb-1 block">HS Code</Label>
+            <div className="font-mono text-lg font-bold text-emerald-400">
+              {hsPrediction ? hsPrediction.code : '----.--'}
+            </div>
+          </div>
+          <div className="flex-1 border-l border-white/10 pl-4">
+            <Label className="text-xs text-white/50 mb-1 block">Duty Rate</Label>
+            <div className="font-mono text-sm font-medium text-white">
+              {hsPrediction ? hsPrediction.duty : '--%'}
+            </div>
+          </div>
+          <div className="flex-1 border-l border-white/10 pl-4 hidden sm:block">
+            <Label className="text-xs text-white/50 mb-1 block">Classification</Label>
+            <div className="text-xs text-white truncate max-w-[150px]" title={hsPrediction?.desc}>
+              {hsPrediction ? hsPrediction.desc : 'Waiting for input...'}
+            </div>
+          </div>
+        </div>
+        {hsPrediction?.duty === '0%' && (
+          <div className="space-y-3">
+            <div className="text-xs text-emerald-400 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3 h-3" />
+              Eligible for 100% Duty-Free Export under AfCFTA
+            </div>
+
+            {/* TAX SHIELD SAVINGS CARD */}
+            <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">AfCFTA Tax Shield</p>
+                <p className="text-white text-sm font-medium mt-0.5">Potential Duty Savings</p>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold text-emerald-400">
+                  {hsPrediction ? calculateDutySavings(hsPrediction.code).formatted : '$0'}
+                </p>
+                <p className="text-[10px] text-emerald-400/70">per $50k volume</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5 border border-white/10">

@@ -177,11 +177,99 @@ export async function getTradeEvents(tradeId) {
   return data;
 }
 
+/**
+ * INTELLIGENCE LAYER: Analyze current context and return system advice
+ * @param {Object} context - { page, data, user }
+ * @returns {Array} - Array of advice objects
+ */
+export function analyzeContext(context) {
+  // Mock Intelligence Rules for Prototype
+  const advice = [];
+
+  // Rule 1: RFQ / Orders context
+  if (context.page === 'orders') {
+    // Randomly surface opportunities for demo purposes
+    if (Math.random() > 0.5) {
+      advice.push({
+        type: 'opportunity',
+        id: 'opt_consolidation',
+        message: '3 shipments to Lagos match this route. Consolidate to save ~18% on logistics.',
+        action: 'consolidate_shipments',
+        actionLabel: 'View Consolidation Options'
+      });
+    }
+
+    if (Math.random() > 0.7) {
+      advice.push({
+        type: 'risk',
+        id: 'risk_fx_ngn',
+        message: 'NGN volatility detected. Recommend locking USD rate for pending settlements.',
+        action: 'lock_rate',
+        actionLabel: 'Lock FX Rate'
+      });
+    }
+  }
+
+  return advice;
+}
+
+
+/**
+ * INFRASTRUCTURE LAYER: Get health metrics for trade corridors
+ * @returns {Array} - List of corridor health objects
+ */
+export function getCorridorHealth() {
+  return [
+    { id: 'c1', origin: 'Lagos', dest: 'London', volume: 'high', risk: 'low', friction: 'low' },
+    { id: 'c2', origin: 'Nairobi', dest: 'Dubai', volume: 'high', risk: 'low', friction: 'medium' },
+    { id: 'c3', origin: 'Accra', dest: 'New York', volume: 'medium', risk: 'medium', friction: 'high' }
+  ];
+}
+
+/**
+ * MULTI-SIG BRIDGE: Request consensus from a party
+ * @param {string} tradeId 
+ * @param {string} party 'BUYER' | 'SELLER' | 'PROTOCOL'
+ */
+export async function requestConsensus(tradeId, party) {
+  // In a real implementation, this would write to a secure ledger/table
+  // For prototype, we simulate the state check
+  console.log(`[TradeKernel] Consensus requested from ${party} for ${tradeId}`);
+
+  return {
+    success: true,
+    timestamp: new Date().toISOString(),
+    signature: `${party}_SIG_${Date.now()}`
+  };
+}
+
+/**
+ * MULTI-SIG BRIDGE: Check if 3-Key Consensus is met
+ * @param {string} tradeId 
+ */
+export async function checkConsensus(tradeId) {
+  // Simulate fetching signatures
+  // For demo, we assume Protocol always signs if risk is low
+  const protocolSigned = true;
+
+  return {
+    buyerSigned: true, // Mocked for demo flow
+    sellerSigned: true, // Mocked for demo flow
+    protocolSigned,
+    consensusReached: true, // All 3 keys present
+    signatures: ['BUYER_SIG', 'SELLER_SIG', 'PROTOCOL_SIG']
+  };
+}
+
 export default {
   TRADE_STATE,
   TRADE_STATE_LABELS,
   TRADE_STATE_ORDER,
   getKernelNextAction,
   transitionTrade,
-  getTradeEvents
+  getTradeEvents,
+  analyzeContext,
+  getCorridorHealth,
+  requestConsensus,
+  checkConsensus
 };

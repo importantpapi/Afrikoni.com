@@ -5,7 +5,7 @@ import {
   LayoutDashboard, GitBranch, MessageSquare, FileText, ShoppingCart,
   Package, Truck, Wallet, Shield, Settings, HelpCircle, ChevronDown,
   ChevronRight, BarChart3, Building2, Users, Receipt, Star,
-  AlertCircle, Lock, Plus, Sparkles, Globe, X, Database
+  AlertCircle, Lock, Plus, Sparkles, Globe, X, Database, Landmark, Bell
 } from 'lucide-react';
 
 export default function TradeOSSidebar({
@@ -77,7 +77,9 @@ export default function TradeOSSidebar({
 
         {/* 0. Command Center (The Brain) */}
         <OSNavItem icon={LayoutDashboard} label="Command Center" path="/dashboard" active={isActive('/dashboard') && !location.pathname.includes('/dashboard/')} />
-        <OSNavItem icon={MessageSquare} label="Messages" path="/dashboard/notifications" badge={notificationCounts.messages} active={isActive('/dashboard/notifications')} />
+        <OSNavItem icon={Landmark} label="Sovereign Treasury" path="/dashboard/revenue" active={isActive('/dashboard/revenue')} />
+        <OSNavItem icon={MessageSquare} label="Messages" path="/dashboard/messages" active={isActive('/dashboard/messages')} />
+        <OSNavItem icon={Bell} label="Signals" path="/dashboard/notifications" badge={notificationCounts.messages} active={isActive('/dashboard/notifications')} />
 
         <div className="w-8 h-px bg-[#222] my-1" />
 
@@ -107,8 +109,34 @@ export default function TradeOSSidebar({
           active={isActive('/dashboard/orders') || isActive('/dashboard/trade/')}
         />
 
+        <OSNavItem
+          icon={Globe}
+          label="Corridors"
+          path="/dashboard/corridors"
+          active={isActive('/dashboard/corridors')}
+        />
+
+        <div className="w-8 h-px bg-[#222] my-1" />
+
+        {/* 3. THE UNBROKEN FLOW (Power-Ups) */}
+        <OSNavItem
+          icon={Lock}
+          label="Trace Center"
+          path="/dashboard/trace-center"
+          badge="LIVE"
+          active={isActive('/dashboard/trace-center')}
+        />
+
+        <OSNavItem
+          icon={Shield}
+          label="Verification Lab"
+          path="/verification-center"
+          badge="BETA"
+          active={isActive('/verification-center')}
+        />
+
         {isSeller && (
-          <OSNavItem icon={Globe} label="Sales Analytics" path="/dashboard/sales" active={isActive('/dashboard/sales')} />
+          <OSNavItem icon={BarChart3} label="Sales Analytics" path="/dashboard/sales" active={isActive('/dashboard/sales')} />
         )}
 
         <div className="w-8 h-px bg-[#222] my-1" />
@@ -119,6 +147,8 @@ export default function TradeOSSidebar({
         )}
 
         <OSNavItem icon={Wallet} label="Finance" path="/dashboard/payments" active={isActive('/dashboard/payments')} />
+
+        <OSNavItem icon={FileText} label="Documents" path="/dashboard/documents" active={isActive('/dashboard/documents')} />
       </nav>
 
       {/* System Apps */}
