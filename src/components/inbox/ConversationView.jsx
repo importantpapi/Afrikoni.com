@@ -166,16 +166,16 @@ export default function ConversationView({ conversationId, conversation, current
   const otherCompany = conversation?.otherCompany;
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-afrikoni-gold/20 px-4 py-3">
+      <div className="sticky top-0 z-40 border-b px-4 py-3">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Back to conversations"
           >
-            <ArrowLeft className="w-5 h-5 text-afrikoni-gold" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
           
           {otherCompany && (
@@ -193,11 +193,11 @@ export default function ConversationView({ conversationId, conversation, current
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-afrikoni-deep/60 text-center mb-4">
+            <p className="text-center mb-4">
               No messages yet. Start the conversation!
             </p>
             {otherCompany && (
@@ -242,7 +242,7 @@ export default function ConversationView({ conversationId, conversation, current
 
       {/* Quick Replies (if no messages) */}
       {messages.length === 0 && otherCompany && (
-        <div className="px-4 py-2 border-t border-afrikoni-gold/10">
+        <div className="px-4 py-2 border-t">
           <QuickReplies
             onSelect={handleQuickReply}
             company={otherCompany}
@@ -252,7 +252,7 @@ export default function ConversationView({ conversationId, conversation, current
       )}
 
       {/* Message Composer (Sticky) */}
-      <div className="sticky bottom-0 bg-white border-t border-afrikoni-gold/20 px-4 py-3 pb-safe">
+      <div className="sticky bottom-0 border-t px-4 py-3 pb-safe">
         <div className="flex items-end gap-2">
           <div className="flex-1">
             <Input
@@ -273,7 +273,7 @@ export default function ConversationView({ conversationId, conversation, current
           <Button
             onClick={() => handleSendMessage(newMessage)}
             disabled={!newMessage.trim() || isSending}
-            className="min-h-[44px] min-w-[44px] bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+            className="min-h-[44px] min-w-[44px] hover:bg-afrikoni-goldDark"
             aria-label="Send message"
           >
             <Send className="w-5 h-5" />

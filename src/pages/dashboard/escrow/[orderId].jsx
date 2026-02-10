@@ -1,387 +1,202 @@
-/**
- * Escrow Detail Page
- * View escrow payment details and timeline
- */
-
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Shield, ArrowLeft, DollarSign, Clock, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import React, { useMemo, useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Surface } from '@/components/system/Surface';
+import { StatusBadge } from '@/components/system/StatusBadge';
+import { SignalChip } from '@/components/system/SignalChip';
 import { Button } from '@/components/shared/ui/button';
-import { Badge } from '@/components/shared/ui/badge';
-import { toast } from 'sonner';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { Progress } from '@/components/shared/ui/progress';
+import EmptyState from '@/components/shared/ui/EmptyState';
+import { Wallet, Lock, ArrowUpRight, Clock } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
-import ErrorState from '@/components/shared/ui/ErrorState';
-import { 
-  getEscrowPayment, 
-  getEscrowEvents,
-  updateEscrowStatus,
-  createEscrowEvent
-} from '@/lib/supabaseQueries/payments';
-import { format } from 'date-fns';
-// NOTE: Admin check done at route level - removed isAdmin import
-import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
-export default function EscrowDetailPage() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
-  
+export default function EscrowDetail() {
   const { orderId } = useParams();
-  const navigate = useNavigate();
-  const [escrow, setEscrow] = useState(null);
-  const [events, setEvents] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { canLoadData, isSystemReady } = useDashboardKernel();
+  const [order, setOrder] = useState(null);
+  const [payment, setPayment] = useState({
+    totalAmount: 0,
+    releasedAmount: 0,
+    heldAmount: 0,
+    fxRate: 1.0,
+    status: 'pending',
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading escrow..." ready={isSystemReady} />
-      </div>
-    );
-  }
-
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
   useEffect(() => {
-    if (!canLoadData) {
-      if (!userId) {
-        console.log('[EscrowDetailPage] No user → redirecting to login');
-        navigate('/login');
+    let active = true;
+    const load = async () => {
+      if (!isSystemReady || !canLoadData || !orderId) return;
+      try {
+        const { data, error } = await supabase
+          .from('trades')
+          .select('id, status, product_name, buyer_id, seller_id')
+          .eq('id', orderId)
+          .maybeSingle?.() ?? { data: null, error: null };
+
+        if (!active) return;
+        if (error || !data) {
+          setOrder(null);
+        } else {
+          setOrder(data);
+          const { data: escrow } = await supabase
+            .from('escrows')
+            .select('amount, balance, status, currency')
+            .eq('trade_id', orderId)
+            .maybeSingle?.() ?? { data: null };
+
+          if (escrow) {
+            const totalAmount = Number(escrow.amount || 0);
+            const heldAmount = Number(escrow.balance ?? escrow.amount ?? 0);
+            const releasedAmount = Math.max(0, totalAmount - heldAmount);
+            setPayment({
+              totalAmount,
+              releasedAmount,
+              heldAmount,
+              fxRate: 1.0,
+              status: escrow.status || 'pending',
+            });
+          }
+        }
+      } catch {
+        if (active) setOrder(null);
+      } finally {
+        if (active) setIsLoading(false);
       }
-      return;
-    }
-
-    loadEscrow();
-  }, [orderId, canLoadData, userId, profileCompanyId, navigate]);
-
-  const loadEscrow = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // ✅ KERNEL MIGRATION: Use profileCompanyId and isAdmin from kernel
-      const escrowData = await getEscrowPayment(orderId);
-      // SAFETY ASSERTION: Ensure escrow is related to the current company (if available)
-      if (escrowData && profileCompanyId && !isAdmin) {
-        await assertRowOwnedByCompany(escrowData, profileCompanyId, 'EscrowDetailPage:escrow');
-      }
-
-      setEscrow(escrowData);
-
-      if (escrowData) {
-        const eventsList = await getEscrowEvents(escrowData.id);
-        setEvents(eventsList);
-      }
-    } catch (err) {
-      console.error('[EscrowDetailPage] Error loading escrow:', err);
-      setError(err.message || 'Failed to load escrow details');
-      toast.error('Failed to load escrow details');
-      navigate('/dashboard/payments');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleReleaseEscrow = async () => {
-    if (!confirm('Are you sure you want to release this escrow payment to the seller?')) return;
-    
-    try {
-      await updateEscrowStatus(escrow.id, 'released');
-      await createEscrowEvent({
-        escrow_id: escrow.id,
-        event_type: 'release',
-        amount: escrow.amount,
-        created_by: userId
-      });
-      
-      toast.success('Escrow released successfully');
-      loadEscrow();
-    } catch (error) {
-      console.error('Error releasing escrow:', error);
-      toast.error('Failed to release escrow');
-    }
-  };
-
-  const handleRefundEscrow = async () => {
-    if (!confirm('Are you sure you want to refund this escrow payment to the buyer?')) return;
-    
-    try {
-      await updateEscrowStatus(escrow.id, 'refunded');
-      await createEscrowEvent({
-        escrow_id: escrow.id,
-        event_type: 'refund',
-        amount: escrow.amount,
-        created_by: userId
-      });
-      
-      toast.success('Escrow refunded successfully');
-      loadEscrow();
-    } catch (error) {
-      console.error('Error refunding escrow:', error);
-      toast.error('Failed to refund escrow');
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    const variants = {
-      'held': 'outline',
-      'partially_released': 'default',
-      'released': 'success',
-      'refunded': 'destructive',
-      'cancelled': 'outline'
     };
-    return variants[status] || 'outline';
-  };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [orderId, canLoadData, isSystemReady]);
 
-  const getEventIcon = (eventType) => {
-    switch (eventType) {
-      case 'release':
-      case 'partial_release':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'refund':
-        return <XCircle className="w-4 h-4 text-red-600" />;
-      case 'hold':
-        return <Shield className="w-4 h-4 text-blue-600" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
-
-  // ✅ KERNEL MIGRATION: Use unified loading state
   if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
-  if (error) {
     return (
-      <ErrorState 
-        message={error} 
-        onRetry={loadEscrow}
-      />
-    );
-  }
-
-  if (!escrow) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-afrikoni-text-dark/70">Escrow payment not found</p>
-        <Link to="/dashboard/payments">
-          <Button variant="outline" className="mt-4">
-            Back to Payments
-          </Button>
-        </Link>
+      <div className="os-page os-stagger space-y-4">
+        <Surface className="p-6">Loading escrow…</Surface>
       </div>
     );
   }
+
+  if (!order) {
+    return (
+      <div className="os-page os-stagger space-y-4">
+        <Surface className="p-6">
+          <EmptyState
+            title="Escrow not found"
+            description="We couldn’t locate this escrow."
+            cta="Back to Dashboard"
+            ctaLink="/dashboard"
+          />
+        </Surface>
+      </div>
+    );
+  }
+
+  const releasedPercent = payment.totalAmount
+    ? (payment.releasedAmount / payment.totalAmount) * 100
+    : 0;
+  const heldPercent = payment.totalAmount
+    ? (payment.heldAmount / payment.totalAmount) * 100
+    : 0;
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard/payments">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">
-                Escrow Payment
-              </h1>
-              <p className="text-afrikoni-text-dark/70">
-                Order #{escrow.orders?.order_number || orderId.slice(0, 8)}
-              </p>
+    <div className="os-page os-stagger space-y-6">
+      <Surface variant="glass" className="p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="os-label">Escrow</div>
+            <h1 className="text-2xl font-semibold text-foreground">Order {order.id}</h1>
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge label={payment.status?.toUpperCase() || 'LOCKED'} tone="neutral" />
+              <BadgeSoft icon={Clock} label={payment.fxRate ? `FX ${payment.fxRate}` : 'FX'} />
             </div>
           </div>
-          {(isAdmin || escrow.status === 'held') && (
-            <div className="flex gap-2">
-              {escrow.status === 'held' && (
-                <>
-                  <Button
-                    variant="outline"
-                    className="text-red-600 border-red-600 hover:bg-red-50"
-                    onClick={handleRefundEscrow}
-                  >
-                    Refund to Buyer
-                  </Button>
-                  <Button
-                    className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
-                    onClick={handleReleaseEscrow}
-                  >
-                    Release to Seller
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2">
+            <SignalChip label="Total" value={`$${payment.totalAmount.toLocaleString()}`} tone="gold" />
+            <SignalChip label="Released" value={`$${payment.releasedAmount.toLocaleString()}`} tone="emerald" />
+            <SignalChip label="Held" value={`$${payment.heldAmount.toLocaleString()}`} tone="amber" />
+          </div>
         </div>
+      </Surface>
 
-        {/* Escrow Details */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Escrow Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Amount */}
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Escrow Amount</p>
-                  <p className="text-3xl font-bold text-afrikoni-gold">
-                    {escrow.currency} {parseFloat(escrow.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </div>
-                
-                {/* Commission & Net Payout (shown when released or about to release) */}
-                {(escrow.status === 'released' || escrow.status === 'held') && (
-                  <div className="border-t border-afrikoni-gold/20 pt-4 space-y-3">
-                    {escrow.commission_amount > 0 && (
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm text-afrikoni-text-dark/70">Afrikoni Fee ({escrow.commission_rate || 8}%)</p>
-                        <p className="text-sm font-semibold text-afrikoni-text-dark">
-                          -{escrow.currency} {parseFloat(escrow.commission_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                    )}
-                    {escrow.net_payout_amount && (
-                      <div className="flex justify-between items-center pt-2 border-t border-afrikoni-gold/10">
-                        <p className="text-sm font-semibold text-afrikoni-text-dark">Net Payout to Supplier</p>
-                        <p className="text-lg font-bold text-afrikoni-green">
-                          {escrow.currency} {parseFloat(escrow.net_payout_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                    )}
-                    {escrow.status === 'held' && !escrow.commission_amount && (
-                      <div className="bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg p-3">
-                        <p className="text-xs text-afrikoni-text-dark/70">
-                          <strong>Note:</strong> An 8% Afrikoni commission will be deducted when escrow is released.
-                        </p>
-                        <p className="text-xs text-afrikoni-text-dark/70 mt-1">
-                          Estimated fee: {escrow.currency} {((parseFloat(escrow.amount) * 0.08).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+      <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
+        <Surface variant="panel" className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-sm text-os-muted">
+            <Wallet className="w-4 h-4" /> Milestones
+          </div>
+          <Progress value={releasedPercent} className="h-2" />
+          <div className="flex justify-between text-[10px] text-os-muted">
+            <span>Released</span>
+            <span>{Math.round(releasedPercent)}%</span>
+            <span>Remaining</span>
+          </div>
 
-              {/* Companies */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Buyer</p>
-                  <p className="font-semibold">{escrow.buyer_company?.name || 'Buyer'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Seller</p>
-                  <p className="font-semibold">{escrow.seller_company?.name || 'Seller'}</p>
-                </div>
-              </div>
+          <div className="grid sm:grid-cols-3 gap-3">
+            <Metric label="Total in Escrow" value={`$${payment.totalAmount.toLocaleString()}`} />
+            <Metric label="Released" value={`$${payment.releasedAmount.toLocaleString()}`} />
+            <Metric label="Held" value={`$${payment.heldAmount.toLocaleString()}`} />
+          </div>
 
-              {/* Order Info */}
-              {escrow.orders && (
-                <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Related Order</p>
-                  <Link to={`/dashboard/orders/${escrow.orders.id}`}>
-                    <p className="text-afrikoni-gold hover:underline">
-                      Order #{escrow.orders.order_number || escrow.orders.id.slice(0, 8)}
-                    </p>
-                  </Link>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-2">
+            <Milestone label="Funded" status="done" amount={payment.totalAmount} />
+            <Milestone label="Milestone Releases" status="in_progress" amount={payment.releasedAmount} />
+            <Milestone label="Final Settlement" status="pending" amount={payment.heldAmount} />
+          </div>
+        </Surface>
 
-          {/* Status Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Badge 
-                  variant={getStatusBadge(escrow.status)}
-                  className="text-lg px-4 py-2"
-                >
-                  <Shield className="w-5 h-5 mr-2" />
-                  {escrow.status.charAt(0).toUpperCase() + escrow.status.slice(1).replace('_', ' ')}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm text-afrikoni-text-dark/70 mb-1">Created</p>
-                <p className="font-semibold">
-                  {format(new Date(escrow.created_at), 'MMM dd, yyyy')}
-                </p>
-              </div>
-              {escrow.updated_at && (
-                <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-1">Last Updated</p>
-                  <p className="font-semibold">
-                    {format(new Date(escrow.updated_at), 'MMM dd, yyyy')}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Events Timeline */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              Event Timeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {events.length === 0 ? (
-              <p className="text-afrikoni-text-dark/70 text-center py-8">No events yet</p>
-            ) : (
-              <div className="space-y-4">
-                {events.map((event, index) => (
-                  <div key={event.id} className="flex items-start gap-4">
-                    <div className="flex flex-col items-center">
-                      {getEventIcon(event.event_type)}
-                      {index < events.length - 1 && (
-                        <div className="w-0.5 h-12 bg-afrikoni-text-dark/20 mt-2" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold capitalize">
-                          {event.event_type.replace('_', ' ')}
-                        </p>
-                        <p className="text-sm text-afrikoni-text-dark/60">
-                          {format(new Date(event.created_at), 'MMM dd, yyyy HH:mm')}
-                        </p>
-                      </div>
-                      {event.amount && (
-                        <p className="text-sm text-afrikoni-text-dark/70">
-                          Amount: {event.amount}
-                        </p>
-                      )}
-                      {event.metadata && Object.keys(event.metadata).length > 0 && (
-                        <p className="text-xs text-afrikoni-text-dark/60 mt-1">
-                          {JSON.stringify(event.metadata)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Surface variant="panel" className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-sm text-os-muted">
+            <Lock className="w-4 h-4" /> Quick Actions
+          </div>
+          <div className="space-y-2">
+            <Button className="w-full gap-2">
+              <ArrowUpRight className="w-4 h-4" /> Release next milestone
+            </Button>
+            <Button variant="outline" className="w-full gap-2">
+              Request amendment
+            </Button>
+          </div>
+          <div className="text-xs text-os-muted">
+            Funds are held in escrow until both sides approve milestones or final settlement is confirmed.
+          </div>
+        </Surface>
       </div>
-    </>
+    </div>
   );
 }
 
+function Metric({ label, value }) {
+  return (
+    <div className="p-3 rounded-lg bg-muted/60 border border-border/60">
+      <p className="text-[11px] uppercase tracking-wide text-os-muted">{label}</p>
+      <p className="text-lg font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function Milestone({ label, status, amount }) {
+  const tone =
+    status === 'done'
+      ? 'status-verified'
+      : status === 'in_progress'
+      ? 'status-in-progress'
+      : 'status-pending';
+  return (
+    <div className="flex items-center justify-between border rounded-lg px-3 py-2">
+      <div className="flex items-center gap-2">
+        <span className={`status-badge ${tone}`}>{label}</span>
+      </div>
+      <span className="text-sm font-semibold text-foreground">${amount?.toLocaleString() || '0'}</span>
+    </div>
+  );
+}
+
+function BadgeSoft({ icon: Icon, label }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-muted text-foreground border border-border">
+      {Icon ? <Icon className="w-3 h-3" /> : null}
+      {label}
+    </span>
+  );
+}

@@ -119,7 +119,7 @@ export default function InvoiceDetailPage() {
   if (!invoice) {
     return (
       <div className="text-center py-12">
-        <p className="text-afrikoni-text-dark/70">Invoice not found</p>
+        <p className="">Invoice not found</p>
         <Link to="/dashboard/invoices">
           <Button variant="outline" className="mt-4">
             Back to Invoices
@@ -142,10 +142,10 @@ export default function InvoiceDetailPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">
+              <h1 className="text-3xl font-bold mb-2">
                 Invoice {invoice.invoice_number}
               </h1>
-              <p className="text-afrikoni-text-dark/70">
+              <p className="">
                 {format(new Date(invoice.issue_date), 'MMMM dd, yyyy')}
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function InvoiceDetailPage() {
           <div className="flex gap-2">
             {userRole === 'buyer' && invoice.status === 'issued' && (
               <Button
-                className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                className="hover:bg-afrikoni-gold/90"
                 onClick={handlePayInvoice}
               >
                 <DollarSign className="w-4 h-4 mr-2" />
@@ -177,19 +177,19 @@ export default function InvoiceDetailPage() {
               {/* Company Info */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">From</p>
+                  <p className="text-sm mb-2">From</p>
                   <p className="font-semibold">{invoice.seller_company?.name || 'Seller'}</p>
                   {invoice.seller_company?.address && (
-                    <p className="text-sm text-afrikoni-text-dark/60 mt-1">
+                    <p className="text-sm mt-1">
                       {invoice.seller_company.address}
                     </p>
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">To</p>
+                  <p className="text-sm mb-2">To</p>
                   <p className="font-semibold">{invoice.buyer_company?.name || 'Buyer'}</p>
                   {invoice.buyer_company?.address && (
-                    <p className="text-sm text-afrikoni-text-dark/60 mt-1">
+                    <p className="text-sm mt-1">
                       {invoice.buyer_company.address}
                     </p>
                   )}
@@ -199,9 +199,9 @@ export default function InvoiceDetailPage() {
               {/* Order Info */}
               {invoice.orders && (
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Related Order</p>
+                  <p className="text-sm mb-2">Related Order</p>
                   <Link to={`/dashboard/orders/${invoice.orders.id}`}>
-                    <p className="text-afrikoni-gold hover:underline">
+                    <p className="hover:underline">
                       Order #{invoice.orders.order_number || invoice.orders.id.slice(0, 8)}
                     </p>
                   </Link>
@@ -211,14 +211,14 @@ export default function InvoiceDetailPage() {
               {/* Amount Breakdown */}
               <div className="border-t pt-4">
                 <div className="flex justify-between mb-2">
-                  <p className="text-afrikoni-text-dark/70">Subtotal</p>
+                  <p className="">Subtotal</p>
                   <p className="font-semibold">
                     {invoice.currency} {parseFloat(invoice.subtotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 {invoice.tax_amount > 0 && (
                   <div className="flex justify-between mb-2">
-                    <p className="text-afrikoni-text-dark/70">Tax</p>
+                    <p className="">Tax</p>
                     <p className="font-semibold">
                       {invoice.currency} {parseFloat(invoice.tax_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
@@ -226,7 +226,7 @@ export default function InvoiceDetailPage() {
                 )}
                 <div className="flex justify-between pt-2 border-t mt-2">
                   <p className="text-lg font-bold">Total</p>
-                  <p className="text-2xl font-bold text-afrikoni-gold">
+                  <p className="text-2xl font-bold">
                     {invoice.currency} {parseFloat(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -251,14 +251,14 @@ export default function InvoiceDetailPage() {
                 </Badge>
               </div>
               <div>
-                <p className="text-sm text-afrikoni-text-dark/70 mb-1">Issue Date</p>
+                <p className="text-sm mb-1">Issue Date</p>
                 <p className="font-semibold">
                   {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}
                 </p>
               </div>
               {invoice.due_date && (
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-1">Due Date</p>
+                  <p className="text-sm mb-1">Due Date</p>
                   <p className="font-semibold">
                     {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
                   </p>

@@ -340,7 +340,7 @@ function DashboardSavedInner() {
             } else {
               // Try to get public URL first
               const { data: publicUrlData } = supabase.storage
-                .from('product-images')
+                .from('product_images')
                 .getPublicUrl(product.imagePathOrUrl);
               
               if (publicUrlData?.publicUrl) {
@@ -349,7 +349,7 @@ function DashboardSavedInner() {
                 // Fallback: try to create signed URL (for private buckets)
                 try {
                   const { data: signedData } = await supabase.storage
-                    .from('product-images')
+                    .from('product_images')
                     .createSignedUrl(product.imagePathOrUrl, 3600);
                   
                   if (signedData?.signedUrl) {
@@ -425,8 +425,8 @@ function DashboardSavedInner() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-        <p className="mt-4 text-sm text-afrikoni-text-dark/70">Loading saved items...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
+        <p className="mt-4 text-sm">Loading saved items...</p>
       </div>
     );
   }
@@ -457,16 +457,16 @@ function DashboardSavedInner() {
           className="mb-8 flex items-center justify-between"
         >
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">Saved Items</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 leading-tight">Saved Items</h1>
           {activeTab === 'products' && (
-            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+            <p className="text-sm md:text-base leading-relaxed">
               {normalizedProducts.length > 0 
                 ? `You saved ${normalizedProducts.length} product${normalizedProducts.length !== 1 ? 's' : ''}`
                 : 'No saved products yet'}
             </p>
           )}
           {activeTab === 'suppliers' && (
-            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+            <p className="text-sm md:text-base leading-relaxed">
               {savedSuppliers.length > 0 
                 ? `You saved ${savedSuppliers.length} supplier${savedSuppliers.length !== 1 ? 's' : ''}`
                 : 'No saved suppliers yet'}
@@ -493,30 +493,30 @@ function DashboardSavedInner() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+              <p className="text-xs uppercase tracking-wide">
                 Total saved
               </p>
-              <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
+              <p className="text-2xl font-bold mt-1">
                 {savedProducts.length + savedSuppliers.length}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+              <p className="text-xs uppercase tracking-wide">
                 Products
               </p>
-              <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
+              <p className="text-2xl font-bold mt-1">
                 {savedProducts.length}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
+              <p className="text-xs uppercase tracking-wide">
                 Suppliers
               </p>
-              <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
+              <p className="text-2xl font-bold mt-1">
                 {savedSuppliers.length}
               </p>
             </CardContent>
@@ -526,17 +526,17 @@ function DashboardSavedInner() {
         {/* Search + Tabs */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="relative w-full md:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-text-dark/50" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search saved items…"
-              className="w-full pl-9 pr-3 py-2 rounded-full border border-afrikoni-gold/30 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/60"
+              className="w-full pl-9 pr-3 py-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/60"
             />
           </div>
 
           {/* Plain Tab Buttons (replaces Radix Tabs) */}
-          <div className="flex gap-2 bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium">
+          <div className="flex gap-2 border rounded-full p-1 shadow-premium">
             <button
               onClick={() => setActiveTab('products')}
               className={`px-4 py-2 rounded-full font-semibold transition-all duration-200 ${
@@ -567,11 +567,11 @@ function DashboardSavedInner() {
           <div className="mt-4 space-y-4">
             {normalizedProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-4">
-                <Package className="w-16 h-16 text-afrikoni-text-dark/30 mb-4" />
-                <h3 className="text-xl font-semibold text-afrikoni-text-dark mb-2">
+                <Package className="w-16 h-16 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">
                   {savedProducts.length === 0 ? "No saved products yet" : "No products match your search"}
                 </h3>
-                <p className="text-afrikoni-text-dark/70 text-center mb-6 max-w-md">
+                <p className="text-center mb-6 max-w-md">
                   {savedProducts.length === 0 
                     ? "Save products you're interested in to access them quickly later."
                     : `Try a different search term. You have ${savedProducts.length} saved product${savedProducts.length !== 1 ? 's' : ''}.`}
@@ -579,7 +579,7 @@ function DashboardSavedInner() {
                 <Link to="/products">
                   <Button 
                     variant="default"
-                    className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white"
+                    className="hover:bg-afrikoni-gold/90"
                   >
                     Browse Marketplace
                   </Button>
@@ -597,10 +597,10 @@ function DashboardSavedInner() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="rounded-xl border-2 border-afrikoni-gold/20 bg-white p-4 shadow-sm hover:border-afrikoni-gold/60 hover:shadow-xl transition-all duration-300 group">
+                      <div className="rounded-xl border-2 p-4 shadow-sm hover:border-afrikoni-gold/60 hover:shadow-xl transition-all duration-300 group">
                         <Link to={`/product?id=${p.id}`} className="block">
                           {/* Image Section - Always renders */}
-                          <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-afrikoni-ivory mb-3 relative">
+                          <div className="aspect-[4/3] w-full overflow-hidden rounded-lg mb-3 relative">
                             {imageUrlResolved ? (
                               <img 
                                 src={imageUrlResolved} 
@@ -614,7 +614,7 @@ function DashboardSavedInner() {
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-sm opacity-60">
-                                <Package className="w-12 h-12 text-afrikoni-text-dark/40" />
+                                <Package className="w-12 h-12" />
                       </div>
                             )}
                             
@@ -623,7 +623,7 @@ function DashboardSavedInner() {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                className="bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm h-9 w-9 p-0"
+                                className="hover:bg-white shadow-lg backdrop-blur-sm h-9 w-9 p-0"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -631,7 +631,7 @@ function DashboardSavedInner() {
                                 }}
                                 title="Remove from saved"
                               >
-                                <X className="w-5 h-5 text-afrikoni-gold" />
+                                <X className="w-5 h-5" />
                               </Button>
                             </div>
                             
@@ -650,10 +650,10 @@ function DashboardSavedInner() {
                           
                           {/* Product Info */}
                           <div className="mt-3">
-                            <h3 className="font-semibold text-afrikoni-text-dark mb-1 line-clamp-2 group-hover:text-afrikoni-gold transition-colors">
+                            <h3 className="font-semibold mb-1 line-clamp-2 group-hover:text-afrikoni-gold transition-colors">
                               {p.name || p.title}
                             </h3>
-                            <div className="flex items-center gap-2 text-sm text-afrikoni-text-dark/70 mb-2">
+                            <div className="flex items-center gap-2 text-sm mb-2">
                               <Users className="w-3 h-3" />
                               <span>{p.companyName}</span>
                               {p.company?.verified && (
@@ -661,14 +661,14 @@ function DashboardSavedInner() {
                               )}
                             </div>
                             {p.price != null && (
-                              <div className="text-base font-bold text-afrikoni-gold mb-2">
+                              <div className="text-base font-bold mb-2">
                                 {p.priceMax 
                                   ? `${p.currency} ${p.price} - ${p.priceMax}`
                                   : `${p.currency} ${p.price}`}
                               </div>
                             )}
                             {p.country_of_origin && (
-                              <div className="flex items-center gap-1 text-xs text-afrikoni-text-dark/60 mb-3">
+                              <div className="flex items-center gap-1 text-xs mb-3">
                                 <span>📍</span>
                                 <span>{p.country_of_origin}</span>
                               </div>
@@ -689,7 +689,7 @@ function DashboardSavedInner() {
                           </Link>
                           <Button 
                             variant="default"
-                            className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white text-sm"
+                            className="flex-1 hover:bg-afrikoni-gold/90 text-sm"
                             size="sm"
                             onClick={(e) => {
                               e.preventDefault();
@@ -727,22 +727,22 @@ function DashboardSavedInner() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredSuppliers.map((supplier) => (
-                  <Card key={supplier.id} className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+                  <Card key={supplier.id} className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                     <CardContent className="p-5 md:p-6">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="w-16 h-16 bg-afrikoni-sand rounded-afrikoni flex items-center justify-center">
-                          <Users className="w-8 h-8 text-afrikoni-text-dark/50" />
+                        <div className="w-16 h-16 rounded-afrikoni flex items-center justify-center">
+                          <Users className="w-8 h-8" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-afrikoni-text-dark">{supplier.company_name}</h3>
-                          <p className="text-sm text-afrikoni-text-dark/70">{supplier.country}</p>
+                          <h3 className="font-semibold">{supplier.company_name}</h3>
+                          <p className="text-sm">{supplier.country}</p>
                         </div>
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => handleUnsave(supplier.id, 'supplier')}
                         >
-                          <Bookmark className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
+                          <Bookmark className="w-4 h-4 fill-afrikoni-gold" />
                         </Button>
                       </div>
                       <Link to={`/business/${supplier.id}`}>
@@ -770,4 +770,3 @@ export default function DashboardSaved() {
     </>
   );
 }
-

@@ -9,7 +9,7 @@
  * - Context-aware responses based on current page
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageCircle,
@@ -31,6 +31,8 @@ import {
 import { useAuth } from '@/contexts/AuthProvider';
 import { useLocation } from 'react-router-dom';
 import KoniAIService, { QuickActions, SuggestedPrompts } from '@/services/KoniAIService';
+import { useKernelEventStream } from '@/hooks/useKernelEventStream';
+import { useTradeEventLedger } from '@/hooks/useTradeEventLedger';
 
 // Icon mapping for quick actions
 const IconMap = {
@@ -42,11 +44,73 @@ const IconMap = {
   MessageCircle
 };
 
-export default function KoniAIChat() {
+const ACTION_LABELS = {
+  add_title: 'Add trade title',
+  add_description: 'Add trade description',
+  add_quantity: 'Add quantity and units',
+  select_quote: 'Select a supplier quote',
+  generate_contract: 'Generate contract draft',
+  sign_contract: 'Sign contract',
+  fund_escrow: 'Fund escrow milestone',
+  add_hs_code: 'Add HS code',
+  upload_compliance_docs: 'Upload compliance documents',
+  confirm_delivery: 'Confirm delivery',
+  accept_delivery: 'Accept delivery',
+  resolve_escrow: 'Resolve escrow dispute',
+  await_supplier_quotes: 'Await supplier quotes',
+  compliance_case_pending: 'Resolve compliance case',
+  compliance_case_error: 'Retry compliance case',
+};
+
+const ACTION_PROMPTS = {
+  add_title: 'Help me title this trade.',
+  add_description: 'Help me write a clear trade description.',
+  add_quantity: 'Help me confirm quantities and units.',
+  select_quote: 'Help me compare and select a quote.',
+  generate_contract: 'Generate the contract for this trade.',
+  sign_contract: 'Guide me to sign the contract.',
+  fund_escrow: 'How do I fund escrow for this trade?',
+  add_hs_code: 'Help me identify the HS code.',
+  upload_compliance_docs: 'Show me which compliance docs are required.',
+  confirm_delivery: 'How do I confirm delivery?',
+  accept_delivery: 'Help me accept delivery.',
+  resolve_escrow: 'How can I resolve escrow disputes?',
+  await_supplier_quotes: 'What can I do while waiting for quotes?',
+  compliance_case_pending: 'How do I complete the compliance case?',
+  compliance_case_error: 'Help me retry compliance case checks.',
+};
+
+function normalizeRequiredActions(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch {
+      return value.split(',').map((v) => v.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
+function getTradeIdFromPath(pathname) {
+  const match = pathname.match(/\/dashboard\/trade\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
+export default function KoniAIChat({ mode = 'floating', className = '' }) {
   const { user, profile } = useAuth();
   const location = useLocation();
+  const isEmbedded = mode === 'embedded';
+  const tradeId = getTradeIdFromPath(location.pathname);
+  const { timeline: kernelTimeline, events: kernelEvents } = useKernelEventStream({
+    companyId: profile?.company_id || null,
+    limit: 10,
+  });
+  const { timeline: tradeTimeline, events: tradeEvents } = useTradeEventLedger(tradeId);
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(() => (isEmbedded ? true : false));
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -55,6 +119,29 @@ export default function KoniAIChat() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const activeEvents = tradeId ? tradeEvents : kernelEvents;
+  const eventTimeline = tradeId ? tradeTimeline : kernelTimeline;
+
+  const kernelSuggestions = useMemo(() => {
+    const suggestions = [];
+    const seen = new Set();
+
+    activeEvents.forEach((event) => {
+      const required = normalizeRequiredActions(event?.required_actions);
+      required.forEach((action) => {
+        if (seen.has(action)) return;
+        seen.add(action);
+        suggestions.push({
+          id: `kernel-${action}`,
+          label: ACTION_LABELS[action] || action.replace(/_/g, ' '),
+          prompt: ACTION_PROMPTS[action] || `Help me with ${action.replace(/_/g, ' ')}.`,
+        });
+      });
+    });
+
+    return suggestions.slice(0, 4);
+  }, [activeEvents]);
 
   // Scroll to bottom of messages
   const scrollToBottom = useCallback(() => {
@@ -76,14 +163,17 @@ export default function KoniAIChat() {
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       const welcomeName = profile?.full_name?.split(' ')[0] || 'there';
+      const kernelHint = kernelSuggestions.length
+        ? `Kernel suggests: ${kernelSuggestions.map((s) => s.label).join(', ')}.`
+        : '';
       setMessages([{
         id: 'welcome',
         role: 'assistant',
-        content: `Hello ${welcomeName}! I'm KoniAI+, your intelligent trade assistant. I can help you create RFQs, analyze quotes, find suppliers, and navigate African trade. What can I help you with today?`,
+        content: `Hello ${welcomeName}! I'm KoniAI+, your intelligent trade assistant. I can help you create RFQs, analyze quotes, find suppliers, and navigate African trade. ${kernelHint}`,
         timestamp: new Date()
       }]);
     }
-  }, [isOpen, messages.length, profile?.full_name]);
+  }, [isOpen, messages.length, profile?.full_name, kernelSuggestions]);
 
   // Send message to KoniAI
   const sendMessage = async (messageText) => {
@@ -114,7 +204,13 @@ export default function KoniAIChat() {
         message: messageText,
         history,
         context: {
-          currentPage: location.pathname
+          currentPage: location.pathname,
+          tradeId: tradeId || null,
+          kernelEvents: eventTimeline.slice(0, 6).map((event) => ({
+            label: event.label,
+            time: event.time,
+            type: event.type,
+          })),
         }
       });
 
@@ -252,28 +348,30 @@ export default function KoniAIChat() {
   return (
     <>
       {/* Chat Toggle Button */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-br from-afrikoni-gold to-amber-600 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center group"
-            aria-label="Open KoniAI+ Chat"
-          >
-            <Sparkles className="w-6 h-6 text-white" />
-            {/* Pulse animation */}
-            <span className="absolute inset-0 rounded-full bg-afrikoni-gold animate-ping opacity-25" />
-            {/* Tooltip */}
-            <span className="absolute right-full mr-3 px-3 py-1.5 bg-afrikoni-chestnut text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              Ask KoniAI+
-            </span>
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {!isEmbedded && (
+        <AnimatePresence>
+          {!isOpen && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsOpen(true)}
+              className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-br from-afrikoni-gold to-amber-600 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center group"
+              aria-label="Open KoniAI+ Chat"
+            >
+              <Sparkles className="w-6 h-6 text-white" />
+              {/* Pulse animation */}
+              <span className="absolute inset-0 rounded-full bg-afrikoni-gold animate-ping opacity-25" />
+              {/* Tooltip */}
+              <span className="absolute right-full mr-3 px-3 py-1.5 bg-afrikoni-chestnut text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                Ask KoniAI+
+              </span>
+            </motion.button>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -288,7 +386,12 @@ export default function KoniAIChat() {
             }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-stone-200"
+            className={[
+              isEmbedded
+                ? 'w-full max-w-full bg-white rounded-2xl shadow-premium-lg overflow-hidden flex flex-col border border-stone-200'
+                : 'fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-stone-200',
+              className,
+            ].join(' ')}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-afrikoni-gold to-amber-500">
@@ -301,26 +404,28 @@ export default function KoniAIChat() {
                   <p className="text-xs text-white/80">Your Trade Assistant</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setIsMinimized(!isMinimized)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  aria-label={isMinimized ? 'Expand chat' : 'Minimize chat'}
-                >
-                  {isMinimized ? (
-                    <ChevronDown className="w-5 h-5 text-white rotate-180" />
-                  ) : (
-                    <Minimize2 className="w-5 h-5 text-white" />
-                  )}
-                </button>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  aria-label="Close chat"
-                >
-                  <X className="w-5 h-5 text-white" />
-                </button>
-              </div>
+              {!isEmbedded && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setIsMinimized(!isMinimized)}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    aria-label={isMinimized ? 'Expand chat' : 'Minimize chat'}
+                  >
+                    {isMinimized ? (
+                      <ChevronDown className="w-5 h-5 text-white rotate-180" />
+                    ) : (
+                      <Minimize2 className="w-5 h-5 text-white" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    aria-label="Close chat"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Chat Content (hidden when minimized) */}
@@ -355,22 +460,41 @@ export default function KoniAIChat() {
 
                 {/* Quick Actions (shown only on initial state) */}
                 {showQuickActions && messages.length <= 1 && (
-                  <div className="px-4 py-3 border-t border-stone-200 bg-white">
-                    <p className="text-xs text-stone-500 mb-2">Quick Actions</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {QuickActions.slice(0, 4).map((action) => {
-                        const Icon = IconMap[action.icon] || MessageCircle;
-                        return (
-                          <button
-                            key={action.id}
-                            onClick={() => handleQuickAction(action)}
-                            className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-afrikoni-deep bg-stone-50 hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold rounded-lg transition-colors text-left"
-                          >
-                            <Icon className="w-4 h-4 flex-shrink-0" />
-                            {action.label}
-                          </button>
-                        );
-                      })}
+                  <div className="px-4 py-3 border-t border-stone-200 bg-white space-y-3">
+                    {kernelSuggestions.length > 0 && (
+                      <div>
+                        <p className="text-xs text-stone-500 mb-2">Kernel Suggestions</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {kernelSuggestions.map((action) => (
+                            <button
+                              key={action.id}
+                              onClick={() => sendMessage(action.prompt)}
+                              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-afrikoni-deep bg-amber-50 hover:bg-afrikoni-gold/15 hover:text-afrikoni-gold rounded-lg transition-colors text-left"
+                            >
+                              <Sparkles className="w-4 h-4 flex-shrink-0 text-afrikoni-gold" />
+                              {action.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs text-stone-500 mb-2">Quick Actions</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {QuickActions.slice(0, 4).map((action) => {
+                          const Icon = IconMap[action.icon] || MessageCircle;
+                          return (
+                            <button
+                              key={action.id}
+                              onClick={() => handleQuickAction(action)}
+                              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-afrikoni-deep bg-stone-50 hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold rounded-lg transition-colors text-left"
+                            >
+                              <Icon className="w-4 h-4 flex-shrink-0" />
+                              {action.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 )}

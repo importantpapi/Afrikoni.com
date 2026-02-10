@@ -8,7 +8,8 @@ import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import { LogOut } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Card } from '@/components/shared/ui/card'; // Keep distinct Card import just in case, but replace major implementations
+import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
@@ -91,6 +92,7 @@ export default function DashboardSettings() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const avatarInputRef = useRef(null);
 
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, user, profile } = useDashboardKernel();
@@ -119,10 +121,10 @@ export default function DashboardSettings() {
     }
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
       console.log('[DashboardSettings] Data is stale or first load - refreshing');
       loadUserData();
@@ -140,7 +142,7 @@ export default function DashboardSettings() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // ✅ KERNEL MIGRATION: Derive role from capabilities
       const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
       const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
@@ -148,10 +150,10 @@ export default function DashboardSettings() {
       setCurrentRole(normalizedRole);
 
       setUserData(user);
-      
+
       // Use profile from kernel (already loaded)
       const profileData = profile || {};
-      
+
       setFormData({
         full_name: profile?.name || user?.full_name || user?.name || '',
         name: profile?.name || user?.name || '',
@@ -167,13 +169,13 @@ export default function DashboardSettings() {
         company_size: profile?.company_size || user?.company_size || '',
         company_description: profile?.company_description || user?.company_description || ''
       });
-      
+
       setAvatarUrl(profile?.avatar_url || user?.avatar_url || '');
       setApiKey(profile?.api_key || '');
-      
+
       // Load notification preferences
       if (profile?.notification_preferences) {
-        const prefs = typeof profile.notification_preferences === 'string' 
+        const prefs = typeof profile.notification_preferences === 'string'
           ? JSON.parse(profile.notification_preferences)
           : profile.notification_preferences;
         setPreferences({
@@ -188,7 +190,7 @@ export default function DashboardSettings() {
           payments: prefs?.payments !== false
         });
       }
-      
+
       // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
@@ -211,15 +213,22 @@ export default function DashboardSettings() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!canLoadData || !userId) {
+      toast.error('You must be logged in to upload an avatar');
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+      return;
+    }
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Avatar file size must be less than 5MB');
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file');
-      e.target.value = '';
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
       return;
     }
 
@@ -232,20 +241,30 @@ export default function DashboardSettings() {
       const fileName = `avatars/${timestamp}-${randomStr}-${cleanFileName}`;
 
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
+      if (!file_url) throw new Error('Upload did not return a file URL');
+
+      // Persist immediately so profile stays in sync even if user navigates away
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: file_url })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
       setAvatarUrl(file_url);
       toast.success('Avatar uploaded successfully');
     } catch (error) {
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('handleAvatarUpload', error, {
         table: 'profiles',
-        companyId: userCompanyId,
+        companyId: profileCompanyId,
         userId: userId
       });
       toast.error(`Failed to upload avatar: ${error.message || 'Please try again'}`);
     } finally {
       setUploadingAvatar(false);
       // Reset file input
-      e.target.value = '';
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
     }
   };
 
@@ -302,7 +321,7 @@ export default function DashboardSettings() {
     try {
       // ✅ KERNEL MIGRATION: Use userId from kernel
       const newApiKey = `afk_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-      
+
       const { error } = await supabase
         .from('profiles')
         .update({ api_key: newApiKey })
@@ -402,8 +421,8 @@ export default function DashboardSettings() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadUserData}
       />
     );
@@ -411,82 +430,104 @@ export default function DashboardSettings() {
 
   return (
     <>
-      <div className="space-y-8">
-        {/* Premium Header with Improved Typography */}
+      <div className="space-y-10">
+        {/* 2026 OS Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           className="mb-6 md:mb-8"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-afrikoni-gold/10 rounded-xl">
-              <Settings className="w-6 h-6 md:w-7 md:h-7 text-afrikoni-gold" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-chestnut tracking-tight leading-tight">
-                Account Settings
-              </h1>
-              <p className="text-sm md:text-base text-afrikoni-deep/70 mt-1.5 font-normal">
-                Manage your account and preferences
-              </p>
+          <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+            <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full blur-3xl" />
+            <div className="absolute -left-24 -bottom-24 h-64 w-64 rounded-full blur-3xl" />
+            <div className="relative p-6 md:p-8">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-2xl border p-3 backdrop-blur">
+                    <Settings className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.28em]">
+                      Afrikoni Trade OS
+                    </div>
+                    <h1 className="text-2xl md:text-4xl font-semibold tracking-tight">
+                      Identity & Control Panel
+                    </h1>
+                    <p className="text-sm md:text-base mt-2">
+                      Secure, high-trust settings for a live trade network.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border px-3 py-1 text-xs">
+                    Kernel-Synced
+                  </span>
+                  <span className="rounded-full border px-3 py-1 text-xs">
+                    Compliance Ready
+                  </span>
+                  <span className="rounded-full border px-3 py-1 text-xs">
+                    Real-time
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
 
-        {/* v2.5: Premium Tabs */}
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="bg-afrikoni-sand/40 border border-afrikoni-gold/20 rounded-full p-1 shadow-premium grid grid-cols-2 md:grid-cols-4 gap-2">
-            <TabsTrigger 
-              value="profile" 
-              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+        {/* 2026 OS Tabs */}
+        <Tabs defaultValue="profile" className="space-y-8">
+          <TabsList className="border rounded-2xl p-2 shadow-[0_18px_60px_rgba(0,0,0,0.35)] grid grid-cols-2 md:grid-cols-4 gap-2 backdrop-blur">
+            <TabsTrigger
+              value="profile"
+              className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_10px_30px_rgba(255,255,255,0.25)] rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
               {translate('settings.profile', 'Profile')}
             </TabsTrigger>
-            <TabsTrigger 
-              value="company" 
-              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            <TabsTrigger
+              value="company"
+              className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_10px_30px_rgba(255,255,255,0.25)] rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
               {translate('settings.company', 'Company')}
             </TabsTrigger>
-            <TabsTrigger 
-              value="notifications" 
-              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            <TabsTrigger
+              value="notifications"
+              className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_10px_30px_rgba(255,255,255,0.25)] rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
               {translate('settings.notifications', 'Notifications')}
             </TabsTrigger>
-            <TabsTrigger 
-              value="security" 
-              className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-afrikoni-charcoal data-[state=active]:shadow-afrikoni rounded-full font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            <TabsTrigger
+              value="security"
+              className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_10px_30px_rgba(255,255,255,0.25)] rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
               {translate('settings.security', 'Security')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
-            {/* Premium Settings Cards */}
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
-              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
-                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
-                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
-                    <User className="w-5 h-5 text-afrikoni-gold" />
+            {/* Profile Card */}
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+              <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
+                <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
+                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                    <User className="w-5 h-5" />
                   </div>
                   {translate('settings.personalInformation', 'Personal Information')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-5">
+                </div>
+              </div>
+              <div className="p-6 md:p-8 space-y-6">
                 {/* Avatar Upload */}
                 <div>
-                  <Label>{translate('settings.profilePicture', 'Profile Picture')}</Label>
-                  <div className="mt-2 flex items-center gap-4">
+                  <Label className="text-os-muted">{translate('settings.profilePicture', 'Profile Picture')}</Label>
+                  <div className="mt-4 flex items-center gap-5">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
+                      <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-2xl object-cover border border-white/10 shadow-lg" loading="lazy" decoding="async" />
                     ) : (
-                      <div className="w-20 h-20 rounded-full bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/20">
-                        <User className="w-10 h-10 text-afrikoni-text-dark/50" />
+                      <div className="w-20 h-20 rounded-2xl flex items-center justify-center border border-white/10 bg-white/5">
+                        <User className="w-8 h-8 text-os-muted" />
                       </div>
                     )}
-                    <div>
+                    <div className="flex flex-col gap-2">
                       <input
                         type="file"
                         accept="image/*"
@@ -494,9 +535,10 @@ export default function DashboardSettings() {
                         disabled={uploadingAvatar}
                         className="hidden"
                         id="avatar-upload"
+                        ref={avatarInputRef}
                       />
                       <label htmlFor="avatar-upload">
-                        <Button type="button" variant="outline" size="sm" disabled={uploadingAvatar} asChild>
+                        <Button type="button" variant="outline" size="sm" disabled={uploadingAvatar} asChild className="border-white/10 hover:bg-white/5">
                           <span>
                             {uploadingAvatar ? translate('settings.uploading', 'Uploading...') : avatarUrl ? translate('settings.changeAvatar', 'Change Avatar') : translate('settings.uploadAvatar', 'Upload Avatar')}
                           </span>
@@ -508,40 +550,44 @@ export default function DashboardSettings() {
                           variant="ghost"
                           size="sm"
                           onClick={() => setAvatarUrl('')}
-                          className="ml-2 text-red-600"
+                          className="justify-start px-0 text-red-400 hover:text-red-300 hover:bg-transparent h-auto text-xs"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-3 h-3 mr-1" /> Remove photo
                         </Button>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="name">{translate('settings.fullName', 'Full Name')}</Label>
-                  <Input
-                    id="name"
-                    value={formData.name || formData.full_name}
-                    onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder={translate('settings.fullNamePlaceholder', 'Your full name')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">{translate('auth.email', 'Email')}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    className="bg-afrikoni-cream"
-                  />
-                  <p className="text-xs text-afrikoni-text-dark/70 mt-1">{translate('settings.emailCannotChange', 'Email cannot be changed')}</p>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="language">{translate('common.language', 'Language')}</Label>
+                    <Label htmlFor="name" className="text-os-muted">{translate('settings.fullName', 'Full Name')}</Label>
+                    <Input
+                      id="name"
+                      value={formData.name || formData.full_name}
+                      onChange={(e) => handleChange('name', e.target.value)}
+                      placeholder={translate('settings.fullNamePlaceholder', 'Your full name')}
+                      className="mt-1.5 bg-white/5 border-white/10 focus:border-white/20"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email" className="text-os-muted">{translate('auth.email', 'Email')}</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      disabled
+                      className="mt-1.5 bg-white/5 border-white/10 opacity-50 cursor-not-allowed"
+                    />
+                    <p className="text-xs mt-1.5 text-os-muted opacity-60">{translate('settings.emailCannotChange', 'Email cannot be changed')}</p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="language" className="text-os-muted">{translate('common.language', 'Language')}</Label>
                     <Select value={preferences.language} onValueChange={(v) => setPreferences({ ...preferences, language: v })}>
-                      <SelectTrigger className="mt-1 min-h-[44px] md:min-h-0">
+                      <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -554,9 +600,9 @@ export default function DashboardSettings() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="currency">{translate('common.currency', 'Currency')}</Label>
+                    <Label htmlFor="currency" className="text-os-muted">{translate('common.currency', 'Currency')}</Label>
                     <Select value={preferences.currency} onValueChange={(v) => setPreferences({ ...preferences, currency: v })}>
-                      <SelectTrigger className="mt-1 min-h-[44px] md:min-h-0">
+                      <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -571,60 +617,64 @@ export default function DashboardSettings() {
                     </Select>
                   </div>
                 </div>
+
                 <div>
-                  <Label htmlFor="phone">{translate('settings.phone', 'Phone')}</Label>
+                  <Label htmlFor="phone" className="text-os-muted">{translate('settings.phone', 'Phone')}</Label>
                   <Input
                     id="phone"
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
                     placeholder={translate('settings.phonePlaceholder', '+234 800 000 0000')}
-                    className="mt-1"
+                    className="mt-1.5 bg-white/5 border-white/10"
                   />
                 </div>
-                <Button 
-                  onClick={() => handleSave('profile')} 
-                  disabled={isSaving} 
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark min-h-[44px] touch-manipulation w-full md:w-auto"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
-                </Button>
-              </CardContent>
-            </Card>
+
+                <div className="pt-4 flex justify-end">
+                  <Button
+                    onClick={() => handleSave('profile')}
+                    disabled={isSaving}
+                    className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold min-h-[44px] touch-manipulation w-full md:w-auto px-8"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
+                  </Button>
+                </div>
+              </div>
+            </Surface>
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
-              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
-                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
-                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
-                    <Building2 className="w-5 h-5 text-afrikoni-gold" />
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+              <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
+                <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
+                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                    <Building2 className="w-5 h-5" />
                   </div>
                   {translate('settings.companyInformation', 'Company Information')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+                </div>
+              </div>
+              <div className="p-6 md:p-8 space-y-6">
                 {/* Company Basic Information */}
-                <div className="space-y-5">
-                  <h3 className="text-base font-semibold text-afrikoni-chestnut border-b border-afrikoni-gold/20 pb-2.5">Basic Information</h3>
-                  
+                <div className="space-y-6">
+                  <h3 className="text-sm font-semibold text-os-muted uppercase tracking-wider border-b border-white/5 pb-2">Basic Information</h3>
+
                   <div>
-                    <Label htmlFor="company_name">{translate('settings.companyName', 'Company Name')} <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="company_name" className="text-os-muted">{translate('settings.companyName', 'Company Name')} <span className="text-afrikoni-gold">*</span></Label>
                     <Input
                       id="company_name"
                       value={formData.company_name}
                       onChange={(e) => handleChange('company_name', e.target.value)}
                       placeholder="Enter your company name"
-                      className="mt-1"
+                      className="mt-1.5 bg-white/5 border-white/10"
                     />
                   </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
+
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="business_type">{translate('settings.businessType', 'Business Type')}</Label>
+                      <Label htmlFor="business_type" className="text-os-muted">{translate('settings.businessType', 'Business Type')}</Label>
                       <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
                           <SelectValue placeholder={translate('settings.selectBusinessType', 'Select business type')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -637,9 +687,9 @@ export default function DashboardSettings() {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="country">{translate('onboarding.country', 'Country')}</Label>
+                      <Label htmlFor="country" className="text-os-muted">{translate('onboarding.country', 'Country')}</Label>
                       <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
                           <SelectValue placeholder={translate('onboarding.selectCountry', 'Select country')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -650,68 +700,68 @@ export default function DashboardSettings() {
                       </Select>
                     </div>
                   </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
+
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="city">{translate('onboarding.city', 'City')}</Label>
+                      <Label htmlFor="city" className="text-os-muted">{translate('onboarding.city', 'City')}</Label>
                       <Input
                         id="city"
                         value={formData.city}
                         onChange={(e) => handleChange('city', e.target.value)}
                         placeholder="Enter city"
-                        className="mt-1"
+                        className="mt-1.5 bg-white/5 border-white/10"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone" className="text-os-muted">Phone Number</Label>
                       <Input
                         id="phone"
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => handleChange('phone', e.target.value)}
                         placeholder="+234 800 000 0000"
-                        className="mt-1"
+                        className="mt-1.5 bg-white/5 border-white/10"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Contact Information */}
-                <div className="space-y-5 pt-6 border-t border-afrikoni-gold/20">
-                  <h3 className="text-base font-semibold text-afrikoni-chestnut border-b border-afrikoni-gold/20 pb-2.5">Contact Information</h3>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-6 pt-6 border-t border-white/5">
+                  <h3 className="text-sm font-semibold text-os-muted uppercase tracking-wider border-b border-white/5 pb-2">Contact Information</h3>
+
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="business_email">{translate('settings.businessEmail', 'Business Email')}</Label>
+                      <Label htmlFor="business_email" className="text-os-muted">{translate('settings.businessEmail', 'Business Email')}</Label>
                       <Input
                         id="business_email"
                         type="email"
                         value={formData.business_email}
                         onChange={(e) => handleChange('business_email', e.target.value)}
                         placeholder="business@company.com"
-                        className="mt-1"
+                        className="mt-1.5 bg-white/5 border-white/10"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="website">{translate('onboarding.website', 'Website')}</Label>
+                      <Label htmlFor="website" className="text-os-muted">{translate('onboarding.website', 'Website')}</Label>
                       <Input
                         id="website"
                         value={formData.website}
                         onChange={(e) => handleChange('website', e.target.value)}
                         placeholder="https://yourcompany.com"
-                        className="mt-1"
+                        className="mt-1.5 bg-white/5 border-white/10"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Company Details */}
-                <div className="space-y-5 pt-6 border-t border-afrikoni-gold/20">
-                  <h3 className="text-base font-semibold text-afrikoni-chestnut border-b border-afrikoni-gold/20 pb-2.5">Company Details</h3>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-6 pt-6 border-t border-white/5">
+                  <h3 className="text-sm font-semibold text-os-muted uppercase tracking-wider border-b border-white/5 pb-2">Company Details</h3>
+
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="year_established">Year Established</Label>
+                      <Label htmlFor="year_established" className="text-os-muted">Year Established</Label>
                       <Input
                         id="year_established"
                         type="number"
@@ -720,13 +770,13 @@ export default function DashboardSettings() {
                         placeholder="e.g. 2010"
                         min="1900"
                         max={new Date().getFullYear()}
-                        className="mt-1"
+                        className="mt-1.5 bg-white/5 border-white/10"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="company_size">Company Size</Label>
+                      <Label htmlFor="company_size" className="text-os-muted">Company Size</Label>
                       <Select value={formData.company_size} onValueChange={(v) => handleChange('company_size', v)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
                           <SelectValue placeholder="Select size" />
                         </SelectTrigger>
                         <SelectContent>
@@ -739,33 +789,35 @@ export default function DashboardSettings() {
                       </Select>
                     </div>
                   </div>
-                  
+
                   <div>
-                    <Label htmlFor="company_description">Company Description</Label>
+                    <Label htmlFor="company_description" className="text-os-muted">Company Description</Label>
                     <Textarea
                       id="company_description"
                       value={formData.company_description}
                       onChange={(e) => handleChange('company_description', e.target.value)}
                       rows={4}
                       placeholder="Describe your company, products, and services..."
-                      className="mt-1"
+                      className="mt-1.5 bg-white/5 border-white/10"
                     />
-                    <p className="text-xs text-afrikoni-deep/60 mt-1">This helps buyers understand your business better</p>
+                    <p className="text-xs mt-1.5 text-os-muted opacity-60">This helps buyers understand your business better</p>
                   </div>
                 </div>
 
                 {/* Legal & Compliance (Link to Verification Center) */}
-                <div className="pt-6 border-t border-afrikoni-gold/20">
-                  <div className="p-4 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <Shield className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                <div className="pt-6 border-t border-white/5">
+                  <div className="p-4 rounded-xl border border-white/10 bg-white/5">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 rounded-lg bg-white/5 text-afrikoni-gold">
+                        <Shield className="w-5 h-5 flex-shrink-0" />
+                      </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-afrikoni-chestnut mb-1">Legal & Compliance</h4>
-                        <p className="text-sm text-afrikoni-deep/70 mb-3">
+                        <h4 className="font-semibold text-[var(--os-text-primary)] mb-1">Legal & Compliance</h4>
+                        <p className="text-sm text-os-muted mb-4 leading-relaxed">
                           Update business registration, tax ID, and verification documents in the Verification Center.
                         </p>
                         <Link to="/verification-center">
-                          <Button type="button" variant="outline" size="sm" className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10">
+                          <Button type="button" variant="outline" size="sm" className="hover:bg-white/5 border-white/10">
                             Go to Verification Center
                           </Button>
                         </Link>
@@ -774,136 +826,90 @@ export default function DashboardSettings() {
                   </div>
                 </div>
 
-                <div className="pt-4">
-                  <Button 
-                    onClick={() => handleSave('company')} 
-                    disabled={isSaving} 
-                    variant="primary" 
-                    className="w-full md:w-auto min-h-[44px] touch-manipulation"
+                <div className="pt-4 flex justify-end">
+                  <Button
+                    onClick={() => handleSave('company')}
+                    disabled={isSaving}
+                    variant="primary"
+                    className="w-full md:w-auto min-h-[44px] touch-manipulation bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold px-8"
                   >
                     <Save className="w-4 h-4 mr-2" />
                     {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
-              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
-                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
-                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
-                    <Bell className="w-5 h-5 text-afrikoni-gold" />
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+              <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
+                <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
+                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                    <Bell className="w-5 h-5" />
                   </div>
                   {translate('settings.notifications', 'Notification Preferences')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-afrikoni bg-afrikoni-ivory">
-                  <div>
-                    <h4 className="font-semibold text-afrikoni-text-dark">Email Notifications</h4>
-                    <p className="text-sm text-afrikoni-text-dark/70">Receive notifications via email</p>
-                  </div>
-                  <Switch
-                    checked={preferences.email_notifications}
-                    onCheckedChange={(checked) => setPreferences({ ...preferences, email_notifications: checked })}
-                  />
                 </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
-                  <div>
-                    <h4 className="font-semibold text-afrikoni-text-dark">In-App Notifications</h4>
-                    <p className="text-sm text-afrikoni-text-dark/70">Show notifications in the dashboard</p>
+              </div>
+              <div className="p-6 md:p-8 space-y-4">
+                {[
+                  { title: "Email Notifications", desc: "Receive notifications via email", key: "email_notifications" },
+                  { title: "In-App Notifications", desc: "Show notifications in the dashboard", key: "in_app_notifications" },
+                  { title: "Order Updates", desc: "Notify me when order status changes", key: "order_updates" },
+                  { title: "New Messages", desc: "Notify me when I receive messages", key: "new_messages" },
+                  { title: "RFQ Responses", desc: "Notify me when I receive RFQ quotes", key: "rfq_responses" },
+                  { title: "Reviews", desc: "Notify me when I receive new reviews", key: "reviews" },
+                  { title: "Payment Events", desc: "Notify me about payment receipts and escrow releases", key: "payments" },
+                ].map((item) => (
+                  <div key={item.key} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5">
+                    <div>
+                      <h4 className="font-semibold text-[var(--os-text-primary)]">{item.title}</h4>
+                      <p className="text-sm text-os-muted">{item.desc}</p>
+                    </div>
+                    <Switch
+                      checked={preferences[item.key]}
+                      onCheckedChange={(checked) => setPreferences({ ...preferences, [item.key]: checked })}
+                      className="data-[state=checked]:bg-[#D4AF37]"
+                    />
                   </div>
-                  <Switch
-                    checked={preferences.in_app_notifications}
-                    onCheckedChange={(checked) => setPreferences({ ...preferences, in_app_notifications: checked })}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
-                  <div>
-                    <h4 className="font-semibold text-afrikoni-text-dark">Order Updates</h4>
-                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when order status changes</p>
-                  </div>
-                  <Switch
-                    checked={preferences.order_updates}
-                    onCheckedChange={(checked) => setPreferences({ ...preferences, order_updates: checked })}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
-                  <div>
-                    <h4 className="font-semibold text-afrikoni-text-dark">New Messages</h4>
-                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when I receive messages</p>
-                  </div>
-                  <Switch
-                    checked={preferences.new_messages}
-                    onCheckedChange={(checked) => setPreferences({ ...preferences, new_messages: checked })}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
-                  <div>
-                    <h4 className="font-semibold text-afrikoni-text-dark">RFQ Responses</h4>
-                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when I receive RFQ quotes</p>
-                  </div>
-                  <Switch
-                    checked={preferences.rfq_responses}
-                    onCheckedChange={(checked) => setPreferences({ ...preferences, rfq_responses: checked })}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
-                  <div>
-                    <h4 className="font-semibold text-afrikoni-text-dark">Reviews</h4>
-                    <p className="text-sm text-afrikoni-text-dark/70">Notify me when I receive new reviews</p>
-                  </div>
-                  <Switch
-                    checked={preferences.reviews}
-                    onCheckedChange={(checked) => setPreferences({ ...preferences, reviews: checked })}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
-                  <div>
-                    <h4 className="font-semibold text-afrikoni-text-dark">Payment Events</h4>
-                    <p className="text-sm text-afrikoni-text-dark/70">Notify me about payment receipts and escrow releases</p>
-                  </div>
-                  <Switch
-                    checked={preferences.payments}
-                    onCheckedChange={(checked) => setPreferences({ ...preferences, payments: checked })}
-                  />
-                </div>
-                <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <p className="text-xs text-afrikoni-text-dark/60 mb-4">
-                    💡 <strong>Tip:</strong> Email notifications are sent for important events like order updates, payments, and messages. 
+                ))}
+
+                <div className="pt-4 border-t border-white/5">
+                  <p className="text-xs mb-4 text-os-muted leading-relaxed">
+                    💡 <strong className="text-[var(--os-text-primary)]">Tip:</strong> Email notifications are sent for important events like order updates, payments, and messages.
                     You can control which types of notifications you receive via email above.
                   </p>
                 </div>
-                <Button 
-                  onClick={() => handleSave('notifications')} 
-                  disabled={isSaving} 
-                  className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full min-h-[44px] touch-manipulation"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
-                </Button>
-              </CardContent>
-            </Card>
+                <div className="flex justify-end pt-2">
+                  <Button
+                    onClick={() => handleSave('notifications')}
+                    disabled={isSaving}
+                    className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold min-h-[44px] touch-manipulation w-full md:w-auto px-8"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
+                  </Button>
+                </div>
+              </div>
+            </Surface>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
-            <Card className="border-afrikoni-gold/20 shadow-lg bg-white rounded-xl overflow-hidden">
-              <CardHeader className="border-b border-afrikoni-gold/10 bg-gradient-to-r from-afrikoni-offwhite to-white pb-5 pt-6">
-                <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold text-afrikoni-chestnut">
-                  <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
-                    <Shield className="w-5 h-5 text-afrikoni-gold" />
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+              <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
+                <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
+                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                    <Shield className="w-5 h-5" />
                   </div>
                   {translate('settings.security', 'Security Settings')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+                </div>
+              </div>
+              <div className="p-6 md:p-8 space-y-8">
                 {/* Change Password */}
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-afrikoni-text-dark">Change Password</h4>
-                  <div className="space-y-3">
-                <div>
+                <div className="space-y-5">
+                  <h4 className="font-semibold text-[var(--os-text-primary)] border-b border-white/5 pb-2">Change Password</h4>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
                       <Label htmlFor="currentPassword">Current Password</Label>
                       <Input
                         id="currentPassword"
@@ -911,9 +917,10 @@ export default function DashboardSettings() {
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                         placeholder="Enter current password"
+                        className="bg-white/5 border-white/10"
                       />
-                </div>
-                <div>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="newPassword">New Password</Label>
                       <Input
                         id="newPassword"
@@ -921,48 +928,50 @@ export default function DashboardSettings() {
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                         placeholder="Enter new password (min 6 characters)"
+                        className="bg-white/5 border-white/10"
                       />
-                </div>
-                    <div>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input
+                      <Input
                         id="confirmPassword"
-                      type="password"
+                        type="password"
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                         placeholder="Confirm new password"
-                    />
+                        className="bg-white/5 border-white/10"
+                      />
                     </div>
-                    <Button onClick={handleChangePassword} disabled={isSaving || !passwordData.newPassword} variant="outline">
+                    <Button onClick={handleChangePassword} disabled={isSaving || !passwordData.newPassword} variant="outline" className="border-white/10 hover:bg-white/5">
                       <Lock className="w-4 h-4 mr-2" />
                       Change Password
                     </Button>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-4">Two-Factor Authentication</h4>
-                  <div className="p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-cream">
-                    <p className="text-sm text-afrikoni-text-dark/70">
+                <div className="pt-6 border-t border-white/5">
+                  <h4 className="font-semibold text-[var(--os-text-primary)] mb-4">Two-Factor Authentication</h4>
+                  <div className="p-4 rounded-xl border border-white/10 bg-white/5">
+                    <p className="text-sm text-os-muted">
                       Two-factor authentication will be available in a future update. This feature will add an extra layer of security to your account.
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-4">Session Management</h4>
-                  <Button onClick={handleLogoutAllDevices} variant="outline" className="w-full">
+                <div className="pt-6 border-t border-white/5">
+                  <h4 className="font-semibold text-[var(--os-text-primary)] mb-4">Session Management</h4>
+                  <Button onClick={handleLogoutAllDevices} variant="outline" className="w-full border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300">
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout from All Devices
                   </Button>
-                  <p className="text-xs text-afrikoni-text-dark/70 mt-2">
+                  <p className="text-xs mt-2 text-os-muted opacity-70">
                     This will sign you out from all devices and browsers
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-4 flex items-center gap-2">
-                    <Key className="w-5 h-5" />
+                <div className="pt-6 border-t border-white/5">
+                  <h4 className="font-semibold text-[var(--os-text-primary)] mb-4 flex items-center gap-2">
+                    <Key className="w-4 h-4" />
                     API Key (for future integrations)
                   </h4>
                   <div className="space-y-3">
@@ -971,57 +980,59 @@ export default function DashboardSettings() {
                         type={showApiKey ? 'text' : 'password'}
                         value={apiKey || 'Not generated yet'}
                         readOnly
-                        className="font-mono"
+                        className="font-mono bg-white/5 border-white/10"
                       />
-                      <Button variant="outline" size="sm" onClick={() => setShowApiKey(!showApiKey)}>
+                      <Button variant="outline" size="sm" onClick={() => setShowApiKey(!showApiKey)} className="border-white/10 hover:bg-white/5">
                         {showApiKey ? 'Hide' : 'Show'}
                       </Button>
-                      <Button variant="outline" size="sm" onClick={generateApiKey} disabled={isSaving}>
+                      <Button variant="outline" size="sm" onClick={generateApiKey} disabled={isSaving} className="border-white/10 hover:bg-white/5">
                         Regenerate
                       </Button>
                     </div>
-                    <div className="p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
-                      <p className="text-xs text-afrikoni-text-dark font-semibold mb-1">⚠️ Keep this key secret</p>
-                      <p className="text-xs text-afrikoni-text-dark/70">
+                    <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                      <p className="text-xs font-semibold mb-1 text-amber-500">⚠️ Keep this key secret</p>
+                      <p className="text-xs text-amber-500/80">
                         This API key provides full access to your marketplace data. Never share it publicly or commit it to version control.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-afrikoni-gold/20">
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-4 flex items-center gap-2">
-                    <Cookie className="w-5 h-5 text-afrikoni-gold" />
+                <div className="pt-6 border-t border-white/5">
+                  <h4 className="font-semibold text-[var(--os-text-primary)] mb-4 flex items-center gap-2">
+                    <Cookie className="w-4 h-4" />
                     Cookie Preferences
                   </h4>
-                  <div className="space-y-3">
-                    <p className="text-sm text-afrikoni-text-dark/70 mb-4">
+                  <div className="space-y-4">
+                    <p className="text-sm text-os-muted">
                       Manage your cookie consent preferences. You can control which types of cookies we use to enhance your experience.
                     </p>
-                    <Button 
+                    <Button
                       onClick={() => setShowCookieModal(true)}
                       variant="outline"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto border-white/10 hover:bg-white/5"
                     >
                       <Cookie className="w-4 h-4 mr-2" />
                       Manage Consent
                     </Button>
-                    <p className="text-xs text-afrikoni-text-dark/70 mt-2">
+                    <p className="text-xs mt-2 text-os-muted opacity-70">
                       Your preferences are saved locally and will be remembered across sessions.
                     </p>
                   </div>
                 </div>
 
-                <Button 
-                  onClick={() => handleSave('security')} 
-                  disabled={isSaving} 
-                  className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-goldDark w-full md:w-auto min-h-[44px] touch-manipulation"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
-                </Button>
-              </CardContent>
-            </Card>
+                <div className="flex justify-end pt-4">
+                  <Button
+                    onClick={() => handleSave('security')}
+                    disabled={isSaving}
+                    className="bg-[#D4AF37] hover:bg-[#C5A028] text-black font-semibold min-h-[44px] touch-manipulation w-full md:w-auto px-8"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
+                  </Button>
+                </div>
+              </div>
+            </Surface>
           </TabsContent>
         </Tabs>
 
@@ -1038,4 +1049,3 @@ export default function DashboardSettings() {
     </>
   );
 }
-

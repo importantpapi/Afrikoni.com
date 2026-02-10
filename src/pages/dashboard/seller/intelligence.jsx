@@ -42,7 +42,7 @@ export default function SellerIntelligence() {
   if (loading || supplierLoading || trustLoading || riskLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -69,10 +69,10 @@ export default function SellerIntelligence() {
       <div className="space-y-6 p-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
+          <h1 className="text-3xl font-bold mb-2">
             Supplier Intelligence
           </h1>
-          <p className="text-afrikoni-deep/70">
+          <p className="">
             Your performance metrics and reliability insights
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function SellerIntelligence() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Shield className="w-8 h-8 text-afrikoni-gold" />
+                <Shield className="w-8 h-8" />
                 <Badge className={
                   supplier?.reliability_score >= 80 ? 'bg-green-100 text-green-700' :
                   supplier?.reliability_score >= 60 ? 'bg-yellow-100 text-yellow-700' :
@@ -91,32 +91,32 @@ export default function SellerIntelligence() {
                   {supplier?.reliability_score?.toFixed(0) || 'N/A'}
                 </Badge>
               </div>
-              <div className="text-2xl font-bold text-afrikoni-text-dark mb-1">
+              <div className="text-2xl font-bold mb-1">
                 {supplier?.reliability_score?.toFixed(0) || 'N/A'}
               </div>
-              <div className="text-sm text-afrikoni-text-dark/70">Reliability Score</div>
+              <div className="text-sm">Reliability Score</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-8 h-8 text-green-500" />
-                <Badge className="bg-green-50 text-green-700">
+                <CheckCircle className="w-8 h-8" />
+                <Badge className="">
                   {supplier?.completion_rate?.toFixed(1) || 0}%
                 </Badge>
               </div>
-              <div className="text-2xl font-bold text-afrikoni-text-dark mb-1">
+              <div className="text-2xl font-bold mb-1">
                 {supplier?.completion_rate?.toFixed(1) || 0}%
               </div>
-              <div className="text-sm text-afrikoni-text-dark/70">Completion Rate</div>
+              <div className="text-sm">Completion Rate</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Clock className="w-8 h-8 text-blue-500" />
+                <Clock className="w-8 h-8" />
                 <Badge className={
                   supplier?.avg_response_hours <= 24 ? 'bg-green-50 text-green-700' :
                   supplier?.avg_response_hours <= 48 ? 'bg-yellow-50 text-yellow-700' :
@@ -125,25 +125,25 @@ export default function SellerIntelligence() {
                   {supplier?.avg_response_hours?.toFixed(1) || 'N/A'}h
                 </Badge>
               </div>
-              <div className="text-2xl font-bold text-afrikoni-text-dark mb-1">
+              <div className="text-2xl font-bold mb-1">
                 {supplier?.avg_response_hours?.toFixed(1) || 'N/A'}
               </div>
-              <div className="text-sm text-afrikoni-text-dark/70">Avg Response Time (hours)</div>
+              <div className="text-sm">Avg Response Time (hours)</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Package className="w-8 h-8 text-purple-500" />
-                <Badge className="bg-purple-50 text-purple-700">
+                <Package className="w-8 h-8" />
+                <Badge className="">
                   {supplier?.total_orders || 0}
                 </Badge>
               </div>
-              <div className="text-2xl font-bold text-afrikoni-text-dark mb-1">
+              <div className="text-2xl font-bold mb-1">
                 {supplier?.total_orders || 0}
               </div>
-              <div className="text-sm text-afrikoni-text-dark/70">Total Orders</div>
+              <div className="text-sm">Total Orders</div>
             </CardContent>
           </Card>
         </div>
@@ -165,18 +165,18 @@ export default function SellerIntelligence() {
               <CardContent className="space-y-4">
                 {supplierLoading ? (
                   <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2" />
                   </div>
                 ) : supplier ? (
                   <div className="space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-afrikoni-deep">Trust Score</span>
-                        <span className="text-sm text-afrikoni-deep/70">{supplier.trust_score || 50}/100</span>
+                        <span className="text-sm font-medium">Trust Score</span>
+                        <span className="text-sm">{supplier.trust_score || 50}/100</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full rounded-full h-2">
                         <div 
-                          className="bg-afrikoni-gold h-2 rounded-full transition-all" 
+                          className="h-2 rounded-full transition-all" 
                           style={{ width: `${supplier.trust_score || 50}%` }}
                         />
                       </div>
@@ -184,12 +184,12 @@ export default function SellerIntelligence() {
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-afrikoni-deep">Completion Rate</span>
-                        <span className="text-sm text-afrikoni-deep/70">{supplier.completion_rate?.toFixed(1) || 0}%</span>
+                        <span className="text-sm font-medium">Completion Rate</span>
+                        <span className="text-sm">{supplier.completion_rate?.toFixed(1) || 0}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full rounded-full h-2">
                         <div 
-                          className="bg-green-500 h-2 rounded-full transition-all" 
+                          className="h-2 rounded-full transition-all" 
                           style={{ width: `${supplier.completion_rate || 0}%` }}
                         />
                       </div>
@@ -197,42 +197,42 @@ export default function SellerIntelligence() {
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-afrikoni-deep">Response Speed</span>
-                        <span className="text-sm text-afrikoni-deep/70">
+                        <span className="text-sm font-medium">Response Speed</span>
+                        <span className="text-sm">
                           {supplier.avg_response_hours ? `${supplier.avg_response_hours.toFixed(1)} hours` : 'N/A'}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full rounded-full h-2">
                         <div 
-                          className="bg-blue-500 h-2 rounded-full transition-all" 
+                          className="h-2 rounded-full transition-all" 
                           style={{ width: `${supplier.avg_response_hours ? Math.max(0, 100 - (supplier.avg_response_hours / 72 * 100)) : 0}%` }}
                         />
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-afrikoni-gold/20">
-                      <div className="text-sm font-semibold text-afrikoni-chestnut mb-3">Flags</div>
+                    <div className="pt-4 border-t">
+                      <div className="text-sm font-semibold mb-3">Flags</div>
                       <div className="space-y-2">
                         {supplier.slow_response_flag && (
-                          <div className="flex items-center gap-2 text-orange-600">
+                          <div className="flex items-center gap-2">
                             <AlertTriangle className="w-4 h-4" />
                             <span className="text-sm">Slow response times detected</span>
                           </div>
                         )}
                         {supplier.high_dispute_flag && (
-                          <div className="flex items-center gap-2 text-red-600">
+                          <div className="flex items-center gap-2">
                             <XCircle className="w-4 h-4" />
                             <span className="text-sm">High dispute rate</span>
                           </div>
                         )}
                         {supplier.inactive_flag && (
-                          <div className="flex items-center gap-2 text-gray-600">
+                          <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4" />
                             <span className="text-sm">Inactive for 90+ days</span>
                           </div>
                         )}
                         {!supplier.slow_response_flag && !supplier.high_dispute_flag && !supplier.inactive_flag && (
-                          <div className="flex items-center gap-2 text-green-600">
+                          <div className="flex items-center gap-2">
                             <CheckCircle className="w-4 h-4" />
                             <span className="text-sm">No issues detected</span>
                           </div>
@@ -241,7 +241,7 @@ export default function SellerIntelligence() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center text-afrikoni-deep/70 py-8">
+                  <div className="text-center py-8">
                     No supplier data available
                   </div>
                 )}
@@ -259,21 +259,21 @@ export default function SellerIntelligence() {
                 <CardContent className="space-y-4">
                   {supplier ? (
                     <>
-                      <div className="flex items-center justify-between p-3 bg-afrikoni-cream rounded-lg">
-                        <span className="text-sm text-afrikoni-deep">Total Orders</span>
-                        <span className="font-bold text-afrikoni-chestnut">{supplier.total_orders || 0}</span>
+                      <div className="flex items-center justify-between p-3 rounded-lg">
+                        <span className="text-sm">Total Orders</span>
+                        <span className="font-bold">{supplier.total_orders || 0}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <span className="text-sm text-afrikoni-deep">Completed</span>
-                        <span className="font-bold text-green-700">{supplier.completed_orders || 0}</span>
+                      <div className="flex items-center justify-between p-3 rounded-lg">
+                        <span className="text-sm">Completed</span>
+                        <span className="font-bold">{supplier.completed_orders || 0}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                        <span className="text-sm text-afrikoni-deep">Cancelled</span>
-                        <span className="font-bold text-red-700">{supplier.cancelled_orders || 0}</span>
+                      <div className="flex items-center justify-between p-3 rounded-lg">
+                        <span className="text-sm">Cancelled</span>
+                        <span className="font-bold">{supplier.cancelled_orders || 0}</span>
                       </div>
                     </>
                   ) : (
-                    <div className="text-center text-afrikoni-deep/70 py-4">No data</div>
+                    <div className="text-center py-4">No data</div>
                   )}
                 </CardContent>
               </Card>
@@ -285,23 +285,23 @@ export default function SellerIntelligence() {
                 <CardContent className="space-y-4">
                   {supplier ? (
                     <>
-                      <div className="flex items-center justify-between p-3 bg-afrikoni-cream rounded-lg">
-                        <span className="text-sm text-afrikoni-deep">Total Quotes</span>
-                        <span className="font-bold text-afrikoni-chestnut">{supplier.total_quotes_submitted || 0}</span>
+                      <div className="flex items-center justify-between p-3 rounded-lg">
+                        <span className="text-sm">Total Quotes</span>
+                        <span className="font-bold">{supplier.total_quotes_submitted || 0}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <span className="text-sm text-afrikoni-deep">Within 24h</span>
-                        <span className="font-bold text-green-700">{supplier.responses_within_24h || 0}</span>
+                      <div className="flex items-center justify-between p-3 rounded-lg">
+                        <span className="text-sm">Within 24h</span>
+                        <span className="font-bold">{supplier.responses_within_24h || 0}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                        <span className="text-sm text-afrikoni-deep">Avg Response</span>
-                        <span className="font-bold text-blue-700">
+                      <div className="flex items-center justify-between p-3 rounded-lg">
+                        <span className="text-sm">Avg Response</span>
+                        <span className="font-bold">
                           {supplier.avg_response_hours ? `${supplier.avg_response_hours.toFixed(1)}h` : 'N/A'}
                         </span>
                       </div>
                     </>
                   ) : (
-                    <div className="text-center text-afrikoni-deep/70 py-4">No data</div>
+                    <div className="text-center py-4">No data</div>
                   )}
                 </CardContent>
               </Card>
@@ -317,33 +317,33 @@ export default function SellerIntelligence() {
               <CardContent>
                 {trustLoading ? (
                   <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2" />
                   </div>
                 ) : trust ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-afrikoni-cream rounded-lg">
-                        <div className="text-sm text-afrikoni-deep/70 mb-1">Current Trust Score</div>
-                        <div className="text-3xl font-bold text-afrikoni-gold">{trust.current_trust_score || 50}</div>
+                      <div className="p-4 rounded-lg">
+                        <div className="text-sm mb-1">Current Trust Score</div>
+                        <div className="text-3xl font-bold">{trust.current_trust_score || 50}</div>
                       </div>
-                      <div className="p-4 bg-afrikoni-cream rounded-lg">
-                        <div className="text-sm text-afrikoni-deep/70 mb-1">Completed Deals</div>
-                        <div className="text-3xl font-bold text-afrikoni-chestnut">{trust.completed_deals || 0}</div>
+                      <div className="p-4 rounded-lg">
+                        <div className="text-sm mb-1">Completed Deals</div>
+                        <div className="text-3xl font-bold">{trust.completed_deals || 0}</div>
                       </div>
-                      <div className="p-4 bg-afrikoni-cream rounded-lg">
-                        <div className="text-sm text-afrikoni-deep/70 mb-1">Total Reviews</div>
-                        <div className="text-3xl font-bold text-afrikoni-chestnut">{trust.total_reviews || 0}</div>
+                      <div className="p-4 rounded-lg">
+                        <div className="text-sm mb-1">Total Reviews</div>
+                        <div className="text-3xl font-bold">{trust.total_reviews || 0}</div>
                       </div>
-                      <div className="p-4 bg-afrikoni-cream rounded-lg">
-                        <div className="text-sm text-afrikoni-deep/70 mb-1">Avg Rating</div>
-                        <div className="text-3xl font-bold text-afrikoni-gold">
+                      <div className="p-4 rounded-lg">
+                        <div className="text-sm mb-1">Avg Rating</div>
+                        <div className="text-3xl font-bold">
                           {trust.avg_review_rating ? trust.avg_review_rating.toFixed(1) : 'N/A'}
                         </div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center text-afrikoni-deep/70 py-8">No trust data available</div>
+                  <div className="text-center py-8">No trust data available</div>
                 )}
               </CardContent>
             </Card>
@@ -361,7 +361,7 @@ export default function SellerIntelligence() {
                       'bg-green-50 border-green-200'
                     }`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold text-afrikoni-chestnut">Overall Risk Level</span>
+                        <span className="font-semibold">Overall Risk Level</span>
                         <Badge className={
                           risk.overall_risk_level === 'High' ? 'bg-red-200 text-red-900' :
                           risk.overall_risk_level === 'Medium' ? 'bg-orange-200 text-orange-900' :
@@ -370,7 +370,7 @@ export default function SellerIntelligence() {
                           {risk.overall_risk_level}
                         </Badge>
                       </div>
-                      <div className="text-sm text-afrikoni-deep/70 space-y-1">
+                      <div className="text-sm space-y-1">
                         <div>Response Delay Risk: {risk.response_delay_risk}</div>
                         <div>Dispute Risk: {risk.dispute_risk}</div>
                         {risk.abandoned_conversations > 0 && (

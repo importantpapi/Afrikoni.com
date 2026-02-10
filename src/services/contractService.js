@@ -33,13 +33,13 @@ export async function generateContractFromQuote(tradeId, quoteId) {
     const { data: buyerCompany } = await supabase
       .from('companies')
       .select('*')
-      .eq('id', trade.buyer_company_id)
+      .eq('id', trade.buyer_id)
       .single();
 
     const { data: supplierCompany } = await supabase
       .from('companies')
       .select('*')
-      .eq('id', quote.supplier_company_id)
+      .eq('id', quote.supplier_id)
       .single();
 
     // Call AI contract generation service
@@ -54,7 +54,7 @@ export async function generateContractFromQuote(tradeId, quoteId) {
           created_at: trade.created_at
         },
         quote: {
-          unit_price: quote.unit_price,
+          unit_price: quote.price_per_unit,
           total_price: quote.total_price,
           currency: quote.currency,
           lead_time_days: quote.lead_time_days,
@@ -83,13 +83,13 @@ export async function generateContractFromQuote(tradeId, quoteId) {
       .insert({
         trade_id: tradeId,
         quote_id: quoteId,
-        contract_type: 'purchase_order',
+        title: data?.title || `${trade.title} Supply Contract`,
+        content_html: data.html || null,
+        content_json: data.contract || {},
         version: 1,
-        status: 'draft',
-        html_content: data.html || null,
-        json_content: data.contract,
-        generated_by_ai: true,
-        ai_model: data.model || 'claude-3-sonnet',
+        status: 'generated',
+        total_amount: quote.total_price,
+        currency: quote.currency,
         created_at: new Date()
       })
       .select()
@@ -144,19 +144,19 @@ export async function getContractHTML(contractId) {
   try {
     const { data, error } = await supabase
       .from('contracts')
-      .select('html_content, json_content')
+      .select('content_html, content_json')
       .eq('id', contractId)
       .single();
 
     if (error) throw error;
 
     // If HTML exists, return it; otherwise generate from JSON
-    if (data.html_content) {
-      return { success: true, html: data.html_content };
+    if (data.content_html) {
+      return { success: true, html: data.content_html };
     }
 
     // Generate HTML from JSON if needed
-    const html = generateHTMLFromJSON(data.json_content);
+    const html = generateHTMLFromJSON(data.content_json);
     return { success: true, html };
   } catch (err) {
     console.error('[contractService] Get contract HTML failed:', err);
@@ -184,9 +184,10 @@ export async function signContract(contractId) {
       .from('contracts')
       .update({
         status: 'signed',
-        signed_by: user.id,
-        signed_at: new Date(),
-        version: contract.version + 1
+        buyer_signed_by: user.id,
+        buyer_signed_at: new Date(),
+        version: contract.version + 1,
+        updated_at: new Date()
       })
       .eq('id', contractId)
       .select()

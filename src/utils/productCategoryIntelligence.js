@@ -64,12 +64,12 @@ const POPULAR_CATEGORIES = {
  */
 export function matchProductToPopularCategory(title = '', description = '') {
   const combinedText = `${title} ${description}`.toLowerCase();
-  
+
   // Score each category based on keyword matches
   const categoryScores = Object.entries(POPULAR_CATEGORIES).map(([categoryName, config]) => {
     let score = 0;
     const keywords = config.keywords;
-    
+
     // Count keyword matches
     keywords.forEach(keyword => {
       const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
@@ -78,18 +78,18 @@ export function matchProductToPopularCategory(title = '', description = '') {
         score += matches.length;
       }
     });
-    
+
     return { categoryName, score };
   });
-  
+
   // Sort by score (highest first)
   categoryScores.sort((a, b) => b.score - a.score);
-  
+
   // Return the category with the highest score (if score > 0)
   if (categoryScores[0] && categoryScores[0].score > 0) {
     return categoryScores[0].categoryName;
   }
-  
+
   return null;
 }
 
@@ -101,31 +101,44 @@ export function matchProductToPopularCategory(title = '', description = '') {
  */
 export async function findOrCreateCategory(supabase, categoryName) {
   if (!categoryName || !supabase) return null;
-  
+
+  console.log('[PCI] findOrCreateCategory called for:', categoryName);
+
   try {
     // First, try to find existing category
-    const { data: existingCategory, error: findError } = await supabase
+    console.log('[PCI] Querying existing category...');
+    // Timeout wrapper for the query
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Category query timed out')), 5000));
+
+    // First, try to find existing category
+    console.log('[PCI] Querying existing category...');
+
+    const query = supabase
       .from('categories')
       .select('id, name')
       .ilike('name', categoryName)
       .limit(1)
       .maybeSingle();
-    
+
+    const { data: existingCategory, error: findError } = await Promise.race([query, timeout]);
+
+    console.log('[PCI] Query result:', { existingCategory, findError });
+
     if (findError) {
       console.error('Error finding category:', findError);
       return null;
     }
-    
+
     if (existingCategory) {
       return existingCategory.id;
     }
-    
+
     // If not found, try to find similar category
     const { data: similarCategories } = await supabase
       .from('categories')
       .select('id, name')
       .limit(50);
-    
+
     if (similarCategories) {
       // Try fuzzy match
       const matched = similarCategories.find(cat => {
@@ -133,12 +146,12 @@ export async function findOrCreateCategory(supabase, categoryName) {
         const targetName = categoryName.toLowerCase();
         return catName.includes(targetName) || targetName.includes(catName);
       });
-      
+
       if (matched) {
         return matched.id;
       }
     }
-    
+
     // Create new category if not found
     const { data: newCategory, error: createError } = await supabase
       .from('categories')
@@ -149,12 +162,12 @@ export async function findOrCreateCategory(supabase, categoryName) {
       })
       .select('id')
       .single();
-    
+
     if (createError) {
       console.error('Error creating category:', createError);
       return null;
     }
-    
+
     return newCategory?.id || null;
   } catch (error) {
     console.error('Error in findOrCreateCategory:', error);
@@ -175,16 +188,16 @@ export async function autoAssignCategory(supabase, title, description, existingC
   if (existingCategoryId) {
     return existingCategoryId;
   }
-  
+
   // Use intelligence to match category
   const matchedCategory = matchProductToPopularCategory(title, description);
-  
+
   if (matchedCategory) {
     // Find or create the category in database
     const categoryId = await findOrCreateCategory(supabase, matchedCategory);
     return categoryId;
   }
-  
+
   return null;
 }
 

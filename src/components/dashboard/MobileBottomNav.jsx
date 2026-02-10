@@ -40,7 +40,7 @@ export default function MobileBottomNav({
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#0A0A0A] border-t border-gray-200 dark:border-[#1E1E1E] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 dark:bg-[#0A0A0A] border-t dark:border-[#1E1E1E] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)]"
       role="navigation"
       aria-label="Dashboard navigation"
     >
@@ -73,7 +73,7 @@ export default function MobileBottomNav({
               {isActive && (
                 <motion.div
                   layoutId="activeBottomNav"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#D4A937] rounded-b-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full"
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   aria-hidden="true"
                 />

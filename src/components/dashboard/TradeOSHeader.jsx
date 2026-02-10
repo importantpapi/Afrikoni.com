@@ -1,54 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Bell, Plus, ChevronDown, Command, Sparkles,
+  Search, Bell, Plus, Command, Sparkles,
   ShieldCheck, Truck, DollarSign, Activity, Menu, Zap,
-  TrendingUp, Globe
+  Globe, LayoutDashboard, Database
 } from 'lucide-react';
-import { Badge } from '@/components/shared/ui/badge';
 import { useTheme } from '@/contexts/ThemeContext';
-
-// Live intelligence ticker messages
-const TICKER_MESSAGES = [
-  { text: 'Cocoa futures up 3.2% — West Africa corridor active', type: 'signal' },
-  { text: 'New AfCFTA tariff reduction: Kenya-Nigeria route', type: 'policy' },
-  { text: '12 new verified suppliers joined this week', type: 'network' },
-  { text: 'Escrow release: $19.2K processed successfully', type: 'finance' },
-  { text: 'Shea butter demand surge — 8 open RFQs matching your products', type: 'opportunity' },
-];
+import { useKernelState } from '@/hooks/useKernelState';
 
 export default function TradeOSHeader({
   onOpenCommandPalette,
   onToggleSidebar,
   notificationCount = 0,
-  trustScore = 78,
-  escrowBalance = 64000,
-  complianceStatus = 'ready',
+  workspaceMode = 'simple',
+  onToggleMode = () => { },
   userAvatar,
 }) {
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [tickerIndex, setTickerIndex] = useState(0);
 
-  // Rotate ticker messages
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTickerIndex(prev => (prev + 1) % TICKER_MESSAGES.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  // Connect to Kernel State
+  const { data: kernelData, loading: kernelLoading } = useKernelState();
 
-  const currentTicker = TICKER_MESSAGES[tickerIndex];
+  const activeTrades = kernelData?.activeTrades ?? 0;
+  const capitalInMotion = kernelData?.capitalInMotion ?? 0;
+  const complianceReady = kernelData?.complianceReadiness ?? 98;
+  const activeCorridors = kernelData?.activeCorridors ?? 0;
 
   return (
-    <div>
+    <div className="flex flex-col w-full z-40 bg-white/80 dark:bg-[#0A0A0A]/90 backdrop-blur-md border-b dark:border-[#1E1E1E] sticky top-0">
       {/* Main Header Bar */}
-      <header className="h-14 bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#1E1E1E] flex items-center px-3 md:px-5 gap-3 relative">
+      <header className="h-14 flex items-center px-4 gap-4 relative">
         {/* Mobile menu toggle */}
         <button
           onClick={onToggleSidebar}
-          className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+          className="md:hidden p-2 rounded-lg dark:text-gray-400 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -56,118 +43,118 @@ export default function TradeOSHeader({
         {/* Command Bar Trigger */}
         <button
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-9 px-3 rounded-lg bg-gray-50 dark:bg-[#141414] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#D4A937]/30 transition-all text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 flex-1 max-w-md"
+          className="flex items-center gap-2 h-9 px-3 rounded-xl dark:bg-[#141414] border dark:border-[#2A2A2A] hover:border-[#D4A937]/30 transition-all text-sm dark:text-gray-500 hover:text-gray-400 flex-1 max-w-md shadow-inner shadow-black/20"
         >
           <Search className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Search or run command...</span>
           <span className="sm:hidden">Search...</span>
           <div className="ml-auto flex items-center gap-1">
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A]">
+            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium dark:text-gray-600 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A]">
               <Command className="w-2.5 h-2.5 mr-0.5" />K
             </kbd>
           </div>
         </button>
 
-        {/* Kernel Status Indicators - Desktop only */}
-        <div className="hidden lg:flex items-center gap-1">
-          {/* Trust Score */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-gray-50 dark:bg-[#141414] border border-gray-200 dark:border-[#1E1E1E]">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="text-[11px] font-mono font-semibold text-emerald-600 dark:text-emerald-400">{trustScore}</span>
-          </div>
-
-          {/* Escrow Balance */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-gray-50 dark:bg-[#141414] border border-gray-200 dark:border-[#1E1E1E]">
-            <DollarSign className="w-3.5 h-3.5 text-[#D4A937]" />
-            <span className="text-[11px] font-mono font-semibold text-[#D4A937]">
-              ${(escrowBalance / 1000).toFixed(0)}K
-            </span>
-          </div>
-
-          {/* Compliance */}
-          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-gray-50 dark:bg-[#141414] border ${
-            complianceStatus === 'ready' ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-amber-200 dark:border-amber-900/50'
-          }`}>
-            <Activity className={`w-3.5 h-3.5 ${
-              complianceStatus === 'ready' ? 'text-emerald-500' : 'text-amber-500'
-            }`} />
-            <span className={`text-[11px] font-mono font-semibold ${
-              complianceStatus === 'ready' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
-            }`}>
-              {complianceStatus === 'ready' ? 'AfCFTA' : 'REVIEW'}
-            </span>
-          </div>
-        </div>
-
         {/* Right side actions */}
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-3 ml-auto">
+          {/* Mode Toggle */}
+          <button
+            onClick={onToggleMode}
+            className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full border dark:border-[#1E1E1E] text-[10px] font-bold tracking-wider uppercase hover:border-[#D4A937]/40 hover:text-[#D4A937] transition-colors bg-[#0D0D0D]"
+          >
+            <span className={`${workspaceMode === 'simple' ? 'text-[#D4A937]' : 'dark:text-gray-600'}`}>
+              Simple
+            </span>
+            <span className="h-3 w-px dark:bg-[#2A2A2A]" />
+            <span className={`${workspaceMode === 'operator' ? 'text-[#D4A937]' : 'dark:text-gray-600'}`}>
+              Operator
+            </span>
+          </button>
+
           {/* Quick Add */}
           <button
-            onClick={() => navigate('/dashboard/products/quick-add')}
-            className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#D4A937] hover:bg-[#C09830] text-white dark:text-[#0A0A0A] text-xs font-semibold transition-colors"
+            onClick={() => navigate('/dashboard/products/new')}
+            className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#D4A937] hover:bg-[#C09830] text-black text-xs font-bold transition-all shadow-[0_0_15px_rgba(212,169,55,0.2)]"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New</span>
+            <Plus className="w-3.5 h-3.5 stroke-[3px]" />
+            <span>NEW</span>
           </button>
 
           {/* AI Copilot */}
-          <button className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors relative">
+          <button className="p-2 rounded-lg dark:text-gray-500 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors relative group">
             <Sparkles className="w-4 h-4" />
+            <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#D4A937] animate-pulse" />
           </button>
 
           {/* Notifications */}
-          <button className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors relative">
+          <button className="p-2 rounded-lg dark:text-gray-500 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors relative">
             <Bell className="w-4 h-4" />
             {notificationCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#D4A937] rounded-full" />
+              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-2 ring-[#0A0A0A]" />
             )}
           </button>
 
           {/* User Avatar */}
-          <div className="ml-1">
+          <div className="ml-1 pl-3 border-l border-[#222]">
             {userAvatar}
           </div>
         </div>
       </header>
 
-      {/* ═══ LIVE INTELLIGENCE TICKER BAR ═══ */}
-      <div className="h-7 bg-gray-50 dark:bg-[#0D0D0D] border-b border-gray-100 dark:border-[#1A1A1A] flex items-center px-3 md:px-5 overflow-hidden">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <Zap className="w-3 h-3 text-[#D4A937]" />
-            <span className="text-[10px] font-bold text-[#D4A937] uppercase tracking-wider hidden sm:inline">INTEL</span>
-          </div>
-          <div className="h-3 w-px bg-gray-200 dark:bg-[#2A2A2A] flex-shrink-0" />
-          <motion.div
-            key={tickerIndex}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
-            className="flex items-center gap-2 min-w-0"
-          >
-            <span className={`text-[10px] font-bold uppercase tracking-wider flex-shrink-0 ${
-              currentTicker.type === 'signal' ? 'text-emerald-600 dark:text-emerald-400' :
-              currentTicker.type === 'opportunity' ? 'text-[#D4A937]' :
-              currentTicker.type === 'finance' ? 'text-blue-600 dark:text-blue-400' :
-              'text-gray-500 dark:text-gray-500'
-            }`}>
-              {currentTicker.type === 'signal' && '↑'}
-              {currentTicker.type === 'opportunity' && '★'}
-              {currentTicker.type === 'finance' && '$'}
-              {currentTicker.type === 'policy' && '⚖'}
-              {currentTicker.type === 'network' && '◉'}
-            </span>
-            <span className="text-[11px] text-gray-600 dark:text-gray-400 truncate">
-              {currentTicker.text}
-            </span>
-          </motion.div>
+      {/* ═══ LIVE KERNEL RIBBON ═══ */}
+      <div className="h-9 bg-[#080808] border-t border-[#1A1A1A] flex items-center px-4 overflow-hidden relative">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
+
+        {/* Kernel Status Badge */}
+        <div className="flex items-center gap-2 flex-shrink-0 mr-6 z-10">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#444]">KERNEL ACTIVE</span>
         </div>
-        <div className="hidden md:flex items-center gap-1.5 flex-shrink-0 ml-2">
-          <Globe className="w-3 h-3 text-gray-400 dark:text-gray-600" />
-          <span className="text-[10px] font-mono text-gray-400 dark:text-gray-600">
-            {TICKER_MESSAGES.length} signals
-          </span>
+
+        {/* Scrolling Intelligence Ribbon */}
+        {kernelLoading ? (
+          <div className="flex items-center gap-4 animate-pulse">
+            <div className="h-3 w-20 bg-[#1A1A1A] rounded" />
+            <div className="h-3 w-20 bg-[#1A1A1A] rounded" />
+            <div className="h-3 w-20 bg-[#1A1A1A] rounded" />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-hidden relative z-10 mask-linear-fade">
+            <div className="flex items-center gap-8 animate-marquee whitespace-nowrap">
+              {/* Active Trades */}
+              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
+                <Activity className="w-3 h-3 text-[#D4A937]" />
+                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">Active Trades</span>
+                <span className="text-[11px] font-mono text-white ml-1">{activeTrades}</span>
+              </div>
+
+              {/* Capital */}
+              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
+                <Database className="w-3 h-3 text-emerald-500" />
+                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">Capital Flow</span>
+                <span className="text-[11px] font-mono text-white ml-1">${(capitalInMotion / 1000).toFixed(0)}K</span>
+              </div>
+
+              {/* Compliance */}
+              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
+                <ShieldCheck className="w-3 h-3 text-blue-500" />
+                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">AfCFTA</span>
+                <span className="text-[11px] font-mono text-white ml-1">{complianceReady}%</span>
+              </div>
+
+              {/* Network */}
+              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
+                <Globe className="w-3 h-3 text-purple-500" />
+                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">Corridors</span>
+                <span className="text-[11px] font-mono text-white ml-1">{activeCorridors} Active</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* System Clock */}
+        <div className="hidden md:flex items-center gap-2 flex-shrink-0 ml-4 z-10 pl-4 border-l border-[#222]">
+          <span className="text-[10px] font-mono text-gray-600">UTC {new Date().toISOString().slice(11, 16)}</span>
         </div>
       </div>
     </div>

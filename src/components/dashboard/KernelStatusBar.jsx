@@ -17,7 +17,7 @@ function StatusPill({ icon: Icon, label, value, status = 'normal', className = '
   return (
     <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${statusColors[status]} ${className}`}>
       <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-      <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 hidden xl:inline">{label}</span>
+      <span className="text-[10px] font-medium dark:text-gray-500 hidden xl:inline">{label}</span>
       <span className="text-[11px] font-mono font-bold">{value}</span>
     </div>
   );
@@ -38,15 +38,15 @@ export default function KernelStatusBar({
   return (
     <div className={`flex items-center gap-1.5 flex-wrap ${className}`}>
       {/* System Brain Indicator */}
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[#D4A937]/20 bg-[#D4A937]/5 mr-1">
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border mr-1">
         <motion.div
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
         >
-          <Cpu className="w-3.5 h-3.5 text-[#D4A937]" />
+          <Cpu className="w-3.5 h-3.5" />
         </motion.div>
-        <span className="text-[10px] font-mono font-bold text-[#D4A937] uppercase tracking-wider">KERNEL</span>
-        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+        <span className="text-[10px] font-mono font-bold uppercase tracking-wider">KERNEL</span>
+        <div className="w-1.5 h-1.5 rounded-full" />
       </div>
 
       <StatusPill

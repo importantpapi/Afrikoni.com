@@ -138,19 +138,19 @@ export default function RoleSelection({ onRoleSelected }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br flex items-center justify-center py-12 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-4xl"
       >
-        <Card className="border-afrikoni-gold/20 bg-white shadow-2xl rounded-xl">
+        <Card className="shadow-2xl rounded-xl">
           <CardHeader className="text-center mb-8">
-            <CardTitle className="text-3xl font-bold text-afrikoni-chestnut mb-2">
+            <CardTitle className="text-3xl font-bold mb-2">
               Choose Your Role
             </CardTitle>
-            <p className="text-afrikoni-deep">
+            <p className="">
               Select how you'll use Afrikoni to get started
             </p>
           </CardHeader>
@@ -173,15 +173,15 @@ export default function RoleSelection({ onRoleSelected }) {
                     onClick={() => handleRoleSelect(role.id)}
                   >
                     {isSelected && (
-                      <CheckCircle className="absolute top-3 right-3 h-5 w-5 text-afrikoni-gold" />
+                      <CheckCircle className="absolute top-3 right-3 h-5 w-5" />
                     )}
                     <div className="flex items-center mb-3">
-                      <Icon className="h-6 w-6 mr-3 text-afrikoni-gold" />
-                      <h3 className="font-semibold text-lg text-afrikoni-chestnut">
+                      <Icon className="h-6 w-6 mr-3" />
+                      <h3 className="font-semibold text-lg">
                         {role.label}
                       </h3>
                     </div>
-                    <p className="text-sm text-afrikoni-deep/80">{role.description}</p>
+                    <p className="text-sm">{role.description}</p>
                   </motion.div>
                 );
               })}
@@ -190,7 +190,7 @@ export default function RoleSelection({ onRoleSelected }) {
               <Button
                 onClick={handleSubmit}
                 disabled={!selectedRole || isSubmitting}
-                className="bg-afrikoni-gold text-white hover:bg-afrikoni-gold/90 transition-colors"
+                className="hover:bg-afrikoni-gold/90 transition-colors"
               >
                 {isSubmitting ? (
                   <>

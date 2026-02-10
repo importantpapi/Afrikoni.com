@@ -145,9 +145,9 @@ export async function chat({ message, history = [], context = {} }) {
       if (data?.company_id) {
         const { data: company } = await supabase
           .from('companies')
-          .select('company_name, country, verification_status')
+          .select('id, company_name, country, verification_status')
           .eq('id', data.company_id)
-          .single();
+          .maybeSingle();
         if (company) {
           userProfile.company = company;
         }

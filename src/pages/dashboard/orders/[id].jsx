@@ -8,7 +8,6 @@ import ErrorState from '@/components/shared/ui/ErrorState';
 import { ORDER_STATUS, getStatusLabel, getNextStatuses, canTransitionTo } from '@/constants/status';
 import { buildOrderTimeline } from '@/utils/timeline';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/shared/ui/dialog';
@@ -28,6 +27,7 @@ import { StatusBadge } from '@/components/shared/ui/reusable/StatusBadge';
 import BuyerProtectionOption from '@/components/upsell/BuyerProtectionOption';
 import { DealMilestoneTracker } from '@/components/orders/DealMilestoneTracker';
 import TradeWorkflowVisualizer from '@/components/trade/TradeWorkflowVisualizer';
+import { Surface } from '@/components/system/Surface';
 
 export default function OrderDetail() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -387,7 +387,7 @@ export default function OrderDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -407,37 +407,33 @@ export default function OrderDetail() {
 
   if (!order) {
     return (
-      <div className="space-y-4">
-        <Card className="border-red-200 bg-red-50/50">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-bold text-afrikoni-chestnut mb-2">Order Failed to Load</h2>
-            <p className="text-afrikoni-deep/80 mb-4">
-              We couldn't load the order details, but you can still manage it below.
-            </p>
-            <div className="flex gap-3">
-              <Button onClick={loadOrderData} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
-                Retry Loading
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/dashboard/orders')}>
-                Back to Orders
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        {/* Allow editing even when order fails to load */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Edit Order {id?.slice(0, 8).toUpperCase()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-afrikoni-deep/70 mb-4">
-              Enter order details manually or retry loading above.
-            </p>
-            <Button onClick={loadOrderData} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
-              Retry Loading Order
+      <div className="os-page os-stagger space-y-4">
+        <Surface variant="soft" className="p-6 border">
+          <h2 className="text-xl font-semibold text-[var(--os-text-primary)] mb-2">Order Failed to Load</h2>
+          <p className="text-[var(--os-text-secondary)] mb-4">
+            We couldn't load the order details, but you can still manage it below.
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={loadOrderData} className="hover:bg-afrikoni-goldDark">
+              Retry Loading
             </Button>
-          </CardContent>
-        </Card>
+            <Button variant="outline" onClick={() => navigate('/dashboard/orders')}>
+              Back to Orders
+            </Button>
+          </div>
+        </Surface>
+        {/* Allow editing even when order fails to load */}
+        <Surface className="p-6">
+          <h3 className="text-lg font-semibold text-[var(--os-text-primary)] mb-2">
+            Edit Order {id?.slice(0, 8).toUpperCase()}
+          </h3>
+          <p className="text-sm text-[var(--os-text-secondary)] mb-4">
+            Enter order details manually or retry loading above.
+          </p>
+          <Button onClick={loadOrderData} className="hover:bg-afrikoni-goldDark">
+            Retry Loading Order
+          </Button>
+        </Surface>
       </div>
     );
   }
@@ -448,61 +444,61 @@ export default function OrderDetail() {
                             order.status === 'delivered';
 
   return (
-    <>
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="os-page os-stagger space-y-4">
+      {/* Header */}
+      <Surface variant="glass" className="p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <Link to="/dashboard/orders" className="hover:text-afrikoni-goldDark text-sm mb-2 inline-block">
+            ← Back to Orders
+          </Link>
+          <h1 className="text-xl md:text-2xl font-semibold text-[var(--os-text-primary)]">
+            Order #{id.slice(0, 8).toUpperCase()}
+          </h1>
+          <p className="text-sm text-[var(--os-text-secondary)]">
+            Live order dossier with escrow, logistics, and compliance signals.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <StatusBadge status={order.status} type="order" size="md" />
+          <StatusBadge status={order.payment_status} type="payment" size="md" />
+        </div>
+      </Surface>
+
+      {/* Simple explanation of the protected order journey */}
+      <Surface variant="soft" className="p-4 md:p-5 border bg-[linear-gradient(120deg,rgba(190,156,63,0.12),rgba(16,16,16,0.2))]">
+        <p className="text-xs md:text-sm font-semibold text-[var(--os-text-primary)] mb-2 uppercase tracking-wide">
+          How Afrikoni Shield protects this order
+        </p>
+        <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-[var(--os-text-secondary)]">
           <div>
-            <Link to="/dashboard/orders" className="text-afrikoni-gold hover:text-afrikoni-goldDark text-sm mb-2 inline-block">
-              ← Back to Orders
-            </Link>
-            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">
-              Order #{id.slice(0, 8).toUpperCase()}
-            </h1>
+            <p className="font-semibold text-[var(--os-text-primary)] mb-1">1. Agreement</p>
+            <p>You and the supplier agreed on price, quantity and delivery terms from an RFQ or product page.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusBadge status={order.status} type="order" size="md" />
-            <StatusBadge status={order.payment_status} type="payment" size="md" />
+          <div>
+            <p className="font-semibold text-[var(--os-text-primary)] mb-1">2. Escrow payment</p>
+            <p>
+              When you pay through Afrikoni, money is held safely in escrow — not sent directly to the supplier —
+              until delivery is confirmed.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-[var(--os-text-primary)] mb-1">3. Shipping & tracking</p>
+            <p>
+              The supplier ships the goods. You can see shipment status and key events in the timeline on this page.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-[var(--os-text-primary)] mb-1">4. Release or dispute</p>
+            <p>
+              After you receive the goods, payment is released and you can leave a review. If there is any issue,
+              you can raise a dispute instead of releasing funds.
+              <span className="block mt-1 font-semibold text-[11px]">
+                For your safety, avoid side payments outside Afrikoni.
+              </span>
+            </p>
           </div>
         </div>
-
-        {/* Simple explanation of the protected order journey */}
-        <Card className="border-afrikoni-gold/30 bg-afrikoni-offwhite/70">
-          <CardContent className="p-4 md:p-5">
-            <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut mb-2 uppercase tracking-wide">
-              How Afrikoni Shield™ protects this order
-            </p>
-            <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-afrikoni-deep">
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">1. Agreement</p>
-                <p>You and the supplier agreed on price, quantity and delivery terms from an RFQ or product page.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">2. Escrow payment</p>
-                <p>
-                  When you pay through Afrikoni, money is held safely in escrow — not sent directly to the supplier —
-                  until delivery is confirmed.
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">3. Shipping & tracking</p>
-                <p>
-                  The supplier ships the goods. You can see shipment status and key events in the timeline on this page.
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-afrikoni-chestnut mb-1">4. Release or dispute</p>
-                <p>
-                  After you receive the goods, payment is released and you can leave a review. If there is any issue,
-                  you can raise a dispute instead of releasing funds.
-                  <span className="block mt-1 font-semibold text-red-700 text-[11px]">
-                    For your safety, avoid side payments outside Afrikoni.
-                  </span>
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      </Surface>
 
         {/* Trade Workflow Visualizer */}
         <TradeWorkflowVisualizer
@@ -520,71 +516,65 @@ export default function OrderDetail() {
           variant="full"
         />
 
-        <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
           {/* Main Content */}
           <div className="md:col-span-2 space-y-4">
             {/* Order Timeline */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Array.isArray(timeline) && timeline.length > 0 ? (
-                    timeline.map((item, idx) => (
-                      <TimelineItem
-                        key={item.id || idx}
-                        title={item.title}
-                        description={item.description}
-                        timestamp={item.timestamp}
-                        icon={item.icon}
-                        status={item.status || 'pending'}
-                        isLast={idx === timeline.length - 1}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-sm text-afrikoni-deep/70">No timeline events available</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <Surface className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Order Timeline</h2>
+              </div>
+              <div className="space-y-4">
+                {Array.isArray(timeline) && timeline.length > 0 ? (
+                  timeline.map((item, idx) => (
+                    <TimelineItem
+                      key={item.id || idx}
+                      title={item.title}
+                      description={item.description}
+                      timestamp={item.timestamp}
+                      icon={item.icon}
+                      status={item.status || 'pending'}
+                      isLast={idx === timeline.length - 1}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-[var(--os-text-secondary)]">No timeline events available</p>
+                )}
+              </div>
+            </Surface>
 
             {/* Product Details */}
             {product && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Product Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4">
-                    {product.images && product.images[0] && (
-                      <img 
-                        src={product.images[0]} 
-                        alt={product.name || product.title}
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-afrikoni-chestnut">{product.name || product.title}</h3>
-                      <p className="text-sm text-afrikoni-deep/70 mt-1">{product.short_description}</p>
-                      <div className="mt-2 flex items-center gap-4 text-sm">
-                        <span className="text-afrikoni-deep">Quantity: {order.quantity} {order.products?.unit || 'units'}</span>
-                        <span className="text-afrikoni-deep">Unit Price: {order.currency} {parseFloat(order.unit_price).toLocaleString()}</span>
-                      </div>
+              <Surface className="p-5">
+                <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Product Details</h2>
+                <div className="flex gap-4">
+                  {product.images && product.images[0] && (
+                    <img 
+                      src={product.images[0]} 
+                      alt={product.name || product.title}
+                      className="w-24 h-24 object-cover rounded-xl border"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[var(--os-text-primary)]">{product.name || product.title}</h3>
+                    <p className="text-sm text-[var(--os-text-secondary)] mt-1">{product.short_description}</p>
+                    <div className="mt-2 flex items-center gap-4 text-sm text-[var(--os-text-secondary)]">
+                      <span>Quantity: {order.quantity} {order.products?.unit || 'units'}</span>
+                      <span>Unit Price: {order.currency} {parseFloat(order.unit_price).toLocaleString()}</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </Surface>
             )}
 
             {/* Shipment Info */}
-            <Card>
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle>Shipment Information</CardTitle>
+            <Surface className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Shipment Information</h2>
                 {canManageShipment && !shipment && (
                   <Button
                     size="sm"
-                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                    className="hover:bg-afrikoni-goldDark"
                     onClick={handleCreateShipment}
                     disabled={isUpdating}
                   >
@@ -592,85 +582,81 @@ export default function OrderDetail() {
                     Create Shipment
                   </Button>
                 )}
-              </CardHeader>
-              <CardContent>
-                {shipment ? (
-                  <div className="space-y-3">
+              </div>
+              {shipment ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[var(--os-text-secondary)]">Tracking Number</span>
+                    <span className="font-mono font-medium text-[var(--os-text-primary)]">
+                      {shipment.tracking_number || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[var(--os-text-secondary)]">Status</span>
+                    <Badge variant="outline" className="capitalize text-[var(--os-text-primary)]">
+                      {shipment.status}
+                    </Badge>
+                  </div>
+                  {shipment.origin_address && (
+                    <div>
+                      <span className="text-sm text-[var(--os-text-secondary)]">Origin</span>
+                      <p className="text-sm text-[var(--os-text-secondary)]">
+                        {shipment.origin_address}
+                      </p>
+                    </div>
+                  )}
+                  {shipment.destination_address && (
+                    <div>
+                      <span className="text-sm text-[var(--os-text-secondary)]">Destination</span>
+                      <p className="text-sm text-[var(--os-text-secondary)]">
+                        {shipment.destination_address}
+                      </p>
+                    </div>
+                  )}
+                  {shipment.estimated_delivery && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-afrikoni-deep">Tracking Number</span>
-                      <span className="font-mono font-medium">
-                        {shipment.tracking_number || 'N/A'}
+                      <span className="text-sm text-[var(--os-text-secondary)]">Estimated Delivery</span>
+                      <span className="text-sm text-[var(--os-text-primary)]">
+                        {format(
+                          new Date(shipment.estimated_delivery),
+                          'MMM d, yyyy'
+                        )}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-afrikoni-deep">Status</span>
-                      <Badge variant="outline" className="capitalize">
-                        {shipment.status}
-                      </Badge>
-                    </div>
-                    {shipment.origin_address && (
-                      <div>
-                        <span className="text-sm text-afrikoni-deep">Origin</span>
-                        <p className="text-sm text-afrikoni-deep/70">
-                          {shipment.origin_address}
-                        </p>
-                      </div>
-                    )}
-                    {shipment.destination_address && (
-                      <div>
-                        <span className="text-sm text-afrikoni-deep">Destination</span>
-                        <p className="text-sm text-afrikoni-deep/70">
-                          {shipment.destination_address}
-                        </p>
-                      </div>
-                    )}
-                    {shipment.estimated_delivery && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-afrikoni-deep">Estimated Delivery</span>
-                        <span className="text-sm">
-                          {format(
-                            new Date(shipment.estimated_delivery),
-                            'MMM d, yyyy'
-                          )}
-                        </span>
-                      </div>
-                    )}
+                  )}
 
-                    {canManageShipment && (
-                      <div className="pt-2">
-                        <span className="text-xs text-afrikoni-deep/70 block mb-1">
-                          Update shipment status
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {shipmentStatuses.map((status) => (
-                            <Button
-                              key={status}
-                              size="xs"
-                              variant={
-                                shipment.status === status ? 'default' : 'outline'
-                              }
-                              className={`text-[11px] capitalize ${
-                                shipment.status === status
-                                  ? 'bg-afrikoni-gold text-afrikoni-charcoal'
-                                  : 'border-afrikoni-gold/40 text-afrikoni-deep'
-                              }`}
-                              onClick={() => handleShipmentStatusUpdate(status)}
-                              disabled={isUpdating || shipment.status === status}
-                            >
-                              {status.replace(/_/g, ' ')}
-                            </Button>
-                          ))}
-                        </div>
+                  {canManageShipment && (
+                    <div className="pt-2">
+                      <span className="text-xs text-[var(--os-text-secondary)] block mb-1">
+                        Update shipment status
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {shipmentStatuses.map((status) => (
+                          <Button
+                            key={status}
+                            size="xs"
+                            variant={shipment.status === status ? 'default' : 'outline'}
+                            className={`text-[11px] capitalize ${
+                              shipment.status === status
+                                ? 'bg-afrikoni-gold text-afrikoni-charcoal'
+                                : 'border-white/10 text-[var(--os-text-primary)]'
+                            }`}
+                            onClick={() => handleShipmentStatusUpdate(status)}
+                            disabled={isUpdating || shipment.status === status}
+                          >
+                            {status.replace(/_/g, ' ')}
+                          </Button>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-sm text-afrikoni-deep/70">
-                    No shipment has been created yet for this order.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--os-text-secondary)]">
+                  No shipment has been created yet for this order.
+                </p>
+              )}
+            </Surface>
 
             {/* Deal Milestone Tracker */}
             <DealMilestoneTracker 
@@ -687,38 +673,34 @@ export default function OrderDetail() {
 
             {/* Escrow / Wallet Timeline */}
             {Array.isArray(walletEvents) && walletEvents.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment &amp; Escrow Events</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    {walletEvents.map((evt) => (
-                      <div
-                        key={evt.id}
-                        className="flex items-center justify-between border-b border-afrikoni-gold/10 py-1 last:border-b-0"
-                      >
-                        <div>
-                          <div className="font-medium text-afrikoni-deep">
-                            {evt.type.replace('_', ' ')}
-                          </div>
-                          <div className="text-[11px] text-afrikoni-deep/70">
-                            {evt.description || 'Wallet transaction'}
-                          </div>
+              <Surface className="p-5">
+                <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Payment &amp; Escrow Events</h2>
+                <div className="space-y-2 text-sm">
+                  {walletEvents.map((evt) => (
+                    <div
+                      key={evt.id}
+                      className="flex items-center justify-between border-b py-2 last:border-b-0"
+                    >
+                      <div>
+                        <div className="font-medium text-[var(--os-text-primary)]">
+                          {evt.type.replace('_', ' ')}
                         </div>
-                        <div className="text-right text-xs">
-                          <div className="font-semibold">
-                            {evt.currency || 'USD'} {parseFloat(evt.amount || 0).toLocaleString()}
-                          </div>
-                          <div className="text-[11px] text-afrikoni-deep/70">
-                            {evt.created_at ? format(new Date(evt.created_at), 'MMM d, HH:mm') : ''}
-                          </div>
+                        <div className="text-[11px] text-[var(--os-text-secondary)]">
+                          {evt.description || 'Wallet transaction'}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      <div className="text-right text-xs">
+                        <div className="font-semibold text-[var(--os-text-primary)]">
+                          {evt.currency || 'USD'} {parseFloat(evt.amount || 0).toLocaleString()}
+                        </div>
+                        <div className="text-[11px] text-[var(--os-text-secondary)]">
+                          {evt.created_at ? format(new Date(evt.created_at), 'MMM d, HH:mm') : ''}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Surface>
             )}
           </div>
 
@@ -769,73 +751,65 @@ export default function OrderDetail() {
             )}
 
             {/* Order Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <Surface className="p-5">
+              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Order Summary</h2>
+              <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-afrikoni-deep">Subtotal</span>
-                  <span className="font-medium">{order.currency} {parseFloat(order.total_amount).toLocaleString()}</span>
+                  <span className="text-[var(--os-text-secondary)]">Subtotal</span>
+                  <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.total_amount).toLocaleString()}</span>
                 </div>
                 {order.buyer_protection_fee > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-afrikoni-deep">Trade Inspection</span>
-                    <span className="font-medium text-afrikoni-gold">{order.currency} {parseFloat(order.buyer_protection_fee).toLocaleString()}</span>
+                    <span className="text-[var(--os-text-secondary)]">Trade Inspection</span>
+                    <span className="font-medium">{order.currency} {parseFloat(order.buyer_protection_fee).toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-afrikoni-deep">Shipping</span>
-                  <span className="font-medium">{order.currency} {parseFloat(order.shipping_cost || 0).toLocaleString()}</span>
+                  <span className="text-[var(--os-text-secondary)]">Shipping</span>
+                  <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.shipping_cost || 0).toLocaleString()}</span>
                 </div>
-                <div className="border-t pt-3 flex justify-between font-semibold">
+                <div className="border-t pt-3 flex justify-between font-semibold text-[var(--os-text-primary)]">
                   <span>Total</span>
                   <span>{order.currency} {parseFloat((order.total_amount || 0) + (order.buyer_protection_fee || 0) + (order.shipping_cost || 0)).toLocaleString()}</span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
 
             {/* Company Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {currentRole === 'buyer' || currentRole === 'hybrid' ? 'Supplier' : 'Buyer'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {currentRole === 'buyer' || currentRole === 'hybrid' ? (
-                  sellerCompany ? (
-                    <div>
-                      <h4 className="font-semibold text-afrikoni-chestnut">{sellerCompany.company_name}</h4>
-                      <p className="text-sm text-afrikoni-deep/70 mt-1">{sellerCompany.country}</p>
-                      <Link to={`/business/${sellerCompany.id}`}>
-                        <Button variant="outline" size="sm" className="w-full mt-3">
-                          View Business Profile
-                        </Button>
-                      </Link>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-afrikoni-deep/70">Company information not available</p>
-                  )
+            <Surface className="p-5">
+              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">
+                {currentRole === 'buyer' || currentRole === 'hybrid' ? 'Supplier' : 'Buyer'}
+              </h2>
+              {currentRole === 'buyer' || currentRole === 'hybrid' ? (
+                sellerCompany ? (
+                  <div>
+                    <h4 className="font-semibold text-[var(--os-text-primary)]">{sellerCompany.company_name}</h4>
+                    <p className="text-sm text-[var(--os-text-secondary)] mt-1">{sellerCompany.country}</p>
+                    <Link to={`/business/${sellerCompany.id}`}>
+                      <Button variant="outline" size="sm" className="w-full mt-3">
+                        View Business Profile
+                      </Button>
+                    </Link>
+                  </div>
                 ) : (
-                  buyerCompany ? (
-                    <div>
-                      <h4 className="font-semibold text-afrikoni-chestnut">{buyerCompany.company_name}</h4>
-                      <p className="text-sm text-afrikoni-deep/70 mt-1">{buyerCompany.country}</p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-afrikoni-deep/70">Company information not available</p>
-                  )
-                )}
-              </CardContent>
-            </Card>
+                  <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
+                )
+              ) : (
+                buyerCompany ? (
+                  <div>
+                    <h4 className="font-semibold text-[var(--os-text-primary)]">{buyerCompany.company_name}</h4>
+                    <p className="text-sm text-[var(--os-text-secondary)] mt-1">{buyerCompany.country}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
+                )
+              )}
+            </Surface>
 
             {/* Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <Surface className="p-5">
+              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Actions</h2>
+              <div className="space-y-2">
                 {currentRole === 'buyer' && (
                   <>
                     <Button
@@ -902,7 +876,7 @@ export default function OrderDetail() {
                               setTemplateName('');
                               setShowTemplateDialog(false);
                             }}
-                            className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                            className="w-full hover:bg-afrikoni-goldDark"
                           >
                             Save Template
                           </Button>
@@ -958,7 +932,7 @@ export default function OrderDetail() {
                   <Button 
                     onClick={() => handlePaymentStatusUpdate('paid')}
                     disabled={isUpdating}
-                    className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark" 
+                    className="w-full hover:bg-afrikoni-goldDark" 
                     size="sm"
                   >
                     Mark as Paid
@@ -969,17 +943,17 @@ export default function OrderDetail() {
                 {(order.status === 'completed' || order.status === 'delivered') && 
                  (currentRole === 'buyer' || currentRole === 'hybrid') && 
                  !hasReviewed && (
-                  <div className="mt-4 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
+                  <div className="mt-4 p-4 border rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <Star className="w-5 h-5 text-afrikoni-gold" />
-                      <span className="font-semibold text-afrikoni-text-dark">Rate Your Experience</span>
+                      <Star className="w-5 h-5" />
+                      <span className="font-semibold">Rate Your Experience</span>
                     </div>
-                    <p className="text-sm text-afrikoni-text-dark/70 mb-3">
+                    <p className="text-sm mb-3">
                       Help other buyers by sharing your experience with this supplier
                     </p>
                     <Button
                       onClick={() => setShowReviewForm(true)}
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal"
+                      className="w-full hover:bg-afrikoni-gold/90"
                       size="sm"
                     >
                       Write a Review
@@ -988,10 +962,10 @@ export default function OrderDetail() {
                 )}
 
                 {hasReviewed && existingReview && (
-                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="mt-4 p-4 border rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="font-semibold text-green-800">Review Submitted</span>
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="font-semibold">Review Submitted</span>
                     </div>
                     <div className="flex items-center gap-1 mb-2">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -1004,12 +978,12 @@ export default function OrderDetail() {
                       ))}
                     </div>
                     {existingReview.comment && (
-                      <p className="text-sm text-green-700">{existingReview.comment}</p>
+                      <p className="text-sm">{existingReview.comment}</p>
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </Surface>
           </div>
         </div>
 
@@ -1032,9 +1006,6 @@ export default function OrderDetail() {
             />
           </motion.div>
         )}
-      </div>
-    </>
+    </div>
   );
 }
-
-

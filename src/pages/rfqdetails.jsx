@@ -15,6 +15,8 @@ import { FileText, Building2, DollarSign, Calendar, MapPin, CheckCircle } from '
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { isValidUUID } from '@/utils/security';
+import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
+import { generateContractFromQuote } from '@/services/contractService';
 
 export default function RFQDetail() {
   // Use centralized AuthProvider
@@ -24,6 +26,8 @@ export default function RFQDetail() {
   const [quotes, setQuotes] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Local loading state
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [linkedTradeId, setLinkedTradeId] = useState(null);
+  const [linkedTradeStatus, setLinkedTradeStatus] = useState(null);
   const [quoteForm, setQuoteForm] = useState({
     price_per_unit: '',
     delivery_time: '',
@@ -84,6 +88,21 @@ export default function RFQDetail() {
       const buyerCompany = Array.isArray(companiesRes.data) ? companiesRes.data.find(c => c.id === foundRFQ.buyer_company_id) : null;
       setBuyer(buyerCompany);
       setQuotes(Array.isArray(quotesRes.data) ? quotesRes.data : []);
+
+      try {
+        const { data: trade, error: tradeError } = await supabase
+          .from('trades')
+          .select('id, status')
+          .or(`rfq_id.eq.${foundRFQ.id},id.eq.${foundRFQ.id}`)
+          .maybeSingle?.() ?? { data: null, error: null };
+        if (!tradeError && trade?.id) {
+          setLinkedTradeId(trade.id);
+          setLinkedTradeStatus(trade.status);
+        }
+      } catch {
+        setLinkedTradeId(null);
+        setLinkedTradeStatus(null);
+      }
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to load RFQ');
@@ -164,16 +183,27 @@ export default function RFQDetail() {
     }
     
     try {
-      await Promise.all([
-        supabase
-          .from('rfqs')
-          .update({ status: 'awarded', awarded_to: supplierCompanyId })
-          .eq('id', rfq.id),
-        supabase
-          .from('quotes')
-          .update({ status: 'accepted' })
-          .eq('id', quoteId)
-      ]);
+      if (!linkedTradeId) {
+        toast.error('Kernel trade not linked. Use Trade Workspace to advance.');
+        return;
+      }
+
+      const contractResult = await generateContractFromQuote(linkedTradeId, quoteId);
+      if (!contractResult.success) {
+        toast.error(contractResult.error || 'Failed to generate contract');
+        return;
+      }
+
+      const transitionResult = await transitionTrade(linkedTradeId, TRADE_STATE.CONTRACTED, {
+        selectedQuoteId: quoteId,
+        supplierId: supplierCompanyId,
+        contractId: contractResult.contract?.id
+      });
+
+      if (!transitionResult.success) {
+        toast.error(transitionResult.error || 'Kernel blocked transition');
+        return;
+      }
 
       const quote = quotes.find(q => q.id === quoteId);
       const { data: newOrder, error: orderError } = await supabase
@@ -262,6 +292,8 @@ export default function RFQDetail() {
   const { capabilities } = useCapability();
   const isBuyer = user?.company_id === rfq.buyer_company_id;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
+  const lifecycleStatus = linkedTradeStatus || 'UNLINKED';
+  const isRfqOpen = lifecycleStatus === 'rfq_open';
 
   return (
     <div className="min-h-screen bg-stone-50 py-8">
@@ -271,11 +303,11 @@ export default function RFQDetail() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl mb-2">{rfq.title}</CardTitle>
-                <Badge className={rfq.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
-                  {rfq.status}
+                <Badge className={isRfqOpen ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
+                  {lifecycleStatus}
                 </Badge>
               </div>
-              {isBuyer && rfq.status === 'open' && (
+              {isBuyer && isRfqOpen && (
                 <Button variant="outline">Edit RFQ</Button>
               )}
             </div>
@@ -319,7 +351,7 @@ export default function RFQDetail() {
           </CardContent>
         </Card>
 
-        {isSeller && rfq.status === 'open' && !quotes.find(q => q.supplier_company_id === user.company_id) && (
+        {isSeller && isRfqOpen && !quotes.find(q => q.supplier_company_id === user.company_id) && (
           <Card className="border-afrikoni-gold/20 mb-6">
             <CardHeader>
               <CardTitle>Submit a Quote</CardTitle>
@@ -418,7 +450,7 @@ export default function RFQDetail() {
                             <p className="text-sm text-afrikoni-deep">{quote.notes}</p>
                           </div>
                         )}
-                        {isBuyer && rfq.status === 'open' && quote.status === 'pending' && (
+                        {isBuyer && isRfqOpen && quote.status === 'pending' && (
                           <Button
                             onClick={() => handleAwardQuote(quote.id, quote.supplier_company_id)}
                             className="bg-afrikoni-gold hover:bg-amber-700"
@@ -438,4 +470,3 @@ export default function RFQDetail() {
     </div>
   );
 }
-

@@ -66,44 +66,38 @@ export async function createShipment({
       return { success: false, error: 'Missing required fields' };
     }
 
-    // KERNEL: Create shipment
-    const { data: shipment, error } = await supabase
-      .from('shipments')
-      .insert({
-        trade_id: tradeId,
-        tracking_number: trackingNumber,
-        carrier: carrier,
-        status: 'pending',
-        pickup_scheduled_date: pickupDate,
-        estimated_delivery_date: estimatedDeliveryDate,
-        milestones: [
-          {
-            name: 'Pending',
-            timestamp: new Date().toISOString(),
-            location: null,
-            status: 'completed'
-          }
-        ],
-        created_at: new Date()
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    // Emit event
-    await emitTradeEvent({
-      tradeId,
-      eventType: TRADE_EVENT_TYPE.SHIPMENT_CREATED,
-      metadata: {
+      const { logTradeEvent } = await import('./tradeKernel');
+      // Create shipment
+      const { data: shipment, error } = await supabase
+        .from('shipments')
+        .insert({
+          trade_id: tradeId,
+          tracking_number: trackingNumber,
+          carrier: carrier,
+          status: 'pending',
+          pickup_scheduled_date: pickupDate,
+          estimated_delivery_date: estimatedDeliveryDate,
+          milestones: [
+            {
+              name: 'Pending',
+              timestamp: new Date().toISOString(),
+              location: null,
+              status: 'completed'
+            }
+          ],
+          created_at: new Date()
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      // Log event
+      await logTradeEvent(tradeId, 'shipment_created', {
         shipment_id: shipment.id,
         tracking_number: trackingNumber,
         carrier,
         estimated_delivery_date: estimatedDeliveryDate
-      }
-    });
-
-    return { success: true, shipment };
+      }, 'logistics');
+      return { success: true, shipment };
   } catch (err) {
     console.error('[logisticsService] Create shipment failed:', err);
     return { success: false, error: err.message };
@@ -144,41 +138,71 @@ export async function updateShipmentMilestone({
 
     // Determine shipment status based on milestone
     let newStatus = shipment.status;
-    if (milestoneName.toLowerCase().includes('pickup')) {
+    const normalized = milestoneName.toLowerCase();
+    if (normalized.includes('pickup')) {
       newStatus = 'picked_up';
-    } else if (milestoneName.toLowerCase().includes('transit')) {
+    } else if (normalized.includes('transit')) {
       newStatus = 'in_transit';
-    } else if (milestoneName.toLowerCase().includes('delivery')) {
+    } else if (normalized.includes('delivery')) {
       newStatus = 'delivered';
     }
 
-    // KERNEL: Update shipment
+    // Insert tracking event (trigger updates shipment)
+    const eventTypeMap = {
+      pickup_scheduled: 'pickup_scheduled',
+      pickup: 'picked_up',
+      picked_up: 'picked_up',
+      in_transit: 'in_transit',
+      transit: 'in_transit',
+      delivery_scheduled: 'delivery_scheduled',
+      out_for_delivery: 'out_for_delivery',
+      delivery: 'delivered',
+      delivered: 'delivered'
+    };
+
+    const inferredEventType =
+      eventTypeMap[normalized] ||
+      (normalized.includes('pickup') ? 'picked_up' :
+        normalized.includes('transit') ? 'in_transit' :
+        normalized.includes('delivery') ? 'delivered' :
+        'in_transit');
+
+    const { error: trackingError } = await supabase
+      .from('shipment_tracking_events')
+      .insert({
+        shipment_id: shipmentId,
+        event_type: inferredEventType,
+        status: newStatus,
+        location: location,
+        description: milestoneName,
+        notes: notes,
+        event_timestamp: timestamp.toISOString()
+      });
+
+    if (trackingError) throw trackingError;
+
+    // Refresh shipment
     const { data: updatedShipment, error: updateError } = await supabase
       .from('shipments')
-      .update({
-        status: newStatus,
-        milestones: milestones,
-        last_update_timestamp: timestamp,
-        last_update_location: location
-      })
+      .select('*')
       .eq('id', shipmentId)
-      .select()
       .single();
 
     if (updateError) throw updateError;
 
-    // Emit event
-    const eventTypeMap = {
-      'pickup': TRADE_EVENT_TYPE.SHIPMENT_PICKED_UP,
-      'in_transit': TRADE_EVENT_TYPE.SHIPMENT_IN_TRANSIT,
-      'delivery': TRADE_EVENT_TYPE.SHIPMENT_DELIVERED
+    // Emit trade event
+    const tradeEventMap = {
+      pickup_scheduled: TRADE_EVENT_TYPE.PICKUP_SCHEDULED,
+      picked_up: TRADE_EVENT_TYPE.PICKUP_CONFIRMED,
+      in_transit: TRADE_EVENT_TYPE.IN_TRANSIT,
+      delivery_scheduled: TRADE_EVENT_TYPE.DELIVERY_SCHEDULED,
+      delivered: TRADE_EVENT_TYPE.DELIVERED
     };
-
-    const eventType = eventTypeMap[milestoneName.toLowerCase().split(' ')[0]] || TRADE_EVENT_TYPE.SHIPMENT_UPDATED;
+    const tradeEventType = tradeEventMap[inferredEventType] || TRADE_EVENT_TYPE.IN_TRANSIT;
 
     await emitTradeEvent({
       tradeId: shipment.trade_id,
-      eventType: eventType,
+      eventType: tradeEventType,
       metadata: {
         shipment_id: shipmentId,
         milestone: milestoneName,
@@ -219,7 +243,7 @@ export async function getShipment(tradeId) {
 /**
  * Get all shipments for a logistics partner
  */
-export async function getLogisticsPartnerShipments(partnerId) {
+export async function getLogisticsPartnerShipments(partnerCompanyId) {
   try {
     const { data, error } = await supabase
       .from('shipments')
@@ -229,14 +253,19 @@ export async function getLogisticsPartnerShipments(partnerId) {
           id,
           title,
           status,
-          companies!buyer_company_id (
+          buyer:companies!buyer_id (
             id,
-            name,
+            company_name,
+            country
+          ),
+          seller:companies!seller_id (
+            id,
+            company_name,
             country
           )
         )
       `)
-      .eq('carrier', partnerId)
+      .eq('logistics_partner_id', partnerCompanyId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -443,4 +472,3 @@ export async function getLogisticsQuotes(orderId) {
     return [];
   }
 }
-

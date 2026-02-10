@@ -94,7 +94,7 @@ export async function createProduct({ user, formData, companyId, publish = false
     // ✅ KERNEL: Validate pricing
     const priceMin = formData.price_min ? parseFloat(formData.price_min) : null;
     const priceMax = formData.price_max ? parseFloat(formData.price_max) : null;
-    
+
     if (!priceMin && !priceMax) {
       return {
         success: false,
@@ -186,14 +186,14 @@ export async function createProduct({ user, formData, companyId, publish = false
 
     if (insertError) {
       console.error('[productService] Product insert error:', insertError);
-      
+
       // ✅ KERNEL: Handle RLS errors gracefully
-      const isRLSError = insertError.code === '42501' || 
-                        insertError.code === 'PGRST301' ||
-                        insertError.message?.includes('permission denied') ||
-                        insertError.message?.includes('row-level security') ||
-                        insertError.status === 403;
-      
+      const isRLSError = insertError.code === '42501' ||
+        insertError.code === 'PGRST301' ||
+        insertError.message?.includes('permission denied') ||
+        insertError.message?.includes('row-level security') ||
+        insertError.status === 403;
+
       if (isRLSError) {
         return {
           success: false,
@@ -336,7 +336,7 @@ export async function updateProduct({ user, productId, formData, companyId, publ
     // ✅ KERNEL: Validate pricing (same as create)
     const priceMin = formData.price_min ? parseFloat(formData.price_min) : null;
     const priceMax = formData.price_max ? parseFloat(formData.price_max) : null;
-    
+
     if (!priceMin && !priceMax) {
       return {
         success: false,
@@ -424,14 +424,14 @@ export async function updateProduct({ user, productId, formData, companyId, publ
 
     if (updateError) {
       console.error('[productService] Product update error:', updateError);
-      
+
       // ✅ KERNEL: Handle RLS errors gracefully
-      const isRLSError = updateError.code === '42501' || 
-                        updateError.code === 'PGRST301' ||
-                        updateError.message?.includes('permission denied') ||
-                        updateError.message?.includes('row-level security') ||
-                        updateError.status === 403;
-      
+      const isRLSError = updateError.code === '42501' ||
+        updateError.code === 'PGRST301' ||
+        updateError.message?.includes('permission denied') ||
+        updateError.message?.includes('row-level security') ||
+        updateError.status === 403;
+
       if (isRLSError) {
         return {
           success: false,

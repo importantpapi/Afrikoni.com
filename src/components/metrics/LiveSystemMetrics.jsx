@@ -124,19 +124,19 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
     return (
       <div className={cn('flex flex-wrap items-center gap-4 text-xs text-afrikoni-deep/70', className)}>
         <div className="flex items-center gap-1.5">
-          <Package className="w-3.5 h-3.5 text-blue-600" />
+          <Package className="w-3.5 h-3.5" />
           <span><strong>{metrics.rfqsThisMonth}</strong> RFQs this month</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-green-600" />
+          <Clock className="w-3.5 h-3.5" />
           <span><strong>{formatResponseTime(metrics.avgResponseTime)}</strong> avg response</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Shield className="w-3.5 h-3.5 text-amber-600" />
+          <Shield className="w-3.5 h-3.5" />
           <span><strong>{metrics.activeVerifiedSuppliers}</strong> verified suppliers</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <CheckCircle className="w-3.5 h-3.5 text-purple-600" />
+          <CheckCircle className="w-3.5 h-3.5" />
           <span><strong>{metrics.totalDealsCompleted}</strong> deals completed</span>
         </div>
       </div>
@@ -147,9 +147,9 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
     <Card className={cn('border-afrikoni-gold/30 bg-gradient-to-br from-white to-blue-50/30', className)}>
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
-          <h3 className="font-semibold text-afrikoni-chestnut">Live Platform Metrics</h3>
-          <span className="ml-auto text-xs text-afrikoni-deep/50 italic">Real-time data</span>
+          <TrendingUp className="w-5 h-5" />
+          <h3 className="font-semibold">Live Platform Metrics</h3>
+          <span className="ml-auto text-xs italic">Real-time data</span>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
@@ -202,8 +202,8 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
           />
         </div>
 
-        <div className="mt-4 pt-4 border-t border-afrikoni-gold/20">
-          <p className="text-xs text-afrikoni-deep/50 text-center italic">
+        <div className="mt-4 pt-4 border-t">
+          <p className="text-xs text-center italic">
             All metrics are live system data. Updated every 5 minutes.
           </p>
         </div>
@@ -219,10 +219,10 @@ function MetricItem({ icon: Icon, label, value, color, loading }) {
         <Icon className={`w-4 h-4 text-${color}-600`} />
       </div>
       <div>
-        <p className="text-sm font-medium text-afrikoni-chestnut">
+        <p className="text-sm font-medium">
           {loading ? '...' : value}
         </p>
-        <p className="text-xs text-afrikoni-deep/60">{label}</p>
+        <p className="text-xs">{label}</p>
       </div>
     </div>
   );
@@ -263,17 +263,17 @@ export function LiveMetricsHero({ className = '' }) {
   return (
     <div className={cn('flex items-center justify-center gap-8 text-sm text-afrikoni-deep/70', className)}>
       <div className="text-center">
-        <p className="text-2xl font-bold text-afrikoni-gold">{metrics.rfqsThisMonth}</p>
+        <p className="text-2xl font-bold">{metrics.rfqsThisMonth}</p>
         <p className="text-xs">RFQs this month</p>
       </div>
-      <div className="h-8 w-px bg-afrikoni-gold/20" />
+      <div className="h-8 w-px" />
       <div className="text-center">
-        <p className="text-2xl font-bold text-afrikoni-gold">{metrics.activeSuppliers}</p>
+        <p className="text-2xl font-bold">{metrics.activeSuppliers}</p>
         <p className="text-xs">Verified suppliers</p>
       </div>
-      <div className="h-8 w-px bg-afrikoni-gold/20" />
+      <div className="h-8 w-px" />
       <div className="text-center">
-        <p className="text-2xl font-bold text-afrikoni-gold">{metrics.dealsCompleted}</p>
+        <p className="text-2xl font-bold">{metrics.dealsCompleted}</p>
         <p className="text-xs">Deals completed</p>
       </div>
     </div>

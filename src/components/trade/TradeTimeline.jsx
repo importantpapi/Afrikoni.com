@@ -22,28 +22,35 @@ import {
   Lock,
   Zap
 } from 'lucide-react';
-import { getTradeTimeline } from '@/services/tradeEvents';
-import { TRADE_STATE } from '@/services/tradeKernel';
+import { getTradeTimeline, subscribeToTradeEvents } from '@/services/tradeEvents';
+import { TRADE_STATE, TRADE_STATE_LABELS, TRADE_STATE_ORDER } from '@/services/tradeKernel';
 
 /**
  * RAILROAD TRACK VISUALIZATION
  * Shows all possible states and where the trade currently is
  */
-const RAILROAD_TRACK = [
-  { state: TRADE_STATE.DRAFT, label: 'Draft', icon: 'circle', color: 'gray' },
-  { state: TRADE_STATE.RFQ_OPEN, label: 'RFQ Open', icon: 'zap', color: 'blue' },
-  { state: TRADE_STATE.QUOTED, label: 'Quoted', icon: 'clock', color: 'blue' },
-  { state: TRADE_STATE.CONTRACTED, label: 'Contracted', icon: 'check', color: 'green' },
-  { state: TRADE_STATE.ESCROW_REQUIRED, label: 'Escrow Required', icon: 'lock', color: 'yellow' },
-  { state: TRADE_STATE.ESCROW_FUNDED, label: 'Escrow Funded', icon: 'check', color: 'green' },
-  { state: TRADE_STATE.PRODUCTION, label: 'Production', icon: 'clock', color: 'blue' },
-  { state: TRADE_STATE.PICKUP_SCHEDULED, label: 'Pickup Scheduled', icon: 'clock', color: 'blue' },
-  { state: TRADE_STATE.IN_TRANSIT, label: 'In Transit', icon: 'zap', color: 'blue' },
-  { state: TRADE_STATE.DELIVERED, label: 'Delivered', icon: 'check', color: 'green' },
-  { state: TRADE_STATE.ACCEPTED, label: 'Accepted', icon: 'check', color: 'green' },
-  { state: TRADE_STATE.SETTLED, label: 'Settled', icon: 'check', color: 'green' },
-  { state: TRADE_STATE.CLOSED, label: 'Closed', icon: 'check', color: 'gray' }
-];
+const TRACK_META = {
+  [TRADE_STATE.DRAFT]: { icon: 'circle', color: 'gray' },
+  [TRADE_STATE.RFQ_CREATED]: { icon: 'zap', color: 'blue' },
+  [TRADE_STATE.QUOTED]: { icon: 'clock', color: 'blue' },
+  [TRADE_STATE.CONTRACTED]: { icon: 'check', color: 'green' },
+  [TRADE_STATE.ESCROW_REQUIRED]: { icon: 'lock', color: 'yellow' },
+  [TRADE_STATE.ESCROW_FUNDED]: { icon: 'check', color: 'green' },
+  [TRADE_STATE.PRODUCTION]: { icon: 'clock', color: 'blue' },
+  [TRADE_STATE.PICKUP_SCHEDULED]: { icon: 'clock', color: 'blue' },
+  [TRADE_STATE.IN_TRANSIT]: { icon: 'zap', color: 'blue' },
+  [TRADE_STATE.DELIVERED]: { icon: 'check', color: 'green' },
+  [TRADE_STATE.ACCEPTED]: { icon: 'check', color: 'green' },
+  [TRADE_STATE.SETTLED]: { icon: 'check', color: 'green' },
+  [TRADE_STATE.DISPUTED]: { icon: 'lock', color: 'red' },
+  [TRADE_STATE.CLOSED]: { icon: 'check', color: 'gray' }
+};
+
+const RAILROAD_TRACK = TRADE_STATE_ORDER.map((state) => ({
+  state,
+  label: TRADE_STATE_LABELS[state] || state,
+  ...(TRACK_META[state] || { icon: 'circle', color: 'gray' })
+}));
 
 export default function TradeTimeline({ tradeId, currentState, onStateChange }) {
   const [events, setEvents] = useState([]);
@@ -51,6 +58,16 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
 
   useEffect(() => {
     loadTimeline();
+  }, [tradeId]);
+
+  useEffect(() => {
+    if (!tradeId) return;
+    const unsubscribe = subscribeToTradeEvents(tradeId, (payload) => {
+      if (payload?.eventType === 'INSERT' && payload?.new) {
+        setEvents((prev) => [...prev, payload.new]);
+      }
+    });
+    return () => unsubscribe && unsubscribe();
   }, [tradeId]);
 
   async function loadTimeline() {
@@ -63,17 +80,28 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
 
   // Find current position in track
   const currentIndex = RAILROAD_TRACK.findIndex(t => t.state === currentState);
+  const nextState = RAILROAD_TRACK[currentIndex + 1]?.state || null;
+  const nextLabel = nextState ? (TRADE_STATE_LABELS[nextState] || nextState) : 'None';
 
   return (
-    <div className="w-full bg-white dark:bg-[#0F0F0F] rounded-afrikoni-lg border border-afrikoni-gold/20 shadow-premium p-6">
+    <div className="w-full bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl border shadow-[0_24px_80px_rgba(0,0,0,0.35)] p-6 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none opacity-25 bg-[radial-gradient(circle_at_top_left,rgba(201,156,78,0.25),transparent_55%)]" />
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F0E8]">
-          Trade Timeline
-        </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Current state: <span className="font-semibold text-afrikoni-gold">{RAILROAD_TRACK[currentIndex]?.label}</span>
-        </p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">
+              Kernel Rail
+            </h2>
+            <p className="text-sm mt-1">
+              Current state: <span className="font-semibold">{RAILROAD_TRACK[currentIndex]?.label || currentState}</span>
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs uppercase tracking-[0.2em]">Next Action</p>
+            <p className="text-sm font-semibold">{nextLabel}</p>
+          </div>
+        </div>
       </div>
 
       {/* RAILROAD TRACK - Horizontal scrollable on mobile */}
@@ -98,24 +126,24 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
                     className={`
                       w-10 h-10 rounded-full flex items-center justify-center
                       transition-all duration-300 ring-2
-                      ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 ring-green-300 dark:ring-green-600' : ''}
+                      ${isCompleted ? 'bg-emerald-400/10 ring-emerald-400/40' : ''}
                       ${isCurrent ? 'bg-afrikoni-gold/20 ring-afrikoni-gold shadow-lg scale-125' : ''}
-                      ${isLocked && !isCurrent ? 'bg-gray-100 dark:bg-gray-800 ring-gray-300 dark:ring-gray-600' : ''}
-                      ${isDisput ? 'ring-red-500 bg-red-100/30' : ''}
+                      ${isLocked && !isCurrent ? 'bg-white/5 ring-white/20' : ''}
+                      ${isDisput ? 'ring-red-500 bg-red-500/10' : ''}
                     `}
                   >
-                    {isCompleted && <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />}
-                    {isCurrent && <Zap className="w-5 h-5 text-afrikoni-gold animate-pulse" />}
-                    {isLocked && !isCurrent && <Lock className="w-4 h-4 text-gray-500 dark:text-gray-400" />}
-                    {!isCompleted && !isCurrent && !isLocked && <Circle className="w-4 h-4 text-gray-400" />}
+                    {isCompleted && <CheckCircle2 className="w-5 h-5" />}
+                    {isCurrent && <Zap className="w-5 h-5 animate-pulse" />}
+                    {isLocked && !isCurrent && <Lock className="w-4 h-4" />}
+                    {!isCompleted && !isCurrent && !isLocked && <Circle className="w-4 h-4" />}
                   </div>
 
                   {/* LABEL */}
                   <span
                     className={`text-xs font-medium text-center w-20
-                      ${isCompleted ? 'text-green-700 dark:text-green-300' : ''}
+                      ${isCompleted ? 'text-emerald-200' : ''}
                       ${isCurrent ? 'text-afrikoni-gold font-bold' : ''}
-                      ${isLocked && !isCurrent ? 'text-gray-500 dark:text-gray-400' : ''}
+                      ${isLocked && !isCurrent ? 'text-white/45' : ''}
                     `}
                   >
                     {station.label}
@@ -127,12 +155,12 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
                   <div className="flex-1 relative h-10 mx-2 flex items-center justify-center">
                     <div
                       className={`h-1 flex-1 rounded-full transition-all duration-300
-                        ${isCompleted ? 'bg-green-300 dark:bg-green-600 shadow-sm' : ''}
-                        ${!isCompleted && index + 1 <= currentIndex ? 'bg-green-300 dark:bg-green-600 shadow-sm' : ''}
-                        ${index >= currentIndex ? 'bg-gray-300 dark:bg-gray-700' : ''}
+                        ${isCompleted ? 'bg-emerald-400/60 shadow-sm' : ''}
+                        ${!isCompleted && index + 1 <= currentIndex ? 'bg-emerald-400/60 shadow-sm' : ''}
+                        ${index >= currentIndex ? 'bg-white/10' : ''}
                       `}
                     />
-                    <ChevronRight className="absolute w-4 h-4 text-afrikoni-gold -right-2 top-1/2 -translate-y-1/2" />
+                    <ChevronRight className="absolute w-4 h-4 -right-2 top-1/2 -translate-y-1/2" />
                   </div>
                 )}
               </React.Fragment>
@@ -142,15 +170,15 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
       </div>
 
       {/* TIMELINE EVENTS (Detailed history in reverse chronological order) */}
-      <div className="mt-8 pt-6 border-t border-afrikoni-gold/10">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8] mb-4">
-          Activity Log
+      <div className="mt-8 pt-6 border-t">
+        <h3 className="text-sm font-semibold mb-4">
+          Event Stream
         </h3>
 
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Loading timeline...</div>
+          <div className="text-center py-8">Loading timeline...</div>
         ) : events.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 text-sm">
+          <div className="text-center py-8 text-sm">
             No events yet. RFQ will begin when published.
           </div>
         ) : (
@@ -161,23 +189,23 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="flex gap-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800"
+                className="flex gap-4 p-3 rounded-xl border"
               >
                 {/* Event Icon */}
                 <div className="flex-shrink-0 mt-1">
-                  <div className="w-2 h-2 rounded-full bg-afrikoni-gold mt-1.5" />
+                  <div className="w-2 h-2 rounded-full mt-1.5" />
                 </div>
 
                 {/* Event Details */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="text-sm font-medium">
                     {formatEventLabel(event.event_type)}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-xs mt-0.5">
                     {new Date(event.created_at).toLocaleString()}
                   </p>
                   {event.metadata && Object.keys(event.metadata).length > 0 && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                    <p className="text-xs mt-1">
                       {JSON.stringify(event.metadata).substring(0, 100)}...
                     </p>
                   )}
@@ -189,7 +217,7 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
       </div>
 
       {/* KERNEL STATUS INDICATOR */}
-      <div className="mt-8 pt-6 border-t border-afrikoni-gold/10 flex items-center gap-3 text-xs">
+      <div className="mt-8 pt-6 border-t flex items-center gap-3 text-xs">
         <div
           className={`w-2 h-2 rounded-full ${
             currentState === TRADE_STATE.DISPUTED
@@ -199,7 +227,7 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
               : 'bg-green-500'
           }`}
         />
-        <span className="text-gray-600 dark:text-gray-400">
+        <span className="">
           {currentState === TRADE_STATE.DISPUTED && '⚠️ Trade under dispute'}
           {currentState === TRADE_STATE.CLOSED && '✓ Trade closed'}
           {!['disputed', 'closed'].includes(currentState) && `Kernel in state: ${currentState}`}

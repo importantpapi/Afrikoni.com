@@ -6,7 +6,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { RotateCcw, ArrowLeft, Package, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
@@ -18,6 +17,7 @@ import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import { getReturn, updateReturnStatus } from '@/lib/supabaseQueries/returns';
 import { format } from 'date-fns';
+import { Surface } from '@/components/system/Surface';
 
 export default function ReturnDetailPage() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -102,7 +102,7 @@ export default function ReturnDetailPage() {
   if (!returnItem) {
     return (
       <div className="text-center py-12">
-        <p className="text-afrikoni-text-dark/70">Return not found</p>
+        <p className="">Return not found</p>
         <Link to="/dashboard/returns">
           <Button variant="outline" className="mt-4">
             Back to Returns
@@ -113,8 +113,7 @@ export default function ReturnDetailPage() {
   }
 
   return (
-    <>
-      <div className="space-y-6">
+    <div className="os-page os-stagger space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -125,10 +124,10 @@ export default function ReturnDetailPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">
+              <h1 className="text-3xl font-semibold text-[var(--os-text-primary)] mb-2">
                 Return Request
               </h1>
-              <p className="text-afrikoni-text-dark/70">
+              <p className="text-[var(--os-text-secondary)]">
                 {format(new Date(returnItem.requested_at), 'MMMM dd, yyyy')}
               </p>
             </div>
@@ -137,14 +136,14 @@ export default function ReturnDetailPage() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                className="text-red-600 border-red-600 hover:bg-red-50"
+                className="hover:bg-red-50"
                 onClick={() => handleUpdateStatus('rejected')}
               >
                 <XCircle className="w-4 h-4 mr-2" />
                 Reject
               </Button>
               <Button
-                className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                className="hover:bg-afrikoni-gold/90"
                 onClick={() => handleUpdateStatus('approved')}
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -156,22 +155,20 @@ export default function ReturnDetailPage() {
 
         {/* Return Details */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Return Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <Surface className="md:col-span-2 p-5">
+            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Return Details</h2>
+            <div className="space-y-6">
               {/* Product Info */}
               <div>
-                <p className="text-sm text-afrikoni-text-dark/70 mb-2">Product</p>
+                <p className="text-sm text-[var(--os-text-secondary)] mb-2">Product</p>
                 <div className="flex items-center gap-3">
-                  <Package className="w-5 h-5 text-afrikoni-gold" />
+                  <Package className="w-5 h-5" />
                   <div>
                     <p className="font-semibold">
                       {returnItem.products?.title || 'Product'}
                     </p>
                     {returnItem.products?.sku && (
-                      <p className="text-sm text-afrikoni-text-dark/60">
+                      <p className="text-sm text-[var(--os-text-secondary)]">
                         SKU: {returnItem.products.sku}
                       </p>
                     )}
@@ -182,9 +179,9 @@ export default function ReturnDetailPage() {
               {/* Order Info */}
               {returnItem.orders && (
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Related Order</p>
+                  <p className="text-sm text-[var(--os-text-secondary)] mb-2">Related Order</p>
                   <Link to={`/dashboard/orders/${returnItem.orders.id}`}>
-                    <p className="text-afrikoni-gold hover:underline">
+                    <p className="hover:underline">
                       Order #{returnItem.orders.order_number || returnItem.orders.id.slice(0, 8)}
                     </p>
                   </Link>
@@ -193,15 +190,15 @@ export default function ReturnDetailPage() {
 
               {/* Reason */}
               <div>
-                <p className="text-sm text-afrikoni-text-dark/70 mb-2">Return Reason</p>
-                <p className="font-semibold">{returnItem.reason}</p>
+                <p className="text-sm text-[var(--os-text-secondary)] mb-2">Return Reason</p>
+                <p className="font-semibold text-[var(--os-text-primary)]">{returnItem.reason}</p>
               </div>
 
               {/* Notes */}
               {returnItem.notes && (
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">Notes</p>
-                  <p className="text-afrikoni-text-dark/80">{returnItem.notes}</p>
+                  <p className="text-sm mb-2">Notes</p>
+                  <p className="">{returnItem.notes}</p>
                 </div>
               )}
 
@@ -210,21 +207,18 @@ export default function ReturnDetailPage() {
                 <div className="border-t pt-4">
                   <div className="flex justify-between">
                     <p className="text-lg font-bold">Refund Amount</p>
-                    <p className="text-2xl font-bold text-afrikoni-gold">
+                    <p className="text-2xl font-bold">
                       {returnItem.currency} {parseFloat(returnItem.refund_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
 
           {/* Status Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Surface className="p-5">
+            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Status</h2>
               <div>
                 <Badge 
                   variant={returnItem.status === 'refunded' ? 'success' : returnItem.status === 'rejected' ? 'destructive' : 'default'}
@@ -237,24 +231,21 @@ export default function ReturnDetailPage() {
                 </Badge>
               </div>
               <div>
-                <p className="text-sm text-afrikoni-text-dark/70 mb-1">Requested</p>
-                <p className="font-semibold">
+                <p className="text-sm text-[var(--os-text-secondary)] mb-1">Requested</p>
+                <p className="font-semibold text-[var(--os-text-primary)]">
                   {format(new Date(returnItem.requested_at), 'MMM dd, yyyy')}
                 </p>
               </div>
               {returnItem.resolved_at && (
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-1">Resolved</p>
-                  <p className="font-semibold">
+                  <p className="text-sm text-[var(--os-text-secondary)] mb-1">Resolved</p>
+                  <p className="font-semibold text-[var(--os-text-primary)]">
                     {format(new Date(returnItem.resolved_at), 'MMM dd, yyyy')}
                   </p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </Surface>
         </div>
       </div>
-    </>
   );
 }
-

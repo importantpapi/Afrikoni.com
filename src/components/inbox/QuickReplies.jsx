@@ -45,7 +45,7 @@ export default function QuickReplies({ onSelect, company, conversation }) {
             key={idx}
             variant="outline"
             onClick={() => onSelect(reply.template)}
-            className="min-h-[44px] px-3 text-sm border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
+            className="min-h-[44px] px-3 text-sm hover:bg-afrikoni-gold/10"
           >
             <Icon className="w-4 h-4 mr-1.5" />
             {reply.label}

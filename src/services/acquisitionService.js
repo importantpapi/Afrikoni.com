@@ -152,7 +152,7 @@ export async function updateCountryMetrics(country = null) {
     // Get supplier counts
     const { data: suppliers } = await supabase
       .from('companies')
-      .select('id, verified, created_at')
+      .select('id, verified, created_at, country, role')
       .eq('country', targetCountry)
       .in('role', ['seller', 'hybrid']);
 
@@ -165,7 +165,7 @@ export async function updateCountryMetrics(country = null) {
     // Get buyer counts
     const { data: buyers } = await supabase
       .from('companies')
-      .select('id, created_at')
+      .select('id, created_at, country, role')
       .eq('country', targetCountry)
       .in('role', ['buyer', 'hybrid']);
 

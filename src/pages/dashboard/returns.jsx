@@ -7,7 +7,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { RotateCcw, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
@@ -23,6 +22,7 @@ import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
+import { Surface } from '@/components/system/Surface';
 
 function ReturnsDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -207,116 +207,102 @@ function ReturnsDashboardInner() {
     .reduce((sum, r) => sum + (Number(r.refund_amount) || 0), 0);
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
+    <div className="os-page os-stagger space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-semibold text-[var(--os-text-primary)] mb-2">Returns</h1>
+          <p className="text-[var(--os-text-secondary)]">Manage product returns and refunds</p>
+        </div>
+        {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
+        <Button
+          variant="outline"
+          onClick={() => {
+            refresh();
+            loadData();
+          }}
+          className="flex items-center gap-2"
         >
-          <div>
-            <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Returns</h1>
-            <p className="text-afrikoni-text-dark/70">Manage product returns and refunds</p>
-          </div>
-          {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
-          <Button
-            variant="outline"
-            onClick={() => {
-              refresh();
-              loadData();
-            }}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </Button>
-        </motion.div>
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </Button>
+      </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Total Returns</p>
-              <p className="text-2xl font-bold">{returns.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Pending</p>
-              <p className="text-2xl font-bold text-amber-600">
-                {returns.filter(r => r.status === 'requested' || r.status === 'approved').length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Refunded</p>
-              <p className="text-2xl font-bold text-green-600">
-                {returns.filter(r => r.status === 'refunded').length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Refunded Value</p>
-              <p className="text-xl font-bold text-afrikoni-gold">
-                {totalRefunded.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Surface className="p-4">
+          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Total Returns</p>
+          <p className="text-2xl font-semibold text-[var(--os-text-primary)]">{returns.length}</p>
+        </Surface>
+        <Surface className="p-4">
+          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Pending</p>
+          <p className="text-2xl font-semibold">
+            {returns.filter(r => r.status === 'requested' || r.status === 'approved').length}
+          </p>
+        </Surface>
+        <Surface className="p-4">
+          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Refunded</p>
+          <p className="text-2xl font-semibold">
+            {returns.filter(r => r.status === 'refunded').length}
+          </p>
+        </Surface>
+        <Surface className="p-4">
+          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Refunded Value</p>
+          <p className="text-xl font-semibold">
+            {totalRefunded.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+        </Surface>
+      </div>
 
         {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="requested">Requested</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="received">Received</SelectItem>
-                <SelectItem value="refunded">Refunded</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
+      <Surface className="p-4">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="requested">Requested</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="received">Received</SelectItem>
+            <SelectItem value="refunded">Refunded</SelectItem>
+            <SelectItem value="closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+      </Surface>
 
         {/* Returns List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Return Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {returns.length === 0 ? (
-              <EmptyState
-                icon={RotateCcw}
-                title="No returns yet"
-                description={userRole === 'buyer' 
-                  ? "Your return requests will appear here"
-                  : "Return requests from buyers will appear here"}
-              />
-            ) : (
-              <div className="space-y-3">
-                {returns.map((returnItem) => (
-                  <motion.div
-                    key={returnItem.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
+      <Surface className="p-5">
+        <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Return Requests</h2>
+        {returns.length === 0 ? (
+          <EmptyState
+            icon={RotateCcw}
+            title="No returns yet"
+            description={userRole === 'buyer' 
+              ? "Your return requests will appear here"
+              : "Return requests from buyers will appear here"}
+          />
+        ) : (
+          <div className="space-y-3">
+            {returns.map((returnItem) => (
+              <motion.div
+                key={returnItem.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="border rounded-xl p-4 hover:shadow-md transition-shadow"
+              >
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <div className="flex items-center gap-3 mb-2">
-                          <Package className="w-5 h-5 text-afrikoni-gold" />
+                          <Package className="w-5 h-5" />
                           <p className="font-semibold">
                             {returnItem.products?.name || returnItem.products?.title || 'Product'}
                           </p>
@@ -325,22 +311,22 @@ function ReturnsDashboardInner() {
                             <span className="ml-1 capitalize">{returnItem.status}</span>
                           </Badge>
                         </div>
-                        <p className="text-sm text-afrikoni-text-dark/60">
+                        <p className="text-sm">
                           Order: #{returnItem.orders?.order_number || returnItem.order_id?.slice(0, 8)}
                         </p>
-                        <p className="text-sm text-afrikoni-text-dark/60">
+                        <p className="text-sm">
                           Requested: {format(new Date(returnItem.requested_at), 'MMM dd, yyyy')}
                         </p>
                         {returnItem.reason && (
-                          <p className="text-sm text-afrikoni-text-dark/70 mt-2">
+                          <p className="text-sm mt-2">
                             Reason: {returnItem.reason}
                           </p>
                         )}
                       </div>
                       {returnItem.refund_amount && (
                         <div className="text-right">
-                          <p className="text-sm text-afrikoni-text-dark/70">Refund Amount</p>
-                          <p className="text-xl font-bold text-afrikoni-gold">
+                          <p className="text-sm">Refund Amount</p>
+                          <p className="text-xl font-bold">
                             {returnItem.currency} {parseFloat(returnItem.refund_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         </div>
@@ -357,14 +343,14 @@ function ReturnsDashboardInner() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-red-600 border-red-600 hover:bg-red-50"
+                            className="hover:bg-red-50"
                             onClick={() => handleUpdateStatus(returnItem.id, 'rejected')}
                           >
                             Reject
                           </Button>
                           <Button
                             size="sm"
-                            className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                            className="hover:bg-afrikoni-gold/90"
                             onClick={() => handleUpdateStatus(returnItem.id, 'approved')}
                           >
                             Approve
@@ -372,14 +358,12 @@ function ReturnsDashboardInner() {
                         </div>
                       )}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </Surface>
+    </div>
   );
 }
 
@@ -393,4 +377,3 @@ export default function ReturnsDashboard() {
     </>
   );
 }
-

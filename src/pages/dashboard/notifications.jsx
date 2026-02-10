@@ -16,6 +16,8 @@ import { format, isToday, isYesterday, isThisWeek, isThisMonth, startOfDay, diff
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Input } from '@/components/shared/ui/input';
+import { Surface } from '@/components/system/Surface';
+import { StatusBadge } from '@/components/system/StatusBadge';
 
 export default function NotificationsCenter() {
   // ✅ FINAL 3% FIX: Use unified Dashboard Kernel with capabilities for hybrid check
@@ -216,27 +218,31 @@ export default function NotificationsCenter() {
     }
   };
 
+  const classifySignal = (notification) => {
+    const type = notification?.type || '';
+    if (['rfq', 'quote', 'opportunity'].includes(type)) return 'opportunities';
+    if (['verification', 'kyc', 'compliance'].includes(type)) return 'compliance';
+    if (['shipment', 'logistics', 'delivery'].includes(type)) return 'logistics';
+    if (['message', 'support', 'support_ticket'].includes(type)) return 'messages';
+    return 'alerts';
+  };
+
   const filteredNotifications = notifications.filter(n => {
-    // Filter by type
     let matches = true;
     if (filter === 'unread') matches = !n.read;
     else if (filter === 'read') matches = n.read;
-    else if (filter === 'rfq') matches = n.type === 'rfq' || n.type === 'quote';
-    else if (filter === 'order') matches = n.type === 'order';
-    else if (filter === 'message') matches = n.type === 'message';
-    else if (filter === 'payment') matches = n.type === 'payment';
-    else if (filter === 'review') matches = n.type === 'review';
-    else if (filter === 'verification') matches = n.type === 'verification';
-    
-    // Filter by search query
+    else if (['alerts', 'opportunities', 'compliance', 'logistics', 'messages'].includes(filter)) {
+      matches = classifySignal(n) === filter;
+    }
+
     if (searchQuery && matches) {
       const query = searchQuery.toLowerCase();
-      matches = 
+      matches =
         n.title?.toLowerCase().includes(query) ||
         n.message?.toLowerCase().includes(query) ||
         n.type?.toLowerCase().includes(query);
     }
-    
+
     return matches;
   });
 
@@ -362,15 +368,24 @@ export default function NotificationsCenter() {
   }
 
   return (
-    <>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Notifications</h1>
-            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">
-              {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
-            </p>
+      <div className="os-page os-stagger space-y-4 pb-10">
+        <Surface variant="panel" className="p-6 os-rail-glow">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="os-label">Signals Center</div>
+              <h1 className="os-title mt-2">Signals Center</h1>
+              <p className="text-sm text-os-muted mt-1">
+                {unreadCount > 0 ? `${unreadCount} unread signals` : 'All signals processed.'}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge label="LIVE" tone="info" />
+              <StatusBadge label={filter.toUpperCase()} tone="neutral" />
+            </div>
           </div>
+        </Surface>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-2">
             {selectedNotifications.length > 0 && (
               <>
@@ -378,7 +393,7 @@ export default function NotificationsCenter() {
                   <CheckSquare className="w-4 h-4 mr-2" />
                   Mark Read ({selectedNotifications.length})
                 </Button>
-                <Button onClick={deleteSelectedNotifications} variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                <Button onClick={deleteSelectedNotifications} variant="outline" size="sm" className="hover:text-red-700 hover:bg-red-50">
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete ({selectedNotifications.length})
                 </Button>
@@ -393,38 +408,35 @@ export default function NotificationsCenter() {
           </div>
         </div>
 
-        {/* Filters & Search */}
-        <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
-          <CardContent className="p-5 md:p-6">
+        <Surface variant="panel" className="p-5">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-afrikoni-text-dark/50" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
                   <Input
                     placeholder="Search notifications..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 border-afrikoni-gold/30"
+                    className="pl-10 os-input"
                   />
                 </div>
               </div>
               <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-full md:w-48 border-afrikoni-gold/30">
+                <SelectTrigger className="w-full md:w-48 os-input">
                   <SelectValue placeholder="Filter notifications" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All ({notifications.length})</SelectItem>
                   <SelectItem value="unread">Unread ({unreadCount})</SelectItem>
-                  <SelectItem value="rfq">RFQs ({notifications.filter(n => n.type === 'rfq' || n.type === 'quote').length})</SelectItem>
-                  <SelectItem value="order">Orders ({notifications.filter(n => n.type === 'order').length})</SelectItem>
-                  <SelectItem value="message">Messages ({notifications.filter(n => n.type === 'message').length})</SelectItem>
-                  <SelectItem value="payment">Payments ({notifications.filter(n => n.type === 'payment').length})</SelectItem>
-                  <SelectItem value="review">Reviews ({notifications.filter(n => n.type === 'review').length})</SelectItem>
+                  <SelectItem value="alerts">Alerts</SelectItem>
+                  <SelectItem value="opportunities">Opportunities</SelectItem>
+                  <SelectItem value="compliance">Compliance</SelectItem>
+                  <SelectItem value="logistics">Logistics</SelectItem>
+                  <SelectItem value="messages">Messages</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+        </Surface>
 
         {/* Notifications List */}
         {filteredNotifications.length === 0 ? (
@@ -437,7 +449,7 @@ export default function NotificationsCenter() {
           <div className="space-y-6">
             {Object.entries(groupedNotifications).map(([groupKey, groupNotifications]) => (
               <div key={groupKey}>
-                <h3 className="text-sm font-semibold text-afrikoni-text-dark/70 uppercase tracking-wide mb-3 px-2">
+                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3 px-2">
                   {groupKey}
                 </h3>
                 <div className="space-y-3">
@@ -449,8 +461,8 @@ export default function NotificationsCenter() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
-                        <Card className={`hover:shadow-premium-lg transition-all cursor-pointer border-afrikoni-gold/20 ${
-                          !notification.read ? 'bg-afrikoni-gold/5 border-afrikoni-gold/40' : 'bg-white'
+                        <Card className={`os-panel-soft hover:shadow-premium-lg transition-all cursor-pointer ${
+                          !notification.read ? 'border border-[rgba(212,169,55,0.3)] bg-[rgba(212,169,55,0.08)]' : 'border border-white/10 bg-white/5'
                         }`}>
                           <CardContent className="p-5 md:p-6">
                             <div className="flex items-start gap-4">
@@ -465,7 +477,7 @@ export default function NotificationsCenter() {
                                   }
                                 }}
                                 onClick={(e) => e.stopPropagation()}
-                                className="mt-1 w-4 h-4 text-afrikoni-gold border-afrikoni-gold/30 rounded"
+                                className="mt-1 w-4 h-4 rounded"
                               />
                               <div
                                 onClick={() => handleNotificationClick(notification)}
@@ -484,7 +496,7 @@ export default function NotificationsCenter() {
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between mb-1 gap-2">
                                     <div className="flex items-center gap-2 flex-1">
-                                      <h4 className="font-semibold text-afrikoni-text-dark">{notification.title}</h4>
+                                      <h4 className="font-semibold">{notification.title}</h4>
                                       <Badge 
                                         variant="outline" 
                                         className={`text-xs ${
@@ -498,11 +510,11 @@ export default function NotificationsCenter() {
                                       </Badge>
                                     </div>
                                     {!notification.read && (
-                                      <Badge className="bg-afrikoni-gold text-white text-xs">New</Badge>
+                                      <Badge className="text-xs">New</Badge>
                                     )}
                                   </div>
-                                  <p className="text-sm text-afrikoni-text-dark/70 mb-2">{notification.message}</p>
-                                  <p className="text-xs text-afrikoni-text-dark/50">
+                                  <p className="text-sm mb-2">{notification.message}</p>
+                                  <p className="text-xs">
                                     {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}
                                   </p>
                                 </div>
@@ -512,7 +524,7 @@ export default function NotificationsCenter() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="h-8 text-xs border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold hover:text-white"
+                                      className="h-8 text-xs hover:bg-afrikoni-gold hover:text-white"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         if (notification.type === 'support' || notification.type === 'support_ticket') {
@@ -527,12 +539,12 @@ export default function NotificationsCenter() {
                                     </Button>
                                   )}
                                   {notification.read && (
-                                    <CheckCircle className="w-5 h-5 text-afrikoni-gold" />
+                                    <CheckCircle className="w-5 h-5" />
                                   )}
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-afrikoni-text-dark/50 hover:text-red-600"
+                                    className="h-8 w-8 hover:text-red-600"
                                     onClick={(e) => deleteNotification(notification.id, e)}
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -551,8 +563,5 @@ export default function NotificationsCenter() {
           </div>
         )}
       </div>
-    </>
   );
 }
-
-

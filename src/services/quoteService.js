@@ -151,46 +151,40 @@ export async function submitQuote({
       return { success: false, error: 'RFQ not found or no longer open' };
     }
 
-    // Create quote
-    const { data: quote, error: createError } = await supabase
-      .from('quotes')
-      .insert({
-        trade_id: rfqId,
-        supplier_id: supplierId,
-        supplier_company_id: supplierCompanyId,
-        unit_price: unitPrice,
-        total_price: totalPrice,
-        quantity: rfq.quantity,
-        quantity_unit: rfq.quantity_unit,
-        currency,
-        lead_time_days: leadTime,
-        incoterms: deliveryIncoterms,
-        delivery_location: deliveryLocation,
-        payment_terms: paymentTerms,
-        certificates: certificates,
-        notes: notes,
-        status: 'submitted',
-        created_at: new Date()
-      })
-      .select()
-      .single();
-
-    if (createError) throw createError;
-
-    // Emit event
-    await emitTradeEvent({
-      tradeId: rfqId,
-      eventType: TRADE_EVENT_TYPE.QUOTE_RECEIVED,
-      metadata: {
+      const { logTradeEvent } = await import('./tradeKernel');
+      // Create quote
+      const { data: quote, error: createError } = await supabase
+        .from('quotes')
+        .insert({
+          trade_id: rfqId,
+          supplier_id: supplierId,
+          supplier_company_id: supplierCompanyId,
+          unit_price: unitPrice,
+          total_price: totalPrice,
+          quantity: rfq.quantity,
+          quantity_unit: rfq.quantity_unit,
+          currency,
+          lead_time_days: leadTime,
+          incoterms: deliveryIncoterms,
+          delivery_location: deliveryLocation,
+          payment_terms: paymentTerms,
+          certificates: certificates,
+          notes: notes,
+          status: 'submitted',
+          created_at: new Date()
+        })
+        .select()
+        .single();
+      if (createError) throw createError;
+      // Log event
+      await logTradeEvent(rfqId, 'quote_received', {
         quote_id: quote.id,
         supplier_company_id: supplierCompanyId,
         unit_price: unitPrice,
         total_price: totalPrice,
         lead_time_days: leadTime
-      }
-    });
-
-    return { success: true, quote };
+      }, 'seller');
+      return { success: true, quote };
   } catch (err) {
     console.error('[quoteService] Submit quote failed:', err);
     return { success: false, error: err.message };
@@ -263,33 +257,7 @@ export async function getSupplierQuotes(supplierCompanyId) {
  * Accept or reject a quote
  */
 export async function updateQuoteStatus(quoteId, status) {
-  try {
-    if (!['accepted', 'rejected'].includes(status)) {
-      return { success: false, error: 'Invalid status' };
-    }
-
-    const { data: quote, error: getError } = await supabase
-      .from('quotes')
-      .select('*')
-      .eq('id', quoteId)
-      .single();
-
-    if (getError) throw getError;
-
-    const { data: updatedQuote, error: updateError } = await supabase
-      .from('quotes')
-      .update({ status })
-      .eq('id', quoteId)
-      .select()
-      .single();
-
-    if (updateError) throw updateError;
-
-    return { success: true, quote: updatedQuote };
-  } catch (err) {
-    console.error('[quoteService] Update quote status failed:', err);
-    return { success: false, error: err.message };
-  }
+  return { success: false, error: 'Kernel-enforced: quote status updates must occur via trade transition.' };
 }
 
 /**

@@ -18,20 +18,20 @@ export default function AdminCommandCenter({ data }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Admin Dashboard</h1>
-        <p className="text-afrikoni-deep">Manage the platform</p>
+        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+        <p className="">Manage the platform</p>
       </div>
 
       <div className="grid md:grid-cols-4 gap-6">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <Card key={idx} className="border-afrikoni-gold/20">
+            <Card key={idx} className="">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-afrikoni-deep mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold text-afrikoni-chestnut">{stat.value}</p>
+                    <p className="text-sm mb-1">{stat.label}</p>
+                    <p className="text-2xl font-bold">{stat.value}</p>
                   </div>
                   <Icon className={`w-8 h-8 ${stat.color}`} />
                 </div>
@@ -42,7 +42,7 @@ export default function AdminCommandCenter({ data }) {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Card className="border-afrikoni-gold/20">
+        <Card className="">
           <CardHeader>
             <CardTitle>Recent Users</CardTitle>
           </CardHeader>
@@ -53,9 +53,9 @@ export default function AdminCommandCenter({ data }) {
                 const userIsAdmin = user.is_admin || user.user_metadata?.is_admin || false;
                 const roleLabel = userIsAdmin ? 'Admin' : 'User';
                 return (
-                  <div key={user.id} className="p-3 border border-afrikoni-gold/20 rounded-lg">
-                    <div className="font-semibold text-afrikoni-chestnut">{user.email}</div>
-                    <div className="text-sm text-afrikoni-deep">{roleLabel}</div>
+                  <div key={user.id} className="p-3 border rounded-lg">
+                    <div className="font-semibold">{user.email}</div>
+                    <div className="text-sm">{roleLabel}</div>
                   </div>
                 );
               })}
@@ -63,32 +63,32 @@ export default function AdminCommandCenter({ data }) {
           </CardContent>
         </Card>
 
-        <Card className="border-afrikoni-gold/20">
+        <Card className="">
           <CardHeader>
             <CardTitle>Recent Companies</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {companies.slice(0, 5).map(company => (
-                <div key={company.id} className="p-3 border border-afrikoni-gold/20 rounded-lg">
-                  <div className="font-semibold text-afrikoni-chestnut">{company.company_name}</div>
-                  <div className="text-sm text-afrikoni-deep">{company.country}</div>
+                <div key={company.id} className="p-3 border rounded-lg">
+                  <div className="font-semibold">{company.company_name}</div>
+                  <div className="text-sm">{company.country}</div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-afrikoni-gold/20">
+        <Card className="">
           <CardHeader>
             <CardTitle>Recent Orders</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {orders.slice(0, 5).map(order => (
-                <div key={order.id} className="p-3 border border-afrikoni-gold/20 rounded-lg">
-                  <div className="font-semibold text-afrikoni-chestnut">Order #{order.id.slice(0, 8)}</div>
-                  <div className="text-sm text-afrikoni-deep">${order.total_amount}</div>
+                <div key={order.id} className="p-3 border rounded-lg">
+                  <div className="font-semibold">Order #{order.id.slice(0, 8)}</div>
+                  <div className="text-sm">${order.total_amount}</div>
                 </div>
               ))}
             </div>

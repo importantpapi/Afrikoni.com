@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import ReviewForm from '../components/reviews/ReviewForm';
 import { isValidUUID } from '@/utils/security';
 import TradeWorkflowVisualizer from '@/components/trade/TradeWorkflowVisualizer';
+import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
 
 export default function OrderDetail() {
   // Use centralized AuthProvider
@@ -22,6 +23,8 @@ export default function OrderDetail() {
   const [hasReviewed, setHasReviewed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [linkedTradeId, setLinkedTradeId] = useState(null);
+  const [linkedTradeStatus, setLinkedTradeStatus] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,6 +65,21 @@ export default function OrderDetail() {
       setBuyer(buyerCompany);
       setSeller(sellerCompany);
       setHasReviewed(reviewsRes.data && reviewsRes.data.length > 0);
+
+      try {
+        const { data: trade, error: tradeError } = await supabase
+          .from('trades')
+          .select('id, status')
+          .or(`order_id.eq.${foundOrder.id},id.eq.${foundOrder.id}`)
+          .maybeSingle?.() ?? { data: null, error: null };
+        if (!tradeError && trade?.id) {
+          setLinkedTradeId(trade.id);
+          setLinkedTradeStatus(trade.status);
+        }
+      } catch {
+        setLinkedTradeId(null);
+        setLinkedTradeStatus(null);
+      }
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to load order');
@@ -85,7 +103,7 @@ export default function OrderDetail() {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ payment_status: 'paid', status: 'processing' })
+        .update({ payment_status: 'paid' })
         .eq('id', order.id);
 
       if (error) throw error;
@@ -99,13 +117,31 @@ export default function OrderDetail() {
 
   const handleUpdateStatus = async (newStatus) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', order.id);
+      if (!linkedTradeId) {
+        toast.error('Kernel trade not linked. Use Trade Workspace to advance.');
+        return;
+      }
 
-      if (error) throw error;
-      toast.success('Order status updated');
+      const statusMap = {
+        processing: TRADE_STATE.PRODUCTION,
+        shipped: TRADE_STATE.IN_TRANSIT,
+        delivered: TRADE_STATE.DELIVERED,
+        completed: TRADE_STATE.SETTLED
+      };
+
+      const nextState = statusMap[newStatus];
+      if (!nextState) {
+        toast.error('Invalid transition request');
+        return;
+      }
+
+      const result = await transitionTrade(linkedTradeId, nextState, {});
+      if (!result.success) {
+        toast.error(result.error || 'Kernel blocked transition');
+        return;
+      }
+
+      toast.success('Kernel advanced trade state');
       loadData();
     } catch (error) {
       // Error logged (removed for production)
@@ -125,6 +161,7 @@ export default function OrderDetail() {
 
   const isBuyer = user?.company_id === order.buyer_company_id;
   const isSeller = user?.company_id === order.seller_company_id;
+  const displayStatus = linkedTradeStatus || 'UNLINKED';
   const platformFeeRate = 0.08;
   const totalAmountNumber = Number(order.total_amount) || 0;
   const platformFeeAmount = totalAmountNumber * platformFeeRate;
@@ -142,7 +179,7 @@ export default function OrderDetail() {
         {/* Trade Workflow Visualizer */}
         <div className="mb-6">
           <TradeWorkflowVisualizer
-            status={order.status}
+            status={displayStatus}
             paymentStatus={order.payment_status}
             isCrossBorder={buyer?.country !== seller?.country}
             hasQualityCheck={order.has_quality_check}
@@ -159,8 +196,8 @@ export default function OrderDetail() {
                 <div className="flex items-center justify-between">
                   <CardTitle>Order #{order.id.slice(0, 8)}</CardTitle>
                   <div className="flex gap-2">
-                    <Badge className={order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
-                      {order.status}
+                    <Badge className={displayStatus === 'settled' || displayStatus === 'closed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
+                      {displayStatus}
                     </Badge>
                     <Badge variant="outline" className={order.payment_status === 'paid' ? 'bg-green-50 text-green-700' : ''}>
                       {order.payment_status}
@@ -255,9 +292,9 @@ export default function OrderDetail() {
                     {['processing', 'shipped', 'delivered', 'completed'].map(status => (
                       <Button
                         key={status}
-                        variant={order.status === status ? 'default' : 'outline'}
+                        variant={displayStatus === status ? 'default' : 'outline'}
                         onClick={() => handleUpdateStatus(status)}
-                        disabled={order.status === status}
+                        disabled={displayStatus === status}
                       >
                         {status.charAt(0).toUpperCase() + status.slice(1)}
                       </Button>
@@ -317,4 +354,3 @@ export default function OrderDetail() {
     </div>
   );
 }
-

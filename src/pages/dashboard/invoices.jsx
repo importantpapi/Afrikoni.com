@@ -239,12 +239,12 @@ export default function InvoicesDashboard() {
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Invoices</h1>
-            <p className="text-afrikoni-text-dark/70">Manage your invoices and payments</p>
+            <h1 className="text-3xl font-bold mb-2">Invoices</h1>
+            <p className="">Manage your invoices and payments</p>
           </div>
           {userRole === 'seller' && (
             <Link to="/dashboard/orders">
-              <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90">
+              <Button className="hover:bg-afrikoni-gold/90">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Invoice
               </Button>
@@ -256,30 +256,30 @@ export default function InvoicesDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Total Invoices</p>
+              <p className="text-sm mb-1">Total Invoices</p>
               <p className="text-2xl font-bold">{invoices.length}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Paid</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-sm mb-1">Paid</p>
+              <p className="text-2xl font-bold">
                 {invoices.filter(i => i.status === 'paid').length}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Pending</p>
-              <p className="text-2xl font-bold text-amber-600">
+              <p className="text-sm mb-1">Pending</p>
+              <p className="text-2xl font-bold">
                 {invoices.filter(i => i.status === 'issued').length}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Overdue</p>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-sm mb-1">Overdue</p>
+              <p className="text-2xl font-bold">
                 {invoices.filter(i => isOverdue(i)).length}
               </p>
             </CardContent>
@@ -342,12 +342,12 @@ export default function InvoicesDashboard() {
                             <Badge variant="destructive">Overdue</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-afrikoni-text-dark/60 mt-1">
+                        <p className="text-sm mt-1">
                           {userRole === 'buyer' 
                             ? `From: ${invoice.seller_company?.name || 'Seller'}`
                             : `To: ${invoice.buyer_company?.name || 'Buyer'}`}
                         </p>
-                        <p className="text-sm text-afrikoni-text-dark/60">
+                        <p className="text-sm">
                           Issue Date: {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}
                           {invoice.due_date && (
                             <> • Due: {format(new Date(invoice.due_date), 'MMM dd, yyyy')}</>
@@ -355,11 +355,11 @@ export default function InvoicesDashboard() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-afrikoni-gold">
+                        <p className="text-2xl font-bold">
                           {invoice.currency} {parseFloat(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         {invoice.tax_amount > 0 && (
-                          <p className="text-sm text-afrikoni-text-dark/60">
+                          <p className="text-sm">
                             Tax: {invoice.currency} {parseFloat(invoice.tax_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         )}
@@ -376,7 +376,7 @@ export default function InvoicesDashboard() {
                         {userRole === 'buyer' && invoice.status === 'issued' && (
                           <Button
                             size="sm"
-                            className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                            className="hover:bg-afrikoni-gold/90"
                             onClick={() => handlePayInvoice(invoice.id, invoice)}
                           >
                             <DollarSign className="w-4 h-4 mr-2" />

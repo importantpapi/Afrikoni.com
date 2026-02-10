@@ -1,33 +1,63 @@
 /**
  * Logistics Partner Portal
- * Real-time shipment tracking and bulk upload interface for logistics partners
+ * 2026 OS-grade command center for logistics partners
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Truck,
+  Package,
+  Upload,
+  Search,
+  Filter,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  ShieldCheck
+} from 'lucide-react';
+import { supabase } from '@/api/supabaseClient';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
-import {
-  Map, Truck, Package, Upload, Search, Filter,
-  CheckCircle2, Clock, AlertCircle, Loader2, MapPin
-} from 'lucide-react';
-import { supabase } from '@/api/supabaseClient';
+import { Badge } from '@/components/shared/ui/badge';
 import {
   getLogisticsPartnerShipments,
   bulkUpdateShipments,
   updateShipmentMilestone
 } from '@/services/logisticsService';
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All Status' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'picked_up', label: 'Picked Up' },
+  { value: 'in_transit', label: 'In Transit' },
+  { value: 'out_for_delivery', label: 'Out for Delivery' },
+  { value: 'delivered', label: 'Delivered' }
+];
+
 export default function LogisticsPartnerPortal() {
-  const [partner, setPartner] = useState(null);
+  const {
+    profileCompanyId,
+    isSystemReady,
+    canLoadData,
+    capabilities
+  } = useDashboardKernel();
+
+  const canLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
+
   const [shipments, setShipments] = useState([]);
-  const [filteredShipments, setFilteredShipments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+
   const [selectedShipment, setSelectedShipment] = useState(null);
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [showUpdatePanel, setShowUpdatePanel] = useState(false);
   const [updating, setUpdating] = useState(false);
+
   const [uploadMode, setUploadMode] = useState(false);
   const [csvContent, setCsvContent] = useState('');
 
@@ -38,61 +68,71 @@ export default function LogisticsPartnerPortal() {
   });
 
   useEffect(() => {
-    initializePartner();
-  }, []);
+    if (!isSystemReady || !canLoadData || !profileCompanyId) return;
+    if (!canLogistics) return;
+    loadShipments();
+  }, [isSystemReady, canLoadData, profileCompanyId, canLogistics]);
 
   useEffect(() => {
-    filterShipments();
-  }, [shipments, searchTerm, filterStatus]);
+    if (!profileCompanyId) return;
+    const channel = supabase
+      .channel(`logistics_shipments:${profileCompanyId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shipments',
+          filter: `logistics_partner_id=eq.${profileCompanyId}`
+        },
+        () => loadShipments()
+      )
+      .subscribe();
 
-  async function initializePartner() {
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [profileCompanyId]);
+
+  async function loadShipments() {
+    setLoading(true);
+    setError(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Get partner company
-      const { data: company } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('owner_id', user.id)
-        .single();
-
-      setPartner(company);
-
-      // Load shipments
-      if (company) {
-        const result = await getLogisticsPartnerShipments(company.name);
-        if (result.success) {
-          setShipments(result.shipments);
-        }
-      }
+      const result = await getLogisticsPartnerShipments(profileCompanyId);
+      if (!result.success) throw new Error(result.error || 'Failed to load shipments');
+      setShipments(result.shipments || []);
     } catch (err) {
-      console.error('Failed to initialize partner:', err);
+      setError(err?.message || 'Failed to load shipments');
     } finally {
       setLoading(false);
     }
   }
 
-  function filterShipments() {
+  const filteredShipments = useMemo(() => {
     let filtered = shipments;
-
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(s =>
+      filtered = filtered.filter((s) =>
         s.tracking_number?.toLowerCase().includes(term) ||
         s.trades?.title?.toLowerCase().includes(term)
       );
     }
-
     if (filterStatus !== 'all') {
-      filtered = filtered.filter(s => s.status === filterStatus);
+      filtered = filtered.filter((s) => s.status === filterStatus);
     }
+    return filtered;
+  }, [shipments, searchTerm, filterStatus]);
 
-    setFilteredShipments(filtered);
-  }
+  const stats = useMemo(() => {
+    const total = shipments.length;
+    const inTransit = shipments.filter((s) => s.status === 'in_transit').length;
+    const delivered = shipments.filter((s) => s.status === 'delivered').length;
+    const pending = shipments.filter((s) => s.status === 'pending').length;
+    return { total, inTransit, delivered, pending };
+  }, [shipments]);
 
   async function handleUpdateMilestone() {
     if (!selectedShipment || !updateForm.milestoneName) return;
-
     setUpdating(true);
     try {
       const result = await updateShipmentMilestone({
@@ -101,14 +141,11 @@ export default function LogisticsPartnerPortal() {
         location: updateForm.location,
         notes: updateForm.notes
       });
-
       if (result.success) {
-        setShipments(shipments.map(s =>
-          s.id === result.shipment.id ? result.shipment : s
-        ));
-        setShowUpdateForm(false);
+        setShowUpdatePanel(false);
         setSelectedShipment(null);
         setUpdateForm({ milestoneName: '', location: '', notes: '' });
+        await loadShipments();
       }
     } finally {
       setUpdating(false);
@@ -117,12 +154,10 @@ export default function LogisticsPartnerPortal() {
 
   async function handleBulkUpload() {
     if (!csvContent.trim()) return;
-
     setUpdating(true);
     try {
-      // Parse CSV: tracking_number,status,location,timestamp,notes
       const lines = csvContent.trim().split('\n');
-      const updates = lines.slice(1).map(line => {
+      const updates = lines.slice(1).map((line) => {
         const [tracking, status, location, timestamp, notes] = line.split(',');
         return {
           tracking_number: tracking?.trim(),
@@ -131,295 +166,288 @@ export default function LogisticsPartnerPortal() {
           timestamp: timestamp?.trim() || new Date().toISOString(),
           notes: notes?.trim() || ''
         };
-      }).filter(u => u.tracking_number);
+      }).filter((u) => u.tracking_number);
 
       const result = await bulkUpdateShipments(updates);
-
       if (result.success) {
-        // Refresh shipments
-        await initializePartner();
+        await loadShipments();
         setCsvContent('');
         setUploadMode(false);
-        alert(`Updated ${result.results.filter(r => r.success).length}/${result.results.length} shipments`);
       }
     } finally {
       setUpdating(false);
     }
   }
 
-  if (loading) {
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      case 'in_transit':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'picked_up':
+        return 'bg-violet-500/20 text-violet-300 border-violet-500/30';
+      case 'out_for_delivery':
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+      default:
+        return 'bg-white/10 text-gray-300 border-white/10';
+    }
+  };
+
+  if (!isSystemReady || loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold" />
       </div>
     );
   }
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'delivered':
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
-      case 'in_transit':
-        return <Truck className="w-5 h-5 text-blue-600" />;
-      case 'picked_up':
-        return <Package className="w-5 h-5 text-purple-600" />;
-      default:
-        return <Clock className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'delivered':
-        return 'bg-green-100 text-green-800';
-      case 'in_transit':
-        return 'bg-blue-100 text-blue-800';
-      case 'picked_up':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  if (!canLogistics) {
+    return (
+      <div className="max-w-2xl mx-auto mt-16">
+        <Card className="border-red-200 bg-red-50/50">
+          <CardContent className="p-6 text-sm text-red-700">
+            Logistics capability not approved. Contact support to activate your logistics profile.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-[#F5F0E8] mb-2">
-          Logistics Partner Portal
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          {partner?.name} - Update and track all shipments
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0B0C0F] via-[#0E1218] to-[#10141C] text-white">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-6 mb-8">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400">Logistics Partner Portal</p>
+            <h1 className="text-3xl md:text-4xl font-bold mt-2">Control Tower</h1>
+            <p className="text-sm text-gray-400 mt-2">Real-time shipment orchestration and event injection.</p>
+          </div>
+          <div className="rounded-2xl border border-afrikoni-gold/20 bg-white/5 px-4 py-3 text-right">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400">Trust Layer</p>
+            <p className="text-sm font-semibold text-afrikoni-gold flex items-center gap-2 justify-end">
+              <ShieldCheck className="w-4 h-4" /> Verified Logistics
+            </p>
+          </div>
+        </div>
 
-      {!showUpdateForm && !uploadMode ? (
-        <>
-          {/* Toolbar */}
-          <div className="mb-6 flex gap-4 items-center">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search by tracking number or trade..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        {error && (
+          <Card className="border-red-200 bg-red-50/50 mb-6">
+            <CardContent className="p-4 text-sm text-red-700">
+              {error}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: 'Total Shipments', value: stats.total, icon: Package },
+            { label: 'In Transit', value: stats.inTransit, icon: Truck },
+            { label: 'Delivered', value: stats.delivered, icon: CheckCircle2 },
+            { label: 'Pending', value: stats.pending, icon: Clock }
+          ].map((stat) => (
+            <Card key={stat.label} className="border border-white/10 bg-white/5">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-400">{stat.label}</p>
+                  <p className="text-2xl font-bold text-white">{stat.value}</p>
+                </div>
+                <stat.icon className="w-6 h-6 text-afrikoni-gold/80" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-wrap gap-3 items-center mb-6">
+          <div className="flex-1 min-w-[260px] relative">
+            <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search tracking # or trade title"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white/5 border-white/10 text-white"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400" />
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="picked_up">Picked Up</option>
-              <option value="in_transit">In Transit</option>
-              <option value="delivered">Delivered</option>
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="text-black">
+                  {opt.label}
+                </option>
+              ))}
             </select>
-            <Button
-              onClick={() => setUploadMode(true)}
-              className="flex gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90"
-            >
-              <Upload className="w-4 h-4" />
-              Bulk Upload
-            </Button>
           </div>
+          <Button
+            onClick={() => setUploadMode(true)}
+            className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-black"
+          >
+            <Upload className="w-4 h-4 mr-2" /> Bulk Upload
+          </Button>
+        </div>
 
-          {/* Statistics */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {[
-              { label: 'Total Shipments', value: shipments.length, icon: Package },
-              { label: 'In Transit', value: shipments.filter(s => s.status === 'in_transit').length, icon: Truck },
-              { label: 'Delivered', value: shipments.filter(s => s.status === 'delivered').length, icon: CheckCircle2 },
-              { label: 'Pending', value: shipments.filter(s => s.status === 'pending').length, icon: Clock }
-            ].map((stat, i) => (
-              <Card key={i} className="shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">{stat.label}</p>
-                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                    </div>
-                    <stat.icon className="w-8 h-8 text-afrikoni-gold opacity-50" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Shipments Table */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Tracking #</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Trade</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Location</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Est. Delivery</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Action</th>
+        {/* Shipments Table */}
+        <Card className="border border-white/10 bg-white/5">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-white/5 border-b border-white/10">
+                  <tr className="text-left text-xs uppercase tracking-wider text-gray-400">
+                    <th className="px-6 py-3">Tracking</th>
+                    <th className="px-6 py-3">Trade</th>
+                    <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3">Location</th>
+                    <th className="px-6 py-3">Last Update</th>
+                    <th className="px-6 py-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredShipments.map((shipment) => (
+                    <tr key={shipment.id} className="hover:bg-white/5">
+                      <td className="px-6 py-4 text-sm font-mono text-white">
+                        {shipment.tracking_number || '—'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-200">
+                        {shipment.trades?.title || 'Trade'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge className={`border ${getStatusBadge(shipment.status)}`}>
+                          {shipment.status?.replace('_', ' ')}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-300">
+                        {shipment.current_location || shipment.last_update_location || '—'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-400">
+                        {shipment.last_tracking_update
+                          ? new Date(shipment.last_tracking_update).toLocaleString()
+                          : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-white/10 text-white"
+                          onClick={() => {
+                            setSelectedShipment(shipment);
+                            setShowUpdatePanel(true);
+                          }}
+                        >
+                          Update
+                        </Button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {filteredShipments.map(shipment => (
-                      <tr key={shipment.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <p className="font-mono text-sm font-semibold">{shipment.tracking_number}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <p className="font-semibold text-gray-900">{shipment.trades?.title}</p>
-                            <p className="text-sm text-gray-600">{shipment.trades?.companies?.name}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(shipment.status)}
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(shipment.status)}`}>
-                              {shipment.status.replace('_', ' ').toUpperCase()}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          {shipment.last_update_location ? (
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-gray-400" />
-                              {shipment.last_update_location}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          {shipment.estimated_delivery_date
-                            ? new Date(shipment.estimated_delivery_date).toLocaleDateString()
-                            : '—'}
-                        </td>
-                        <td className="px-6 py-4">
-                          <Button
-                            onClick={() => {
-                              setSelectedShipment(shipment);
-                              setShowUpdateForm(true);
-                            }}
-                            className="text-xs bg-afrikoni-gold hover:bg-afrikoni-gold/90"
-                          >
-                            Update
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                  {filteredShipments.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-10 text-center text-sm text-gray-400">
+                        No shipments found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Update Panel */}
+      <AnimatePresence>
+        {showUpdatePanel && selectedShipment && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="fixed bottom-6 right-6 w-[360px] rounded-2xl border border-white/10 bg-[#0F141B] p-4 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-400">Update Shipment</p>
+                <p className="text-sm font-semibold">{selectedShipment.tracking_number}</p>
               </div>
-            </CardContent>
-          </Card>
-        </>
-      ) : uploadMode ? (
-        /* Bulk Upload Form */
-        <Card className="max-w-2xl">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-bold mb-4">Bulk Upload Shipment Updates</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Paste CSV data with columns: tracking_number, status, location, timestamp, notes
-            </p>
-            <Textarea
-              placeholder={`tracking_number,status,location,timestamp,notes
-DHL123456,Pickup Confirmed,Lagos Port,2026-02-09T10:00:00Z,Ready for shipment
-FDX789012,In Transit,Over Atlantic,2026-02-10T15:30:00Z,On schedule`}
+              <Button size="sm" variant="outline" className="border-white/10" onClick={() => setShowUpdatePanel(false)}>
+                Close
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <Input
+                placeholder="Milestone (e.g., In Transit)"
+                value={updateForm.milestoneName}
+                onChange={(e) => setUpdateForm({ ...updateForm, milestoneName: e.target.value })}
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Input
+                placeholder="Location"
+                value={updateForm.location}
+                onChange={(e) => setUpdateForm({ ...updateForm, location: e.target.value })}
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Input
+                placeholder="Notes"
+                value={updateForm.notes}
+                onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Button
+                onClick={handleUpdateMilestone}
+                disabled={updating}
+                className="w-full bg-afrikoni-gold text-black"
+              >
+                {updating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...</> : 'Apply Update'}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bulk Upload Panel */}
+      <AnimatePresence>
+        {uploadMode && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="fixed bottom-6 left-6 w-[420px] rounded-2xl border border-white/10 bg-[#0F141B] p-4 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-400">Bulk Upload</p>
+                <p className="text-sm font-semibold">CSV format</p>
+              </div>
+              <Button size="sm" variant="outline" className="border-white/10" onClick={() => setUploadMode(false)}>
+                Close
+              </Button>
+            </div>
+
+            <textarea
               value={csvContent}
               onChange={(e) => setCsvContent(e.target.value)}
-              rows={8}
-              className="mb-4"
+              rows={6}
+              className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+              placeholder="tracking_number,status,location,timestamp,notes"
             />
-            <div className="flex gap-3">
-              <Button
-                onClick={() => {
-                  setUploadMode(false);
-                  setCsvContent('');
-                }}
-                variant="outline"
-                disabled={updating}
-              >
-                Cancel
-              </Button>
+
+            <div className="flex gap-2 mt-3">
               <Button
                 onClick={handleBulkUpload}
-                disabled={updating || !csvContent.trim()}
-                className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                disabled={updating}
+                className="w-full bg-afrikoni-gold text-black"
               >
-                {updating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</> : 'Upload Updates'}
+                {updating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</> : 'Process Updates'}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      ) : (
-        /* Individual Update Form */
-        <Card className="max-w-2xl">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-bold mb-4">Update Shipment</h2>
-            <p className="text-sm text-gray-600 mb-4 font-mono">{selectedShipment?.tracking_number}</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Milestone Event *</label>
-                <select
-                  value={updateForm.milestoneName}
-                  onChange={(e) => setUpdateForm({ ...updateForm, milestoneName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="">Select milestone</option>
-                  <option value="Pickup Scheduled">Pickup Scheduled</option>
-                  <option value="Pickup Confirmed">Pickup Confirmed</option>
-                  <option value="In Transit">In Transit</option>
-                  <option value="Delivery Scheduled">Delivery Scheduled</option>
-                  <option value="Delivered">Delivered</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Location</label>
-                <Input
-                  placeholder="City, Country or GPS coordinates"
-                  value={updateForm.location}
-                  onChange={(e) => setUpdateForm({ ...updateForm, location: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">Notes</label>
-                <Textarea
-                  placeholder="Any additional notes..."
-                  value={updateForm.notes}
-                  onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => {
-                    setShowUpdateForm(false);
-                    setSelectedShipment(null);
-                  }}
-                  variant="outline"
-                  disabled={updating}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleUpdateMilestone}
-                  disabled={updating}
-                  className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-gold/90"
-                >
-                  {updating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...</> : 'Update Shipment'}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

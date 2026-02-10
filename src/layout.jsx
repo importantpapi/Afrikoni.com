@@ -85,21 +85,21 @@ function Footer() {
               Connecting suppliers, buyers & logistics across 54 countries.
             </p>
             <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm mb-4 md:mb-6">
-              <motion.div 
+              <motion.div
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
                 <Mail className="w-3 h-3 md:w-4 md:h-4 text-afrikoni-gold flex-shrink-0" />
                 <a href="mailto:hello@afrikoni.com" className="hover:text-afrikoni-gold transition-colors break-all">hello@afrikoni.com</a>
               </motion.div>
-              <motion.div 
+              <motion.div
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
                 <Phone className="w-3 h-3 md:w-4 md:h-4 text-afrikoni-gold flex-shrink-0" />
                 <a href="tel:+32456779368" className="hover:text-afrikoni-gold transition-colors">+32 456 77 93 68</a>
               </motion.div>
-              <motion.div 
+              <motion.div
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
@@ -133,10 +133,9 @@ function Footer() {
               className="md:pointer-events-none w-full flex items-center justify-between md:justify-start mb-3 md:mb-4"
             >
               <h4 className="font-semibold text-afrikoni-gold text-sm md:text-base">For Buyers</h4>
-              <ChevronDown 
-                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${
-                  openSections.buyers ? 'rotate-180' : ''
-                }`}
+              <ChevronDown
+                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${openSections.buyers ? 'rotate-180' : ''
+                  }`}
               />
             </button>
             <AnimatePresence>
@@ -171,10 +170,9 @@ function Footer() {
               className="md:pointer-events-none w-full flex items-center justify-between md:justify-start mb-3 md:mb-4"
             >
               <h4 className="font-semibold text-afrikoni-gold text-sm md:text-base">For Sellers</h4>
-              <ChevronDown 
-                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${
-                  openSections.sellers ? 'rotate-180' : ''
-                }`}
+              <ChevronDown
+                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${openSections.sellers ? 'rotate-180' : ''
+                  }`}
               />
             </button>
             <AnimatePresence>
@@ -209,10 +207,9 @@ function Footer() {
               className="md:pointer-events-none w-full flex items-center justify-between md:justify-start mb-3 md:mb-4"
             >
               <h4 className="font-semibold text-afrikoni-gold text-sm md:text-base">Company</h4>
-              <ChevronDown 
-                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${
-                  openSections.support ? 'rotate-180' : ''
-                }`}
+              <ChevronDown
+                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${openSections.support ? 'rotate-180' : ''
+                  }`}
               />
             </button>
             <AnimatePresence>
@@ -232,8 +229,8 @@ function Footer() {
                         whileHover={{ x: 4 }}
                         className="md:block"
                       >
-                        <Link 
-                          to={item.to} 
+                        <Link
+                          to={item.to}
                           className={`hover:text-afrikoni-gold transition-colors block text-afrikoni-cream/90 py-1 flex items-center gap-2 ${item.highlight ? 'text-afrikoni-gold font-semibold' : ''}`}
                         >
                           {Icon && <Icon className="w-4 h-4" />}
@@ -327,32 +324,32 @@ function Footer() {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[10px] md:text-xs lg:text-sm">
               <motion.div whileHover={{ x: 2 }}>
-                <Link 
-                  to="/trust" 
+                <Link
+                  to="/trust"
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
                 >
                   Marketplace Rules
                 </Link>
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>
-                <Link 
-                  to="/privacy-policy" 
+                <Link
+                  to="/privacy-policy"
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
                 >
                   Privacy Policy
                 </Link>
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>
-                <Link 
-                  to="/terms-enforcement" 
+                <Link
+                  to="/terms-enforcement"
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
                 >
                   Terms of Use
                 </Link>
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>
-                <Link 
-                  to="/cookie-policy" 
+                <Link
+                  to="/cookie-policy"
                   className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
                 >
                   Cookie Policy
@@ -381,7 +378,13 @@ export default function Layout({ children }) {
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
+  // ✅ THEME ENFORCEMENT: Public pages must be LIGHT mode
+  // The "Trade OS" dark theme is exclusive to the Dashboard
+  // This fixes the "black thing" issue on landing pages
+
+  // Theme is user-controlled; do not force light mode here.
+
   // Check if we're on a dashboard route - don't show main layout for dashboard
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
   // Check if we're on a product page (where sticky CTA will be shown)
@@ -403,7 +406,7 @@ export default function Layout({ children }) {
       // No need for setUser - AuthProvider's onAuthStateChange listener will clear state automatically
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) throw error;
-      
+
       // Clear storage (non-blocking)
       try {
         if (typeof window !== 'undefined') {
@@ -413,7 +416,7 @@ export default function Layout({ children }) {
       } catch (storageError) {
         console.error('[Layout] Storage clear error:', storageError);
       }
-      
+
       // Hard redirect to login
       window.location.href = '/login';
     } catch (error) {
@@ -452,7 +455,7 @@ export default function Layout({ children }) {
               {children}
             </MobileLayout>
           </Suspense>
-          
+
           {/* WhatsApp Sticky Button - MobileLayout handles positioning */}
           <WhatsAppButton />
 
@@ -490,4 +493,3 @@ export default function Layout({ children }) {
     </div>
   );
 }
-

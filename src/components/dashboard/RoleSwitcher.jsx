@@ -29,7 +29,7 @@ export function RoleSwitcher() {
   };
 
   return (
-    <div className="flex items-center gap-2 bg-afrikoni-sand/40 rounded-lg p-1 border border-afrikoni-gold/20">
+    <div className="flex items-center gap-2 rounded-lg p-1 border">
       <button
         onClick={() => switchMode('buyer')}
         className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${

@@ -10,7 +10,7 @@ import {
 
 const ACTIONS = [
   { id: 'new-rfq', label: 'Create New RFQ', keywords: 'rfq request quote new create buy source', icon: Plus, path: '/dashboard/rfqs/new', group: 'Quick Actions' },
-  { id: 'new-product', label: 'Add New Product', keywords: 'product add new create sell listing', icon: Plus, path: '/dashboard/products/quick-add', group: 'Quick Actions' },
+  { id: 'new-product', label: 'Add New Product', keywords: 'product add new create sell listing', icon: Plus, path: '/dashboard/products/new', group: 'Quick Actions' },
   { id: 'new-shipment', label: 'Create Shipment', keywords: 'shipment logistics ship create new freight', icon: Plus, path: '/dashboard/shipments/new', group: 'Quick Actions' },
   { id: 'nav-dashboard', label: 'Dashboard Home', keywords: 'home dashboard overview main', icon: LayoutDashboard, path: '/dashboard', group: 'Navigation' },
   { id: 'nav-pipeline', label: 'Trade Pipeline', keywords: 'pipeline trade flow inquiry quote escrow shipment delivery tracking', icon: BarChart3, path: '/dashboard/trade-pipeline', group: 'Navigation' },
@@ -120,7 +120,7 @@ export default function CommandPalette({ open, onClose }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 dark:bg-black/60 backdrop-blur-sm"
           onClick={onClose}
         />
 
@@ -130,11 +130,11 @@ export default function CommandPalette({ open, onClose }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -20 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-xl bg-white dark:bg-[#0F0F0F] rounded-xl shadow-2xl shadow-black/20 dark:shadow-black/60 border border-gray-200 dark:border-[#2A2A2A] overflow-hidden backdrop-blur-xl"
+          className="relative w-full max-w-xl dark:bg-[#0F0F0F] rounded-xl shadow-2xl shadow-black/20 dark:shadow-black/60 border dark:border-[#2A2A2A] overflow-hidden backdrop-blur-xl"
         >
           {/* Search Input */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-[#1E1E1E]">
-            <Search className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3 border-b dark:border-[#1E1E1E]">
+            <Search className="w-5 h-5 dark:text-gray-500 flex-shrink-0" />
             <input
               ref={inputRef}
               value={query}
@@ -144,9 +144,9 @@ export default function CommandPalette({ open, onClose }) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Search actions, pages, or type a command..."
-              className="flex-1 text-base outline-none bg-transparent text-gray-900 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
+              className="flex-1 text-base outline-none bg-transparent dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
             />
-            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A]">
+            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium dark:text-gray-500 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A]">
               ESC
             </kbd>
           </div>
@@ -154,13 +154,13 @@ export default function CommandPalette({ open, onClose }) {
           {/* Results */}
           <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-2">
             {flatList.length === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm">
+              <div className="px-4 py-8 text-center dark:text-gray-500 text-sm">
                 No results for &ldquo;{query}&rdquo;
               </div>
             ) : (
               Object.entries(grouped).map(([group, items]) => (
                 <div key={group}>
-                  <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-[0.1em]">
+                  <div className="px-4 py-1.5 text-[10px] font-bold dark:text-gray-600 uppercase tracking-[0.1em]">
                     {group}
                   </div>
                   {items.map((action) => {
@@ -184,7 +184,7 @@ export default function CommandPalette({ open, onClose }) {
                         }`} />
                         <span className="flex-1 text-sm font-medium">{action.label}</span>
                         {isSelected && (
-                          <ArrowRight className="w-4 h-4 text-[#D4A937]" />
+                          <ArrowRight className="w-4 h-4" />
                         )}
                       </button>
                     );
@@ -195,17 +195,17 @@ export default function CommandPalette({ open, onClose }) {
           </div>
 
           {/* Footer hint */}
-          <div className="px-4 py-2 border-t border-gray-200 dark:border-[#1E1E1E] flex items-center gap-4 text-xs text-gray-400 dark:text-gray-600">
+          <div className="px-4 py-2 border-t dark:border-[#1E1E1E] flex items-center gap-4 text-xs dark:text-gray-600">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] text-[10px]">&uarr;&darr;</kbd>
+              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-[10px]">&uarr;&darr;</kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] text-[10px]">Enter</kbd>
+              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-[10px]">Enter</kbd>
               Open
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-[#1A1A1A] rounded border border-gray-200 dark:border-[#2A2A2A] text-[10px]">Esc</kbd>
+              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-[10px]">Esc</kbd>
               Close
             </span>
           </div>

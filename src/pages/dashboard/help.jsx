@@ -201,10 +201,10 @@ export default function DashboardHelp() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">
+          <h1 className="text-2xl md:text-3xl font-bold">
             Help Center
           </h1>
-          <p className="text-afrikoni-deep mt-1 text-sm md:text-base">
+          <p className="mt-1 text-sm md:text-base">
             Find answers to your questions or get in touch with our support team
           </p>
         </motion.div>
@@ -213,7 +213,7 @@ export default function DashboardHelp() {
         <Card>
           <CardContent className="p-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" />
               <Input
                 placeholder="Search for help..."
                 value={searchQuery}
@@ -236,14 +236,14 @@ export default function DashboardHelp() {
               <Card className="hover:shadow-afrikoni-lg transition-shadow">
                 <CardContent className="p-6 text-center">
                   <div className="flex justify-center mb-4">
-                    <div className="p-3 bg-afrikoni-gold/10 rounded-full">
-                      <option.icon className="w-6 h-6 text-afrikoni-gold" />
+                    <div className="p-3 rounded-full">
+                      <option.icon className="w-6 h-6" />
                     </div>
                   </div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-2">
+                  <h3 className="font-semibold mb-2">
                     {option.title}
                   </h3>
-                  <p className="text-sm text-afrikoni-deep/70 mb-4">
+                  <p className="text-sm mb-4">
                     {option.description}
                   </p>
                   <Button
@@ -272,13 +272,13 @@ export default function DashboardHelp() {
                 <Link
                   key={idx}
                   to={link.link}
-                  className="flex items-center gap-3 p-4 rounded-lg border border-afrikoni-gold/20 hover:bg-afrikoni-gold/5 transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-lg border hover:bg-afrikoni-gold/5 transition-colors"
                 >
-                  <link.icon className="w-5 h-5 text-afrikoni-gold" />
-                  <span className="text-sm font-medium text-afrikoni-chestnut">
+                  <link.icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">
                     {link.title}
                   </span>
-                  <ExternalLink className="w-4 h-4 text-afrikoni-deep/50 ml-auto" />
+                  <ExternalLink className="w-4 h-4 ml-auto" />
                 </Link>
               ))}
             </div>
@@ -312,7 +312,7 @@ export default function DashboardHelp() {
               {(isBuyer || isHybrid) && (
                 <TabsContent value="buyer" className="space-y-3 mt-4">
                   {filteredFaqs(buyerFaqs).length === 0 ? (
-                    <div className="text-center py-8 text-afrikoni-deep/70">
+                    <div className="text-center py-8">
                       No FAQs found matching your search.
                     </div>
                   ) : (
@@ -333,14 +333,14 @@ export default function DashboardHelp() {
                                 <Badge variant="outline" className="text-xs">
                                   {faq.category}
                                 </Badge>
-                                <span className="font-medium text-afrikoni-chestnut">
+                                <span className="font-medium">
                                   {faq.question}
                                 </span>
                               </div>
                               {openFaq === idx ? (
-                                <ChevronUp className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                                <ChevronUp className="w-5 h-5 flex-shrink-0" />
                               ) : (
-                                <ChevronDown className="w-5 h-5 text-afrikoni-deep/50 flex-shrink-0" />
+                                <ChevronDown className="w-5 h-5 flex-shrink-0" />
                               )}
                             </button>
                             {openFaq === idx && (
@@ -350,7 +350,7 @@ export default function DashboardHelp() {
                                 exit={{ height: 0, opacity: 0 }}
                                 className="overflow-hidden"
                               >
-                                <div className="px-4 pb-4 text-afrikoni-deep/80">
+                                <div className="px-4 pb-4">
                                   {faq.answer}
                                 </div>
                               </motion.div>
@@ -367,7 +367,7 @@ export default function DashboardHelp() {
               {(isSeller || isHybrid) && (
                 <TabsContent value="seller" className="space-y-3 mt-4">
                   {filteredFaqs(sellerFaqs).length === 0 ? (
-                    <div className="text-center py-8 text-afrikoni-deep/70">
+                    <div className="text-center py-8">
                       No FAQs found matching your search.
                     </div>
                   ) : (
@@ -388,14 +388,14 @@ export default function DashboardHelp() {
                                 <Badge variant="outline" className="text-xs">
                                   {faq.category}
                                 </Badge>
-                                <span className="font-medium text-afrikoni-chestnut">
+                                <span className="font-medium">
                                   {faq.question}
                                 </span>
                               </div>
                               {openFaq === `seller-${idx}` ? (
-                                <ChevronUp className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                                <ChevronUp className="w-5 h-5 flex-shrink-0" />
                               ) : (
-                                <ChevronDown className="w-5 h-5 text-afrikoni-deep/50 flex-shrink-0" />
+                                <ChevronDown className="w-5 h-5 flex-shrink-0" />
                               )}
                             </button>
                             {openFaq === `seller-${idx}` && (
@@ -405,7 +405,7 @@ export default function DashboardHelp() {
                                 exit={{ height: 0, opacity: 0 }}
                                 className="overflow-hidden"
                               >
-                                <div className="px-4 pb-4 text-afrikoni-deep/80">
+                                <div className="px-4 pb-4">
                                   {faq.answer}
                                 </div>
                               </motion.div>
@@ -422,7 +422,7 @@ export default function DashboardHelp() {
               {isLogistics && (
                 <TabsContent value="logistics" className="space-y-3 mt-4">
                   {filteredFaqs(logisticsFaqs).length === 0 ? (
-                    <div className="text-center py-8 text-afrikoni-deep/70">
+                    <div className="text-center py-8">
                       No FAQs found matching your search.
                     </div>
                   ) : (
@@ -443,14 +443,14 @@ export default function DashboardHelp() {
                                 <Badge variant="outline" className="text-xs">
                                   {faq.category}
                                 </Badge>
-                                <span className="font-medium text-afrikoni-chestnut">
+                                <span className="font-medium">
                                   {faq.question}
                                 </span>
                               </div>
                               {openFaq === `logistics-${idx}` ? (
-                                <ChevronUp className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                                <ChevronUp className="w-5 h-5 flex-shrink-0" />
                               ) : (
-                                <ChevronDown className="w-5 h-5 text-afrikoni-deep/50 flex-shrink-0" />
+                                <ChevronDown className="w-5 h-5 flex-shrink-0" />
                               )}
                             </button>
                             {openFaq === `logistics-${idx}` && (
@@ -460,7 +460,7 @@ export default function DashboardHelp() {
                                 exit={{ height: 0, opacity: 0 }}
                                 className="overflow-hidden"
                               >
-                                <div className="px-4 pb-4 text-afrikoni-deep/80">
+                                <div className="px-4 pb-4">
                                   {faq.answer}
                                 </div>
                               </motion.div>
@@ -477,17 +477,17 @@ export default function DashboardHelp() {
         </Card>
 
         {/* Still Need Help */}
-        <Card className="bg-afrikoni-gold/5 border-afrikoni-gold/30">
+        <Card className="">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-afrikoni-gold/10 rounded-full">
-                <HelpCircle className="w-6 h-6 text-afrikoni-gold" />
+              <div className="p-3 rounded-full">
+                <HelpCircle className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-afrikoni-chestnut mb-1">
+                <h3 className="font-semibold mb-1">
                   Still need help?
                 </h3>
-                <p className="text-sm text-afrikoni-deep/70">
+                <p className="text-sm">
                   Our support team is available 24/7 to assist you.
                 </p>
               </div>

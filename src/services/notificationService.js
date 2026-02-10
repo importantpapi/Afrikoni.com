@@ -164,7 +164,7 @@ export async function createNotification({
     if (!recipientEmail && company_id) {
       const { data: company } = await supabase
         .from('companies')
-        .select('owner_email')
+        .select('id, owner_email')
         .eq('id', company_id)
         .maybeSingle();
       recipientEmail = company?.owner_email;
@@ -353,7 +353,7 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
     if (!rfqCategoryId) {
       const { data: sellers } = await supabase
         .from('companies')
-        .select('id, owner_email')
+        .select('id, owner_email, role')
         .in('role', ['seller', 'hybrid']);
 
       if (sellers) {
@@ -386,7 +386,7 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
       // RFQ notifications are business-critical - always send email
       const { data: allSellers } = await supabase
         .from('companies')
-        .select('id, owner_email')
+        .select('id, owner_email, role')
         .in('role', ['seller', 'hybrid']);
 
       if (allSellers) {
@@ -559,9 +559,9 @@ export async function notifyNewMessage(
     if (senderCompanyId) {
       const { data: senderCompany } = await supabase
         .from('companies')
-        .select('company_name')
+        .select('id, company_name')
         .eq('id', senderCompanyId)
-        .single();
+        .maybeSingle();
       
       if (senderCompany?.company_name) {
         senderName = senderCompany.company_name;

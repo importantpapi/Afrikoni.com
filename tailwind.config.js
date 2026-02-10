@@ -8,6 +8,52 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Shadcn-style semantic tokens (from CSS variables)
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
         // Premium AFRIKONI OS v2.0 Color System
         afrikoni: {
           // Primary Colors - Maintain brand identity
@@ -63,6 +109,11 @@ export default {
         'brand-dark': '#2A180E',
         'brand-brown': '#4B2C17',
         'brand-cream': '#FFF9F3',
+        // Semantic status backgrounds with opacity
+        'success-15': 'hsl(var(--success) / 0.15)',
+        'warning-15': 'hsl(var(--warning) / 0.15)',
+        'info-15': 'hsl(var(--info) / 0.15)',
+        'destructive-15': 'hsl(var(--destructive) / 0.15)',
       }),
       textColor: {
         brand: {
@@ -71,13 +122,19 @@ export default {
           brown: '#2A180E',
         },
       },
-      borderColor: {
+      borderColor: theme => ({
+        ...theme('colors'),
         brand: {
           gold: '#C69A47',
           goldDark: '#A17833',
           brown: '#3A2313',
         },
-      },
+        // Semantic status borders with opacity
+        'success-20': 'hsl(var(--success) / 0.20)',
+        'warning-20': 'hsl(var(--warning) / 0.20)',
+        'info-20': 'hsl(var(--info) / 0.20)',
+        'destructive-20': 'hsl(var(--destructive) / 0.20)',
+      }),
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         // Remove serif - not used in institutional design
@@ -112,4 +169,3 @@ export default {
   },
   plugins: [],
 }
-

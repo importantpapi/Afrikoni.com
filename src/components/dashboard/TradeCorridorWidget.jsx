@@ -20,9 +20,9 @@ const SAMPLE_CORRIDORS = [
 ];
 
 function TrendIcon({ trend }) {
-  if (trend === 'up') return <TrendingUp className="w-3 h-3 text-emerald-500" />;
-  if (trend === 'down') return <TrendingDown className="w-3 h-3 text-red-500" />;
-  return <Minus className="w-3 h-3 text-gray-400" />;
+  if (trend === 'up') return <TrendingUp className="w-3 h-3" />;
+  if (trend === 'down') return <TrendingDown className="w-3 h-3" />;
+  return <Minus className="w-3 h-3" />;
 }
 
 export default function TradeCorridorWidget({ className = '' }) {
@@ -34,21 +34,37 @@ export default function TradeCorridorWidget({ className = '' }) {
 
     const loadCorridors = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: orders, error } = await supabase
           .from('orders')
-          .select('buyer_country, seller_country, total_amount')
+          .select('buyer_company_id, seller_company_id, total_amount')
           .or(`buyer_company_id.eq.${profileCompanyId},seller_company_id.eq.${profileCompanyId}`)
-          .not('buyer_country', 'is', null)
-          .not('seller_country', 'is', null)
+          .not('buyer_company_id', 'is', null)
+          .not('seller_company_id', 'is', null)
           .limit(200);
 
-        if (error || !data || data.length === 0) return;
+        if (error || !orders || orders.length === 0) return;
+
+        const companyIds = Array.from(new Set(
+          orders.flatMap(order => [order.buyer_company_id, order.seller_company_id]).filter(Boolean)
+        ));
+
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('id, country, company_name')
+          .in('id', companyIds);
+
+        const companyMap = new Map();
+        (companies || []).forEach(company => {
+          companyMap.set(company.id, company.country || company.company_name || 'Unknown');
+        });
 
         const corridorMap = {};
-        data.forEach(order => {
-          const key = `${order.seller_country}\u2192${order.buyer_country}`;
+        orders.forEach(order => {
+          const from = companyMap.get(order.seller_company_id) || 'Unknown';
+          const to = companyMap.get(order.buyer_company_id) || 'Unknown';
+          const key = `${from}\u2192${to}`;
           if (!corridorMap[key]) {
-            corridorMap[key] = { from: order.seller_country, to: order.buyer_country, volume: 0, trades: 0 };
+            corridorMap[key] = { from, to, volume: 0, trades: 0 };
           }
           corridorMap[key].volume += parseFloat(order.total_amount) || 0;
           corridorMap[key].trades += 1;
@@ -78,11 +94,11 @@ export default function TradeCorridorWidget({ className = '' }) {
     <Card className={`border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
-            <Globe className="w-4 h-4 text-[#D4A937]" />
+          <CardTitle className="text-sm font-semibold dark:text-[#F5F0E8] flex items-center gap-2">
+            <Globe className="w-4 h-4" />
             Trade Corridors
           </CardTitle>
-          <span className="text-[10px] font-mono text-gray-400 dark:text-gray-600">{corridors.length} routes</span>
+          <span className="text-[10px] font-mono dark:text-gray-600">{corridors.length} routes</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -93,21 +109,21 @@ export default function TradeCorridorWidget({ className = '' }) {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] border border-transparent hover:border-[#D4A937]/10 transition-all"
+              className="flex items-center justify-between p-2.5 rounded-lg dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] border border-transparent hover:border-[#D4A937]/10 transition-all"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm">{corridor.flag_from}</span>
-                <span className="text-[13px] font-medium text-gray-800 dark:text-gray-200 truncate">
+                <span className="text-[13px] font-medium dark:text-gray-200 truncate">
                   {corridor.from}
                 </span>
-                <ArrowRight className="w-3 h-3 text-[#D4A937] flex-shrink-0" />
+                <ArrowRight className="w-3 h-3 flex-shrink-0" />
                 <span className="text-sm">{corridor.flag_to}</span>
-                <span className="text-[13px] font-medium text-gray-800 dark:text-gray-200 truncate">
+                <span className="text-[13px] font-medium dark:text-gray-200 truncate">
                   {corridor.to}
                 </span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[13px] font-bold font-mono text-gray-900 dark:text-[#F5F0E8]">
+                <span className="text-[13px] font-bold font-mono dark:text-[#F5F0E8]">
                   ${(corridor.volume / 1000).toFixed(0)}K
                 </span>
                 <div className="flex items-center gap-0.5">
@@ -119,7 +135,7 @@ export default function TradeCorridorWidget({ className = '' }) {
                     {corridor.change}
                   </span>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-mono border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400">
+                <Badge variant="outline" className="text-[10px] font-mono dark:border-[#2A2A2A] dark:text-gray-400">
                   {corridor.trades}
                 </Badge>
               </div>

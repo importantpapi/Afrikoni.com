@@ -293,13 +293,13 @@ function TeamMembersInner() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Active</Badge>;
+        return <Badge className=""><CheckCircle className="w-3 h-3 mr-1" />Active</Badge>;
       case 'invited':
-        return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="w-3 h-3 mr-1" />Invited</Badge>;
+        return <Badge className=""><Clock className="w-3 h-3 mr-1" />Invited</Badge>;
       case 'pending':
-        return <Badge className="bg-blue-50 text-blue-700 border-blue-200"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+        return <Badge className=""><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
       default:
-        return <Badge className="bg-gray-50 text-gray-700 border-gray-200"><X className="w-3 h-3 mr-1" />Inactive</Badge>;
+        return <Badge className=""><X className="w-3 h-3 mr-1" />Inactive</Badge>;
     }
   };
 
@@ -334,14 +334,14 @@ function TeamMembersInner() {
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Team Members</h1>
-            <p className="text-afrikoni-text-dark/70">
+            <h1 className="text-3xl font-bold mb-2">Team Members</h1>
+            <p className="">
               Manage your team with role-based access and permissions
             </p>
           </div>
           <Button
             onClick={() => setShowInviteDialog(true)}
-            className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+            className="hover:bg-afrikoni-goldDark"
             disabled={activeMembersCount >= maxMembers}
           >
             <UserPlus className="w-4 h-4 mr-2" />
@@ -365,10 +365,10 @@ function TeamMembersInner() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70">Active Members</p>
-                  <p className="text-2xl font-bold text-afrikoni-text-dark">{activeMembersCount}</p>
+                  <p className="text-sm">Active Members</p>
+                  <p className="text-2xl font-bold">{activeMembersCount}</p>
                 </div>
-                <Users className="w-8 h-8 text-afrikoni-gold" />
+                <Users className="w-8 h-8" />
               </div>
             </CardContent>
           </Card>
@@ -376,12 +376,12 @@ function TeamMembersInner() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70">Plan Limit</p>
-                  <p className="text-2xl font-bold text-afrikoni-text-dark">
+                  <p className="text-sm">Plan Limit</p>
+                  <p className="text-2xl font-bold">
                     {maxMembers === 999 ? 'Unlimited' : maxMembers}
                   </p>
                 </div>
-                <Crown className="w-8 h-8 text-afrikoni-gold" />
+                <Crown className="w-8 h-8" />
               </div>
             </CardContent>
           </Card>
@@ -389,12 +389,12 @@ function TeamMembersInner() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-afrikoni-text-dark/70">Pending Invites</p>
-                  <p className="text-2xl font-bold text-afrikoni-text-dark">
+                  <p className="text-sm">Pending Invites</p>
+                  <p className="text-2xl font-bold">
                     {teamMembers.filter(m => m.status === 'invited' || m.status === 'pending').length}
                   </p>
                 </div>
-                <Mail className="w-8 h-8 text-afrikoni-gold" />
+                <Mail className="w-8 h-8" />
               </div>
             </CardContent>
           </Card>
@@ -411,14 +411,14 @@ function TeamMembersInner() {
           <CardContent>
             {teamMembers.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="w-16 h-16 text-afrikoni-text-dark/30 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-afrikoni-text-dark mb-2">No team members yet</h3>
-                <p className="text-afrikoni-text-dark/70 mb-4">
+                <Users className="w-16 h-16 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No team members yet</h3>
+                <p className="mb-4">
                   Invite team members to collaborate on your business
                 </p>
                 <Button
                   onClick={() => setShowInviteDialog(true)}
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                  className="hover:bg-afrikoni-goldDark"
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Invite First Member
@@ -433,23 +433,23 @@ function TeamMembersInner() {
                       key={member.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 border border-afrikoni-gold/20 rounded-lg hover:border-afrikoni-gold/40 transition-colors"
+                      className="p-4 border rounded-lg hover:border-afrikoni-gold/40 transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
-                              <RoleIcon className="w-5 h-5 text-afrikoni-gold" />
+                            <div className="p-2 rounded-lg">
+                              <RoleIcon className="w-5 h-5" />
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-afrikoni-text-dark">
+                                <h3 className="font-semibold">
                                   {member.member_name || member.member_email}
                                 </h3>
                                 {getStatusBadge(member.status)}
                               </div>
-                              <p className="text-sm text-afrikoni-text-dark/70">{member.member_email}</p>
-                              <p className="text-xs text-afrikoni-text-dark/60 mt-1">
+                              <p className="text-sm">{member.member_email}</p>
+                              <p className="text-xs mt-1">
                                 {TEAM_ROLES.find(r => r.value === member.role_label)?.label || member.role_label}
                               </p>
                             </div>
@@ -528,7 +528,7 @@ function TeamMembersInner() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveMember(member.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="hover:text-red-700 hover:bg-red-50"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -591,7 +591,7 @@ function TeamMembersInner() {
                           <role.icon className="w-4 h-4" />
                           <div>
                             <div>{role.label}</div>
-                            <div className="text-xs text-afrikoni-text-dark/60">{role.description}</div>
+                            <div className="text-xs">{role.description}</div>
                           </div>
                         </div>
                       </SelectItem>
@@ -663,7 +663,7 @@ function TeamMembersInner() {
                 <Button
                   onClick={handleInviteMember}
                   disabled={isInviting || !inviteForm.email}
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                  className="hover:bg-afrikoni-goldDark"
                 >
                   {isInviting ? 'Sending...' : 'Send Invitation'}
                 </Button>

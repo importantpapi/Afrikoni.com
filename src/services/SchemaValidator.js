@@ -8,10 +8,10 @@
 import { supabase } from '@/api/supabaseClient';
 
 const CRITICAL_TABLES = [
-  'profiles',
-  'companies',
-  'company_capabilities',
-  'rfqs'
+  { table: 'profiles', column: 'id' },
+  { table: 'companies', column: 'id' },
+  { table: 'company_capabilities', column: 'company_id' },
+  { table: 'rfqs', column: 'id' }
 ];
 
 /**
@@ -29,12 +29,14 @@ export async function verifySchemaIntegrity() {
 
   // FIX: Run all table checks in parallel instead of sequentially
   // This reduces total time from 4 × ~800ms = 3200ms to ~800ms (single round-trip)
-  const checkTable = async (tableName) => {
+  const checkTable = async (tableSpec) => {
+    const tableName = tableSpec.table || tableSpec;
+    const column = tableSpec.column || 'id';
     try {
       // Use head:true with minimal select for fastest possible check
       const { error } = await supabase
         .from(tableName)
-        .select('id', { head: true })
+        .select(column, { head: true })
         .limit(1);
 
       if (error) {

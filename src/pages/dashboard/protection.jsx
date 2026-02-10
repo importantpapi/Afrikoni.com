@@ -162,7 +162,7 @@ function DashboardProtectionInner() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -190,8 +190,8 @@ function DashboardProtectionInner() {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Trade Shield / Protection</h1>
-          <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Your orders are protected by Afrikoni's secure escrow system</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 leading-tight">Trade Shield / Protection</h1>
+          <p className="text-sm md:text-base leading-relaxed">Your orders are protected by Afrikoni's secure escrow system</p>
         </motion.div>
 
         {/* v2.5: Premium Protection Features */}
@@ -201,15 +201,15 @@ function DashboardProtectionInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
           >
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
+            <Card className="hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
               <CardContent className="p-5 md:p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                    <Shield className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-semibold text-afrikoni-text-dark">Escrow Protection</h3>
+                  <h3 className="text-lg font-semibold">Escrow Protection</h3>
                 </div>
-                <p className="text-sm text-afrikoni-text-dark/80">
+                <p className="text-sm">
                   Your payment is held securely until order is delivered and confirmed
                 </p>
               </CardContent>
@@ -221,15 +221,15 @@ function DashboardProtectionInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
+            <Card className="hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
               <CardContent className="p-5 md:p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-afrikoni-green" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-semibold text-afrikoni-text-dark">Quality Guarantee</h3>
+                  <h3 className="text-lg font-semibold">Quality Guarantee</h3>
                 </div>
-                <p className="text-sm text-afrikoni-text-dark/80">
+                <p className="text-sm">
                   Money-back guarantee if product doesn't match description
                 </p>
               </CardContent>
@@ -241,15 +241,15 @@ function DashboardProtectionInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
+            <Card className="hover:bg-afrikoni-gold/15 transition-all rounded-afrikoni-lg">
               <CardContent className="p-5 md:p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                    <Lock className="w-6 h-6 text-afrikoni-purple" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                    <Lock className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-semibold text-afrikoni-text-dark">Dispute Resolution</h3>
+                  <h3 className="text-lg font-semibold">Dispute Resolution</h3>
                 </div>
-                <p className="text-sm text-afrikoni-text-dark/80">
+                <p className="text-sm">
                   Fair and fast dispute resolution process
                 </p>
               </CardContent>
@@ -266,15 +266,15 @@ function DashboardProtectionInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-afrikoni-gold" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <Shield className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{protectionData.ordersUnderProtection}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Orders Under Protection</div>
+                  <div className="text-4xl md:text-5xl font-bold mb-2">{protectionData.ordersUnderProtection}</div>
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Orders Under Protection</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -283,15 +283,15 @@ function DashboardProtectionInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                      <DollarSign className="w-6 h-6 text-afrikoni-green" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <DollarSign className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-gold mb-2">${protectionData.totalValueInProtection.toLocaleString()}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Value in Protection</div>
+                  <div className="text-4xl md:text-5xl font-bold mb-2">${protectionData.totalValueInProtection.toLocaleString()}</div>
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Total Value in Protection</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -300,15 +300,15 @@ function DashboardProtectionInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6 text-afrikoni-green" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{protectionData.releasedThisMonth}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Released This Month</div>
+                  <div className="text-4xl md:text-5xl font-bold mb-2">{protectionData.releasedThisMonth}</div>
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Released This Month</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -317,15 +317,15 @@ function DashboardProtectionInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.35 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-red/20 rounded-full flex items-center justify-center">
-                      <AlertTriangle className="w-6 h-6 text-afrikoni-red" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <AlertTriangle className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{protectionData.disputes}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Active Disputes</div>
+                  <div className="text-4xl md:text-5xl font-bold mb-2">{protectionData.disputes}</div>
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Active Disputes</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -337,10 +337,10 @@ function DashboardProtectionInner() {
                 <CardContent className="p-5 md:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep">Loading...</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">0</p>
+                      <p className="text-sm">Loading...</p>
+                      <p className="text-2xl font-bold">0</p>
                     </div>
-                    <Shield className="w-8 h-8 text-afrikoni-deep/30" />
+                    <Shield className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
@@ -356,13 +356,13 @@ function DashboardProtectionInner() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mb-6"
           >
-            <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+            <Card className="border-2 bg-gradient-to-br">
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-afrikoni-gold" />
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <Truck className="w-5 h-5" />
                   Order Timeline
                 </CardTitle>
-                <p className="text-sm text-afrikoni-deep/70 mt-2">
+                <p className="text-sm mt-2">
                   Track your order progress from quote to delivery
                 </p>
               </CardHeader>
@@ -400,20 +400,20 @@ function DashboardProtectionInner() {
                               {item.step}
                             </p>
                             {item.status === 'active' && (
-                              <Badge className="bg-afrikoni-gold text-white text-xs">Current</Badge>
+                              <Badge className="text-xs">Current</Badge>
                             )}
                           </div>
-                          <p className="text-xs text-afrikoni-deep/70">{item.description}</p>
+                          <p className="text-xs">{item.description}</p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                <div className="mt-6 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
-                  <p className="text-sm text-afrikoni-chestnut font-semibold mb-1">
+                <div className="mt-6 p-4 border rounded-lg">
+                  <p className="text-sm font-semibold mb-1">
                     🛡️ Buyers trust you when Trade Shield is active
                   </p>
-                  <p className="text-xs text-afrikoni-deep/70">
+                  <p className="text-xs">
                     Activate verification to accept Protected Orders and increase buyer confidence.
                   </p>
                 </div>
@@ -423,9 +423,9 @@ function DashboardProtectionInner() {
         )}
 
         {/* v2.5: Premium Protected Orders Table */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">Protected Orders</CardTitle>
+        <Card className="rounded-afrikoni-lg shadow-premium">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">Protected Orders</CardTitle>
           </CardHeader>
           <CardContent>
             {protectedOrders.length === 0 ? (
@@ -497,45 +497,45 @@ function DashboardProtectionInner() {
         </Card>
 
         {/* v2.5: Premium Explanation Box */}
-        <Card className="border-afrikoni-gold/20 bg-afrikoni-ivory shadow-premium rounded-afrikoni-lg">
-          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">
-              <Shield className="w-5 h-5 text-afrikoni-gold" />
+        <Card className="shadow-premium rounded-afrikoni-lg">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">
+              <Shield className="w-5 h-5" />
               How Afrikoni Protection Works
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
                   1
                 </div>
                 <div>
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-1">Payment Held in Escrow</h4>
-                  <p className="text-sm text-afrikoni-text-dark/80">Your payment is securely held in escrow until order completion. Funds are protected and cannot be released without your confirmation.</p>
+                  <h4 className="font-semibold mb-1">Payment Held in Escrow</h4>
+                  <p className="text-sm">Your payment is securely held in escrow until order completion. Funds are protected and cannot be released without your confirmation.</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
                   2
                 </div>
                 <div>
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-1">Order Verification</h4>
-                  <p className="text-sm text-afrikoni-text-dark/80">Verify order quality and completeness before release. If there are any issues, you can raise a dispute for fair resolution.</p>
+                  <h4 className="font-semibold mb-1">Order Verification</h4>
+                  <p className="text-sm">Verify order quality and completeness before release. If there are any issues, you can raise a dispute for fair resolution.</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 shadow-afrikoni">
                   3
                 </div>
                 <div>
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-1">Secure Release</h4>
-                  <p className="text-sm text-afrikoni-text-dark/80">Payment is released only after you confirm receipt and satisfaction. Your funds are always protected throughout the transaction.</p>
+                  <h4 className="font-semibold mb-1">Secure Release</h4>
+                  <p className="text-sm">Payment is released only after you confirm receipt and satisfaction. Your funds are always protected throughout the transaction.</p>
                 </div>
               </div>
             </div>
-            <div className="mt-6 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-afrikoni">
-              <p className="text-sm text-afrikoni-text-dark">
+            <div className="mt-6 p-4 border rounded-afrikoni">
+              <p className="text-sm">
                 <strong>Note:</strong> All orders processed through Afrikoni are automatically protected by our escrow system. 
                 You can track the protection status of each order and raise disputes if needed. 
                 Our team is here to ensure fair and secure transactions.

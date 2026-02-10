@@ -416,7 +416,7 @@ function DashboardAnalyticsInner() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -432,12 +432,12 @@ function DashboardAnalyticsInner() {
           className="flex items-center justify-between mb-8"
         >
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Analytics & Insights</h1>
-            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Track your performance and insights</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 leading-tight">Analytics & Insights</h1>
+            <p className="text-sm md:text-base leading-relaxed">Track your performance and insights</p>
           </div>
           {/* v2.5: Premium Segmented Role Switcher */}
           {currentRole === 'hybrid' && (
-            <div className="flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-afrikoni-gold/20 shadow-premium relative">
+            <div className="flex items-center gap-0.5 p-1 rounded-full border shadow-premium relative">
               {['all', 'buyer', 'seller'].map((mode) => (
                 <button
                   key={mode}
@@ -453,7 +453,7 @@ function DashboardAnalyticsInner() {
               ))}
               <motion.div
                 layoutId="activeAnalyticsView"
-                className="absolute top-1 bottom-1 rounded-full bg-afrikoni-gold shadow-afrikoni z-0"
+                className="absolute top-1 bottom-1 rounded-full shadow-afrikoni z-0"
                 initial={false}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 animate={{
@@ -479,55 +479,55 @@ function DashboardAnalyticsInner() {
           {currentRole === 'buyer' && analytics && (
             <>
               {/* v2.5: Premium Analytics KPI Cards */}
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                      <ShoppingCart className="w-6 h-6 text-afrikoni-gold" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <ShoppingCart className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">{analytics.totalOrders}</div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Orders</div>
+                  <div className="text-4xl md:text-5xl font-bold mb-2">{analytics.totalOrders}</div>
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Total Orders</div>
                 </CardContent>
               </Card>
-              <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+              <Card className="bg-gradient-to-br">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep font-semibold">RFQs Submitted</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.totalRFQs}</p>
+                      <p className="text-sm font-semibold">RFQs Submitted</p>
+                      <p className="text-2xl font-bold">{analytics.totalRFQs}</p>
                       {analytics.openRfqs !== undefined && (
-                        <p className="text-xs text-afrikoni-deep/60 mt-1">{analytics.openRfqs} active</p>
+                        <p className="text-xs mt-1">{analytics.openRfqs} active</p>
                       )}
                     </div>
-                    <FileText className="w-8 h-8 text-afrikoni-gold" />
+                    <FileText className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
               {analytics.negotiatingDeals !== undefined && (
-                <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+                <Card className="bg-gradient-to-br">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-afrikoni-deep font-semibold">Deals in Progress</p>
-                        <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.negotiatingDeals}</p>
-                        <p className="text-xs text-afrikoni-deep/60 mt-1">Negotiating</p>
+                        <p className="text-sm font-semibold">Deals in Progress</p>
+                        <p className="text-2xl font-bold">{analytics.negotiatingDeals}</p>
+                        <p className="text-xs mt-1">Negotiating</p>
                       </div>
-                      <Clock className="w-8 h-8 text-afrikoni-gold" />
+                      <Clock className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
               )}
               {analytics.closedDeals !== undefined && (
-                <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+                <Card className="bg-gradient-to-br">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-afrikoni-deep font-semibold">Deals Closed</p>
-                        <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.closedDeals}</p>
-                        <p className="text-xs text-afrikoni-deep/60 mt-1">Completed</p>
+                        <p className="text-sm font-semibold">Deals Closed</p>
+                        <p className="text-2xl font-bold">{analytics.closedDeals}</p>
+                        <p className="text-xs mt-1">Completed</p>
                       </div>
-                      <CheckCircle className="w-8 h-8 text-green-600" />
+                      <CheckCircle className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
@@ -536,10 +536,10 @@ function DashboardAnalyticsInner() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep">Total Spent</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">${analytics.totalSpent.toLocaleString()}</p>
+                      <p className="text-sm">Total Spent</p>
+                      <p className="text-2xl font-bold">${analytics.totalSpent.toLocaleString()}</p>
                     </div>
-                    <DollarSign className="w-8 h-8 text-green-600" />
+                    <DollarSign className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
@@ -548,10 +548,10 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-afrikoni-deep">Quotes Received</p>
-                        <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.totalQuotes}</p>
+                        <p className="text-sm">Quotes Received</p>
+                        <p className="text-2xl font-bold">{analytics.totalQuotes}</p>
                       </div>
-                      <FileText className="w-8 h-8 text-blue-600" />
+                      <FileText className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
@@ -561,43 +561,43 @@ function DashboardAnalyticsInner() {
 
           {((currentRole === 'seller' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'))) && analytics && analytics.totalSales !== undefined) && (
             <>
-              <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+              <Card className="bg-gradient-to-br">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep font-semibold">Deals Facilitated</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.totalSales}</p>
-                      <p className="text-xs text-afrikoni-deep/60 mt-1">Successful orders</p>
+                      <p className="text-sm font-semibold">Deals Facilitated</p>
+                      <p className="text-2xl font-bold">{analytics.totalSales}</p>
+                      <p className="text-xs mt-1">Successful orders</p>
                     </div>
-                    <ShoppingCart className="w-8 h-8 text-afrikoni-gold" />
+                    <ShoppingCart className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
               {/* Trade execution metrics - primary focus */}
               {analytics.rfqsReceived !== undefined && (
-                <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+                <Card className="bg-gradient-to-br">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-afrikoni-deep font-semibold">RFQs Received</p>
-                        <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.rfqsReceived}</p>
-                        <p className="text-xs text-afrikoni-deep/60 mt-1">Active opportunities</p>
+                        <p className="text-sm font-semibold">RFQs Received</p>
+                        <p className="text-2xl font-bold">{analytics.rfqsReceived}</p>
+                        <p className="text-xs mt-1">Active opportunities</p>
                       </div>
-                      <FileText className="w-8 h-8 text-afrikoni-gold" />
+                      <FileText className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
               )}
               {analytics.quotesSent !== undefined && (
-                <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+                <Card className="bg-gradient-to-br">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-afrikoni-deep font-semibold">Quotes Sent</p>
-                        <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.quotesSent}</p>
-                        <p className="text-xs text-afrikoni-deep/60 mt-1">Responses submitted</p>
+                        <p className="text-sm font-semibold">Quotes Sent</p>
+                        <p className="text-2xl font-bold">{analytics.quotesSent}</p>
+                        <p className="text-xs mt-1">Responses submitted</p>
                       </div>
-                      <FileText className="w-8 h-8 text-afrikoni-gold" />
+                      <FileText className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
@@ -608,10 +608,10 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-afrikoni-deep/60">Total Views</p>
-                        <p className="text-xl font-semibold text-afrikoni-chestnut">{analytics.totalViews}</p>
+                        <p className="text-xs">Total Views</p>
+                        <p className="text-xl font-semibold">{analytics.totalViews}</p>
                       </div>
-                      <TrendingUp className="w-6 h-6 text-purple-400" />
+                      <TrendingUp className="w-6 h-6" />
                     </div>
                   </CardContent>
                 </Card>
@@ -625,10 +625,10 @@ function DashboardAnalyticsInner() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep">Total Shipments</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.totalShipments}</p>
+                      <p className="text-sm">Total Shipments</p>
+                      <p className="text-2xl font-bold">{analytics.totalShipments}</p>
                     </div>
-                    <Package className="w-8 h-8 text-afrikoni-gold" />
+                    <Package className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
@@ -636,10 +636,10 @@ function DashboardAnalyticsInner() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep">Success Rate</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.successRate}%</p>
+                      <p className="text-sm">Success Rate</p>
+                      <p className="text-2xl font-bold">{analytics.successRate}%</p>
                     </div>
-                    <CheckCircle className="w-8 h-8 text-green-600" />
+                    <CheckCircle className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
@@ -647,10 +647,10 @@ function DashboardAnalyticsInner() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep">Avg Delivery Time</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">{analytics.avgDeliveryTime}d</p>
+                      <p className="text-sm">Avg Delivery Time</p>
+                      <p className="text-2xl font-bold">{analytics.avgDeliveryTime}d</p>
                     </div>
-                    <Clock className="w-8 h-8 text-blue-600" />
+                    <Clock className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
@@ -658,10 +658,10 @@ function DashboardAnalyticsInner() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep">Total Revenue</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">${analytics.totalRevenue.toLocaleString()}</p>
+                      <p className="text-sm">Total Revenue</p>
+                      <p className="text-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</p>
                     </div>
-                    <DollarSign className="w-8 h-8 text-green-600" />
+                    <DollarSign className="w-8 h-8" />
                   </div>
                 </CardContent>
               </Card>
@@ -671,12 +671,12 @@ function DashboardAnalyticsInner() {
         )}
 
         {/* v2.5: Premium Chart Section */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+        <Card className="rounded-afrikoni-lg shadow-premium">
+          <CardHeader className="border-b pb-4">
             <div className="flex items-center justify-between">
               {/* v2.5: Premium Section Title with Gold Underline */}
-              <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-afrikoni-gold" />
+              <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
                 Performance Overview
               </CardTitle>
               <Select value={period} onValueChange={setPeriod}>
@@ -693,7 +693,7 @@ function DashboardAnalyticsInner() {
           </CardHeader>
           <CardContent>
             {chartData.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-afrikoni-deep/70">
+              <div className="h-64 flex items-center justify-center">
                 <div className="text-center">
                   <BarChart3 className="w-12 h-12 mx-auto mb-2" />
                   <p>No data for selected period</p>
@@ -810,25 +810,25 @@ function DashboardAnalyticsInner() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-8 pt-8 border-t border-afrikoni-gold/20"
+                className="mt-8 pt-8 border-t"
               >
                 <div className="flex items-center gap-2 mb-6">
-                  <Shield className="w-5 h-5 text-afrikoni-gold" />
-                  <h3 className="text-xl font-bold text-afrikoni-chestnut">Trade Performance</h3>
+                  <Shield className="w-5 h-5" />
+                  <h3 className="text-xl font-bold">Trade Performance</h3>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {analytics.winRate !== undefined && (
-                    <Card className="border-afrikoni-gold/20">
+                    <Card className="">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-afrikoni-chestnut mb-1">
+                            <p className="text-sm font-semibold mb-1">
                               Quote Acceptance Rate
                             </p>
-                            <p className="text-xs text-afrikoni-deep/70">
+                            <p className="text-xs">
                               {analytics.winRate}% of your quotes result in deals. This indicates strong supplier reliability.
                             </p>
                           </div>
@@ -837,17 +837,17 @@ function DashboardAnalyticsInner() {
                     </Card>
                   )}
                   {analytics.countriesReached !== undefined && analytics.countriesReached > 0 && (
-                    <Card className="border-afrikoni-gold/20">
+                    <Card className="">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                            <MapPin className="w-5 h-5 text-blue-600" />
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                            <MapPin className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-afrikoni-chestnut mb-1">
+                            <p className="text-sm font-semibold mb-1">
                               Geographic Reach
                             </p>
-                            <p className="text-xs text-afrikoni-deep/70">
+                            <p className="text-xs">
                               Active in {analytics.countriesReached} countries. Demonstrates cross-border trade capability.
                             </p>
                           </div>

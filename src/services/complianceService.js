@@ -5,7 +5,6 @@
  */
 
 import { supabase } from '@/api/supabaseClient';
-import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
 
 // Required documents for different product categories
 const REQUIRED_DOCUMENTS = {
@@ -303,6 +302,47 @@ export async function validateTradeCompliance(tradeId, hsCode) {
 }
 
 /**
+ * Create document pack for a trade (corridor-aware baseline)
+ */
+export async function createDocumentPackForTrade(tradeId, hsCode, corridor = {}) {
+  try {
+    const basePack = [
+      'commercial_invoice',
+      'packing_list',
+      'certificate_of_origin'
+    ];
+    const requiredDocs = Array.from(new Set([
+      ...basePack,
+      ...getRequiredDocuments(hsCode)
+    ]));
+
+    const pack = {
+      corridor,
+      required_documents: requiredDocs,
+      created_at: new Date().toISOString()
+    };
+
+    const { data: trade } = await supabase
+      .from('trades')
+      .select('metadata')
+      .eq('id', tradeId)
+      .single();
+
+    await supabase
+      .from('trades')
+      .update({
+        metadata: { ...(trade?.metadata || {}), document_pack: pack }
+      })
+      .eq('id', tradeId);
+
+    return { success: true, pack };
+  } catch (err) {
+    console.error('[complianceService] Create document pack failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
  * Get recommendations for missing documents
  */
 function getMissingDocumentRecommendations(missingDocs) {
@@ -331,5 +371,6 @@ export default {
   validateCommercialInvoice,
   validatePackingList,
   storeComplianceDocument,
-  validateTradeCompliance
+  validateTradeCompliance,
+  createDocumentPackForTrade
 };

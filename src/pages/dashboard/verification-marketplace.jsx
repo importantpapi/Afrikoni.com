@@ -241,17 +241,17 @@ function VerificationMarketplaceInner() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-purple/20 border-2 border-afrikoni-gold rounded-lg p-6"
+          className="bg-gradient-to-r border-2 rounded-lg p-6"
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-afrikoni-gold flex items-center justify-center">
-              <Shield className="w-8 h-8 text-afrikoni-chestnut" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center">
+              <Shield className="w-8 h-8" />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">
+              <h1 className="text-3xl font-bold mb-2">
                 Become a Verified Supplier Today
               </h1>
-              <p className="text-afrikoni-text-dark/80">
+              <p className="">
                 Unlock more buyers and build trust with instant verification
               </p>
             </div>
@@ -260,15 +260,15 @@ function VerificationMarketplaceInner() {
 
         {/* Current Status */}
         {isVerified ? (
-          <Card className="border-afrikoni-green/30 bg-afrikoni-green/5">
+          <Card className="">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <CheckCircle className="w-8 h-8 text-afrikoni-green" />
+                <CheckCircle className="w-8 h-8" />
                 <div>
-                  <h3 className="text-xl font-bold text-afrikoni-text-dark mb-1">
+                  <h3 className="text-xl font-bold mb-1">
                     You're Already Verified! ✅
                   </h3>
-                  <p className="text-afrikoni-text-dark/70">
+                  <p className="">
                     Your company is verified and trusted by buyers on Afrikoni.
                   </p>
                 </div>
@@ -278,18 +278,18 @@ function VerificationMarketplaceInner() {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {/* Fast-Track Option */}
-            <Card className="border-2 border-afrikoni-gold shadow-lg">
+            <Card className="border-2 shadow-lg">
               <CardHeader>
                 <div className="flex items-center justify-between mb-2">
                   <CardTitle className="text-2xl">Fast-Track Verification</CardTitle>
-                  <Crown className="w-6 h-6 text-afrikoni-gold" />
+                  <Crown className="w-6 h-6" />
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-afrikoni-gold">$99</span>
-                  <span className="text-afrikoni-text-dark/70">one-time</span>
+                  <span className="text-4xl font-bold">$99</span>
+                  <span className="">one-time</span>
                 </div>
                 {hasExistingPurchase && (
-                  <Badge className="bg-afrikoni-green text-white mt-2">
+                  <Badge className="mt-2">
                     Purchase Completed - Verification Pending
                   </Badge>
                 )}
@@ -297,28 +297,28 @@ function VerificationMarketplaceInner() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
-                    <Sparkles className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                    <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-afrikoni-text-dark">Priority Review</p>
-                      <p className="text-sm text-afrikoni-text-dark/70">
+                      <p className="font-semibold">Priority Review</p>
+                      <p className="text-sm">
                         Your verification will be reviewed within 24-48 hours
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-afrikoni-green flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-afrikoni-text-dark">Instant Boost</p>
-                      <p className="text-sm text-afrikoni-text-dark/70">
+                      <p className="font-semibold">Instant Boost</p>
+                      <p className="text-sm">
                         Get featured in search results immediately after verification
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Shield className="w-5 h-5 text-afrikoni-purple flex-shrink-0 mt-0.5" />
+                    <Shield className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-afrikoni-text-dark">Trust Badge</p>
-                      <p className="text-sm text-afrikoni-text-dark/70">
+                      <p className="font-semibold">Trust Badge</p>
+                      <p className="text-sm">
                         Display verified badge on your profile and products
                       </p>
                     </div>
@@ -327,7 +327,7 @@ function VerificationMarketplaceInner() {
                 <Button
                   onClick={handlePurchase}
                   disabled={isProcessing || hasExistingPurchase}
-                  className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                  className="w-full hover:bg-afrikoni-goldDark"
                   size="lg"
                 >
                   {isProcessing ? (
@@ -345,27 +345,27 @@ function VerificationMarketplaceInner() {
             </Card>
 
             {/* Standard Verification */}
-            <Card className="border-afrikoni-gold/20">
+            <Card className="">
               <CardHeader>
                 <CardTitle>Standard Verification</CardTitle>
-                <p className="text-2xl font-bold text-afrikoni-text-dark">Free</p>
+                <p className="text-2xl font-bold">Free</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-afrikoni-text-dark/60 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-afrikoni-text-dark">Standard Review</p>
-                      <p className="text-sm text-afrikoni-text-dark/70">
+                      <p className="font-semibold">Standard Review</p>
+                      <p className="text-sm">
                         Verification reviewed within 5-7 business days
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-afrikoni-text-dark/60 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-afrikoni-text-dark">Same Benefits</p>
-                      <p className="text-sm text-afrikoni-text-dark/70">
+                      <p className="font-semibold">Same Benefits</p>
+                      <p className="text-sm">
                         All verification benefits, just takes longer
                       </p>
                     </div>
@@ -373,7 +373,7 @@ function VerificationMarketplaceInner() {
                 </div>
                 <Button
                   variant="outline"
-                  className="w-full border-afrikoni-gold/30 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                  className="w-full hover:bg-afrikoni-gold/10"
                   onClick={() => window.location.href = '/verification-center'}
                 >
                   Apply for Free Verification
@@ -385,36 +385,36 @@ function VerificationMarketplaceInner() {
 
         {/* Benefits Section */}
         {!isVerified && (
-          <Card className="border-afrikoni-gold/20">
+          <Card className="">
             <CardHeader>
               <CardTitle>Why Get Verified?</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
-                  <div className="w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center mb-3">
-                    <Sparkles className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                    <Sparkles className="w-6 h-6" />
                   </div>
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-2">Higher Visibility</h4>
-                  <p className="text-sm text-afrikoni-text-dark/70">
+                  <h4 className="font-semibold mb-2">Higher Visibility</h4>
+                  <p className="text-sm">
                     Verified suppliers appear first in search results and get more buyer inquiries
                   </p>
                 </div>
                 <div>
-                  <div className="w-12 h-12 rounded-full bg-afrikoni-purple/20 flex items-center justify-center mb-3">
-                    <Shield className="w-6 h-6 text-afrikoni-purple" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                    <Shield className="w-6 h-6" />
                   </div>
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-2">Build Trust</h4>
-                  <p className="text-sm text-afrikoni-text-dark/70">
+                  <h4 className="font-semibold mb-2">Build Trust</h4>
+                  <p className="text-sm">
                     The verified badge shows buyers you're a legitimate, trusted supplier
                   </p>
                 </div>
                 <div>
-                  <div className="w-12 h-12 rounded-full bg-afrikoni-green/20 flex items-center justify-center mb-3">
-                    <Crown className="w-6 h-6 text-afrikoni-green" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                    <Crown className="w-6 h-6" />
                   </div>
-                  <h4 className="font-semibold text-afrikoni-text-dark mb-2">More Deals</h4>
-                  <p className="text-sm text-afrikoni-text-dark/70">
+                  <h4 className="font-semibold mb-2">More Deals</h4>
+                  <p className="text-sm">
                     Verified suppliers close 3x more deals than unverified suppliers
                   </p>
                 </div>

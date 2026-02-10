@@ -205,8 +205,8 @@ function DashboardSalesInner() {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-text-dark mb-6">Sales</h1>
-          <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">Manage your sales and fulfillments</p>
+          <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] mb-6">Sales</h1>
+          <p className="text-body font-normal leading-[1.6]">Manage your sales and fulfillments</p>
         </motion.div>
 
         {/* v2.5: Premium Stats Cards */}
@@ -216,15 +216,15 @@ function DashboardSalesInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
           >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                    <ShoppingCart className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                    <ShoppingCart className="w-6 h-6" />
                   </div>
                 </div>
-                <div className="text-h1-mobile md:text-h1 font-bold leading-[1.1] text-afrikoni-text-dark mb-2">{orders.length}</div>
-                <div className="text-meta font-medium text-afrikoni-text-dark/70 uppercase tracking-[0.02em]">Total Sales</div>
+                <div className="text-h1-mobile md:text-h1 font-bold leading-[1.1] mb-2">{orders.length}</div>
+                <div className="text-meta font-medium uppercase tracking-[0.02em]">Total Sales</div>
               </CardContent>
             </Card>
           </motion.div>
@@ -233,15 +233,15 @@ function DashboardSalesInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-afrikoni-green" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                    <DollarSign className="w-6 h-6" />
                   </div>
                 </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-gold mb-2">${totalRevenue.toLocaleString()}</div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Revenue</div>
+                <div className="text-4xl md:text-5xl font-bold mb-2">${totalRevenue.toLocaleString()}</div>
+                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Total Revenue</div>
               </CardContent>
             </Card>
           </motion.div>
@@ -250,15 +250,15 @@ function DashboardSalesInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6" />
                   </div>
                 </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">${pendingRevenue.toLocaleString()}</div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Pending Payment</div>
+                <div className="text-4xl md:text-5xl font-bold mb-2">${pendingRevenue.toLocaleString()}</div>
+                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Pending Payment</div>
               </CardContent>
             </Card>
           </motion.div>
@@ -267,33 +267,33 @@ function DashboardSalesInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                    <Package className="w-6 h-6 text-afrikoni-purple" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                    <Package className="w-6 h-6" />
                   </div>
                 </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                <div className="text-4xl md:text-5xl font-bold mb-2">
                   {Array.isArray(orders) ? orders.filter(o => o?.status === 'pending' || o?.status === 'processing').length : 0}
                 </div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">To Fulfill</div>
+                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">To Fulfill</div>
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
         {/* v2.5: Premium Filters */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+        <Card className="rounded-afrikoni-lg shadow-premium">
           <CardContent className="p-5 md:p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" />
                 <Input
                   placeholder="Search sales..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
+                  className="pl-10 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
                 />
               </div>
               <div className="flex gap-2">
@@ -333,9 +333,9 @@ function DashboardSalesInner() {
         </Card>
 
         {/* v2.5: Premium Orders Table */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">Sales Orders</CardTitle>
+        <Card className="rounded-afrikoni-lg shadow-premium">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">Sales Orders</CardTitle>
           </CardHeader>
           <CardContent>
             {filteredOrders.length === 0 ? (

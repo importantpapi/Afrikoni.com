@@ -55,19 +55,19 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
     <div className="space-y-6">
       {/* Review Form Section - Show for buyers who haven't reviewed */}
       {isBuyer && !hasReviewed && !showReviewForm && (
-        <div className="p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg">
+        <div className="p-4 border rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-afrikoni-chestnut mb-1">
+              <h3 className="font-semibold mb-1">
                 {t('reviews.shareExperience') || 'Share Your Experience'}
               </h3>
-              <p className="text-sm text-afrikoni-deep/70">
+              <p className="text-sm">
                 {t('reviews.helpOthers') || 'Help other buyers by leaving a review'}
               </p>
             </div>
             <Button
               onClick={() => setShowReviewForm(true)}
-              className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal"
+              className="hover:bg-afrikoni-goldDark"
               size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -79,10 +79,10 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
 
       {/* Show existing review if user has reviewed */}
       {isBuyer && hasReviewed && existingReview && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-4 border rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span className="font-semibold text-green-800">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-semibold">
               {t('reviews.yourReview') || 'Your Review'}
             </span>
           </div>
@@ -97,7 +97,7 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
             ))}
           </div>
           {existingReview.comment && (
-            <p className="text-sm text-green-700">{existingReview.comment}</p>
+            <p className="text-sm">{existingReview.comment}</p>
           )}
         </div>
       )}
@@ -119,8 +119,8 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
       {/* Reviews List */}
       {reviews.length === 0 ? (
         <div className="text-center py-8">
-          <Star className="w-12 h-12 text-afrikoni-deep/30 mx-auto mb-3" />
-          <p className="text-afrikoni-deep/70">
+          <Star className="w-12 h-12 mx-auto mb-3" />
+          <p className="">
             {t('reviews.noReviews') || 'No reviews yet. Be the first to review this product!'}
           </p>
         </div>
@@ -133,10 +133,10 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
               <div key={review.id} className={`border-b border-afrikoni-gold/20 pb-4 last:border-0 ${isUserReview ? 'bg-afrikoni-gold/5 p-4 rounded-lg' : ''}`}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <div className="font-semibold text-afrikoni-chestnut">
+                    <div className="font-semibold">
                       {reviewerCompany?.company_name || 'Anonymous'}
                       {isUserReview && (
-                        <span className="ml-2 text-xs text-afrikoni-gold">(You)</span>
+                        <span className="ml-2 text-xs">(You)</span>
                       )}
                     </div>
                     <div className="flex items-center gap-1 mt-1">
@@ -148,20 +148,20 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
                           }`}
                         />
                       ))}
-                      <span className="ml-2 text-xs text-afrikoni-deep/70">
+                      <span className="ml-2 text-xs">
                         {new Date(review.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                   {review.verified_purchase && (
-                    <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge variant="secondary" className="">
                       <CheckCircle className="w-3 h-3 mr-1" /> {t('reviews.verifiedPurchase') || 'Verified Purchase'}
                     </Badge>
                   )}
                 </div>
-                {review.comment && <p className="text-sm text-afrikoni-deep mt-2">{review.comment}</p>}
+                {review.comment && <p className="text-sm mt-2">{review.comment}</p>}
                 {review.quality_rating && (
-                  <div className="grid grid-cols-3 gap-3 mt-3 text-xs text-afrikoni-deep/70">
+                  <div className="grid grid-cols-3 gap-3 mt-3 text-xs">
                     <div>{t('reviews.quality') || 'Quality'}: {review.quality_rating}/5</div>
                     {review.communication_rating && <div>{t('reviews.communication') || 'Communication'}: {review.communication_rating}/5</div>}
                     {review.delivery_rating && <div>{t('reviews.delivery') || 'Delivery'}: {review.delivery_rating}/5</div>}

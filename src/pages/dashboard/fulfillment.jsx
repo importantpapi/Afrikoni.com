@@ -7,7 +7,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Warehouse, Package, Truck, CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
@@ -28,6 +27,7 @@ import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
+import { Surface } from '@/components/system/Surface';
 
 function FulfillmentDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -42,7 +42,7 @@ function FulfillmentDashboardInner() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
-  const { isStale, markFresh } = useDataFreshness(30000);
+  const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
 
@@ -317,7 +317,7 @@ function FulfillmentDashboardInner() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="os-page os-stagger space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -325,8 +325,8 @@ function FulfillmentDashboardInner() {
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Order Fulfillment</h1>
-            <p className="text-afrikoni-text-dark/70">Manage order picking, packing, and dispatch</p>
+            <h1 className="text-3xl font-bold mb-2">Order Fulfillment</h1>
+            <p className="">Manage order picking, packing, and dispatch</p>
           </div>
           {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
           <Button
@@ -344,84 +344,71 @@ function FulfillmentDashboardInner() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Pending</p>
-              <p className="text-2xl font-bold text-amber-600">
-                {fulfillments.filter(f => f.status === 'pending').length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">In Progress</p>
-              <p className="text-2xl font-bold text-blue-600">
-                {fulfillments.filter(f => ['picking', 'packed'].includes(f.status)).length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Ready</p>
-              <p className="text-2xl font-bold text-purple-600">
-                {fulfillments.filter(f => f.status === 'ready_for_dispatch').length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-afrikoni-text-dark/70 mb-1">Dispatched</p>
-              <p className="text-2xl font-bold text-green-600">
-                {fulfillments.filter(f => f.status === 'handed_to_carrier').length}
-              </p>
-            </CardContent>
-          </Card>
+          <Surface className="p-4">
+            <p className="text-sm text-[var(--os-text-secondary)] mb-1">Pending</p>
+            <p className="text-2xl font-semibold">
+              {fulfillments.filter(f => f.status === 'pending').length}
+            </p>
+          </Surface>
+          <Surface className="p-4">
+            <p className="text-sm text-[var(--os-text-secondary)] mb-1">In Progress</p>
+            <p className="text-2xl font-semibold">
+              {fulfillments.filter(f => ['picking', 'packed'].includes(f.status)).length}
+            </p>
+          </Surface>
+          <Surface className="p-4">
+            <p className="text-sm text-[var(--os-text-secondary)] mb-1">Ready</p>
+            <p className="text-2xl font-semibold">
+              {fulfillments.filter(f => f.status === 'ready_for_dispatch').length}
+            </p>
+          </Surface>
+          <Surface className="p-4">
+            <p className="text-sm text-[var(--os-text-secondary)] mb-1">Dispatched</p>
+            <p className="text-2xl font-semibold">
+              {fulfillments.filter(f => f.status === 'handed_to_carrier').length}
+            </p>
+          </Surface>
         </div>
 
         {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="picking">Picking</SelectItem>
-                <SelectItem value="packed">Packed</SelectItem>
-                <SelectItem value="ready_for_dispatch">Ready for Dispatch</SelectItem>
-                <SelectItem value="handed_to_carrier">Dispatched</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
+        <Surface className="p-4">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="picking">Picking</SelectItem>
+              <SelectItem value="packed">Packed</SelectItem>
+              <SelectItem value="ready_for_dispatch">Ready for Dispatch</SelectItem>
+              <SelectItem value="handed_to_carrier">Dispatched</SelectItem>
+            </SelectContent>
+          </Select>
+        </Surface>
 
         {/* Fulfillments List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fulfillment Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {fulfillments.length === 0 ? (
-              <EmptyState
-                icon={Package}
-                title="No fulfillment orders"
-                description="Orders requiring fulfillment will appear here"
-              />
-            ) : (
-              <div className="space-y-3">
-                {fulfillments.map((fulfillment) => (
-                  <motion.div
-                    key={fulfillment.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
+        <Surface className="p-5">
+          <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Fulfillment Orders</h2>
+          {fulfillments.length === 0 ? (
+            <EmptyState
+              icon={Package}
+              title="No fulfillment orders"
+              description="Orders requiring fulfillment will appear here"
+            />
+          ) : (
+            <div className="space-y-3">
+              {fulfillments.map((fulfillment) => (
+                <motion.div
+                  key={fulfillment.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="border rounded-xl p-4 hover:shadow-md transition-shadow"
+                >
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <div className="flex items-center gap-3 mb-2">
-                          <Package className="w-5 h-5 text-afrikoni-gold" />
+                          <Package className="w-5 h-5" />
                           <p className="font-semibold">
                             Order #{fulfillment.order?.order_number || fulfillment.order_id?.slice(0, 8)}
                           </p>
@@ -430,11 +417,11 @@ function FulfillmentDashboardInner() {
                             <span className="ml-1 capitalize">{fulfillment.status.replace('_', ' ')}</span>
                           </Badge>
                         </div>
-                        <p className="text-sm text-afrikoni-text-dark/60">
+                        <p className="text-sm">
                           Buyer: {fulfillment.order?.buyer_company?.name || 'Buyer'}
                         </p>
                         {fulfillment.warehouse && (
-                          <p className="text-sm text-afrikoni-text-dark/60">
+                          <p className="text-sm">
                             Warehouse: {fulfillment.warehouse?.name || 'N/A'}
                           </p>
                         )}
@@ -449,56 +436,51 @@ function FulfillmentDashboardInner() {
                       {getNextStatus(fulfillment.status) && (
                         <Button
                           size="sm"
-                          className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                          className="hover:bg-afrikoni-gold/90"
                           onClick={() => handleUpdateStatus(fulfillment.id, getNextStatus(fulfillment.status))}
                         >
                           Mark as {getNextStatus(fulfillment.status).replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </Button>
                       )}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </Surface>
 
         {/* Warehouses */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Warehouse className="w-5 h-5" />
-              Warehouse Locations
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {warehouses.length === 0 ? (
-              <EmptyState
-                icon={Warehouse}
-                title="No warehouses"
-                description="Add warehouse locations to manage fulfillment"
-              />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {warehouses.map((warehouse) => (
-                  <div key={warehouse.id} className="border rounded-lg p-4">
-                    <p className="font-semibold mb-2">{warehouse.name}</p>
-                    {warehouse.address && (
-                      <p className="text-sm text-afrikoni-text-dark/60 mb-1">
-                        {warehouse.address}
-                      </p>
-                    )}
-                    {(warehouse.city || warehouse.country) && (
-                      <p className="text-sm text-afrikoni-text-dark/60">
-                        {warehouse.city}{warehouse.city && warehouse.country ? ', ' : ''}{warehouse.country}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Surface className="p-5">
+          <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4 flex items-center gap-2">
+            <Warehouse className="w-5 h-5" />
+            Warehouse Locations
+          </h2>
+          {warehouses.length === 0 ? (
+            <EmptyState
+              icon={Warehouse}
+              title="No warehouses"
+              description="Add warehouse locations to manage fulfillment"
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {warehouses.map((warehouse) => (
+                <div key={warehouse.id} className="border rounded-xl p-4">
+                  <p className="font-semibold mb-2 text-[var(--os-text-primary)]">{warehouse.name}</p>
+                  {warehouse.address && (
+                    <p className="text-sm text-[var(--os-text-secondary)] mb-1">
+                      {warehouse.address}
+                    </p>
+                  )}
+                  {(warehouse.city || warehouse.country) && (
+                    <p className="text-sm text-[var(--os-text-secondary)]">
+                      {warehouse.city}{warehouse.city && warehouse.country ? ', ' : ''}{warehouse.country}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </Surface>
       </div>
     </>
   );
@@ -514,4 +496,3 @@ export default function FulfillmentDashboard() {
       </>
     );
 }
-

@@ -202,8 +202,8 @@ function PerformanceDashboardInner() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Performance Metrics</h1>
-          <p className="text-afrikoni-text-dark/70">Track your supplier performance and KPIs</p>
+          <h1 className="text-3xl font-bold mb-2">Performance Metrics</h1>
+          <p className="">Track your supplier performance and KPIs</p>
         </motion.div>
 
         {/* Metrics Cards */}
@@ -222,7 +222,7 @@ function PerformanceDashboardInner() {
                       <metric.icon className={`w-6 h-6 ${metric.color}`} />
                     </div>
                   </div>
-                  <p className="text-sm text-afrikoni-text-dark/70 mb-1">{metric.label}</p>
+                  <p className="text-sm mb-1">{metric.label}</p>
                   <p className={`text-3xl font-bold ${metric.color}`}>
                     {metric.value}{metric.unit}
                   </p>
@@ -246,26 +246,26 @@ function PerformanceDashboardInner() {
                 <h3 className="font-semibold mb-4">Key Performance Indicators</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-afrikoni-text-dark/70 mb-2">On-Time Delivery</p>
-                    <div className="w-full bg-gray-200 rounded-full h-4">
+                    <p className="text-sm mb-2">On-Time Delivery</p>
+                    <div className="w-full rounded-full h-4">
                       <div
-                        className="bg-green-600 h-4 rounded-full"
+                        className="h-4 rounded-full"
                         style={{ width: `${performance?.on_time_delivery_rate || 0}%` }}
                       />
                     </div>
-                    <p className="text-xs text-afrikoni-text-dark/60 mt-1">
+                    <p className="text-xs mt-1">
                       {performance?.on_time_delivery_rate?.toFixed(1) || 0}% of orders delivered on time
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-afrikoni-text-dark/70 mb-2">Average Rating</p>
-                    <div className="w-full bg-gray-200 rounded-full h-4">
+                    <p className="text-sm mb-2">Average Rating</p>
+                    <div className="w-full rounded-full h-4">
                       <div
-                        className="bg-afrikoni-gold h-4 rounded-full"
+                        className="h-4 rounded-full"
                         style={{ width: `${((performance?.average_rating || 0) / 5) * 100}%` }}
                       />
                     </div>
-                    <p className="text-xs text-afrikoni-text-dark/60 mt-1">
+                    <p className="text-xs mt-1">
                       {performance?.average_rating?.toFixed(1) || 0} / 5.0 average rating
                     </p>
                   </div>
@@ -274,7 +274,7 @@ function PerformanceDashboardInner() {
 
               {performance?.last_calculated_at && (
                 <div className="pt-4 border-t">
-                  <p className="text-xs text-afrikoni-text-dark/60">
+                  <p className="text-xs">
                     Last calculated: {new Date(performance.last_calculated_at).toLocaleString()}
                   </p>
                 </div>

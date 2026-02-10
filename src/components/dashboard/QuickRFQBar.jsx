@@ -84,19 +84,19 @@ export default function QuickRFQBar() {
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 items-center">
       <div className="relative flex-1">
-        <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D4A937]" />
+        <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
         <Input
           value={sentence}
           onChange={(e) => setSentence(e.target.value)}
           placeholder='Describe what you need, e.g. "500kg cocoa beans to Lagos"'
-          className="pl-10 h-11 text-sm bg-gray-50 dark:bg-[#141414] border-gray-200 dark:border-[#2A2A2A] focus:border-[#D4A937]/50 text-gray-900 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
+          className="pl-10 h-11 text-sm dark:bg-[#141414] dark:border-[#2A2A2A] focus:border-[#D4A937]/50 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
           disabled={isProcessing}
         />
       </div>
       <Button
         type="submit"
         disabled={isProcessing || !sentence.trim()}
-        className="h-11 px-5 bg-[#D4A937] hover:bg-[#C09830] text-white dark:text-[#0A0A0A] font-semibold whitespace-nowrap text-sm"
+        className="h-11 px-5 hover:bg-[#C09830] dark:text-[#0A0A0A] font-semibold whitespace-nowrap text-sm"
       >
         {isProcessing ? (
           <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Drafting...</>

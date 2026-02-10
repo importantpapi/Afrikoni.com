@@ -239,20 +239,20 @@ export default function VerificationStatus() {
   }
 
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite py-8">
+    <div className="min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
+          <h1 className="text-3xl font-bold mb-2">
             Verification Status
           </h1>
-          <p className="text-afrikoni-deep/70">
+          <p className="">
             Complete verification to unlock buyer trust and increased visibility
           </p>
         </div>
 
         {/* Current Status Card */}
-        <Card className="mb-6 border-afrikoni-gold/30">
+        <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex items-start gap-4">
@@ -261,21 +261,21 @@ export default function VerificationStatus() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-xl font-semibold text-afrikoni-chestnut">
+                    <h2 className="text-xl font-semibold">
                       {status.label}
                     </h2>
                     <Badge variant={status.color === 'green' ? 'success' : 'secondary'}>
                       {status.label}
                     </Badge>
                   </div>
-                  <p className="text-sm text-afrikoni-deep/70 mb-3">
+                  <p className="text-sm mb-3">
                     {company?.verified 
                       ? 'Your business is verified. Buyers see you as a trusted supplier.'
                       : 'Complete the steps below to become a verified supplier and build buyer trust.'
                     }
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-afrikoni-deep">
+                    <span className="text-sm font-medium">
                       Profile Strength: {profileStrength}%
                     </span>
                   </div>
@@ -286,7 +286,7 @@ export default function VerificationStatus() {
               {!company?.verified && (
                 <Button
                   onClick={() => navigate('/verification-center')}
-                  className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                  className="hover:bg-afrikoni-gold/90"
                 >
                   {verificationData ? 'Continue Verification' : 'Start Verification'}
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -297,29 +297,29 @@ export default function VerificationStatus() {
         </Card>
 
         {/* Why Verification Matters */}
-        <Card className="mb-6 bg-gradient-to-br from-amber-50 to-white border-afrikoni-gold/30">
+        <Card className="mb-6 bg-gradient-to-br">
           <CardHeader>
-            <CardTitle className="text-lg text-afrikoni-chestnut flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
               Why Verification Matters
             </CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-4">
             <div>
-              <p className="text-2xl font-bold text-afrikoni-gold mb-1">3x</p>
-              <p className="text-sm text-afrikoni-deep/70">
+              <p className="text-2xl font-bold mb-1">3x</p>
+              <p className="text-sm">
                 More buyer inquiries for verified suppliers
               </p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-afrikoni-gold mb-1">Priority</p>
-              <p className="text-sm text-afrikoni-deep/70">
+              <p className="text-2xl font-bold mb-1">Priority</p>
+              <p className="text-sm">
                 Shown first in search and RFQ matches
               </p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-afrikoni-gold mb-1">Trust</p>
-              <p className="text-sm text-afrikoni-deep/70">
+              <p className="text-2xl font-bold mb-1">Trust</p>
+              <p className="text-sm">
                 Verified badge builds institutional confidence
               </p>
             </div>
@@ -329,7 +329,7 @@ export default function VerificationStatus() {
         {/* Verification Steps */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-afrikoni-chestnut">Verification Checklist</CardTitle>
+            <CardTitle className="">Verification Checklist</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {VERIFICATION_STEPS.map((step) => {
@@ -347,14 +347,14 @@ export default function VerificationStatus() {
                 >
                   <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : 'bg-gray-100'}`}>
                     {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <CheckCircle2 className="w-5 h-5" />
                     ) : (
-                      <StepIcon className="w-5 h-5 text-afrikoni-deep/60" />
+                      <StepIcon className="w-5 h-5" />
                     )}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-afrikoni-chestnut">{step.title}</h3>
+                      <h3 className="font-semibold">{step.title}</h3>
                       {step.required && !isCompleted && (
                         <Badge variant="outline" className="text-xs">Required</Badge>
                       )}
@@ -362,7 +362,7 @@ export default function VerificationStatus() {
                         <Badge variant="success" className="text-xs">Completed</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-afrikoni-deep/70 mb-3">{step.description}</p>
+                    <p className="text-sm mb-3">{step.description}</p>
                     {!isCompleted && (
                       <Button
                         size="sm"
@@ -375,7 +375,7 @@ export default function VerificationStatus() {
                       </Button>
                     )}
                   </div>
-                  <div className="text-sm font-medium text-afrikoni-deep/50">
+                  <div className="text-sm font-medium">
                     +{step.weight}%
                   </div>
                 </div>
@@ -386,10 +386,10 @@ export default function VerificationStatus() {
 
         {/* Next Steps */}
         {!company?.verified && (
-          <Card className="mt-6 border-afrikoni-gold/30">
+          <Card className="mt-6">
             <CardContent className="p-6">
-              <h3 className="font-semibold text-afrikoni-chestnut mb-3">Next Steps</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-afrikoni-deep/80">
+              <h3 className="font-semibold mb-3">Next Steps</h3>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
                 <li>Upload all required documents in the Verification Center</li>
                 <li>Afrikoni team reviews your submission (typically 24-48 hours)</li>
                 <li>You receive verification status update via email and dashboard notification</li>
@@ -397,7 +397,7 @@ export default function VerificationStatus() {
               </ol>
               <Button
                 onClick={() => navigate('/verification-center')}
-                className="mt-4 bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                className="mt-4 hover:bg-afrikoni-gold/90"
               >
                 Go to Verification Center
                 <ChevronRight className="w-4 h-4 ml-1" />

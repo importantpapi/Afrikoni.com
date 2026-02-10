@@ -314,34 +314,34 @@ function LogisticsDashboardInner() {
     const normalized = (status || '').toLowerCase();
     if (normalized === 'pending_pickup') {
       return (
-        <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50">
+        <Badge variant="outline" className="">
           Pending pickup
         </Badge>
       );
     }
     if (['in_transit', 'picked_up', 'out_for_delivery'].includes(normalized)) {
       return (
-        <Badge variant="outline" className="border-sky-400 text-sky-700 bg-sky-50">
+        <Badge variant="outline" className="">
           In transit
         </Badge>
       );
     }
     if (normalized === 'delayed') {
       return (
-        <Badge variant="outline" className="border-red-400 text-red-700 bg-red-50">
+        <Badge variant="outline" className="">
           Delayed
         </Badge>
       );
     }
     if (normalized === 'delivered') {
       return (
-        <Badge variant="outline" className="border-emerald-400 text-emerald-700 bg-emerald-50">
+        <Badge variant="outline" className="">
           Delivered
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="border-slate-300 text-slate-700 bg-slate-50 capitalize">
+      <Badge variant="outline" className="capitalize">
         {status || 'Unknown'}
       </Badge>
     );
@@ -353,7 +353,7 @@ function LogisticsDashboardInner() {
 
     if (status === 'delayed') {
       return (
-        <Badge className="bg-red-50 text-red-700 border border-red-200 gap-1">
+        <Badge className="border gap-1">
           <AlertCircle className="h-3 w-3" />
           At risk
         </Badge>
@@ -362,7 +362,7 @@ function LogisticsDashboardInner() {
 
     if (['in_transit', 'picked_up', 'out_for_delivery'].includes(status)) {
       return (
-        <Badge className="bg-amber-50 text-amber-700 border border-amber-200 gap-1">
+        <Badge className="border gap-1">
           <Clock className="h-3 w-3" />
           Monitor
         </Badge>
@@ -371,7 +371,7 @@ function LogisticsDashboardInner() {
 
     if (status === 'delivered') {
       return (
-        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 gap-1">
+        <Badge className="border gap-1">
           <CheckCircle className="h-3 w-3" />
           On time
         </Badge>
@@ -379,7 +379,7 @@ function LogisticsDashboardInner() {
     }
 
     return (
-      <Badge className="bg-slate-50 text-slate-700 border border-slate-200">
+      <Badge className="border">
         Normal
       </Badge>
     );
@@ -404,7 +404,7 @@ function LogisticsDashboardInner() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -429,7 +429,7 @@ function LogisticsDashboardInner() {
   if (!profileCompanyId) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin h-12 w-12 border-b-2 border-afrikoni-gold rounded-full" />
+        <div className="animate-spin h-12 w-12 border-b-2 rounded-full" />
       </div>
     );
   }
@@ -439,17 +439,17 @@ function LogisticsDashboardInner() {
       {/* Page header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-semibold text-afrikoni-deep">
+          <h1 className="text-2xl md:text-3xl font-semibold">
             Logistics Control Tower
             </h1>
-          <p className="text-sm text-afrikoni-deep/70">
+          <p className="text-sm">
             Shipments, risk, and Afrikoni commission at a glance.
             </p>
           </div>
         <div className="flex items-center gap-2">
             <Button
             variant="default"
-            className="bg-afrikoni-deep text-white hover:bg-afrikoni-deep/90"
+            className="hover:bg-afrikoni-deep/90"
             onClick={() => setActiveTab('shipments')}
           >
             View Shipments
@@ -464,31 +464,31 @@ function LogisticsDashboardInner() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold/10 to-afrikoni-purple/10 rounded-lg shadow-xl mb-6">
+          <Card className="border-2 bg-gradient-to-r rounded-lg shadow-xl mb-6">
             <CardContent className="p-6 md:p-8">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center">
-                      <Truck className="w-6 h-6 text-afrikoni-chestnut" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <Truck className="w-6 h-6" />
                     </div>
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-1">
+                      <h2 className="text-2xl md:text-3xl font-bold mb-1">
                         Register Your Services
                       </h2>
-                      <p className="text-afrikoni-deep/80 text-sm md:text-base">
+                      <p className="text-sm md:text-base">
                         Set up your logistics profile to start receiving shipment requests from buyers and sellers. Verified logistics partners get priority matching.
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm text-afrikoni-deep/70 mt-2">
+                  <p className="text-sm mt-2">
                     💰 <strong>Success fee only when deal closes</strong> - No upfront costs
                   </p>
                 </div>
                 <Link to="/dashboard/company-info" className="w-full md:w-auto">
                   <Button
                     size="lg"
-                    className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all min-h-[52px]"
+                    className="w-full md:w-auto hover:bg-afrikoni-goldDark px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all min-h-[52px]"
                   >
                     Complete Profile
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -502,109 +502,109 @@ function LogisticsDashboardInner() {
 
       {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-        <Card className="bg-afrikoni-sand/70 border-slate-200">
+        <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+              <div className="text-xs uppercase tracking-wide">
                 Active Shipments
                   </div>
-              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
+              <div className="mt-1 text-2xl font-semibold">
                   {kpis.activeShipments}
                 </div>
             </div>
-            <Truck className="h-5 w-5 text-afrikoni-deep/70" />
+            <Truck className="h-5 w-5" />
               </CardContent>
             </Card>
 
-        <Card className="bg-afrikoni-sand/70 border-slate-200">
+        <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+              <div className="text-xs uppercase tracking-wide">
                 At Risk
                   </div>
-              <div className="mt-1 text-2xl font-semibold text-red-600">
+              <div className="mt-1 text-2xl font-semibold">
                 {delayedShipments.length}
                 </div>
                 </div>
-            <AlertCircle className="h-5 w-5 text-red-500" />
+            <AlertCircle className="h-5 w-5" />
               </CardContent>
             </Card>
 
-        <Card className="bg-afrikoni-sand/70 border-slate-200">
+        <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+              <div className="text-xs uppercase tracking-wide">
                 Pending Pickup
                   </div>
-              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
+              <div className="mt-1 text-2xl font-semibold">
                 {pendingPickupShipments.length}
                 </div>
                 </div>
-            <Package className="h-5 w-5 text-amber-600" />
+            <Package className="h-5 w-5" />
               </CardContent>
             </Card>
 
-        <Card className="bg-afrikoni-sand/70 border-slate-200">
+        <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+              <div className="text-xs uppercase tracking-wide">
                 Quotes Awaiting Action
                   </div>
-              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
+              <div className="mt-1 text-2xl font-semibold">
                 {quotesAwaitingCount}
                 </div>
                 </div>
-            <FileText className="h-5 w-5 text-afrikoni-deep/70" />
+            <FileText className="h-5 w-5" />
               </CardContent>
             </Card>
 
-        <Card className="bg-afrikoni-sand/70 border-slate-200">
+        <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
                 <div>
-              <div className="text-xs uppercase tracking-wide text-afrikoni-deep/70">
+              <div className="text-xs uppercase tracking-wide">
                 Afrikoni Commission (MTD)
                   </div>
-              <div className="mt-1 text-2xl font-semibold text-afrikoni-deep">
+              <div className="mt-1 text-2xl font-semibold">
                 ${commissionMTD.toLocaleString()}
                 </div>
               </div>
-            <DollarSign className="h-5 w-5 text-afrikoni-deep/70" />
+            <DollarSign className="h-5 w-5" />
             </CardContent>
           </Card>
       </div>
 
       {/* Revenue snapshot */}
-      <Card className="border-slate-200">
+      <Card className="">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-afrikoni-deep">
+          <CardTitle className="text-sm font-medium">
             Revenue Snapshot
           </CardTitle>
-          <CardDescription className="text-xs text-afrikoni-deep/70">
+          <CardDescription className="text-xs">
             Afrikoni commission from logistics activity (placeholders until fully wired).
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-0">
           <div className="space-y-1">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
+            <div className="text-xs uppercase tracking-wide">
               Today
                   </div>
-            <div className="text-xl font-semibold text-afrikoni-deep">
+            <div className="text-xl font-semibold">
               $0
                 </div>
               </div>
           <div className="space-y-1">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
+            <div className="text-xs uppercase tracking-wide">
               Last 7 Days
                   </div>
-            <div className="text-xl font-semibold text-afrikoni-deep">
+            <div className="text-xl font-semibold">
               $0
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
+            <div className="text-xs uppercase tracking-wide">
               Month to Date
             </div>
-            <div className="text-xl font-semibold text-afrikoni-deep">
+            <div className="text-xl font-semibold">
               ${commissionMTD.toLocaleString()}
                 </div>
               </div>
@@ -625,12 +625,12 @@ function LogisticsDashboardInner() {
         <TabsContent value="overview" className="mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Needs Action */}
-            <Card className="border-slate-200 max-h-[420px] flex flex-col">
+            <Card className="max-h-[420px] flex flex-col">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                <CardTitle className="text-sm font-medium">
                   Needs Action
                 </CardTitle>
-                <CardDescription className="text-xs text-afrikoni-deep/70">
+                <CardDescription className="text-xs">
                   Shipments and quotes that require attention.
                 </CardDescription>
                 </CardHeader>
@@ -638,16 +638,16 @@ function LogisticsDashboardInner() {
                 {/* Pending pickups */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-afrikoni-deep flex items-center gap-1">
-                      <Package className="h-3 w-3 text-amber-600" />
+                    <span className="text-xs font-semibold flex items-center gap-1">
+                      <Package className="h-3 w-3" />
                       Pending pickups
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs">
                       {pendingPickupShipments.length}
                     </span>
                   </div>
                   {pendingPickupShipments.length === 0 ? (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs">
                       No shipments need pickup right now.
                     </p>
                   ) : (
@@ -655,13 +655,13 @@ function LogisticsDashboardInner() {
                       {pendingPickupShipments.slice(0, 5).map(s => (
                         <li
                           key={s.id}
-                          className="flex items-center justify-between rounded-md border border-amber-100 bg-amber-50/60 px-2 py-1.5"
+                          className="flex items-center justify-between rounded-md border px-2 py-1.5"
                         >
                           <div className="flex flex-col">
-                            <span className="text-xs font-medium text-afrikoni-deep">
+                            <span className="text-xs font-medium">
                               {s.orders?.products?.title || 'Shipment'}
                               </span>
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px]">
                               {formatRoute(s)}
                             </span>
                             </div>
@@ -681,16 +681,16 @@ function LogisticsDashboardInner() {
                 {/* Delayed */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-afrikoni-deep flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3 text-red-600" />
+                    <span className="text-xs font-semibold flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
                       Delayed shipments
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs">
                       {delayedShipments.length}
                     </span>
                   </div>
                   {delayedShipments.length === 0 ? (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs">
                       No shipments are delayed at the moment.
                     </p>
                   ) : (
@@ -698,13 +698,13 @@ function LogisticsDashboardInner() {
                       {delayedShipments.slice(0, 5).map(s => (
                         <li
                           key={s.id}
-                          className="flex items-center justify-between rounded-md border border-red-100 bg-red-50/70 px-2 py-1.5"
+                          className="flex items-center justify-between rounded-md border px-2 py-1.5"
                         >
                           <div className="flex flex-col">
-                            <span className="text-xs font-medium text-afrikoni-deep">
+                            <span className="text-xs font-medium">
                               {s.orders?.products?.title || 'Shipment'}
                             </span>
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px]">
                               {formatRoute(s)}
                             </span>
                             </div>
@@ -724,15 +724,15 @@ function LogisticsDashboardInner() {
                 {/* Quotes placeholder */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-afrikoni-deep flex items-center gap-1">
-                      <FileText className="h-3 w-3 text-afrikoni-deep" />
+                    <span className="text-xs font-semibold flex items-center gap-1">
+                      <FileText className="h-3 w-3" />
                       Quotes awaiting acceptance
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs">
                       {quotesAwaitingCount}
                     </span>
                     </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs">
                     No logistics quotes need action right now.
                   </p>
                 </div>
@@ -740,13 +740,13 @@ function LogisticsDashboardInner() {
               </Card>
 
             {/* Moving Now */}
-            <Card className="border-slate-200 max-h-[420px] flex flex-col">
+            <Card className="max-h-[420px] flex flex-col">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
                   <div>
-                  <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                  <CardTitle className="text-sm font-medium">
                     Moving Now
                   </CardTitle>
-                  <CardDescription className="text-xs text-afrikoni-deep/70">
+                  <CardDescription className="text-xs">
                     Shipments currently in motion.
                   </CardDescription>
                   </div>
@@ -765,13 +765,13 @@ function LogisticsDashboardInner() {
               </CardHeader>
               <CardContent className="pt-0 overflow-x-auto overflow-y-auto">
                 {inMotionShipments.length === 0 ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs">
                     No shipments are moving right now.
                   </p>
                 ) : (
                   <table className="min-w-full text-xs">
                     <thead>
-                      <tr className="border-b border-slate-200 text-[11px] uppercase text-slate-500">
+                      <tr className="border-b text-[11px] uppercase">
                         <th className="py-2 pr-3 text-left">Tracking</th>
                         <th className="py-2 pr-3 text-left">Route</th>
                         <th className="py-2 pr-3 text-left">Status</th>
@@ -784,25 +784,25 @@ function LogisticsDashboardInner() {
                       {inMotionShipments.slice(0, 10).map(s => (
                         <tr
                           key={s.id}
-                          className="border-b border-slate-100 last:border-0 odd:bg-slate-50/40"
+                          className="border-b last:border-0 odd:bg-slate-50/40"
                         >
                           <td className="py-2 pr-3 align-middle">
                             <div className="flex flex-col">
-                              <span className="text-xs font-medium text-afrikoni-deep">
+                              <span className="text-xs font-medium">
                                 {s.tracking_id || s.id}
                               </span>
-                              <span className="text-[11px] text-slate-500">
+                              <span className="text-[11px]">
                                 {s.orders?.products?.name || s.orders?.products?.title || 'Shipment'}
                               </span>
                             </div>
                           </td>
-                          <td className="py-2 pr-3 align-middle text-slate-700">
+                          <td className="py-2 pr-3 align-middle">
                             {formatRoute(s)}
                           </td>
                           <td className="py-2 pr-3 align-middle">
                             {statusBadge(s.status)}
                           </td>
-                          <td className="py-2 pr-3 align-middle text-slate-700">
+                          <td className="py-2 pr-3 align-middle">
                             {s.estimated_delivery
                               ? format(new Date(s.estimated_delivery), 'dd MMM, HH:mm')
                               : '—'}
@@ -831,13 +831,13 @@ function LogisticsDashboardInner() {
 
         {/* SHIPMENTS */}
         <TabsContent value="shipments" className="mt-4">
-          <Card className="border-slate-200">
+          <Card className="">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
                   <div>
-                <CardTitle className="text-sm font-medium text-afrikoni-deep">
+                <CardTitle className="text-sm font-medium">
                   Shipments
                 </CardTitle>
-                <CardDescription className="text-xs text-afrikoni-deep/70">
+                <CardDescription className="text-xs">
                   Operational view of all shipments.
                 </CardDescription>
                   </div>
@@ -863,7 +863,7 @@ function LogisticsDashboardInner() {
               ) : (
                 <table className="min-w-full text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-[11px] uppercase text-slate-500">
+                    <tr className="border-b text-[11px] uppercase">
                       <th className="py-2 pr-3 text-left">Tracking</th>
                       <th className="py-2 pr-3 text-left">Route</th>
                       <th className="py-2 pr-3 text-left">Status</th>
@@ -875,25 +875,25 @@ function LogisticsDashboardInner() {
                     {shipments.map(s => (
                       <tr
                         key={s.id}
-                        className="border-b border-slate-100 last:border-0 odd:bg-slate-50/40"
+                        className="border-b last:border-0 odd:bg-slate-50/40"
                       >
                         <td className="py-2 pr-3 align-middle">
                           <div className="flex flex-col">
-                            <span className="text-xs font-medium text-afrikoni-deep">
+                            <span className="text-xs font-medium">
                               {s.tracking_id || s.id}
                             </span>
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px]">
                               {s.orders?.products?.title || 'Shipment'}
                             </span>
                   </div>
                         </td>
-                        <td className="py-2 pr-3 align-middle text-slate-700">
+                        <td className="py-2 pr-3 align-middle">
                           {formatRoute(s)}
                         </td>
                         <td className="py-2 pr-3 align-middle">
                           {statusBadge(s.status)}
                         </td>
-                        <td className="py-2 pr-3 align-middle text-slate-700">
+                        <td className="py-2 pr-3 align-middle">
                           {s.estimated_delivery
                             ? format(new Date(s.estimated_delivery), 'dd MMM, HH:mm')
                             : '—'}
@@ -918,12 +918,12 @@ function LogisticsDashboardInner() {
 
         {/* QUOTES */}
         <TabsContent value="quotes" className="mt-4">
-          <Card className="border-slate-200">
+          <Card className="">
               <CardHeader>
-              <CardTitle className="text-sm font-medium text-afrikoni-deep">
+              <CardTitle className="text-sm font-medium">
                 Quotes
               </CardTitle>
-              <CardDescription className="text-xs text-afrikoni-deep/70">
+              <CardDescription className="text-xs">
                 Logistics quotes will appear here once connected to quote data.
               </CardDescription>
               </CardHeader>
@@ -938,12 +938,12 @@ function LogisticsDashboardInner() {
 
         {/* TRACKING */}
         <TabsContent value="tracking" className="mt-4">
-          <Card className="border-slate-200">
+          <Card className="">
               <CardHeader>
-              <CardTitle className="text-sm font-medium text-afrikoni-deep">
+              <CardTitle className="text-sm font-medium">
                 Tracking
               </CardTitle>
-              <CardDescription className="text-xs text-afrikoni-deep/70">
+              <CardDescription className="text-xs">
                 Geographic view of active shipments.
               </CardDescription>
               </CardHeader>
@@ -955,43 +955,43 @@ function LogisticsDashboardInner() {
 
         {/* REVENUE */}
         <TabsContent value="revenue" className="mt-4">
-          <Card className="border-slate-200">
+          <Card className="">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-afrikoni-deep">
+              <CardTitle className="text-sm font-medium">
                 Revenue
               </CardTitle>
-              <CardDescription className="text-xs text-afrikoni-deep/70">
+              <CardDescription className="text-xs">
                 High-level view of Afrikoni commission from logistics.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                  <div className="text-xs uppercase tracking-wide">
                     Today
                             </div>
-                  <div className="text-xl font-semibold text-afrikoni-deep">
+                  <div className="text-xl font-semibold">
                     $0
                                 </div>
                               </div>
                 <div className="space-y-1">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                  <div className="text-xs uppercase tracking-wide">
                     Last 7 Days
                                 </div>
-                  <div className="text-xl font-semibold text-afrikoni-deep">
+                  <div className="text-xl font-semibold">
                     $0
                               </div>
                             </div>
                 <div className="space-y-1">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                  <div className="text-xs uppercase tracking-wide">
                     Month to Date
                           </div>
-                  <div className="text-xl font-semibold text-afrikoni-deep">
+                  <div className="text-xl font-semibold">
                     ${commissionMTD.toLocaleString()}
                         </div>
                         </div>
                       </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs">
                 Detailed revenue analytics will be connected to live shipment and quote data.
               </p>
               </CardContent>

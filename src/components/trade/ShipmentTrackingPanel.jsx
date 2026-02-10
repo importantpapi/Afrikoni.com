@@ -61,10 +61,10 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border rounded-2xl">
         <CardContent className="p-6 text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto text-afrikoni-gold" />
-          <p className="text-sm text-gray-600 mt-2">Loading shipment details...</p>
+          <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+          <p className="text-sm mt-2">Loading shipment details...</p>
         </CardContent>
       </Card>
     );
@@ -72,11 +72,11 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
 
   if (!shipment) {
     return (
-      <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+      <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <CardContent className="p-6 text-center">
-          <Package className="w-8 h-8 text-afrikoni-gold/50 mx-auto mb-2" />
-          <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">Preparing Shipment</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <Package className="w-8 h-8 mx-auto mb-2" />
+          <p className="font-semibold">Preparing Shipment</p>
+          <p className="text-sm mt-1">
             Supplier is producing goods. Shipment details will appear here.
           </p>
         </CardContent>
@@ -87,13 +87,13 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
   const currentMilestoneIdx = SHIPMENT_MILESTONES.findIndex(m => m.state === shipment.status);
 
   return (
-    <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8]">
+          <h2 className="text-2xl font-semibold">
             Track Shipment
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm mt-1">
             Monitor your goods from production to delivery.
           </p>
         </div>
@@ -111,13 +111,13 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
                   {/* Icon */}
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all
-                      ${isCompleted ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-800'}
+                      ${isCompleted ? 'bg-emerald-400/10' : 'bg-white/5'}
                       ${isCurrent ? 'ring-2 ring-afrikoni-gold scale-110' : ''}
                     `}
                   >
                     <Icon
                       className={`w-5 h-5 ${
-                        isCompleted ? 'text-green-600 dark:text-green-400' : 'text-gray-400'
+                        isCompleted ? 'text-emerald-200' : 'text-white/40'
                       }`}
                     />
                   </div>
@@ -125,7 +125,7 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
                   {/* Label */}
                   <p
                     className={`text-xs font-medium text-center
-                      ${isCompleted ? 'text-green-700 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'}
+                      ${isCompleted ? 'text-emerald-200' : 'text-white/50'}
                     `}
                   >
                     {milestone.label}
@@ -135,7 +135,7 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
                   {idx < SHIPMENT_MILESTONES.length - 1 && (
                     <div
                       className={`absolute h-1 w-full mt-5 -translate-x-1/2 left-1/2
-                        ${isCompleted && idx < currentMilestoneIdx ? 'bg-green-300 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-700'}
+                        ${isCompleted && idx < currentMilestoneIdx ? 'bg-emerald-400/60' : 'bg-white/10'}
                       `}
                       style={{
                         width: `calc(100% - 40px)`,
@@ -152,36 +152,36 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
 
         {/* Shipment Details */}
         {shipment && (
-          <div className="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-4 mb-6">
+          <div className="rounded-xl p-4 mb-6 border">
             <div className="grid grid-cols-2 gap-4 text-sm">
               {shipment.tracking_number && (
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400">Tracking Number</p>
-                  <p className="font-mono font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                  <p className="">Tracking Number</p>
+                  <p className="font-mono font-semibold">
                     {shipment.tracking_number}
                   </p>
                 </div>
               )}
               {shipment.carrier_name && (
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400">Carrier</p>
-                  <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                  <p className="">Carrier</p>
+                  <p className="font-semibold">
                     {shipment.carrier_name}
                   </p>
                 </div>
               )}
               {shipment.actual_pickup_date && (
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400">Picked Up</p>
-                  <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                  <p className="">Picked Up</p>
+                  <p className="font-semibold">
                     {new Date(shipment.actual_pickup_date).toLocaleDateString()}
                   </p>
                 </div>
               )}
               {shipment.scheduled_delivery_date && (
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400">Expected Delivery</p>
-                  <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                  <p className="">Expected Delivery</p>
+                  <p className="font-semibold">
                     {new Date(shipment.scheduled_delivery_date).toLocaleDateString()}
                   </p>
                 </div>
@@ -195,7 +195,7 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
           <Button
             onClick={handleDeliveryConfirmed}
             disabled={isTransitioning}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+            className="w-full hover:bg-emerald-300 font-semibold"
           >
             {isTransitioning ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Confirming...</>
@@ -206,8 +206,8 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
         )}
 
         {/* Status Badge */}
-        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
-          <Badge className="capitalize">
+        <div className="mt-6 pt-6 border-t">
+          <Badge className="capitalize border">
             {shipment.status.replace('_', ' ')}
           </Badge>
         </div>

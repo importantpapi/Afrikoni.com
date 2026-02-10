@@ -100,7 +100,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose(false)}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-afrikoni-chestnut">
+          <DialogTitle className="text-2xl font-bold">
             Leave a Review
           </DialogTitle>
           <DialogDescription>
@@ -110,23 +110,23 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
 
         <div className="space-y-6 py-4">
           {/* Order Info */}
-          <div className="p-4 bg-afrikoni-offwhite rounded-lg border border-afrikoni-gold/20">
-            <div className="flex items-center gap-2 text-sm text-afrikoni-deep/70 mb-1">
-              <CheckCircle className="w-4 h-4 text-afrikoni-green" />
+          <div className="p-4 rounded-lg border">
+            <div className="flex items-center gap-2 text-sm mb-1">
+              <CheckCircle className="w-4 h-4" />
               <span>Verified Order</span>
             </div>
-            <p className="font-semibold text-afrikoni-chestnut">
+            <p className="font-semibold">
               Order #{order.id.slice(0, 8)}
             </p>
-            <p className="text-sm text-afrikoni-deep/80">
+            <p className="text-sm">
               {order.currency} {order.total_amount?.toLocaleString() || '0'}
             </p>
           </div>
 
           {/* Rating */}
           <div>
-            <label className="block text-sm font-medium text-afrikoni-chestnut mb-3">
-              Rating <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium mb-3">
+              Rating <span className="">*</span>
             </label>
             <div className="flex items-center gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -149,7 +149,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
                 </button>
               ))}
               {rating > 0 && (
-                <span className="ml-2 text-lg font-bold text-afrikoni-chestnut">
+                <span className="ml-2 text-lg font-bold">
                   {rating}.0
                 </span>
               )}
@@ -158,7 +158,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
 
           {/* Comment */}
           <div>
-            <label className="block text-sm font-medium text-afrikoni-chestnut mb-2">
+            <label className="block text-sm font-medium mb-2">
               Comment (Optional)
             </label>
             <Textarea
@@ -169,14 +169,14 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
               maxLength={500}
               disabled={isSubmitting}
             />
-            <p className="text-xs text-afrikoni-deep/60 mt-1 text-right">
+            <p className="text-xs mt-1 text-right">
               {comment.length}/500 characters
             </p>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-afrikoni-chestnut mb-3">
+            <label className="block text-sm font-medium mb-3">
               Tags (Optional)
             </label>
             <div className="flex flex-wrap gap-2">
@@ -198,8 +198,8 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
           </div>
 
           {/* Info Notice */}
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
+          <div className="p-4 border rounded-lg">
+            <p className="text-sm">
               <strong>Note:</strong> Your review will be pending verification by our admin team. 
               Only verified reviews from completed orders are published to maintain trust and quality.
             </p>
@@ -218,7 +218,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || rating === 0}
-            className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+            className="hover:bg-afrikoni-goldDark"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Review'}
           </Button>

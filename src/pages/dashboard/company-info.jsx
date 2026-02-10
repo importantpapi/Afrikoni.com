@@ -863,12 +863,12 @@ export default function CompanyInfo() {
         transition={{ duration: 0.15 }}
       >
         <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
-            <Building2 className="w-6 h-6 text-afrikoni-gold" />
+          <div className="p-2 rounded-lg">
+            <Building2 className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut">Company Information</h1>
-            <p className="text-afrikoni-deep mt-0.5 text-xs md:text-sm">Complete your company profile before adding photos</p>
+            <h1 className="text-xl md:text-2xl font-bold">Company Information</h1>
+            <p className="mt-0.5 text-xs md:text-sm">Complete your company profile before adding photos</p>
           </div>
         </div>
       </motion.div>
@@ -878,10 +878,10 @@ export default function CompanyInfo() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg"
+          className="flex items-center gap-2 p-4 border rounded-lg"
         >
-          <CheckCircle className="w-5 h-5 text-afrikoni-gold" />
-          <span className="text-sm text-afrikoni-chestnut">Required fields completed. You can now add photos.</span>
+          <CheckCircle className="w-5 h-5" />
+          <span className="text-sm">Required fields completed. You can now add photos.</span>
         </motion.div>
       )}
 
@@ -889,16 +889,16 @@ export default function CompanyInfo() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-4 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg"
+          className="flex items-center gap-2 p-4 border rounded-lg"
         >
-          <AlertCircle className="w-5 h-5 text-afrikoni-gold" />
-          <span className="text-sm text-afrikoni-chestnut">Tip: Adding company information helps buyers find and trust you. All fields are optional except those marked with *.</span>
+          <AlertCircle className="w-5 h-5" />
+          <span className="text-sm">Tip: Adding company information helps buyers find and trust you. All fields are optional except those marked with *.</span>
         </motion.div>
       )}
 
         {/* Company Card Preview */}
         {profileCompanyId && (logoUrl || coverUrl || formData.company_name) && (
-          <Card className="border-afrikoni-gold/20">
+          <Card className="">
             <CardContent className="p-0">
               <div className="relative">
                 {coverUrl ? (
@@ -910,26 +910,26 @@ export default function CompanyInfo() {
                     decoding="async"
                   />
                 ) : (
-                  <div className="w-full h-32 bg-afrikoni-cream rounded-t-lg" />
+                  <div className="w-full h-32 rounded-t-lg" />
                 )}
                 <div className="absolute bottom-0 left-4 transform translate-y-1/2 flex items-center gap-4">
                   {logoUrl ? (
                     <img 
                       src={logoUrl} 
                       alt="Logo" 
-                      className="w-20 h-20 rounded-lg object-cover border-4 border-white shadow-afrikoni"
+                      className="w-20 h-20 rounded-lg object-cover border-4 shadow-afrikoni"
                       loading="lazy"
                       decoding="async"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center border-4 border-white shadow-afrikoni">
-                      <Building2 className="w-10 h-10 text-afrikoni-gold" />
+                    <div className="w-20 h-20 rounded-lg flex items-center justify-center border-4 shadow-afrikoni">
+                      <Building2 className="w-10 h-10" />
                     </div>
                   )}
                   <div className="pt-8 pb-4">
-                    <h3 className="font-bold text-lg text-afrikoni-chestnut">{formData.company_name || 'Your Company'}</h3>
+                    <h3 className="font-bold text-lg">{formData.company_name || 'Your Company'}</h3>
                     {formData.country && (
-                      <p className="text-sm text-afrikoni-deep/70">{formData.country}</p>
+                      <p className="text-sm">{formData.country}</p>
                     )}
                   </div>
                 </div>
@@ -953,10 +953,10 @@ export default function CompanyInfo() {
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         {/* v2.5: Premium Company Info Cards */}
-        <Card className="border-afrikoni-gold/20 shadow-premium bg-white rounded-afrikoni-lg">
-          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">Company Details</CardTitle>
-            <CardDescription className="mt-3 text-afrikoni-text-dark/70">
+        <Card className="shadow-premium rounded-afrikoni-lg">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">Company Details</CardTitle>
+            <CardDescription className="mt-3">
               Provide your company information. This will be visible to potential buyers and partners.
             </CardDescription>
           </CardHeader>
@@ -968,10 +968,10 @@ export default function CompanyInfo() {
                         <Label>Company Logo</Label>
                         <div className="mt-2 flex items-center gap-4">
                           {logoUrl ? (
-                            <img src={logoUrl} alt="Logo" className="w-20 h-20 rounded-lg object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
+                            <img src={logoUrl} alt="Logo" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" decoding="async" />
                           ) : (
-                            <div className="w-20 h-20 rounded-lg bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/20">
-                              <ImageIcon className="w-8 h-8 text-afrikoni-deep/50" />
+                            <div className="w-20 h-20 rounded-lg flex items-center justify-center border">
+                              <ImageIcon className="w-8 h-8" />
                             </div>
                           )}
                           <div>
@@ -996,7 +996,7 @@ export default function CompanyInfo() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setLogoUrl('')}
-                                className="ml-2 text-red-600"
+                                className="ml-2"
                               >
                                 <X className="w-4 h-4" />
                               </Button>
@@ -1008,10 +1008,10 @@ export default function CompanyInfo() {
                         <Label>Cover Image</Label>
                         <div className="mt-2 flex items-center gap-4">
                           {coverUrl ? (
-                            <img src={coverUrl} alt="Cover" className="w-32 h-20 rounded-lg object-cover border border-afrikoni-gold/20" loading="lazy" decoding="async" />
+                            <img src={coverUrl} alt="Cover" className="w-32 h-20 rounded-lg object-cover border" loading="lazy" decoding="async" />
                           ) : (
-                            <div className="w-32 h-20 rounded-lg bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/20">
-                              <ImageIcon className="w-8 h-8 text-afrikoni-deep/50" />
+                            <div className="w-32 h-20 rounded-lg flex items-center justify-center border">
+                              <ImageIcon className="w-8 h-8" />
                             </div>
                           )}
                           <div>
@@ -1036,7 +1036,7 @@ export default function CompanyInfo() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setCoverUrl('')}
-                                className="ml-2 text-red-600"
+                                className="ml-2"
                               >
                                 <X className="w-4 h-4" />
                               </Button>
@@ -1050,7 +1050,7 @@ export default function CompanyInfo() {
                 {/* Company Name */}
                 <div className="md:col-span-2">
                   <Label htmlFor="company_name">
-                          Company Name <span className="text-red-500">*</span>
+                          Company Name <span className="">*</span>
                   </Label>
                   <Input
                     id="company_name"
@@ -1061,7 +1061,7 @@ export default function CompanyInfo() {
                           className={`mt-1 ${errors.company_name ? 'border-red-500' : ''}`}
                   />
                         {errors.company_name && (
-                          <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
+                          <p className="text-sm mt-1">{errors.company_name}</p>
                         )}
                 </div>
 
@@ -1090,7 +1090,7 @@ export default function CompanyInfo() {
                 {/* Country */}
                 <div>
                   <Label htmlFor="country">
-                          Country <span className="text-red-500">*</span>
+                          Country <span className="">*</span>
                   </Label>
                   <Select 
                     value={formData.country} 
@@ -1106,7 +1106,7 @@ export default function CompanyInfo() {
                     </SelectContent>
                   </Select>
                         {errors.country && (
-                          <p className="text-red-500 text-sm mt-1">{errors.country}</p>
+                          <p className="text-sm mt-1">{errors.country}</p>
                         )}
                 </div>
 
@@ -1125,7 +1125,7 @@ export default function CompanyInfo() {
                 {/* Phone Number */}
                 <div>
                   <Label htmlFor="phone">
-                          Phone Number <span className="text-red-500">*</span>
+                          Phone Number <span className="">*</span>
                   </Label>
                   <Input
                     id="phone"
@@ -1136,7 +1136,7 @@ export default function CompanyInfo() {
                           className={`mt-1 ${errors.phone ? 'border-red-500' : ''}`}
                   />
                         {errors.phone && (
-                          <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                          <p className="text-sm mt-1">{errors.phone}</p>
                         )}
                 </div>
 
@@ -1152,7 +1152,7 @@ export default function CompanyInfo() {
                           className={`mt-1 ${errors.business_email ? 'border-red-500' : ''}`}
                   />
                         {errors.business_email && (
-                          <p className="text-red-500 text-sm mt-1">{errors.business_email}</p>
+                          <p className="text-sm mt-1">{errors.business_email}</p>
                         )}
                 </div>
 
@@ -1167,7 +1167,7 @@ export default function CompanyInfo() {
                           className={`mt-1 ${errors.website ? 'border-red-500' : ''}`}
                   />
                         {errors.website && (
-                          <p className="text-red-500 text-sm mt-1">{errors.website}</p>
+                          <p className="text-sm mt-1">{errors.website}</p>
                         )}
                 </div>
 
@@ -1217,16 +1217,16 @@ export default function CompanyInfo() {
                           rows={5}
                           className="mt-1"
                         />
-                        <p className="text-xs text-afrikoni-deep/70 mt-1">
+                        <p className="text-xs mt-1">
                           This description will help buyers understand your business better.
                         </p>
                       </div>
                     </div>
 
                     {/* Gallery Images Section */}
-                    <div className="md:col-span-2 border-t border-afrikoni-gold/20 pt-6">
+                    <div className="md:col-span-2 border-t pt-6">
                       <Label>Company Gallery (Create Your Visual World)</Label>
-                      <p className="text-xs text-afrikoni-deep/70 mt-1 mb-4">
+                      <p className="text-xs mt-1 mb-4">
                         Upload up to 10 images showcasing your company, products, facilities, or team. Make your profile come alive!
                       </p>
                       
@@ -1245,7 +1245,7 @@ export default function CompanyInfo() {
                                 <img
                                   src={imageUrl}
                                   alt={`Gallery ${index + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg border border-afrikoni-gold/20"
+                                  className="w-full h-32 object-cover rounded-lg border"
                                   loading="lazy"
                                   onError={(e) => {
                                     console.error('Failed to load image:', imageUrl);
@@ -1259,7 +1259,7 @@ export default function CompanyInfo() {
                                 <button
                                   type="button"
                                   onClick={() => removeGalleryImage(index)}
-                                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                  className="absolute top-2 right-2 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                   aria-label="Remove image"
                                 >
                                   <X className="w-4 h-4" />
@@ -1272,7 +1272,7 @@ export default function CompanyInfo() {
                       
                       {/* Debug info in development */}
                       {import.meta.env.DEV && galleryImages.length > 0 && (
-                        <div className="text-xs text-gray-500 mt-2">
+                        <div className="text-xs mt-2">
                           Debug: {galleryImages.length} image(s) in gallery
                         </div>
                       )}
@@ -1310,7 +1310,7 @@ export default function CompanyInfo() {
                     </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-6 border-t border-afrikoni-gold/20">
+              <div className="flex items-center justify-between pt-6 border-t">
                 <Button
                   type="button"
                   variant="outline"
@@ -1322,11 +1322,11 @@ export default function CompanyInfo() {
                 <Button
                   type="submit"
                         disabled={isSaving}
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                  className="hover:bg-afrikoni-goldDark"
                 >
                   {isSaving ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-chestnut mr-2" />
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 mr-2" />
                       Saving...
                     </>
                   ) : (
@@ -1357,11 +1357,11 @@ export default function CompanyInfo() {
               <CardContent className="space-y-4">
                 {/* Current User as Owner */}
                 {userId && (
-                  <div className="p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-offwhite">
+                  <div className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-afrikoni-chestnut">User ID: {userId.slice(0, 8)}...</div>
-                        <div className="text-sm text-afrikoni-deep/70">Owner</div>
+                        <div className="font-semibold">User ID: {userId.slice(0, 8)}...</div>
+                        <div className="text-sm">Owner</div>
                       </div>
                       <Badge variant="default">Owner</Badge>
                     </div>
@@ -1371,18 +1371,18 @@ export default function CompanyInfo() {
                 {/* Team Members List */}
                 {teamMembers.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-afrikoni-chestnut">Team Members</h4>
+                    <h4 className="font-semibold">Team Members</h4>
                     {teamMembers.map((member) => (
-                      <div key={member.id} className="p-4 border border-afrikoni-gold/20 rounded-lg flex items-center justify-between">
+                      <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
                         <div>
-                          <div className="font-medium text-afrikoni-chestnut">{member.member_email}</div>
-                          <div className="text-sm text-afrikoni-deep/70 capitalize">{member.role_label}</div>
+                          <div className="font-medium">{member.member_email}</div>
+                          <div className="text-sm capitalize">{member.role_label}</div>
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveTeamMember(member.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className="hover:text-red-700"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1392,8 +1392,8 @@ export default function CompanyInfo() {
                 )}
 
                 {/* Add Team Member Form */}
-                <div className="p-4 border border-afrikoni-gold/20 rounded-lg bg-afrikoni-cream">
-                  <h4 className="font-semibold text-afrikoni-chestnut mb-4">Add Team Member</h4>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-4">Add Team Member</h4>
                   <div className="flex flex-col md:flex-row gap-4">
                     <Input
                       type="email"
@@ -1418,7 +1418,7 @@ export default function CompanyInfo() {
                     <Button
                       onClick={handleAddTeamMember}
                       disabled={isAddingTeamMember || !newTeamMember.email}
-                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                      className="hover:bg-afrikoni-goldDark"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add

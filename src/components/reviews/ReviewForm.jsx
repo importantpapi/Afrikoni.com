@@ -91,7 +91,7 @@ export default function ReviewForm({ order, product, company, onSuccess, onCance
   };
 
   return (
-    <Card className="border-afrikoni-gold/20">
+    <Card className="">
       <CardHeader>
         <CardTitle>Write a Review</CardTitle>
       </CardHeader>

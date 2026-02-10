@@ -294,27 +294,27 @@ export default function TestEmails() {
   ];
 
   const getStatusIcon = (status) => {
-    if (status === 'success') return <CheckCircle className="w-5 h-5 text-green-500" />;
-    if (status === 'error') return <XCircle className="w-5 h-5 text-red-500" />;
-    if (status === 'sending') return <div className="w-5 h-5 border-2 border-afrikoni-gold border-t-transparent rounded-full animate-spin" />;
+    if (status === 'success') return <CheckCircle className="w-5 h-5" />;
+    if (status === 'error') return <XCircle className="w-5 h-5" />;
+    if (status === 'sending') return <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" />;
     return null;
   };
 
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2 flex items-center gap-2">
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
             <TestTube className="w-8 h-8" />
             Email Testing & Verification
           </h1>
-          <p className="text-afrikoni-deep">
-            Test all email templates and verify they're sent from <strong className="text-afrikoni-gold">hello@afrikoni.com</strong>
+          <p className="">
+            Test all email templates and verify they're sent from <strong className="">hello@afrikoni.com</strong>
           </p>
         </div>
 
         {/* Configuration Status */}
-        <Card className="mb-6 border-2 border-afrikoni-gold/20">
+        <Card className="mb-6 border-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5" />
@@ -325,43 +325,43 @@ export default function TestEmails() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-afrikoni-deep">Email Provider:</span>
+                  <span className="">Email Provider:</span>
                   <span className={`font-semibold ${emailConfig.provider !== 'none' ? 'text-green-600' : 'text-red-600'}`}>
                     {emailConfig.provider !== 'none' ? emailConfig.provider.toUpperCase() : 'Not configured'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-afrikoni-deep">API Key:</span>
+                  <span className="">API Key:</span>
                   <span className={`font-semibold ${emailConfig.hasApiKey ? 'text-green-600' : 'text-red-600'}`}>
                     {emailConfig.hasApiKey ? `✓ Configured (${emailConfig.apiKeyLength} chars)` : '✗ Not configured'}
                   </span>
                 </div>
                 {emailConfig.hasApiKey && emailConfig.provider === 'resend' && (
                   <div className="flex items-center justify-between">
-                    <span className="text-afrikoni-deep">API Key Format:</span>
+                    <span className="">API Key Format:</span>
                     <span className={`font-semibold ${emailConfig.apiKeyPrefix === 're_' ? 'text-green-600' : 'text-yellow-600'}`}>
                       {emailConfig.apiKeyPrefix === 're_' ? '✓ Valid (re_...)' : '⚠ Check format'}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-afrikoni-deep">Environment:</span>
-                  <span className="font-semibold text-afrikoni-deep">
+                  <span className="">Environment:</span>
+                  <span className="font-semibold">
                     {import.meta.env.MODE === 'production' ? 'Production' : import.meta.env.MODE === 'development' ? 'Development' : 'Unknown'}
                   </span>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-afrikoni-deep">From Address:</span>
-                  <span className="font-semibold text-afrikoni-gold">hello@afrikoni.com</span>
+                  <span className="">From Address:</span>
+                  <span className="font-semibold">hello@afrikoni.com</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-afrikoni-deep">Reply-To:</span>
-                  <span className="font-semibold text-afrikoni-gold">hello@afrikoni.com</span>
+                  <span className="">Reply-To:</span>
+                  <span className="font-semibold">hello@afrikoni.com</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-afrikoni-deep">Status:</span>
+                  <span className="">Status:</span>
                   <span className={`font-semibold ${emailConfig.hasApiKey && emailConfig.provider !== 'none' ? 'text-green-600' : 'text-red-600'}`}>
                     {emailConfig.hasApiKey && emailConfig.provider !== 'none' ? '✓ Ready' : '✗ Not Ready'}
                   </span>
@@ -369,12 +369,12 @@ export default function TestEmails() {
               </div>
             </div>
             {(!emailConfig.hasApiKey || emailConfig.provider === 'none') && (
-              <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+              <div className="mt-4 p-4 border-2 rounded-lg">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-red-800 mb-2">⚠️ Configuration Missing or Not Deployed</p>
-                    <div className="text-xs text-red-700 space-y-2">
+                    <p className="text-sm font-semibold mb-2">⚠️ Configuration Missing or Not Deployed</p>
+                    <div className="text-xs space-y-2">
                       <p><strong>If you just updated Vercel environment variables:</strong></p>
                       <ol className="list-decimal list-inside ml-2 space-y-1">
                         <li>Environment variables are only available after redeployment</li>
@@ -400,7 +400,7 @@ export default function TestEmails() {
               </div>
             )}
             {emailConfig.hasApiKey && emailConfig.provider === 'resend' && (
-              <div className="mt-4 pt-4 border-t border-afrikoni-gold/20">
+              <div className="mt-4 pt-4 border-t">
                 <Button
                   onClick={async () => {
                     setIsRunningDiagnostic(true);
@@ -438,9 +438,9 @@ export default function TestEmails() {
                   }`}>
                     <div className="flex items-start gap-2">
                       {diagnosticResult.success ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                        <XCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                       )}
                       <div className="flex-1">
                         <p className={`font-semibold ${
@@ -454,12 +454,12 @@ export default function TestEmails() {
                           {diagnosticResult.error || 'Connection test passed'}
                         </p>
                         {diagnosticResult.details && (
-                          <pre className="text-xs mt-2 p-2 bg-white/50 rounded overflow-auto">
+                          <pre className="text-xs mt-2 p-2 rounded overflow-auto">
                             {JSON.stringify(diagnosticResult.details, null, 2)}
                           </pre>
                         )}
                         {!diagnosticResult.success && (
-                          <div className="mt-2 text-xs text-red-700 space-y-1">
+                          <div className="mt-2 text-xs space-y-1">
                             <p><strong>Possible causes:</strong></p>
                             <ul className="list-disc list-inside ml-2 space-y-1">
                               <li>Domain <code>afrikoni.com</code> not verified in Resend</li>
@@ -508,7 +508,7 @@ export default function TestEmails() {
                 </Button>
               </div>
             </div>
-            <p className="text-sm text-afrikoni-deep/70 mt-2">
+            <p className="text-sm mt-2">
               All test emails will be sent to this address from <strong>hello@afrikoni.com</strong>. Check your inbox (and spam folder) after sending.
             </p>
           </CardContent>
@@ -524,7 +524,7 @@ export default function TestEmails() {
                     <CardTitle className="text-lg">{test.name}</CardTitle>
                     {getStatusIcon(results[test.name])}
                   </div>
-                  <p className="text-sm text-afrikoni-deep/70 mt-1">{test.description}</p>
+                  <p className="text-sm mt-1">{test.description}</p>
                 </CardHeader>
                 <CardContent>
                   <Button
@@ -537,17 +537,17 @@ export default function TestEmails() {
                     Send Test Email
                   </Button>
                   {detail && (
-                    <div className="mt-3 p-3 bg-afrikoni-offwhite rounded-lg border border-afrikoni-gold/10">
+                    <div className="mt-3 p-3 rounded-lg border">
                       <div className="text-xs space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-afrikoni-deep/70">From:</span>
+                          <span className="">From:</span>
                           <span className={`font-mono text-xs ${detail.usesOfficialEmail ? 'text-green-600' : 'text-red-600'}`}>
                             {detail.from}
                           </span>
                         </div>
                         {detail.usesOfficialEmail !== undefined && (
                           <div className="flex items-center justify-between">
-                            <span className="text-afrikoni-deep/70">Uses Official Email:</span>
+                            <span className="">Uses Official Email:</span>
                             <span className={detail.usesOfficialEmail ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
                               {detail.usesOfficialEmail ? '✓ Yes' : '✗ No'}
                             </span>
@@ -555,12 +555,12 @@ export default function TestEmails() {
                         )}
                         {detail.messageId && (
                           <div className="flex items-center justify-between">
-                            <span className="text-afrikoni-deep/70">Message ID:</span>
-                            <span className="font-mono text-xs text-afrikoni-deep">{detail.messageId}</span>
+                            <span className="">Message ID:</span>
+                            <span className="font-mono text-xs">{detail.messageId}</span>
                           </div>
                         )}
                         {detail.error && (
-                          <div className="mt-2 p-2 bg-red-50 rounded text-red-700 text-xs">
+                          <div className="mt-2 p-2 rounded text-xs">
                             Error: {detail.error}
                           </div>
                         )}
@@ -579,7 +579,7 @@ export default function TestEmails() {
                 <CardTitle className="text-lg">Newsletter Subscription</CardTitle>
                 {getStatusIcon(results['Newsletter Subscription'])}
               </div>
-              <p className="text-sm text-afrikoni-deep/70 mt-1">Tests the actual newsletter subscription flow (same as homepage popup)</p>
+              <p className="text-sm mt-1">Tests the actual newsletter subscription flow (same as homepage popup)</p>
             </CardHeader>
             <CardContent>
               <Button
@@ -592,24 +592,24 @@ export default function TestEmails() {
                 Test Newsletter Flow
               </Button>
               {detailedResults['Newsletter Subscription'] && (
-                <div className="mt-3 p-3 bg-afrikoni-offwhite rounded-lg border border-afrikoni-gold/10">
+                <div className="mt-3 p-3 rounded-lg border">
                   <div className="text-xs space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-afrikoni-deep/70">From:</span>
+                      <span className="">From:</span>
                       <span className={`font-mono text-xs ${detailedResults['Newsletter Subscription'].usesOfficialEmail ? 'text-green-600' : 'text-red-600'}`}>
                         {detailedResults['Newsletter Subscription'].from}
                       </span>
                     </div>
                     {detailedResults['Newsletter Subscription'].usesOfficialEmail !== undefined && (
                       <div className="flex items-center justify-between">
-                        <span className="text-afrikoni-deep/70">Uses Official Email:</span>
+                        <span className="">Uses Official Email:</span>
                         <span className={detailedResults['Newsletter Subscription'].usesOfficialEmail ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
                           {detailedResults['Newsletter Subscription'].usesOfficialEmail ? '✓ Yes' : '✗ No'}
                         </span>
                       </div>
                     )}
                     {detailedResults['Newsletter Subscription'].error && (
-                      <div className="mt-2 p-2 bg-red-50 rounded text-red-700 text-xs">
+                      <div className="mt-2 p-2 rounded text-xs">
                         Error: {detailedResults['Newsletter Subscription'].error}
                       </div>
                     )}
@@ -629,24 +629,24 @@ export default function TestEmails() {
             <CardContent>
               <div className="space-y-3">
                 {Object.entries(detailedResults).map(([emailType, detail]) => (
-                  <div key={emailType} className="p-3 bg-afrikoni-offwhite rounded-lg border">
+                  <div key={emailType} className="p-3 rounded-lg border">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-afrikoni-deep">{emailType}</span>
+                      <span className="font-semibold">{emailType}</span>
                       {detail.status === 'success' ? (
-                        <span className="text-green-600 font-semibold flex items-center gap-1">
+                        <span className="font-semibold flex items-center gap-1">
                           <CheckCircle className="w-4 h-4" />
                           Success
                         </span>
                       ) : detail.status === 'error' ? (
-                        <span className="text-red-600 font-semibold flex items-center gap-1">
+                        <span className="font-semibold flex items-center gap-1">
                           <XCircle className="w-4 h-4" />
                           Failed
                         </span>
                       ) : (
-                        <span className="text-yellow-600 font-semibold">Sending...</span>
+                        <span className="font-semibold">Sending...</span>
                       )}
                     </div>
-                    <div className="text-sm space-y-1 text-afrikoni-deep/70">
+                    <div className="text-sm space-y-1">
                       <div>From: <span className="font-mono">{detail.from}</span></div>
                       {detail.usesOfficialEmail !== undefined && (
                         <div>
@@ -656,7 +656,7 @@ export default function TestEmails() {
                         </div>
                       )}
                       {detail.messageId && <div>Message ID: <span className="font-mono text-xs">{detail.messageId}</span></div>}
-                      {detail.error && <div className="text-red-600">Error: {detail.error}</div>}
+                      {detail.error && <div className="">Error: {detail.error}</div>}
                       {detail.timestamp && <div className="text-xs opacity-60">Sent: {new Date(detail.timestamp).toLocaleString()}</div>}
                     </div>
                   </div>

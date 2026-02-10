@@ -12,13 +12,15 @@ import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { AlertCircle, CheckCircle2, Loader2, TrendingDown } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
-import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
+import { TRADE_STATE } from '@/services/tradeKernel';
+import { generateContractFromQuote } from '@/services/contractService';
 
 export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning }) {
   const [quotes, setQuotes] = useState([]);
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expanding, setExpanding] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadQuotes();
@@ -45,21 +47,30 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
   async function handleSelectQuote(quoteId) {
     setSelectedQuoteId(quoteId);
     const quote = quotes.find(q => q.id === quoteId);
-    
+
+    // Generate contract before transitioning to CONTRACTED
+    const contractResult = await generateContractFromQuote(trade.id, quoteId);
+    if (!contractResult.success) {
+      setSelectedQuoteId(null);
+      setError(contractResult.error || 'Failed to generate contract');
+      return;
+    }
+
     await onNextStep(TRADE_STATE.CONTRACTED, {
       selectedQuoteId: quoteId,
       supplierId: quote.supplier_id,
       totalPrice: quote.total_price,
-      currency: quote.currency
+      currency: quote.currency,
+      contractId: contractResult.contract?.id
     });
   }
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border rounded-2xl">
         <CardContent className="p-6 text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto text-afrikoni-gold" />
-          <p className="text-sm text-gray-600 mt-2">Loading quotes...</p>
+          <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+          <p className="text-sm mt-2">Loading quotes...</p>
         </CardContent>
       </Card>
     );
@@ -67,11 +78,11 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
 
   if (quotes.length === 0) {
     return (
-      <Card className="border-yellow-200 bg-yellow-50/50">
+      <Card className="border rounded-2xl">
         <CardContent className="p-6 text-center">
-          <AlertCircle className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-          <p className="font-semibold text-yellow-900">No quotes yet</p>
-          <p className="text-sm text-yellow-700 mt-1">
+          <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+          <p className="font-semibold">No quotes yet</p>
+          <p className="text-sm mt-1">
             Suppliers are reviewing your RFQ. Check back soon.
           </p>
         </CardContent>
@@ -81,11 +92,18 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
 
   return (
     <div className="space-y-4">
+      {error && (
+        <Card className="border rounded-2xl">
+          <CardContent className="p-4 text-sm">
+            {error}
+          </CardContent>
+        </Card>
+      )}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8]">
+        <h2 className="text-2xl font-semibold">
           Review Quotes
         </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-sm mt-1">
           {quotes.length} supplier{quotes.length !== 1 ? 's' : ''} responded. Select the best offer.
         </p>
       </div>
@@ -93,10 +111,10 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
       {quotes.map((quote, idx) => (
         <Card
           key={quote.id}
-          className={`border-2 transition-all cursor-pointer ${
+          className={`border transition-all cursor-pointer rounded-2xl ${
             selectedQuoteId === quote.id
-              ? 'border-afrikoni-gold/50 bg-afrikoni-gold/5 shadow-premium'
-              : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+              ? 'border-afrikoni-gold/50 bg-afrikoni-gold/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]'
+              : 'border-white/10 bg-white/5 hover:border-afrikoni-gold/40'
           }`}
           onClick={() => setExpanding(expanding === quote.id ? null : quote.id)}
         >
@@ -104,19 +122,19 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
             {/* Header Row */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                <h3 className="font-semibold">
                   {quote.supplier?.company_name}
                 </h3>
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="">
                     {quote.supplier?.country}
                   </Badge>
                   <Badge 
                     variant="secondary"
                     className={
                       (quote.supplier?.trust_score || 0) >= 80
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
+                        ? 'bg-emerald-400/10 text-emerald-200 border border-emerald-400/30'
+                        : 'bg-yellow-500/10 text-yellow-200 border border-yellow-500/30'
                     }
                   >
                     Trust: {Math.round(quote.supplier?.trust_score || 0)}%
@@ -126,10 +144,10 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
 
               {/* Price */}
               <div className="text-right">
-                <p className="text-2xl font-bold text-afrikoni-gold">
+                <p className="text-2xl font-bold">
                   {quote.currency} {quote.price_per_unit}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs mt-1">
                   per {trade.quantity_unit}
                 </p>
               </div>
@@ -137,29 +155,29 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
 
             {/* Expandable Details */}
             {expanding === quote.id && (
-              <div className="mt-4 pt-4 border-t border-afrikoni-gold/10 space-y-3">
+              <div className="mt-4 pt-4 border-t space-y-3">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600 dark:text-gray-400">Total Price</p>
-                    <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                    <p className="">Total Price</p>
+                    <p className="font-semibold">
                       {quote.currency} {quote.total_price?.toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600 dark:text-gray-400">Lead Time</p>
-                    <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                    <p className="">Lead Time</p>
+                    <p className="font-semibold">
                       {quote.lead_time_days} days
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600 dark:text-gray-400">Incoterms</p>
-                    <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                    <p className="">Incoterms</p>
+                    <p className="font-semibold">
                       {quote.incoterms || 'FOB'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600 dark:text-gray-400">Delivery</p>
-                    <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
+                    <p className="">Delivery</p>
+                    <p className="font-semibold">
                       {quote.delivery_location || 'To be confirmed'}
                     </p>
                   </div>
@@ -169,7 +187,7 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
                 <Button
                   onClick={() => handleSelectQuote(quote.id)}
                   disabled={isTransitioning || selectedQuoteId === quote.id}
-                  className="w-full bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white mt-4"
+                  className="w-full hover:bg-afrikoni-gold/90 mt-4"
                 >
                   {selectedQuoteId === quote.id ? (
                     <>
@@ -193,8 +211,8 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
 
       {/* Best Price Indicator */}
       {quotes.length > 1 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm">
-          <p className="text-blue-900 dark:text-blue-200">
+        <div className="border rounded-xl p-3 text-sm">
+          <p>
             <TrendingDown className="w-4 h-4 inline mr-1" />
             <strong>Best pricing:</strong> The first option is {(
               (1 - quotes[0].price_per_unit / quotes[quotes.length - 1].price_per_unit) * 100

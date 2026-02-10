@@ -1,369 +1,392 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { motion } from 'framer-motion';
-import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { TableSkeleton } from '@/components/shared/ui/skeletons';
-import ErrorState from '@/components/shared/ui/ErrorState';
-import { buildShipmentQuery } from '@/utils/queryBuilders';
-import { paginateQuery, createPaginationState } from '@/utils/pagination';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
-import { Button } from '@/components/shared/ui/button';
-import { Badge } from '@/components/shared/ui/badge';
-import { Input } from '@/components/shared/ui/input';
-import { DataTable, StatusChip } from '@/components/shared/ui/data-table';
-import { Truck, MapPin, Calendar, DollarSign, Search, Plus, Eye } from 'lucide-react';
-import { toast } from 'sonner';
-import EmptyState from '@/components/shared/ui/EmptyState';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { format } from 'date-fns';
+import { useEffect, useMemo, useState } from "react";
+import {
+  Truck,
+  Ship,
+  MapPin,
+  Clock,
+  CheckCircle2,
+  Package,
+  AlertTriangle,
+  Anchor,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Progress } from "@/components/shared/ui/progress";
+import { Surface } from "@/components/system/Surface";
+import { supabase } from "@/api/supabaseClient";
+import { useDashboardKernel } from "@/hooks/useDashboardKernel";
 
-export default function DashboardShipments() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
-  const [shipments, setShipments] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [pagination, setPagination] = useState(createPaginationState());
-  // Derive role from capabilities for display purposes
-  const isLogisticsApproved = capabilities.can_logistics === true && capabilities.logistics_status === 'approved';
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
-  const { isStale, markFresh } = useDataFreshness(30000);
-  const lastLoadTimeRef = useRef(null);
-  
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
+const Shipments = () => {
+  const { canLoadData, isSystemReady } = useDashboardKernel();
+  const [activeShipment, setActiveShipment] = useState(null);
+  const [trackingEvents, setTrackingEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!isSystemReady || !canLoadData) return;
+      try {
+        const { data: shipments } = await supabase
+          .from("shipments")
+          .select("id, status, tracking_number, carrier_name, scheduled_delivery_date, actual_delivery_date, scheduled_pickup_date, actual_pickup_date, origin_country, destination_country, current_location, estimated_transit_days, metadata, trade:trades(id, product_name, status, origin_country, destination_country, target_price, price_min, price_max)")
+          .order("updated_at", { ascending: false })
+          .limit(1);
+
+        if (!active) return;
+        const shipment = shipments?.[0] || null;
+        setActiveShipment(shipment);
+
+        if (shipment?.id) {
+          const { data: events } = await supabase
+            .from("shipment_tracking_events")
+            .select("id, event_type, description, location, event_timestamp")
+            .eq("shipment_id", shipment.id)
+            .order("event_timestamp", { ascending: false });
+          if (active) setTrackingEvents(events || []);
+        }
+      } catch {
+        if (active) {
+          setActiveShipment(null);
+          setTrackingEvents([]);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [canLoadData, isSystemReady]);
+
+  const trade = activeShipment?.trade || {};
+  const originCountry = activeShipment?.origin_country || trade?.origin_country || "Origin";
+  const destinationCountry = activeShipment?.destination_country || trade?.destination_country || "Destination";
+  const tradeValue = Number(trade?.target_price ?? trade?.price_max ?? trade?.price_min ?? 0);
+
+  const milestones = useMemo(
+    () => buildShipmentMilestones(activeShipment, trackingEvents),
+    [activeShipment, trackingEvents]
+  );
+
+  const completedCount = milestones.filter((m) => m.status === "completed").length;
+  const progress = milestones.length ? (completedCount / milestones.length) * 100 : 0;
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading shipments..." ready={isSystemReady} />
+      <div className="os-page os-stagger space-y-6">
+        <Surface variant="glass" className="p-6 md:p-8">Loading shipments…</Surface>
       </div>
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
-  useEffect(() => {
-    if (!canLoadData) {
-      if (!userId) {
-        console.log('[DashboardShipments] No user → redirecting to login');
-        navigate('/login');
-      }
-      return;
-    }
-
-    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
-    if (shouldRefresh) {
-      console.log('[DashboardShipments] Data is stale or first load - refreshing');
-      loadShipments();
-    } else {
-      console.log('[DashboardShipments] Data is fresh - skipping reload');
-    }
-  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
-
-  const loadShipments = async () => {
-    if (!profileCompanyId) {
-      console.log('[DashboardShipments] No company_id - cannot load shipments');
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
-      const query = buildShipmentQuery({
-        logisticsCompanyId: isLogisticsApproved ? profileCompanyId : null,
-        status: statusFilter === 'all' ? null : statusFilter
-      });
-      
-      // Use pagination
-      const result = await paginateQuery(query.select('*, orders(*, products(*))'), {
-        page: pagination.page,
-        pageSize: pagination.pageSize
-      });
-
-      if (result.error) throw result.error;
-
-      // Transform shipments data
-      const transformedShipments = Array.isArray(result.data) ? result.data.map(shipment => {
-        if (!shipment) return null;
-        return {
-          id: shipment.id,
-          order_id: shipment.order_id,
-          tracking_number: shipment.tracking_number,
-          origin: shipment.origin_address || 'N/A',
-          destination: shipment.destination_address || 'N/A',
-          product: shipment.orders?.products?.title || 'N/A',
-          quantity: shipment.orders?.quantity || 0,
-          status: shipment.status,
-          carrier: shipment.carrier || 'N/A',
-          estimated_delivery: shipment.estimated_delivery || shipment.orders?.delivery_date,
-          created_at: shipment.updated_at || shipment.created_at,
-          total_amount: shipment.orders?.total_amount || 0
-        };
-      }).filter(Boolean) : [];
-
-      setShipments(transformedShipments);
-      setPagination(prev => ({
-        ...prev,
-        ...result,
-        isLoading: false
-      }));
-      
-      // ✅ ARCHITECTURAL FIX: Mark data as fresh after successful load
-      lastLoadTimeRef.current = Date.now();
-      markFresh();
-    } catch (err) {
-      console.error('[DashboardShipments] Error loading shipments:', err);
-      setError(err.message || 'Failed to load shipments');
-      setShipments([]);
-      setPagination(prev => ({
-        ...prev,
-        totalCount: 0,
-        totalPages: 1,
-        isLoading: false
-      }));
-      toast.error('Failed to load shipments');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const filteredShipments = shipments.filter(shipment => {
-    const matchesSearch = !searchQuery || 
-      shipment.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shipment.tracking_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shipment.product?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shipment.origin?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shipment.destination?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || shipment.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const shipmentColumns = [
-    { header: 'Shipment ID', accessor: 'id', render: (value) => `#${value?.slice(0, 8).toUpperCase()}` },
-    { header: 'Order ID', accessor: 'order_id', render: (value) => value ? `#${value.slice(0, 8).toUpperCase()}` : 'N/A' },
-    { header: 'Product', accessor: 'product' },
-    { 
-      header: 'Route', 
-      accessor: 'origin',
-      render: (value, row) => (
-        <div className="text-sm">
-          <div className="text-afrikoni-deep/70">{value || 'N/A'}</div>
-          <div className="text-afrikoni-deep/70">→ {row.destination || 'N/A'}</div>
-        </div>
-      )
-    },
-    { header: 'Carrier', accessor: 'carrier', render: (value) => value || 'N/A' },
-    { 
-      header: 'Status', 
-      accessor: 'status',
-      render: (value) => <StatusChip status={value} />
-    },
-    { 
-      header: 'Last Updated',
-      accessor: 'created_at',
-      render: (value) => value ? format(new Date(value), 'MMM d, yyyy') : 'N/A'
-    },
-    { 
-      header: 'Actions',
-      accessor: 'id',
-      render: (value) => (
-        <Link to={`/dashboard/shipments/${value}`}>
-          <Button variant="outline" size="sm">
-            <Eye className="w-4 h-4 mr-2" />
-            View
-          </Button>
-        </Link>
-      )
-    }
-  ];
-
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
-    return <TableSkeleton />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
-  if (error) {
+  if (!activeShipment) {
     return (
-      <ErrorState 
-        message={error} 
-        onRetry={loadShipments}
-      />
+      <div className="os-page os-stagger space-y-6">
+        <Surface variant="glass" className="p-6 md:p-8">
+          <h1 className="os-title">Shipment Tracking</h1>
+          <p className="text-sm text-os-muted">No shipments found for your account.</p>
+        </Surface>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* v2.5: Premium Header with Improved Spacing */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-3 leading-tight">Shipments</h1>
-            <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">Track and manage all shipments</p>
-          </div>
-          <Link to="/dashboard/shipments/new">
-            <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni px-6">
-              <Plus className="w-4 h-4 mr-2" />
-              New Shipment
-            </Button>
-          </Link>
-        </motion.div>
+    <div className="os-page os-stagger space-y-6">
+      <Surface variant="glass" className="p-6 md:p-8 mb-6">
+        <div>
+          <div className="os-label">Logistics Control Tower</div>
+          <h1 className="os-title mt-2">Shipment Tracking</h1>
+          <p className="text-sm text-os-muted">
+            Real-time logistics visibility for all active shipments
+          </p>
+        </div>
+      </Surface>
 
-        {/* v2.5: Premium Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                    <Truck className="w-6 h-6 text-afrikoni-gold" />
-                  </div>
+      <Surface variant="panel" className="overflow-hidden p-0">
+        <div className="p-6 border-b border-os-stroke bg-gradient-to-r from-blue-500/5 to-transparent">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Ship className="h-7 w-7 text-blue-500" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">
+                    {trade?.product_name || "Active Shipment"}
+                  </h2>
+                  <span className="bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    {activeShipment.status?.replace("_", " ") || "In Transit"}
+                  </span>
                 </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
-                  {shipments.filter(s => s.status === 'shipped' || s.status === 'processing').length}
-                </div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Active Shipments</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                    <Truck className="w-6 h-6 text-afrikoni-green" />
-                  </div>
-                </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
-                  {shipments.filter(s => s.status === 'delivered').length}
-                </div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Delivered</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                    <Truck className="w-6 h-6 text-afrikoni-purple" />
-                  </div>
-                </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
-                  {shipments.filter(s => s.status === 'shipped').length}
-                </div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">In Transit</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
-            <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-afrikoni-green" />
-                  </div>
-                </div>
-                <div className="text-4xl md:text-5xl font-bold text-afrikoni-gold mb-2">
-                  ${shipments.reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0).toLocaleString()}
-                </div>
-                <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">Total Value</div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                <p className="text-sm text-os-muted">
+                  {activeShipment.carrier_name || "Carrier"} · {activeShipment.tracking_number || "Tracking Pending"}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-os-muted">ETA</p>
+              <p className="text-lg font-semibold text-[var(--os-text-primary)]">
+                {(activeShipment.scheduled_delivery_date || activeShipment.actual_delivery_date)
+                  ? new Date(activeShipment.actual_delivery_date || activeShipment.scheduled_delivery_date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                  : "TBD"}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* v2.5: Premium Filters */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardContent className="p-5 md:p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold" />
-                <Input
-                  placeholder="Search shipments..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
+        <div className="p-6 border-b border-os-stroke">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-blue-400" />
+              <div>
+                <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                  {originCountry}
+                </p>
+                <p className="text-xs text-os-muted">
+                  Origin
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 mx-6">
+              <div className="relative">
+                <Progress value={progress} className="h-2" />
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 border-2 border-[var(--os-surface-2)] shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse-glow"
+                  style={{ left: `${progress}%`, transform: "translate(-50%, -50%)" }}
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending_pickup">Pending Pickup</SelectItem>
-                  <SelectItem value="picked_up">Picked Up</SelectItem>
-                  <SelectItem value="in_transit">In Transit</SelectItem>
-                  <SelectItem value="customs">In Customs</SelectItem>
-                  <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex justify-between mt-1">
+                <span className="text-[10px] text-os-muted">Origin</span>
+                <span className="text-[10px] text-blue-400 font-medium">{activeShipment.current_location || "—"}</span>
+                <span className="text-[10px] text-os-muted">Destination</span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-emerald-400" />
+              <div className="text-right">
+                <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                  {destinationCountry}
+                </p>
+                <p className="text-xs text-os-muted">
+                  Destination
+                </p>
+              </div>
+            </div>
+          </div>
 
-        {/* v2.5: Premium Shipments Table */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-          <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
-            <CardTitle className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 inline-block">All Shipments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {filteredShipments.length === 0 ? (
-              <EmptyState 
-                type="default"
-                title="No shipments yet"
-                description="Shipments will appear here once orders are placed and assigned to logistics."
-                cta="View Orders"
-                ctaLink="/dashboard/orders"
-              />
-            ) : (
-              <DataTable
-                data={filteredShipments}
-                columns={shipmentColumns}
-              />
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            {[
+              {
+                label: "Transit Time",
+                value: activeShipment.estimated_transit_days
+                  ? `${activeShipment.estimated_transit_days} days`
+                  : "—",
+                icon: Clock,
+              },
+              {
+                label: "Current Location",
+                value: activeShipment.current_location || "-",
+                icon: MapPin,
+              },
+              {
+                label: "Risk Level",
+                value: trade?.metadata?.risk_level || "medium",
+                icon: AlertTriangle,
+              },
+              {
+                label: "Value",
+                value: tradeValue ? `$${tradeValue.toLocaleString()}` : "—",
+                icon: Package,
+              },
+            ].map((stat) => (
+              <div key={stat.label} className="p-3 rounded-lg bg-os-surface-1 border border-os-stroke">
+                <div className="flex items-center gap-1 mb-1">
+                  <stat.icon className="h-3 w-3 text-os-muted" />
+                  <span className="text-[10px] uppercase tracking-wider text-os-muted font-semibold">{stat.label}</span>
+                </div>
+                <p className="text-sm font-semibold text-[var(--os-text-primary)] capitalize">
+                  {stat.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-6">
+          <h3 className="text-sm font-semibold text-[var(--os-text-primary)] mb-4">
+            Shipment Milestones
+          </h3>
+          <div className="space-y-0">
+            {milestones.map((milestone, idx) => {
+              const isCompleted = milestone.status === "completed";
+              const isActive = milestone.status === "in_progress";
+              const isLast = idx === milestones.length - 1;
+
+              return (
+                <div key={milestone.id} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors",
+                        isCompleted &&
+                        "bg-emerald-500/10 border-emerald-500 text-emerald-500",
+                        isActive &&
+                        "bg-blue-500/10 border-blue-500 text-blue-500 animate-pulse-glow",
+                        !isCompleted &&
+                        !isActive &&
+                        "bg-os-surface-0 border-os-stroke text-os-muted"
+                      )}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <span className="text-xs font-bold">{idx + 1}</span>
+                      )}
+                    </div>
+                    {!isLast && (
+                      <div
+                        className={cn(
+                          "w-0.5 h-10 my-1",
+                          isCompleted ? "bg-emerald-500/30" : "bg-os-stroke"
+                        )}
+                      />
+                    )}
+                  </div>
+                  <div className="pb-6">
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        isCompleted || isActive
+                          ? "text-[var(--os-text-primary)]"
+                          : "text-os-muted"
+                      )}
+                    >
+                      {milestone.name}
+                    </p>
+                    <p className="text-xs text-os-muted">
+                      {milestone.completedAt
+                        ? new Date(milestone.completedAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )
+                        : milestone.estimatedAt
+                          ? `ETA: ${new Date(
+                            milestone.estimatedAt
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}`
+                          : "Pending"}
+                    </p>
+                    {milestone.aiConfidence && (
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">
+                        AI Confidence: {milestone.aiConfidence}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Surface>
+
+      <Surface variant="panel" className="p-6">
+        <h3 className="text-sm font-semibold text-[var(--os-text-primary)] mb-4">Event Log</h3>
+        <div className="space-y-3">
+          {trackingEvents.map((event) => (
+            <div key={event.id} className="flex items-center gap-4 p-3 rounded-lg bg-os-surface-1 border border-os-stroke">
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center",
+                  event.event_type === "picked_up" && "bg-blue-500/10 text-blue-500",
+                  event.event_type === "in_transit" && "bg-blue-400/10 text-blue-400",
+                  event.event_type === "in_customs" && "bg-amber-500/10 text-amber-500",
+                  event.event_type === "delivered" && "bg-emerald-500/10 text-emerald-500",
+                  event.event_type === "exception" && "bg-red-500/10 text-red-500"
+                )}
+              >
+                {event.event_type === "picked_up" ? (
+                  <Package className="h-4 w-4" />
+                ) : event.event_type === "in_transit" ? (
+                  <Ship className="h-4 w-4" />
+                ) : event.event_type === "in_customs" ? (
+                  <Anchor className="h-4 w-4" />
+                ) : (
+                  <Truck className="h-4 w-4" />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                  {event.description || event.event_type?.replace(/_/g, " ") || "Shipment update"}
+                </p>
+                <p className="text-xs text-os-muted">
+                  {event.location || "—"}
+                </p>
+              </div>
+              <span className="text-xs text-os-muted tabular-nums">
+                {event.event_timestamp
+                  ? new Date(event.event_timestamp).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                  : "—"}
+              </span>
+            </div>
+          ))}
+          {trackingEvents.length === 0 && (
+            <div className="text-sm text-os-muted">No tracking events logged yet.</div>
+          )}
+        </div>
+      </Surface>
+    </div>
   );
-}
+};
 
+export default Shipments;
+
+function buildShipmentMilestones(shipment, events) {
+  const base = [
+    { id: "pickup", name: "Pickup scheduled", status: "pending" },
+    { id: "transit", name: "In transit", status: "pending" },
+    { id: "customs", name: "Customs cleared", status: "pending" },
+    { id: "delivered", name: "Delivered", status: "pending" },
+  ];
+
+  if (!shipment) return base;
+
+  const status = shipment.status;
+  const eventTypes = new Set((events || []).map((e) => e.event_type));
+
+  return base.map((step) => {
+    let stepStatus = "pending";
+    if (step.id === "pickup" && (status !== "pending" || eventTypes.has("picked_up"))) {
+      stepStatus = "completed";
+    }
+    if (step.id === "transit" && (status === "in_transit" || status === "delivery_scheduled" || status === "delivered" || eventTypes.has("in_transit"))) {
+      stepStatus = status === "in_transit" ? "in_progress" : "completed";
+    }
+    if (step.id === "customs" && eventTypes.has("customs_cleared")) {
+      stepStatus = "completed";
+    }
+    if (step.id === "delivered" && (status === "delivered" || eventTypes.has("delivered"))) {
+      stepStatus = "completed";
+    }
+    return {
+      ...step,
+      status: stepStatus,
+      completedAt: stepStatus === "completed" ? shipment.actual_delivery_date || shipment.actual_pickup_date : null,
+      estimatedAt: stepStatus !== "completed" ? shipment.scheduled_delivery_date : null,
+    };
+  });
+}

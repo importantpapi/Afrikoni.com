@@ -7,7 +7,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Truck, Package, Sparkles } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
@@ -25,6 +24,7 @@ import {
 } from '@/services/logisticsService';
 import { recordLogisticsRevenue } from '@/services/revenueService';
 import RequireCapability from '@/guards/RequireCapability';
+import { Surface } from '@/components/system/Surface';
 
 function LogisticsQuoteInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -153,7 +153,7 @@ function LogisticsQuoteInner() {
       if (orderId && profileCompanyId) {
         await Promise.all(
           calculated.map((q) =>
-            saveLogisticsQuote(orderId, companyId, {
+            saveLogisticsQuote(orderId, profileCompanyId, {
               ...q,
               pickupCountry,
               deliveryCountry,
@@ -212,7 +212,7 @@ function LogisticsQuoteInner() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="animate-spin h-10 w-10 border-b-2 border-afrikoni-gold rounded-full" />
+        <div className="animate-spin h-10 w-10 border-b-2 rounded-full" />
       </div>
     );
   }
@@ -231,48 +231,40 @@ function LogisticsQuoteInner() {
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Request Shipping Quote</h1>
+    <div className="os-page os-stagger space-y-6">
+      <h1 className="text-2xl font-semibold text-[var(--os-text-primary)]">Request Shipping Quote</h1>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Shipping Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input placeholder="Pickup Country" value={pickupCountry} onChange={(e) => setPickupCountry(e.target.value)} />
-            <Input placeholder="Delivery Country" value={deliveryCountry} onChange={(e) => setDeliveryCountry(e.target.value)} />
-            <Input placeholder="Weight (kg)" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} />
-            <Button onClick={handleRequestQuotes} disabled={isRequesting}>
-              Get Quotes
-            </Button>
-          </CardContent>
-        </Card>
+      <Surface className="p-5 space-y-4">
+        <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Shipping Details</h2>
+        <Input className="os-input" placeholder="Pickup Country" value={pickupCountry} onChange={(e) => setPickupCountry(e.target.value)} />
+        <Input className="os-input" placeholder="Delivery Country" value={deliveryCountry} onChange={(e) => setDeliveryCountry(e.target.value)} />
+        <Input className="os-input" placeholder="Weight (kg)" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} />
+        <Button onClick={handleRequestQuotes} disabled={isRequesting}>
+          Get Quotes
+        </Button>
+      </Surface>
 
-        {quotes.length > 0 && (
-          <div className="grid md:grid-cols-2 gap-4">
-            {quotes.map((q, i) => (
-              <Card key={i}>
-                <CardContent className="p-6">
-                  <div className="flex justify-between">
-                    <span className="font-bold">{q.partnerName}</span>
-                    {q.recommended && (
-                      <Badge>
-                        <Sparkles className="w-3 h-3 mr-1" /> Recommended
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="mt-2 font-semibold">${q.finalPrice}</p>
-                  <Button className="mt-4 w-full" onClick={() => handleAcceptQuote(q)}>
-                    Accept Quote
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    </>
+      {quotes.length > 0 && (
+        <div className="grid md:grid-cols-2 gap-4">
+          {quotes.map((q, i) => (
+            <Surface key={i} className="p-6">
+              <div className="flex justify-between">
+                <span className="font-semibold text-[var(--os-text-primary)]">{q.partnerName}</span>
+                {q.recommended && (
+                  <Badge>
+                    <Sparkles className="w-3 h-3 mr-1" /> Recommended
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-2 font-semibold text-[var(--os-text-primary)]">${q.finalPrice}</p>
+              <Button className="mt-4 w-full" onClick={() => handleAcceptQuote(q)}>
+                Accept Quote
+              </Button>
+            </Surface>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

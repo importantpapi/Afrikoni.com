@@ -22,6 +22,7 @@
 import { supabase } from '@/api/supabaseClient';
 import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
 import { createPaymentIntent, initiateRefund as refundViaPaymentService } from './paymentService';
+import { validateTradeCompliance } from './complianceService';
 
 /**
  * Create escrow for a trade
@@ -41,38 +42,35 @@ export async function createEscrow({
       return { success: false, error: 'Escrow amount must be greater than 0' };
     }
 
-    // KERNEL: Create escrow record
-    const { data: escrow, error } = await supabase
-      .from('escrows')
-      .insert({
-        trade_id: tradeId,
-        buyer_id: buyerId,
-        seller_id: sellerId,
-        amount,
-        currency,
-        payment_method: paymentMethod,
-        status: 'pending', // Waiting for buyer payment
-        balance: amount,
-        created_at: new Date(),
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 day expiry
-      })
-      .select()
-      .single();
+      // Create escrow record
+      const { data: escrow, error } = await supabase
+        .from('escrows')
+        .insert({
+          trade_id: tradeId,
+          buyer_id: buyerId,
+          seller_id: sellerId,
+          amount,
+          currency,
+          payment_method: paymentMethod,
+          status: 'pending', // Waiting for buyer payment
+          balance: amount,
+          created_at: new Date(),
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 day expiry
+        })
+        .select()
+        .single();
 
     if (error) {
       return { success: false, error: error.message };
     }
 
-    // Emit event
-    await emitTradeEvent({
-      tradeId,
-      eventType: TRADE_EVENT_TYPE.ESCROW_CREATED,
-      metadata: {
+      // Log event (non-state transition)
+      const { logTradeEvent } = await import('./tradeKernel');
+      await logTradeEvent(tradeId, 'escrow_created', {
         escrow_id: escrow.id,
         amount,
         currency
-      }
-    });
+      }, 'buyer');
 
     return { success: true, escrow };
   } catch (err) {
@@ -204,87 +202,10 @@ export async function releaseEscrow({
   reason = 'delivery_accepted',
   metadata = {}
 }) {
-  try {
-    // KERNEL: Get escrow
-    const { data: escrow, error: getError } = await supabase
-      .from('escrows')
-      .select('*')
-      .eq('id', escrowId)
-      .single();
-
-    if (getError || !escrow) {
-      return { success: false, error: 'Escrow not found' };
-    }
-
-    // KERNEL: Validate escrow is funded
-    if (escrow.status !== 'funded') {
-      return { success: false, error: 'Escrow must be funded to release' };
-    }
-
-    // KERNEL: Validate release conditions
-    const conditionsResult = await validateReleaseConditions(escrow.trade_id);
-    if (!conditionsResult.valid) {
-      return {
-        success: false,
-        error: `Cannot release escrow: ${conditionsResult.reason}`
-      };
-    }
-
-    // KERNEL: Create payment record
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .insert({
-        escrow_id: escrowId,
-        trade_id: escrow.trade_id,
-        recipient_id: escrow.seller_id,
-        amount: escrow.balance,
-        currency: escrow.currency,
-        payment_type: 'escrow_release',
-        reason,
-        status: 'processing',
-        created_at: new Date()
-      })
-      .select()
-      .single();
-
-    if (paymentError) {
-      return { success: false, error: paymentError.message };
-    }
-
-    // KERNEL: Update escrow status
-    const { data: updatedEscrow, error: updateError } = await supabase
-      .from('escrows')
-      .update({
-        status: 'released',
-        balance: 0,
-        released_at: new Date(),
-        release_reason: reason
-      })
-      .eq('id', escrowId)
-      .select()
-      .single();
-
-    if (updateError) {
-      return { success: false, error: updateError.message };
-    }
-
-    // KERNEL: Emit event
-    await emitTradeEvent({
-      tradeId: escrow.trade_id,
-      eventType: TRADE_EVENT_TYPE.PAYMENT_RELEASED,
-      metadata: {
-        escrow_id: escrowId,
-        payment_id: payment.id,
-        amount: escrow.balance,
-        reason
-      }
-    });
-
-    return { success: true, escrow: updatedEscrow, payment };
-  } catch (err) {
-    console.error('[escrowService] Release escrow failed:', err);
-    return { success: false, error: err.message };
-  }
+  return {
+    success: false,
+    error: 'Kernel-enforced: escrow release must occur via trade settlement transition.'
+  };
 }
 
 /**
@@ -412,25 +333,30 @@ async function validateReleaseConditions(tradeId) {
     // 2. Check buyer acceptance
     const { data: trade } = await supabase
       .from('trades')
-      .select('metadata')
+      .select('id, metadata')
       .eq('id', tradeId)
-      .single();
+      .maybeSingle();
 
-    if (!trade?.metadata?.buyer_accepted) {
+    const buyerAccepted = trade?.metadata?.buyer_accepted === true || trade?.metadata?.buyerAccepted === true;
+    if (!buyerAccepted) {
       return { valid: false, reason: 'Buyer has not accepted delivery' };
     }
 
-    // 3. Check compliance docume completed (TODO: implement)
-    // const complianceCheck = await checkComplianceDocs(tradeId);
-    // if (!complianceCheck) {
-    //   return { valid: false, reason: 'Compliance documents incomplete' };
-    // }
+    // 3. Check compliance documents completed
+    const hsCode = trade?.metadata?.hs_code || trade?.metadata?.hsCode || null;
+    if (hsCode) {
+      const complianceResult = await validateTradeCompliance(tradeId, hsCode);
+      if (!complianceResult?.compliant) {
+        return { valid: false, reason: 'Compliance documents incomplete' };
+      }
+    }
 
-    // 4. Check inspection passed if required (TODO: implement)
-    // const inspectionResult = await checkInspection(tradeId);
-    // if (inspectionResult.required && !inspectionResult.passed) {
-    //   return { valid: false, reason: 'Inspection not passed' };
-    // }
+    // 4. Check inspection passed if required
+    const inspectionRequired = trade?.metadata?.inspection_required === true;
+    const inspectionPassed = trade?.metadata?.inspection_passed === true;
+    if (inspectionRequired && !inspectionPassed) {
+      return { valid: false, reason: 'Inspection not passed' };
+    }
 
     return { valid: true };
   } catch (err) {

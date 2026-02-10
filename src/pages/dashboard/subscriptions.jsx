@@ -3,11 +3,10 @@
  * Allows suppliers to view and upgrade their subscription
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles, Crown, Zap, ArrowRight } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
@@ -23,6 +22,7 @@ import {
   getPlanDetails 
 } from '@/services/subscriptionService';
 import RequireCapability from '@/guards/RequireCapability';
+import { Surface } from '@/components/system/Surface';
 
 function SubscriptionsPageInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -104,7 +104,7 @@ function SubscriptionsPageInner() {
   };
 
   const handleUpgrade = async (planType) => {
-    if (!companyId) {
+    if (!profileCompanyId) {
       toast.error('Company not found');
       return;
     }
@@ -157,46 +157,46 @@ function SubscriptionsPageInner() {
   }
 
   return (
-    <>
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">
-            Subscription Plans
-          </h1>
-          <p className="text-afrikoni-text-dark/70">
-            Choose a plan that fits your business needs and boost your visibility
-          </p>
-        </div>
+    <div className="os-page os-stagger space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-semibold text-[var(--os-text-primary)] mb-2">
+          Subscription Plans
+        </h1>
+        <p className="text-[var(--os-text-secondary)]">
+          Choose a plan that fits your business needs and boost your visibility
+        </p>
+      </div>
 
-        {/* Current Plan Badge */}
-        {currentSubscription && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-4"
-          >
+      {/* Current Plan Badge */}
+      {currentSubscription && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Surface variant="soft" className="p-4 border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-afrikoni-text-dark/70">Current Plan</p>
-                <p className="text-xl font-bold text-afrikoni-text-dark">
+                <p className="text-sm text-[var(--os-text-secondary)]">Current Plan</p>
+                <p className="text-xl font-semibold text-[var(--os-text-primary)]">
                   {planDetails.name} Plan
                 </p>
                 {currentSubscription.current_period_end && (
-                  <p className="text-xs text-afrikoni-text-dark/60 mt-1">
+                  <p className="text-xs text-[var(--os-text-secondary)] mt-1">
                     Renews on {new Date(currentSubscription.current_period_end).toLocaleDateString()}
                   </p>
                 )}
               </div>
-              <Badge className="bg-afrikoni-gold text-afrikoni-chestnut">
+              <Badge className="">
                 Active
               </Badge>
             </div>
-          </motion.div>
-        )}
+          </Surface>
+        </motion.div>
+      )}
 
-        {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6">
+      {/* Plans Grid */}
+      <div className="grid md:grid-cols-3 gap-6">
           {Object.values(SUBSCRIPTION_PLANS).map((plan, index) => {
             const isCurrentPlan = currentPlan === plan.id;
             const isUpgrade = plan.monthlyPrice > (planDetails.monthlyPrice || 0);
@@ -208,40 +208,40 @@ function SubscriptionsPageInner() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className={`h-full flex flex-col ${
+                <Surface className={`h-full flex flex-col p-5 ${
                   plan.id === 'elite' 
                     ? 'border-2 border-afrikoni-gold shadow-lg' 
-                    : 'border-afrikoni-gold/20'
+                    : 'border border-white/10'
                 }`}>
-                  <CardHeader>
+                  <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                      <h3 className="text-xl font-semibold text-[var(--os-text-primary)]">{plan.name}</h3>
                       {plan.id === 'elite' && (
-                        <Crown className="w-6 h-6 text-afrikoni-gold" />
+                        <Crown className="w-6 h-6" />
                       )}
                       {plan.id === 'growth' && (
-                        <Sparkles className="w-6 h-6 text-afrikoni-purple" />
+                        <Sparkles className="w-6 h-6" />
                       )}
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-afrikoni-text-dark">
+                      <span className="text-3xl font-semibold text-[var(--os-text-primary)]">
                         ${plan.monthlyPrice}
                       </span>
-                      <span className="text-afrikoni-text-dark/70">/month</span>
+                      <span className="text-[var(--os-text-secondary)]">/month</span>
                     </div>
                     {plan.visibilityBoost > 0 && (
-                      <p className="text-sm text-afrikoni-gold mt-2">
+                      <p className="text-sm mt-2">
                         <Zap className="w-4 h-4 inline mr-1" />
                         {plan.visibilityBoost === 1.5 ? '50%' : '200%'} visibility boost
                       </p>
                     )}
-                  </CardHeader>
-                  <CardContent className="flex-1 flex flex-col">
+                  </div>
+                  <div className="flex-1 flex flex-col">
                     <ul className="space-y-3 mb-6 flex-1">
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <Check className="w-5 h-5 text-afrikoni-green flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-afrikoni-text-dark/80">{feature}</span>
+                          <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-[var(--os-text-secondary)]">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -266,8 +266,8 @@ function SubscriptionsPageInner() {
                         'Select Plan'
                       )}
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </Surface>
               </motion.div>
             );
           })}
@@ -279,34 +279,34 @@ function SubscriptionsPageInner() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border border-afrikoni-gold/30 rounded-lg p-6"
           >
-            <h3 className="text-lg font-bold text-afrikoni-text-dark mb-3">
+            <Surface variant="soft" className="p-6 bg-gradient-to-r border">
+              <h3 className="text-lg font-semibold text-[var(--os-text-primary)] mb-3">
               🚀 Upgrade to Increase Your Visibility
-            </h3>
-            <p className="text-afrikoni-text-dark/80 mb-4">
+              </h3>
+              <p className="text-[var(--os-text-secondary)] mb-4">
               Premium plans help your products rank higher in search results, get more RFQ matches, and close more deals.
-            </p>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-afrikoni-text-dark">AI-Powered Ranking</p>
-                  <p className="text-sm text-afrikoni-text-dark/70">Get matched with more relevant buyers</p>
+              </p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-[var(--os-text-primary)]">AI-Powered Ranking</p>
+                    <p className="text-sm text-[var(--os-text-secondary)]">Get matched with more relevant buyers</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Crown className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-[var(--os-text-primary)]">Featured Placement</p>
+                    <p className="text-sm text-[var(--os-text-secondary)]">Appear at the top of search results</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <Crown className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-afrikoni-text-dark">Featured Placement</p>
-                  <p className="text-sm text-afrikoni-text-dark/70">Appear at the top of search results</p>
-                </div>
-              </div>
-            </div>
+            </Surface>
           </motion.div>
         )}
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -320,4 +320,3 @@ export default function SubscriptionsPage() {
     </>
   );
 }
-

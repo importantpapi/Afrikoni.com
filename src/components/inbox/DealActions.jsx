@@ -126,8 +126,8 @@ export default function DealActions({ conversation, companyId, onActionComplete 
   };
 
   return (
-    <div className="space-y-2 px-4 py-3 bg-afrikoni-gold/5 border-t border-afrikoni-gold/20">
-      <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide mb-2">
+    <div className="space-y-2 px-4 py-3 border-t">
+      <div className="text-xs font-semibold uppercase tracking-wide mb-2">
         Deal Actions
       </div>
       <div className="flex flex-wrap gap-2">
@@ -141,7 +141,7 @@ export default function DealActions({ conversation, companyId, onActionComplete 
               variant="outline"
               onClick={() => handleAction(action.action)}
               disabled={isProcessing !== null}
-              className="min-h-[44px] px-3 text-sm border-afrikoni-gold/40 hover:bg-afrikoni-gold/10 flex-1 min-w-[120px]"
+              className="min-h-[44px] px-3 text-sm hover:bg-afrikoni-gold/10 flex-1 min-w-[120px]"
               title={action.description}
             >
               {isProcessingAction ? (
@@ -154,7 +154,7 @@ export default function DealActions({ conversation, companyId, onActionComplete 
           );
         })}
       </div>
-      <p className="text-xs text-afrikoni-deep/50 mt-2">
+      <p className="text-xs mt-2">
         These actions update deal status and create records in Afrikoni
       </p>
     </div>

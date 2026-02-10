@@ -298,7 +298,7 @@ export default function KoniAIHub() {
   };
 
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite py-6 md:py-8">
+    <div className="min-h-screen py-6 md:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Hero Section */}
         <motion.div
@@ -313,13 +313,13 @@ export default function KoniAIHub() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+              className="mt-6 border rounded-lg p-4"
             >
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-yellow-800 mb-1">KoniAI is not configured yet</p>
-                  <p className="text-sm text-yellow-700">
+                  <p className="font-semibold mb-1">KoniAI is not configured yet</p>
+                  <p className="text-sm">
                     Please add your OpenAI API key to the environment settings (VITE_OPENAI_API_KEY) to enable KoniAI features.
                   </p>
                 </div>
@@ -336,10 +336,10 @@ export default function KoniAIHub() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="h-full border-2 border-afrikoni-gold/30 bg-white shadow-lg">
+            <Card className="h-full border-2 shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-afrikoni-gold" />
+                  <Package className="w-5 h-5" />
                   <CardTitle>AI Product Assistant</CardTitle>
                 </div>
               </CardHeader>
@@ -399,10 +399,10 @@ export default function KoniAIHub() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 space-y-3 p-4 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg"
+                    className="mt-4 space-y-3 p-4 border rounded-lg"
                   >
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-afrikoni-chestnut">Generated Listing</h4>
+                      <h4 className="font-semibold">Generated Listing</h4>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -424,22 +424,22 @@ export default function KoniAIHub() {
                     </div>
 
                     <div>
-                      <Label className="text-xs text-afrikoni-deep/70">Title</Label>
-                      <p className="text-sm font-medium text-afrikoni-chestnut mt-1">
+                      <Label className="text-xs">Title</Label>
+                      <p className="text-sm font-medium mt-1">
                         {productResult.title}
                       </p>
                     </div>
 
                     <div>
-                      <Label className="text-xs text-afrikoni-deep/70">Description</Label>
-                      <p className="text-sm text-afrikoni-deep mt-1 whitespace-pre-wrap">
+                      <Label className="text-xs">Description</Label>
+                      <p className="text-sm mt-1 whitespace-pre-wrap">
                         {productResult.description}
                       </p>
                     </div>
 
                     {productResult.tags && productResult.tags.length > 0 && (
                       <div>
-                        <Label className="text-xs text-afrikoni-deep/70">Tags</Label>
+                        <Label className="text-xs">Tags</Label>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {productResult.tags.map((tag, idx) => (
                             <Badge key={idx} variant="outline" className="text-xs">
@@ -452,8 +452,8 @@ export default function KoniAIHub() {
 
                     {productResult.suggestedCategory && (
                       <div>
-                        <Label className="text-xs text-afrikoni-deep/70">Suggested Category</Label>
-                        <Badge className="mt-1 bg-afrikoni-gold text-afrikoni-chestnut">
+                        <Label className="text-xs">Suggested Category</Label>
+                        <Badge className="mt-1">
                           {productResult.suggestedCategory}
                         </Badge>
                       </div>
@@ -470,10 +470,10 @@ export default function KoniAIHub() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="h-full border-2 border-afrikoni-gold/30 bg-white shadow-lg">
+            <Card className="h-full border-2 shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Search className="w-5 h-5 text-afrikoni-gold" />
+                  <Search className="w-5 h-5" />
                   <CardTitle>Find Suppliers with KoniAI</CardTitle>
                 </div>
               </CardHeader>
@@ -536,15 +536,15 @@ export default function KoniAIHub() {
                     {supplierResults.map((supplier, idx) => (
                       <div
                         key={idx}
-                        className="p-3 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg"
+                        className="p-3 border rounded-lg"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <p className="font-semibold text-afrikoni-chestnut text-sm">
+                            <p className="font-semibold text-sm">
                               {supplier.supplierName || supplier.companyName}
                             </p>
                             {supplier.productExample && (
-                              <p className="text-xs text-afrikoni-deep/70 mt-1">
+                              <p className="text-xs mt-1">
                                 Example: {supplier.productExample}
                               </p>
                             )}
@@ -560,7 +560,7 @@ export default function KoniAIHub() {
                           </Badge>
                         </div>
                         {supplier.reason && (
-                          <p className="text-xs text-afrikoni-deep/80 mb-2">
+                          <p className="text-xs mb-2">
                             {supplier.reason}
                           </p>
                         )}
@@ -580,7 +580,7 @@ export default function KoniAIHub() {
                 )}
 
                 {supplierResults.length === 0 && supplierLoading === false && supplierQuery && (
-                  <p className="text-sm text-afrikoni-deep/70 text-center py-4">
+                  <p className="text-sm text-center py-4">
                     No suppliers found. Try adjusting your search criteria.
                   </p>
                 )}
@@ -594,10 +594,10 @@ export default function KoniAIHub() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="h-full border-2 border-afrikoni-gold/30 bg-white shadow-lg">
+            <Card className="h-full border-2 shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-afrikoni-gold" />
+                  <MessageSquare className="w-5 h-5" />
                   <CardTitle>Reply to RFQs Faster</CardTitle>
                 </div>
               </CardHeader>
@@ -643,7 +643,7 @@ export default function KoniAIHub() {
                     className="mt-4 space-y-2"
                   >
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-semibold text-afrikoni-chestnut">
+                      <Label className="text-sm font-semibold">
                         Generated Reply
                       </Label>
                       <Button
@@ -660,10 +660,10 @@ export default function KoniAIHub() {
                       value={rfqReply}
                       onChange={(e) => setRfqReply(e.target.value)}
                       rows={8}
-                      className="bg-afrikoni-gold/5 border-afrikoni-gold/20"
+                      className=""
                       placeholder="Generated reply will appear here..."
                     />
-                    <p className="text-xs text-afrikoni-deep/70">
+                    <p className="text-xs">
                       Review and edit the reply before sending. You can customize it further.
                     </p>
                   </motion.div>
@@ -681,18 +681,18 @@ export default function KoniAIHub() {
           className="mt-8 grid md:grid-cols-2 gap-6"
         >
           {/* Auto RFQ Follow-up */}
-          <Card className="border-2 border-afrikoni-gold/30 bg-white shadow-lg hover:shadow-xl transition-all">
+          <Card className="border-2 shadow-lg hover:shadow-xl transition-all">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-afrikoni-gold" />
+                <Bell className="w-5 h-5" />
                 <CardTitle>Auto RFQ Follow-up</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+              <div className="flex items-center justify-between p-4 rounded-lg border">
                 <div>
-                  <p className="font-semibold text-afrikoni-chestnut mb-1">Smart Reminders</p>
-                  <p className="text-sm text-afrikoni-deep/70">
+                  <p className="font-semibold mb-1">Smart Reminders</p>
+                  <p className="text-sm">
                     Automatically send polite reminders to buyers about pending RFQs
                   </p>
                 </div>
@@ -709,16 +709,16 @@ export default function KoniAIHub() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="p-4 bg-green-50 border border-green-200 rounded-lg"
+                  className="p-4 border rounded-lg"
                 >
-                  <p className="text-sm text-green-800 mb-2">
+                  <p className="text-sm mb-2">
                     <CheckCircle className="w-4 h-4 inline mr-1" />
                     Auto follow-up is active. KoniAI will send polite reminders to buyers after 48 hours of no response.
                   </p>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-xs border-green-300 text-green-700 hover:bg-green-100"
+                    className="text-xs hover:bg-green-100"
                     onClick={() => toast.success('Reminder sent!')}
                   >
                     Send polite reminder to buyer?
@@ -729,10 +729,10 @@ export default function KoniAIHub() {
           </Card>
 
           {/* Buyer/Supplier Matching Feed */}
-          <Card className="border-2 border-afrikoni-gold/30 bg-white shadow-lg hover:shadow-xl transition-all">
+          <Card className="border-2 shadow-lg hover:shadow-xl transition-all">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-afrikoni-gold" />
+                <Target className="w-5 h-5" />
                 <CardTitle>Matching Feed</CardTitle>
               </div>
             </CardHeader>
@@ -745,23 +745,23 @@ export default function KoniAIHub() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="p-3 bg-afrikoni-gold/5 border border-afrikoni-gold/20 rounded-lg hover:bg-afrikoni-gold/10 transition-colors"
+                      className="p-3 border rounded-lg hover:bg-afrikoni-gold/10 transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="font-semibold text-afrikoni-chestnut text-sm mb-1">
+                          <p className="font-semibold text-sm mb-1">
                             {buyer.name || 'Buyer'}
                           </p>
-                          <p className="text-xs text-afrikoni-deep/70 mb-2">
+                          <p className="text-xs mb-2">
                             {buyer.description || 'Looking for products matching your description'}
                           </p>
-                          <Badge className="bg-afrikoni-gold/20 text-afrikoni-chestnut text-xs">
+                          <Badge className="text-xs">
                             {buyer.matchCount || 5} buyers match your product description
                           </Badge>
                         </div>
                         <Button
                           size="sm"
-                          className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                          className="hover:bg-afrikoni-goldDark"
                           onClick={() => navigate('/messages', { 
                             state: { from: location.pathname + location.search },
                             search: `?recipient=${buyer.id}`
@@ -775,13 +775,13 @@ export default function KoniAIHub() {
                   ))
                 ) : (
                   <div className="p-4 text-center">
-                    <Users className="w-8 h-8 text-afrikoni-gold/40 mx-auto mb-2" />
-                    <p className="text-sm text-afrikoni-deep/70 mb-3">
+                    <Users className="w-8 h-8 mx-auto mb-2" />
+                    <p className="text-sm mb-3">
                       5 buyers match your product description
                     </p>
                     <Button
                       size="sm"
-                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                      className="hover:bg-afrikoni-goldDark"
                       onClick={() => {
                         setMatchingBuyers([
                           { id: '1', name: 'Lagos Textiles Ltd.', description: 'Looking for premium shea butter', matchCount: 5 },

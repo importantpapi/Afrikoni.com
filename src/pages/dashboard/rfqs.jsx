@@ -1,729 +1,271 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { motion } from 'framer-motion';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
-import { RFQ_STATUS, RFQ_STATUS_LABELS, getStatusLabel } from '@/constants/status';
-import { buildRFQQuery } from '@/utils/queryBuilders';
-import { paginateQuery, createPaginationState } from '@/utils/pagination';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
-import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import React, { useMemo, useState } from 'react';
+import { mockRFQs } from '@/lib/trade-kernel';
+import {
+  Search,
+  Plus,
+  Clock,
+  Globe,
+  DollarSign,
+  MessageSquare,
+  Send,
+  ChevronRight,
+  Sparkles,
+  Zap,
+} from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
-import { Badge } from '@/components/shared/ui/badge';
 import { Input } from '@/components/shared/ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import { FileText, Search, Plus, MessageSquare, Calendar, DollarSign, Package, TrendingUp, Sparkles, Clock, Target, Zap } from 'lucide-react';
-import { toast } from 'sonner';
-import EmptyState from '@/components/shared/ui/EmptyState';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { useTranslation } from 'react-i18next';
-import SubscriptionUpsell from '@/components/upsell/SubscriptionUpsell';
-import VerificationUpsell from '@/components/upsell/VerificationUpsell';
-import { getCompanySubscription } from '@/services/subscriptionService';
-import RequireCapability from '@/guards/RequireCapability';
-import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
+import { Textarea } from '@/components/shared/ui/textarea';
+import { Surface } from '@/components/system/Surface';
+import { StatusBadge } from '@/components/system/StatusBadge';
+import { cn } from '@/lib/utils';
 
-const AFRICAN_COUNTRIES = [
-  'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
-  'Central African Republic', 'Chad', 'Comoros', 'Congo', 'DR Congo', "Côte d'Ivoire", 'Djibouti',
-  'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana',
-  'Guinea', 'Guinea-Bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi',
-  'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria',
-  'Rwanda', 'São Tomé and Príncipe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia',
-  'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
+const statusConfig = {
+  draft: { label: 'Draft' },
+  sent: { label: 'New' },
+  viewed: { label: 'Viewed' },
+  quoted: { label: 'Quoted' },
+  accepted: { label: 'Accepted' },
+  expired: { label: 'Expired' },
+  cancelled: { label: 'Cancelled' },
+};
+
+const statusTabs = [
+  { key: 'all', label: 'All' },
+  { key: 'sent', label: 'New' },
+  { key: 'quoted', label: 'Quoted' },
+  { key: 'accepted', label: 'Accepted' },
 ];
 
-function DashboardRFQsInner() {
-  const { t } = useTranslation();
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
-  // Derive role from capabilities for display purposes
-  const isBuyer = capabilities?.can_buy === true;
-  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
-  const isHybridCapability = isBuyer && isSeller;
-  const currentRole = isHybridCapability ? 'hybrid' : isSeller ? 'seller' : 'buyer';
-  
-  const [rfqs, setRfqs] = useState([]);
-  const [quotes, setQuotes] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state for data fetching
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('sent');
-  const [searchQuery, setSearchQuery] = useState('');
+export default function RFQs() {
+  const [search, setSearch] = useState('');
+  const [showQuickRFQ, setShowQuickRFQ] = useState(false);
+  const [quickRFQText, setQuickRFQText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [countryFilter, setCountryFilter] = useState('');
-  const [pagination, setPagination] = useState(createPaginationState());
-  const [currentPlan, setCurrentPlan] = useState('free');
-  const [isVerified, setIsVerified] = useState(false);
-  const [matchCount, setMatchCount] = useState(0);
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
-  const { isStale, markFresh, refresh } = useDataFreshness(30000);
-  const lastLoadTimeRef = useRef(null);
-  
-  // ✅ UNIFIED DASHBOARD KERNEL: Show loading spinner while system is not ready
-  if (!canLoadData && capabilities.loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilities.ready} />
-      </div>
+  const [aiProcessing, setAiProcessing] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
+
+  const formatDeadline = (deadline) => {
+    const days = Math.ceil(
+      (new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
     );
-  }
-
-  useEffect(() => {
-    // ✅ KERNEL MIGRATION: Use canLoadData guard
-    if (!canLoadData) {
-      return;
-    }
-
-    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
-    if (shouldRefresh) {
-      console.log('[DashboardRFQs] Data is stale or first load - refreshing');
-      loadUserAndRFQs();
-    } else {
-      console.log('[DashboardRFQs] Data is fresh - skipping reload');
-    }
-  }, [canLoadData, userId, profileCompanyId, activeTab, location.pathname, isStale, navigate]);
-
-  const loadUserAndRFQs = async () => {
-    if (!profileCompanyId) {
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Load subscription and verification status
-      if (profileCompanyId) {
-        try {
-          const subscription = await getCompanySubscription(profileCompanyId);
-          setCurrentPlan(subscription?.plan_type || 'free');
-          
-          const { data: companyData } = await supabase
-            .from('companies')
-            .select('verified, verification_status')
-            .eq('id', profileCompanyId)
-            .single();
-          
-          setIsVerified(companyData?.verified || companyData?.verification_status === 'verified');
-        } catch (error) {
-          console.error('Error loading subscription/verification:', error);
-        }
-      }
-
-      // ✅ FOUNDATION FIX: Build query based on capabilities instead of role
-      const query = buildRFQQuery({
-        buyerCompanyId: (activeTab === 'sent' || activeTab === 'all') && isBuyer ? profileCompanyId : null,
-        status: activeTab === 'received' || activeTab === 'quotes' ? RFQ_STATUS.OPEN : null,
-        categoryId: categoryFilter || null,
-        country: countryFilter || null
-      });
-      
-      // Use pagination
-      const result = await paginateQuery(query, {
-        page: pagination.page,
-        pageSize: pagination.pageSize
-      });
-      
-      // Fix N+1 query: Load quotes count with aggregation
-      const rfqIds = Array.isArray(result.data) ? result.data.map(rfq => rfq.id) : [];
-      let quotesCountMap = {};
-      
-      if (rfqIds.length > 0) {
-        const { data: quotesData } = await supabase
-          .from('quotes')
-          .select('rfq_id')
-          .in('rfq_id', rfqIds);
-        
-        // Count quotes per RFQ
-        quotesCountMap = Array.isArray(quotesData) ? quotesData.reduce((acc, quote) => {
-          if (quote && quote.rfq_id) {
-            acc[quote.rfq_id] = (acc[quote.rfq_id] || 0) + 1;
-          }
-          return acc;
-        }, {}) : {};
-      }
-      
-      const rfqsWithQuotes = Array.isArray(result.data) ? result.data.map(rfq => ({
-        ...rfq,
-        quotesCount: quotesCountMap[rfq.id] || 0
-      })) : [];
-
-      // SAFETY ASSERTION: each RFQ should be associated with the current company when viewing "sent"
-      if (profileCompanyId && (activeTab === 'sent' || activeTab === 'all')) {
-        for (const rfq of rfqsWithQuotes) {
-          await assertRowOwnedByCompany(rfq, profileCompanyId, 'DashboardRFQs:rfqs');
-        }
-      }
-
-      setRfqs(rfqsWithQuotes);
-      setPagination(prev => ({
-        ...prev,
-        ...result,
-        isLoading: false
-      }));
-      
-      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
-      // Only mark fresh if we got actual data (not an error)
-      if (rfqsWithQuotes && Array.isArray(rfqsWithQuotes)) {
-        lastLoadTimeRef.current = Date.now();
-        markFresh();
-      }
-
-      // ✅ FOUNDATION FIX: Calculate match count for suppliers using capabilities
-      if (isSeller) {
-        // ✅ FIX: Proper RFQ query syntax to avoid 400 errors
-        const now = new Date().toISOString();
-        let rfqQuery = supabase
-          .from('rfqs')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'open');
-        
-        // ✅ FIX: Use .or() with proper syntax - check if expires_at is null OR >= now
-        rfqQuery = rfqQuery.or(`expires_at.is.null,expires_at.gte.${now}`);
-        
-        const { count, error: rfqCountError } = await rfqQuery;
-        
-        if (rfqCountError) {
-          console.error('Error counting RFQs:', rfqCountError);
-          // Don't throw - just log and continue
-        } else {
-          setMatchCount(count || 0);
-        }
-      }
-
-      // Load categories
-      const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      setCategories(categoriesData || []);
-
-      // ✅ FOUNDATION FIX: Load quotes using capabilities
-      if (isSeller && profileCompanyId) {
-        const { data: myQuotes } = await supabase
-          .from('quotes')
-          .select('*, rfqs(*)')
-          .eq('supplier_company_id', profileCompanyId)
-          .order('created_at', { ascending: false });
-        setQuotes(myQuotes || []);
-      }
-    } catch (error) {
-      // ✅ KERNEL MIGRATION: Enhanced error logging and state
-      console.error('Error loading RFQs:', error);
-      setError(error?.message || 'Failed to load RFQs. Please try again.');
-      toast.error(error?.message || 'Failed to load RFQs. Please try again.');
-      setRfqs([]);
-      setQuotes([]);
-      setCategories([]);
-      setPagination(prev => ({
-        ...prev,
-        totalCount: 0,
-        totalPages: 1,
-        isLoading: false
-      }));
-    } finally {
-      setIsLoading(false);
-    }
+    if (days < 0) return 'Expired';
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Tomorrow';
+    return `${days}d left`;
   };
 
-  const filteredRFQs = (Array.isArray(rfqs) ? rfqs : []).filter(rfq => {
-    if (!rfq) return false;
-    const matchesSearch = !searchQuery || 
-      rfq.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rfq.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || rfq.status === statusFilter;
-    const matchesCategory = !categoryFilter || rfq.category_id === categoryFilter;
-    const matchesCountry = !countryFilter || rfq.delivery_location?.toLowerCase().includes(countryFilter.toLowerCase());
-    return matchesSearch && matchesStatus && matchesCategory && matchesCountry;
-  });
+  const filtered = useMemo(() => {
+    const term = search.toLowerCase();
+    return mockRFQs.filter((rfq) => {
+      const matchesSearch =
+        rfq.productName.toLowerCase().includes(term) ||
+        rfq.buyerCompany.toLowerCase().includes(term);
+      const matchesStatus = statusFilter === 'all' || rfq.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [search, statusFilter]);
 
-  if (isLoading) {
-    return <CardSkeleton count={6} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
-  if (error) {
-    return (
-      <ErrorState 
-        message={error} 
-        onRetry={() => {
-          setError(null);
-          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
-          if (shouldRefresh) {
-            loadUserAndRFQs();
-          }
-        }}
-      />
-    );
-  }
+  const handleGenerateRFQ = () => {
+    setAiProcessing(true);
+    setTimeout(() => {
+      setAiResult({
+        product: 'Organic Shea Butter',
+        qty: '20 MT',
+        specs: ['Food-grade certified', 'Unrefined', 'Cold-pressed', 'Organic certified'],
+        hsCode: '1515.90',
+        suppliers: 7,
+      });
+      setAiProcessing(false);
+    }, 1200);
+  };
 
   return (
-    <>
-      <div className="space-y-6 pb-8">
-        {/* Professional Header with Gradient Background */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="relative overflow-hidden bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-purple/5 to-afrikoni-cream/20 rounded-2xl p-6 md:p-8 mb-8 border border-afrikoni-gold/20"
-        >
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="os-page os-stagger space-y-6">
+      <Surface variant="glass" className="p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="os-label">Trade OS Intake</div>
+            <h1 className="os-title mt-2">RFQs & Inquiries</h1>
+            <p className="text-sm text-os-muted">
+              {filtered.length} active requests for quotation
+            </p>
+          </div>
+          <Button
+            className="bg-[var(--os-text-primary)] text-[var(--os-bg)] hover:opacity-90 font-semibold"
+            onClick={() => {
+              setShowQuickRFQ((prev) => !prev);
+              setAiResult(null);
+            }}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            AI Quick RFQ
+          </Button>
+        </div>
+
+        <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex items-center bg-os-surface-1 rounded-lg p-1 border border-os-stroke">
+            {statusTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setStatusFilter(tab.key)}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5',
+                  statusFilter === tab.key
+                    ? 'bg-os-surface-0 text-[var(--os-text-primary)]'
+                    : 'text-os-muted hover:text-[var(--os-text-primary)]'
+                )}
+              >
+                {tab.label}
+                <span
+                  className={cn(
+                    'px-1.5 py-0.5 rounded-full text-[10px] min-w-[18px] text-center',
+                    statusFilter === tab.key ? 'bg-os-surface-1' : 'bg-os-surface-0'
+                  )}
+                >
+                  {tab.key === 'all'
+                    ? mockRFQs.length
+                    : mockRFQs.filter((r) => r.status === tab.key).length}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-os-muted" />
+            <Input
+              placeholder="Search RFQs..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+      </Surface>
+
+      {showQuickRFQ && (
+        <Surface variant="panel" className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-os-surface-1 flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-os-muted" />
+            </div>
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-xl flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-afrikoni-gold" />
+              <h3 className="text-base font-semibold text-[var(--os-text-primary)]">AI-Powered Quick RFQ</h3>
+              <p className="text-xs text-os-muted">Describe what you need in plain language — the kernel structures it.</p>
+            </div>
+          </div>
+          <Textarea
+            placeholder='e.g. "I need 20 tons of organic shea butter delivered to Hamburg by March 2026"'
+            value={quickRFQText}
+            onChange={(e) => setQuickRFQText(e.target.value)}
+            className="min-h-[90px] mb-3"
+          />
+
+          {aiResult && (
+            <div className="mb-4 p-4 rounded-lg bg-os-surface-1 border border-os-stroke animate-fade-in">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-os-muted" />
+                <span className="text-sm font-medium text-[var(--os-text-primary)]">AI Structured RFQ Preview</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <p className="text-[10px] text-os-muted uppercase">Product</p>
+                  <p className="text-sm font-medium text-[var(--os-text-primary)]">{aiResult.product}</p>
                 </div>
                 <div>
-                  <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-chestnut mb-3">
-                    {currentRole === 'buyer' ? 'My RFQs' : 
-                     currentRole === 'seller' ? 'RFQs Received' : 
-                     currentRole === 'hybrid' ? 'All RFQs' :
-                     'RFQs'}
-                  </h1>
-                  <p className="text-body font-normal leading-[1.6] text-afrikoni-text-dark/70">
-                    {currentRole === 'buyer' && 'Manage your requests for quotations and track responses'}
-                    {currentRole === 'seller' && 'Browse and respond to buyer requests matching your products'}
-                    {currentRole === 'hybrid' && 'View all RFQs across your buyer and seller activities'}
-                    {currentRole === 'logistics' && 'View logistics-related RFQs'}
-                  </p>
+                  <p className="text-[10px] text-os-muted uppercase">Quantity</p>
+                  <p className="text-sm font-medium text-[var(--os-text-primary)]">{aiResult.qty}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-os-muted uppercase">HS Code</p>
+                  <p className="text-sm font-medium text-[var(--os-text-primary)] font-mono">{aiResult.hsCode}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-os-muted uppercase">Matched Suppliers</p>
+                  <p className="text-sm font-medium text-[var(--os-text-primary)]">{aiResult.suppliers} found</p>
                 </div>
               </div>
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {aiResult.specs.map((spec) => (
+                  <span key={spec} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-os-surface-0 border border-os-stroke">
+                    {spec}
+                  </span>
+                ))}
+              </div>
             </div>
-            {(currentRole === 'buyer' || currentRole === 'hybrid') && (
-              <Link to="/dashboard/rfqs/new">
-                <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Create New RFQ
+          )}
+
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-os-muted">
+              AI auto-fills: specs, HS codes, compliance requirements, supplier matches
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => { setShowQuickRFQ(false); setAiResult(null); }}>
+                Cancel
+              </Button>
+              {aiResult ? (
+                <Button size="sm" className="gap-2">
+                  <Send className="h-3 w-3" /> Send to {aiResult.suppliers} Suppliers
                 </Button>
-              </Link>
-            )}
-          </div>
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-afrikoni-purple/5 rounded-full blur-3xl -ml-24 -mb-24"></div>
-        </motion.div>
-
-        {/* Professional Filters Section */}
-        <Card className="border-afrikoni-gold/20 bg-white rounded-xl shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-gold/60" />
-                <Input
-                  placeholder="Search RFQs by title, description, or keywords..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-xl text-base md:text-sm touch-manipulation"
-                />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 rounded-xl touch-manipulation">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_review">In Review</SelectItem>
-                    <SelectItem value="matched">Matched</SelectItem>
-                    <SelectItem value="awarded">Awarded</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 rounded-xl touch-manipulation">
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={countryFilter} onValueChange={setCountryFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-12 md:h-11 min-h-[44px] md:min-h-0 border-afrikoni-gold/30 rounded-xl touch-manipulation">
-                    <SelectValue placeholder="All Countries" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Countries</SelectItem>
-                    {AFRICAN_COUNTRIES.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              ) : (
+                <Button size="sm" className="gap-2" onClick={handleGenerateRFQ} disabled={aiProcessing || !quickRFQText}>
+                  {aiProcessing ? (
+                    <><span className="animate-spin h-3 w-3 border-2 border-[var(--os-text-primary)]/30 border-t-[var(--os-text-primary)] rounded-full" /> Processing...</>
+                  ) : (
+                    <><Sparkles className="h-3 w-3" /> Generate RFQ</>
+                  )}
+                </Button>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Surface>
+      )}
 
-        {/* Professional Match Notification for Suppliers */}
-        {isSeller && matchCount > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <Card className="border-2 border-afrikoni-gold/40 bg-gradient-to-r from-afrikoni-gold/10 via-afrikoni-purple/5 to-afrikoni-gold/10 rounded-xl shadow-lg overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-afrikoni-gold/10 rounded-full blur-2xl -mr-16 -mt-16"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-afrikoni-gold to-afrikoni-purple rounded-xl flex items-center justify-center shadow-lg">
-                      <Target className="w-7 h-7 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-lg text-afrikoni-chestnut mb-1">
-                        🎯 {matchCount} RFQ{matchCount !== 1 ? 's' : ''} Match Your Products!
-                      </p>
-                      <p className="text-sm text-afrikoni-deep/80">
-                        Respond within 24 hours to improve your supplier ranking and win more business
-                      </p>
-                    </div>
+      <div className="space-y-3">
+        {filtered.map((rfq) => {
+          const config = statusConfig[rfq.status] || statusConfig.draft;
+          const deadline = formatDeadline(rfq.deadline);
+          const isUrgent = deadline === 'Today' || deadline === 'Tomorrow';
+
+          return (
+            <Surface key={rfq.id} variant="panel" className="group p-5 hover:bg-os-surface-2 transition-all cursor-pointer">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-base font-semibold text-[var(--os-text-primary)]">{rfq.productName}</h3>
+                    <StatusBadge label={config.label} tone="neutral" />
+                    {isUrgent && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-os-surface-0 border border-os-stroke">
+                        Urgent
+                      </span>
+                    )}
                   </div>
-                  <Link to="/dashboard/rfqs?tab=received">
-                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl font-semibold whitespace-nowrap">
-                      <Zap className="w-5 h-5 mr-2" />
-                      View Matches
-                    </Button>
-                  </Link>
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-os-muted">
+                    <span className="font-medium text-[var(--os-text-primary)]">{rfq.buyerCompany}</span>
+                    <span className="flex items-center gap-1"><Globe className="h-3 w-3" />{rfq.deliveryCountry}</span>
+                    <span className="tabular-nums">{rfq.quantity.toLocaleString()} {rfq.unit}</span>
+                    {rfq.targetPrice && (
+                      <span className="flex items-center gap-1 tabular-nums"><DollarSign className="h-3 w-3" />{rfq.targetPrice}/{rfq.unit}</span>
+                    )}
+                    {rfq.quotesReceived > 0 && (
+                      <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{rfq.quotesReceived} quotes</span>
+                    )}
+                  </div>
+                  {rfq.requirements && (
+                    <p className="text-xs text-os-muted mt-2 line-clamp-1">{rfq.requirements}</p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Professional Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-white border border-afrikoni-gold/20 rounded-xl p-1.5 shadow-md inline-flex h-auto">
-            {(currentRole === 'buyer' || currentRole === 'hybrid') && (
-              <TabsTrigger 
-                value="sent" 
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
-              >
-                Sent RFQs
-              </TabsTrigger>
-            )}
-            {isSeller && (
-              <TabsTrigger 
-                value="received"
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
-              >
-                Received RFQs
-              </TabsTrigger>
-            )}
-            {isSeller && (
-              <TabsTrigger 
-                value="quotes"
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
-              >
-                My Quotes
-              </TabsTrigger>
-            )}
-            {currentRole === 'logistics' && (
-              <TabsTrigger 
-                value="all"
-                className="data-[state=active]:bg-afrikoni-gold data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-semibold px-6 py-2.5 transition-all duration-200"
-              >
-                All RFQs
-              </TabsTrigger>
-            )}
-          </TabsList>
-
-          <TabsContent value={activeTab === 'sent' ? 'sent' : activeTab === 'received' ? 'received' : activeTab === 'quotes' ? 'quotes' : 'all'} className="space-y-4">
-            {activeTab === 'sent' || activeTab === 'all' ? (
-              <div className="grid gap-4">
-                {filteredRFQs.length === 0 ? (
-                  <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-white to-afrikoni-cream/30 rounded-2xl shadow-xl overflow-hidden">
-                    <CardContent className="p-12 md:p-16 text-center relative">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                      <div className="relative z-10">
-                        <div className="w-20 h-20 bg-afrikoni-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                          <FileText className="w-10 h-10 text-afrikoni-gold" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-3">
-                          {activeTab === 'sent' ? 'No RFQs Created Yet' : 'No RFQs Found'}
-                        </h3>
-                        <p className="text-afrikoni-text-dark/70 mb-8 max-w-md mx-auto text-base leading-relaxed">
-                          {activeTab === 'sent' 
-                            ? "Start connecting with verified suppliers by creating your first Request for Quotation. Use KoniAI for AI-powered RFQ creation."
-                            : "No RFQs match your current filters. Try adjusting your search criteria or clear filters to see more results."}
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          {activeTab === 'sent' && (
-                            <>
-                              <Link to="/dashboard/rfqs/new">
-                                <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl">
-                                  <Plus className="w-5 h-5 mr-2" />
-                                  Create Your First RFQ
-                                </Button>
-                              </Link>
-                              <Link to="/dashboard/koniai">
-                                <Button variant="outline" className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-6 h-auto rounded-xl">
-                                  <Sparkles className="w-5 h-5 mr-2" />
-                                  Use KoniAI Assistant
-                                </Button>
-                              </Link>
-                            </>
-                          )}
-                          {activeTab !== 'sent' && (
-                            <Button 
-                              variant="outline" 
-                              onClick={() => {
-                                setSearchQuery('');
-                                setStatusFilter('all');
-                                setCategoryFilter('');
-                                setCountryFilter('');
-                              }}
-                              className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-6 h-auto rounded-xl"
-                            >
-                              Clear All Filters
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-4">
-                    {(Array.isArray(filteredRFQs) ? filteredRFQs : []).map((rfq, idx) => (
-                    <motion.div
-                      key={rfq.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: idx * 0.05 }}
-                    >
-                      {/* Professional RFQ Card */}
-                      <Card className="group border border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-xl transition-all duration-300 bg-white rounded-xl overflow-hidden">
-                        <CardContent className="p-6">
-                          <div className="flex flex-col md:flex-row md:items-start gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-start gap-3 mb-4">
-                                <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut leading-tight flex-1 min-w-0 line-clamp-2">
-                                  {rfq.title || `RFQ ${rfq.id?.slice(0, 8) || 'Unknown'}`}
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                  <Badge 
-                                    variant={rfq.status === 'open' ? 'default' : 'outline'}
-                                    className={`text-xs font-semibold px-3 py-1 ${
-                                      rfq.status === 'open' 
-                                        ? 'bg-green-50 text-green-700 border-green-200' 
-                                        : rfq.status === 'awarded'
-                                        ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                                    }`}
-                                  >
-                                    {RFQ_STATUS_LABELS[rfq.status] || rfq.status}
-                                  </Badge>
-                                  {rfq.quotesCount > 0 && (
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-semibold px-3 py-1">
-                                      <MessageSquare className="w-3 h-3 mr-1" />
-                                      {rfq.quotesCount} Quote{rfq.quotesCount !== 1 ? 's' : ''}
-                                    </Badge>
-                                  )}
-                                  {/* Fast Response Badge */}
-                                  {isSeller && rfq.created_at && (
-                                    (() => {
-                                      const hoursSinceCreated = (new Date() - new Date(rfq.created_at)) / (1000 * 60 * 60);
-                                      if (hoursSinceCreated < 24) {
-                                        return (
-                                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 text-xs font-semibold px-3 py-1 shadow-md">
-                                            <Clock className="w-3 h-3 mr-1" />
-                                            Respond Now
-                                          </Badge>
-                                        );
-                                      }
-                                      return null;
-                                    })()
-                                  )}
-                                </div>
-                              </div>
-                              <p className="text-afrikoni-text-dark/80 mb-5 line-clamp-2 text-base leading-relaxed">
-                                {rfq.description}
-                              </p>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-afrikoni-cream/30 rounded-xl">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-10 h-10 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
-                                    <Package className="w-5 h-5 text-afrikoni-gold" />
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-afrikoni-text-dark/60 font-medium">Quantity</p>
-                                    <p className="text-sm font-semibold text-afrikoni-chestnut">
-                                      {rfq.quantity} {rfq.unit}
-                                    </p>
-                                  </div>
-                                </div>
-                                {rfq.target_price && (
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-10 h-10 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
-                                      <DollarSign className="w-5 h-5 text-afrikoni-gold" />
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-afrikoni-text-dark/60 font-medium">Budget</p>
-                                      <p className="text-sm font-semibold text-afrikoni-chestnut">
-                                        ${parseFloat(rfq.target_price).toLocaleString()}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                                {rfq.delivery_deadline && (
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-10 h-10 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
-                                      <Calendar className="w-5 h-5 text-afrikoni-gold" />
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-afrikoni-text-dark/60 font-medium">Deadline</p>
-                                      <p className="text-sm font-semibold text-afrikoni-chestnut">
-                                        {new Date(rfq.delivery_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex flex-row md:flex-col gap-2 md:ml-4">
-                              <Link to={`/dashboard/rfqs/${rfq.id}`} className="flex-1 md:flex-none">
-                                <Button 
-                                  variant="outline" 
-                                  className="w-full md:w-auto border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-chestnut font-semibold rounded-xl px-6"
-                                >
-                                  View Details
-                                </Button>
-                              </Link>
-                              {currentRole === 'seller' && (
-                                <Link to={`/dashboard/rfqs/${rfq.id}`} className="flex-1 md:flex-none">
-                                  <Button 
-                                    className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all rounded-xl px-6 font-semibold"
-                                  >
-                                    Submit Quote
-                                  </Button>
-                                </Link>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                  </div>
-                )}
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <span className={cn('flex items-center gap-1 text-xs font-medium tabular-nums', isUrgent ? 'text-[var(--os-text-primary)]' : 'text-os-muted')}>
+                    <Clock className="h-3 w-3" /> {deadline}
+                  </span>
+                  <Button variant="outline" size="sm" className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Respond <ChevronRight className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            ) : activeTab === 'quotes' ? (
-              <div className="grid gap-4">
-                {quotes.length === 0 ? (
-                  <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-white to-afrikoni-cream/30 rounded-2xl shadow-xl overflow-hidden">
-                    <CardContent className="p-12 md:p-16 text-center relative">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                      <div className="relative z-10">
-                        <div className="w-20 h-20 bg-afrikoni-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                          <Award className="w-10 h-10 text-afrikoni-gold" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-3">No Quotes Submitted Yet</h3>
-                        <p className="text-afrikoni-text-dark/70 mb-8 max-w-md mx-auto text-base leading-relaxed">
-                          Start responding to RFQs to showcase your products and win new business opportunities.
-                        </p>
-                        <Link to="/dashboard/rfqs?tab=received">
-                          <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 h-auto rounded-xl">
-                            Browse RFQs
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-4">
-                    {(Array.isArray(quotes) ? quotes : []).map((quote, idx) => (
-                    <motion.div
-                      key={quote.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: idx * 0.05 }}
-                    >
-                      <Card className="group border border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-xl transition-all duration-300 bg-white rounded-xl overflow-hidden">
-                        <CardContent className="p-6">
-                          <div className="flex flex-col md:flex-row md:items-start gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start gap-3 mb-4">
-                                <div className="w-12 h-12 bg-afrikoni-purple/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                                  <Award className="w-6 h-6 text-afrikoni-purple" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2 leading-tight">
-                                    Quote for: {quote.rfqs?.title || 'RFQ'}
-                                  </h3>
-                                  <div className="flex flex-wrap items-center gap-3">
-                                    <div className="flex items-center gap-2 px-4 py-2 bg-afrikoni-gold/10 rounded-lg">
-                                      <DollarSign className="w-5 h-5 text-afrikoni-gold" />
-                                      <span className="font-bold text-lg text-afrikoni-chestnut">
-                                        ${parseFloat(quote.total_price || 0).toLocaleString()}
-                                      </span>
-                                    </div>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`text-xs font-semibold px-3 py-1 ${
-                                        quote.status === 'pending' 
-                                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                          : quote.status === 'accepted'
-                                          ? 'bg-green-50 text-green-700 border-green-200'
-                                          : 'bg-gray-50 text-gray-700 border-gray-200'
-                                      }`}
-                                    >
-                                      {quote.status}
-                                    </Badge>
-                                    {quote.created_at && (
-                                      <span className="text-sm text-afrikoni-text-dark/60">
-                                        Submitted {new Date(quote.created_at).toLocaleDateString()}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <Link to={`/dashboard/rfqs/${quote.rfq_id}`}>
-                              <Button 
-                                variant="outline" 
-                                className="w-full md:w-auto border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/10 text-afrikoni-chestnut font-semibold rounded-xl px-6"
-                              >
-                                View RFQ
-                              </Button>
-                            </Link>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </TabsContent>
-        </Tabs>
+            </Surface>
+          );
+        })}
       </div>
-    </>
-  );
-}
-
-export default function DashboardRFQs() {
-  return (
-    <RequireCapability canBuy={true}>
-      <DashboardRFQsInner />
-    </RequireCapability>
+    </div>
   );
 }

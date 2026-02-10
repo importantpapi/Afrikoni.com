@@ -643,7 +643,7 @@ export default function VerificationCenter() {
             title: `📋 New KYC Verification Submission: ${companyName}`,
             message: `${companyName} (${ownerEmail}) has submitted KYC verification documents for review. Business ID: ${businessIdNumber || 'N/A'}, Country: ${countryOfRegistration || company?.country || 'N/A'}`,
             type: 'verification',
-            link: `/dashboard/admin/verification-review?verification=${verification?.id || 'new'}`,
+            link: `/verification-center?verification=${verification?.id || 'new'}`,
             sendEmail: true,
             emailSubject: `📋 New KYC Verification: ${companyName}`
           });
@@ -667,7 +667,7 @@ export default function VerificationCenter() {
                 </ul>
                 
                 <p><strong>Action Required:</strong> Review the verification documents in the admin dashboard.</p>
-                <p><a href="https://afrikoni.com/dashboard/admin/verification-review?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Verification</a></p>
+                <p><a href="https://afrikoni.com/verification-center?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Verification</a></p>
               `
             }
           });
@@ -1015,7 +1015,7 @@ export default function VerificationCenter() {
         title: `📋 Verification Step Submitted: ${step.label} - ${companyName}`,
         message: `${companyName} has completed and submitted "${step.label}" for review. Company: ${companyName}, Email: ${ownerEmail}`,
         type: 'verification',
-        link: `/dashboard/admin/verification-review?verification=${verification?.id || 'new'}&step=${step.id}`,
+        link: `/verification-center?verification=${verification?.id || 'new'}&step=${step.id}`,
         sendEmail: true,
         emailSubject: `📋 Verification Step: ${step.label} - ${companyName}`
       });
@@ -1056,7 +1056,7 @@ export default function VerificationCenter() {
             ` : ''}
             
             <p><strong>Action Required:</strong> Review this verification step in the admin dashboard.</p>
-            <p><a href="https://afrikoni.com/dashboard/admin/verification-review?verification=${verification?.id || 'new'}&step=${step.id}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Step</a></p>
+            <p><a href="https://afrikoni.com/verification-center?verification=${verification?.id || 'new'}&step=${step.id}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Step</a></p>
           `
         }
       });
@@ -1137,7 +1137,7 @@ export default function VerificationCenter() {
         title: `✅ Complete Verification Ready for Review: ${companyName}`,
         message: `${companyName} has completed all required verification steps. Ready for final admin review.`,
         type: 'verification',
-        link: `/dashboard/admin/verification-review?verification=${verification?.id || 'new'}`,
+        link: `/verification-center?verification=${verification?.id || 'new'}`,
         sendEmail: true,
         emailSubject: `✅ Complete Verification Ready: ${companyName}`
       });
@@ -1190,7 +1190,7 @@ export default function VerificationCenter() {
             ` : ''}
             
             <p><strong>Action Required:</strong> Review all verification documents and information, then approve or request changes.</p>
-            <p><a href="https://afrikoni.com/dashboard/admin/verification-review?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Complete Verification</a></p>
+            <p><a href="https://afrikoni.com/verification-center?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Complete Verification</a></p>
           `
         }
       });
@@ -1262,7 +1262,7 @@ export default function VerificationCenter() {
       
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section with Dominant CTA */}
-        <div className="bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700 py-16 md:py-20">
+        <div className="bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700 py-16 md:py-20 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1338,6 +1338,7 @@ export default function VerificationCenter() {
         <SystemPageSection
           title="Your Verification Progress"
           subtitle="Track your progress and see what's needed"
+          className="bg-afrikoni-offwhite"
         >
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             <Card className="border-afrikoni-gold/30 bg-afrikoni-cream">
@@ -1397,6 +1398,7 @@ export default function VerificationCenter() {
         <SystemPageSection
           title="Business Information"
           subtitle="Provide your business registration details to complete verification"
+          className="bg-afrikoni-offwhite"
         >
           <Card className="border-afrikoni-gold/30 bg-afrikoni-cream mb-12">
             <CardHeader>
@@ -1460,6 +1462,7 @@ export default function VerificationCenter() {
         <SystemPageSection
           title="Next Steps"
           subtitle={`${requiredCompleted} of ${requiredTotal} required steps complete`}
+          className="bg-afrikoni-offwhite"
         >
           <Card className="border-afrikoni-gold/30 bg-afrikoni-cream mb-12">
             <CardContent className="p-6">
@@ -2012,6 +2015,7 @@ export default function VerificationCenter() {
         <SystemPageSection
           title="Benefits of Full Verification"
           subtitle="Unlock premium features and build trust with partners"
+          className="bg-afrikoni-offwhite"
         >
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
             {benefits.map((benefit, idx) => (

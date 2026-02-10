@@ -8,7 +8,6 @@
 import BuyerHeader from '@/components/headers/BuyerHeader';
 import SellerHeader from '@/components/headers/SellerHeader';
 import LogisticsHeader from '@/components/headers/LogisticsHeader';
-import AdminHeader from '@/components/headers/AdminHeader';
 import HybridHeader from '@/components/headers/HybridHeader';
 
 /**
@@ -23,20 +22,10 @@ import HybridHeader from '@/components/headers/HybridHeader';
  * @returns {Object} Object with component and required props
  */
 export function getHeaderComponent({
-  isAdminPath,
-  isUserAdmin,
   isSeller,
   isLogistics,
   isHybridCapability,
 }) {
-  // Admin header ONLY for admin dashboard paths
-  if (isAdminPath && isUserAdmin) {
-    return {
-      component: AdminHeader,
-      requiresAlertCount: true,
-    };
-  }
-
   // Seller-only (approved seller, not logistics)
   if (isSeller && !isLogistics) {
     return {
@@ -85,10 +74,6 @@ export const headerConfig = {
   logistics: {
     component: LogisticsHeader,
     label: 'Logistics',
-  },
-  admin: {
-    component: AdminHeader,
-    label: 'Admin',
   },
   hybrid: {
     component: HybridHeader,

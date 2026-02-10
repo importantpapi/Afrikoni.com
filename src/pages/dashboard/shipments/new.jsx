@@ -8,7 +8,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Truck, MapPin, Package, Calendar, ArrowLeft } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
@@ -18,6 +17,7 @@ import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
+import { Surface } from '@/components/system/Surface';
 
 export default function NewShipmentPage() {
   // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
@@ -233,7 +233,7 @@ export default function NewShipmentPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -252,9 +252,8 @@ export default function NewShipmentPage() {
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
+    <div className="os-page os-stagger space-y-6">
+      <Surface className="p-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -264,29 +263,27 @@ export default function NewShipmentPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">
+            <p className="text-[11px] uppercase tracking-[0.35em]">Trade OS</p>
+            <h1 className="text-2xl font-semibold mt-2">
               Create New Shipment
             </h1>
-            <p className="text-afrikoni-text-dark/70">
+            <p className="">
               Create a shipment for an order
             </p>
           </div>
         </div>
+      </Surface>
 
-        {/* Form */}
-        <Card className="border-afrikoni-gold/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-afrikoni-gold" />
-              Shipment Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <Surface className="p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Truck className="w-5 h-5" />
+          <h2 className="text-lg font-semibold">Shipment Details</h2>
+        </div>
             {/* Order Selection */}
             <div>
               <Label htmlFor="orderId">Select Order *</Label>
               <Select value={selectedOrderId} onValueChange={handleOrderSelect}>
-                <SelectTrigger id="orderId">
+                <SelectTrigger id="orderId" className="os-input">
                   <SelectValue placeholder="Select an order" />
                 </SelectTrigger>
                 <SelectContent>
@@ -305,7 +302,7 @@ export default function NewShipmentPage() {
                 </SelectContent>
               </Select>
               {orders.length === 0 && (
-                <p className="text-sm text-afrikoni-text-dark/70 mt-1">
+                <p className="text-sm mt-1">
                   All orders already have shipments. Create an order first.
                 </p>
               )}
@@ -319,6 +316,7 @@ export default function NewShipmentPage() {
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
                 placeholder="e.g., AFK-12345678"
+                className="os-input"
               />
             </div>
 
@@ -330,6 +328,7 @@ export default function NewShipmentPage() {
                 value={carrier}
                 onChange={(e) => setCarrier(e.target.value)}
                 placeholder="e.g., DHL, FedEx, Afrikoni Logistics"
+                className="os-input"
               />
             </div>
 
@@ -341,6 +340,7 @@ export default function NewShipmentPage() {
                 value={originAddress}
                 onChange={(e) => setOriginAddress(e.target.value)}
                 placeholder="e.g., Lagos, Nigeria"
+                className="os-input"
               />
             </div>
 
@@ -352,6 +352,7 @@ export default function NewShipmentPage() {
                 value={destinationAddress}
                 onChange={(e) => setDestinationAddress(e.target.value)}
                 placeholder="e.g., Accra, Ghana"
+                className="os-input"
               />
             </div>
 
@@ -363,6 +364,7 @@ export default function NewShipmentPage() {
                 type="date"
                 value={estimatedDelivery}
                 onChange={(e) => setEstimatedDelivery(e.target.value)}
+                className="os-input"
               />
             </div>
 
@@ -370,7 +372,7 @@ export default function NewShipmentPage() {
             <div>
               <Label htmlFor="status">Status *</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" className="os-input">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -395,15 +397,12 @@ export default function NewShipmentPage() {
               <Button
                 onClick={handleCreateShipment}
                 disabled={isCreating || !selectedOrderId || orders.length === 0}
-                className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                className="flex-1 hover:bg-afrikoni-goldDark"
               >
                 {isCreating ? 'Creating...' : 'Create Shipment'}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </>
+      </Surface>
+    </div>
   );
 }
-

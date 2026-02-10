@@ -16,16 +16,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
-import TradeTimeline from './TradeTimeline';
-import RFQCreationPanel from './RFQCreationPanel';
-import QuoteReviewPanel from './QuoteReviewPanel';
-import ContractSigningPanel from './ContractSigningPanel';
-import EscrowFundingPanel from './EscrowFundingPanel';
-import ShipmentTrackingPanel from './ShipmentTrackingPanel';
-import DeliveryAcceptancePanel from './DeliveryAcceptancePanel';
+import TradeTimeline from '@/components/trade/TradeTimeline';
 import { supabase } from '@/api/supabaseClient';
-import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
-import { emitTradeEvent } from '@/services/tradeEvents';
+import { transitionTrade, TRADE_STATE, TRADE_STATE_LABELS } from '@/services/tradeKernel';
+import { useTradeEventLedger } from '@/hooks/useTradeEventLedger';
 import RFQCreationPanel from '@/components/trade/RFQCreationPanel';
 import QuoteReviewPanel from '@/components/trade/QuoteReviewPanel';
 import ContractSigningPanel from '@/components/trade/ContractSigningPanel';
@@ -41,7 +35,7 @@ import { ArrowLeft } from 'lucide-react';
  */
 const FLOW_PANELS = {
   [TRADE_STATE.DRAFT]: RFQCreationPanel,
-  [TRADE_STATE.RFQ_OPEN]: RFQCreationPanel,
+  [TRADE_STATE.RFQ_CREATED]: RFQCreationPanel,
   [TRADE_STATE.QUOTED]: QuoteReviewPanel,
   [TRADE_STATE.CONTRACTED]: ContractSigningPanel,
   [TRADE_STATE.ESCROW_REQUIRED]: EscrowFundingPanel,
@@ -52,6 +46,7 @@ const FLOW_PANELS = {
   [TRADE_STATE.DELIVERED]: DeliveryAcceptancePanel,
   [TRADE_STATE.ACCEPTED]: DeliveryAcceptancePanel,
   [TRADE_STATE.SETTLED]: SettlementPanel,
+  [TRADE_STATE.DISPUTED]: DisputedPanel,
   [TRADE_STATE.CLOSED]: ClosedPanel
 };
 
@@ -63,9 +58,48 @@ export default function OneFlow() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { timeline: kernelTimeline } = useTradeEventLedger(tradeId);
+
+  const nextActionHints = {
+    [TRADE_STATE.DRAFT]: 'Publish RFQ to open supplier responses',
+    [TRADE_STATE.RFQ_CREATED]: 'Review quotes and select supplier',
+    [TRADE_STATE.QUOTED]: 'Select the best quote',
+    [TRADE_STATE.CONTRACTED]: 'Sign contract to unlock escrow',
+    [TRADE_STATE.ESCROW_REQUIRED]: 'Fund escrow to start production',
+    [TRADE_STATE.ESCROW_FUNDED]: 'Monitor production and pickup scheduling',
+    [TRADE_STATE.PRODUCTION]: 'Confirm pickup scheduling',
+    [TRADE_STATE.PICKUP_SCHEDULED]: 'Track shipment in transit',
+    [TRADE_STATE.IN_TRANSIT]: 'Confirm delivery upon arrival',
+    [TRADE_STATE.DELIVERED]: 'Accept delivery and release payment',
+    [TRADE_STATE.ACCEPTED]: 'Release escrow and settle trade',
+    [TRADE_STATE.SETTLED]: 'Close trade and update trust',
+    [TRADE_STATE.DISPUTED]: 'Provide evidence and resolve dispute',
+    [TRADE_STATE.CLOSED]: 'Trade complete'
+  };
 
   useEffect(() => {
     loadTrade();
+  }, [tradeId]);
+
+  useEffect(() => {
+    if (!tradeId) return;
+    const channel = supabase.channel(`trade:${tradeId}`);
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'trades',
+        filter: `id=eq.${tradeId}`
+      },
+      (payload) => {
+        if (payload?.new) {
+          setTrade(payload.new);
+        }
+      }
+    );
+    channel.subscribe();
+    return () => channel.unsubscribe();
   }, [tradeId]);
 
   async function loadTrade() {
@@ -94,12 +128,7 @@ export default function OneFlow() {
   async function handleStateTransition(nextState, metadata = {}) {
     setIsTransitioning(true);
     try {
-      const result = await transitionTrade(
-        tradeId,
-        trade.status,
-        nextState,
-        metadata
-      );
+      const result = await transitionTrade(tradeId, nextState, metadata);
 
       if (result.success) {
         setTrade(result.trade);
@@ -115,7 +144,7 @@ export default function OneFlow() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -127,9 +156,9 @@ export default function OneFlow() {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
-        <Card className="border-red-200 bg-red-50/50 mt-4">
+        <Card className="mt-4">
           <CardContent className="p-6 text-center">
-            <p className="text-red-700 font-semibold">Trade not found</p>
+            <p className="font-semibold">Trade not found</p>
           </CardContent>
         </Card>
       </div>
@@ -140,54 +169,93 @@ export default function OneFlow() {
   const PanelComponent = FLOW_PANELS[trade.status] || DefaultPanel;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* HEADER */}
-      <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-[#F5F0E8] mt-4">
-          {trade.title}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          {trade.buyer?.company_name} {trade.seller ? `→ ${trade.seller.company_name}` : ''}
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* MAIN FLOW PANEL (left 2/3) */}
-        <div className="lg:col-span-2">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={trade.status}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <PanelComponent
-                trade={trade}
-                onNextStep={handleStateTransition}
-                isTransitioning={isTransitioning}
-              />
-            </motion.div>
-          </AnimatePresence>
-
-          {error && (
-            <Card className="border-red-200 bg-red-50/50 mt-4">
-              <CardContent className="p-4 text-sm text-red-700">
-                {error}
-              </CardContent>
-            </Card>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-[#0B0C0F] via-[#0E1218] to-[#10141C]">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* COMMAND HEADER */}
+        <div className="mb-8 flex items-start justify-between gap-6">
+          <div>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Command Center
+            </Button>
+            <h1 className="text-3xl md:text-4xl font-bold mt-4 tracking-tight">
+              {trade.title}
+            </h1>
+            <p className="text-sm mt-2">
+              {trade.buyer?.company_name} {trade.seller ? `→ ${trade.seller.company_name}` : ''}
+            </p>
+          </div>
+          <div className="rounded-2xl border px-4 py-3 text-right">
+            <p className="text-[10px] uppercase tracking-[0.25em]">Kernel State</p>
+            <p className="text-sm font-semibold">
+              {TRADE_STATE_LABELS[trade.status] || trade.status}
+            </p>
+            <p className="text-xs mt-2">
+              {nextActionHints[trade.status]}
+            </p>
+          </div>
         </div>
 
-        {/* TRADE TIMELINE (right 1/3, sticky) */}
-        <div className="lg:sticky lg:top-4 lg:h-fit">
-          <TradeTimeline
-            tradeId={tradeId}
-            currentState={trade.status}
-          />
+        {/* CORE GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* MAIN FLOW PANEL */}
+          <div className="lg:col-span-7">
+            <div className="rounded-2xl border p-4 md:p-6 backdrop-blur">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.25em]">One-Flow</p>
+                  <p className="text-sm">Single path. No detours.</p>
+                </div>
+                <div className="text-xs">Trade ID: {trade.id}</div>
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={trade.status}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <PanelComponent
+                    trade={trade}
+                    onNextStep={handleStateTransition}
+                    isTransitioning={isTransitioning}
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {error && (
+                <Card className="mt-4">
+                  <CardContent className="p-4 text-sm">
+                    {error}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {/* KERNEL RAIL + EVENT STREAM */}
+          <div className="lg:col-span-5 lg:sticky lg:top-6 lg:h-fit">
+            <TradeTimeline
+              tradeId={tradeId}
+              currentState={trade.status}
+            />
+
+            <div className="mt-4 rounded-2xl border p-4 backdrop-blur">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Kernel Console</p>
+              <div className="mt-3 space-y-2 text-sm">
+                {kernelTimeline?.slice(0, 6).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between text-xs">
+                    <span>{item.label}</span>
+                    <span className="text-muted-foreground font-mono">{item.time}</span>
+                  </div>
+                ))}
+                {!kernelTimeline?.length && (
+                  <div className="text-xs text-muted-foreground">No kernel events yet.</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -199,10 +267,10 @@ export default function OneFlow() {
  */
 function DefaultPanel({ trade }) {
   return (
-    <Card>
+    <Card className="border rounded-2xl">
       <CardContent className="p-6 text-center">
-        <p className="text-gray-500">State: {trade.status}</p>
-        <p className="text-sm text-gray-400 mt-2">No action available for this state yet.</p>
+        <p className="">State: {trade.status}</p>
+        <p className="text-sm mt-2">No action available for this state yet.</p>
       </CardContent>
     </Card>
   );
@@ -213,26 +281,50 @@ function DefaultPanel({ trade }) {
  */
 function SettlementPanel({ trade }) {
   return (
-    <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-4">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
           <span className="text-2xl">💰</span>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F0E8]">
+        <h2 className="text-xl font-semibold">
           Payment Released
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="mt-2">
           Escrow funds have been released to the supplier.
         </p>
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mt-4 text-left">
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Order Summary</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+        <div className="border rounded-xl p-4 mt-4 text-left">
+          <p className="text-sm font-semibold">Order Summary</p>
+          <p className="text-sm mt-2">
             Quantity: {trade.quantity} {trade.quantity_unit}
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm">
             Total: {trade.price_max || trade.price_min} {trade.currency}
           </p>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Disputed panel (trade frozen, awaiting resolution)
+ */
+function DisputedPanel({ trade }) {
+  return (
+    <Card className="border rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+      <CardContent className="p-6 text-center">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
+          <span className="text-2xl">⚠️</span>
+        </div>
+        <h2 className="text-2xl font-semibold">
+          Trade Disputed
+        </h2>
+        <p className="mt-2">
+          This trade is under dispute. Escrow is frozen until resolution.
+        </p>
+        <p className="text-xs mt-4">
+          Trade ID: {trade.id}
+        </p>
       </CardContent>
     </Card>
   );
@@ -243,18 +335,18 @@ function SettlementPanel({ trade }) {
  */
 function ClosedPanel({ trade }) {
   return (
-    <Card className="border-afrikoni-gold/20 bg-gradient-to-br from-green-50 to-white dark:from-green-900/20 dark:to-[#0F0F0F] rounded-afrikoni-lg shadow-premium">
+    <Card className="border bg-gradient-to-br to-[#0F1117] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-4">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
           <span className="text-2xl">✓</span>
         </div>
-        <h2 className="text-2xl font-bold text-green-700 dark:text-green-300">
+        <h2 className="text-2xl font-semibold">
           Trade Closed
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="mt-2">
           This trade has been successfully completed.
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-500 mt-4">
+        <p className="text-xs mt-4">
           Trade ID: {trade.id}
         </p>
       </CardContent>

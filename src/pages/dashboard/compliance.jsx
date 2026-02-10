@@ -336,36 +336,36 @@ export default function ComplianceCenter() {
           className="mb-8"
         >
           <div className="flex items-center justify-between mb-4">
-            <Link to="/dashboard/risk" className="inline-flex items-center gap-2 text-afrikoni-gold hover:text-afrikoni-gold/80">
+            <Link to="/dashboard/risk" className="inline-flex items-center gap-2 hover:text-afrikoni-gold/80">
               <ArrowLeft className="w-4 h-4" />
               Back to Risk Dashboard
             </Link>
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="border-afrikoni-gold/30 rounded-afrikoni">
+              <Button variant="outline" className="rounded-afrikoni">
                 <Download className="w-4 h-4 mr-2" />
                 Download Report
               </Button>
               <Link to="/dashboard/audit">
-                <Button variant="outline" className="border-afrikoni-gold/30 rounded-afrikoni">
+                <Button variant="outline" className="rounded-afrikoni">
                   <FileText className="w-4 h-4 mr-2" />
                   View Audit Logs
                 </Button>
               </Link>
-              <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni">
+              <Button className="hover:bg-afrikoni-gold/90 font-semibold shadow-afrikoni rounded-afrikoni">
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Document
               </Button>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-              <FileCheck className="w-6 h-6 text-afrikoni-gold" />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center">
+              <FileCheck className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 leading-tight">
                 Compliance Center
               </h1>
-              <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+              <p className="text-sm md:text-base leading-relaxed">
                 Tax filings, regulatory compliance, and document management across 54 African countries
               </p>
             </div>
@@ -378,7 +378,7 @@ export default function ComplianceCenter() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Compliance Overview
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -388,20 +388,20 @@ export default function ComplianceCenter() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.05 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-afrikoni-gold" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <Shield className="w-6 h-6" />
                     </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge variant="outline" className="">
                       Good
                     </Badge>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {complianceKPIs.overallComplianceScore}%
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Compliance Score
                   </div>
                 </CardContent>
@@ -414,17 +414,17 @@ export default function ComplianceCenter() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-afrikoni-purple" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <FileText className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {complianceKPIs.documentsSubmitted}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Documents Submitted
                   </div>
                 </CardContent>
@@ -437,17 +437,17 @@ export default function ComplianceCenter() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.15 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-red/20 rounded-full flex items-center justify-center">
-                      <AlertTriangle className="w-6 h-6 text-afrikoni-red" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <AlertTriangle className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {complianceKPIs.documentsMissing}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Documents Missing
                   </div>
                 </CardContent>
@@ -460,17 +460,17 @@ export default function ComplianceCenter() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-afrikoni-green" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <Calendar className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {complianceKPIs.taxFilingsDue}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Tax Filings Due
                   </div>
                 </CardContent>
@@ -483,17 +483,17 @@ export default function ComplianceCenter() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-clay/20 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6 text-afrikoni-clay" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     Tier {complianceKPIs.verificationLevel}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Verification Level
                   </div>
                 </CardContent>
@@ -506,17 +506,17 @@ export default function ComplianceCenter() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-afrikoni-green" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <Shield className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {complianceKPIs.escrowEligibility ? 'Yes' : 'No'}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Escrow Eligible
                   </div>
                 </CardContent>
@@ -532,15 +532,15 @@ export default function ComplianceCenter() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3">
+            <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3">
               Document Compliance
             </h2>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-afrikoni-text-dark/70" />
+              <Filter className="w-4 h-4" />
               <select
                 value={docFilter}
                 onChange={(e) => setDocFilter(e.target.value)}
-                className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
               >
                 <option value="all">All Documents</option>
                 <option value="pending">Pending</option>
@@ -549,45 +549,45 @@ export default function ComplianceCenter() {
               </select>
             </div>
           </div>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-afrikoni-gold/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Document Name</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Last Uploaded</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Action</th>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Document Name</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Last Uploaded</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredDocuments.map((doc) => (
-                      <tr key={doc.id} className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-sand/10 transition-colors">
+                      <tr key={doc.id} className="border-b hover:bg-afrikoni-sand/10 transition-colors">
                         <td className="py-3 px-4">
-                          <div className="font-medium text-afrikoni-text-dark">{doc.name}</div>
+                          <div className="font-medium">{doc.name}</div>
                           {doc.rejectionReason && (
-                            <div className="text-xs text-afrikoni-red mt-1">{doc.rejectionReason}</div>
+                            <div className="text-xs mt-1">{doc.rejectionReason}</div>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{doc.type}</td>
+                        <td className="py-3 px-4 text-sm">{doc.type}</td>
                         <td className="py-3 px-4">
                           <Badge className={getStatusColor(doc.status)}>
                             {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">
+                        <td className="py-3 px-4 text-sm">
                           {doc.lastUploaded ? new Date(doc.lastUploaded).toLocaleDateString() : 'Never'}
                         </td>
                         <td className="py-3 px-4">
                           {doc.status === 'missing' ? (
-                            <Button size="sm" className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal rounded-afrikoni">
+                            <Button size="sm" className="hover:bg-afrikoni-gold/90 rounded-afrikoni">
                               <Upload className="w-3 h-3 mr-1" />
                               Upload
                             </Button>
                           ) : (
-                            <Button size="sm" variant="outline" className="border-afrikoni-gold/30 rounded-afrikoni">
+                            <Button size="sm" variant="outline" className="rounded-afrikoni">
                               <RefreshCw className="w-3 h-3 mr-1" />
                               Replace
                             </Button>
@@ -608,21 +608,21 @@ export default function ComplianceCenter() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Tax & Regulatory Filings — Hub Overview
           </h2>
           <div className="grid md:grid-cols-2 gap-4 mb-6">
             {taxFilings.map((filing) => (
-              <Card key={filing.id} className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card key={filing.id} className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-afrikoni-text-dark">{filing.country}</span>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold">{filing.country}</span>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-afrikoni-text-dark">{filing.hub}</h3>
-                        <p className="text-sm text-afrikoni-text-dark/70">{filing.filingType}</p>
+                        <h3 className="font-semibold">{filing.hub}</h3>
+                        <p className="text-sm">{filing.filingType}</p>
                       </div>
                     </div>
                     <Badge className={getFilingStatusColor(filing.status)}>
@@ -631,27 +631,27 @@ export default function ComplianceCenter() {
                   </div>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-afrikoni-text-dark/70">Deadline:</span>
-                      <span className="font-medium text-afrikoni-text-dark">
+                      <span className="">Deadline:</span>
+                      <span className="font-medium">
                         {new Date(filing.deadline).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-afrikoni-text-dark/70">Period:</span>
-                      <span className="font-medium text-afrikoni-text-dark">{filing.period}</span>
+                      <span className="">Period:</span>
+                      <span className="font-medium">{filing.period}</span>
                     </div>
                     {filing.daysUntil < 0 && (
-                      <div className="text-xs text-afrikoni-red font-medium">
+                      <div className="text-xs font-medium">
                         {Math.abs(filing.daysUntil)} days overdue
                       </div>
                     )}
                     {filing.daysUntil >= 0 && filing.daysUntil <= 7 && (
-                      <div className="text-xs text-afrikoni-gold font-medium">
+                      <div className="text-xs font-medium">
                         {filing.daysUntil} days remaining
                       </div>
                     )}
                   </div>
-                  <Button variant="outline" size="sm" className="w-full border-afrikoni-gold/30 rounded-afrikoni">
+                  <Button variant="outline" size="sm" className="w-full rounded-afrikoni">
                     View Details
                     <ExternalLink className="w-3 h-3 ml-2" />
                   </Button>
@@ -659,8 +659,8 @@ export default function ComplianceCenter() {
               </Card>
             ))}
           </div>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-            <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+          <Card className="rounded-afrikoni-lg shadow-premium">
+            <CardHeader className="border-b pb-4">
               <CardTitle className="text-base font-semibold">Compliance Completion by Hub</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -692,16 +692,16 @@ export default function ComplianceCenter() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Supplier Verification Status
           </h2>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="space-y-4">
                 {verificationSteps.map((step, idx) => (
                   <div key={step.id} className="relative">
                     {idx < verificationSteps.length - 1 && (
-                      <div className="absolute left-6 top-12 w-0.5 h-full bg-afrikoni-gold/20" />
+                      <div className="absolute left-6 top-12 w-0.5 h-full" />
                     )}
                     <div className="flex items-start gap-4">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -711,39 +711,39 @@ export default function ComplianceCenter() {
                         'bg-gray-100'
                       }`}>
                         {step.status === 'verified' ? (
-                          <CheckCircle className="w-6 h-6 text-afrikoni-green" />
+                          <CheckCircle className="w-6 h-6" />
                         ) : step.status === 'in_progress' ? (
-                          <Clock className="w-6 h-6 text-afrikoni-purple" />
+                          <Clock className="w-6 h-6" />
                         ) : (
-                          <Clock className="w-6 h-6 text-afrikoni-gold" />
+                          <Clock className="w-6 h-6" />
                         )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-afrikoni-text-dark">{step.step}</h3>
+                          <h3 className="font-semibold">{step.step}</h3>
                           <Badge className={getStatusColor(step.status)}>
                             {step.status === 'in_progress' ? 'In Progress' : step.status.charAt(0).toUpperCase() + step.status.slice(1)}
                           </Badge>
                         </div>
                         {step.completedAt && (
-                          <p className="text-sm text-afrikoni-text-dark/70 mb-1">
+                          <p className="text-sm mb-1">
                             Completed: {new Date(step.completedAt).toLocaleString()} by {step.verifiedBy}
                           </p>
                         )}
                         {step.issue && (
-                          <p className="text-sm text-afrikoni-red mb-2">{step.issue}</p>
+                          <p className="text-sm mb-2">{step.issue}</p>
                         )}
                         {step.progress && (
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                          <div className="w-full rounded-full h-2 mb-2">
                             <div
-                              className="bg-afrikoni-purple h-2 rounded-full transition-all"
+                              className="h-2 rounded-full transition-all"
                               style={{ width: `${step.progress}%` }}
                             />
                           </div>
                         )}
-                        <p className="text-sm text-afrikoni-text-dark/60">{step.notes}</p>
+                        <p className="text-sm">{step.notes}</p>
                         {step.status !== 'verified' && (
-                          <Button size="sm" variant="outline" className="mt-2 border-afrikoni-gold/30 rounded-afrikoni">
+                          <Button size="sm" variant="outline" className="mt-2 rounded-afrikoni">
                             {step.issue ? 'Fix Issue' : 'Re-upload'}
                           </Button>
                         )}
@@ -752,10 +752,10 @@ export default function ComplianceCenter() {
                   </div>
                 ))}
               </div>
-              <div className="mt-6 pt-6 border-t border-afrikoni-gold/20">
+              <div className="mt-6 pt-6 border-t">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-afrikoni-text-dark">Verification Tier:</span>
-                  <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 text-lg px-4 py-2">
+                  <span className="text-sm font-medium">Verification Tier:</span>
+                  <Badge className="text-lg px-4 py-2">
                     Tier {complianceKPIs.verificationLevel}
                   </Badge>
                 </div>
@@ -771,15 +771,15 @@ export default function ComplianceCenter() {
           transition={{ duration: 0.4, delay: 0.5 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3">
+            <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3">
               Country Regulatory Matrix
             </h2>
             <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-afrikoni-text-dark/70" />
+              <Search className="w-4 h-4" />
               <select
                 value={countryFilter}
                 onChange={(e) => setCountryFilter(e.target.value)}
-                className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
               >
                 <option value="all">All Countries</option>
                 <option value="allowed">Marketplace Allowed</option>
@@ -789,41 +789,41 @@ export default function ComplianceCenter() {
               </select>
             </div>
           </div>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-afrikoni-gold/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Country</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Marketplace Allowed?</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">KYC Level</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Tax Rules</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Risk Level</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark"></th>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Country</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Marketplace Allowed?</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">KYC Level</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Tax Rules</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Risk Level</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredCountries.map((country) => (
                       <React.Fragment key={country.code}>
-                        <tr className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-sand/10 transition-colors">
+                        <tr className="border-b hover:bg-afrikoni-sand/10 transition-colors">
                           <td className="py-3 px-4">
-                            <div className="font-medium text-afrikoni-text-dark">{country.country}</div>
-                            <div className="text-xs text-afrikoni-text-dark/50">{country.code}</div>
+                            <div className="font-medium">{country.country}</div>
+                            <div className="text-xs">{country.code}</div>
                           </td>
                           <td className="py-3 px-4">
                             {country.marketplaceAllowed ? (
-                              <Badge className="bg-afrikoni-green/20 text-afrikoni-green border-afrikoni-green/30">
+                              <Badge className="">
                                 Yes
                               </Badge>
                             ) : (
-                              <Badge className="bg-afrikoni-red/20 text-afrikoni-red border-afrikoni-red/30">
+                              <Badge className="">
                                 No
                               </Badge>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{country.kycLevel}</td>
-                          <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{country.taxRules}</td>
+                          <td className="py-3 px-4 text-sm">{country.kycLevel}</td>
+                          <td className="py-3 px-4 text-sm">{country.taxRules}</td>
                           <td className="py-3 px-4">
                             <Badge
                               className={`${
@@ -838,7 +838,7 @@ export default function ComplianceCenter() {
                           <td className="py-3 px-4">
                             <button
                               onClick={() => toggleCountry(country.code)}
-                              className="text-afrikoni-gold hover:text-afrikoni-gold/80"
+                              className="hover:text-afrikoni-gold/80"
                             >
                               {expandedCountries.has(country.code) ? (
                                 <ChevronUp className="w-4 h-4" />
@@ -850,15 +850,15 @@ export default function ComplianceCenter() {
                         </tr>
                         {expandedCountries.has(country.code) && (
                           <tr>
-                            <td colSpan={6} className="px-4 py-4 bg-afrikoni-ivory">
+                            <td colSpan={6} className="px-4 py-4">
                               <div className="space-y-2">
                                 <div>
-                                  <span className="text-sm font-medium text-afrikoni-text-dark">Restricted Products: </span>
-                                  <span className="text-sm text-afrikoni-text-dark/70">{country.restrictedProducts.join(', ')}</span>
+                                  <span className="text-sm font-medium">Restricted Products: </span>
+                                  <span className="text-sm">{country.restrictedProducts.join(', ')}</span>
                                 </div>
                                 <div>
-                                  <span className="text-sm font-medium text-afrikoni-text-dark">Notes: </span>
-                                  <span className="text-sm text-afrikoni-text-dark/70">{country.notes}</span>
+                                  <span className="text-sm font-medium">Notes: </span>
+                                  <span className="text-sm">{country.notes}</span>
                                 </div>
                               </div>
                             </td>
@@ -880,15 +880,15 @@ export default function ComplianceCenter() {
           transition={{ duration: 0.4, delay: 0.6 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3">
+            <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3">
               Compliance Tasks & Deadlines
             </h2>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-afrikoni-text-dark/70" />
+              <Filter className="w-4 h-4" />
               <select
                 value={taskSort}
                 onChange={(e) => setTaskSort(e.target.value)}
-                className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
               >
                 <option value="dueDate">Sort by Due Date</option>
                 <option value="riskLevel">Sort by Risk Level</option>
@@ -896,7 +896,7 @@ export default function ComplianceCenter() {
               </select>
             </div>
           </div>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="space-y-3">
                 {sortedTasks.map((task) => (
@@ -912,7 +912,7 @@ export default function ComplianceCenter() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <div className={`w-3 h-3 rounded-full ${getRiskColor(task.riskLevel)}`} />
-                          <h3 className="font-semibold text-afrikoni-text-dark">{task.title}</h3>
+                          <h3 className="font-semibold">{task.title}</h3>
                           <Badge
                             className={`${
                               task.riskLevel === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
@@ -927,8 +927,8 @@ export default function ComplianceCenter() {
                             {task.category}
                           </Badge>
                         </div>
-                        <p className="text-sm text-afrikoni-text-dark/70 mb-2">{task.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-afrikoni-text-dark/60">
+                        <p className="text-sm mb-2">{task.description}</p>
+                        <div className="flex items-center gap-4 text-xs">
                           <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
                           <span>Assigned: {task.assignedTo}</span>
                           <Badge
@@ -944,7 +944,7 @@ export default function ComplianceCenter() {
                         </div>
                       </div>
                       {task.status !== 'done' && (
-                        <Button size="sm" className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal rounded-afrikoni ml-4">
+                        <Button size="sm" className="hover:bg-afrikoni-gold/90 rounded-afrikoni ml-4">
                           Mark Done
                         </Button>
                       )}
@@ -962,24 +962,24 @@ export default function ComplianceCenter() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.7 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Certificates & Legal Documents
           </h2>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {certificates.map((cert) => (
                   <div
                     key={cert.id}
-                    className="flex items-center justify-between p-4 border border-afrikoni-gold/20 rounded-afrikoni hover:bg-afrikoni-sand/10 transition-all"
+                    className="flex items-center justify-between p-4 border rounded-afrikoni hover:bg-afrikoni-sand/10 transition-all"
                   >
                     <div className="flex items-center gap-4 flex-1">
-                      <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
-                        <FileText className="w-6 h-6 text-afrikoni-gold" />
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                        <FileText className="w-6 h-6" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-afrikoni-text-dark mb-1">{cert.name}</h3>
-                        <div className="flex items-center gap-4 text-sm text-afrikoni-text-dark/70">
+                        <h3 className="font-semibold mb-1">{cert.name}</h3>
+                        <div className="flex items-center gap-4 text-sm">
                           <span>Type: {cert.type}</span>
                           {cert.expiryDate && (
                             <span>Expires: {new Date(cert.expiryDate).toLocaleDateString()}</span>
@@ -993,17 +993,17 @@ export default function ComplianceCenter() {
                     </div>
                     <div className="flex items-center gap-2 ml-4">
                       {cert.status === 'missing' ? (
-                        <Button size="sm" className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal rounded-afrikoni">
+                        <Button size="sm" className="hover:bg-afrikoni-gold/90 rounded-afrikoni">
                           <Upload className="w-3 h-3 mr-1" />
                           Upload PDF
                         </Button>
                       ) : (
                         <>
-                          <Button size="sm" variant="outline" className="border-afrikoni-gold/30 rounded-afrikoni">
+                          <Button size="sm" variant="outline" className="rounded-afrikoni">
                             <Eye className="w-3 h-3 mr-1" />
                             View PDF
                           </Button>
-                          <Button size="sm" variant="outline" className="border-afrikoni-gold/30 rounded-afrikoni">
+                          <Button size="sm" variant="outline" className="rounded-afrikoni">
                             <Upload className="w-3 h-3 mr-1" />
                             Replace
                           </Button>

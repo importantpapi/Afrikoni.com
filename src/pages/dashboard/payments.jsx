@@ -1,477 +1,251 @@
-/**
- * Payments & Escrow Dashboard
- * Shows wallet balance, transactions, and escrow payments
- */
-
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { motion } from 'framer-motion';
-import { Wallet, ArrowUpRight, ArrowDownLeft, Shield, Clock, CheckCircle, XCircle, DollarSign, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
-import { Button } from '@/components/shared/ui/button';
-import { Badge } from '@/components/shared/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
-import { toast } from 'sonner';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { supabase } from '@/api/supabaseClient';
-import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import ErrorState from '@/components/shared/ui/ErrorState';
+import { useEffect, useMemo, useState } from "react";
 import {
-  getWalletAccount,
-  getWalletTransactions,
-  getEscrowPaymentsByCompany,
-  getEscrowEvents,
-} from '@/lib/supabaseQueries/payments';
-import { format } from 'date-fns';
-import EmptyState from '@/components/shared/ui/EmptyState';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
-import RequireCapability from '@/guards/RequireCapability';
+  Wallet,
+  ArrowUpRight,
+  Lock,
+  TrendingUp,
+  CheckCircle2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import EscrowWidget from "@/components/dashboard/EscrowWidget";
+import { Surface } from "@/components/system/Surface";
+import { StatusBadge } from "@/components/system/StatusBadge";
+import { supabase } from "@/api/supabaseClient";
+import { useDashboardKernel } from "@/hooks/useDashboardKernel";
 
-function PaymentsDashboardInner() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  // ✅ KERNEL MANIFESTO: Use capabilities.ready from Kernel instead of useCapability()
-  const ready = capabilities?.ready || false;
-  
-  // Derive role from capabilities for API calls that need it
-  const isBuyer = capabilities?.can_buy === true;
-  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
-  const derivedRole = isSeller ? 'seller' : 'buyer'; // Default to buyer if both or neither
-  const [wallet, setWallet] = useState(null);
+const Payments = () => {
+  const { canLoadData, isSystemReady, profileCompanyId } = useDashboardKernel();
+  const [payment, setPayment] = useState({
+    totalAmount: 0,
+    releasedAmount: 0,
+    heldAmount: 0,
+    fxRate: 1.0,
+  });
   const [transactions, setTransactions] = useState([]);
-  const [escrowPayments, setEscrowPayments] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('wallet');
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
-  const { isStale, markFresh } = useDataFreshness(30000);
-  const lastLoadTimeRef = useRef(null);
-  
-  // ✅ KERNEL-CENTRIC: Check ready state from Kernel - ONLY render when ready === true
-  if (!ready) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={ready} />
-      </div>
-    );
-  }
-  
-  // ✅ UNIFIED DASHBOARD KERNEL: Show loading spinner while system is not ready
-  if (!canLoadData && capabilities.loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading capabilities..." ready={capabilities.ready} />
-      </div>
-    );
-  }
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ PRODUCTION CLEANUP: Agent logging disabled
-    // ✅ KERNEL MIGRATION: Use canLoadData guard
-    if (!canLoadData) {
-      return;
-    }
-
-    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
-    if (shouldRefresh) {
-      console.log('[PaymentsDashboard] Data is stale or first load - refreshing');
-      // Now safe to load data
-      loadData();
-    } else {
-      console.log('[PaymentsDashboard] Data is fresh - skipping reload');
-    }
-  }, [canLoadData, userId, profileCompanyId, location.pathname, isStale, navigate]);
-
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId from kernel
-      if (!userId || !profileCompanyId) {
-        navigate('/login');
-        return;
-      }
-
-      // Try to load payment data - tables may not exist yet
+    let active = true;
+    const load = async () => {
+      if (!isSystemReady || !canLoadData) return;
       try {
-        // ✅ UNIFIED DASHBOARD KERNEL: Use profileCompanyId from kernel
-        // Load wallet account
-        let walletAccount = await getWalletAccount(profileCompanyId);
-        if (!walletAccount) {
-          // Create wallet if it doesn't exist
-          const { createWalletAccount } = await import('@/lib/supabaseQueries/payments');
-          walletAccount = await createWalletAccount(profileCompanyId);
-        }
-        setWallet(walletAccount);
+          const { data: escrows } = await supabase
+            .from("escrows")
+            .select("id, amount, balance, status, trade_id, buyer_id, seller_id")
+            .or(`buyer_id.eq.${profileCompanyId},seller_id.eq.${profileCompanyId}`);
 
-        // Load transactions
-        const txs = await getWalletTransactions(profileCompanyId, { limit: 50 });
-        setTransactions(txs);
+          const { data: payments } = await supabase
+            .from("payments")
+            .select("id, trade_id, amount, payment_type, status, created_at")
+            .order("created_at", { ascending: false })
+            .limit(20);
 
-        // ✅ KERNEL COMPLIANCE: Use profileCompanyId and capabilities from kernel
-        // Load escrow payments - determine buyer/seller from capabilities
-        const escrows = await getEscrowPaymentsByCompany(profileCompanyId, capabilities);
-        setEscrowPayments(escrows);
-        
-        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
-        // Only mark fresh if we got actual data (not an error)
-        if (walletAccount || transactions.length > 0 || escrows.length > 0) {
-          lastLoadTimeRef.current = Date.now();
-          markFresh();
-        }
-      } catch (dataError) {
-        // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
-        if (dataError?.code === 'PGRST204' || dataError?.code === 'PGRST205') {
-          console.warn('[PaymentsDashboard] Schema mismatch (PGRST204/205) - continuing with empty state');
-          // Set empty data - feature not yet available
-          setWallet({ currency: 'USD', available_balance: 0 ?? 0, pending_balance: 0 ?? 0 }); // ✅ KERNEL-CENTRIC: Vibranium defaults
+        if (!active) return;
+
+        const totalAmount = (escrows || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+        const releasedAmount = (payments || [])
+          .filter((row) => row.payment_type === "escrow_release" && row.status === "completed")
+          .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+        const heldAmount = Math.max(0, totalAmount - releasedAmount);
+
+        setPayment({
+          totalAmount,
+          releasedAmount,
+          heldAmount,
+          fxRate: 1.0,
+        });
+
+        const tx = (payments || []).map((row) => ({
+          id: row.id,
+          order: row.trade_id,
+          product: row.trades?.product_name || "Trade",
+          type: row.payment_type === "escrow_release" ? "Milestone Release" : row.payment_type === "refund" ? "Escrow Refund" : "Adjustment",
+          amount: Number(row.amount || 0),
+          status: row.status === "completed" ? "released" : row.status,
+          date: row.created_at,
+        }));
+        setTransactions(tx);
+      } catch {
+        if (active) {
           setTransactions([]);
-          setEscrowPayments([]);
-          return; // Exit gracefully - don't set error state
+          setPayment({ totalAmount: 0, releasedAmount: 0, heldAmount: 0, fxRate: 1.0 });
         }
-        console.log('Payment tables not yet set up:', dataError.message);
-        // Set empty data - feature not yet available
-        setWallet({ currency: 'USD', available_balance: 0, pending_balance: 0 });
-        setTransactions([]);
-        setEscrowPayments([]);
-        // ❌ DO NOT mark fresh on error - let it retry on next navigation
+      } finally {
+        if (active) setLoading(false);
       }
-    } catch (error) {
-      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
-      if (error?.code === 'PGRST204' || error?.code === 'PGRST205') {
-        console.warn('[PaymentsDashboard] Schema mismatch (PGRST204/205) - ignoring error');
-        // Set empty data and continue - don't crash
-        setWallet({ currency: 'USD', available_balance: 0, pending_balance: 0 });
-        setTransactions([]);
-        setEscrowPayments([]);
-        // ✅ VIBRANIUM STABILIZATION: Don't return early - let finally block handle setIsLoading(false)
-      } else {
-        // ✅ KERNEL MIGRATION: Enhanced error logging and state
-        console.error('Error loading payments data:', error);
-        setError(error?.message || 'Failed to load payments data');
-      }
-      // ❌ DO NOT mark fresh on error - let it retry on next navigation
-    } finally {
-      // ✅ VIBRANIUM STABILIZATION: Always reset loading state (non-negotiable)
-      setIsLoading(false);
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    const variants = {
-      'completed': 'success',
-      'pending': 'outline',
-      'failed': 'destructive',
-      'held': 'outline',
-      'released': 'success',
-      'refunded': 'destructive'
     };
-    return variants[status] || 'outline';
-  };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [canLoadData, isSystemReady, profileCompanyId]);
 
-  const getStatusIcon = (status) => {
-    if (status === 'completed' || status === 'released') return <CheckCircle className="w-4 h-4" />;
-    if (status === 'pending' || status === 'held') return <Clock className="w-4 h-4" />;
-    if (status === 'failed' || status === 'refunded') return <XCircle className="w-4 h-4" />;
-    return null;
-  };
-
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
-  if (error) {
-    return (
-      <ErrorState 
-        message={error} 
-        onRetry={() => {
-          setError(null);
-          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
-          if (shouldRefresh) {
-            loadData();
-          }
-        }}
-      />
-    );
-  }
-
-  const totalInflow = transactions
-    .filter((tx) => tx.type === 'deposit' || tx.type === 'refund')
-    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
-
-  const totalOutflow = transactions
-    .filter((tx) => tx.type !== 'deposit' && tx.type !== 'refund')
-    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount) || 0), 0);
-
-  const escrowHeld = escrowPayments
-    .filter((e) => e.status === 'held' || e.status === 'pending')
-    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-
-  const escrowReleased = escrowPayments
-    .filter((e) => e.status === 'released' || e.status === 'completed')
-    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const fxLabel = useMemo(() => (payment.fxRate ? `1 USD = ${payment.fxRate} USD` : "—"), [payment.fxRate]);
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
-          <div>
-            <h1 className="text-3xl font-bold text-afrikoni-text-dark mb-2">Payments & Escrow</h1>
-            <p className="text-afrikoni-text-dark/70">Manage your wallet, transactions, and escrow payments</p>
-            <p className="text-sm text-afrikoni-text-dark/60 mt-1">All transactions are protected through Afrikoni's Trade Shield</p>
-          </div>
-        </motion.div>
+    <div className="os-page os-stagger space-y-6">
+      <Surface variant="glass" className="p-6 md:p-8">
+        <h1 className="os-title">Payments & Escrow</h1>
+        <p className="text-sm text-os-muted">
+          Manage escrow accounts, milestone payments, and settlements
+        </p>
+      </Surface>
 
-        {/* Wallet & Escrow KPIs - Trust-focused */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {wallet && (
-            <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
-              <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60 font-semibold">
-                  Available Balance
-                </p>
-                <p className="text-2xl font-bold text-afrikoni-text-dark mt-1">
-                  {wallet.currency}{' '}
-                  {parseFloat(wallet.available_balance ?? 0).toLocaleString('en-US', { // ✅ KERNEL-CENTRIC: Vibranium defaults
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </p>
-                <p className="text-xs text-afrikoni-text-dark/50 mt-1">Ready for trade</p>
-              </CardContent>
-            </Card>
-          )}
-          <Card className="border-afrikoni-gold/20">
-            <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
-                Escrow Protected
-              </p>
-              <p className="text-2xl font-bold text-afrikoni-gold mt-1">
-                {wallet?.currency || 'USD'}{' '}
-                {escrowHeld.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-              <p className="text-xs text-afrikoni-text-dark/50 mt-1">In secure escrow</p>
-            </CardContent>
-          </Card>
-          <Card className="opacity-80">
-            <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
-                Total Inflows
-              </p>
-              <p className="text-xl font-semibold text-green-600 mt-1">
-                {wallet?.currency || 'USD'}{' '}
-                {totalInflow.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="opacity-80">
-            <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide text-afrikoni-text-dark/60">
-                Total Outflows
-              </p>
-              <p className="text-xl font-semibold text-red-600 mt-1">
-                {wallet?.currency || 'USD'}{' '}
-                {totalOutflow.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Wallet Balance Card */}
-        {wallet && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          {
+            label: "Total in Escrow",
+            value: `$${payment.totalAmount.toLocaleString()}`,
+            icon: Wallet,
+            tone: "neutral",
+            color: "text-[var(--os-text-primary)]",
+            bg: "bg-white/5",
+          },
+          {
+            label: "Released",
+            value: `$${payment.releasedAmount.toLocaleString()}`,
+            icon: ArrowUpRight,
+            tone: "good",
+            color: "text-emerald-400",
+            bg: "bg-emerald-400/10",
+          },
+          {
+            label: "Held",
+            value: `$${payment.heldAmount.toLocaleString()}`,
+            icon: Lock,
+            tone: "warning",
+            color: "text-amber-400",
+            bg: "bg-amber-400/10",
+          },
+          {
+            label: "FX Rate",
+            value: fxLabel,
+            icon: TrendingUp,
+            tone: "info",
+            color: "text-blue-400",
+            bg: "bg-blue-400/10",
+          },
+        ].map((stat) => (
+          <Surface
+            key={stat.label}
+            variant="panel"
+            className="p-5"
           >
-            <Card className="bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-cream border-afrikoni-gold/20">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-afrikoni-text-dark/70 mb-1">Available Balance</p>
-                    <h2 className="text-4xl font-bold text-afrikoni-text-dark">
-                      {wallet.currency} {parseFloat(wallet.available_balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {/* ✅ KERNEL-CENTRIC: Vibranium defaults */}
-                    </h2>
-                    {wallet.pending_balance > 0 && (
-                      <p className="text-sm text-afrikoni-text-dark/60 mt-2">
-                        Pending: {wallet.currency} {parseFloat(wallet.pending_balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                    )}
-                  </div>
-                  <div className="p-4 bg-afrikoni-gold/20 rounded-full">
-                    <Wallet className="w-8 h-8 text-afrikoni-gold" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="wallet">Wallet Transactions</TabsTrigger>
-            <TabsTrigger value="escrow">Escrow Payments</TabsTrigger>
-          </TabsList>
-
-          {/* Wallet Transactions Tab */}
-          <TabsContent value="wallet" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {transactions.length === 0 ? (
-                  <EmptyState
-                    icon={Wallet}
-                    title="No transactions yet"
-                    description="Your transaction history will appear here"
-                  />
-                ) : (
-                  <div className="space-y-3">
-                    {transactions.map((tx) => (
-                      <motion.div
-                        key={tx.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-afrikoni-cream/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={`p-2 rounded-full ${
-                            tx.type === 'deposit' || tx.type === 'refund' 
-                              ? 'bg-green-100 text-green-600' 
-                              : 'bg-red-100 text-red-600'
-                          }`}>
-                            {tx.type === 'deposit' || tx.type === 'refund' ? (
-                              <ArrowDownLeft className="w-4 h-4" />
-                            ) : (
-                              <ArrowUpRight className="w-4 h-4" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-semibold">{tx.description || tx.type}</p>
-                            <p className="text-sm text-afrikoni-text-dark/60">
-                              {format(new Date(tx.created_at), 'MMM dd, yyyy HH:mm')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-bold ${
-                            tx.type === 'deposit' || tx.type === 'refund' 
-                              ? 'text-green-600' 
-                              : 'text-red-600'
-                          }`}>
-                            {tx.type === 'deposit' || tx.type === 'refund' ? '+' : '-'}
-                            {tx.currency} {Math.abs(parseFloat(tx.amount || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                          <Badge variant={getStatusBadge(tx.status)} className="mt-1">
-                            {getStatusIcon(tx.status)}
-                            <span className="ml-1 capitalize">{tx.status}</span>
-                          </Badge>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+            <div className="flex items-center gap-2 mb-3">
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center",
+                  stat.bg
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Escrow Payments Tab */}
-          <TabsContent value="escrow" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Escrow Payments
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {escrowPayments.length === 0 ? (
-                  <EmptyState
-                    icon={Shield}
-                    title="No escrow payments"
-                    description="Escrow payments for your orders will appear here"
-                  />
-                ) : (
-                  <div className="space-y-4">
-                    {escrowPayments.map((escrow) => (
-                      <motion.div
-                        key={escrow.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <p className="font-semibold">
-                              Order #{escrow.orders?.order_number || escrow.order_id?.slice(0, 8)}
-                            </p>
-                            <p className="text-sm text-afrikoni-text-dark/60">
-                              {format(new Date(escrow.created_at), 'MMM dd, yyyy')}
-                            </p>
-                          </div>
-                          <Badge variant={getStatusBadge(escrow.status)}>
-                            {getStatusIcon(escrow.status)}
-                            <span className="ml-1 capitalize">{escrow.status}</span>
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-afrikoni-text-dark/70">Escrow Amount</p>
-                            <p className="text-xl font-bold text-afrikoni-gold">
-                              {escrow.currency} {parseFloat(escrow.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                          </div>
-                          <Link to={`/dashboard/escrow/${escrow.order_id}`}>
-                            <Button variant="outline" size="sm">
-                              View Details
-                            </Button>
-                          </Link>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              >
+                <stat.icon className={cn("h-4 w-4", stat.color)} />
+              </div>
+              <span className="text-xs font-medium text-os-muted uppercase tracking-wide">
+                {stat.label}
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-[var(--os-text-primary)] tabular-nums font-mono">
+              {stat.value}
+            </p>
+          </Surface>
+        ))}
       </div>
-    </>
-  );
-}
 
-export default function PaymentsDashboard() {
-    return (
-      <>
-        {/* PHASE 5B: Payments requires buy or sell capability */}
-        <RequireCapability canBuy={true} canSell={true}>
-          <PaymentsDashboardInner />
-        </RequireCapability>
-      </>
-    );
-}
+      <EscrowWidget payment={payment} />
+
+      <Surface variant="panel" className="overflow-hidden p-0">
+        <div className="p-5 border-b border-white/5 bg-white/5">
+          <h3 className="text-base font-semibold text-[var(--os-text-primary)]">Transaction History</h3>
+          <p className="text-xs text-os-muted mt-0.5">
+            Recent escrow and settlement activity
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5 bg-white/5">
+                {["Transaction", "Order", "Type", "Amount", "Status", "Date"].map(
+                  (header) => (
+                    <th
+                      key={header}
+                      className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-os-muted"
+                    >
+                      {header}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {transactions.map((tx) => (
+                <tr key={tx.id} className="hover:bg-white/5 transition-colors">
+                  <td className="px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                        {tx.product}
+                      </p>
+                      <p className="text-xs text-os-muted font-mono">
+                        {tx.id}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs font-mono text-os-muted">
+                      {tx.order}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-[var(--os-text-primary)]">{tx.type}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        "text-sm font-semibold tabular-nums font-mono",
+                        tx.status === "released" || tx.status === "completed"
+                          ? "text-emerald-400"
+                          : tx.status === "refunded"
+                            ? "text-blue-400"
+                            : "text-[var(--os-text-primary)]"
+                      )}
+                    >
+                      {tx.status === "released" || tx.status === "completed" ? "+" : ""}
+                      ${tx.amount.toLocaleString()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge
+                      label={tx.status}
+                      tone={
+                        tx.status === 'held' ? 'warning' :
+                          tx.status === 'released' ? 'good' :
+                            tx.status === 'completed' ? 'neutral' :
+                              tx.status === 'refunded' ? 'info' : 'neutral'
+                      }
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs text-os-muted tabular-nums">
+                      {tx.date ? new Date(tx.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      }) : "—"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {!loading && transactions.length === 0 && (
+                <tr>
+                  <td className="px-4 py-6 text-sm text-os-muted" colSpan={6}>
+                    No transactions recorded yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Surface>
+    </div>
+  );
+};
+
+export default Payments;

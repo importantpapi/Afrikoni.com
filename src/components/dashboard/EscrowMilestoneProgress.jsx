@@ -63,11 +63,11 @@ export default function EscrowMilestoneProgress({
     <Card className={`border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-gray-900 dark:text-[#F5F0E8] flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+          <CardTitle className="text-sm font-semibold dark:text-[#F5F0E8] flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4" />
             Escrow Status
           </CardTitle>
-          <Badge className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30 text-[10px] font-semibold">
+          <Badge className="dark:bg-emerald-950/30 dark:text-emerald-400 border dark:border-emerald-900/30 text-[10px] font-semibold">
             Active
           </Badge>
         </div>
@@ -75,25 +75,25 @@ export default function EscrowMilestoneProgress({
       <CardContent>
         {/* Amount Summary */}
         <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-[#1A1A1A]">
-            <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 mb-1 font-medium uppercase tracking-wider">
+          <div className="text-center p-2 rounded-lg dark:bg-[#1A1A1A]">
+            <div className="flex items-center justify-center gap-1 text-[10px] dark:text-gray-400 mb-1 font-medium uppercase tracking-wider">
               <DollarSign className="w-3 h-3" /> Total
             </div>
-            <p className="text-base font-bold font-mono text-gray-900 dark:text-[#F5F0E8]">
+            <p className="text-base font-bold font-mono dark:text-[#F5F0E8]">
               ${totalAmount.toLocaleString()}
             </p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
-            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mb-1 uppercase tracking-wider">Released</div>
-            <p className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400">
+          <div className="text-center p-2 rounded-lg dark:bg-emerald-950/20">
+            <div className="text-[10px] dark:text-emerald-400 font-medium mb-1 uppercase tracking-wider">Released</div>
+            <p className="text-base font-bold font-mono dark:text-emerald-400">
               ${releasedAmount.toLocaleString()}
             </p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-[#D4A937]/5">
-            <div className="flex items-center justify-center gap-1 text-[10px] text-[#D4A937] font-medium mb-1 uppercase tracking-wider">
+          <div className="text-center p-2 rounded-lg">
+            <div className="flex items-center justify-center gap-1 text-[10px] font-medium mb-1 uppercase tracking-wider">
               <Clock className="w-3 h-3" /> Held
             </div>
-            <p className="text-base font-bold font-mono text-[#D4A937]">
+            <p className="text-base font-bold font-mono">
               ${heldAmount.toLocaleString()}
             </p>
           </div>
@@ -101,23 +101,23 @@ export default function EscrowMilestoneProgress({
 
         {/* Release Progress Bar */}
         <div className="mb-5">
-          <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 font-medium">
+          <div className="flex justify-between text-[10px] dark:text-gray-400 mb-1.5 font-medium">
             <span className="uppercase tracking-wider">Release Progress</span>
-            <span className="font-mono font-bold text-[#D4A937]">{releaseProgress}%</span>
+            <span className="font-mono font-bold">{releaseProgress}%</span>
           </div>
-          <div className="h-2 bg-gray-200 dark:bg-[#2A2A2A] rounded-full overflow-hidden">
+          <div className="h-2 dark:bg-[#2A2A2A] rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${releaseProgress}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              className="h-full bg-gradient-to-r from-emerald-500 to-[#D4A937] rounded-full"
+              className="h-full bg-gradient-to-r to-[#D4A937] rounded-full"
             />
           </div>
         </div>
 
         {/* Payment Milestones */}
         <div className="space-y-2">
-          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-wider">
+          <p className="text-[10px] font-bold dark:text-gray-600 uppercase tracking-wider">
             Payment Milestones
           </p>
           {MILESTONES.map((milestone, i) => {
@@ -158,7 +158,7 @@ export default function EscrowMilestoneProgress({
                   }`}>
                     {milestone.label}
                   </p>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  <p className="text-[11px] dark:text-gray-400">
                     {milestone.description}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export default function EscrowMilestoneProgress({
                   }`}>
                     ${amount.toLocaleString()}
                   </p>
-                  <p className="text-[10px] font-mono text-gray-400 dark:text-gray-600">{milestone.releasePercent}%</p>
+                  <p className="text-[10px] font-mono dark:text-gray-600">{milestone.releasePercent}%</p>
                 </div>
               </motion.div>
             );
@@ -179,8 +179,8 @@ export default function EscrowMilestoneProgress({
 
         {/* FX Rate */}
         {fxRate && (
-          <div className="mt-4 pt-3 border-t border-gray-100 dark:border-[#2A2A2A] text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1 font-mono">
-            FX Rate (ECB) <span className="font-bold text-gray-600 dark:text-gray-300">{fxRate}</span>
+          <div className="mt-4 pt-3 border-t dark:border-[#2A2A2A] text-[10px] dark:text-gray-500 flex items-center gap-1 font-mono">
+            FX Rate (ECB) <span className="font-bold dark:text-gray-300">{fxRate}</span>
           </div>
         )}
       </CardContent>

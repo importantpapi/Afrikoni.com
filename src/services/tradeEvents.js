@@ -100,8 +100,8 @@ export async function emitTradeEvent({
         triggered_by: userId,
         created_at: new Date()
       })
-      .select()
-      .single();
+      .select('id, trade_id, event_type, metadata, triggered_by, created_at')
+      .maybeSingle();
 
     if (error) {
       console.error('[tradeEvents] Failed to emit event:', error);
@@ -128,7 +128,7 @@ export async function getTradeTimeline(tradeId) {
   try {
     const { data: events, error } = await supabase
       .from('trade_events')
-      .select('*')
+      .select('id, trade_id, event_type, metadata, triggered_by, created_at')
       .eq('trade_id', tradeId)
       .order('created_at', { ascending: true });
 
@@ -147,16 +147,25 @@ export async function getTradeTimeline(tradeId) {
  * (Used by UI components to show live updates)
  */
 export function subscribeToTradeEvents(tradeId, onEventReceived) {
-  const subscription = supabase
-    .from(`trades:id=eq.${tradeId}`)
-    .on('*', (payload) => {
+  const channel = supabase.channel(`trade_events:${tradeId}`);
+
+  channel.on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'trade_events',
+      filter: `trade_id=eq.${tradeId}`
+    },
+    (payload) => {
       onEventReceived(payload);
-    })
-    .subscribe();
+    }
+  );
+
+  channel.subscribe();
 
   return () => {
-    // Unsubscribe when component unmounts
-    subscription.unsubscribe();
+    channel.unsubscribe();
   };
 }
 

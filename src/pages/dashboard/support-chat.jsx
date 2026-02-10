@@ -149,7 +149,7 @@ function SupportChatInner() {
                     title: `New Support Ticket Created - ${newTicketNumber}`,
                     message: `A new support ticket has been created. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
                     type: 'support',
-                    link: `/dashboard/admin/support-tickets?ticket=${newTicketNumber}`,
+                    link: `/dashboard/support-chat?ticket=${newTicketNumber}`,
                     sendEmail: true
                   }).catch(err => console.error('Failed to notify admin:', admin.email, err))
                 ));
@@ -163,7 +163,7 @@ function SupportChatInner() {
                   title: `New Support Ticket Created - ${newTicketNumber}`,
                   message: `A new support ticket has been created by ${userData.email || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
                   type: 'support',
-                  link: `/dashboard/admin/support-tickets?ticket=${newTicketNumber}`,
+                  link: `/dashboard/support-chat?ticket=${newTicketNumber}`,
                   sendEmail: true
                 });
               }
@@ -318,7 +318,7 @@ function SupportChatInner() {
               title: `New Support Message - ${ticketNumber}`,
               message: `New message from user: ${newMessage.trim().substring(0, 100)}...`,
               type: 'support',
-              link: `/dashboard/admin/support-tickets?ticket=${ticketNumber}`,
+              link: `/dashboard/support-chat?ticket=${ticketNumber}`,
               sendEmail: true
             }).catch(err => console.error('Failed to notify admin:', admin.email, err))
           ));
@@ -332,7 +332,7 @@ function SupportChatInner() {
             title: `New Support Message - ${ticketNumber}`,
             message: `New message from ${user.email || 'User'}: ${newMessage.trim().substring(0, 100)}...`,
             type: 'support',
-            link: `/dashboard/admin/support-tickets?ticket=${ticketNumber}`,
+            link: `/dashboard/support-chat?ticket=${ticketNumber}`,
             sendEmail: true
           });
         }
@@ -365,7 +365,7 @@ function SupportChatInner() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
       </div>
     );
   }
@@ -389,10 +389,10 @@ function SupportChatInner() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">
               Live Support Chat
             </h1>
-            <p className="text-afrikoni-deep/70">
+            <p className="">
               Chat directly with our support team. All messages are sent to hello@afrikoni.com
             </p>
           </div>
@@ -400,17 +400,17 @@ function SupportChatInner() {
 
         {/* Ticket Info Card */}
         {ticketNumber && (
-          <Card className="border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-afrikoni-gold/10">
+          <Card className="bg-gradient-to-r">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-afrikoni-gold/20 rounded-lg">
-                    <Hash className="w-5 h-5 text-afrikoni-gold" />
+                  <div className="p-2 rounded-lg">
+                    <Hash className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-sm text-afrikoni-deep/70 mb-1">Support Ticket Number</div>
+                    <div className="text-sm mb-1">Support Ticket Number</div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold text-afrikoni-chestnut font-mono">
+                      <span className="text-xl font-bold font-mono">
                         {ticketNumber}
                       </span>
                       <Button
@@ -422,7 +422,7 @@ function SupportChatInner() {
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
-                    <div className="text-xs text-afrikoni-deep/60 mt-1">
+                    <div className="text-xs mt-1">
                       Save this number for reference. You'll receive email updates at {user?.email}
                     </div>
                   </div>
@@ -454,14 +454,14 @@ function SupportChatInner() {
         )}
 
         {/* Chat Interface */}
-        <Card className="border-afrikoni-gold/20">
-          <CardHeader className="border-b border-afrikoni-gold/10">
+        <Card className="">
+          <CardHeader className="border-b">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-afrikoni-gold" />
+                <MessageSquare className="w-5 h-5" />
                 Support Chat
               </CardTitle>
-              <div className="flex items-center gap-2 text-sm text-afrikoni-deep/70">
+              <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4" />
                 <span>Average response time: 1-2 hours</span>
               </div>
@@ -469,12 +469,12 @@ function SupportChatInner() {
           </CardHeader>
           <CardContent className="p-0">
             {/* Messages Area */}
-            <div className="h-[500px] overflow-y-auto p-4 space-y-4 bg-afrikoni-offwhite/30">
+            <div className="h-[500px] overflow-y-auto p-4 space-y-4">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                  <MessageSquare className="w-12 h-12 text-afrikoni-gold/50 mb-4" />
-                  <p className="text-afrikoni-deep/70 mb-2">No messages yet</p>
-                  <p className="text-sm text-afrikoni-deep/60">
+                  <MessageSquare className="w-12 h-12 mb-4" />
+                  <p className="mb-2">No messages yet</p>
+                  <p className="text-sm">
                     Start the conversation by sending a message below
                   </p>
                 </div>
@@ -494,10 +494,10 @@ function SupportChatInner() {
                       }`}>
                         <div className="flex items-start gap-2 mb-1">
                           {message.sender_type === 'admin' && (
-                            <Badge className="bg-blue-100 text-blue-700 text-xs">Support Team</Badge>
+                            <Badge className="text-xs">Support Team</Badge>
                           )}
                           {message.sender_type === 'user' && (
-                            <Badge className="bg-afrikoni-gold/20 text-afrikoni-charcoal text-xs">You</Badge>
+                            <Badge className="text-xs">You</Badge>
                           )}
                         </div>
                         <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
@@ -513,7 +513,7 @@ function SupportChatInner() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-afrikoni-gold/10 bg-white">
+            <div className="p-4 border-t">
               <div className="flex gap-2">
                 <Textarea
                   value={newMessage}
@@ -531,7 +531,7 @@ function SupportChatInner() {
                 <Button
                   onClick={handleSendMessage}
                   disabled={!newMessage.trim() || isSending}
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal"
+                  className="hover:bg-afrikoni-goldDark"
                 >
                   {isSending ? (
                     <Clock className="w-4 h-4 animate-spin" />
@@ -543,7 +543,7 @@ function SupportChatInner() {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-afrikoni-deep/60 mt-2">
+              <p className="text-xs mt-2">
                 All messages are sent to our support team at hello@afrikoni.com. You'll receive email notifications when we respond.
               </p>
             </div>
@@ -552,26 +552,26 @@ function SupportChatInner() {
 
         {/* Info Cards */}
         <div className="grid md:grid-cols-2 gap-4">
-          <Card className="border-afrikoni-gold/20">
+          <Card className="">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-1">Response Time</h3>
-                  <p className="text-sm text-afrikoni-deep/70">
+                  <h3 className="font-semibold mb-1">Response Time</h3>
+                  <p className="text-sm">
                     Our support team typically responds within 1-2 hours during business hours (Mon-Fri, 8AM-6PM WAT).
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-afrikoni-gold/20">
+          <Card className="">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold text-afrikoni-chestnut mb-1">Ticket Tracking</h3>
-                  <p className="text-sm text-afrikoni-deep/70">
+                  <h3 className="font-semibold mb-1">Ticket Tracking</h3>
+                  <p className="text-sm">
                     Save your ticket number ({ticketNumber}) to track your request. You'll receive email updates on this ticket.
                   </p>
                 </div>
@@ -589,16 +589,16 @@ function SupportChatInner() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold text-afrikoni-deep/70 mb-1 block">Ticket Number</label>
+                <label className="text-sm font-semibold mb-1 block">Ticket Number</label>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-lg font-bold text-afrikoni-chestnut">{ticketNumber}</span>
+                  <span className="font-mono text-lg font-bold">{ticketNumber}</span>
                   <Button variant="ghost" size="sm" onClick={copyTicketNumber}>
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
               <div>
-                <label className="text-sm font-semibold text-afrikoni-deep/70 mb-1 block">Status</label>
+                <label className="text-sm font-semibold mb-1 block">Status</label>
                 <Badge className={
                   ticketStatus === 'open' ? 'bg-green-100 text-green-700' :
                   ticketStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' :
@@ -610,12 +610,12 @@ function SupportChatInner() {
                 </Badge>
               </div>
               <div>
-                <label className="text-sm font-semibold text-afrikoni-deep/70 mb-1 block">Your Email</label>
-                <p className="text-afrikoni-deep">{user?.email}</p>
+                <label className="text-sm font-semibold mb-1 block">Your Email</label>
+                <p className="">{user?.email}</p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-afrikoni-deep/70 mb-1 block">Support Email</label>
-                <p className="text-afrikoni-deep">hello@afrikoni.com</p>
+                <label className="text-sm font-semibold mb-1 block">Support Email</label>
+                <p className="">hello@afrikoni.com</p>
               </div>
             </div>
           </DialogContent>
@@ -635,4 +635,3 @@ export default function SupportChat() {
     </>
   );
 }
-

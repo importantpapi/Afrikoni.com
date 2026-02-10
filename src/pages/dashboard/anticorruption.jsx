@@ -259,19 +259,19 @@ export default function AntiCorruption() {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <Link to="/dashboard/risk" className="inline-flex items-center gap-2 text-afrikoni-gold hover:text-afrikoni-gold/80 mb-4">
+          <Link to="/dashboard/risk" className="inline-flex items-center gap-2 hover:text-afrikoni-gold/80 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Risk Dashboard
           </Link>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-              <Lock className="w-6 h-6 text-afrikoni-gold" />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center">
+              <Lock className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-text-dark mb-2 leading-tight">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 leading-tight">
                 Anti-Corruption Dashboard
               </h1>
-              <p className="text-afrikoni-text-dark/70 text-sm md:text-base leading-relaxed">
+              <p className="text-sm md:text-base leading-relaxed">
                 Zero-bribe policy enforcement, whistleblowing, and transparency across 54 African countries
               </p>
             </div>
@@ -284,7 +284,7 @@ export default function AntiCorruption() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Anti-Corruption Overview
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -294,17 +294,17 @@ export default function AntiCorruption() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.05 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-afrikoni-purple" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <FileText className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {antiCorruptionKPIs.totalReports30Days}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Reports (30d)
                   </div>
                 </CardContent>
@@ -317,17 +317,17 @@ export default function AntiCorruption() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-red/20 rounded-full flex items-center justify-center">
-                      <AlertTriangle className="w-6 h-6 text-afrikoni-red" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <AlertTriangle className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {antiCorruptionKPIs.openCases}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Open Cases
                   </div>
                 </CardContent>
@@ -340,17 +340,17 @@ export default function AntiCorruption() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.15 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6 text-afrikoni-green" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {antiCorruptionKPIs.closedCases}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Closed Cases
                   </div>
                 </CardContent>
@@ -363,17 +363,17 @@ export default function AntiCorruption() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-afrikoni-purple" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <BarChart3 className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {antiCorruptionKPIs.aiFlaggedAnomalies}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     AI Anomalies
                   </div>
                 </CardContent>
@@ -386,17 +386,17 @@ export default function AntiCorruption() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-red/20 rounded-full flex items-center justify-center">
-                      <Users className="w-6 h-6 text-afrikoni-red" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <Users className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {antiCorruptionKPIs.highRiskPartners}
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     High-Risk Partners
                   </div>
                 </CardContent>
@@ -409,20 +409,20 @@ export default function AntiCorruption() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg">
+              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-afrikoni-gold" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                      <Shield className="w-6 h-6" />
                     </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge variant="outline" className="">
                       Excellent
                     </Badge>
                   </div>
-                  <div className="text-4xl md:text-5xl font-bold text-afrikoni-text-dark mb-2">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">
                     {antiCorruptionKPIs.zeroBribeComplianceScore}%
                   </div>
-                  <div className="text-xs md:text-sm font-medium text-afrikoni-text-dark/70 uppercase tracking-wide">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
                     Compliance Score
                   </div>
                 </CardContent>
@@ -438,27 +438,27 @@ export default function AntiCorruption() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3">
+            <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3">
               Whistleblower Reports
             </h2>
             <Button
-              className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal font-semibold shadow-afrikoni rounded-afrikoni"
+              className="hover:bg-afrikoni-gold/90 font-semibold shadow-afrikoni rounded-afrikoni"
               onClick={() => setShowReportModal(true)}
             >
               <Upload className="w-4 h-4 mr-2" />
               Submit Anonymous Report
             </Button>
           </div>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               {/* Filters */}
               <div className="flex flex-wrap items-center gap-4 mb-6">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-afrikoni-text-dark/70" />
+                  <Filter className="w-4 h-4" />
                   <select
                     value={reportFilter.severity}
                     onChange={(e) => setReportFilter({ ...reportFilter, severity: e.target.value })}
-                    className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                    className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
                   >
                     <option value="all">All Severities</option>
                     <option value="critical">Critical</option>
@@ -470,7 +470,7 @@ export default function AntiCorruption() {
                 <select
                   value={reportFilter.status}
                   onChange={(e) => setReportFilter({ ...reportFilter, status: e.target.value })}
-                  className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                  className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
                 >
                   <option value="all">All Status</option>
                   <option value="open">Open</option>
@@ -480,7 +480,7 @@ export default function AntiCorruption() {
                 <select
                   value={reportFilter.category}
                   onChange={(e) => setReportFilter({ ...reportFilter, category: e.target.value })}
-                  className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                  className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
                 >
                   <option value="all">All Categories</option>
                   <option value="fraud">Fraud</option>
@@ -493,21 +493,21 @@ export default function AntiCorruption() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-afrikoni-gold/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Report ID</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Severity</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Reporter</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Timestamp</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Action</th>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Report ID</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Severity</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Reporter</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Timestamp</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredReports.map((report) => (
-                      <tr key={report.id} className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-sand/10 transition-colors">
-                        <td className="py-3 px-4 font-medium text-afrikoni-text-dark">{report.id}</td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{report.reportType}</td>
+                      <tr key={report.id} className="border-b hover:bg-afrikoni-sand/10 transition-colors">
+                        <td className="py-3 px-4 font-medium">{report.id}</td>
+                        <td className="py-3 px-4 text-sm">{report.reportType}</td>
                         <td className="py-3 px-4">
                           <Badge
                             className={`${
@@ -520,17 +520,17 @@ export default function AntiCorruption() {
                             {report.severity}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{report.reporter}</td>
+                        <td className="py-3 px-4 text-sm">{report.reporter}</td>
                         <td className="py-3 px-4">
                           <Badge className={getStatusColor(report.status)}>
                             {report.status === 'in_review' ? 'In Review' : report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">
+                        <td className="py-3 px-4 text-sm">
                           {new Date(report.timestamp).toLocaleString()}
                         </td>
                         <td className="py-3 px-4">
-                          <Button size="sm" variant="outline" className="border-afrikoni-gold/30 rounded-afrikoni">
+                          <Button size="sm" variant="outline" className="rounded-afrikoni">
                             <Eye className="w-3 h-3 mr-1" />
                             View Case
                           </Button>
@@ -550,35 +550,35 @@ export default function AntiCorruption() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             AI-Anomaly Detection (Red Flag Analysis)
           </h2>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-afrikoni-gold/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Entity Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">ID / Name</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Anomaly Score</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Flag Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Risk Level</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Action</th>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Entity Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">ID / Name</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Anomaly Score</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Flag Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Risk Level</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {aiAnomalies.map((anomaly) => (
-                      <tr key={anomaly.id} className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-sand/10 transition-colors">
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{anomaly.entityType}</td>
+                      <tr key={anomaly.id} className="border-b hover:bg-afrikoni-sand/10 transition-colors">
+                        <td className="py-3 px-4 text-sm">{anomaly.entityType}</td>
                         <td className="py-3 px-4">
-                          <div className="font-medium text-afrikoni-text-dark">{anomaly.entityName}</div>
-                          <div className="text-xs text-afrikoni-text-dark/50">{anomaly.entityId}</div>
+                          <div className="font-medium">{anomaly.entityName}</div>
+                          <div className="text-xs">{anomaly.entityId}</div>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="text-lg font-bold text-afrikoni-text-dark">{anomaly.anomalyScore}</div>
-                            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="text-lg font-bold">{anomaly.anomalyScore}</div>
+                            <div className="w-24 h-2 rounded-full overflow-hidden">
                               <div
                                 className={`h-2 rounded-full ${
                                   anomaly.riskLevel === 'high' ? 'bg-red-500' :
@@ -590,7 +590,7 @@ export default function AntiCorruption() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{anomaly.flagType}</td>
+                        <td className="py-3 px-4 text-sm">{anomaly.flagType}</td>
                         <td className="py-3 px-4">
                           <Badge
                             className={`${
@@ -603,7 +603,7 @@ export default function AntiCorruption() {
                           </Badge>
                         </td>
                         <td className="py-3 px-4">
-                          <Button size="sm" variant="outline" className="border-afrikoni-gold/30 rounded-afrikoni">
+                          <Button size="sm" variant="outline" className="rounded-afrikoni">
                             Review
                           </Button>
                         </td>
@@ -622,28 +622,28 @@ export default function AntiCorruption() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Immutable Audit Trail Viewer
           </h2>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               {/* Filters and Search */}
               <div className="flex flex-wrap items-center gap-4 mb-6">
                 <div className="flex-1 min-w-[200px]">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-gold" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
                     <Input
                       placeholder="Search audit trail..."
                       value={auditSearch}
                       onChange={(e) => setAuditSearch(e.target.value)}
-                      className="pl-10 border-afrikoni-gold/30 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
+                      className="pl-10 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
                     />
                   </div>
                 </div>
                 <select
                   value={auditFilter.user}
                   onChange={(e) => setAuditFilter({ ...auditFilter, user: e.target.value })}
-                  className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                  className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
                 >
                   <option value="all">All Users</option>
                   <option value="user_abc123">user_abc123</option>
@@ -653,7 +653,7 @@ export default function AntiCorruption() {
                 <select
                   value={auditFilter.action}
                   onChange={(e) => setAuditFilter({ ...auditFilter, action: e.target.value })}
-                  className="text-sm border border-afrikoni-gold/30 rounded-afrikoni px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                  className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
                 >
                   <option value="all">All Actions</option>
                   <option value="Document Upload">Document Upload</option>
@@ -665,36 +665,36 @@ export default function AntiCorruption() {
               {/* Audit Trail Table */}
               <div className="overflow-x-auto max-h-96 overflow-y-auto">
                 <table className="w-full">
-                  <thead className="sticky top-0 bg-white z-10">
-                    <tr className="border-b border-afrikoni-gold/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Timestamp</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">User / System</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Action</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Metadata</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Integrity Hash</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark"></th>
+                  <thead className="sticky top-0 z-10">
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Timestamp</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">User / System</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Action</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Metadata</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Integrity Hash</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredAuditTrail.map((entry) => (
                       <React.Fragment key={entry.id}>
-                        <tr className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-sand/10 transition-colors">
-                          <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">
+                        <tr className="border-b hover:bg-afrikoni-sand/10 transition-colors">
+                          <td className="py-3 px-4 text-sm">
                             {new Date(entry.timestamp).toLocaleString()}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               {entry.system ? (
-                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                <Badge variant="outline" className="">
                                   System
                                 </Badge>
                               ) : (
-                                <span className="text-sm text-afrikoni-text-dark">{entry.user}</span>
+                                <span className="text-sm">{entry.user}</span>
                               )}
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-sm font-medium text-afrikoni-text-dark">{entry.action}</td>
-                          <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">
+                          <td className="py-3 px-4 text-sm font-medium">{entry.action}</td>
+                          <td className="py-3 px-4 text-sm">
                             <div className="space-y-1">
                               {entry.metadata.ip && <div>IP: {entry.metadata.ip}</div>}
                               {entry.metadata.country && <div>Country: {entry.metadata.country}</div>}
@@ -703,14 +703,14 @@ export default function AntiCorruption() {
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <code className="text-xs text-afrikoni-text-dark/50 font-mono">
+                            <code className="text-xs font-mono">
                               {entry.integrityHash.substring(0, 20)}...
                             </code>
                           </td>
                           <td className="py-3 px-4">
                             <button
                               onClick={() => toggleAuditRow(entry.id)}
-                              className="text-afrikoni-gold hover:text-afrikoni-gold/80"
+                              className="hover:text-afrikoni-gold/80"
                             >
                               {expandedAuditRows.has(entry.id) ? (
                                 <ChevronUp className="w-4 h-4" />
@@ -722,15 +722,15 @@ export default function AntiCorruption() {
                         </tr>
                         {expandedAuditRows.has(entry.id) && (
                           <tr>
-                            <td colSpan={6} className="px-4 py-4 bg-afrikoni-ivory">
+                            <td colSpan={6} className="px-4 py-4">
                               <div className="space-y-2">
                                 <div>
-                                  <span className="text-sm font-medium text-afrikoni-text-dark">Details: </span>
-                                  <span className="text-sm text-afrikoni-text-dark/70">{entry.details}</span>
+                                  <span className="text-sm font-medium">Details: </span>
+                                  <span className="text-sm">{entry.details}</span>
                                 </div>
                                 <div>
-                                  <span className="text-sm font-medium text-afrikoni-text-dark">Full Hash: </span>
-                                  <code className="text-xs text-afrikoni-text-dark/50 font-mono">{entry.integrityHash}</code>
+                                  <span className="text-sm font-medium">Full Hash: </span>
+                                  <code className="text-xs font-mono">{entry.integrityHash}</code>
                                 </div>
                               </div>
                             </td>
@@ -751,7 +751,7 @@ export default function AntiCorruption() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Employee & Partner Risk Profiles
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -767,37 +767,37 @@ export default function AntiCorruption() {
                 }`}>
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center">
                         {/* ✅ FULL-STACK SYNC: Mock data uses 'role' field - this is NOT user profile.role */}
                         {/* This refers to risk profile type (Internal/External) in mock data */}
                         {(profile.role === 'Internal' || profile.type === 'Internal') ? (
-                          <UserCheck className="w-6 h-6 text-afrikoni-gold" />
+                          <UserCheck className="w-6 h-6" />
                         ) : (
-                          <Building2 className="w-6 h-6 text-afrikoni-gold" />
+                          <Building2 className="w-6 h-6" />
                         )}
                       </div>
                       <Badge className={getRiskColor(profile.riskScore)}>
                         {profile.riskScore}
                       </Badge>
                     </div>
-                    <h3 className="font-semibold text-afrikoni-text-dark mb-1">{profile.name}</h3>
-                    <p className="text-xs text-afrikoni-text-dark/70 mb-2">{profile.position}</p>
+                    <h3 className="font-semibold mb-1">{profile.name}</h3>
+                    <p className="text-xs mb-2">{profile.position}</p>
                     <div className="space-y-2 mb-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-afrikoni-text-dark/70">Type:</span>
+                        <span className="">Type:</span>
                         <Badge variant="outline" className="text-xs">
                           {/* ✅ FULL-STACK SYNC: Mock data field - NOT user profile.role */}
                           {profile.role || profile.type || 'External'}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-afrikoni-text-dark/70">ID:</span>
-                        <span className="text-afrikoni-text-dark/70">{profile.entityId}</span>
+                        <span className="">ID:</span>
+                        <span className="">{profile.entityId}</span>
                       </div>
                       {profile.lastAnomalyDate && (
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-afrikoni-text-dark/70">Last Anomaly:</span>
-                          <span className="text-afrikoni-text-dark/70">
+                          <span className="">Last Anomaly:</span>
+                          <span className="">
                             {new Date(profile.lastAnomalyDate).toLocaleDateString()}
                           </span>
                         </div>
@@ -805,17 +805,17 @@ export default function AntiCorruption() {
                     </div>
                     {profile.flags.length > 0 && (
                       <div className="mb-3">
-                        <div className="text-xs text-afrikoni-text-dark/70 mb-1">Flags:</div>
+                        <div className="text-xs mb-1">Flags:</div>
                         <div className="flex flex-wrap gap-1">
                           {profile.flags.map((flag, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                            <Badge key={idx} variant="outline" className="text-xs">
                               {flag}
                             </Badge>
                           ))}
                         </div>
                       </div>
                     )}
-                    <Button size="sm" variant="outline" className="w-full border-afrikoni-gold/30 rounded-afrikoni">
+                    <Button size="sm" variant="outline" className="w-full rounded-afrikoni">
                       View Profile
                     </Button>
                   </CardContent>
@@ -831,12 +831,12 @@ export default function AntiCorruption() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.6 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Regional Corruption Risk Zones
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+            <Card className="rounded-afrikoni-lg shadow-premium">
+              <CardHeader className="border-b pb-4">
                 <CardTitle className="text-base font-semibold">Risk Distribution by Level</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -866,8 +866,8 @@ export default function AntiCorruption() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-            <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
-              <CardHeader className="border-b border-afrikoni-gold/10 pb-4">
+            <Card className="rounded-afrikoni-lg shadow-premium">
+              <CardHeader className="border-b pb-4">
                 <CardTitle className="text-base font-semibold">Country Risk Levels</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -875,13 +875,13 @@ export default function AntiCorruption() {
                   {regionalRiskZones.map((country, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-3 border border-afrikoni-gold/20 rounded-afrikoni hover:bg-afrikoni-sand/10 transition-colors"
+                      className="flex items-center justify-between p-3 border rounded-afrikoni hover:bg-afrikoni-sand/10 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <MapPin className="w-4 h-4 text-afrikoni-text-dark/50" />
+                        <MapPin className="w-4 h-4" />
                         <div>
-                          <div className="font-medium text-afrikoni-text-dark">{country.country}</div>
-                          <div className="text-xs text-afrikoni-text-dark/50">Risk Score: {country.riskScore}</div>
+                          <div className="font-medium">{country.country}</div>
+                          <div className="text-xs">Risk Score: {country.riskScore}</div>
                         </div>
                       </div>
                       <Badge className={getRiskLevelColor(country.riskLevel)}>
@@ -901,67 +901,67 @@ export default function AntiCorruption() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.7 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Zero-Bribe Policy Enforcement
           </h2>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-semibold text-afrikoni-text-dark mb-4">Compliance Metrics</h3>
+                  <h3 className="font-semibold mb-4">Compliance Metrics</h3>
                   <div className="space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-afrikoni-text-dark/70">Suppliers Accepted Policy</span>
-                        <span className="text-sm font-bold text-afrikoni-text-dark">{zeroBribePolicy.suppliersAccepted}%</span>
+                        <span className="text-sm">Suppliers Accepted Policy</span>
+                        <span className="text-sm font-bold">{zeroBribePolicy.suppliersAccepted}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full rounded-full h-2">
                         <div
-                          className="bg-afrikoni-green h-2 rounded-full transition-all"
+                          className="h-2 rounded-full transition-all"
                           style={{ width: `${zeroBribePolicy.suppliersAccepted}%` }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-afrikoni-text-dark/70">Employees Trained</span>
-                        <span className="text-sm font-bold text-afrikoni-text-dark">{zeroBribePolicy.employeesTrained}%</span>
+                        <span className="text-sm">Employees Trained</span>
+                        <span className="text-sm font-bold">{zeroBribePolicy.employeesTrained}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full rounded-full h-2">
                         <div
-                          className="bg-afrikoni-gold h-2 rounded-full transition-all"
+                          className="h-2 rounded-full transition-all"
                           style={{ width: `${zeroBribePolicy.employeesTrained}%` }}
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 mt-4">
-                      <div className="p-3 border border-afrikoni-gold/20 rounded-afrikoni bg-afrikoni-ivory">
-                        <div className="text-xs text-afrikoni-text-dark/70 mb-1">Violations Detected</div>
-                        <div className="text-2xl font-bold text-afrikoni-text-dark">{zeroBribePolicy.violationsDetected}</div>
+                      <div className="p-3 border rounded-afrikoni">
+                        <div className="text-xs mb-1">Violations Detected</div>
+                        <div className="text-2xl font-bold">{zeroBribePolicy.violationsDetected}</div>
                       </div>
-                      <div className="p-3 border border-afrikoni-gold/20 rounded-afrikoni bg-afrikoni-ivory">
-                        <div className="text-xs text-afrikoni-text-dark/70 mb-1">Violations Resolved</div>
-                        <div className="text-2xl font-bold text-afrikoni-green">{zeroBribePolicy.violationsResolved}</div>
+                      <div className="p-3 border rounded-afrikoni">
+                        <div className="text-xs mb-1">Violations Resolved</div>
+                        <div className="text-2xl font-bold">{zeroBribePolicy.violationsResolved}</div>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-afrikoni-text-dark mb-4">Policy Information</h3>
+                  <h3 className="font-semibold mb-4">Policy Information</h3>
                   <div className="space-y-3">
-                    <div className="p-4 border border-afrikoni-gold/20 rounded-afrikoni bg-afrikoni-ivory">
-                      <div className="text-xs text-afrikoni-text-dark/70 mb-1">Policy Version</div>
-                      <div className="text-lg font-bold text-afrikoni-text-dark">v{zeroBribePolicy.policyVersion}</div>
+                    <div className="p-4 border rounded-afrikoni">
+                      <div className="text-xs mb-1">Policy Version</div>
+                      <div className="text-lg font-bold">v{zeroBribePolicy.policyVersion}</div>
                     </div>
-                    <div className="p-4 border border-afrikoni-gold/20 rounded-afrikoni bg-afrikoni-ivory">
-                      <div className="text-xs text-afrikoni-text-dark/70 mb-1">Last Updated</div>
-                      <div className="text-sm font-medium text-afrikoni-text-dark">
+                    <div className="p-4 border rounded-afrikoni">
+                      <div className="text-xs mb-1">Last Updated</div>
+                      <div className="text-sm font-medium">
                         {new Date(zeroBribePolicy.lastUpdateDate).toLocaleDateString()}
                       </div>
                     </div>
                     <Button
                       variant="outline"
-                      className="w-full border-afrikoni-gold/30 rounded-afrikoni"
+                      className="w-full rounded-afrikoni"
                       onClick={() => setShowPolicyModal(true)}
                     >
                       <FileText className="w-4 h-4 mr-2" />
@@ -980,30 +980,30 @@ export default function AntiCorruption() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.8 }}
         >
-          <h2 className="text-lg md:text-xl font-bold text-afrikoni-text-dark uppercase tracking-wider border-b-2 border-afrikoni-gold pb-3 mb-6">
+          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Case Management (Active Investigations)
           </h2>
-          <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-premium">
             <CardContent className="p-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-afrikoni-gold/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Case ID</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Type</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Assigned Officer</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Severity</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Last Update</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-afrikoni-text-dark">Action</th>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Case ID</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Type</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Assigned Officer</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Severity</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Last Update</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeCases.map((caseItem) => (
-                      <tr key={caseItem.id} className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-sand/10 transition-colors">
-                        <td className="py-3 px-4 font-medium text-afrikoni-text-dark">{caseItem.id}</td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{caseItem.type}</td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">{caseItem.assignedOfficer}</td>
+                      <tr key={caseItem.id} className="border-b hover:bg-afrikoni-sand/10 transition-colors">
+                        <td className="py-3 px-4 font-medium">{caseItem.id}</td>
+                        <td className="py-3 px-4 text-sm">{caseItem.type}</td>
+                        <td className="py-3 px-4 text-sm">{caseItem.assignedOfficer}</td>
                         <td className="py-3 px-4">
                           <Badge className={getStatusColor(caseItem.status)}>
                             {caseItem.status === 'in_review' ? 'In Review' :
@@ -1023,14 +1023,14 @@ export default function AntiCorruption() {
                             {caseItem.severity}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-sm text-afrikoni-text-dark/70">
+                        <td className="py-3 px-4 text-sm">
                           {new Date(caseItem.lastUpdate).toLocaleString()}
                         </td>
                         <td className="py-3 px-4">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-afrikoni-gold/30 rounded-afrikoni"
+                            className="rounded-afrikoni"
                             onClick={() => setShowCaseModal(caseItem.id)}
                           >
                             <Eye className="w-3 h-3 mr-1" />
@@ -1050,22 +1050,22 @@ export default function AntiCorruption() {
       {/* Modals */}
       {/* Submit Anonymous Report Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-afrikoni-lg shadow-premium-lg max-w-2xl w-full p-6"
+            className="rounded-afrikoni-lg shadow-premium-lg max-w-2xl w-full p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-afrikoni-text-dark">Submit Anonymous Report</h3>
-              <button onClick={() => setShowReportModal(false)} className="text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark">
+              <h3 className="text-xl font-bold">Submit Anonymous Report</h3>
+              <button onClick={() => setShowReportModal(false)} className="hover:text-afrikoni-text-dark">
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-afrikoni-text-dark mb-2 block">Report Type</label>
-                <select className="w-full border border-afrikoni-gold/30 rounded-afrikoni px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20">
+                <label className="text-sm font-medium mb-2 block">Report Type</label>
+                <select className="w-full border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20">
                   <option>Bribe Solicitation</option>
                   <option>Fraud</option>
                   <option>Misconduct</option>
@@ -1073,18 +1073,18 @@ export default function AntiCorruption() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-afrikoni-text-dark mb-2 block">Description</label>
+                <label className="text-sm font-medium mb-2 block">Description</label>
                 <textarea
-                  className="w-full border border-afrikoni-gold/30 rounded-afrikoni px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                  className="w-full border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
                   rows={4}
                   placeholder="Describe the incident in detail..."
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Button className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-charcoal rounded-afrikoni">
+                <Button className="hover:bg-afrikoni-gold/90 rounded-afrikoni">
                   Submit Report
                 </Button>
-                <Button variant="outline" onClick={() => setShowReportModal(false)} className="border-afrikoni-gold/30 rounded-afrikoni">
+                <Button variant="outline" onClick={() => setShowReportModal(false)} className="rounded-afrikoni">
                   Cancel
                 </Button>
               </div>
@@ -1095,20 +1095,20 @@ export default function AntiCorruption() {
 
       {/* Policy Modal */}
       {showPolicyModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-afrikoni-lg shadow-premium-lg max-w-3xl w-full p-6 max-h-[80vh] overflow-y-auto"
+            className="rounded-afrikoni-lg shadow-premium-lg max-w-3xl w-full p-6 max-h-[80vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-afrikoni-text-dark">Zero-Bribe Policy v{zeroBribePolicy.policyVersion}</h3>
-              <button onClick={() => setShowPolicyModal(false)} className="text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark">
+              <h3 className="text-xl font-bold">Zero-Bribe Policy v{zeroBribePolicy.policyVersion}</h3>
+              <button onClick={() => setShowPolicyModal(false)} className="hover:text-afrikoni-text-dark">
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
             <div className="prose max-w-none">
-              <p className="text-afrikoni-text-dark/80 leading-relaxed">{zeroBribePolicy.policyText}</p>
+              <p className="leading-relaxed">{zeroBribePolicy.policyText}</p>
             </div>
           </motion.div>
         </div>
@@ -1116,11 +1116,11 @@ export default function AntiCorruption() {
 
       {/* Case Detail Modal */}
       {showCaseModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-afrikoni-lg shadow-premium-lg max-w-2xl w-full p-6"
+            className="rounded-afrikoni-lg shadow-premium-lg max-w-2xl w-full p-6"
           >
             {(() => {
               const caseItem = activeCases.find(c => c.id === showCaseModal);
@@ -1128,30 +1128,30 @@ export default function AntiCorruption() {
               return (
                 <>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-afrikoni-text-dark">Case File: {caseItem.id}</h3>
-                    <button onClick={() => setShowCaseModal(null)} className="text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark">
+                    <h3 className="text-xl font-bold">Case File: {caseItem.id}</h3>
+                    <button onClick={() => setShowCaseModal(null)} className="hover:text-afrikoni-text-dark">
                       <XCircle className="w-5 h-5" />
                     </button>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-afrikoni-text-dark mb-1 block">Type</label>
-                      <p className="text-sm text-afrikoni-text-dark/70">{caseItem.type}</p>
+                      <label className="text-sm font-medium mb-1 block">Type</label>
+                      <p className="text-sm">{caseItem.type}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-afrikoni-text-dark mb-1 block">Description</label>
-                      <p className="text-sm text-afrikoni-text-dark/70">{caseItem.description}</p>
+                      <label className="text-sm font-medium mb-1 block">Description</label>
+                      <p className="text-sm">{caseItem.description}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-afrikoni-text-dark mb-1 block">Assigned Officer</label>
-                      <p className="text-sm text-afrikoni-text-dark/70">{caseItem.assignedOfficer}</p>
+                      <label className="text-sm font-medium mb-1 block">Assigned Officer</label>
+                      <p className="text-sm">{caseItem.assignedOfficer}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-afrikoni-text-dark mb-1 block">Related Report</label>
-                      <p className="text-sm text-afrikoni-text-dark/70">{caseItem.relatedReport}</p>
+                      <label className="text-sm font-medium mb-1 block">Related Report</label>
+                      <p className="text-sm">{caseItem.relatedReport}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-afrikoni-text-dark mb-1 block">Related Entities</label>
+                      <label className="text-sm font-medium mb-1 block">Related Entities</label>
                       <div className="flex flex-wrap gap-2">
                         {caseItem.relatedEntities.map((entity, idx) => (
                           <Badge key={idx} variant="outline" className="text-xs">
@@ -1160,7 +1160,7 @@ export default function AntiCorruption() {
                         ))}
                       </div>
                     </div>
-                    <Button variant="outline" onClick={() => setShowCaseModal(null)} className="w-full border-afrikoni-gold/30 rounded-afrikoni">
+                    <Button variant="outline" onClick={() => setShowCaseModal(null)} className="w-full rounded-afrikoni">
                       Close
                     </Button>
                   </div>

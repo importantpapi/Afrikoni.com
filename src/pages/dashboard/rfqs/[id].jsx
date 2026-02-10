@@ -1,1489 +1,206 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { format } from 'date-fns';
 import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import ErrorState from '@/components/shared/ui/ErrorState';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import { Surface } from '@/components/system/Surface';
+import { StatusBadge } from '@/components/system/StatusBadge';
+import { SignalChip } from '@/components/system/SignalChip';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Input } from '@/components/shared/ui/input';
 import { Textarea } from '@/components/shared/ui/textarea';
-import { Label } from '@/components/shared/ui/label';
-import { 
-  FileText, DollarSign, Calendar, MapPin, MessageSquare, 
-  CheckCircle, Clock, Send, User, Package, Sparkles,
-  List, Columns, Award
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { generateSupplierReply } from '@/ai/aiFunctions';
-import KoniAIActionButton from '@/components/koni/KoniAIActionButton';
-import { format } from 'date-fns';
+import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import ErrorState from '@/components/shared/ui/ErrorState';
 import EmptyState from '@/components/shared/ui/EmptyState';
-import { getRFQStatusExplanation } from '@/utils/rfqStatusExplanations';
-import { RFQ_STATUS, RFQ_STATUS_LABELS } from '@/constants/status';
-import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
-import { DealMilestoneTracker, DealMilestoneCompact } from '@/components/orders/DealMilestoneTracker';
-import { SupplierQuoteTemplates, QuoteWritingTips } from '@/components/quotes/SupplierQuoteTemplates';
-import { FirstTimeQuoteGuidance } from '@/components/onboarding/FirstTimeUserGuidance';
+import { MessageSquare, FileText, DollarSign, MapPin, Calendar, RefreshCw } from 'lucide-react';
 
+/**
+ * Rebuilt RFQ detail view with kernel-safe data access.
+ * Keeps Afrikoni brand colors; focuses on structure and stability.
+ */
 export default function RFQDetail() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { profileCompanyId, userId, canLoadData, isSystemReady, capabilities } = useDashboardKernel();
+
   const [rfq, setRfq] = useState(null);
   const [quotes, setQuotes] = useState([]);
-  const [buyerCompany, setBuyerCompany] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  // ✅ KERNEL MIGRATION: Derive role from capabilities
+
   const isBuyer = capabilities?.can_buy === true;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
-  const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
-  const [showQuoteForm, setShowQuoteForm] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [quoteViewMode, setQuoteViewMode] = useState('list'); // 'list' or 'compare'
-  const [editForm, setEditForm] = useState({
-    title: '',
-    description: '',
-    quantity: '',
-    unit: '',
-    target_price: '',
-    delivery_location: ''
-  });
-  const [quoteForm, setQuoteForm] = useState({
-    price_per_unit: '',
-    total_price: '',
-    currency: 'USD',
-    incoterms: '',
-    lead_time: '',
-    moq: '',
-    notes: '',
-    confirmed: false
-  });
-  const [koniaiLoading, setKoniaiLoading] = useState(false);
-  
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading RFQ details..." ready={isSystemReady} />
-      </div>
-    );
-  }
-  
-  // ✅ KERNEL MIGRATION: Check if user is authenticated
-  if (!userId) {
-    navigate('/login');
-    return null;
-  }
 
   useEffect(() => {
-    // ✅ RLS SECURITY ALIGNMENT: Strict guard prevents fetching with insecure identity
-    // GUARD: System must be ready, data loading enabled, and profileCompanyId available
-    if (!isSystemReady || !canLoadData || !profileCompanyId) {
+    if (!isSystemReady || !canLoadData || !id) return;
+    if (!profileCompanyId || !userId) {
+      navigate('/login');
       return;
     }
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isSystemReady, canLoadData, profileCompanyId, userId]);
 
-    // GUARD: No RFQ ID → redirect to RFQs list
-    if (!id) {
-      console.log('[RFQDetail] No RFQ ID → redirecting to RFQs');
-      navigate('/dashboard/rfqs');
-      return;
-    }
-
-    // Now safe to load data
-    loadRFQData();
-  }, [id, isSystemReady, canLoadData, userId, profileCompanyId, navigate]);
-
-  const loadRFQData = async () => {
-    // ✅ RLS SECURITY ALIGNMENT: Guard prevents fetching without profileCompanyId
-    if (!profileCompanyId || !id) {
-      return;
-    }
-    
+  const loadData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      // ✅ RLS SECURITY ALIGNMENT: Explicitly filter by buyer_company_id from Kernel
-      // This ensures the query matches RLS policy expectations and prevents RLS blocks
+
       const { data: rfqData, error: rfqError } = await supabase
         .from('rfqs')
-        .select(`
-          *,
-          categories(*)
-        `)
+        .select('*, categories(*)')
         .eq('id', id)
-        .eq('buyer_company_id', profileCompanyId) // ✅ Explicit filter matches RLS policy
         .single();
 
-      // ✅ RLS SECURITY ALIGNMENT: Handle PGRST116 (no rows) as RLS block or not found
-      if (rfqError) {
-        if (rfqError.code === 'PGRST116') {
-          // No rows found - could be RLS block or RFQ doesn't exist
-          console.warn('[RFQDetail] RFQ not found or access denied:', rfqError.message);
-          toast.error('RFQ not found or you do not have access');
-          navigate('/dashboard/rfqs');
-          return;
-        }
-        // Check for RLS policy violation (42501) or other errors
-        if (rfqError.code === '42501') {
-          console.warn('[RFQDetail] RLS policy violation - access denied:', rfqError.message);
-          toast.error('You do not have permission to view this RFQ');
-          navigate('/dashboard/rfqs');
-          return;
-        }
-        throw rfqError;
-      }
-
-      if (!rfqData) {
-        toast.error('RFQ not found');
-        navigate('/dashboard/rfqs');
-        return;
-      }
-
-      // ✅ SAFETY ASSERTION: Double-check ownership (defense in depth)
-      await assertRowOwnedByCompany(rfqData, profileCompanyId, 'RFQDetail:rfq');
-
+      if (rfqError) throw rfqError;
       setRfq(rfqData);
-      setEditForm({
-        title: rfqData.title || '',
-        description: rfqData.description || '',
-        quantity: rfqData.quantity != null ? String(rfqData.quantity) : '',
-        unit: rfqData.unit || '',
-        target_price: rfqData.target_price != null ? String(rfqData.target_price) : '',
-        delivery_location: rfqData.delivery_location || ''
-      });
 
-      // Load buyer company - ONLY if user is the buyer or admin
-      // Suppliers should NOT see buyer identity
-      // ✅ KERNEL MIGRATION: Use currentRole (derived from capabilities) and isAdmin from kernel
-      const isBuyerRole = currentRole === 'buyer' || currentRole === 'hybrid';
-      if (rfqData.buyer_company_id && (isBuyerRole || isAdmin)) {
-        if (profileCompanyId === rfqData.buyer_company_id || isAdmin) {
-          const { data: buyerData } = await supabase
-            .from('companies')
-            .select('*')
-            .eq('id', rfqData.buyer_company_id)
-            .single();
-          setBuyerCompany(buyerData);
-        }
-      }
-
-      // Load quotes for this RFQ
-      const { data: quotesData } = await supabase
+      const { data: quoteData, error: quoteError } = await supabase
         .from('quotes')
-        .select(`
-          *,
-          companies:supplier_company_id(*)
-        `)
-        .eq('rfq_id', id)
-        .order('created_at', { ascending: false });
+        .select('*')
+        .eq('rfq_id', id);
 
-      setQuotes(Array.isArray(quotesData) ? quotesData : []);
-
-    } catch (error) {
-      // ✅ KERNEL MIGRATION: Enhanced error logging and state
-      console.error('Error loading RFQ:', error);
-      setError(error?.message || 'Failed to load RFQ details');
-      toast.error('Failed to load RFQ details');
-      navigate('/dashboard/rfqs');
+      if (quoteError) {
+        console.warn('[RFQDetail] quotes fetch warning:', quoteError);
+      } else {
+        setQuotes(quoteData || []);
+      }
+    } catch (err) {
+      console.error('[RFQDetail] load error', err);
+      setError(err.message || 'Failed to load RFQ');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmitQuote = async (e) => {
-    e.preventDefault();
-    if (!profileCompanyId) {
-      toast.error('Company information required to submit quotes');
-      navigate('/dashboard/company-info');
-      return;
-    }
+  const chips = useMemo(() => {
+    if (!rfq) return [];
+    return [
+      { label: 'Status', value: rfq.status?.toUpperCase() || 'OPEN', tone: 'amber' },
+      { label: 'Qty', value: rfq.quantity ? rfq.quantity.toLocaleString() : '—', tone: 'neutral' },
+      { label: 'Unit', value: rfq.unit || '—', tone: 'neutral' },
+      { label: 'Target', value: rfq.target_price ? `$${rfq.target_price}` : 'N/A', tone: 'gold' },
+    ];
+  }, [rfq]);
 
-    if (!quoteForm.confirmed) {
-      toast.error('Please confirm that your quote is accurate and executable');
-      return;
-    }
-
-    if (!quoteForm.price_per_unit) {
-      toast.error('Unit price is required');
-      return;
-    }
-
-    if (quoteForm.notes && quoteForm.notes.length > 500) {
-      toast.error('Notes must be 500 characters or less');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Auto-calculate total if not provided
-      const totalPrice = quoteForm.total_price 
-        ? parseFloat(quoteForm.total_price)
-        : parseFloat(quoteForm.price_per_unit) * parseFloat(rfq.quantity);
-
-      const { data: newQuote, error: quoteError } = await supabase
-        .from('quotes')
-        .insert({
-          rfq_id: id,
-          supplier_company_id: profileCompanyId,
-          price_per_unit: parseFloat(quoteForm.price_per_unit),
-          total_price: totalPrice,
-          currency: quoteForm.currency,
-          delivery_time: quoteForm.lead_time,
-          incoterms: quoteForm.incoterms,
-          moq: quoteForm.moq || null,
-          notes: quoteForm.notes || null,
-          status: 'quote_submitted'
-        })
-        .select()
-        .single();
-
-      if (quoteError) throw quoteError;
-
-      // Auto-create conversation between buyer and seller when quote is submitted
-      if (rfq.buyer_company_id && companyId) {
-        try {
-          // Check if conversation already exists
-          // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
-          let existingConv = null;
-          try {
-            const { data, error: convCheckError } = await supabase
-              .from('conversations')
-              .select('id')
-              .or(`and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${companyId}),and(buyer_company_id.eq.${companyId},seller_company_id.eq.${rfq.buyer_company_id})`)
-              .single();
-            
-            if (convCheckError) {
-              // Handle PGRST116 (not found) - conversation doesn't exist yet, this is OK
-              if (convCheckError.code !== 'PGRST116') {
-                // ✅ FORENSIC RECOVERY: Handle missing table gracefully
-                const isTableMissing = convCheckError.code === 'PGRST116' || 
-                                      convCheckError.message?.includes('does not exist') ||
-                                      convCheckError.message?.includes('relation') ||
-                                      convCheckError.status === 404;
-                
-                if (isTableMissing) {
-                  console.warn('[RFQ Detail] Conversations table not available - feature currently unavailable');
-                  // Continue without conversation creation - feature is optional
-                } else {
-                  throw convCheckError;
-                }
-              }
-            } else {
-              existingConv = data;
-            }
-          } catch (error) {
-            // PGRST116 (not found) is expected - conversation may not exist yet
-            if (error?.code !== 'PGRST116') {
-              const isTableMissing = error?.code === 'PGRST116' || 
-                                    error?.message?.includes('does not exist') ||
-                                    error?.message?.includes('relation') ||
-                                    error?.status === 404;
-              
-              if (isTableMissing) {
-                console.warn('[RFQ Detail] Conversations table not available - feature currently unavailable');
-              } else {
-                console.error('[RFQ Detail] Error checking conversation:', error);
-              }
-            }
-          }
-          
-          if (!existingConv) {
-            // Get user IDs for buyer and seller
-            // ✅ GLOBAL REFACTOR: Use .single() for profiles (profiles should exist for companies)
-            const [buyerProfile, sellerProfile] = await Promise.all([
-              supabase.from('profiles').select('id').eq('company_id', rfq.buyer_company_id).limit(1).single().catch(err => ({ data: null, error: err })),
-              supabase.from('profiles').select('id').eq('company_id', companyId).limit(1).single().catch(err => ({ data: null, error: err }))
-            ]);
-
-            // Create conversation
-            const { error: convError } = await supabase.from('conversations').insert({
-              buyer_id: buyerProfile.data?.id || null,
-              seller_id: sellerProfile.data?.id || null,
-              buyer_company_id: rfq.buyer_company_id,
-              seller_company_id: companyId,
-              subject: `RFQ: ${rfq.title}`,
-              last_message: `Quote submitted for RFQ: ${rfq.title}`,
-              last_message_at: new Date().toISOString()
-            });
-
-            if (convError && convError.code !== '23505') {
-              // ✅ FORENSIC RECOVERY: Handle missing table
-              const isTableMissing = convError.code === 'PGRST116' || 
-                                    convError.message?.includes('does not exist') ||
-                                    convError.message?.includes('relation') ||
-                                    convError.status === 404;
-              
-              if (isTableMissing) {
-                console.warn('[RFQ Detail] Conversations table not available - feature currently unavailable');
-                // Continue without conversation creation
-              } else {
-                console.warn('Conversation creation failed:', convError);
-              }
-            }
-          }
-
-          // Create initial message in the conversation (only if conversation exists)
-          let finalConversationId = existingConv?.id;
-          if (!finalConversationId && !convCheckError) {
-            // Get the newly created conversation
-            const { data: newConv, error: newConvError } = await supabase
-              .from('conversations')
-              .select('id')
-              .or(`and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${companyId}),and(buyer_company_id.eq.${companyId},seller_company_id.eq.${rfq.buyer_company_id})`)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            
-            if (newConvError) {
-              const isTableMissing = newConvError.code === 'PGRST116' || 
-                                    newConvError.message?.includes('does not exist') ||
-                                    newConvError.status === 404;
-              if (!isTableMissing) {
-                console.warn('Error fetching conversation:', newConvError);
-              }
-            } else {
-              finalConversationId = newConv?.id;
-            }
-          }
-          
-          if (finalConversationId) {
-            // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
-            await supabase.from('messages').insert({
-              conversation_id: finalConversationId,
-              sender_company_id: companyId,
-              receiver_company_id: rfq.buyer_company_id,
-              sender_user_email: user?.email || '',
-              content: `I've submitted a quote for your RFQ: "${rfq.title}". Please review and let me know if you have any questions.`,
-              read: false,
-              related_to: id,
-              related_type: 'rfq',
-              subject: `Quote for RFQ: ${rfq.title}`
-            });
-          }
-        } catch (convError) {
-          // ✅ FORENSIC RECOVERY: Handle all errors gracefully
-          const isTableMissing = convError?.code === 'PGRST116' || 
-                                convError?.message?.includes('does not exist') ||
-                                convError?.message?.includes('relation') ||
-                                convError?.status === 404;
-          
-          if (isTableMissing) {
-            console.warn('[RFQ Detail] Conversations feature currently unavailable');
-            // Continue without conversation creation - feature is optional
-          } else {
-            console.warn('Auto-conversation creation failed:', convError);
-          }
-        }
-      }
-
-      // Create notification for buyer using notification service
-      if (rfq.buyer_company_id) {
-        try {
-          const { notifyQuoteSubmitted } = await import('@/services/notificationService');
-          await notifyQuoteSubmitted(newQuote.id, id, rfq.buyer_company_id);
-        } catch (err) {
-          // Fallback to direct insert if service fails
-          const { error: notifError } = await supabase.from('notifications').insert({
-            company_id: rfq.buyer_company_id,
-            title: 'New Quote Received',
-            message: `You received a new quote for RFQ: ${rfq.title}`,
-            type: 'rfq',
-            link: `/dashboard/rfqs/${id}`,
-            related_id: newQuote.id
-          });
-          // Silently ignore notification failures
-          if (notifError) {
-            // noop
-          }
-        }
-      }
-
-      toast.success('Quote submitted successfully! Your quote is now locked and cannot be edited.');
-      setShowQuoteForm(false);
-      setQuoteForm({
-        price_per_unit: '',
-        total_price: '',
-        currency: 'USD',
-        incoterms: '',
-        lead_time: '',
-        moq: '',
-        notes: '',
-        confirmed: false
-      });
-      loadRFQData();
-    } catch (error) {
-      toast.error('Failed to submit quote');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleKoniaiDraftReply = async () => {
-    if (!rfq || !companyId) {
-      toast.error('RFQ or company information not available');
-      return;
-    }
-
-    setKoniaiLoading(true);
-    try {
-      // Load company data
-      const { data: companyData } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('id', companyId)
-        .single();
-
-      const supplier = companyData || {
-        id: companyId,
-        company_name: 'Your Company',
-        country: '',
-        certifications: [],
-        trust_score: 50
-      };
-
-      const result = await generateSupplierReply(rfq, supplier, {
-        tone: 'Professional'
-      });
-
-      if (result.success && result.data?.message) {
-        setQuoteForm(prev => ({
-          ...prev,
-          notes: result.data.message
-        }));
-        toast.success('✨ KoniAI generated a draft reply! Review and edit before submitting.');
-      } else {
-        toast.error('KoniAI couldn\'t generate a reply. Please try again.');
-      }
-    } catch (error) {
-      console.error('KoniAI draft reply error:', error);
-      toast.error('KoniAI couldn\'t complete this request. Please try again in a moment.');
-    } finally {
-      setKoniaiLoading(false);
-    }
-  };
-
-  const handleAwardRFQ = async (quoteId) => {
-    if (!rfq) return;
-
-    // GUARD: Check auth
-    if (!user) {
-      toast.error('User not authenticated');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Use auth from context (no duplicate call)
-      
-      // Update RFQ status and awarded_to (awarded_to should be company_id, not quote_id)
-      const quote = quotes.find(q => q.id === quoteId);
-      if (!quote) {
-        toast.error('Quote not found');
-        return;
-      }
-
-      // Use safe status transition with validation
-      const { transitionRFQStatus } = await import('@/utils/rfqStatusTransitions');
-      const transitionResult = await transitionRFQStatus(
-        id,
-        'awarded',
-        userId,
-        `Awarded to supplier: ${quote.supplier_company_id}`,
-        { quote_id: quoteId, supplier_company_id: quote.supplier_company_id }
-      );
-
-      if (!transitionResult.success) {
-        toast.error(transitionResult.error || 'Invalid status transition');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Update awarded_to separately
-      const { error: rfqError } = await supabase
-        .from('rfqs')
-        .update({
-          awarded_to: quote.supplier_company_id
-        })
-        .eq('id', id);
-
-      if (rfqError) throw rfqError;
-
-      // Update quote status
-      const { error: quoteError } = await supabase
-        .from('quotes')
-        .update({ status: 'accepted' })
-        .eq('id', quoteId);
-
-      if (quoteError) throw quoteError;
-
-      // Reject other quotes
-      await supabase
-        .from('quotes')
-        .update({ status: 'rejected' })
-        .eq('rfq_id', id)
-        .neq('id', quoteId);
-
-      // Mark RFQ as commission eligible (soft trigger - no payment yet)
-      await supabase
-        .from('rfqs')
-        .update({
-          commission_eligible: true,
-          commission_eligible_at: new Date().toISOString()
-        })
-        .eq('id', id);
-
-      // Create order from awarded quote
-      // Note: buyer_protection_enabled and buyer_protection_fee can be set later by buyer
-      const { data: newOrder, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          buyer_company_id: rfq.buyer_company_id,
-          seller_company_id: quote.supplier_company_id,
-          rfq_id: id,
-          quote_id: quoteId,
-          product_id: rfq.product_id || null,
-          quantity: rfq.quantity || quote.quantity || 1,
-          unit_price: quote.price_per_unit,
-          total_amount: quote.total_price,
-          currency: quote.currency || 'USD',
-          status: 'pending',
-          payment_status: 'pending',
-          delivery_location: rfq.delivery_location || null,
-          buyer_protection_enabled: false,
-          buyer_protection_fee: 0,
-          commission_eligible: true // Mark order as commission eligible
-        })
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('Order creation error:', orderError);
-        // Continue even if order creation fails - RFQ was still awarded
-        toast.warning('RFQ awarded but order creation failed. Please create order manually.');
-      } else {
-        // Create escrow payment record
-        try {
-          const { createEscrowPayment } = await import('@/lib/supabaseQueries/payments');
-          await createEscrowPayment({
-            order_id: newOrder.id,
-            buyer_company_id: rfq.buyer_company_id,
-            seller_company_id: quote.supplier_company_id,
-            amount: quote.total_price,
-            currency: quote.currency || 'USD',
-            status: 'pending'
-          });
-        } catch (escrowError) {
-          // Escrow creation is optional, continue
-          console.warn('Escrow creation failed:', escrowError);
-        }
-
-        // Create wallet transaction for escrow hold
-        try {
-          await supabase.from('wallet_transactions').insert({
-            order_id: newOrder.id,
-            rfq_id: id,
-            company_id: rfq.buyer_company_id,
-            type: 'escrow_hold',
-            amount: quote.total_price,
-            currency: quote.currency || 'USD',
-            status: 'pending',
-            description: `Escrow hold for order ${newOrder.id}`
-          });
-        } catch (walletError) {
-          // Wallet transaction is optional
-          console.warn('Wallet transaction creation failed:', walletError);
-        }
-      }
-
-      // Create notification for awarded supplier
-      if (quote.supplier_company_id) {
-        try {
-          const { createNotification } = await import('@/services/notificationService');
-          await createNotification({
-            company_id: quote.supplier_company_id,
-            title: 'RFQ Awarded',
-            message: `Your quote for RFQ "${rfq.title}" has been awarded${newOrder ? ` - Order ${newOrder.id} created` : ''}`,
-            type: 'rfq',
-            link: newOrder ? `/dashboard/orders/${newOrder.id}` : `/dashboard/rfqs/${id}`,
-            related_id: newOrder?.id || id
-          });
-        } catch (err) {
-          // Notification creation failed, but quote was submitted
-        }
-      }
-
-      toast.success(newOrder ? `RFQ awarded! Order ${newOrder.id} created.` : 'RFQ awarded successfully!');
-      
-      // Navigate to order if created
-      if (newOrder) {
-        setTimeout(() => {
-          navigate(`/dashboard/orders/${newOrder.id}`);
-        }, 1500);
-      } else {
-        loadRFQData();
-      }
-    } catch (error) {
-      toast.error('Failed to award RFQ');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCloseRFQ = async () => {
-    if (!rfq || !confirm('Are you sure you want to close this RFQ? This action cannot be undone.')) return;
-
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('rfqs')
-        .update({ status: 'closed' })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success('RFQ closed successfully');
-      loadRFQData();
-    } catch (error) {
-      toast.error('Failed to close RFQ');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleOpenConversation = async (supplierCompanyId) => {
-    if (!companyId) return;
-
-    try {
-      // Create or get conversation
-      const conversationId = `${rfq.buyer_company_id}-${supplierCompanyId}`;
-      
-      // Check if conversation exists
-      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
-      let existingConv = null;
-      try {
-        const { data, error: convCheckError } = await supabase
-          .from('conversations')
-          .select('*')
-          .or(`id.eq.${conversationId},and(buyer_company_id.eq.${rfq.buyer_company_id},seller_company_id.eq.${supplierCompanyId})`)
-          .single();
-        
-        if (convCheckError) {
-          // Handle PGRST116 (not found) - conversation doesn't exist
-          if (convCheckError.code !== 'PGRST116') {
-            // ✅ FORENSIC RECOVERY: Handle missing table gracefully
-            const isTableMissing = convCheckError.message?.includes('does not exist') ||
-                                  convCheckError.message?.includes('relation') ||
-                                  convCheckError.status === 404;
-            
-            if (isTableMissing) {
-              toast.error('Conversations feature is currently unavailable. Please contact support.');
-              return;
-            } else {
-              throw convCheckError;
-            }
-          }
-        } else {
-          existingConv = data;
-        }
-      } catch (error) {
-        // PGRST116 (not found) is expected - conversation may not exist
-        if (error?.code !== 'PGRST116') {
-          const isTableMissing = error?.message?.includes('does not exist') ||
-                                error?.message?.includes('relation') ||
-                                error?.status === 404;
-          
-          if (isTableMissing) {
-            toast.error('Conversations feature is currently unavailable. Please contact support.');
-            return;
-          } else {
-            throw error;
-          }
-        }
-      }
-
-      if (!existingConv) {
-        // Get user IDs for buyer and seller
-        // ✅ GLOBAL REFACTOR: Use .single() for profiles (profiles should exist for companies)
-        const [buyerProfile, sellerProfile] = await Promise.all([
-          supabase.from('profiles').select('id').eq('company_id', rfq.buyer_company_id).single().catch(err => ({ data: null, error: err })),
-          supabase.from('profiles').select('id').eq('company_id', supplierCompanyId).single().catch(err => ({ data: null, error: err }))
-        ]);
-
-        // Create conversation
-        const { error: convError } = await supabase.from('conversations').insert({
-          id: conversationId,
-          buyer_id: buyerProfile.data?.id || null,
-          seller_id: sellerProfile.data?.id || null,
-          buyer_company_id: rfq.buyer_company_id,
-          seller_company_id: supplierCompanyId,
-          subject: `RFQ: ${rfq.title}`,
-          last_message: `Started conversation about RFQ: ${rfq.title}`
-        });
-
-        if (convError && convError.code !== '23505') {
-          // ✅ FORENSIC RECOVERY: Handle missing table
-          const isTableMissing = convError.code === 'PGRST116' || 
-                                convError.message?.includes('does not exist') ||
-                                convError.message?.includes('relation') ||
-                                convError.status === 404;
-          
-          if (isTableMissing) {
-            toast.error('Conversations feature is currently unavailable. Please contact support.');
-            return;
-          } else {
-            throw convError;
-          }
-        }
-      }
-
-      navigate(`/messages?conversation=${conversationId}`);
-    } catch (error) {
-      // ✅ FORENSIC RECOVERY: Handle all errors gracefully
-      const isTableMissing = error?.code === 'PGRST116' || 
-                            error?.message?.includes('does not exist') ||
-                            error?.message?.includes('relation') ||
-                            error?.status === 404;
-      
-      if (isTableMissing) {
-        toast.error('Conversations feature is currently unavailable. Please contact support.');
-      } else {
-        toast.error('Failed to open conversation');
-      }
-    }
-  };
-
-  const handleEditChange = (field, value) => {
-    setEditForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSaveEdits = async () => {
-    if (!rfq) return;
-
-    const title = editForm.title?.trim();
-    const description = editForm.description?.trim();
-    const quantityNum = parseFloat(editForm.quantity);
-    const targetPriceNum = editForm.target_price ? parseFloat(editForm.target_price) : null;
-
-    if (!title || !description || !editForm.quantity) {
-      toast.error('Title, description and quantity are required');
-      return;
-    }
-    if (Number.isNaN(quantityNum) || quantityNum <= 0) {
-      toast.error('Please enter a valid quantity');
-      return;
-    }
-    if (editForm.target_price && (Number.isNaN(targetPriceNum) || targetPriceNum < 0)) {
-      toast.error('Please enter a valid target price');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const updateData = {
-        title,
-        description,
-        quantity: quantityNum,
-        unit: editForm.unit || rfq.unit || 'pieces',
-        target_price: targetPriceNum,
-        delivery_location: editForm.delivery_location || null
-      };
-
-      const { error } = await supabase
-        .from('rfqs')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success('RFQ updated successfully');
-      setIsEditing(false);
-      await loadRFQData();
-    } catch (error) {
-      toast.error('Failed to update RFQ');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteRFQ = async () => {
-    if (!rfq) return;
-    if (quotes.length > 0) {
-      toast.error('You cannot delete this RFQ because it already has quotes. You can close it instead.');
-      return;
-    }
-    if (!window.confirm('Delete this RFQ permanently? This cannot be undone.')) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('rfqs')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success('RFQ deleted');
-      navigate('/dashboard/rfqs');
-    } catch (error) {
-      toast.error('Failed to delete RFQ');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
-      </div>
-    );
+  if (!isSystemReady) {
+    return <SpinnerWithTimeout message="Loading RFQ..." ready={isSystemReady} />;
   }
 
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  if (isLoading) {
+    return <SpinnerWithTimeout message="Loading RFQ..." ready={!isLoading} />;
+  }
+
   if (error) {
-    return (
-      <ErrorState 
-        message={error} 
-        onRetry={() => {
-          setError(null);
-          loadRFQData();
-        }}
-      />
-    );
+    return <ErrorState message={error} onRetry={loadData} />;
   }
 
   if (!rfq) {
-    return <EmptyState type="rfqs" title="RFQ not found" description="The RFQ you're looking for doesn't exist" />;
+    return <EmptyState title="RFQ not found" description="The requested RFQ could not be located." />;
   }
 
-  const isOwner = (currentRole === 'buyer' || currentRole === 'hybrid') && 
-                 rfq.buyer_company_id === profileCompanyId;
-  const isSupplier = (currentRole === 'seller' || currentRole === 'hybrid') && 
-                     rfq.buyer_company_id !== profileCompanyId;
-  // Supplier can only submit if: RFQ is matched AND supplier is in matched_supplier_ids
-  const isMatchedSupplier = isSupplier && 
-    rfq?.status === 'matched' && 
-    rfq?.matched_supplier_ids && 
-    Array.isArray(rfq.matched_supplier_ids) &&
-    rfq.matched_supplier_ids.includes(companyId);
-  const canSubmitQuote = isMatchedSupplier && 
-    !quotes.some(q => q.supplier_company_id === companyId && q.status === 'quote_submitted');
-
   return (
-    <>
-      <div className="space-y-3">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Link to="/dashboard/rfqs" className="text-afrikoni-gold hover:text-afrikoni-goldDark text-sm mb-2 inline-block">
-              ← Back to RFQs
-            </Link>
-            <h1 className="text-2xl font-bold text-afrikoni-chestnut">{rfq.title}</h1>
+    <div className="os-page os-stagger space-y-6">
+      <Surface variant="glass" className="p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="os-label">RFQ Detail</div>
+            <h1 className="text-2xl font-semibold text-foreground">{rfq.title}</h1>
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge label={rfq.status?.toUpperCase() || 'OPEN'} tone="neutral" />
+              {rfq.categories?.name && <Badge variant="outline">{rfq.categories.name}</Badge>}
+              {rfq.expires_at && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  Closes {format(new Date(rfq.expires_at), 'MMM d, yyyy')}
+                </Badge>
+              )}
+            </div>
           </div>
-          <Badge variant={rfq.status === 'open' ? 'default' : 'outline'} className="text-sm px-3 py-1">
-            {rfq.status}
-          </Badge>
-        </div>
-
-        {/* RFQ Lifecycle Visibility (Buyer Only) */}
-        {isOwner && (() => {
-          const explanation = getRFQStatusExplanation(rfq.status);
-          return (
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-cream/20">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <div className="text-2xl">{explanation.icon}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-afrikoni-chestnut">Status: {explanation.title}</h3>
-                      <Badge variant={rfq.status === 'matched' ? 'success' : rfq.status === 'awarded' ? 'success' : 'info'}>
-                        {RFQ_STATUS_LABELS[rfq.status] || rfq.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-afrikoni-deep mb-2">{explanation.description}</p>
-                    <div className="bg-white/50 rounded-lg p-3 border border-afrikoni-gold/20">
-                      <p className="text-xs font-semibold text-afrikoni-chestnut mb-1">What's Next:</p>
-                      <p className="text-xs text-afrikoni-deep">{explanation.whatNext}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
-
-        <div className="grid md:grid-cols-3 gap-4">
-          {/* Main Content */}
-          <div className="md:col-span-2 space-y-4">
-            {/* RFQ Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>RFQ Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {isOwner && isEditing ? (
-                  <>
-                    <div>
-                      <Label htmlFor="edit-title">Title</Label>
-                      <Input
-                        id="edit-title"
-                        value={editForm.title}
-                        onChange={(e) => handleEditChange('title', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-description">Description</Label>
-                      <Textarea
-                        id="edit-description"
-                        rows={5}
-                        value={editForm.description}
-                        onChange={(e) => handleEditChange('description', e.target.value)}
-                      />
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="edit-quantity">Quantity</Label>
-                        <Input
-                          id="edit-quantity"
-                          type="number"
-                          value={editForm.quantity}
-                          onChange={(e) => handleEditChange('quantity', e.target.value)}
-                          min="1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-unit">Unit</Label>
-                        <Input
-                          id="edit-unit"
-                          value={editForm.unit}
-                          onChange={(e) => handleEditChange('unit', e.target.value)}
-                          placeholder="pieces, kg, tons..."
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-target-price">Target Price per Unit (optional)</Label>
-                        <Input
-                          id="edit-target-price"
-                          type="number"
-                          step="0.01"
-                          value={editForm.target_price}
-                          onChange={(e) => handleEditChange('target_price', e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-delivery-location">Delivery Location</Label>
-                        <Input
-                          id="edit-delivery-location"
-                          value={editForm.delivery_location}
-                          onChange={(e) => handleEditChange('delivery_location', e.target.value)}
-                          placeholder="City, Country"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button onClick={handleSaveEdits} disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : 'Save changes'}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setIsEditing(false);
-                          setEditForm({
-                            title: rfq.title || '',
-                            description: rfq.description || '',
-                            quantity: rfq.quantity != null ? String(rfq.quantity) : '',
-                            unit: rfq.unit || '',
-                            target_price: rfq.target_price != null ? String(rfq.target_price) : '',
-                            delivery_location: rfq.delivery_location || ''
-                          });
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-2">Description</h3>
-                      <p className="text-afrikoni-deep/70 whitespace-pre-wrap">{rfq.description}</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
-                      <div>
-                        <span className="text-sm text-afrikoni-deep/70">Quantity</span>
-                        <p className="font-medium">{rfq.quantity} {rfq.unit}</p>
-                      </div>
-                      {rfq.target_price && (
-                        <div>
-                          <span className="text-sm text-afrikoni-deep/70">Target Price</span>
-                          <p className="font-medium">{rfq.target_price}</p>
-                        </div>
-                      )}
-                      {rfq.delivery_location && (
-                        <div>
-                          <span className="text-sm text-afrikoni-deep/70">Delivery Location</span>
-                          <p className="font-medium">{rfq.delivery_location}</p>
-                        </div>
-                      )}
-                      {rfq.delivery_deadline && (
-                        <div>
-                          <span className="text-sm text-afrikoni-deep/70">Delivery Deadline</span>
-                          <p className="font-medium">{format(new Date(rfq.delivery_deadline), 'MMM d, yyyy')}</p>
-                        </div>
-                      )}
-                      {rfq.expires_at && (
-                        <div>
-                          <span className="text-sm text-afrikoni-deep/70">Expires</span>
-                          <p className="font-medium">{format(new Date(rfq.expires_at), 'MMM d, yyyy')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Quote Responses */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Quote Responses ({quotes.length})</span>
-                  <div className="flex items-center gap-2">
-                    {isOwner && quotes.length > 1 && (
-                      <div className="flex items-center gap-1 border border-afrikoni-gold/30 rounded-lg p-1">
-                        <Button
-                          variant={quoteViewMode === 'list' ? 'default' : 'ghost'}
-                          size="sm"
-                          onClick={() => setQuoteViewMode('list')}
-                          className="h-8"
-                        >
-                          <List className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant={quoteViewMode === 'compare' ? 'default' : 'ghost'}
-                          size="sm"
-                          onClick={() => setQuoteViewMode('compare')}
-                          className="h-8"
-                        >
-                          <Columns className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-                    {canSubmitQuote && !showQuoteForm && (
-                      <Button onClick={() => setShowQuoteForm(true)} size="sm">
-                        Submit Quote
-                      </Button>
-                    )}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {showQuoteForm && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 border border-afrikoni-gold/30 rounded-lg bg-afrikoni-offwhite"
-                  >
-                    <h4 className="font-semibold mb-4">Submit Your Quote</h4>
-                    
-                    {/* First-Time Quote Guidance */}
-                    <FirstTimeQuoteGuidance />
-                    
-                    {/* Supplier Quote Templates */}
-                    <SupplierQuoteTemplates 
-                      onTemplateSelect={(templateText) => {
-                        setQuoteForm(prev => ({ ...prev, notes: templateText }));
-                      }}
-                      rfqCategory={rfq?.category?.name}
-                    />
-                    
-                    <form onSubmit={handleSubmitQuote} className="space-y-4">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Unit Price *</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={quoteForm.price_per_unit}
-                            onChange={(e) => {
-                              const unitPrice = e.target.value;
-                              setQuoteForm({ 
-                                ...quoteForm, 
-                                price_per_unit: unitPrice,
-                                total_price: unitPrice && rfq.quantity ? (parseFloat(unitPrice) * parseFloat(rfq.quantity)).toFixed(2) : ''
-                              });
-                            }}
-                            required
-                            placeholder="0.00"
-                          />
-                        </div>
-                        <div>
-                          <Label>Total Price</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={quoteForm.total_price || (quoteForm.price_per_unit && rfq.quantity ? (parseFloat(quoteForm.price_per_unit) * parseFloat(rfq.quantity)).toFixed(2) : '')}
-                            onChange={(e) => setQuoteForm({ ...quoteForm, total_price: e.target.value })}
-                            readOnly={!!quoteForm.price_per_unit}
-                            placeholder="Auto-calculated"
-                          />
-                        </div>
-                        <div>
-                          <Label>Currency *</Label>
-                          <select
-                            value={quoteForm.currency}
-                            onChange={(e) => setQuoteForm({ ...quoteForm, currency: e.target.value })}
-                            className="w-full px-3 py-2 border border-afrikoni-gold/30 rounded-md"
-                            required
-                          >
-                            <option value="USD">USD</option>
-                            <option value="NGN">NGN</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                            <option value="XOF">XOF</option>
-                            <option value="XAF">XAF</option>
-                          </select>
-                        </div>
-                        <div>
-                          <Label>Incoterms *</Label>
-                          <select
-                            value={quoteForm.incoterms}
-                            onChange={(e) => setQuoteForm({ ...quoteForm, incoterms: e.target.value })}
-                            className="w-full px-3 py-2 border border-afrikoni-gold/30 rounded-md"
-                            required
-                          >
-                            <option value="">Select Incoterms</option>
-                            <option value="EXW">EXW - Ex Works</option>
-                            <option value="FOB">FOB - Free On Board</option>
-                            <option value="CIF">CIF - Cost, Insurance and Freight</option>
-                            <option value="CFR">CFR - Cost and Freight</option>
-                            <option value="DDP">DDP - Delivered Duty Paid</option>
-                            <option value="DAP">DAP - Delivered At Place</option>
-                          </select>
-                        </div>
-                        <div>
-                          <Label>Lead Time *</Label>
-                          <Input
-                            value={quoteForm.lead_time}
-                            onChange={(e) => setQuoteForm({ ...quoteForm, lead_time: e.target.value })}
-                            placeholder="e.g., 2-3 weeks, 30 days"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label>MOQ (if different from RFQ quantity)</Label>
-                          <Input
-                            type="number"
-                            value={quoteForm.moq}
-                            onChange={(e) => setQuoteForm({ ...quoteForm, moq: e.target.value })}
-                            placeholder="Optional"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Label>Notes (optional, max 500 characters)</Label>
-                          <span className="text-xs text-afrikoni-deep/70">
-                            {quoteForm.notes?.length || 0}/500
-                          </span>
-                        </div>
-                        <Textarea
-                          value={quoteForm.notes}
-                          onChange={(e) => {
-                            if (e.target.value.length <= 500) {
-                              setQuoteForm({ ...quoteForm, notes: e.target.value });
-                            }
-                          }}
-                          rows={3}
-                          placeholder="Any additional information..."
-                          maxLength={500}
-                        />
-                      </div>
-                      <div className="flex items-start gap-2 p-3 bg-afrikoni-cream/30 rounded-lg border border-afrikoni-gold/20">
-                        <input
-                          type="checkbox"
-                          id="quote-confirmation"
-                          checked={quoteForm.confirmed}
-                          onChange={(e) => setQuoteForm({ ...quoteForm, confirmed: e.target.checked })}
-                          className="mt-1 w-4 h-4 text-afrikoni-gold border-afrikoni-gold/30 rounded"
-                          required
-                        />
-                        <Label htmlFor="quote-confirmation" className="text-sm cursor-pointer">
-                          I confirm this quote is accurate and executable *
-                        </Label>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button type="submit" disabled={isSubmitting || !quoteForm.confirmed} className="flex-1">
-                          {isSubmitting ? 'Submitting...' : 'Submit Quote'}
-                        </Button>
-                        <Button type="button" variant="outline" onClick={() => setShowQuoteForm(false)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </form>
-                  </motion.div>
-                )}
-
-                {quotes.length === 0 ? (
-                  <EmptyState type="quotes" title="No quotes yet" description="Be the first to submit a quote" />
-                ) : quoteViewMode === 'compare' && isOwner ? (
-                  // Comparison View (Buyer only)
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b-2 border-afrikoni-gold/30">
-                          <th className="text-left p-3 font-semibold text-afrikoni-chestnut">Supplier</th>
-                          <th className="text-right p-3 font-semibold text-afrikoni-chestnut">Total Price</th>
-                          <th className="text-right p-3 font-semibold text-afrikoni-chestnut">Price/Unit</th>
-                          <th className="text-center p-3 font-semibold text-afrikoni-chestnut">Delivery Time</th>
-                          <th className="text-center p-3 font-semibold text-afrikoni-chestnut">Payment Terms</th>
-                          <th className="text-center p-3 font-semibold text-afrikoni-chestnut">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Array.isArray(quotes) && quotes
-                          .sort((a, b) => parseFloat(a.total_price) - parseFloat(b.total_price))
-                          .map((quote) => (
-                            <tr key={quote.id} className="border-b border-afrikoni-gold/10 hover:bg-afrikoni-cream/20">
-                              <td className="p-3">
-                                <div>
-                                  <p className="font-medium text-afrikoni-chestnut">
-                                    {quote.companies?.company_name || 'Supplier'}
-                                  </p>
-                                  <p className="text-xs text-afrikoni-deep/70">
-                                    {quote.companies?.country || ''}
-                                  </p>
-                                </div>
-                              </td>
-                              <td className="p-3 text-right">
-                                <p className="font-bold text-afrikoni-chestnut">
-                                  {quote.currency} {parseFloat(quote.total_price).toLocaleString()}
-                                </p>
-                              </td>
-                              <td className="p-3 text-right">
-                                <p className="text-sm text-afrikoni-deep">
-                                  {quote.currency} {parseFloat(quote.price_per_unit).toLocaleString()}
-                                </p>
-                              </td>
-                              <td className="p-3 text-center">
-                                <p className="text-sm text-afrikoni-deep">
-                                  {quote.delivery_time || 'N/A'}
-                                </p>
-                              </td>
-                              <td className="p-3 text-center">
-                                <p className="text-sm text-afrikoni-deep">
-                                  {quote.payment_terms || 'N/A'}
-                                </p>
-                              </td>
-                              <td className="p-3 text-center">
-                                {rfq.status === 'matched' || rfq.status === 'open' ? (
-                                  <Button
-                                    onClick={() => handleAwardRFQ(quote.id)}
-                                    size="sm"
-                                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
-                                  >
-                                    <Award className="w-4 h-4 mr-1" />
-                                    Award
-                                  </Button>
-                                ) : (
-                                  <Badge variant={quote.status === 'accepted' ? 'success' : 'outline'}>
-                                    {quote.status}
-                                  </Badge>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  // List View (Default)
-                  <div className="space-y-4">
-                    {Array.isArray(quotes) && quotes.map((quote) => (
-                      <div key={quote.id} className="p-4 border border-afrikoni-gold/20 rounded-lg">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-afrikoni-chestnut">
-                                {quote.companies?.company_name || 'Supplier'}
-                              </h4>
-                              {quote.status === 'accepted' && (
-                                <Badge variant="success">Accepted</Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-afrikoni-deep/70">
-                              {quote.companies?.country || ''}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xl font-bold text-afrikoni-chestnut">
-                              {quote.currency} {parseFloat(quote.total_price).toLocaleString()}
-                            </p>
-                            <p className="text-xs text-afrikoni-deep/70">
-                              {quote.currency} {parseFloat(quote.price_per_unit).toLocaleString()} per unit
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-3 mb-3 text-sm">
-                          {quote.delivery_time && (
-                            <div>
-                              <span className="text-afrikoni-deep/70">Delivery:</span>
-                              <span className="ml-2 font-medium">{quote.delivery_time}</span>
-                            </div>
-                          )}
-                          {quote.payment_terms && (
-                            <div>
-                              <span className="text-afrikoni-deep/70">Payment:</span>
-                              <span className="ml-2 font-medium">{quote.payment_terms}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {quote.notes && (
-                          <p className="text-sm text-afrikoni-deep/70 mb-3">{quote.notes}</p>
-                        )}
-
-                        <div className="flex items-center gap-2 pt-3 border-t">
-                          {isOwner && rfq.status === 'open' && (
-                            <Button
-                              onClick={() => handleAwardRFQ(quote.id)}
-                              size="sm"
-                              variant="primary"
-                            >
-                              Award RFQ
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenConversation(quote.supplier_company_id)}
-                          >
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Open Conversation
-                          </Button>
-                          <span className="text-xs text-afrikoni-deep/50 ml-auto">
-                            {format(new Date(quote.created_at), 'MMM d, yyyy')}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Buyer Info - Only shown to buyer or admin */}
-            {buyerCompany && (isOwner || isAdmin) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Buyer Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <h4 className="font-semibold text-afrikoni-chestnut">{buyerCompany.company_name}</h4>
-                  <p className="text-sm text-afrikoni-deep/70 mt-1">{buyerCompany.country}</p>
-                  {buyerCompany.verified && (
-                    <Badge variant="verified" className="mt-2">Verified</Badge>
-                  )}
-                </CardContent>
-              </Card>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" className="gap-2" onClick={loadData}>
+              <RefreshCw className="w-4 h-4" /> Refresh
+            </Button>
+            {isBuyer && (
+              <Link to="/dashboard/rfqs">
+                <Button variant="outline">Back to RFQs</Button>
+              </Link>
             )}
-
-            {/* Privacy Note for Suppliers */}
-            {isSupplier && !buyerCompany && (
-              <Card className="border-afrikoni-gold/30 bg-afrikoni-cream/30">
-                <CardHeader>
-                  <CardTitle className="text-sm">Privacy Notice</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-afrikoni-deep/70">
-                    Buyer identity is protected. You'll see buyer contact information only after they accept your offer.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* RFQ Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>RFQ Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-afrikoni-deep/70">Created</span>
-                  <span>{format(new Date(rfq.created_at), 'MMM d, yyyy')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-afrikoni-deep/70">Status</span>
-                  <Badge variant="outline">{rfq.status}</Badge>
-                </div>
-                {rfq.categories && (
-                  <div>
-                    <span className="text-afrikoni-deep/70">Category</span>
-                    <p className="font-medium">{rfq.categories.name}</p>
-                  </div>
-                )}
-                {rfq.expires_at && (
-                  <div className="flex justify-between">
-                    <span className="text-afrikoni-deep/70">Closes</span>
-                    <span>{format(new Date(rfq.expires_at), 'MMM d, yyyy')}</span>
-                  </div>
-                )}
-                {isOwner && (
-                  <div className="space-y-2 pt-3 border-t border-afrikoni-gold/20 mt-3">
-                    {rfq.status === 'open' && (
-                      <Button 
-                        onClick={handleCloseRFQ}
-                        disabled={isSubmitting}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        Close RFQ
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => setIsEditing(true)}
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      Edit RFQ
-                    </Button>
-                    <Button
-                      onClick={handleDeleteRFQ}
-                      disabled={isSubmitting}
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      Delete RFQ
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </div>
+        <div className="flex flex-wrap gap-2 mt-4">
+          {chips.map((chip) => (
+            <SignalChip key={chip.label} label={chip.label} value={chip.value} tone={chip.tone} />
+          ))}
+        </div>
+      </Surface>
+
+      <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
+        <Surface variant="panel" className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-sm text-os-muted">
+            <FileText className="w-4 h-4" />
+            RFQ Details
+          </div>
+          <p className="text-sm leading-6 whitespace-pre-line">{rfq.description}</p>
+
+          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+            <InfoRow label="Quantity" value={rfq.quantity ? rfq.quantity.toLocaleString() : '—'} />
+            <InfoRow label="Unit" value={rfq.unit || '—'} />
+            <InfoRow label="Target Price" value={rfq.target_price ? `$${rfq.target_price}` : 'N/A'} />
+            <InfoRow label="Delivery Location" value={rfq.delivery_location || '—'} icon={MapPin} />
+            <InfoRow
+              label="Created"
+              value={rfq.created_at ? format(new Date(rfq.created_at), 'MMM d, yyyy') : '—'}
+              icon={Calendar}
+            />
+            <InfoRow
+              label="Closes"
+              value={rfq.expires_at ? format(new Date(rfq.expires_at), 'MMM d, yyyy') : '—'}
+              icon={Calendar}
+            />
+          </div>
+        </Surface>
+
+        <Surface variant="panel" className="p-5 space-y-3">
+          <div className="flex items-center gap-2 text-sm text-os-muted">
+            <DollarSign className="w-4 h-4" />
+            Quotes
+          </div>
+          {quotes.length === 0 ? (
+            <EmptyState
+              icon={MessageSquare}
+              title="No quotes yet"
+              description="Suppliers will appear here once they respond."
+            />
+          ) : (
+            <div className="space-y-3">
+              {quotes.map((quote) => (
+                <Surface key={quote.id} variant="soft" className="p-4 border border-border/60">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-foreground">${quote.total_price?.toLocaleString() || '—'}</p>
+                      <p className="text-xs text-os-muted">Unit: {quote.price_per_unit || '—'} | Lead: {quote.lead_time || '—'}</p>
+                    </div>
+                    {quote.currency && <Badge variant="outline">{quote.currency}</Badge>}
+                  </div>
+                  {quote.notes && <p className="text-sm text-os-muted mt-2">{quote.notes}</p>}
+                </Surface>
+              ))}
+            </div>
+          )}
+        </Surface>
       </div>
-    </>
+    </div>
   );
 }
 
-
+function InfoRow({ label, value, icon: Icon }) {
+  return (
+    <div className="flex items-center gap-2">
+      {Icon ? <Icon className="w-4 h-4 text-os-muted" /> : null}
+      <span className="text-[var(--os-text-secondary)] text-xs uppercase tracking-wide">{label}</span>
+      <span className="text-sm font-semibold text-foreground">{value}</span>
+    </div>
+  );
+}

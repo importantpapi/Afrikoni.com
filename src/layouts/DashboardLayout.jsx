@@ -47,17 +47,18 @@ import CommandPalette from '@/components/dashboard/CommandPalette';
 import { useTheme } from '@/contexts/ThemeContext';
 import TradeOSSidebar from '@/components/dashboard/TradeOSSidebar';
 import TradeOSHeader from '@/components/dashboard/TradeOSHeader';
-import KernelStatusBar from '@/components/dashboard/KernelStatusBar';
 import AITradeCopilot from '@/components/dashboard/AITradeCopilot';
+import SystemStatusFooter from '@/components/layout/SystemStatusFooter';
+import { WorkspaceModeProvider, useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
 
 // Collapsible menu section component for items with children
 function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
   const [isOpen, setIsOpen] = useState(!item.collapsedByDefault);
   const Icon = item.icon;
-  
+
   // Check if any child is active
-  const hasActiveChild = item.children?.some(child => 
-    location.pathname === child.path || 
+  const hasActiveChild = item.children?.some(child =>
+    location.pathname === child.path ||
     (child.path && location.pathname.startsWith(child.path))
   );
 
@@ -68,11 +69,11 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
         disabled={item.locked}
         className={`
           w-full flex items-center gap-3 px-4 py-3 rounded-afrikoni text-sm font-semibold transition-all group
-          ${item.locked 
+          ${item.locked
             ? 'text-afrikoni-sand/40 cursor-not-allowed'
-            : hasActiveChild 
-            ? 'bg-afrikoni-gold/20 text-afrikoni-gold' 
-            : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
+            : hasActiveChild
+              ? 'bg-afrikoni-gold/20 text-afrikoni-gold'
+              : 'text-afrikoni-sand hover:bg-afrikoni-gold/12 hover:text-afrikoni-gold'
           }
         `}
         title={item.locked ? (item.lockReason || 'Locked') : undefined}
@@ -82,10 +83,10 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
         {item.locked ? (
           <Lock className="w-4 h-4" />
         ) : (
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         )}
       </button>
-      
+
       <AnimatePresence>
         {isOpen && item.children && (
           <motion.div
@@ -98,10 +99,10 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
             <div className="ml-4 mt-1 space-y-1 border-l-2 border-afrikoni-gold/20 pl-3">
               {item.children.map((child, childIdx) => {
                 const ChildIcon = child.icon;
-                const isChildActive = location.pathname === child.path || 
-                                     (child.path && location.pathname.startsWith(child.path));
+                const isChildActive = location.pathname === child.path ||
+                  (child.path && location.pathname.startsWith(child.path));
                 const isLocked = child.locked || child.disabled;
-                
+
                 if (isLocked) {
                   return (
                     <div
@@ -115,7 +116,7 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
                     </div>
                   );
                 }
-                
+
                 return (
                   <Link
                     key={`${child.path}-${childIdx}`}
@@ -155,8 +156,8 @@ function CollapsibleMenuSection({ item, location, setSidebarOpen }) {
  * - Does NOT check auth/role state (handled by RequireCapability route guard)
  * - Does NOT conditionally unmount after first mount
  */
-export default function DashboardLayout({ 
-  children, 
+export default function DashboardLayout({
+  children,
   currentRole, // PHASE 5B: Legacy prop - IGNORED (capabilities are the only authority)
   capabilities = null // PHASE 5B: Capability-based access (required)
 }) {
@@ -179,10 +180,10 @@ export default function DashboardLayout({
       loading: false,
       ready: true,
       error: null,
-      refreshCapabilities: async () => {},
+      refreshCapabilities: async () => { },
     };
   }
-  
+
   // ✅ CRITICAL FIX: Safe access with optional chaining
   const safeCapabilities = capabilitiesFromContext || {
     can_buy: true,
@@ -195,11 +196,11 @@ export default function DashboardLayout({
     ready: true,
     error: null,
   };
-  
+
   // ✅ CRITICAL FIX: Extract refreshCapabilities and loading state for Global Sync button
   const refreshCapabilities = capabilitiesFromContext?.refreshCapabilities || null;
   const capabilitiesLoading = capabilitiesFromContext?.loading || false;
-  
+
   // PHASE 5B: Track if layout has been mounted once (to prevent unmounting)
   const hasMountedRef = useRef(false);
 
@@ -211,7 +212,7 @@ export default function DashboardLayout({
     // PHASE 5B: Mark as mounted immediately (no loading guard here)
     hasMountedRef.current = true;
   }
-  
+
   // ✅ CRITICAL FIX: Safe access with optional chaining
   // PHASE 5B: Get capabilities data (use prop or context)
   // ✅ STABILIZATION: Capability override for development - Full Visibility mode
@@ -240,12 +241,18 @@ export default function DashboardLayout({
   // ✅ CRITICAL FIX: Declare profileCompanyId IMMEDIATELY after contextProfile
   // This must be declared BEFORE it's used in useNotificationCounts (line 255)
   const profileCompanyId = contextProfile?.company_id || null;
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+  // ✅ THEME ENFORCEMENT: Dashboard is always DARK mode ("Trade OS")
+  // Public pages are LIGHT mode
   const { theme, toggleTheme } = useTheme();
+
+  // Theme is user-controlled; do not force dark mode here.
+
   const [companyId, setCompanyId] = useState(null);
   // PHASE 5B: Derive capability flags from capabilities (NO role variables)
   const isBuyer = capabilitiesData?.can_buy === true;
@@ -261,7 +268,7 @@ export default function DashboardLayout({
   const location = useLocation();
   const navigate = useNavigate();
   // PHASE 5B: Dev switcher completely removed - capabilities are company-level
-  
+
   // Merge user data with profile for display (for backward compatibility)
   const mergedUser = contextUser && contextProfile ? {
     ...contextUser,
@@ -269,12 +276,12 @@ export default function DashboardLayout({
     full_name: extractUserName(contextUser, contextProfile) || contextUser?.full_name || contextProfile?.full_name || null,
     name: extractUserName(contextUser, contextProfile) || contextUser?.name || contextProfile?.name || null,
   } : contextUser;
-  
+
   // Get notification counts for sidebar badges
   const notificationCounts = useNotificationCounts(contextUser?.id, profileCompanyId);
-  
+
   // Removed: liveStats (social proof footer removed in Phase 2)
-  
+
   // ==========================================================================
   // REALTIME - REMOVED (Owned by DashboardRealtimeManager in WorkspaceDashboard)
   // ==========================================================================
@@ -302,10 +309,10 @@ export default function DashboardLayout({
   const contextUserId = contextUser?.id || null;
   const contextUserEmail = contextUser?.email?.toLowerCase() || null;
   const contextProfileId = contextProfile?.id || null;
-  
+
   // ✅ SCHEMA ALIGNMENT: Removed verbose console logging - Kernel sync verified
   // Kernel is working correctly, no need for verbose logging in production
-  
+
   useEffect(() => {
     if (contextUserId && contextProfileId) {
       // ✅ FIXED: Pass both user and profile to isAdmin for proper check
@@ -316,12 +323,12 @@ export default function DashboardLayout({
         console.warn('Error checking admin status:', adminError);
         setIsUserAdmin(false);
       }
-      
+
       // Check if user is founder/CEO (youba.thiam@icloud.com)
       const isFounderUser = contextUserEmail === 'youba.thiam@icloud.com';
       setIsFounder(isFounderUser);
       // PHASE 5B: Dev switcher removed - capabilities are company-level
-      
+
       // ✅ Founder is always admin (isAdmin already checks this, but ensure it's set)
       if (isFounderUser) {
         setIsUserAdmin(true);
@@ -355,7 +362,7 @@ export default function DashboardLayout({
         // Don't break logout if audit logging fails
         console.warn('Failed to log logout:', auditError);
       }
-      
+
       // ✅ FULL-STACK SYNC: Use AuthService for atomic logout with state wipe
       const { logout: authServiceLogout } = await import('@/services/AuthService');
       await authServiceLogout();
@@ -383,183 +390,158 @@ export default function DashboardLayout({
   const buildSidebarFromCapabilities = (caps, isAdmin = false) => {
     try {
       if (!caps) return null;
-    
-    const menuItems = [];
-    
-    // ✅ KERNEL-TO-UI ALIGNMENT: Admin-first sidebar structure
-    // If admin, show admin-specific modules FIRST before capability-based sections
-    if (isAdmin) {
-      // Admin Panel (always first for admins)
-      menuItems.push(
-        { icon: AlertTriangle, label: 'Admin Panel', path: '/dashboard/admin', priority: 'primary', isAdminSection: true }
-      );
-      
-      // Governance & Security (Admin Section)
-      menuItems.push({
-        icon: Shield,
-        label: 'Governance & Security',
-        path: null,
-        priority: 'primary',
-        isSection: true,
-        isAdminSection: true,
-        children: [
-          { icon: AlertCircle, label: 'Risk Management', path: '/dashboard/risk' },
-          { icon: Shield, label: 'Compliance', path: '/dashboard/compliance' },
-          { icon: FileCheck, label: 'KYC Review', path: '/dashboard/kyc' },
-          { icon: AlertTriangle, label: 'Anti-Corruption', path: '/dashboard/anticorruption' },
-          { icon: AlertCircle, label: 'Crisis Management', path: '/dashboard/crisis' },
-          { icon: FileText, label: 'Audit Logs', path: '/dashboard/audit' },
-        ]
-      });
-    }
-    
-    // Always show: Overview, Trade Pipeline, Messages
-    menuItems.push(
-      { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
-      { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
-      { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' }
-    );
-    
-    // ✅ FULL-STACK SYNC: Hybrid Navigation - Show both Buyer and Seller workspace tabs
-    const isHybrid = caps.can_buy === true && caps.can_sell === true;
-    if (isHybrid) {
-      menuItems.push({
-        icon: ShoppingCart,
-        label: 'Buyer Workspace',
-        path: '/dashboard',
-        priority: 'primary',
-        isHybridTab: true,
-        viewMode: 'buyer'
-      });
-      menuItems.push({
-        icon: Package,
-        label: 'Seller Workspace',
-        path: '/dashboard',
-        priority: 'primary',
-        isHybridTab: true,
-        viewMode: 'seller'
-      });
-    }
-    
-    // If can_buy → show Buy section
-    if (caps.can_buy) {
-      menuItems.push(
-        { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs', priority: 'primary' },
-        { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders', priority: 'primary' },
-        { icon: Wallet, label: 'Payments', path: '/dashboard/payments', priority: 'primary' }
-      );
-      
-      // Buy section manage items
-      menuItems.push({
-        icon: Building2,
-        label: 'Manage',
-        path: null,
-        priority: 'secondary',
-        isSection: true,
-        children: [
-          { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
-          { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
-          { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
-          { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
-          { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
-        ]
-      });
-      
-      // Analytics & Intelligence
-      menuItems.push(
-        { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics', priority: 'secondary' },
-        { icon: TrendingUp, label: 'Performance', path: '/dashboard/performance', priority: 'secondary' }
-      );
-    }
-    
-    // If can_sell → show Sell section (locked if status != 'approved')
-    if (caps.can_sell) {
-      const isApproved = caps.sell_status === 'approved';
-      const sellItems = [
-        { icon: Package, label: 'Products', path: '/dashboard/products' },
-        { icon: Plus, label: 'Quick Add Product', path: '/dashboard/products/quick-add' },
-        { icon: ShoppingCart, label: 'Sales', path: '/dashboard/sales' },
-        { icon: FileText, label: 'RFQs Received', path: '/dashboard/supplier-rfqs' },
-      ];
-      
-      // Add lock indicator if pending
-      if (!isApproved) {
-        sellItems.forEach(item => {
-          item.disabled = true;
-          item.locked = true;
-          item.lockReason = caps.sell_status === 'pending' ? 'Pending approval' : 'Disabled';
-        });
-      }
-      
-      menuItems.push({
-        icon: Package,
-        label: 'Sell',
-        path: null,
-        priority: 'secondary',
-        isSection: true,
-        locked: !isApproved,
-        lockReason: !isApproved ? (caps.sell_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
-        children: sellItems
-      });
-      
-      // Seller Analytics (only if approved)
-      if (isApproved) {
-        menuItems.push(
-          { icon: BarChart3, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics', priority: 'secondary' }
-        );
-      }
-    }
-    
-    // If can_logistics → show Logistics section (locked if status != 'approved')
-    if (caps.can_logistics) {
-      const isApproved = caps.logistics_status === 'approved';
-      const logisticsItems = [
-        { icon: Truck, label: 'Shipments', path: '/dashboard/shipments' },
-        { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment' },
-      ];
-      
-      // Add lock indicator if pending
-      if (!isApproved) {
-        logisticsItems.forEach(item => {
-          item.disabled = true;
-          item.locked = true;
-          item.lockReason = caps.logistics_status === 'pending' ? 'Pending approval' : 'Disabled';
-        });
-      }
-      
-      menuItems.push({
-        icon: Truck,
-        label: 'Logistics',
-        path: null,
-        priority: 'secondary',
-        isSection: true,
-        locked: !isApproved,
-        lockReason: !isApproved ? (caps.logistics_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
-        children: logisticsItems
-      });
-      
-      // Logistics Dashboard & Quote (only if approved)
-      if (isApproved) {
-        menuItems.push(
-          { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics-dashboard', priority: 'secondary' },
-          { icon: FileText, label: 'Logistics Quote', path: '/dashboard/logistics-quote', priority: 'secondary' }
-        );
-      }
-    }
-    
-    // Community
-    menuItems.push(
-      { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews', priority: 'secondary' },
-      { icon: AlertCircle, label: 'Disputes', path: '/dashboard/disputes', priority: 'secondary' }
-    );
 
-    // Always show: Settings, Help at bottom
-    menuItems.push(
-      { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' },
-      { icon: HelpCircle, label: 'Help & Support', path: '/dashboard/help', priority: 'support' }
-    );
-    
-    return menuItems;
+      const menuItems = [];
+
+      // ✅ KERNEL-TO-UI ALIGNMENT: Admin-first sidebar removed (admin module deprecated)
+
+      // Always show: Overview, Trade Pipeline, Messages
+      menuItems.push(
+        { icon: LayoutDashboard, label: 'Overview', path: '/dashboard', priority: 'primary' },
+        { icon: GitBranch, label: 'Trade Pipeline', path: '/dashboard/trade-pipeline', priority: 'primary' },
+        { icon: MessageSquare, label: 'Messages', path: '/dashboard/notifications', priority: 'primary' }
+      );
+
+      // ✅ FULL-STACK SYNC: Hybrid Navigation - Show both Buyer and Seller workspace tabs
+      const isHybrid = caps.can_buy === true && caps.can_sell === true;
+      if (isHybrid) {
+        menuItems.push({
+          icon: ShoppingCart,
+          label: 'Buyer Workspace',
+          path: '/dashboard',
+          priority: 'primary',
+          isHybridTab: true,
+          viewMode: 'buyer'
+        });
+        menuItems.push({
+          icon: Package,
+          label: 'Seller Workspace',
+          path: '/dashboard',
+          priority: 'primary',
+          isHybridTab: true,
+          viewMode: 'seller'
+        });
+      }
+
+      // If can_buy → show Buy section
+      if (caps.can_buy) {
+        menuItems.push(
+          { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs', priority: 'primary' },
+          { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders', priority: 'primary' },
+          { icon: Wallet, label: 'Payments', path: '/dashboard/payments', priority: 'primary' }
+        );
+
+        // Buy section manage items
+        menuItems.push({
+          icon: Building2,
+          label: 'Manage',
+          path: null,
+          priority: 'secondary',
+          isSection: true,
+          children: [
+            { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
+            { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+            { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team-members' },
+            { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
+            { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
+          ]
+        });
+
+        // Analytics & Intelligence
+        menuItems.push(
+          { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics', priority: 'secondary' },
+          { icon: TrendingUp, label: 'Performance', path: '/dashboard/performance', priority: 'secondary' }
+        );
+      }
+
+      // If can_sell → show Sell section (locked if status != 'approved')
+      if (caps.can_sell) {
+        const isApproved = caps.sell_status === 'approved';
+        const sellItems = [
+          { icon: Package, label: 'Products', path: '/dashboard/products' },
+          { icon: Plus, label: 'Quick Add Product', path: '/dashboard/products/new' },
+          { icon: ShoppingCart, label: 'Sales', path: '/dashboard/sales' },
+          { icon: FileText, label: 'RFQs Received', path: '/dashboard/supplier-rfqs' },
+        ];
+
+        // Add lock indicator if pending
+        if (!isApproved) {
+          sellItems.forEach(item => {
+            item.disabled = true;
+            item.locked = true;
+            item.lockReason = caps.sell_status === 'pending' ? 'Pending approval' : 'Disabled';
+          });
+        }
+
+        menuItems.push({
+          icon: Package,
+          label: 'Sell',
+          path: null,
+          priority: 'secondary',
+          isSection: true,
+          locked: !isApproved,
+          lockReason: !isApproved ? (caps.sell_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
+          children: sellItems
+        });
+
+        // Seller Analytics (only if approved)
+        if (isApproved) {
+          menuItems.push(
+            { icon: BarChart3, label: 'Supplier Analytics', path: '/dashboard/supplier-analytics', priority: 'secondary' }
+          );
+        }
+      }
+
+      // If can_logistics → show Logistics section (locked if status != 'approved')
+      if (caps.can_logistics) {
+        const isApproved = caps.logistics_status === 'approved';
+        const logisticsItems = [
+          { icon: Truck, label: 'Shipments', path: '/dashboard/shipments' },
+          { icon: Warehouse, label: 'Fulfillment', path: '/dashboard/fulfillment' },
+        ];
+
+        // Add lock indicator if pending
+        if (!isApproved) {
+          logisticsItems.forEach(item => {
+            item.disabled = true;
+            item.locked = true;
+            item.lockReason = caps.logistics_status === 'pending' ? 'Pending approval' : 'Disabled';
+          });
+        }
+
+        menuItems.push({
+          icon: Truck,
+          label: 'Logistics',
+          path: null,
+          priority: 'secondary',
+          isSection: true,
+          locked: !isApproved,
+          lockReason: !isApproved ? (caps.logistics_status === 'pending' ? 'Pending approval' : 'Disabled') : null,
+          children: logisticsItems
+        });
+
+        // Logistics Dashboard & Quote (only if approved)
+        if (isApproved) {
+          menuItems.push(
+            { icon: Truck, label: 'Logistics Dashboard', path: '/dashboard/logistics-dashboard', priority: 'secondary' },
+            { icon: FileText, label: 'Logistics Quote', path: '/dashboard/logistics-quote', priority: 'secondary' }
+          );
+        }
+      }
+
+      // Community
+      menuItems.push(
+        { icon: StarIcon, label: 'Reviews', path: '/dashboard/reviews', priority: 'secondary' },
+        { icon: AlertCircle, label: 'Disputes', path: '/dashboard/disputes', priority: 'secondary' }
+      );
+
+      // Always show: Settings, Help at bottom
+      menuItems.push(
+        { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' },
+        { icon: HelpCircle, label: 'Help & Support', path: '/dashboard/help', priority: 'support' }
+      );
+
+      return menuItems;
     } catch (error) {
       // ✅ STABILIZATION: Global error boundary - prevent entire Dashboard crash
       console.error('[DashboardLayout] Error building sidebar from capabilities:', error);
@@ -625,12 +607,12 @@ export default function DashboardLayout({
       { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' }
     ];
   }
-  
+
   // ✅ Ensure menuItems is always an array
   if (!Array.isArray(menuItems)) {
     menuItems = [];
   }
-  
+
   // Filter out admin-only items for non-admins
   menuItems = menuItems.filter(item => {
     if (item.adminOnly && !isUserAdmin) {
@@ -638,7 +620,7 @@ export default function DashboardLayout({
     }
     return true;
   });
-  
+
   // ✅ KERNEL-TO-UI ALIGNMENT: Admin panel now integrated into buildSidebarFromCapabilities
   // Removed duplicate admin panel addition - it's now part of the sidebar build logic
   // PHASE 5B: isHybrid derived from capabilities, not role string
@@ -662,8 +644,74 @@ export default function DashboardLayout({
   // ====================================================================
   // TRADE OS SHELL - 2026 Premium Layout
   // ====================================================================
+  const defaultMode = (isUserAdmin || isLogistics) ? 'operator' : 'simple';
+
   return (
-    <div className="flex min-h-screen w-full bg-gray-50 dark:bg-[#0E0E0E] relative">
+    <WorkspaceModeProvider defaultMode={defaultMode}>
+      <DashboardShell
+        capabilitiesData={capabilitiesData}
+        isUserAdmin={isUserAdmin}
+        notificationCounts={notificationCounts}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        setCommandPaletteOpen={setCommandPaletteOpen}
+        userMenuOpen={userMenuOpen}
+        commandPaletteOpen={commandPaletteOpen}
+        isBuyer={isBuyer}
+        isSeller={isSeller}
+        isLogistics={isLogistics}
+        isHybridCapability={isHybridCapability}
+        userAvatar={
+          <UserAvatar
+            user={mergedUser}
+            profile={contextProfile}
+            userMenuOpen={userMenuOpen}
+            setUserMenuOpen={setUserMenuOpen}
+            userMenuButtonRef={userMenuButtonRef}
+            getUserInitial={getUserInitial}
+          />
+        }
+        toggleTheme={toggleTheme}
+        theme={theme}
+        menuPosition={menuPosition}
+        setUserMenuOpen={setUserMenuOpen}
+        handleLogout={handleLogout}
+        mergedUser={mergedUser}
+        contextProfile={contextProfile}
+      >
+        {children}
+      </DashboardShell>
+    </WorkspaceModeProvider>
+  );
+}
+
+function DashboardShell({
+  children,
+  capabilitiesData,
+  isUserAdmin,
+  notificationCounts,
+  sidebarOpen,
+  setSidebarOpen,
+  setCommandPaletteOpen,
+  userMenuOpen,
+  commandPaletteOpen,
+  isBuyer,
+  isSeller,
+  isLogistics,
+  isHybridCapability,
+  userAvatar,
+  toggleTheme,
+  theme,
+  menuPosition,
+  setUserMenuOpen,
+  handleLogout,
+  mergedUser,
+  contextProfile,
+}) {
+  const { mode, setMode } = useWorkspaceMode();
+
+  return (
+    <div className="trade-os flex min-h-screen w-full bg-gray-50 dark:bg-[#0E0E0E] relative">
 
       {/* Trade OS Sidebar */}
       <TradeOSSidebar
@@ -672,6 +720,7 @@ export default function DashboardLayout({
         notificationCounts={notificationCounts}
         onClose={() => setSidebarOpen(false)}
         sidebarOpen={sidebarOpen}
+        workspaceMode={mode}
       />
 
       {/* Mobile Sidebar Overlay */}
@@ -692,7 +741,7 @@ export default function DashboardLayout({
           TRADE OS MAIN CONTENT AREA
           ==================================================================== */}
       <div
-        className="flex flex-col flex-1 w-full min-h-screen relative overflow-visible md:ml-[240px]"
+        className="flex flex-col flex-1 w-full min-h-screen relative overflow-visible md:ml-[72px]"
         style={{ zIndex: zIndex.content }}
       >
         {/* Trade OS Header */}
@@ -700,21 +749,13 @@ export default function DashboardLayout({
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           notificationCount={notificationCounts.messages || 0}
-          userAvatar={
-            <UserAvatar
-              user={mergedUser}
-              profile={contextProfile}
-              userMenuOpen={userMenuOpen}
-              setUserMenuOpen={setUserMenuOpen}
-              userMenuButtonRef={userMenuButtonRef}
-              getUserInitial={getUserInitial}
-            />
-          }
+          workspaceMode={mode}
+          onToggleMode={() => setMode(mode === 'simple' ? 'operator' : 'simple')}
+          userAvatar={userAvatar}
         />
 
         {/* Kernel Status Bar */}
-        <div className="hidden md:flex items-center px-4 md:px-5 py-1.5 bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#1E1E1E] overflow-x-auto">
-          <KernelStatusBar />
+        <div className="hidden md:flex items-center px-4 md:px-5 py-2 bg-transparent border-b border-white/5 overflow-x-auto">
         </div>
 
         {/* User Menu Dropdown - Trade OS styled */}
@@ -767,19 +808,6 @@ export default function DashboardLayout({
                     {item.label}
                   </Link>
                 ))}
-                {isUserAdmin && (
-                  <>
-                    <div className="border-t border-gray-200 dark:border-[#1E1E1E] my-1"></div>
-                    <Link
-                      to="/dashboard/admin"
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-[#D4A937]/10 text-sm text-[#D4A937] font-medium transition-colors"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <AlertTriangle className="w-4 h-4" />
-                      Admin Panel
-                    </Link>
-                  </>
-                )}
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleTheme(); }}
                   className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-sm text-gray-500 dark:text-gray-400 hover:text-[#D4A937] transition-colors"
@@ -824,6 +852,9 @@ export default function DashboardLayout({
 
       {/* AI Trade Copilot - Persistent floating assistant */}
       <AITradeCopilot />
+
+      {/* Kernel Control Plane - Global Signal Stream */}
+      <SystemStatusFooter />
 
       {/* 2026 Trade OS: Command Palette (Cmd+K / Ctrl+K) */}
       <CommandPalette

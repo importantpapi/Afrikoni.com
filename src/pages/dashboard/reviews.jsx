@@ -146,45 +146,45 @@ function ReviewsDashboardInner() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Trust & Reviews</h1>
-          <p className="text-afrikoni-deep/70">
+          <h1 className="text-3xl font-bold mb-2">Trust & Reviews</h1>
+          <p className="">
             Your reputation is built through completed and verified trades
           </p>
         </div>
 
         {/* How Reviews Work - Transparency Section */}
-        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Card className="border-2 bg-gradient-to-r">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <Shield className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                <Shield className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-blue-900 mb-3">How We Verify Reviews</h3>
-                <div className="space-y-2 text-sm text-blue-800">
+                <h3 className="text-lg font-bold mb-3">How We Verify Reviews</h3>
+                <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <p><strong>Only completed orders:</strong> Buyers can only review deals they've actually completed on Afrikoni</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <p><strong>One review per deal:</strong> Each transaction can only be reviewed once (no fake duplicates)</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <p><strong>Admin verification:</strong> Every review is manually checked by our team before it becomes public</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <p><strong>Immutable:</strong> Once approved, reviews cannot be edited or deleted (protects authenticity)</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <p><strong>Weighted trust score:</strong> Recent, high-value, dispute-free deals count more in your score</p>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-blue-200">
-                  <p className="text-xs text-blue-700 italic">
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-xs italic">
                     💡 This system ensures your trust score reflects real trade performance, not marketing.
                   </p>
                 </div>
@@ -201,21 +201,21 @@ function ReviewsDashboardInner() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-purple/10">
+            <Card className="border-2 bg-gradient-to-br">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-afrikoni-gold rounded-full flex items-center justify-center">
-                    <Shield className="w-8 h-8 text-white" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                    <Shield className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-afrikoni-deep/70 mb-1">Trust Score</p>
+                    <p className="text-sm mb-1">Trust Score</p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-4xl font-black text-afrikoni-chestnut">
+                      <p className="text-4xl font-black">
                         {stats.trustScore}
                       </p>
-                      <span className="text-lg text-afrikoni-deep/60">/100</span>
+                      <span className="text-lg">/100</span>
                     </div>
-                    <p className="text-xs text-afrikoni-deep/60 mt-1">
+                    <p className="text-xs mt-1">
                       Based on {stats.totalReviews} verified {stats.totalReviews === 1 ? 'review' : 'reviews'}
                     </p>
                   </div>
@@ -230,16 +230,16 @@ function ReviewsDashboardInner() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Card className="border-2 border-afrikoni-purple/30">
+            <Card className="border-2">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                    <Star className="w-8 h-8 text-afrikoni-purple" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                    <Star className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-afrikoni-deep/70 mb-1">Average Rating</p>
+                    <p className="text-sm mb-1">Average Rating</p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-4xl font-black text-afrikoni-chestnut">
+                      <p className="text-4xl font-black">
                         {stats.averageRating.toFixed(1)}
                       </p>
                       <div className="flex items-center gap-1">
@@ -267,15 +267,15 @@ function ReviewsDashboardInner() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            <Card className="border-2 border-afrikoni-green/30">
+            <Card className="border-2">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-afrikoni-green/20 rounded-full flex items-center justify-center">
-                    <Award className="w-8 h-8 text-afrikoni-green" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                    <Award className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-afrikoni-deep/70 mb-1">Approved Reviews</p>
-                    <p className="text-4xl font-black text-afrikoni-chestnut">
+                    <p className="text-sm mb-1">Approved Reviews</p>
+                    <p className="text-4xl font-black">
                       {stats.totalReviews}
                     </p>
                   </div>
@@ -286,10 +286,10 @@ function ReviewsDashboardInner() {
         </div>
 
         {/* Rating Breakdown */}
-        <Card className="border-2 border-afrikoni-gold/20">
-          <CardHeader className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border-b border-afrikoni-gold/20">
-            <CardTitle className="flex items-center gap-2 text-afrikoni-chestnut">
-              <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
+        <Card className="border-2">
+          <CardHeader className="bg-gradient-to-r border-b">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
               Rating Distribution
             </CardTitle>
           </CardHeader>
@@ -301,16 +301,16 @@ function ReviewsDashboardInner() {
                 return (
                   <div key={rating} className="flex items-center gap-4">
                     <div className="flex items-center gap-1 w-16">
-                      <span className="text-sm font-medium text-afrikoni-chestnut">{rating}</span>
-                      <Star className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
+                      <span className="text-sm font-medium">{rating}</span>
+                      <Star className="w-4 h-4 fill-afrikoni-gold" />
                     </div>
-                    <div className="flex-1 h-3 bg-afrikoni-offwhite rounded-full overflow-hidden">
+                    <div className="flex-1 h-3 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/80 transition-all duration-500"
+                        className="h-full bg-gradient-to-r transition-all duration-500"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                    <span className="text-sm text-afrikoni-deep/70 w-16 text-right">
+                    <span className="text-sm w-16 text-right">
                       {count} ({percentage.toFixed(0)}%)
                     </span>
                   </div>
@@ -321,23 +321,23 @@ function ReviewsDashboardInner() {
         </Card>
 
         {/* Reviews List */}
-        <Card className="border-2 border-afrikoni-gold/20">
-          <CardHeader className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border-b border-afrikoni-gold/20">
-            <CardTitle className="flex items-center gap-2 text-afrikoni-chestnut">
-              <MessageSquare className="w-5 h-5 text-afrikoni-gold" />
+        <Card className="border-2">
+          <CardHeader className="bg-gradient-to-r border-b">
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
               Customer Reviews
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {reviews.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                  <Heart className="w-10 h-10 text-afrikoni-gold" />
+                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br rounded-full flex items-center justify-center">
+                  <Heart className="w-10 h-10" />
                 </div>
-                <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                <h3 className="text-xl font-bold mb-2">
                   No reviews yet
                 </h3>
-                <p className="text-afrikoni-deep/70 max-w-md mx-auto">
+                <p className="max-w-md mx-auto">
                   Your trust score will be built through completed and verified trades. 
                   Focus on delivering quality products and excellent service to earn great reviews.
                 </p>
@@ -350,7 +350,7 @@ function ReviewsDashboardInner() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="p-5 bg-gradient-to-r from-white to-afrikoni-offwhite rounded-lg border border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all"
+                    className="p-5 bg-gradient-to-r rounded-lg border hover:border-afrikoni-gold/40 transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex flex-wrap items-center gap-2">
@@ -364,18 +364,18 @@ function ReviewsDashboardInner() {
                             }`}
                           />
                         ))}
-                        <Badge className="bg-gradient-to-r from-green-600 to-green-500 text-white border-green-700 shadow-sm">
+                        <Badge className="bg-gradient-to-r shadow-sm">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Verified Order
                         </Badge>
-                        <Badge variant="outline" className="text-xs bg-white">
+                        <Badge variant="outline" className="text-xs">
                           {new Date(review.approved_at).toLocaleDateString('en-US', {
                             month: 'short',
                             year: 'numeric'
                           })}
                         </Badge>
                       </div>
-                      <span className="text-sm text-afrikoni-deep/60">
+                      <span className="text-sm">
                         {new Date(review.approved_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -385,7 +385,7 @@ function ReviewsDashboardInner() {
                     </div>
 
                     {review.comment && (
-                      <p className="text-afrikoni-deep/80 leading-relaxed mb-3">
+                      <p className="leading-relaxed mb-3">
                         "{review.comment}"
                       </p>
                     )}
@@ -400,7 +400,7 @@ function ReviewsDashboardInner() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm text-afrikoni-deep/60">
+                    <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <Package className="w-4 h-4" />
                         Deal: {review.order_id?.slice(0, 8)}

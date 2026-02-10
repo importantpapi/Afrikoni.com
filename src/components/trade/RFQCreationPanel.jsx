@@ -1,6 +1,6 @@
 /**
  * RFQ Creation & Publishing Panel
- * State: DRAFT → RFQ_OPEN
+ * State: DRAFT → RFQ_CREATED
  * 
  * Buyer creates an RFQ, fills in details, and publishes to find suppliers.
  */
@@ -25,7 +25,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
 
   const [errors, setErrors] = useState({});
 
-  const isPublished = trade?.status === 'rfq_open';
+  const isPublished = trade?.status === TRADE_STATE.RFQ_CREATED;
 
   function validate() {
     const newErrors = {};
@@ -39,7 +39,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
   async function handlePublish() {
     if (!validate()) return;
 
-    await onNextStep(TRADE_STATE.RFQ_OPEN, {
+    await onNextStep(TRADE_STATE.RFQ_CREATED, {
       title: formData.title,
       description: formData.description,
       quantity: formData.quantity,
@@ -49,13 +49,13 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
   }
 
   return (
-    <Card className="border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium">
+    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8]">
+          <h2 className="text-2xl font-semibold">
             {isPublished ? 'RFQ Published' : 'Create RFQ'}
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm mt-1">
             {isPublished
               ? 'Your RFQ is live. Suppliers will send quotes below.'
               : 'Fill in product details and publish to find suppliers.'}
@@ -66,52 +66,52 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
           <div className="space-y-4">
             {/* Title */}
             <div>
-              <Label htmlFor="title">Product Title *</Label>
+              <Label htmlFor="title" className="">Product Title *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g., Premium Grade A Cocoa Beans"
-                className={errors.title ? 'border-red-500' : ''}
+                className={`bg-white/5 border-white/10 text-white placeholder:text-white/40 ${errors.title ? 'border-red-500' : ''}`}
               />
-              {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+              {errors.title && <p className="text-xs mt-1">{errors.title}</p>}
             </div>
 
             {/* Description */}
             <div>
-              <Label htmlFor="description">Description *</Label>
+              <Label htmlFor="description" className="">Description *</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe the product in detail..."
                 rows={4}
-                className={errors.description ? 'border-red-500' : ''}
+                className={`bg-white/5 border-white/10 text-white placeholder:text-white/40 ${errors.description ? 'border-red-500' : ''}`}
               />
-              {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+              {errors.description && <p className="text-xs mt-1">{errors.description}</p>}
             </div>
 
             {/* Quantity */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="quantity">Quantity *</Label>
+                <Label htmlFor="quantity" className="">Quantity *</Label>
                 <Input
                   id="quantity"
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                   placeholder="100"
-                  className={errors.quantity ? 'border-red-500' : ''}
+                  className={`bg-white/5 border-white/10 text-white placeholder:text-white/40 ${errors.quantity ? 'border-red-500' : ''}`}
                 />
-                {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
+                {errors.quantity && <p className="text-xs mt-1">{errors.quantity}</p>}
               </div>
 
               <div>
-                <Label htmlFor="unit">Unit</Label>
+                <Label htmlFor="unit" className="">Unit</Label>
                 <select
                   value={formData.quantity_unit}
                   onChange={(e) => setFormData({ ...formData, quantity_unit: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                  className="w-full px-3 py-2 border rounded-lg"
                 >
                   <option>pieces</option>
                   <option>kg</option>
@@ -124,13 +124,14 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
 
             {/* Target Price (Optional) */}
             <div>
-              <Label htmlFor="target_price">Target Price (Optional)</Label>
+              <Label htmlFor="target_price" className="">Target Price (Optional)</Label>
               <Input
                 id="target_price"
                 type="number"
                 value={formData.target_price}
                 onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
                 placeholder="Leave blank to see all offers"
+                className="placeholder:text-white/40"
               />
             </div>
 
@@ -138,7 +139,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
             <Button
               onClick={handlePublish}
               disabled={isTransitioning}
-              className="w-full bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white font-semibold mt-6"
+              className="w-full hover:bg-afrikoni-gold/90 font-semibold mt-6"
             >
               {isTransitioning ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
@@ -149,13 +150,13 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
           </div>
         ) : (
           <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
               <span className="text-2xl">✓</span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="">
               RFQ published on {new Date(trade?.published_at).toLocaleDateString()}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+            <p className="text-xs mt-2">
               Waiting for supplier quotes...
             </p>
           </div>

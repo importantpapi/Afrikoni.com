@@ -22,62 +22,62 @@ export default function SellerAnalytics({ data, onBack }) {
           <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-afrikoni-chestnut">Analytics</h1>
-          <p className="text-afrikoni-deep">Track your business performance</p>
+          <h1 className="text-3xl font-bold">Analytics</h1>
+          <p className="">Track your business performance</p>
         </div>
       </div>
 
       <div className="grid md:grid-cols-4 gap-6">
-        <Card className="border-afrikoni-gold/20">
+        <Card className="">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-afrikoni-deep mb-1">Total Revenue</p>
-                <p className="text-2xl font-bold text-afrikoni-chestnut">${totalRevenue.toFixed(2)}</p>
+                <p className="text-sm mb-1">Total Revenue</p>
+                <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
               </div>
-              <DollarSign className="w-8 h-8 text-green-600" />
+              <DollarSign className="w-8 h-8" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-afrikoni-gold/20">
+        <Card className="">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-afrikoni-deep mb-1">Total Orders</p>
-                <p className="text-2xl font-bold text-afrikoni-chestnut">{orders.length}</p>
+                <p className="text-sm mb-1">Total Orders</p>
+                <p className="text-2xl font-bold">{orders.length}</p>
               </div>
-              <ShoppingBag className="w-8 h-8 text-blue-600" />
+              <ShoppingBag className="w-8 h-8" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-afrikoni-gold/20">
+        <Card className="">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-afrikoni-deep mb-1">Product Views</p>
-                <p className="text-2xl font-bold text-afrikoni-chestnut">{totalViews}</p>
+                <p className="text-sm mb-1">Product Views</p>
+                <p className="text-2xl font-bold">{totalViews}</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-amber-600" />
+              <TrendingUp className="w-8 h-8" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-afrikoni-gold/20">
+        <Card className="">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-afrikoni-deep mb-1">Avg Product Price</p>
-                <p className="text-2xl font-bold text-afrikoni-chestnut">${avgProductPrice.toFixed(2)}</p>
+                <p className="text-sm mb-1">Avg Product Price</p>
+                <p className="text-2xl font-bold">${avgProductPrice.toFixed(2)}</p>
               </div>
-              <Package className="w-8 h-8 text-purple-600" />
+              <Package className="w-8 h-8" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-afrikoni-gold/20">
+      <Card className="">
         <CardHeader>
           <CardTitle>Order Status Distribution</CardTitle>
         </CardHeader>
@@ -92,9 +92,9 @@ export default function SellerAnalytics({ data, onBack }) {
                     <span className="capitalize">{status}</span>
                     <span>{count} ({percentage.toFixed(1)}%)</span>
                   </div>
-                  <div className="w-full bg-afrikoni-cream rounded-full h-2">
+                  <div className="w-full rounded-full h-2">
                     <div
-                      className="bg-afrikoni-gold h-2 rounded-full"
+                      className="h-2 rounded-full"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
