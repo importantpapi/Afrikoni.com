@@ -39,7 +39,7 @@ export default function RevenueDashboard() {
 
             {/* KPI Cards */}
             <div className="grid md:grid-cols-4 gap-4">
-                <Surface className="p-5">
+                <Surface variant="glass" className="p-5">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
                             <Wallet className="w-5 h-5" />
@@ -54,7 +54,7 @@ export default function RevenueDashboard() {
                     </div>
                 </Surface>
 
-                <Surface className="p-5">
+                <Surface variant="glass" className="p-5">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
                             <PieChart className="w-5 h-5" />
@@ -69,7 +69,7 @@ export default function RevenueDashboard() {
                     </div>
                 </Surface>
 
-                <Surface className="p-5">
+                <Surface variant="glass" className="p-5">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
                             <TrendingUp className="w-5 h-5" />
@@ -84,7 +84,7 @@ export default function RevenueDashboard() {
                     </div>
                 </Surface>
 
-                <Surface className="p-5">
+                <Surface variant="glass" className="p-5">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
                             <ShieldCheck className="w-5 h-5" />
@@ -102,7 +102,7 @@ export default function RevenueDashboard() {
 
             {/* Charts */}
             <div className="grid md:grid-cols-3 gap-6">
-                <Surface className="md:col-span-2 p-6">
+                <Surface variant="glass" className="md:col-span-2 p-6">
                     <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-6">Revenue Composition</h2>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -137,7 +137,7 @@ export default function RevenueDashboard() {
                 </Surface>
 
                 <div className="space-y-6">
-                    <Surface className="p-6 h-full">
+                    <Surface variant="glass" className="p-6 h-full">
                         <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Revenue Streams</h2>
                         <div className="space-y-4">
                             <div className="p-3 bg-white/5 rounded-lg flex items-center justify-between">

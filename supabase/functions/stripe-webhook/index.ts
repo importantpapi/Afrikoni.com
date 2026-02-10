@@ -72,7 +72,37 @@ Deno.serve(async (req) => {
 
     console.log("Stripe webhook received:", event.type);
 
-    // Handle different event types
+    // ------------------------------------------------------------------------
+    // IDEMPOTENCY CHECK (P1 HARDENING)
+    // ------------------------------------------------------------------------
+    const { error: idempotencyError } = await supabase
+      .from('processed_events')
+      .insert({
+        event_id: event.id,
+        event_type: event.type,
+        status: 'processing'
+      });
+
+    // Postgres Error 23505 = Unique Violation (Already processed)
+    if (idempotencyError && idempotencyError.code === '23505') {
+      console.log(`[Idempotency] Event ${event.id} already processed. Skipping.`);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Event already processed' }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (idempotencyError) {
+      console.error('[Idempotency] Error recording event:', idempotencyError);
+      // Proceed with caution, or fail? Failing ensures we don't process without recording.
+      // But we might block valid webhooks if DB is glitchy.
+      // Decision: Fail safe. If we can't record it, don't process it (to prevent double-spend bugs).
+      return new Response(
+        JSON.stringify({ success: false, error: 'Idempotency check failed' }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    // ------------------------------------------------------------------------
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -340,6 +370,12 @@ Deno.serve(async (req) => {
       default:
         console.log("Unhandled Stripe event:", event.type);
     }
+
+    // Mark as completed
+    await supabase
+      .from('processed_events')
+      .update({ status: 'completed', processed_at: new Date().toISOString() })
+      .eq('event_id', event.id);
 
     return new Response(
       JSON.stringify({ success: true, received: true }),

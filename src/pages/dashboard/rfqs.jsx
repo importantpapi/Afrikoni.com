@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { mockRFQs } from '@/lib/trade-kernel';
+import React, { useMemo, useState, useEffect } from 'react';
+import { getRFQs } from '@/services/rfqService';
+import { useAuth } from '@/contexts/AuthProvider';
 import {
+  Loader2,
   Search,
   Plus,
   Clock,
@@ -54,16 +56,52 @@ export default function RFQs() {
     return `${days}d left`;
   };
 
+  /* 
+   * ✅ HARDENING FIX: Replaced mockRFQs with Real Data Link
+   * Now fetches from Supabase via rfqService
+   */
+  const { user, profile } = useAuth();
+  const [rfqs, setRfqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch Real Data
+  useEffect(() => {
+    async function loadRFQs() {
+      if (!user || !profile?.company_id) return;
+
+      setLoading(true);
+      try {
+        const { data, error } = await getRFQs({
+          user,
+          companyId: profile.company_id,
+          role: 'buyer', // Default to buyer view for now
+          status: statusFilter
+        });
+
+        if (error) throw error;
+        setRfqs(data || []);
+      } catch (err) {
+        console.error("Failed to load RFQs", err);
+        setError("Failed to load your RFQs. Please refresh.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadRFQs();
+  }, [user, profile?.company_id, statusFilter]);
+
   const filtered = useMemo(() => {
     const term = search.toLowerCase();
-    return mockRFQs.filter((rfq) => {
+    return rfqs.filter((rfq) => {
       const matchesSearch =
-        rfq.productName.toLowerCase().includes(term) ||
-        rfq.buyerCompany.toLowerCase().includes(term);
-      const matchesStatus = statusFilter === 'all' || rfq.status === statusFilter;
-      return matchesSearch && matchesStatus;
+        (rfq.title || '').toLowerCase().includes(term) ||
+        (rfq.id || '').toLowerCase().includes(term);
+      // Removed buyerCompany check as these are likely OWN rfqs
+      return matchesSearch;
     });
-  }, [search, statusFilter]);
+  }, [search, rfqs]);
 
   const handleGenerateRFQ = () => {
     setAiProcessing(true);
@@ -220,51 +258,65 @@ export default function RFQs() {
       )}
 
       <div className="space-y-3">
-        {filtered.map((rfq) => {
-          const config = statusConfig[rfq.status] || statusConfig.draft;
-          const deadline = formatDeadline(rfq.deadline);
-          const isUrgent = deadline === 'Today' || deadline === 'Tomorrow';
+        <div className="space-y-3">
+          {loading ? (
+            <div className="py-12 flex justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-os-muted" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-12 text-os-muted">
+              <p>No RFQs found matching your criteria.</p>
+              <Button variant="link" onClick={() => setShowQuickRFQ(true)}>Create your first RFQ</Button>
+            </div>
+          ) : (
+            filtered.map((rfq) => {
+              const config = statusConfig[rfq.status] || statusConfig.draft;
+              const deadline = formatDeadline(rfq.delivery_deadline || rfq.expires_at); // DB fields
+              const isUrgent = deadline === 'Today' || deadline === 'Tomorrow';
 
-          return (
-            <Surface key={rfq.id} variant="panel" className="group p-5 hover:bg-os-surface-2 transition-all cursor-pointer">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-base font-semibold text-[var(--os-text-primary)]">{rfq.productName}</h3>
-                    <StatusBadge label={config.label} tone="neutral" />
-                    {isUrgent && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-os-surface-0 border border-os-stroke">
-                        Urgent
+              return (
+                <Surface key={rfq.id} variant="panel" className="group p-5 hover:bg-os-surface-2 transition-all cursor-pointer">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-base font-semibold text-[var(--os-text-primary)]">{rfq.title}</h3>
+                        <StatusBadge label={config.label} tone="neutral" />
+                        {isUrgent && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-os-surface-0 border border-os-stroke">
+                            Urgent
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-os-muted">
+                        {/* Removed Buyer Company - redundant if viewing own RFQs */}
+                        <span className="font-mono text-xs opacity-70">#{rfq.id.slice(0, 8)}</span>
+                        <span className="flex items-center gap-1"><Globe className="h-3 w-3" />{rfq.target_country || 'Anywhere'}</span>
+                        <span className="tabular-nums">{rfq.quantity?.toLocaleString()} {rfq.unit}</span>
+                        {rfq.target_price && (
+                          <span className="flex items-center gap-1 tabular-nums"><DollarSign className="h-3 w-3" />{rfq.target_price}/{rfq.unit}</span>
+                        )}
+                        {rfq.quotesReceived > 0 && (
+                          <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{rfq.quotesReceived} quotes</span>
+                        )}
+                      </div>
+                      {rfq.description && (
+                        <p className="text-xs text-os-muted mt-2 line-clamp-1">{rfq.description}</p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <span className={cn('flex items-center gap-1 text-xs font-medium tabular-nums', isUrgent ? 'text-[var(--os-text-primary)]' : 'text-os-muted')}>
+                        <Clock className="h-3 w-3" /> {deadline}
                       </span>
-                    )}
+                      <Button variant="outline" size="sm" className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        View Quotes <ChevronRight className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-os-muted">
-                    <span className="font-medium text-[var(--os-text-primary)]">{rfq.buyerCompany}</span>
-                    <span className="flex items-center gap-1"><Globe className="h-3 w-3" />{rfq.deliveryCountry}</span>
-                    <span className="tabular-nums">{rfq.quantity.toLocaleString()} {rfq.unit}</span>
-                    {rfq.targetPrice && (
-                      <span className="flex items-center gap-1 tabular-nums"><DollarSign className="h-3 w-3" />{rfq.targetPrice}/{rfq.unit}</span>
-                    )}
-                    {rfq.quotesReceived > 0 && (
-                      <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{rfq.quotesReceived} quotes</span>
-                    )}
-                  </div>
-                  {rfq.requirements && (
-                    <p className="text-xs text-os-muted mt-2 line-clamp-1">{rfq.requirements}</p>
-                  )}
-                </div>
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                  <span className={cn('flex items-center gap-1 text-xs font-medium tabular-nums', isUrgent ? 'text-[var(--os-text-primary)]' : 'text-os-muted')}>
-                    <Clock className="h-3 w-3" /> {deadline}
-                  </span>
-                  <Button variant="outline" size="sm" className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    Respond <ChevronRight className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            </Surface>
-          );
-        })}
+                </Surface>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

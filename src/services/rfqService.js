@@ -13,10 +13,10 @@ const RLS_CODES = ['42501', 'PGRST301'];
 function isRLSError(err) {
   return (
     !err ? false :
-    RLS_CODES.includes(err.code) ||
-    err.status === 403 ||
-    err.message?.includes('permission denied') ||
-    err.message?.includes('row-level security')
+      RLS_CODES.includes(err.code) ||
+      err.status === 403 ||
+      err.message?.includes('permission denied') ||
+      err.message?.includes('row-level security')
   );
 }
 
@@ -155,5 +155,56 @@ export async function createRFQInReview({ user, formData, options = {} }) {
   } catch (error) {
     console.error('[rfqService] Unexpected error creating RFQ (in_review):', error);
     return { success: false, error: error.message || 'An unexpected error occurred. Please try again.' };
+  }
+}
+
+/**
+ * Fetch RFQs for a specific user/company
+ * Supports filtering by status and role (buyer vs supplier)
+ */
+export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' }) {
+  try {
+    if (!user || !companyId) return { data: [], count: 0 };
+
+    let query = supabase
+      .from('rfqs')
+      .select('*, quotes:quotes(count)', { count: 'exact' });
+
+    // Filter by Company Logic
+    if (role === 'buyer') {
+      // Buyers see their own RFQs
+      query = query.eq('buyer_company_id', companyId);
+    } else {
+      // Suppliers see RFQs they are matched to OR public ones (if we had public)
+      // For now, let's assume suppliers see 'open' RFQs or ones they've quoted
+      // This logic will be refined by RLS, but we filter here for UX
+      // TODO: Add 'rfq_supplier_matches' join when implemented
+    }
+
+    // Filter by Status
+    if (status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    // Order by newest
+    query = query.order('created_at', { ascending: false });
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('[rfqService] Error fetching RFQs:', error);
+      throw error;
+    }
+
+    return {
+      data: data.map(rfq => ({
+        ...rfq,
+        quotesReceived: rfq.quotes?.[0]?.count || 0
+      })),
+      count
+    };
+  } catch (error) {
+    console.error('[rfqService] Unexpected error in getRFQs:', error);
+    return { data: [], count: 0, error };
   }
 }

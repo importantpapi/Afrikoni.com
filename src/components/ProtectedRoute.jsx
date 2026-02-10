@@ -35,6 +35,32 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
 
   // ✅ KERNEL GUARD DEPLOYMENT: Show "Synchronizing World" if Kernel is pre-warming
   // This prevents child components from attempting to load data before Kernel is ready
+  // ✅ FIX: Use useEffect for navigation to prevent render-time side effects
+  React.useEffect(() => {
+    // Only redirect if auth is fully ready and we can make a definitive decision
+    if (authReady && !loading && (!authReady || !capabilities?.ready ? false : true)) {
+
+      // 1. Redirect to login if not authenticated
+      if (!user) {
+        const next = searchParams.get('next') || location.pathname + location.search;
+        navigate(`/login?next=${encodeURIComponent(next)}`);
+        toast.error('Please log in to continue', { duration: 3000 });
+        return;
+      }
+
+      // 2. Redirect to company onboarding if company_id is missing (and required)
+      if (needsCompanyId && profile && !profile.company_id) {
+        console.log('[ProtectedRoute] No company_id → redirecting to company onboarding');
+        navigate('/onboarding/company', { replace: true });
+        return;
+      }
+
+      // 3. Admin Check (Authorized) - specific navigation logic if needed, 
+      // but usually we just show AccessDenied component which is fine in render.
+    }
+  }, [authReady, loading, capabilities?.ready, user, profile, needsCompanyId, navigate, location, searchParams]);
+
+  // RENDER: Loading States
   if (isPreWarming) {
     return <LoadingScreen message="Synchronizing World..." />;
   }
@@ -44,29 +70,16 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
     return <LoadingScreen message="Checking authentication..." />;
   }
 
-  // ✅ FIX STATE STAGNATION: Wait for BOTH authReady AND capabilities.ready
-  // If auth is ready but Kernel (capabilities) isn't loaded yet, show loading screen
-  if (authReady && !capabilities?.ready) {
+  // Wait for Kernel capability check if authenticated
+  if (user && !capabilities?.ready) {
     return <LoadingScreen message="Waking up the Kernel..." />;
   }
 
-  // Redirect to login if not authenticated
-  if (!user) {
-    const next = searchParams.get('next') || location.pathname + location.search;
-    navigate(`/login?next=${encodeURIComponent(next)}`);
-    toast.error('Please log in to continue', { duration: 3000 });
-    return null;
-  }
+  // RENDER: Guard blocks (Return null while redirecting)
+  if (!user) return null;
+  if (needsCompanyId && (!profile || !profile.company_id)) return null;
 
-  // 🚨 CRITICAL GUARD: Dashboard routes require company_id
-  // If company_id is missing and route requires it, redirect to company onboarding
-  if (needsCompanyId && (!profile || !profile.company_id)) {
-    console.log('[ProtectedRoute] No company_id → redirecting to company onboarding');
-    navigate('/onboarding/company', { replace: true });
-    return null;
-  }
-
-  // Check admin access if required
+  // RENDER: Admin Permission Check
   if (needsAdmin) {
     const hasAdminAccess = isAdmin(user, profile);
     if (!hasAdminAccess) {

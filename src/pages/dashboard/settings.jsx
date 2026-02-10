@@ -296,15 +296,25 @@ export default function DashboardSettings() {
     }
   };
 
+  // ✅ P2 HARDENING: Robust Logout All Devices
   const handleLogoutAllDevices = async () => {
-    if (!confirm('Are you sure you want to logout from all devices?')) return;
+    if (!confirm('Are you sure you want to logout from all devices? This will invalidate sessions on other browsers.')) return;
 
+    setIsSaving(true);
     try {
-      await supabase.auth.signOut({ scope: 'global' });
+      // Attempt server-side invalidation
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) throw error;
+
       toast.success('Logged out from all devices');
-      navigate('/login');
     } catch (error) {
-      toast.error('Failed to logout from all devices');
+      console.warn('[Logout] Server signout failed, clearing local session anyway:', error);
+      toast.warning('Logged out locally. Server session will expire shortly.');
+    } finally {
+      // CRITICAL: Always clear local state and redirect, even if network fails
+      // This prevents "zombie" sessions on the client
+      navigate('/login');
+      setIsSaving(false);
     }
   };
 

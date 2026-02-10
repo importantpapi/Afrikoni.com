@@ -475,14 +475,14 @@ ${JSON.stringify(
  */
 export async function generateProductListing(productDraft) {
   if (!productDraft || (!productDraft.title && !productDraft.description)) {
-    return { 
-      success: false, 
-      data: { 
-        title: '', 
-        description: '', 
-        tags: [], 
-        suggestedCategory: '' 
-      } 
+    return {
+      success: false,
+      data: {
+        title: '',
+        description: '',
+        tags: [],
+        suggestedCategory: ''
+      }
     };
   }
 
@@ -609,13 +609,13 @@ PRIMARY FOCUS: Emphasize ${selectedFocus}
 MANDATORY VARIATION RULES:
 1. Opening Statement: DO NOT start with "Introducing" or generic phrases
    - Instead use: ${selectedOpening === 'factual overview' ? 'A direct statement about the product category and origin'
-     : selectedOpening === 'key benefit statement' ? 'The primary business benefit buyers will receive'
-     : selectedOpening === 'origin story' ? 'Where and how this product is sourced in Africa'
-     : selectedOpening === 'specification highlight' ? 'A key technical specification that sets this apart'
-     : selectedOpening === 'use case scenario' ? 'A specific industry or application where this excels'
-     : selectedOpening === 'market context' ? 'The market demand or industry trend this addresses'
-     : selectedOpening === 'quality assurance' ? 'The quality standards or certifications backing this'
-     : 'How this product solves a specific business problem'}
+      : selectedOpening === 'key benefit statement' ? 'The primary business benefit buyers will receive'
+        : selectedOpening === 'origin story' ? 'Where and how this product is sourced in Africa'
+          : selectedOpening === 'specification highlight' ? 'A key technical specification that sets this apart'
+            : selectedOpening === 'use case scenario' ? 'A specific industry or application where this excels'
+              : selectedOpening === 'market context' ? 'The market demand or industry trend this addresses'
+                : selectedOpening === 'quality assurance' ? 'The quality standards or certifications backing this'
+                  : 'How this product solves a specific business problem'}
 
 2. Vocabulary Variation: Use terminology specific to "${productDraft.category || 'general trade'}" industry
    - Avoid overused phrases: "high-quality", "premium grade", "best-in-class"
@@ -623,9 +623,9 @@ MANDATORY VARIATION RULES:
 
 3. Structure Variation: For this ${selectedStyle} style:
    - ${selectedStyle.includes('concise') ? 'Keep sentences short and punchy (max 15 words)'
-     : selectedStyle.includes('technical') ? 'Include precise measurements and standards'
-     : selectedStyle.includes('detailed') ? 'Add context and background information'
-     : 'Balance detail with readability'}
+      : selectedStyle.includes('technical') ? 'Include precise measurements and standards'
+        : selectedStyle.includes('detailed') ? 'Add context and background information'
+          : 'Balance detail with readability'}
 
 4. Unique Hook: Create a memorable angle based on:
    - Product: "${productDraft.title}"
@@ -662,12 +662,12 @@ Generate content that would be IMPOSSIBLE to confuse with any other product list
   );
 
   const result = { ...fallback, ...(data || {}) };
-  
+
   // Ensure tags is an array
   if (!Array.isArray(result.tags)) {
     result.tags = [];
   }
-  
+
   // Ensure title and description are strings
   result.title = String(result.title || fallback.title).trim();
   result.description = String(result.description || fallback.description).trim();
@@ -689,7 +689,7 @@ export async function suggestSuppliers(query, filters = {}) {
   // This is a simplified version - in production, you'd want more sophisticated matching
   try {
     const { supabase } = await import('@/api/supabaseClient');
-    
+
     let productsQuery = supabase
       .from('products')
       .select(`
@@ -796,8 +796,12 @@ ${JSON.stringify(candidates, null, 2)}
       };
     }
 
+
+
     // No candidates found - return empty
     return { success: true, suggestions: [] };
+
+
   } catch (error) {
     console.error('Error in suggestSuppliers:', error);
     return { success: false, suggestions: [], error: error.message };
@@ -845,12 +849,12 @@ Guidelines:
   const user = `
 Product Information:
 ${JSON.stringify({
-  title: productInfo.title || '',
-  description: productInfo.description || '',
-  keywords: productInfo.keywords || [],
-  sellerCountry: productInfo.sellerCountry || '',
-  sellerCity: productInfo.sellerCity || ''
-}, null, 2)}
+    title: productInfo.title || '',
+    description: productInfo.description || '',
+    keywords: productInfo.keywords || [],
+    sellerCountry: productInfo.sellerCountry || '',
+    sellerCity: productInfo.sellerCity || ''
+  }, null, 2)}
 
 Determine the best category, country, and city for this product to facilitate transport and logistics.
 `.trim();
@@ -885,9 +889,9 @@ Determine the best category, country, and city for this product to facilitate tr
  */
 export async function generateBuyerInquiry(product, buyerContext = {}) {
   if (!product || !product.id) {
-    return { 
-      success: false, 
-      message: 'Hello, I am interested in learning more about your products.' 
+    return {
+      success: false,
+      message: 'Hello, I am interested in learning more about your products.'
     };
   }
 
@@ -906,13 +910,13 @@ Keep it 2-3 short paragraphs, professional but approachable.
   const user = `
 Product Information:
 ${JSON.stringify({
-  title: product.title || product.name,
-  price: product.price || product.price_min,
-  currency: product.currency || 'USD',
-  moq: product.moq || product.min_order_quantity,
-  country: product.country_of_origin,
-  category: product.category_name || product.category
-}, null, 2)}
+    title: product.title || product.name,
+    price: product.price || product.price_min,
+    currency: product.currency || 'USD',
+    moq: product.moq || product.min_order_quantity,
+    country: product.country_of_origin,
+    category: product.category_name || product.category
+  }, null, 2)}
 
 Buyer Context (optional):
 ${JSON.stringify(buyerContext || {}, null, 2)}
@@ -932,16 +936,16 @@ I look forward to hearing from you.
 
 Best regards`;
 
-  const { success, content } = await callChat({ 
-    system, 
-    user, 
+  const { success, content } = await callChat({
+    system,
+    user,
     maxTokens: 300,
     temperature: 0.7
   });
 
-  return { 
-    success, 
-    message: content || fallback 
+  return {
+    success,
+    message: content || fallback
   };
 }
 
