@@ -163,7 +163,7 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      <Surface variant="glass" className="p-4 border border-os-stroke/50">
+      <Surface variant="glass" className="p-3 border border-os-stroke/50">
         <TradeOSErrorBoundary>
           <OSStatusBar />
         </TradeOSErrorBoundary>
