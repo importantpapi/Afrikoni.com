@@ -16,6 +16,7 @@ import { UserProvider } from './contexts/UserContext';
 import { RoleProvider } from './context/RoleContext';
 import { CapabilityProvider } from './context/CapabilityContext';
 import { TradeProvider } from './context/TradeContext';
+import { WorkspaceModeProvider } from './contexts/WorkspaceModeContext';
 import RequireCapability from './components/auth/RequireCapability';
 import { useAuth } from './contexts/AuthProvider';
 import { useCapability } from './context/CapabilityContext';
@@ -394,11 +395,10 @@ function AppContent() {
             }
           />
 
-          {/* ============================================================ */}
           {/* ✅ AFRIKONI OS KERNEL - Unified Dashboard Router */}
           {/* ============================================================ */}
           {/* 🏛️ INFRASTRUCTURE ARCHITECTURE: */}
-          {/* - DashboardLayout stays mounted (persistent shell) */}
+          {/* - OSShell stays mounted (persistent modular layout) */}
           {/* - CapabilityProvider is now GLOBAL (wraps entire app) */}
           {/* - RequireCapability guards entry (ensures capabilities.ready) */}
           {/* - All routes are nested under /dashboard/* (unified tree) */}
@@ -451,21 +451,10 @@ function AppContent() {
             <Route path="escrow/:orderId" element={<EscrowPage />} />
 
             {/* 5. GOVERNANCE & SECURITY (The Firewall) */}
-            <Route path="compliance" element={
-              <ProtectedRoute requireAdmin={true}>
-                <CompliancePage />
-              </ProtectedRoute>
-            } />
-            <Route path="risk" element={
-              <ProtectedRoute requireAdmin={true}>
-                <RiskPage />
-              </ProtectedRoute>
-            } />
-            <Route path="trust-health" element={
-              <ProtectedRoute requireAdmin={true}>
-                <TrustHealthPage />
-              </ProtectedRoute>
-            } />
+            <Route path="compliance" element={<CompliancePage />} />
+            <Route path="risk" element={<RiskPage />} />
+            <Route path="trust-center" element={<TrustHealthPage />} />
+            <Route path="trust-health" element={<Navigate to="trust-center" replace />} /> {/* Legacy Redirect */}
             <Route path="kyc" element={<KYCPage />} />
             <Route path="verification-status" element={<VerificationStatusPage />} />
             <Route path="verification-marketplace" element={<VerificationMarketplacePage />} />
@@ -562,15 +551,17 @@ function App() {
               {/* even on public routes (/, /products, /marketplace, etc.) */}
               <CapabilityProvider>
                 <TradeProvider>
-                  <ScrollToTop />
-                  <Toaster position="top-right" />
+                  <WorkspaceModeProvider>
+                    <ScrollToTop />
+                    <Toaster position="top-right" />
 
-                  {/* Debug component to detect stuck auth */}
-                  <DebugAuth />
+                    {/* Debug component to detect stuck auth */}
+                    <DebugAuth />
 
-                  {/* KoniAI+ Global Chat Assistant */}
+                    {/* KoniAI+ Global Chat Assistant */}
 
-                  <AppContent />
+                    <AppContent />
+                  </WorkspaceModeProvider>
                 </TradeProvider>
               </CapabilityProvider>
             </RoleProvider>

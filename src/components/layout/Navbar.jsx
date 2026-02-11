@@ -144,6 +144,12 @@ export default function Navbar({ user, onLogout }) {
     setUserMenuOpen(false);
   }, [location.pathname]);
 
+  // SAFETY: Never render Public Navbar on Dashboard routes
+  // This prevents layout collision if the parent Layout fails to unmount it
+  if (location.pathname.startsWith('/dashboard')) {
+    return null;
+  }
+
   // Close Explore menu on scroll (mobile)
   useEffect(() => {
     const handleScroll = () => {

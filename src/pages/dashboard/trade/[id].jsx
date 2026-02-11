@@ -24,8 +24,7 @@ import {
   ShieldAlert,
   Ship,
   Sparkles,
-  Timer,
-  Timer,
+  Clock,
   AlertTriangle,
 } from 'lucide-react';
 import { useTrustScore } from '@/hooks/useTrustScore';

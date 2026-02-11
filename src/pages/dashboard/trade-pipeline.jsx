@@ -194,7 +194,42 @@ export default function TradePipeline() {
     : trades.slice(0, 10);
 
   if (!isSystemReady) {
-    return <SpinnerWithTimeout message="Loading trade pipeline..." ready={isSystemReady} />;
+    return (
+      <div className="os-page space-y-6">
+        <Surface variant="panel" className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <div className="space-y-2">
+              <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+              <div className="h-8 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse ml-auto" />
+              <div className="h-8 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+            </div>
+          </div>
+          <div className="flex gap-2 overflow-hidden">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse" />
+                <div className="h-3 w-12 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </Surface>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <Surface key={i} variant="panel" className="p-4 h-24 animate-pulse flex items-center gap-3">
+              <div className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-800" />
+              <div className="space-y-2 flex-1">
+                <div className="h-6 w-12 bg-gray-200 dark:bg-gray-800 rounded" />
+                <div className="h-3 w-20 bg-gray-200 dark:bg-gray-800 rounded" />
+              </div>
+            </Surface>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

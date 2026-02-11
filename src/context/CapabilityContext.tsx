@@ -594,10 +594,10 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
             return {
               ...prev,
               loading: false,
-              ready: false, // ✅ KERNEL-CENTRIC: Keep ready=false so UI shows retry button
+              ready: true, // ✅ KERNEL-CENTRIC: Fail-open to unblock UI
               company_id: currentCompanyId,
               error: prev?.error || 'Capability fetch timed out',
-              kernelError: 'Capability fetch timed out. Please retry.', // ✅ KERNEL-CENTRIC: Set error for UI
+              kernelError: 'Connection slow. Some features may be limited.', // ✅ User-friendly error
             };
           });
           // Don't mark as fetched - allow retry

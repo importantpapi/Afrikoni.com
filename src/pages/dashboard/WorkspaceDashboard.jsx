@@ -1,8 +1,10 @@
 import React, { useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import DashboardLayout from '@/layouts/DashboardLayout';
+import OSShell from '@/layouts/OSShell';
 import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeManager';
+import { useTradeSystemState } from '@/hooks/useTradeSystemState';
+import { useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 
@@ -39,22 +41,28 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
  */
 export default function WorkspaceDashboard() {
   const location = useLocation();
-  
+
   // ✅ KERNEL MIGRATION: Get everything from the Single Source of Truth
-  const { 
-    userId, 
-    profileCompanyId, 
-    capabilities, 
+  const {
+    userId,
+    user,
+    profile,
+    isAdmin,
+    profileCompanyId,
+    capabilities,
     isSystemReady,
     isPreWarming // ✅ FULL-STACK SYNC: Pre-warming state
   } = useDashboardKernel();
 
+  const { systemState, refresh: refreshSystemState } = useTradeSystemState();
+  const { mode, setMode } = useWorkspaceMode();
+
   // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
   const handleRealtimeUpdate = useCallback((payload) => {
     console.log('[WorkspaceDashboard] Realtime update:', payload.table, payload.event);
-    // Updates are logged here - child components refresh their own data
-    // In the future, this could dispatch to a context or event bus
-  }, []);
+    // Refresh system state on realtime updates
+    refreshSystemState();
+  }, [refreshSystemState]);
 
   // ===========================================================================
   // RENDER GUARDS (Standardized via Kernel)
@@ -70,8 +78,8 @@ export default function WorkspaceDashboard() {
     return <SpinnerWithTimeout message={loadingMessage} ready={isSystemReady} timeoutMs={5000} />;
   }
 
-  // ✅ KERNEL MIGRATION: Prepare capabilities data for DashboardLayout
-  // Kernel already provides memoized capabilities, but DashboardLayout expects specific shape
+  // ✅ KERNEL MIGRATION: Prepare capabilities data for OSShell
+  // Kernel already provides memoized capabilities, but OSShell expects specific shape
   const capabilitiesData = {
     can_buy: capabilities.can_buy,
     can_sell: capabilities.can_sell,
@@ -84,32 +92,32 @@ export default function WorkspaceDashboard() {
   // ===========================================================================
   // RENDER - Layout + RealtimeManager + Outlet
   // ===========================================================================
-  
+
   return (
     <ErrorBoundary fallbackMessage="Dashboard layout error. Please refresh the page.">
-      {/* ✅ KERNEL MIGRATION: Pass Kernel capabilities directly to the Layout */}
-      <DashboardLayout capabilities={capabilitiesData}>
-        {/* 
-          CRITICAL: DashboardRealtimeManager renders NULL but owns subscriptions.
-          It is placed HERE (in the layout) so it survives route changes.
-          Child routes (DashboardHome, OrdersPage, etc.) render via <Outlet />.
-          
-          ✅ KERNEL MIGRATION: Use profileCompanyId from Kernel
-          This ensures realtime subscriptions never attempt with undefined company ID
-        */}
+      {/* ✅ OS SHELL REFACTOR: Using modular OSShell architecture */}
+      <OSShell
+        systemState={systemState}
+        capabilities={capabilitiesData}
+        user={user}
+        organization={profile?.company_name ? { name: profile.company_name } : null}
+        workspaceMode={mode}
+        onToggleMode={() => setMode(mode === 'simple' ? 'operator' : 'simple')}
+        onOpenCommandPalette={() => { }} // Controlled within OSShell state now
+        notificationCount={0} // TODO: Connect to useNotificationCounts
+        isAdmin={isAdmin}
+      >
         <DashboardRealtimeManager
           companyId={profileCompanyId}
           userId={userId}
           onUpdate={handleRealtimeUpdate}
           enabled={isSystemReady && !!profileCompanyId}
         />
-        
+
         <ErrorBoundary fallbackMessage="Failed to load dashboard page. Please try again.">
-          {/* ✅ REACTIVE READINESS FIX: Force component re-boot on navigation */}
-          {/* Outlet renders child routes - key forces re-mount on route change */}
           <Outlet key={location.pathname} />
         </ErrorBoundary>
-      </DashboardLayout>
+      </OSShell>
     </ErrorBoundary>
   );
 }

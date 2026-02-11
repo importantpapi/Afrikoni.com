@@ -483,7 +483,7 @@ export default function Layout({ children }) {
       <Footer />
 
       {/* Mobile Bottom Navigation (Main Site) - Hidden on product pages (sticky CTA shown instead) */}
-      {!isProductPage && <MobileMainNav user={user} />}
+      {!isProductPage && !isDashboardRoute && <MobileMainNav user={user} />}
 
       {/* WhatsApp Sticky Button */}
       <WhatsAppButton />

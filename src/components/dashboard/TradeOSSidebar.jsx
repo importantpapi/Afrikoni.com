@@ -91,13 +91,25 @@ export default function TradeOSSidebar({
         {/* 1. INTAKE STAGE (Discovery & Definition) */}
         {/* Buyer: Create Demand / Seller: Define Supply */}
         {(isBuyer || isSeller) && (
-          <OSNavItem
-            icon={FileText}
-            label={isSeller ? "Quotes" : "RFQs (Intake)"}
-            path={isSeller ? "/dashboard/supplier-rfqs" : "/dashboard/rfqs"}
-            badge={notificationCounts.rfqs}
-            active={isActive('/dashboard/rfqs') || isActive('/dashboard/supplier-rfqs')}
-          />
+          <>
+            {/* Marketplace Access for Buyers */}
+            {isBuyer && (
+              <OSNavItem
+                icon={Package}
+                label="Marketplace"
+                path="/marketplace"
+                active={isActive('/marketplace')}
+              />
+            )}
+
+            <OSNavItem
+              icon={FileText}
+              label={isSeller ? "Quotes" : "RFQs (Intake)"}
+              path={isSeller ? "/dashboard/supplier-rfqs" : "/dashboard/rfqs"}
+              badge={notificationCounts.rfqs}
+              active={isActive('/dashboard/rfqs') || isActive('/dashboard/supplier-rfqs')}
+            />
+          </>
         )}
         {isSeller && (
           <OSNavItem icon={Package} label="Inventory" path="/dashboard/products" active={isActive('/dashboard/products')} />
@@ -127,6 +139,14 @@ export default function TradeOSSidebar({
 
             {/* 3. THE UNBROKEN FLOW (Power-Ups) */}
             <OSNavItem
+              icon={Shield}
+              label="Trust Center"
+              path="/dashboard/trust-center"
+              badge="NEW"
+              active={isActive('/dashboard/trust-center')}
+            />
+
+            <OSNavItem
               icon={Lock}
               label="Trace Center"
               path="/dashboard/trace-center"
@@ -135,7 +155,7 @@ export default function TradeOSSidebar({
             />
 
             <OSNavItem
-              icon={Shield}
+              icon={Building2} // Changed from Shield to avoid duplicate icon
               label="Verification Lab"
               path="/dashboard/verification-center"
               badge="BETA"

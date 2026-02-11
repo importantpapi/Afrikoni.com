@@ -920,91 +920,90 @@ function LogisticsDashboardInner() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </TabsContent>
+        </TabsContent>
 
-      {/* QUOTES */}
-      <TabsContent value="quotes" className="mt-4">
-        <Card className="">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Quotes
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Logistics quotes will appear here once connected to quote data.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EmptyState
-              title="No logistics quotes to manage"
-              description="When buyers request logistics quotes, they will be listed here for follow-up."
-            />
-          </CardContent>
-        </Card>
-      </TabsContent>
+        {/* QUOTES */}
+        <TabsContent value="quotes" className="mt-4">
+          <Card className="">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">
+                Quotes
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Logistics quotes will appear here once connected to quote data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EmptyState
+                title="No logistics quotes to manage"
+                description="When buyers request logistics quotes, they will be listed here for follow-up."
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* TRACKING */}
-      <TabsContent value="tracking" className="mt-4">
-        <Card className="">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Tracking
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Geographic view of active shipments.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RealTimeTracking shipments={shipments} />
-          </CardContent>
-        </Card>
-      </TabsContent>
+        {/* TRACKING */}
+        <TabsContent value="tracking" className="mt-4">
+          <Card className="">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">
+                Tracking
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Geographic view of active shipments.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RealTimeTracking shipments={shipments} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* REVENUE */}
-      <TabsContent value="revenue" className="mt-4">
-        <Card className="">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Revenue
-            </CardTitle>
-            <CardDescription className="text-xs">
-              High-level view of Afrikoni commission from logistics.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <div className="text-xs uppercase tracking-wide">
-                  Today
+        {/* REVENUE */}
+        <TabsContent value="revenue" className="mt-4">
+          <Card className="">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">
+                Revenue
+              </CardTitle>
+              <CardDescription className="text-xs">
+                High-level view of Afrikoni commission from logistics.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs uppercase tracking-wide">
+                    Today
+                  </div>
+                  <div className="text-xl font-semibold">
+                    $0
+                  </div>
                 </div>
-                <div className="text-xl font-semibold">
-                  $0
+                <div className="space-y-1">
+                  <div className="text-xs uppercase tracking-wide">
+                    Last 7 Days
+                  </div>
+                  <div className="text-xl font-semibold">
+                    $0
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs uppercase tracking-wide">
+                    Month to Date
+                  </div>
+                  <div className="text-xl font-semibold">
+                    ${commissionMTD.toLocaleString()}
+                  </div>
                 </div>
               </div>
-              <div className="space-y-1">
-                <div className="text-xs uppercase tracking-wide">
-                  Last 7 Days
-                </div>
-                <div className="text-xl font-semibold">
-                  $0
-                </div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-xs uppercase tracking-wide">
-                  Month to Date
-                </div>
-                <div className="text-xl font-semibold">
-                  ${commissionMTD.toLocaleString()}
-                </div>
-              </div>
-            </div>
-            <p className="text-xs">
-              Detailed revenue analytics will be connected to live shipment and quote data.
-            </p>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+              <p className="text-xs">
+                Detailed revenue analytics will be connected to live shipment and quote data.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div >
   );
 }

@@ -21,7 +21,6 @@ import {
   saveLogisticsQuote,
   acceptLogisticsQuote,
   getLogisticsQuotes,
-  getLogisticsQuotes,
 } from '@/services/logisticsService';
 import { optimizeRoute, getCorridorAlerts } from '@/services/routingEngine';
 import { recordLogisticsRevenue } from '@/services/revenueService';
