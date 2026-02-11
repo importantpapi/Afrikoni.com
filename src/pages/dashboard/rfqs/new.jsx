@@ -9,6 +9,7 @@ import { createRFQ } from '@/services/rfqService';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { Sparkles, Upload, Calendar, ArrowRight, Wand2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { rfqSchema, validate } from '@/schemas/trade';
 
 /**
  * IntakeEngine - The AI-First Entry Point for Trade OS
@@ -84,9 +85,22 @@ export default function IntakeEngine() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+
+    // 1. Zod Validation (Data Integrity)
+    const payload = { ...form, closing_date: closingDate || undefined };
+    const validation = validate(rfqSchema, payload);
+
+    if (!validation.success) {
+      setError(validation.error);
+      setSubmitting(false);
+      toast.error('Please fix the errors before publishing');
+      return;
+    }
+
+    // 2. Submit to API (using validated data where appropriate, or original payload)
     const { success, error: err } = await createRFQ({
       user,
-      formData: { ...form, closing_date: closingDate || null },
+      formData: payload,
     });
     setSubmitting(false);
     if (success) {

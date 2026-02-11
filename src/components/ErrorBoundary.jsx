@@ -3,6 +3,8 @@ import { AlertTriangle, RefreshCw, Home, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Surface } from '@/components/system/Surface';
 
+import { telemetry } from '@/services/telemetryService';
+
 /**
  * Trade OS Error Boundary
  * catches render errors and displays a "Crash Screen" matching the OS aesthetic.
@@ -19,19 +21,24 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('[Trade OS] Critical Error caught by boundary:', error, errorInfo);
+    telemetry.logError(error, {
+      componentStack: errorInfo?.componentStack,
+      location: window.location.href
+    });
     this.setState({ errorInfo });
-
-    // Optional: Send to logging service
   }
 
   handleReload = () => {
+    telemetry.trackEvent('system_crash_reload');
     window.location.reload();
   };
 
   handleReset = () => {
+    telemetry.trackEvent('system_crash_hard_reset');
     // Clear local storage if kernel state is corrupted
     localStorage.removeItem('afrikoni_auth_token');
     localStorage.removeItem('sb-access-token');
+    localStorage.removeItem('active_trade_session'); // Clear persisted trade state too
     window.location.href = '/dashboard';
   };
 

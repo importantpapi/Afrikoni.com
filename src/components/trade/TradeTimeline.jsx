@@ -189,7 +189,7 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="flex gap-4 p-3 rounded-xl border"
+                className="flex gap-4 p-3 rounded-xl border cv-auto"
               >
                 {/* Event Icon */}
                 <div className="flex-shrink-0 mt-1">
@@ -219,13 +219,12 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
       {/* KERNEL STATUS INDICATOR */}
       <div className="mt-8 pt-6 border-t flex items-center gap-3 text-xs">
         <div
-          className={`w-2 h-2 rounded-full ${
-            currentState === TRADE_STATE.DISPUTED
+          className={`w-2 h-2 rounded-full ${currentState === TRADE_STATE.DISPUTED
               ? 'bg-red-500 animate-pulse'
               : currentState === TRADE_STATE.CLOSED
-              ? 'bg-gray-500'
-              : 'bg-green-500'
-          }`}
+                ? 'bg-gray-500'
+                : 'bg-green-500'
+            }`}
         />
         <span className="">
           {currentState === TRADE_STATE.DISPUTED && '⚠️ Trade under dispute'}

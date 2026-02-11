@@ -73,18 +73,18 @@ if (!rootElement) {
         // ✅ STABILIZE BOOT: Temporarily disabled StrictMode to prevent double mounting
         // This stops the "🚀 Afrikoni app booting twice" and prevents 5s timeout
         // <React.StrictMode>
-          <ErrorBoundary>
-            <ThemeProvider>
-              <BrowserRouter
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true
-                }}
-              >
-                <App />
-              </BrowserRouter>
-            </ThemeProvider>
-          </ErrorBoundary>
+        <ErrorBoundary>
+          <ThemeProvider>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true
+              }}
+            >
+              <App />
+            </BrowserRouter>
+          </ThemeProvider>
+        </ErrorBoundary>
         // </React.StrictMode>,
       );
     } catch (e) {
@@ -97,5 +97,12 @@ if (!rootElement) {
   // Use setTimeout with 0 delay to ensure this runs after all synchronous code
   // This helps if extension errors are blocking synchronous execution
   setTimeout(renderApp, 0);
+}
+
+// ✅ PWA: Register Service Worker for Offline Capabilities
+import { registerSW } from './registerSW';
+// Only register in production or if explicitly testing PWA
+if (import.meta.env.PROD || import.meta.env.VITE_TEST_PWA) {
+  registerSW();
 }
 

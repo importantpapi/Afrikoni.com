@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { calculateTradeFees, estimateFX } from '@/services/revenueEngine';
 import { predictHSCode, calculateDutySavings } from '@/services/taxShield';
 import { scanForLeakage } from '@/services/forensicSentinel';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 /**
  * TRADE CONTEXT (The Kernel)
@@ -141,7 +142,30 @@ function tradeReducer(state, action) {
 
 // PROVIDER
 export function TradeProvider({ children }) {
-    const [state, dispatch] = useReducer(tradeReducer, initialState);
+    // 1. Load from Persistence (Offline Hardening)
+    const [state, dispatch] = useReducer(tradeReducer, initialState, (defaultState) => {
+        if (typeof window !== 'undefined') {
+            const cached = localStorage.getItem('active_trade_session');
+            if (cached) {
+                try {
+                    return JSON.parse(cached);
+                } catch (e) {
+                    console.warn('Failed to parse cached trade session cleaning up');
+                    localStorage.removeItem('active_trade_session');
+                }
+            }
+        }
+        return defaultState;
+    });
+
+    const { isOnline } = useNetworkStatus();
+
+    // 2. Persist State on Change
+    useEffect(() => {
+        if (state.tradeId) {
+            localStorage.setItem('active_trade_session', JSON.stringify(state));
+        }
+    }, [state]);
 
     // ACTIONS
 
@@ -183,6 +207,15 @@ export function TradeProvider({ children }) {
      * Auto-Compliance: Predict HS Code and Calculate Duty Savings
      */
     const runAutoCompliance = async (productData) => {
+        // Offline Guard
+        if (!isOnline) {
+            dispatch({
+                type: 'UPDATE_MILESTONE', // Generic update to logs
+                payload: { id: 'compliance_check', status: 'pending', evidence: 'Queued (Offline)' }
+            });
+            return;
+        }
+
         // Simulate async AI delay
         setTimeout(() => {
             const prediction = predictHSCode(productData.name);
@@ -238,7 +271,7 @@ export function TradeProvider({ children }) {
     };
 
     return (
-        <TradeContext.Provider value={{ state, dispatch, initiateTrade, verifyMilestone, assessRisk }}>
+        <TradeContext.Provider value={{ state, dispatch, initiateTrade, verifyMilestone, assessRisk, isOnline }}>
             {children}
         </TradeContext.Provider>
     );

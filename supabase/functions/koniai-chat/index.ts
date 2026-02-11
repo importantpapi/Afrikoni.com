@@ -50,8 +50,9 @@ serve(async (req) => {
   }
 
   try {
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured')
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    if (!GEMINI_API_KEY) {
+      throw new Error('Gemini API key not configured')
     }
 
     const { message, history = [], context = {} }: ChatRequest = await req.json()
