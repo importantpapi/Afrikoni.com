@@ -13,7 +13,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
 
@@ -64,13 +63,20 @@ serve(async (req) => {
       )
     }
 
-    // Verify Authentication
+    // Verify Authentication & Initialize User-Scoped Client
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       throw new Error('Missing authorization header')
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+    // Create a client with the user's token to respect RLS and fetch trusted data
+    const supabaseClient = createClient(
+      SUPABASE_URL!,
+      SUPABASE_ANON_KEY!,
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
 
     if (authError || !user) {
       console.error('[KoniAI Chat] Auth error:', authError)
@@ -81,13 +87,37 @@ serve(async (req) => {
     }
 
     const userId = user.id
-    console.log(`[KoniAI Chat] Request from user: ${userId}`)
+    console.log(`[KoniAI Chat] Secured Request from user: ${userId}`)
 
-    // Build personalized system prompt
-    const userName = context.userProfile?.full_name || 'there'
-    const companyName = context.userProfile?.company?.company_name
-    const companyCountry = context.userProfile?.company?.country
-    const isVerified = context.userProfile?.company?.verification_status === 'VERIFIED'
+    // 🔒 SECURITY PATCH: Fetch trusted context from Database (Forensic Audit Fix)
+    // We NO LONGER trust context.userProfile from the client for identity or verification status.
+    const { data: dbProfile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select(`
+            full_name,
+            company:companies (
+                company_name,
+                country,
+                verification_status
+            )
+        `)
+      .eq('id', userId)
+      .single()
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('[KoniAI Security] Failed to fetch trusted profile:', profileError)
+      // Proceed with degraded context rather than failing, but DO NOT trust client
+    }
+
+    // Build personalized system prompt with TRUSTED DB DATA ONLY
+    const userName = dbProfile?.full_name || 'Trader'
+    const companyName = dbProfile?.company?.company_name
+    const companyCountry = dbProfile?.company?.country
+
+    // STRICT SERVER-SIDE VERIFICATION CHECK
+    // Normalized to handle 'verified', 'VERIFIED', etc.
+    const dbStatus = dbProfile?.company?.verification_status?.toLowerCase() || 'pending'
+    const isVerified = dbStatus === 'verified'
 
     const systemPrompt = `You are KoniAI+, the intelligent trade assistant for Afrikoni - Africa's premier B2B marketplace connecting African suppliers with global buyers.
 
@@ -113,13 +143,15 @@ AFRIKONI PLATFORM CONTEXT:
 - Supports cross-border African trade
 - Common categories: Agriculture, Textiles, Minerals, Crafts
 
-${companyName ? `USER CONTEXT:
+SECURE USER CONTEXT (Verified by System):
 - User: ${userName}
-- Company: ${companyName}
-- Country: ${companyCountry || 'Not specified'}
-- Verification: ${isVerified ? 'Verified Supplier/Buyer' : 'Pending verification'}` : ''}
+${companyName ? `- Company: ${companyName}` : ''}
+${companyCountry ? `- Region: ${companyCountry}` : ''}
+- Status: ${isVerified ? '✅ VERIFIED TRUSTED ENTITY' : '⚠️ Unverified / Pending Verification'}
+${isVerified ? '(Treat this user as a trusted partner with access to premium insights)' : '(Advise this user to complete verification for full platform access)'}
 
-${context.currentPage ? `Current page: ${context.currentPage}` : ''}
+${context.currentPage ? `Current Context: User is viewing ${context.currentPage}` : ''}
+${context.activeRFQ ? `Active RFQ Context: ${JSON.stringify(context.activeRFQ).slice(0, 500)}` : ''}
 
 RESPONSE FORMAT:
 Always respond in JSON format:
@@ -138,50 +170,67 @@ Always respond in JSON format:
 
 Keep responses concise (2-3 paragraphs max). Use bullet points for lists. Suggest relevant actions when appropriate.`
 
-    // Build messages array
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...history.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      { role: 'user', content: message }
+
+    // Map history to Gemini format
+    const geminiHistory = history.map((msg: any) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }))
+
+    // Current interaction
+    const contents = [
+      ...geminiHistory,
+      { role: 'user', parts: [{ text: message }] }
     ]
 
-    // Call OpenAI API
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Google Gemini API (Flash 1.5)
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    if (!GEMINI_API_KEY) {
+      throw new Error('Gemini API key not configured')
+    }
+
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
+
+    const requestBody = {
+      system_instruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      contents: contents,
+      generationConfig: {
+        response_mime_type: "application/json",
+        temperature: 0.7,
+        maxOutputTokens: 1000
+      }
+    }
+
+    console.log('[KoniAI] Sending request to Gemini...')
+
+    const aiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
-        messages,
-        temperature: 0.7,
-        max_tokens: 800,
-        response_format: { type: 'json_object' }
-      })
+      body: JSON.stringify(requestBody)
     })
 
-    if (!openaiResponse.ok) {
-      const error = await openaiResponse.json()
-      console.error('[KoniAI Chat] OpenAI error:', error)
+    if (!aiResponse.ok) {
+      const errorBody = await aiResponse.text()
+      console.error('[KoniAI Gemini] API Error:', errorBody)
       throw new Error('AI service temporarily unavailable')
     }
 
-    const openaiResult = await openaiResponse.json()
-    const aiContent = openaiResult.choices?.[0]?.message?.content
+    const aiResult = await aiResponse.json()
+    const aiContent = aiResult.candidates?.[0]?.content?.parts?.[0]?.text
 
     if (!aiContent) {
-      throw new Error('No response from AI service')
+      throw new Error('No response content from Gemini')
     }
 
     let chatResponse
     try {
       chatResponse = JSON.parse(aiContent)
     } catch (parseError) {
-      // If JSON parsing fails, wrap the response
+      console.warn('[KoniAI] JSON Parse failed, wrapping raw text')
       chatResponse = {
         response: aiContent,
         actions: [],
@@ -205,7 +254,7 @@ Keep responses concise (2-3 paragraphs max). Use bullet points for lists. Sugges
 
     return new Response(
       JSON.stringify({
-        response: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment, or contact Afrikoni support if the issue persists.",
+        response: "I apologize, but I'm having trouble connecting to my new brain (Gemini). Please check the API key configuration or try again.",
         actions: [
           {
             type: 'contact_support',
@@ -213,10 +262,11 @@ Keep responses concise (2-3 paragraphs max). Use bullet points for lists. Sugges
             data: {}
           }
         ],
-        suggestions: ['Try asking your question again', 'Browse our help center'],
+        suggestions: ['Try asking again'],
         error: error.message
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
+

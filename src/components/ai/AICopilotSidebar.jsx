@@ -60,15 +60,15 @@ export const AICopilotSidebar = ({ isOpen, onClose, recommendations = [] }) => {
     const navigate = useNavigate();
 
     return (
-        <div className="w-full h-full bg-[#08090A]/95 backdrop-blur-2xl border-l border-white/10 shadow-2xl z-[100] flex flex-col">
+        <div className="w-full h-full bg-white/95 dark:bg-[#08090A]/95 backdrop-blur-2xl border-l border-gray-200 dark:border-white/10 shadow-2xl z-[100] flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent">
+            <div className="p-6 border-b border-gray-200 dark:border-white/5 bg-gradient-to-r from-gray-50 dark:from-white/5 to-transparent">
                 <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2 text-afrikoni-deep">
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]">
                             <Sparkles className="w-3.5 h-3.5" />
                         </div>
-                        <span className="font-bold text-sm text-white tracking-tight">Trade Copilot</span>
+                        <span className="font-bold text-sm text-gray-900 dark:text-white tracking-tight">Trade Copilot</span>
                     </div>
                     <button
                         onClick={onClose}
@@ -113,12 +113,12 @@ export const AICopilotSidebar = ({ isOpen, onClose, recommendations = [] }) => {
             </div>
 
             {/* Chat Input (Prototype) */}
-            <div className="p-4 bg-black/40 border-t border-white/5 backdrop-blur-lg">
+            <div className="p-4 bg-white/40 dark:bg-black/40 border-t border-gray-200 dark:border-white/5 backdrop-blur-lg">
                 <div className="relative">
                     <input
                         type="text"
                         placeholder="Ask Copilot..."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-600"
+                        className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-500 dark:placeholder:text-gray-600"
                     />
                     <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors shadow-lg">
                         <Send className="w-4 h-4" />

@@ -42,9 +42,10 @@ import Countries from './pages/countries';
 import HowItWorks from './pages/how-it-works';
 
 /* ===== Dashboard shell ===== */
-import Dashboard from './pages/dashboard/WorkspaceDashboard';
-import DashboardHome from './pages/dashboard/DashboardHome';
-import PostLoginRouter from './auth/PostLoginRouter';
+/* ===== Dashboard shell ===== */
+const Dashboard = lazy(() => import('./pages/dashboard/WorkspaceDashboard'));
+const DashboardHome = lazy(() => import('./pages/dashboard/DashboardHome'));
+const PostLoginRouter = lazy(() => import('./auth/PostLoginRouter'));
 
 /* ===== AFRIKONI OS KERNEL - Dashboard Pages ===== */
 /* Organized by Engine: Seller, Buyer, Logistics, Governance, System */

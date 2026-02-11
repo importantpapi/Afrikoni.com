@@ -77,10 +77,10 @@ export function useDashboardKernel() {
   // ✅ NETWORK RECOVERY: Listen for online event to re-trigger handshake
   useEffect(() => {
     const handleOnline = () => {
-      console.log('[useDashboardKernel] Network online - checking if handshake needs re-trigger');
+      if (import.meta.env.DEV) console.log('[useDashboardKernel] Network online - checking if handshake needs re-trigger');
       // If system was not ready due to network issues, re-trigger handshake
       if (user && !result.isSystemReady && !result.isPreWarming) {
-        console.log('[useDashboardKernel] Re-triggering handshake after network recovery');
+        if (import.meta.env.DEV) console.log('[useDashboardKernel] Re-triggering handshake after network recovery');
         // Force a session refresh to re-sync
         supabase.auth.refreshSession().catch(err => {
           console.error('[useDashboardKernel] Session refresh error after network recovery:', err);

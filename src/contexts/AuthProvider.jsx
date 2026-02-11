@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      console.log('[Auth] Validating schema integrity...');
+      if (import.meta.env.DEV) console.log('[Auth] Validating schema integrity...');
       const validation = await verifySchemaIntegrity();
 
       if (!validation.valid) {
@@ -88,7 +88,7 @@ export function AuthProvider({ children }) {
       }
 
       schemaValidatedRef.current = true;
-      console.log('[Auth] ✅ Schema validation passed');
+      if (import.meta.env.DEV) console.log('[Auth] ✅ Schema validation passed');
       return true;
     } catch (err) {
       console.error('[Auth] Schema validation error:', err);
@@ -100,12 +100,12 @@ export function AuthProvider({ children }) {
   // ✅ FIX: Separate function for silent refresh (no loading state change)
   const silentRefresh = useCallback(async () => {
     try {
-      console.log('[Auth] Silent refresh...');
+      if (import.meta.env.DEV) console.log('[Auth] Silent refresh...');
 
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        console.log('[Auth] Silent refresh - no session');
+        if (import.meta.env.DEV) console.log('[Auth] Silent refresh - no session');
         setUser(null);
         setProfile(null);
         setRole(null);
@@ -153,7 +153,7 @@ export function AuthProvider({ children }) {
     isResolvingRef.current = true;
 
     try {
-      console.log('[Auth] Resolving...');
+      if (import.meta.env.DEV) console.log('[Auth] Resolving...');
 
       // ✅ FIX: Only set loading on INITIAL auth, not on refresh
       if (!hasInitializedRef.current) {
@@ -312,7 +312,7 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
         if (!isMounted) return;
-        console.log('[Auth] Event:', event);
+        if (import.meta.env.DEV) console.log('[Auth] Event:', event);
 
         if (event === 'SIGNED_OUT') {
           setUser(null);

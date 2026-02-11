@@ -320,21 +320,27 @@ export default function OSShell({
                 />
 
                 {/* AI Copilot Sidebar - Optional right sidebar */}
-                {copilotOpen && (
-                    <div
-                        className="fixed right-0 bottom-0 w-full md:w-[320px] shadow-2xl"
-                        style={{
-                            top: `${OS_DIMENSIONS.reservedTop}px`,
-                            zIndex: OS_Z_INDEX.copilot
-                        }}
-                    >
-                        <AICopilotSidebar
-                            isOpen={true} // ✅ Fix: Must be true since parent handles conditional rendering
-                            onClose={() => setCopilotOpen(false)}
-                            recommendations={systemState?.intelligence?.recommendations || []}
-                        />
-                    </div>
-                )}
+                <AnimatePresence>
+                    {copilotOpen && (
+                        <motion.div
+                            initial={{ x: "100%", opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: "100%", opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="fixed right-0 bottom-0 w-full md:w-[320px] shadow-2xl"
+                            style={{
+                                top: `${OS_DIMENSIONS.reservedTop}px`,
+                                zIndex: OS_Z_INDEX.copilot
+                            }}
+                        >
+                            <AICopilotSidebar
+                                isOpen={true}
+                                onClose={() => setCopilotOpen(false)}
+                                recommendations={systemState?.intelligence?.recommendations || []}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </MotionConfig>
     );

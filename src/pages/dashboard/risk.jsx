@@ -878,13 +878,44 @@ export default function RiskManagementDashboard() {
         });
       }
 
+      // Load active trades for FX exposure
+      const { data: activeTradesVal } = await supabase
+        .from('trades')
+        .select('amount, currency, status')
+        .in('status', ['active', 'in_progress', 'shipping']);
+
+      // Calculate FX Exposure
+      let fxExposureRatio = 0;
+      let fxBreakdown = {};
+      let fxRiskLevel = 'low';
+
+      if (activeTradesVal && activeTradesVal.length > 0) {
+        const totalValue = activeTradesVal.reduce((sum, t) => sum + (t.amount || 0), 0);
+        let exposedValue = 0;
+
+        if (totalValue > 0) {
+          activeTradesVal.forEach(t => {
+            if (t.currency && t.currency !== 'USD') {
+              exposedValue += (t.amount || 0);
+              fxBreakdown[t.currency] = (fxBreakdown[t.currency] || 0) + (t.amount || 0);
+            }
+          });
+
+          fxExposureRatio = (exposedValue / totalValue) * 100;
+          fxRiskLevel = fxExposureRatio > 60 ? 'critical' : fxExposureRatio > 30 ? 'high' : 'low';
+        }
+      }
+
       setFraudData({
         items: fraudMapped,
         dailyFraudScore,
         chargebacks7Days: fraudMapped.filter(f => f.type?.includes('refund') || f.type?.includes('chargeback')).length,
         suspiciousVelocity: fraudMapped.filter(f => f.type?.includes('payment') && f.severity === 'high').length,
         stolenCardAttempts: fraudMapped.filter(f => f.type?.includes('card') || f.type?.includes('payment')).length,
-        escrowAnomalies: fraudMapped.filter(f => f.type?.includes('escrow') || f.type?.includes('order')).length
+        escrowAnomalies: fraudMapped.filter(f => f.type?.includes('escrow') || f.type?.includes('order')).length,
+        fxExposureRatio,
+        fxBreakdown,
+        fxRiskLevel
       });
 
       // Risk score history (last 30 days)
@@ -1229,10 +1260,10 @@ export default function RiskManagementDashboard() {
                                   </Badge>
                                   <Badge
                                     className={`text-xs ${reg.verificationStatus === 'verified'
-                                        ? 'bg-green-50 text-green-700 border-green-200'
-                                        : reg.verificationStatus === 'pending'
-                                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                          : 'bg-gray-50 text-gray-700 border-gray-200'
+                                      ? 'bg-green-50 text-green-700 border-green-200'
+                                      : reg.verificationStatus === 'pending'
+                                        ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                        : 'bg-gray-50 text-gray-700 border-gray-200'
                                       }`}
                                   >
                                     {reg.verificationStatus}
@@ -1613,9 +1644,9 @@ export default function RiskManagementDashboard() {
                         <Badge
                           variant="outline"
                           className={`text-xs ${entry.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
-                              entry.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                entry.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                  'bg-gray-50 text-gray-700 border-gray-200'
+                            entry.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                              entry.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                'bg-gray-50 text-gray-700 border-gray-200'
                             }`}
                         >
                           {entry.severity}
@@ -1700,16 +1731,49 @@ export default function RiskManagementDashboard() {
           </div>
         </motion.div>
 
-        {/* Section E: Fraud Detection & Payments Integrity */}
+        {/* Section E: Fraud Detection & Financial Risk */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
         >
           <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
-            Fraud Detection & Payments Integrity
+            Fraud Detection & Financial Risk
           </h2>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* FX Exposure Card */}
+            <Card className="rounded-afrikoni-lg shadow-premium">
+              <CardHeader className="border-b pb-4">
+                <CardTitle className="text-base font-semibold flex items-center justify-between">
+                  <span>FX Exposure Risk</span>
+                  <Badge variant="outline" className={getSeverityColor(fraudData.fxRiskLevel || 'low') + " text-white border-none"}>
+                    {fraudData.fxRiskLevel || 'Low'}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="text-center mb-6">
+                  <div className="text-3xl font-bold mb-1">
+                    {(fraudData.fxExposureRatio || 0).toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Total Exposure Ratio
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(fraudData.fxBreakdown || {}).map(([currency, amount]) => (
+                    <div key={currency} className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-600 dark:text-gray-400">{currency}</span>
+                      <span>${amount.toLocaleString()}</span>
+                    </div>
+                  ))}
+                  {(!fraudData.fxBreakdown || Object.keys(fraudData.fxBreakdown).length === 0) && (
+                    <p className="text-xs text-center text-muted-foreground">No active foreign currency trades</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="rounded-afrikoni-lg shadow-premium">
               <CardHeader className="border-b pb-4">
                 <CardTitle className="text-base font-semibold">Fraud Score Trend (7 Days)</CardTitle>
@@ -1808,8 +1872,8 @@ export default function RiskManagementDashboard() {
                     <div
                       key={alert.id}
                       className={`p-5 border-2 rounded-lg transition-all ${isContactSubmission
-                          ? 'border-afrikoni-gold bg-gradient-to-r from-afrikoni-cream/50 to-afrikoni-ivory/30 hover:shadow-lg hover:border-afrikoni-gold/60'
-                          : 'border-afrikoni-gold/20 hover:bg-afrikoni-sand/10'
+                        ? 'border-afrikoni-gold bg-gradient-to-r from-afrikoni-cream/50 to-afrikoni-ivory/30 hover:shadow-lg hover:border-afrikoni-gold/60'
+                        : 'border-afrikoni-gold/20 hover:bg-afrikoni-sand/10'
                         }`}
                     >
                       <div className="flex items-start justify-between">
@@ -1828,9 +1892,9 @@ export default function RiskManagementDashboard() {
                               <Badge
                                 variant="outline"
                                 className={`text-xs capitalize font-semibold ${alert.severity === 'critical' ? 'bg-red-100 text-red-800 border-red-300 shadow-sm' :
-                                    alert.severity === 'high' ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-sm' :
-                                      alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-300 shadow-sm' :
-                                        'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
+                                  alert.severity === 'high' ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-sm' :
+                                    alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-300 shadow-sm' :
+                                      'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
                                   }`}
                               >
                                 {alert.severity}
@@ -1838,8 +1902,8 @@ export default function RiskManagementDashboard() {
                               <Badge
                                 variant="outline"
                                 className={`text-xs font-semibold ${isContactSubmission
-                                    ? 'bg-afrikoni-gold/20 text-afrikoni-chestnut border-afrikoni-gold/40'
-                                    : ''
+                                  ? 'bg-afrikoni-gold/20 text-afrikoni-chestnut border-afrikoni-gold/40'
+                                  : ''
                                   }`}
                               >
                                 {alert.category}
