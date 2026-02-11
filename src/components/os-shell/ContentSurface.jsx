@@ -13,8 +13,8 @@ import React from 'react';
 export function ContentSurface({
     children,
     copilotOpen = false,
-    reservedTop = 104, // system (56) + identity (48)
-    sidebarWidth = 72 // desktop sidebar width
+    reservedTop = 104, // default matches OS_DIMENSIONS.reservedTop
+    sidebarWidth = 72  // default matches OS_DIMENSIONS.workspaceNav.collapsed
 }) {
     return (
         <div
@@ -22,13 +22,12 @@ export function ContentSurface({
             style={{
                 top: `${reservedTop}px`,
                 left: '0',
-                right: copilotOpen ? '320px' : '0',
-                paddingLeft: '0', // Mobile default
+                right: copilotOpen ? 'var(--os-copilot-width, 320px)' : '0',
                 zIndex: 1
             }}
         >
             {/* Desktop: Add padding for sidebar */}
-            <div className="md:pl-[72px] w-full min-h-full">
+            <div className="md:pl-[var(--os-sidebar-width,72px)] w-full min-h-full">
                 {children}
             </div>
         </div>

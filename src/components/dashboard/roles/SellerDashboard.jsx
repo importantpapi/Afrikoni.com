@@ -40,11 +40,11 @@ export default function SellerDashboard() {
     }
 
     return (
-        <div className="os-page space-y-2">
+        <div className="os-page space-y-3 p-3 md:p-6 md:space-y-6">
             {/* 1. Header Area: Welcome + Kernel Status */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-1 md:gap-2">
                 <div>
-                    <h1 className="text-lg md:text-xl font-light text-[var(--os-text-primary)]">
+                    <h1 className="text-base md:text-xl font-light text-[var(--os-text-primary)]">
                         Command Center <span className="text-os-muted mx-1 md:mx-2">/</span> Sales
                     </h1>
                     <p className="text-[10px] md:text-xs text-os-muted mt-0.5 font-mono">
@@ -53,7 +53,7 @@ export default function SellerDashboard() {
                 </div>
             </div>
 
-            <Surface variant="glass" className="p-3">
+            <Surface variant="glass" className="p-2 md:p-4">
                 <TradeOSErrorBoundary>
                     <OSStatusBar />
                 </TradeOSErrorBoundary>

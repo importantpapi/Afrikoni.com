@@ -5,11 +5,25 @@ import BuyerDashboard from '@/components/dashboard/roles/BuyerDashboard';
 import SellerDashboard from '@/components/dashboard/roles/SellerDashboard';
 import LogisticsDashboard from '@/components/dashboard/roles/LogisticsDashboard';
 import { supabase } from '@/api/supabaseClient';
+import { OnboardingTour } from '@/components/dashboard/OnboardingTour';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function DashboardHome() {
-  const { user, capabilities, isSystemReady } = useDashboardKernel();
+  const { user, capabilities, isSystemReady, profile } = useDashboardKernel();
   const [preferences, setPreferences] = useState(null);
   const [prefLoading, setPrefLoading] = useState(true);
+  const [showTour, setShowTour] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Role Switching Logic (URL Param)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('switch') === 'true' && preferences) {
+      // Toggle role logic if requested via URL
+      console.log('[DashboardHome] Manual role switch requested');
+    }
+  }, [location, preferences]);
 
   // Load User Preferences
   useEffect(() => {
@@ -26,7 +40,16 @@ export default function DashboardHome() {
           .eq('user_id', user.id)
           .maybeSingle(); // Use maybeSingle to avoid 406 error if not found
 
-        if (data) setPreferences(data);
+        if (data) {
+          setPreferences(data);
+          // Show tour if not completed
+          if (!data.onboarding_completed) {
+            setShowTour(true);
+          }
+        } else if (user) {
+          // If no preferences, first time user -> show tour
+          setShowTour(true);
+        }
       } catch (e) {
         console.error('[DashboardRouter] Error loading preferences:', e);
       } finally {
@@ -60,10 +83,36 @@ export default function DashboardHome() {
     return <BuyerDashboard />;
   };
 
+  const currentRole = preferences?.default_mode || 'buyer';
+
+  const handleTourComplete = async () => {
+    setShowTour(false);
+    if (user) {
+      // Persist onboarding completion
+      await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          onboarding_completed: true,
+          default_mode: currentRole
+        }, { onConflict: 'user_id' });
+    }
+  };
+
   if (!isSystemReady || prefLoading) {
     return <DashboardSkeleton />;
   }
 
-  return getDashboardComponent();
+  return (
+    <>
+      {showTour && (
+        <OnboardingTour
+          role={currentRole}
+          onComplete={handleTourComplete}
+        />
+      )}
+      {getDashboardComponent()}
+    </>
+  );
 }
 

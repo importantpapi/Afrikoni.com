@@ -8,7 +8,23 @@
    Centralized configuration for easy customization
    ============================================ */
 :root {
-  /* Trade OS Sidebar Dimensions */
+  /* TRADE OS 2026 - KERNEL GEOMETRY (THE SLOTS) */
+  --os-system-height: 56px;
+  --os-identity-height: 48px;
+  --os-sidebar-width: 72px;
+  --os-copilot-width: 320px;
+  --os-reserved-top: calc(var(--os-system-height) + var(--os-identity-height));
+
+  /* OS Shell Z-Index Hierarchy */
+  --z-os-content: 1;
+  --z-os-copilot: 800;
+  --z-os-sidebar: 900;
+  --z-os-identity: 1000;
+  --z-os-system: 1100;
+  --z-os-overlay: 1200;
+  --z-os-modal: 1300;
+
+  /* Legacy Ref: Sidebar Dimensions */
   --sidebar-width: 240px;
   --sidebar-collapsed-width: 80px;
   --sidebar-mobile-width: 16rem;

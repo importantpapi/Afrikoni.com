@@ -54,12 +54,15 @@ export default function TradeOSSidebar({
   );
 
   return (
-    <aside className={`
-      fixed left-0 top-0 h-screen w-[72px] bg-white dark:bg-black border-r border-afrikoni-gold/10
-      flex flex-col items-center py-5 z-[60] transition-transform duration-200 shadow-sm
-      ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      md:translate-x-0
-    `}>
+    <aside 
+      className={`
+        relative h-full bg-white dark:bg-black border-r border-afrikoni-gold/10
+        flex flex-col items-center py-5 transition-transform duration-200 shadow-sm
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}
+      style={{ width: 'var(--os-sidebar-width, 72px)' }}
+    >
       {/* OS Logo */}
       <Link to="/dashboard" className="mb-8 relative group">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4A937] to-[#8B4513] flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform">

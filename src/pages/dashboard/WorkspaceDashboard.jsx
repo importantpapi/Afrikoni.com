@@ -6,7 +6,7 @@ import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeMa
 import { useTradeSystemState } from '@/hooks/useTradeSystemState';
 import { useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
+import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
 
 /**
  * =============================================================================
@@ -73,9 +73,7 @@ export default function WorkspaceDashboard() {
   // This prevents multiple sequential loading screens ("skeleton problem")
   // useDashboardKernel already handles pre-warming timeout (3s → redirect to onboarding)
   if (!isSystemReady) {
-    // Single loading message - no cascading states
-    const loadingMessage = isPreWarming ? "Synchronizing..." : "Loading...";
-    return <SpinnerWithTimeout message={loadingMessage} ready={isSystemReady} timeoutMs={5000} />;
+    return <DashboardSkeleton />;
   }
 
   // ✅ KERNEL MIGRATION: Prepare capabilities data for OSShell

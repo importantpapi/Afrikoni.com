@@ -409,32 +409,41 @@ export default function NotificationsCenter() {
       </div>
 
       <Surface variant="panel" className="p-5">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
-              <Input
-                placeholder="Search notifications..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 os-input"
-              />
-            </div>
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            {[
+              { id: 'all', label: 'All', count: notifications.length },
+              { id: 'unread', label: 'Unread', count: unreadCount },
+              { id: 'opportunities', label: 'Trade Opportunities' },
+              { id: 'logistics', label: 'Logistics' },
+              { id: 'compliance', label: 'Compliance' },
+              { id: 'messages', label: 'Messages' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setFilter(tab.id)}
+                className={`
+                  px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border
+                  ${filter === tab.id
+                    ? 'bg-afrikoni-gold text-black border-afrikoni-gold shadow-lg shadow-afrikoni-gold/20'
+                    : 'bg-white/5 text-os-muted border-white/10 hover:bg-white/10 hover:text-white'
+                  }
+                `}
+              >
+                {tab.label} {tab.count !== undefined && <span className="ml-1 opacity-60">({tab.count})</span>}
+              </button>
+            ))}
           </div>
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-full md:w-48 os-input">
-              <SelectValue placeholder="Filter notifications" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All ({notifications.length})</SelectItem>
-              <SelectItem value="unread">Unread ({unreadCount})</SelectItem>
-              <SelectItem value="alerts">Alerts</SelectItem>
-              <SelectItem value="opportunities">Opportunities</SelectItem>
-              <SelectItem value="compliance">Compliance</SelectItem>
-              <SelectItem value="logistics">Logistics</SelectItem>
-              <SelectItem value="messages">Messages</SelectItem>
-            </SelectContent>
-          </Select>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-os-muted" />
+            <Input
+              placeholder="Search signals by keyword, trade ID, or counterparty..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 os-input h-11 bg-white/5 border-white/10 focus:border-afrikoni-gold/50"
+            />
+          </div>
         </div>
       </Surface>
 

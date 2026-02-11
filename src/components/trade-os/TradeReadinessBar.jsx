@@ -163,8 +163,8 @@ export const TradeReadinessBar = ({ systemState }) => {
                     <SystemIndicator
                         icon={TrendingUp}
                         label="FX Risk"
-                        status={financial.fxExposure > 5 ? 'high' : 'low'}
-                        value={`${financial.fxExposure.toFixed(1)}%`}
+                        status={(financial.fxExposure?.ratio || 0) > 5 ? 'high' : 'low'}
+                        value={`${(financial.fxExposure?.ratio || 0).toFixed(1)}%`}
                         onClick={() => navigate('/dashboard/fx')}
                     />
                 </div>

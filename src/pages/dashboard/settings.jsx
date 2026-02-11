@@ -16,7 +16,7 @@ import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie, ShieldCheck, Truck, TrendingUp, Zap, Sparkles, Check } from 'lucide-react';
+import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie, ShieldCheck, Truck, TrendingUp, Zap, Sparkles, Check, Monitor, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/shared/ui/switch';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,7 @@ import CookieSettingsModal from '@/components/shared/ui/CookieSettingsModal';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
 import { LiteModeToggle } from '@/components/system/LiteModeToggle';
+import { useOSSettings } from '@/hooks/useOSSettings';
 
 // Helper function to safely get translations with fallback
 const getTranslation = (t, key, fallback) => {
@@ -97,6 +98,9 @@ export default function DashboardSettings() {
 
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, user, profile } = useDashboardKernel();
+
+  // ✅ OS SETTINGS: Management of premium effects
+  const { liteMode, reducedMotion, glassOpacity, updateSettings } = useOSSettings();
 
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
@@ -519,6 +523,12 @@ export default function DashboardSettings() {
             >
               {translate('settings.security', 'Security')}
             </TabsTrigger>
+            <TabsTrigger
+              value="system"
+              className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_10px_30px_rgba(255,255,255,0.25)] rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            >
+              System
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
@@ -906,6 +916,60 @@ export default function DashboardSettings() {
                   </div>
                 </div>
 
+                {/* Hybrid Mode & Default Persona */}
+                {(capabilities?.can_buy && capabilities?.can_sell) && (
+                  <div className="p-6 rounded-2xl border border-blue-500/20 bg-blue-500/5">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400">
+                          <Activity className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-[var(--os-text-primary)]">Hybrid Workspace Mode</h4>
+                          <p className="text-xs text-os-muted">Toggle between Sourcing (Buyer) and Trading (Seller) workflows.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-bold text-blue-400">HYBRID ACTIVE</span>
+                        <div className="h-6 w-px bg-blue-500/20" />
+                        <Link to="/dashboard?switch=true">
+                          <Button size="sm" variant="outline" className="h-8 border-blue-500/30 text-blue-400 hover:bg-blue-500/10">
+                            Switch Role Now
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-os-muted">Default Startup Persona</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {[
+                          { id: 'buyer', label: 'Global Buyer', icon: ShoppingCart },
+                          { id: 'seller', label: 'Trade Seller', icon: Package },
+                          { id: 'logistics', label: 'Logistics Op', icon: Truck, disabled: !capabilities?.can_logistics }
+                        ].map(role => (
+                          <button
+                            key={role.id}
+                            disabled={role.disabled}
+                            onClick={() => setPreferences({ ...preferences, default_mode: role.id })}
+                            className={`
+                              flex flex-col items-center gap-2 p-4 rounded-xl border transition-all
+                              ${preferences.default_mode === role.id
+                                ? 'bg-afrikoni-gold text-black border-afrikoni-gold shadow-lg shadow-afrikoni-gold/10 scale-[1.02]'
+                                : 'bg-white/5 border-white/10 text-os-muted hover:bg-white/10 hover:text-white'
+                              }
+                              ${role.disabled ? 'opacity-30 grayscale cursor-not-allowed' : ''}
+                            `}
+                          >
+                            <role.icon className="w-5 h-5" />
+                            <span className="text-xs font-bold uppercase truncate w-full text-center">{role.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Capabilities Grid */}
                 <div>
                   <h3 className="text-sm font-semibold text-os-muted uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Active Capabilities</h3>
@@ -1150,6 +1214,65 @@ export default function DashboardSettings() {
                     <Save className="w-4 h-4 mr-2" />
                     {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
                   </Button>
+                </div>
+              </div>
+            </Surface>
+          </TabsContent>
+
+          <TabsContent value="system" className="space-y-6">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+              <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
+                <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
+                  <div className="p-2 rounded-lg bg-blue-500/20 backdrop-blur-sm border border-blue-500/20">
+                    <Monitor className="w-5 h-5 text-blue-400" />
+                  </div>
+                  OS Engine Preferences
+                </div>
+              </div>
+              <div className="p-6 md:p-8 space-y-8">
+                <div className="grid gap-6">
+                  {/* Performance Mode */}
+                  <div className="flex items-start justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="space-y-1">
+                      <div className="text-sm font-bold text-white flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-amber-500" />
+                        Lite Performance Mode
+                      </div>
+                      <p className="text-xs text-os-muted max-w-sm">
+                        Reduces visual fidelity by disabling blur effects and heavy gradients. Recommended for older hardware or slower connections.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={liteMode}
+                      onCheckedChange={(v) => updateSettings({ liteMode: v })}
+                      className="data-[state=checked]:bg-amber-500"
+                    />
+                  </div>
+
+                  {/* Reduced Motion */}
+                  <div className="flex items-start justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="space-y-1">
+                      <div className="text-sm font-bold text-white flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-emerald-500" />
+                        Reduced Motion
+                      </div>
+                      <p className="text-xs text-os-muted max-w-sm">
+                        Disables spring animations and transitions for a more static interface.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={reducedMotion}
+                      onCheckedChange={(v) => updateSettings({ reducedMotion: v })}
+                      className="data-[state=checked]:bg-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 flex gap-3">
+                  <Sparkles className="w-5 h-5 text-blue-400 shrink-0" />
+                  <div className="text-[11px] text-blue-200/70 leading-relaxed uppercase tracking-wider font-bold">
+                    These settings are local to this machine's GPU performance capabilities.
+                  </div>
                 </div>
               </div>
             </Surface>

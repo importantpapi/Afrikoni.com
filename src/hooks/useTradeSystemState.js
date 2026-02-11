@@ -333,16 +333,30 @@ export const useTradeSystemState = () => {
                     escrowStatus,
                     fxExposure: (() => {
                         const activeTrades = trades?.filter(t => ['active', 'in_progress', 'shipping'].includes(t.status)) || [];
-                        if (activeTrades.length === 0) return 0;
+                        if (activeTrades.length === 0) return { ratio: 0, breakdown: {}, riskLevel: 'low' };
 
                         const totalValue = activeTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
-                        if (totalValue === 0) return 0;
+                        if (totalValue === 0) return { ratio: 0, breakdown: {}, riskLevel: 'low' };
 
-                        const exposedValue = activeTrades
-                            .filter(t => t.currency && t.currency !== 'USD')
-                            .reduce((sum, t) => sum + (t.amount || 0), 0);
+                        const breakdown = {};
+                        let exposedValue = 0;
 
-                        return (exposedValue / totalValue) * 100;
+                        activeTrades.forEach(t => {
+                            if (t.currency && t.currency !== 'USD') {
+                                exposedValue += (t.amount || 0);
+                                breakdown[t.currency] = (breakdown[t.currency] || 0) + (t.amount || 0);
+                            }
+                        });
+
+                        const ratio = (exposedValue / totalValue) * 100;
+                        const riskLevel = ratio > 60 ? 'high' : ratio > 30 ? 'medium' : 'low';
+
+                        return {
+                            ratio,
+                            breakdown,
+                            riskLevel,
+                            totalExposed: exposedValue
+                        };
                     })(),
                     paymentRisk: paymentHistory.successRate > 90 ? 'low' :
                         paymentHistory.successRate > 70 ? 'medium' : 'high',

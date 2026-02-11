@@ -57,7 +57,7 @@ export function IdentityLayer({
     const orgName = organization?.name || 'Organization';
 
     return (
-        <div className="w-full h-full bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#1E1E1E] px-4 md:px-6 flex items-center justify-between">
+        <div className="w-full h-full px-4 md:px-6 flex items-center justify-between">
             {/* Left: Mobile Menu + User Identity */}
             <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
                 {/* Mobile Menu Toggle */}

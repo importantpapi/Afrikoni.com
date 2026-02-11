@@ -600,7 +600,7 @@ export default function QuickTradeWizard() {
                                                     <button
                                                         onClick={handleExpressPublish}
                                                         disabled={isSubmitting || !formData.quantity || !formData.deliveryDeadline}
-                                                        className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(var(--afrikoni-gold),0.5)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         {isSubmitting ? (
                                                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -676,26 +676,26 @@ export default function QuickTradeWizard() {
                                                 </div>
 
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    <div className="p-4 rounded-xl bg-black/40 border border-gray-800 flex flex-col items-center text-center">
-                                                        <Users className="w-5 h-5 text-blue-400 mb-2" />
+                                                    <Surface variant="panel" className="p-4 flex flex-col items-center text-center border-white/5 hover:border-blue-500/30 transition-colors group">
+                                                        <Users className="w-5 h-5 text-blue-400 mb-2 group-hover:scale-110 transition-transform" />
                                                         <span className="text-[10px] text-gray-500 uppercase font-bold mb-1">Matched Vendors</span>
                                                         <span className="text-lg font-black">{aiIntelligence?.matchedSuppliers || 'Analying...'}</span>
-                                                    </div>
-                                                    <div className="p-4 rounded-xl bg-black/40 border border-gray-800 flex flex-col items-center text-center">
-                                                        <TrendingUp className="w-5 h-5 text-emerald-400 mb-2" />
+                                                    </Surface>
+                                                    <Surface variant="panel" className="p-4 flex flex-col items-center text-center border-white/5 hover:border-emerald-500/30 transition-colors group">
+                                                        <TrendingUp className="w-5 h-5 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
                                                         <span className="text-[10px] text-gray-500 uppercase font-bold mb-1">Price Delta</span>
                                                         <span className="text-lg font-black text-emerald-400">-4.2%</span>
-                                                    </div>
-                                                    <div className="p-4 rounded-xl bg-black/40 border border-gray-800 flex flex-col items-center text-center">
-                                                        <Clock className="w-5 h-5 text-amber-400 mb-2" />
+                                                    </Surface>
+                                                    <Surface variant="panel" className="p-4 flex flex-col items-center text-center border-white/5 hover:border-amber-500/30 transition-colors group">
+                                                        <Clock className="w-5 h-5 text-amber-400 mb-2 group-hover:scale-110 transition-transform" />
                                                         <span className="text-[10px] text-gray-500 uppercase font-bold mb-1">Avg. Transit</span>
                                                         <span className="text-lg font-black">12 Days</span>
-                                                    </div>
-                                                    <div className="p-4 rounded-xl bg-black/40 border border-gray-800 flex flex-col items-center text-center">
-                                                        <Zap className="w-5 h-5 text-purple-400 mb-2" />
+                                                    </Surface>
+                                                    <Surface variant="panel" className="p-4 flex flex-col items-center text-center border-white/5 hover:border-purple-500/30 transition-colors group">
+                                                        <Zap className="w-5 h-5 text-purple-400 mb-2 group-hover:scale-110 transition-transform" />
                                                         <span className="text-[10px] text-gray-500 uppercase font-bold mb-1">Velocity</span>
                                                         <span className="text-lg font-black">{aiIntelligence?.velocityScore || '90'}</span>
-                                                    </div>
+                                                    </Surface>
                                                 </div>
 
                                                 <div className="space-y-3">
