@@ -12,9 +12,9 @@ import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useTradeKernelState } from '@/hooks/useTradeKernelState';
 import { useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
 import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
+import TradeOSErrorBoundary from '@/components/shared/TradeOSErrorBoundary';
 import { toast } from 'sonner';
 import { useTradeEventLedger } from '@/hooks/useTradeEventLedger';
-import AITradeCopilot from '@/components/dashboard/AITradeCopilot'; // Integrated Copilot
 import AfCFTAOriginCheck from '@/components/dashboard/AfCFTAOriginCheck'; // Integrated Compliance
 import {
   Activity,
@@ -25,8 +25,11 @@ import {
   Ship,
   Sparkles,
   Timer,
+  Timer,
   AlertTriangle,
 } from 'lucide-react';
+import { useTrustScore } from '@/hooks/useTrustScore';
+import TrustBadge from '@/components/trust/TrustBadge';
 
 const STAGES = [
   { id: 'rfq', label: 'RFQ' },
@@ -77,6 +80,9 @@ export default function TradeWorkspace() {
   const [kernelBlock, setKernelBlock] = useState(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const { timeline: kernelTimeline } = useTradeEventLedger(trade?.id);
+
+  // ✅ TRUST SCORE INTEGRATION
+  const { trustData } = useTrustScore(trade?.seller_company_id);
 
 
   useEffect(() => {
@@ -300,130 +306,137 @@ export default function TradeWorkspace() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* LEFT: Main Dossier */}
         <div className="flex-1 space-y-6">
-          <Surface
-            variant="glass"
-            className={`p-6 md:p-8 os-rail-glow relative overflow-hidden ${operatorBleed} ${operatorImmersive} ${isSimple ? '' : 'md:px-10 md:py-10'}`}
-          >
-            {/* Header Content */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-              <div>
-                <div className="os-label flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#D4A937] animate-pulse" />
-                  Live Trade Dossier
+          <TradeOSErrorBoundary>
+            <Surface
+              variant="glass"
+              className={`p-6 md:p-8 os-rail-glow relative overflow-hidden ${operatorBleed} ${operatorImmersive} ${isSimple ? '' : 'md:px-10 md:py-10'}`}
+            >
+              {/* Header Content */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                  <div className="os-label flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#D4A937] animate-pulse" />
+                    Live Trade Dossier
+                  </div>
+                  <h1 className="text-3xl font-light mt-2 tracking-tight text-white">
+                    {tradeType === 'order' ? 'Order' : 'RFQ'} <span className="font-mono text-white/50">#{trade?.id?.slice?.(-8) || trade?.id}</span>
+                  </h1>
+                  <p className="text-sm text-os-muted mt-2 font-mono">
+                    {trade?.title || trade?.product_name || trade?.product || 'Trade mission via ' + (trade?.corridor?.originCountry || 'Origin') + ' -> ' + (trade?.corridor?.destinationCountry || 'Destination')}
+                  </p>
                 </div>
-                <h1 className="text-3xl font-light mt-2 tracking-tight text-white">
-                  {tradeType === 'order' ? 'Order' : 'RFQ'} <span className="font-mono text-white/50">#{trade?.id?.slice?.(-8) || trade?.id}</span>
-                </h1>
-                <p className="text-sm text-os-muted mt-2 font-mono">
-                  {trade?.title || trade?.product_name || trade?.product || 'Trade mission via ' + (trade?.corridor?.originCountry || 'Origin') + ' -> ' + (trade?.corridor?.destinationCountry || 'Destination')}
-                </p>
+                <div className="flex items-center gap-3">
+                  <StatusBadge label={String(trade?.status || 'ACTIVE').toUpperCase()} tone="neutral" />
+                  {tradeKernel.afcftaReady && <StatusBadge label="AfCFTA VERIFIED" tone="good" />}
+                  {/* Trust Badge */}
+                  {trustData && <TrustBadge score={trustData.total_score} level={trustData.level} size="lg" />}
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <StatusBadge label={String(trade?.status || 'ACTIVE').toUpperCase()} tone="neutral" />
-                {tradeKernel.afcftaReady && <StatusBadge label="AfCFTA VERIFIED" tone="good" />}
-              </div>
-            </div>
 
-            {/* Timeline Visualization */}
-            <div className="os-timeline mb-8 relative">
-              <div className="grid grid-cols-7 gap-1 relative z-10 w-full">
-                {STAGES.map((stage, index) => {
-                  const isActive = index === currentStageIndex;
-                  const isComplete = index < currentStageIndex;
-                  const isNext = index === nextStageIndex && !isActive;
-                  const isLocked = index > nextStageIndex;
-                  return (
-                    <div
-                      key={stage.id}
-                      className={`flex flex-col items-center gap-2`}
+              {/* Timeline Visualization */}
+              <div className="os-timeline mb-8 relative">
+                <div className="grid grid-cols-7 gap-1 relative z-10 w-full">
+                  {STAGES.map((stage, index) => {
+                    const isActive = index === currentStageIndex;
+                    const isComplete = index < currentStageIndex;
+                    const isNext = index === nextStageIndex && !isActive;
+                    const isLocked = index > nextStageIndex;
+                    return (
+                      <div
+                        key={stage.id}
+                        className={`flex flex-col items-center gap-2`}
+                      >
+                        <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${isActive ? 'bg-[#D4A937] border-[#D4A937] shadow-[0_0_10px_#D4A937]' : isComplete ? 'bg-[#D4A937] border-transparent' : 'bg-transparent border-white/20'}`} />
+                        <span className={`text-[9px] uppercase font-bold tracking-wider text-center ${isActive ? 'text-[#D4A937]' : 'text-white/30'}`}>{stage.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Timeline Line */}
+                <div className="absolute top-[5px] left-0 right-0 h-[2px] bg-white/5 z-0" />
+                <div className="absolute top-[5px] left-0 h-[2px] bg-[#D4A937] z-0 transition-all duration-1000" style={{ width: `${(currentStageIndex / (STAGES.length - 1)) * 100}%` }} />
+              </div>
+
+              {/* Next Action Driver */}
+              <div className="grid md:grid-cols-[1.5fr_1fr] gap-6 mt-6 pt-6 border-t border-white/5">
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-[#D4A937] mb-2 font-bold">Recommended Action</div>
+                  <h3 className="text-xl font-medium text-white mb-2">{nextAction.title}</h3>
+                  <div className="space-y-1">
+                    {nextAction.consequences.map((item, i) => (
+                      <div key={i} className="text-sm text-white/60 flex items-center gap-2">
+                        <ArrowRight className="w-3 h-3 text-[#D4A937]" /> {item}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 flex gap-3">
+                    <Button
+                      onClick={handleAdvance}
+                      disabled={isAdvancing || !nextState}
+                      className="bg-[#D4A937] hover:bg-[#C09830] text-black font-bold uppercase tracking-wide px-8"
                     >
-                      <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${isActive ? 'bg-[#D4A937] border-[#D4A937] shadow-[0_0_10px_#D4A937]' : isComplete ? 'bg-[#D4A937] border-transparent' : 'bg-transparent border-white/20'}`} />
-                      <span className={`text-[9px] uppercase font-bold tracking-wider text-center ${isActive ? 'text-[#D4A937]' : 'text-white/30'}`}>{stage.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Timeline Line */}
-              <div className="absolute top-[5px] left-0 right-0 h-[2px] bg-white/5 z-0" />
-              <div className="absolute top-[5px] left-0 h-[2px] bg-[#D4A937] z-0 transition-all duration-1000" style={{ width: `${(currentStageIndex / (STAGES.length - 1)) * 100}%` }} />
-            </div>
+                      {isAdvancing ? 'Processing...' : 'Execute'}
+                    </Button>
+                  </div>
+                </div>
 
-            {/* Next Action Driver */}
-            <div className="grid md:grid-cols-[1.5fr_1fr] gap-6 mt-6 pt-6 border-t border-white/5">
-              <div>
-                <div className="text-xs uppercase tracking-widest text-[#D4A937] mb-2 font-bold">Recommended Action</div>
-                <h3 className="text-xl font-medium text-white mb-2">{nextAction.title}</h3>
-                <div className="space-y-1">
-                  {nextAction.consequences.map((item, i) => (
-                    <div key={i} className="text-sm text-white/60 flex items-center gap-2">
-                      <ArrowRight className="w-3 h-3 text-[#D4A937]" /> {item}
+                {/* Mini Metrics */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+                    <div className="text-[10px] uppercase text-white/40 mb-1">Value</div>
+                    <div className="text-lg font-mono text-white">${tradeValue.toLocaleString()}</div>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+                    <div className="text-[10px] uppercase text-white/40 mb-1">ETA</div>
+                    <div className="text-lg font-mono text-white">{trade?.delivery_date || 'TBD'}</div>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-lg border border-white/5 col-span-2">
+                    <div className="text-[10px] uppercase text-white/40 mb-1">Compliance</div>
+                    <div className={`text-sm font-bold ${tradeKernel.afcftaReady ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {tradeKernel.afcftaReady ? 'AfCFTA CERTIFIED' : 'DOCUMENT PENDING'}
                     </div>
-                  ))}
-                </div>
-                <div className="mt-6 flex gap-3">
-                  <Button
-                    onClick={handleAdvance}
-                    disabled={isAdvancing || !nextState}
-                    className="bg-[#D4A937] hover:bg-[#C09830] text-black font-bold uppercase tracking-wide px-8"
-                  >
-                    {isAdvancing ? 'Processing...' : 'Execute'}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Mini Metrics */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                  <div className="text-[10px] uppercase text-white/40 mb-1">Value</div>
-                  <div className="text-lg font-mono text-white">${tradeValue.toLocaleString()}</div>
-                </div>
-                <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                  <div className="text-[10px] uppercase text-white/40 mb-1">ETA</div>
-                  <div className="text-lg font-mono text-white">{trade?.delivery_date || 'TBD'}</div>
-                </div>
-                <div className="p-3 bg-white/5 rounded-lg border border-white/5 col-span-2">
-                  <div className="text-[10px] uppercase text-white/40 mb-1">Compliance</div>
-                  <div className={`text-sm font-bold ${tradeKernel.afcftaReady ? 'text-emerald-400' : 'text-amber-400'}`}>
-                    {tradeKernel.afcftaReady ? 'AfCFTA CERTIFIED' : 'DOCUMENT PENDING'}
                   </div>
                 </div>
               </div>
-            </div>
-
-          </Surface>
+            </Surface>
+          </TradeOSErrorBoundary>
 
           {/* Document/Logistics Streams */}
           <div className="grid md:grid-cols-2 gap-4">
-            <Surface variant="panel" className="p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <FileCheck className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-bold">Trade Documents</span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-sm">
-                  <span className="text-white/70">Commercial Invoice</span>
-                  <StatusBadge label="VERIFIED" tone="good" />
+            <TradeOSErrorBoundary>
+              <Surface variant="panel" className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileCheck className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-bold">Trade Documents</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-sm">
-                  <span className="text-white/70">Bill of Lading</span>
-                  <StatusBadge label="PENDING" tone="neutral" />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-sm">
+                    <span className="text-white/70">Commercial Invoice</span>
+                    <StatusBadge label="VERIFIED" tone="good" />
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-sm">
+                    <span className="text-white/70">Bill of Lading</span>
+                    <StatusBadge label="PENDING" tone="neutral" />
+                  </div>
                 </div>
-              </div>
-            </Surface>
+              </Surface>
+            </TradeOSErrorBoundary>
 
-            <Surface variant="panel" className="p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Timer className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm font-bold">Escrow Release</span>
-              </div>
-              <EscrowMilestoneProgress
-                totalAmount={tradeValue || 64000}
-                releasedAmount={escrowReleased || 19200}
-                heldAmount={escrowHeld || 44800}
-                currentMilestone={stageId === 'shipment' ? 'shipment_confirmed' : stageId === 'settlement' ? 'delivery_confirmed' : 'order_confirmed'}
-                className="bg-transparent"
-              />
-            </Surface>
+            <TradeOSErrorBoundary>
+              <Surface variant="panel" className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Timer className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-bold">Escrow Release</span>
+                </div>
+                <EscrowMilestoneProgress
+                  totalAmount={tradeValue || 64000}
+                  releasedAmount={escrowReleased || 19200}
+                  heldAmount={escrowHeld || 44800}
+                  currentMilestone={stageId === 'shipment' ? 'shipment_confirmed' : stageId === 'settlement' ? 'delivery_confirmed' : 'order_confirmed'}
+                  className="bg-transparent"
+                />
+              </Surface>
+            </TradeOSErrorBoundary>
           </div>
         </div>
 
@@ -431,23 +444,26 @@ export default function TradeWorkspace() {
         <div className="w-full lg:w-[320px] shrink-0 space-y-6">
           {/* AI Copilot Embed */}
           <div className="sticky top-6 space-y-4">
-            <AITradeCopilot mode="embedded" />
 
             {/* Compliance Rail */}
-            <AfCFTAOriginCheck trade={trade} />
+            <TradeOSErrorBoundary>
+              <AfCFTAOriginCheck trade={trade} />
+            </TradeOSErrorBoundary>
 
             {/* Kernel Ledger */}
-            <Surface variant="glass" className="p-4 border border-os-stroke/40">
-              <div className="text-[10px] uppercase tracking-widest text-os-muted mb-3 font-bold border-b border-os-stroke/40 pb-2">Kernel Ledger</div>
-              <div className="space-y-3">
-                {kernelConsole.audit.map((item, i) => (
-                  <div key={i} className="flex flex-col gap-0.5">
-                    <div className="text-xs text-[var(--os-text-primary)]">{item.label}</div>
-                    <div className="text-[10px] font-mono text-os-muted">{item.time}</div>
-                  </div>
-                ))}
-              </div>
-            </Surface>
+            <TradeOSErrorBoundary>
+              <Surface variant="glass" className="p-4 border border-os-stroke/40">
+                <div className="text-[10px] uppercase tracking-widest text-os-muted mb-3 font-bold border-b border-os-stroke/40 pb-2">Kernel Ledger</div>
+                <div className="space-y-3">
+                  {kernelConsole.audit.map((item, i) => (
+                    <div key={i} className="flex flex-col gap-0.5">
+                      <div className="text-xs text-[var(--os-text-primary)]">{item.label}</div>
+                      <div className="text-[10px] font-mono text-os-muted">{item.time}</div>
+                    </div>
+                  ))}
+                </div>
+              </Surface>
+            </TradeOSErrorBoundary>
           </div>
         </div>
       </div>

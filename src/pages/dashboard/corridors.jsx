@@ -3,11 +3,12 @@ import TradeMap from '@/components/geo/TradeMap';
 import { Surface } from "@/components/system/Surface";
 import { Button } from "@/components/shared/ui/button";
 import { StatusBadge } from "@/components/system/StatusBadge";
-import { ArrowRight, Plane, Ship, TrendingUp, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Plane, Ship, TrendingUp, AlertTriangle, X } from 'lucide-react';
 import SystemAdvice from '@/components/intelligence/SystemAdvice';
+import EnhancedCorridorIntelligence from '@/components/dashboard/EnhancedCorridorIntelligence';
 
 const CORRIDOR_DATA = [
-    { id: 'c1', origin: 'Lagos', dest: 'London', volume: '$2.4M', active: 12, risk: 'low', type: 'sea', friction: 'Low' },
+    { id: 'CI-FR-COCOA', origin: 'Abidjan', dest: 'Paris', volume: '$2.4M', active: 12, risk: 'low', type: 'sea', friction: 'Low', product: 'Cocoa' },
     { id: 'c2', origin: 'Nairobi', dest: 'Dubai', volume: '$1.8M', active: 8, risk: 'low', type: 'air', friction: 'Medium' },
     { id: 'c3', origin: 'Accra', dest: 'New York', volume: '$950K', active: 5, risk: 'medium', type: 'sea', friction: 'High' },
     { id: 'c4', origin: 'Joburg', dest: 'London', volume: '$450K', active: 3, risk: 'low', type: 'air', friction: 'Low' },
@@ -58,6 +59,28 @@ export default function CorridorsPage() {
                 />
             </div>
 
+            {/* Corridor Intelligence Panel (when selected) */}
+            {selectedCorridor && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-[#0E1016] rounded-2xl border border-white/10 shadow-2xl">
+                        <div className="sticky top-0 bg-[#0E1016] border-b border-white/10 p-4 flex items-center justify-between z-10">
+                            <h2 className="text-xl font-bold text-white">Corridor Intelligence</h2>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedCorridor(null)}
+                                className="hover:bg-white/10"
+                            >
+                                <X className="w-5 h-5" />
+                            </Button>
+                        </div>
+                        <div className="p-6">
+                            <EnhancedCorridorIntelligence corridorId={selectedCorridor.id} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Corridor List */}
             <div className="space-y-4">
                 <h3 className="text-sm font-medium text-os-muted uppercase tracking-wider">Active Routes</h3>
@@ -89,6 +112,12 @@ export default function CorridorsPage() {
                                         <span className={corridor.friction === 'High' ? 'text-red-400' : 'text-emerald-400'}>
                                             Friction: {corridor.friction}
                                         </span>
+                                        {corridor.id === 'CI-FR-COCOA' && (
+                                            <>
+                                                <span>•</span>
+                                                <span className="text-[#D4A937]">🎯 Featured</span>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>

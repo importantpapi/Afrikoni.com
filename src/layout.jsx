@@ -54,7 +54,7 @@ function Footer() {
     { to: '/signup', label: 'Start Selling' },
     { to: '/dashboard/products/new', label: 'List Products' },
     { to: '/dashboard', label: 'Seller Dashboard' },
-    { to: '/verification-center', label: 'Get Verified' }
+    { to: '/dashboard/verification-center', label: 'Get Verified' }
   ];
 
   const companyLinks = [

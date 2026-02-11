@@ -24,7 +24,7 @@ export default function NotificationBell() {
   // Must be defined BEFORE useEffect that uses it
   const loadNotifications = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       // ✅ KERNEL ALIGNMENT: Use kernel-provided values
       const companyId = profileCompanyId || null;
@@ -44,7 +44,7 @@ export default function NotificationBell() {
           setUnreadCount(0);
           return;
         }
-        
+
         setNotifications(data || []);
         setUnreadCount(data?.filter(n => !n.read).length || 0);
         return;
@@ -80,7 +80,7 @@ export default function NotificationBell() {
         setUnreadCount(0);
         return;
       }
-      
+
       setNotifications(data || []);
       setUnreadCount(data?.filter(n => !n.read).length || 0);
     } catch (error) {
@@ -98,27 +98,27 @@ export default function NotificationBell() {
 
     // ✅ VIBRANIUM STABILIZATION: Get current companyId
     const currentCompanyId = profileCompanyId || null;
-    
+
     // ✅ KERNEL POLISH: Use stable reference - only update if companyId actually changed
     // This prevents re-subscription when token refreshes but companyId stays the same
     if (currentCompanyId !== stableCompanyIdRef.current) {
       stableCompanyIdRef.current = currentCompanyId;
     }
     const stableCompanyId = stableCompanyIdRef.current;
-    
+
     // ✅ VIBRANIUM STABILIZATION: Only subscribe if companyId exists and is different from previous
     // This prevents infinite unsubscribe/subscribe cycles
     // ✅ KERNEL POLISH: Check if channel is already active for this companyId using stable reference
     const isAlreadySubscribed = (isAdmin && activeCompanyIdRef.current === 'admin') ||
-                                 (stableCompanyId && stableCompanyId === activeCompanyIdRef.current && channelRef.current);
-    
+      (stableCompanyId && stableCompanyId === activeCompanyIdRef.current && channelRef.current);
+
     if (isAlreadySubscribed) {
       // Already subscribed to this companyId - skip subscription but still load notifications
       console.log('[NotificationBell] Already subscribed - skipping duplicate subscription (stable companyId:', stableCompanyId, ')');
       loadNotifications();
       return;
     }
-    
+
     // ✅ VIBRANIUM STABILIZATION: If companyId became null, clear the ref and unsubscribe
     // ✅ KERNEL POLISH: Use stableCompanyId to prevent clearing on token refresh
     if (!stableCompanyId && activeCompanyIdRef.current) {
@@ -134,7 +134,7 @@ export default function NotificationBell() {
 
     // Now safe to load notifications
     loadNotifications();
-    
+
     // ✅ VIBRANIUM STABILIZATION: Unsubscribe from previous channel if exists and companyId changed
     // ✅ KERNEL POLISH: Use stable companyId reference to prevent unnecessary unsubscribes
     if (channelRef.current && activeCompanyIdRef.current !== stableCompanyId) {
@@ -142,7 +142,7 @@ export default function NotificationBell() {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
-    
+
     // ✅ KERNEL ALIGNMENT: Setup real-time subscription with proper admin/hybrid handling
     const setupSubscription = async () => {
       try {
@@ -153,7 +153,7 @@ export default function NotificationBell() {
             console.log('[NotificationBell] Already subscribed as admin - skipping');
             return channelRef.current;
           }
-          
+
           // Admin: No filter - RLS policy allows access to all notifications
           const channel = supabase
             .channel(`notifications-admin-${userId || 'global'}`)
@@ -176,30 +176,30 @@ export default function NotificationBell() {
           channelRef.current = channel;
           return channel;
         }
-        
+
         // ✅ FINAL 3% FIX: Clients use dashboard-${companyId} pattern for 'World Isolation'
         // Regular users (including hybrid): apply company_id filter
         if (!stableCompanyId && !userId && !user.email) {
           return null;
         }
-        
+
         // ✅ VIBRANIUM STABILIZATION: Only subscribe if companyId exists and is different
         if (!stableCompanyId) {
           console.log('[NotificationBell] No companyId - skipping subscription');
           return null;
         }
-        
+
         // ✅ KERNEL POLISH: Double-check we're not already subscribed to this companyId using stable reference
         if (activeCompanyIdRef.current === stableCompanyId && channelRef.current) {
           console.log('[NotificationBell] Already subscribed to companyId:', stableCompanyId);
           return channelRef.current;
         }
-        
+
         // ✅ FINAL 3% FIX: Use dashboard-${companyId} pattern to match DashboardRealtimeManager
         // ✅ KERNEL POLISH: Use stable companyId reference to prevent re-subscription on token refresh
         const channelName = `dashboard-${stableCompanyId}`;
         const filter = `company_id=eq.${stableCompanyId}`;
-        
+
         const channel = supabase
           .channel(channelName)
           .on('postgres_changes', {
@@ -252,7 +252,7 @@ export default function NotificationBell() {
 
   const markAsRead = async (notificationId) => {
     if (!notificationId) return;
-    
+
     try {
       const { error } = await supabase
         .from('notifications')
@@ -269,13 +269,13 @@ export default function NotificationBell() {
 
   const handleNotificationClick = (notification) => {
     if (!notification) return;
-    
+
     markAsRead(notification.id);
     setIsOpen(false);
-    
+
     // Determine the URL to navigate to
     let url = notification.link;
-    
+
     if (!url) {
       switch (notification.type) {
         case 'order':
@@ -288,7 +288,7 @@ export default function NotificationBell() {
           url = `/messages?conversation=${notification.related_id}`;
           break;
         case 'verification':
-          url = `/verification-center`;
+          url = `/dashboard/verification-center`;
           break;
         case 'product':
           url = `/dashboard/products/new?id=${notification.related_id}`;
@@ -302,7 +302,7 @@ export default function NotificationBell() {
           break;
       }
     }
-    
+
     if (url) {
       window.location.href = url;
     }
@@ -336,8 +336,8 @@ export default function NotificationBell() {
       {user && isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-sm" 
+          <div
+            className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
             role="button"
             tabIndex={0}
@@ -350,7 +350,7 @@ export default function NotificationBell() {
             }}
           />
           {/* Notification Dropdown */}
-          <Card 
+          <Card
             className="fixed w-80 md:w-96 max-h-[500px] overflow-hidden shadow-2xl border-2 border-afrikoni-gold/30 bg-white flex flex-col"
             style={{
               position: 'fixed',
@@ -378,9 +378,8 @@ export default function NotificationBell() {
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={`p-4 hover:bg-afrikoni-offwhite cursor-pointer transition-colors ${
-                          !notification.read ? 'bg-amber-50/50 border-l-2 border-amber-400' : ''
-                        }`}
+                        className={`p-4 hover:bg-afrikoni-offwhite cursor-pointer transition-colors ${!notification.read ? 'bg-amber-50/50 border-l-2 border-amber-400' : ''
+                          }`}
                         onClick={() => handleNotificationClick(notification)}
                       >
                         <div className="flex items-start gap-3">

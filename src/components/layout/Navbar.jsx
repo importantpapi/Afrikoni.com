@@ -123,7 +123,7 @@ export default function Navbar({ user, onLogout }) {
     window.addEventListener('storage', updateCompareCount);
     // Also listen for custom events
     window.addEventListener('compareUpdated', updateCompareCount);
-    
+
     // Poll for changes (since localStorage events don't fire in same tab)
     const interval = setInterval(updateCompareCount, 1000);
 
@@ -173,7 +173,7 @@ export default function Navbar({ user, onLogout }) {
         const savedCountry = localStorage.getItem('afrikoni_detected_country');
         const savedCurrency = localStorage.getItem('afrikoni_selected_currency') || contextCurrency || 'USD';
         const savedLanguage = localStorage.getItem('afrikoni_selected_language');
-        
+
         if (savedCountry && savedCurrency && savedLanguage) {
           setDetectedCountry(savedCountry);
           setSelectedCurrency(savedCurrency);
@@ -190,7 +190,7 @@ export default function Navbar({ user, onLogout }) {
           if (preferences.language && preferences.language !== language) {
             i18n.changeLanguage(preferences.language);
           }
-          
+
           // Save to localStorage
           localStorage.setItem('afrikoni_detected_country', preferences.countryCode);
           localStorage.setItem('afrikoni_selected_currency', preferences.currency);
@@ -205,7 +205,7 @@ export default function Navbar({ user, onLogout }) {
         setContextCurrency(defaultCurrency);
       }
     };
-    
+
     detectPreferences();
   }, []);
 
@@ -224,7 +224,7 @@ export default function Navbar({ user, onLogout }) {
     if (authRole) {
       setUserRole(authRole);
     }
-    
+
     // Fallback to prop user if auth context not available
     if (!user?.id) {
       setUserRole(null);
@@ -242,7 +242,7 @@ export default function Navbar({ user, onLogout }) {
           .select('id, name')
           .order('name')
           .limit(12); // Show top 12 categories in dropdown
-        
+
         if (error) throw error;
         setCategories(data || []);
       } catch (error) {
@@ -332,19 +332,19 @@ export default function Navbar({ user, onLogout }) {
   const handleCountryChange = (countryCode) => {
     setDetectedCountry(countryCode);
     localStorage.setItem('afrikoni_detected_country', countryCode);
-    
+
     // Auto-update currency based on country
     const newCurrency = getCurrencyForCountry(countryCode);
     setSelectedCurrency(newCurrency);
     setContextCurrency(newCurrency); // Update global currency context
     localStorage.setItem('afrikoni_selected_currency', newCurrency);
-    
+
     // Auto-update language based on country (optional)
     const newLanguage = getLanguageForCountry(countryCode);
     if (newLanguage && newLanguage !== language) {
       i18n.changeLanguage(newLanguage);
     }
-    
+
     setCountryOpen(false);
   };
 
@@ -370,11 +370,10 @@ export default function Navbar({ user, onLogout }) {
           {/* All Categories - Opens Mega Menu (Alibaba-style) */}
           <button
             onClick={toggleMegaMenu}
-            className={`hidden sm:flex items-center gap-1 text-sm sm:text-base font-bold transition-colors whitespace-nowrap ${
-              megaOpen
-                ? 'text-afrikoni-gold border-b-2 border-afrikoni-gold pb-1'
-                : 'text-afrikoni-cream hover:text-afrikoni-gold'
-            }`}
+            className={`hidden sm:flex items-center gap-1 text-sm sm:text-base font-bold transition-colors whitespace-nowrap ${megaOpen
+              ? 'text-afrikoni-gold border-b-2 border-afrikoni-gold pb-1'
+              : 'text-afrikoni-cream hover:text-afrikoni-gold'
+              }`}
           >
             All Categories
           </button>
@@ -386,9 +385,9 @@ export default function Navbar({ user, onLogout }) {
 
           {/* How It Works Link */}
           <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
-How It Works
+            How It Works
           </Link>
-          
+
           {compareCount > 0 && (
             <Link to="/compare" className="relative hidden sm:block">
               <Button
@@ -442,7 +441,7 @@ How It Works
                     <p className="text-sm text-afrikoni-deep/70 mb-4">
                       Shipping options and costs vary based on your location. Your currency will update automatically.
                     </p>
-                    
+
                     {/* Search input */}
                     <div className="mb-4">
                       <input
@@ -459,40 +458,40 @@ How It Works
                     {/* Countries list */}
                     <div className="space-y-1 max-h-[400px] overflow-y-auto">
                       {ALL_COUNTRIES
-                        .filter(country => 
+                        .filter(country =>
                           country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
                           country.code.toLowerCase().includes(countrySearchQuery.toLowerCase())
                         )
                         .map((country) => (
-                        <button
-                          key={country.code}
-                          onClick={() => handleCountryChange(country.code)}
-                          className={`
+                          <button
+                            key={country.code}
+                            onClick={() => handleCountryChange(country.code)}
+                            className={`
                             w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3
-                            ${detectedCountry === country.code 
-                              ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium' 
-                              : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
-                            }
+                            ${detectedCountry === country.code
+                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium'
+                                : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
+                              }
                           `}
-                        >
-                          <span className="text-xl flex-shrink-0">{country.flag}</span>
-                          <div className="flex-1">
-                            <div className="font-medium">{country.name}</div>
-                            <div className="text-xs text-afrikoni-deep/60">{country.currency}</div>
-                          </div>
-                          {detectedCountry === country.code && (
-                            <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
-                          )}
-                        </button>
-                      ))}
-                      {ALL_COUNTRIES.filter(country => 
+                          >
+                            <span className="text-xl flex-shrink-0">{country.flag}</span>
+                            <div className="flex-1">
+                              <div className="font-medium">{country.name}</div>
+                              <div className="text-xs text-afrikoni-deep/60">{country.currency}</div>
+                            </div>
+                            {detectedCountry === country.code && (
+                              <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      {ALL_COUNTRIES.filter(country =>
                         country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
                         country.code.toLowerCase().includes(countrySearchQuery.toLowerCase())
                       ).length === 0 && (
-                        <div className="text-center py-8 text-afrikoni-deep/60 text-sm">
-                          No countries found matching "{countrySearchQuery}"
-                        </div>
-                      )}
+                          <div className="text-center py-8 text-afrikoni-deep/60 text-sm">
+                            No countries found matching "{countrySearchQuery}"
+                          </div>
+                        )}
                     </div>
                   </motion.div>
                 </>
@@ -534,12 +533,12 @@ How It Works
                     <p className="text-sm text-afrikoni-deep/70 mb-6">
                       Select your preferred language and currency. You can update the settings at any time.
                     </p>
-                    
+
                     {/* Language Section */}
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
                         <label className="block text-sm font-semibold text-afrikoni-deep">Language</label>
-                        <span 
+                        <span
                           className="text-xs text-afrikoni-deep/60 cursor-help"
                           title="Public pages are translated. Dashboards and internal tools are currently available in English."
                         >
@@ -553,8 +552,8 @@ How It Works
                             onClick={() => handleLanguageChange(lang.code)}
                             className={`
                               w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3
-                              ${language === lang.code 
-                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium' 
+                              ${language === lang.code
+                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium'
                                 : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
                               }
                             `}
@@ -579,8 +578,8 @@ How It Works
                             onClick={() => handleCurrencyChange(curr.code)}
                             className={`
                               w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center justify-between
-                              ${selectedCurrency === curr.code 
-                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium' 
+                              ${selectedCurrency === curr.code
+                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium'
                                 : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
                               }
                             `}
@@ -635,9 +634,8 @@ How It Works
                     })()}
                   </div>
                   <ChevronDown
-                    className={`w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-cream transition-transform duration-200 hidden sm:block ${
-                      userMenuOpen ? 'rotate-180' : ''
-                    }`}
+                    className={`w-3 h-3 sm:w-4 sm:h-4 text-afrikoni-cream transition-transform duration-200 hidden sm:block ${userMenuOpen ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
 
@@ -740,43 +738,43 @@ How It Works
                 </AnimatePresence>
               </div>
             </>
-              ) : (
-                <>
-                  {/* Login / Signup Group - Updated CTAs */}
-                  <Link to="/login" className="hidden sm:block">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full text-xs sm:text-sm transition-all"
-                    >
-                      Login
-                    </Button>
-                  </Link>
-                  <Link to="/signup" className="hidden sm:block">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Button
-                        size="sm"
-                        className="h-9 px-4 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight rounded-full font-semibold shadow-lg hover:shadow-xl transition-all hover:ring-2 hover:ring-afrikoni-gold/50"
-                      >
-                        Sign Up
-                      </Button>
-                    </motion.div>
-                  </Link>
+          ) : (
+            <>
+              {/* Login / Signup Group - Updated CTAs */}
+              <Link to="/login" className="hidden sm:block">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full text-xs sm:text-sm transition-all"
+                >
+                  Login
+                </Button>
+              </Link>
+              <Link to="/signup" className="hidden sm:block">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    size="sm"
+                    className="h-9 px-4 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight rounded-full font-semibold shadow-lg hover:shadow-xl transition-all hover:ring-2 hover:ring-afrikoni-gold/50"
+                  >
+                    Sign Up
+                  </Button>
+                </motion.div>
+              </Link>
 
-                  {/* Mobile CTA */}
-                  <Link to="/signup" className="sm:hidden">
-                    <Button
-                      size="sm"
-                      className="h-8 sm:h-9 px-2 sm:px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full whitespace-nowrap"
-                    >
-                      Sign Up
-                    </Button>
-                  </Link>
-                </>
-              )}
+              {/* Mobile CTA */}
+              <Link to="/signup" className="sm:hidden">
+                <Button
+                  size="sm"
+                  className="h-8 sm:h-9 px-2 sm:px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full whitespace-nowrap"
+                >
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -823,9 +821,9 @@ How It Works
                     )}
                   </div>
                   <div className="mt-4 text-center">
-                    <Link 
-                      to="/categories" 
-                      onClick={() => setMegaOpen(false)} 
+                    <Link
+                      to="/categories"
+                      onClick={() => setMegaOpen(false)}
                       className="inline-flex items-center gap-2 text-afrikoni-gold hover:text-afrikoni-chestnut font-semibold text-sm sm:text-base transition-colors"
                     >
                       View All Categories
@@ -840,77 +838,77 @@ How It Works
                 {/* Additional Navigation Sections */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-          {/* Marketplace */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Marketplace</h3>
-            <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/marketplace" onClick={() => setMegaOpen(false)}>Browse Products</Link>
-              <Link to="/trending" onClick={() => setMegaOpen(false)}>Trending</Link>
-              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
-              <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Buyer Protection</Link>
-            </nav>
-          </div>
+                  {/* Marketplace */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Marketplace</h3>
+                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                      <Link to="/marketplace" onClick={() => setMegaOpen(false)}>Browse Products</Link>
+                      <Link to="/trending" onClick={() => setMegaOpen(false)}>Trending</Link>
+                      <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
+                      <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Buyer Protection</Link>
+                    </nav>
+                  </div>
 
-          {/* Buyers */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">For Buyers</h3>
-            <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
-              <Link to="/rfq" onClick={() => setMegaOpen(false)}>Request Quotation</Link>
-              <Link to="/buyer-hub" onClick={() => setMegaOpen(false)}>Buyer Hub</Link>
-              <Link to="/logistics" onClick={() => setMegaOpen(false)}>Logistics</Link>
-              <Link to="/protection" onClick={() => setMegaOpen(false)}>Trade Shield</Link>
-              <Link to="/inspection" onClick={() => setMegaOpen(false)}>Inspection Services</Link>
-            </nav>
-          </div>
+                  {/* Buyers */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">For Buyers</h3>
+                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                      <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
+                      <Link to="/rfq" onClick={() => setMegaOpen(false)}>Request Quotation</Link>
+                      <Link to="/buyer-hub" onClick={() => setMegaOpen(false)}>Buyer Hub</Link>
+                      <Link to="/logistics" onClick={() => setMegaOpen(false)}>Logistics</Link>
+                      <Link to="/protection" onClick={() => setMegaOpen(false)}>Trade Shield</Link>
+                      <Link to="/inspection" onClick={() => setMegaOpen(false)}>Inspection Services</Link>
+                    </nav>
+                  </div>
 
-          {/* Suppliers */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">For Suppliers</h3>
-            <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/become-supplier" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
-              <Link 
-                to={user ? "/dashboard" : "/become-supplier"} 
-                onClick={() => {
-                  setMegaOpen(false);
-                  // ✅ KERNEL-TO-UI ALIGNMENT: Simplified check - dashboard will handle capability routing
-                  // If user exists, link to dashboard (dashboard will show appropriate view)
-                  // If no user, link to become-supplier page
-                  if (!user) {
-                    navigate('/become-supplier');
-                  }
-                }}
-              >
-                Supplier Dashboard
-              </Link>
-              <Link to="/verification-center" onClick={() => setMegaOpen(false)}>KYC Verification</Link>
-              <Link to="/resources" onClick={() => setMegaOpen(false)}>Supplier Resources</Link>
-            </nav>
-          </div>
+                  {/* Suppliers */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">For Suppliers</h3>
+                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                      <Link to="/become-supplier" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
+                      <Link
+                        to={user ? "/dashboard" : "/become-supplier"}
+                        onClick={() => {
+                          setMegaOpen(false);
+                          // ✅ KERNEL-TO-UI ALIGNMENT: Simplified check - dashboard will handle capability routing
+                          // If user exists, link to dashboard (dashboard will show appropriate view)
+                          // If no user, link to become-supplier page
+                          if (!user) {
+                            navigate('/become-supplier');
+                          }
+                        }}
+                      >
+                        Supplier Dashboard
+                      </Link>
+                      <Link to="/dashboard/verification-center" onClick={() => setMegaOpen(false)}>KYC Verification</Link>
+                      <Link to="/resources" onClick={() => setMegaOpen(false)}>Supplier Resources</Link>
+                    </nav>
+                  </div>
 
-          {/* Trust & Safety */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Trust & Safety</h3>
-            <nav className="flex flex-col gap-2 text-gray-700 text-sm">
-              <Link to="/protection" onClick={() => setMegaOpen(false)}>Afrikoni Shield</Link>
-              <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Order Protection</Link>
-              <Link to="/anti-fraud" onClick={() => setMegaOpen(false)}>Anti-Fraud</Link>
-              <Link 
-                to={user ? "/dashboard/disputes" : "/disputes"} 
-                onClick={() => {
-                  setMegaOpen(false);
-                  if (user) {
-                    navigate('/dashboard/disputes');
-                  }
-                }}
-              >
-                Dispute Resolution
-              </Link>
-            </nav>
-          </div>
+                  {/* Trust & Safety */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Trust & Safety</h3>
+                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                      <Link to="/protection" onClick={() => setMegaOpen(false)}>Afrikoni Shield</Link>
+                      <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Order Protection</Link>
+                      <Link to="/anti-fraud" onClick={() => setMegaOpen(false)}>Anti-Fraud</Link>
+                      <Link
+                        to={user ? "/dashboard/disputes" : "/disputes"}
+                        onClick={() => {
+                          setMegaOpen(false);
+                          if (user) {
+                            navigate('/dashboard/disputes');
+                          }
+                        }}
+                      >
+                        Dispute Resolution
+                      </Link>
+                    </nav>
+                  </div>
                 </div>
               </div>
-      </motion.div>
+            </motion.div>
           </>
         )}
       </AnimatePresence>

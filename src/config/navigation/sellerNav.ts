@@ -32,12 +32,12 @@ export const sellerNav = [
   { icon: MessageSquare, label: 'Messages', path: '/messages', priority: 'primary' },
   { icon: ShoppingCart, label: 'Sales', path: '/dashboard/sales', priority: 'primary' },
   { icon: Wallet, label: 'Payments', path: '/dashboard/payments', priority: 'primary' },
-  
+
   // 🧩 SECONDARY - Manage section (collapsible, operational tools)
-  { 
-    icon: Package, 
-    label: 'Manage', 
-    path: null, 
+  {
+    icon: Package,
+    label: 'Manage',
+    path: null,
     priority: 'secondary',
     isSection: true,
     children: [
@@ -50,12 +50,12 @@ export const sellerNav = [
       { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
     ]
   },
-  
+
   // 🛡️ TERTIARY - Insights & Growth (collapsed by default)
-  { 
-    icon: BarChart3, 
-    label: 'Insights & Growth', 
-    path: null, 
+  {
+    icon: BarChart3,
+    label: 'Insights & Growth',
+    path: null,
     priority: 'tertiary',
     isSection: true,
     collapsedByDefault: true,
@@ -66,9 +66,9 @@ export const sellerNav = [
       { icon: Sparkles, label: 'Subscriptions', path: '/dashboard/subscriptions' },
     ]
   },
-  
+
   // 💬 SUPPORT - Help & verification (bottom, separated)
-  { icon: Shield, label: 'Verification', path: '/verification-center', priority: 'support' },
+  { icon: Shield, label: 'Verification', path: '/dashboard/verification-center', priority: 'support' },
   { icon: HelpCircle, label: 'Support Chat', path: '/dashboard/support-chat', priority: 'support' },
   { icon: Shield, label: 'Disputes', path: '/dashboard/disputes', priority: 'support' },
   { icon: Settings, label: 'Settings', path: '/dashboard/settings', priority: 'support' },

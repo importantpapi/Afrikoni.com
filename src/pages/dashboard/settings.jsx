@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import CookieSettingsModal from '@/components/shared/ui/CookieSettingsModal';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
+import { LiteModeToggle } from '@/components/system/LiteModeToggle';
 
 // Helper function to safely get translations with fallback
 const getTranslation = (t, key, fallback) => {
@@ -516,10 +517,10 @@ export default function DashboardSettings() {
 
           <TabsContent value="profile" className="space-y-6">
             {/* Profile Card */}
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-white">
               <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
                 <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
-                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="p-2 rounded-lg bg-afrikoni-cream/20 backdrop-blur-sm border border-afrikoni-gold/20">
                     <User className="w-5 h-5" />
                   </div>
                   {translate('settings.personalInformation', 'Personal Information')}
@@ -531,9 +532,9 @@ export default function DashboardSettings() {
                   <Label className="text-os-muted">{translate('settings.profilePicture', 'Profile Picture')}</Label>
                   <div className="mt-4 flex items-center gap-5">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-2xl object-cover border border-white/10 shadow-lg" loading="lazy" decoding="async" />
+                      <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-2xl object-cover border border-afrikoni-gold/20 shadow-lg" loading="lazy" decoding="async" />
                     ) : (
-                      <div className="w-20 h-20 rounded-2xl flex items-center justify-center border border-white/10 bg-white/5">
+                      <div className="w-20 h-20 rounded-2xl flex items-center justify-center border border-afrikoni-gold/20 bg-afrikoni-cream/20">
                         <User className="w-8 h-8 text-os-muted" />
                       </div>
                     )}
@@ -548,7 +549,7 @@ export default function DashboardSettings() {
                         ref={avatarInputRef}
                       />
                       <label htmlFor="avatar-upload">
-                        <Button type="button" variant="outline" size="sm" disabled={uploadingAvatar} asChild className="border-white/10 hover:bg-white/5">
+                        <Button type="button" variant="outline" size="sm" disabled={uploadingAvatar} asChild className="border-afrikoni-gold/20 hover:bg-afrikoni-cream/20">
                           <span>
                             {uploadingAvatar ? translate('settings.uploading', 'Uploading...') : avatarUrl ? translate('settings.changeAvatar', 'Change Avatar') : translate('settings.uploadAvatar', 'Upload Avatar')}
                           </span>
@@ -577,7 +578,7 @@ export default function DashboardSettings() {
                       value={formData.name || formData.full_name}
                       onChange={(e) => handleChange('name', e.target.value)}
                       placeholder={translate('settings.fullNamePlaceholder', 'Your full name')}
-                      className="mt-1.5 bg-white/5 border-white/10 focus:border-white/20"
+                      className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20 focus:border-white/20"
                     />
                   </div>
                   <div>
@@ -587,7 +588,7 @@ export default function DashboardSettings() {
                       type="email"
                       value={formData.email}
                       disabled
-                      className="mt-1.5 bg-white/5 border-white/10 opacity-50 cursor-not-allowed"
+                      className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20 opacity-50 cursor-not-allowed"
                     />
                     <p className="text-xs mt-1.5 text-os-muted opacity-60">{translate('settings.emailCannotChange', 'Email cannot be changed')}</p>
                   </div>
@@ -597,7 +598,7 @@ export default function DashboardSettings() {
                   <div>
                     <Label htmlFor="language" className="text-os-muted">{translate('common.language', 'Language')}</Label>
                     <Select value={preferences.language} onValueChange={(v) => setPreferences({ ...preferences, language: v })}>
-                      <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
+                      <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-afrikoni-cream/20 border-afrikoni-gold/20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -612,7 +613,7 @@ export default function DashboardSettings() {
                   <div>
                     <Label htmlFor="currency" className="text-os-muted">{translate('common.currency', 'Currency')}</Label>
                     <Select value={preferences.currency} onValueChange={(v) => setPreferences({ ...preferences, currency: v })}>
-                      <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
+                      <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-afrikoni-cream/20 border-afrikoni-gold/20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -636,7 +637,7 @@ export default function DashboardSettings() {
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
                     placeholder={translate('settings.phonePlaceholder', '+234 800 000 0000')}
-                    className="mt-1.5 bg-white/5 border-white/10"
+                    className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                   />
                 </div>
 
@@ -655,10 +656,10 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-white">
               <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
                 <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
-                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="p-2 rounded-lg bg-afrikoni-cream/20 backdrop-blur-sm border border-afrikoni-gold/20">
                     <Building2 className="w-5 h-5" />
                   </div>
                   {translate('settings.companyInformation', 'Company Information')}
@@ -676,7 +677,7 @@ export default function DashboardSettings() {
                       value={formData.company_name}
                       onChange={(e) => handleChange('company_name', e.target.value)}
                       placeholder="Enter your company name"
-                      className="mt-1.5 bg-white/5 border-white/10"
+                      className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                     />
                   </div>
 
@@ -684,7 +685,7 @@ export default function DashboardSettings() {
                     <div>
                       <Label htmlFor="business_type" className="text-os-muted">{translate('settings.businessType', 'Business Type')}</Label>
                       <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
-                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
+                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-afrikoni-cream/20 border-afrikoni-gold/20">
                           <SelectValue placeholder={translate('settings.selectBusinessType', 'Select business type')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -699,7 +700,7 @@ export default function DashboardSettings() {
                     <div>
                       <Label htmlFor="country" className="text-os-muted">{translate('onboarding.country', 'Country')}</Label>
                       <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
-                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
+                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-afrikoni-cream/20 border-afrikoni-gold/20">
                           <SelectValue placeholder={translate('onboarding.selectCountry', 'Select country')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -719,7 +720,7 @@ export default function DashboardSettings() {
                         value={formData.city}
                         onChange={(e) => handleChange('city', e.target.value)}
                         placeholder="Enter city"
-                        className="mt-1.5 bg-white/5 border-white/10"
+                        className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
                     <div>
@@ -730,7 +731,7 @@ export default function DashboardSettings() {
                         value={formData.phone}
                         onChange={(e) => handleChange('phone', e.target.value)}
                         placeholder="+234 800 000 0000"
-                        className="mt-1.5 bg-white/5 border-white/10"
+                        className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
                   </div>
@@ -749,7 +750,7 @@ export default function DashboardSettings() {
                         value={formData.business_email}
                         onChange={(e) => handleChange('business_email', e.target.value)}
                         placeholder="business@company.com"
-                        className="mt-1.5 bg-white/5 border-white/10"
+                        className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
                     <div>
@@ -759,7 +760,7 @@ export default function DashboardSettings() {
                         value={formData.website}
                         onChange={(e) => handleChange('website', e.target.value)}
                         placeholder="https://yourcompany.com"
-                        className="mt-1.5 bg-white/5 border-white/10"
+                        className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
                   </div>
@@ -780,13 +781,13 @@ export default function DashboardSettings() {
                         placeholder="e.g. 2010"
                         min="1900"
                         max={new Date().getFullYear()}
-                        className="mt-1.5 bg-white/5 border-white/10"
+                        className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
                     <div>
                       <Label htmlFor="company_size" className="text-os-muted">Company Size</Label>
                       <Select value={formData.company_size} onValueChange={(v) => handleChange('company_size', v)}>
-                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-white/5 border-white/10">
+                        <SelectTrigger className="mt-1.5 min-h-[44px] md:min-h-0 bg-afrikoni-cream/20 border-afrikoni-gold/20">
                           <SelectValue placeholder="Select size" />
                         </SelectTrigger>
                         <SelectContent>
@@ -808,7 +809,7 @@ export default function DashboardSettings() {
                       onChange={(e) => handleChange('company_description', e.target.value)}
                       rows={4}
                       placeholder="Describe your company, products, and services..."
-                      className="mt-1.5 bg-white/5 border-white/10"
+                      className="mt-1.5 bg-afrikoni-cream/20 border-afrikoni-gold/20"
                     />
                     <p className="text-xs mt-1.5 text-os-muted opacity-60">This helps buyers understand your business better</p>
                   </div>
@@ -816,9 +817,9 @@ export default function DashboardSettings() {
 
                 {/* Legal & Compliance (Link to Verification Center) */}
                 <div className="pt-6 border-t border-white/5">
-                  <div className="p-4 rounded-xl border border-white/10 bg-white/5">
+                  <div className="p-4 rounded-xl border border-afrikoni-gold/20 bg-afrikoni-cream/20">
                     <div className="flex items-start gap-4">
-                      <div className="p-2 rounded-lg bg-white/5 text-afrikoni-gold">
+                      <div className="p-2 rounded-lg bg-afrikoni-cream/20 text-afrikoni-gold">
                         <Shield className="w-5 h-5 flex-shrink-0" />
                       </div>
                       <div className="flex-1">
@@ -826,8 +827,8 @@ export default function DashboardSettings() {
                         <p className="text-sm text-os-muted mb-4 leading-relaxed">
                           Update business registration, tax ID, and verification documents in the Verification Center.
                         </p>
-                        <Link to="/verification-center">
-                          <Button type="button" variant="outline" size="sm" className="hover:bg-white/5 border-white/10">
+                        <Link to="/dashboard/verification-center">
+                          <Button type="button" variant="outline" size="sm" className="hover:bg-afrikoni-cream/20 border-afrikoni-gold/20">
                             Go to Verification Center
                           </Button>
                         </Link>
@@ -852,10 +853,10 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-white">
               <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
                 <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
-                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="p-2 rounded-lg bg-afrikoni-cream/20 backdrop-blur-sm border border-afrikoni-gold/20">
                     <Bell className="w-5 h-5" />
                   </div>
                   {translate('settings.notifications', 'Notification Preferences')}
@@ -871,7 +872,7 @@ export default function DashboardSettings() {
                   { title: "Reviews", desc: "Notify me when I receive new reviews", key: "reviews" },
                   { title: "Payment Events", desc: "Notify me about payment receipts and escrow releases", key: "payments" },
                 ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5">
+                  <div key={item.key} className="flex items-center justify-between p-4 rounded-xl border border-afrikoni-gold/20 bg-afrikoni-cream/20">
                     <div>
                       <h4 className="font-semibold text-[var(--os-text-primary)]">{item.title}</h4>
                       <p className="text-sm text-os-muted">{item.desc}</p>
@@ -905,10 +906,10 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#0E1016] to-[#141B24]">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-white">
               <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
                 <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
-                  <div className="p-2 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="p-2 rounded-lg bg-afrikoni-cream/20 backdrop-blur-sm border border-afrikoni-gold/20">
                     <Shield className="w-5 h-5" />
                   </div>
                   {translate('settings.security', 'Security Settings')}
@@ -927,7 +928,7 @@ export default function DashboardSettings() {
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                         placeholder="Enter current password"
-                        className="bg-white/5 border-white/10"
+                        className="bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -938,7 +939,7 @@ export default function DashboardSettings() {
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                         placeholder="Enter new password (min 6 characters)"
-                        className="bg-white/5 border-white/10"
+                        className="bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -949,10 +950,10 @@ export default function DashboardSettings() {
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                         placeholder="Confirm new password"
-                        className="bg-white/5 border-white/10"
+                        className="bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
                     </div>
-                    <Button onClick={handleChangePassword} disabled={isSaving || !passwordData.newPassword} variant="outline" className="border-white/10 hover:bg-white/5">
+                    <Button onClick={handleChangePassword} disabled={isSaving || !passwordData.newPassword} variant="outline" className="border-afrikoni-gold/20 hover:bg-afrikoni-cream/20">
                       <Lock className="w-4 h-4 mr-2" />
                       Change Password
                     </Button>
@@ -961,7 +962,7 @@ export default function DashboardSettings() {
 
                 <div className="pt-6 border-t border-white/5">
                   <h4 className="font-semibold text-[var(--os-text-primary)] mb-4">Two-Factor Authentication</h4>
-                  <div className="p-4 rounded-xl border border-white/10 bg-white/5">
+                  <div className="p-4 rounded-xl border border-afrikoni-gold/20 bg-afrikoni-cream/20">
                     <p className="text-sm text-os-muted">
                       Two-factor authentication will be available in a future update. This feature will add an extra layer of security to your account.
                     </p>
@@ -990,12 +991,12 @@ export default function DashboardSettings() {
                         type={showApiKey ? 'text' : 'password'}
                         value={apiKey || 'Not generated yet'}
                         readOnly
-                        className="font-mono bg-white/5 border-white/10"
+                        className="font-mono bg-afrikoni-cream/20 border-afrikoni-gold/20"
                       />
-                      <Button variant="outline" size="sm" onClick={() => setShowApiKey(!showApiKey)} className="border-white/10 hover:bg-white/5">
+                      <Button variant="outline" size="sm" onClick={() => setShowApiKey(!showApiKey)} className="border-afrikoni-gold/20 hover:bg-afrikoni-cream/20">
                         {showApiKey ? 'Hide' : 'Show'}
                       </Button>
-                      <Button variant="outline" size="sm" onClick={generateApiKey} disabled={isSaving} className="border-white/10 hover:bg-white/5">
+                      <Button variant="outline" size="sm" onClick={generateApiKey} disabled={isSaving} className="border-afrikoni-gold/20 hover:bg-afrikoni-cream/20">
                         Regenerate
                       </Button>
                     </div>
@@ -1020,7 +1021,7 @@ export default function DashboardSettings() {
                     <Button
                       onClick={() => setShowCookieModal(true)}
                       variant="outline"
-                      className="w-full sm:w-auto border-white/10 hover:bg-white/5"
+                      className="w-full sm:w-auto border-afrikoni-gold/20 hover:bg-afrikoni-cream/20"
                     >
                       <Cookie className="w-4 h-4 mr-2" />
                       Manage Consent

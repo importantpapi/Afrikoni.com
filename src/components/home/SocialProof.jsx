@@ -129,11 +129,10 @@ export default function SocialProof() {
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            className={`w-5 h-5 ${
-                              star <= currentTestimonial.rating
+                            className={`w-5 h-5 ${star <= currentTestimonial.rating
                                 ? 'text-amber-500 fill-amber-500'
                                 : 'text-afrikoni-deep/30'
-                            }`}
+                              }`}
                           />
                         ))}
                       </div>
@@ -188,11 +187,10 @@ export default function SocialProof() {
                 <button
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === currentIndex
+                  className={`w-2 h-2 rounded-full transition-all ${idx === currentIndex
                       ? 'bg-afrikoni-gold w-8'
                       : 'bg-afrikoni-gold/30'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -228,7 +226,7 @@ export default function SocialProof() {
                   Get Started
                 </Button>
               </Link>
-              <Link to="/verification-center">
+              <Link to="/dashboard/verification-center">
                 <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20">
                   Learn About Verification
                 </Button>

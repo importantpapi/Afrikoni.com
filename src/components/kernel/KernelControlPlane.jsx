@@ -1,12 +1,16 @@
 import React, { useMemo } from 'react';
-import { Activity, ShieldCheck, Wallet, Truck, AlertTriangle, Sparkles, Globe, Radar, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Activity, ShieldCheck, Wallet, Truck, AlertTriangle, Sparkles, Globe, Radar, Clock, ArrowRight, ChevronRight } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { StatusBadge } from '@/components/system/StatusBadge';
+import { Button } from '@/components/shared/ui/button';
 import { useKernelState } from '@/hooks/useKernelState';
 import { useTradeKernelState } from '@/hooks/useTradeKernelState';
 import { useKernelEventStream } from '@/hooks/useKernelEventStream';
+import { cn } from '@/lib/utils';
 
 export default function KernelControlPlane({ companyId }) {
+  const navigate = useNavigate();
   const { data: kernelData, loading: kernelLoading } = useKernelState();
   const {
     trustScore,
@@ -33,6 +37,35 @@ export default function KernelControlPlane({ companyId }) {
     return { inCompliance, blocked, inTransit };
   }, [activeTrades]);
 
+  // Actionable metric handlers
+  const handleTrustScoreClick = () => {
+    if (kycStatus !== 'verified') {
+      navigate('/dashboard/kyc');
+    } else {
+      navigate('/dashboard/performance');
+    }
+  };
+
+  const handleEscrowClick = () => {
+    navigate('/dashboard/payments');
+  };
+
+  const handleRiskClick = () => {
+    if (tradeStats.blocked > 0) {
+      navigate('/dashboard/disputes');
+    } else {
+      navigate('/dashboard/risk');
+    }
+  };
+
+  const handleComplianceClick = () => {
+    navigate('/dashboard/compliance');
+  };
+
+  const handleShipmentsClick = () => {
+    navigate('/dashboard/shipments');
+  };
+
   return (
     <Surface variant="glass" className="p-6 border border-os-stroke/60">
       <div className="flex items-center justify-between">
@@ -43,41 +76,109 @@ export default function KernelControlPlane({ companyId }) {
         <StatusBadge label={kernelLoading ? 'SYNCING' : 'LIVE'} tone="neutral" />
       </div>
 
+      {/* Actionable Metrics Grid */}
       <div className="mt-5 grid md:grid-cols-3 gap-4">
-        <div className="os-panel-soft p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" /> Trust Score
+        {/* Trust Score - Actionable */}
+        <button
+          onClick={handleTrustScoreClick}
+          className="os-panel-soft p-4 text-left transition-all hover:bg-white/10 hover:border-white/20 border border-transparent group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Trust Score
+            </div>
+            <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
           </div>
           <div className="text-2xl font-semibold mt-2">{kernelLoading ? '…' : trustScore}</div>
-          <div className="text-xs text-os-muted mt-1">KYC: {kycStatus === 'verified' ? 'Verified' : 'Pending'}</div>
-        </div>
-        <div className="os-panel-soft p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Wallet className="w-4 h-4 text-amber-400" /> Escrow Exposure
+          <div className="text-xs text-os-muted mt-1">
+            KYC: {kycStatus === 'verified' ? 'Verified' : 'Pending'}
+          </div>
+          {kycStatus !== 'verified' && (
+            <div className="mt-2 text-xs text-amber-400">
+              → Complete KYC to unlock features
+            </div>
+          )}
+        </button>
+
+        {/* Escrow Exposure - Actionable */}
+        <button
+          onClick={handleEscrowClick}
+          className="os-panel-soft p-4 text-left transition-all hover:bg-white/10 hover:border-white/20 border border-transparent group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Wallet className="w-4 h-4 text-amber-400" /> Escrow Exposure
+            </div>
+            <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
           </div>
           <div className="text-2xl font-semibold mt-2">{kernelLoading ? '…' : escrowDisplay}</div>
           <div className="text-xs text-os-muted mt-1">Pipeline: {kernelLoading ? '…' : pipelineDisplay}</div>
-        </div>
-        <div className="os-panel-soft p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <AlertTriangle className="w-4 h-4 text-red-400" /> Risk Surface
+          {escrowLockedValue > 0 && (
+            <div className="mt-2 text-xs text-emerald-400">
+              → View payment details
+            </div>
+          )}
+        </button>
+
+        {/* Risk Surface - Actionable */}
+        <button
+          onClick={handleRiskClick}
+          className={cn(
+            "os-panel-soft p-4 text-left transition-all hover:bg-white/10 hover:border-white/20 border border-transparent group",
+            riskLevel === 'high' && "border-red-500/30"
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <AlertTriangle className={cn(
+                "w-4 h-4",
+                riskLevel === 'high' ? 'text-red-400' : riskLevel === 'medium' ? 'text-amber-400' : 'text-emerald-400'
+              )} /> Risk Surface
+            </div>
+            <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
           </div>
           <div className="text-2xl font-semibold mt-2">{riskLevel.toUpperCase()}</div>
           <div className="text-xs text-os-muted mt-1">Blocked Trades: {tradeStats.blocked}</div>
-        </div>
+          {tradeStats.blocked > 0 && (
+            <div className="mt-2 text-xs text-red-400">
+              → Resolve {tradeStats.blocked} dispute{tradeStats.blocked !== 1 ? 's' : ''}
+            </div>
+          )}
+        </button>
       </div>
 
       <div className="mt-6 grid lg:grid-cols-[1.2fr_1fr] gap-4">
+        {/* Kernel Event Stream - Actionable Events */}
         <div className="os-panel-soft p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Radar className="w-4 h-4 text-os-gold" /> Kernel Event Stream
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Radar className="w-4 h-4 text-os-gold" /> Kernel Event Stream
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/dashboard/trace-center')}
+              className="h-auto py-1 px-2 text-xs"
+            >
+              View All
+              <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
           </div>
-          <div className="mt-3 space-y-3">
+          <div className="space-y-3">
             {(eventLoading ? [] : timeline).slice(0, 6).map((item) => (
-              <div key={item.id} className="flex items-center justify-between text-xs">
-                <span className="text-[var(--os-text-primary)]">{item.label}</span>
+              <button
+                key={item.id}
+                onClick={() => {
+                  // Navigate based on event type
+                  if (item.type === 'trade') navigate(`/dashboard/trade/${item.relatedId}`);
+                  else if (item.type === 'rfq') navigate(`/dashboard/rfqs/${item.relatedId}`);
+                  else if (item.type === 'shipment') navigate(`/dashboard/shipments/${item.relatedId}`);
+                }}
+                className="w-full flex items-center justify-between text-xs hover:bg-white/5 p-2 rounded transition-colors group"
+              >
+                <span className="text-[var(--os-text-primary)] group-hover:text-white">{item.label}</span>
                 <span className="text-os-muted font-mono">{item.time}</span>
-              </div>
+              </button>
             ))}
             {!eventLoading && timeline.length === 0 && (
               <div className="text-xs text-os-muted">No kernel events yet.</div>
@@ -85,27 +186,61 @@ export default function KernelControlPlane({ companyId }) {
           </div>
         </div>
 
+        {/* Corridor Health - Actionable Metrics */}
         <div className="os-panel-soft p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
+          <div className="flex items-center gap-2 text-sm font-semibold mb-3">
             <Globe className="w-4 h-4 text-emerald-400" /> Corridor Health
           </div>
-          <div className="mt-3 space-y-2 text-xs text-os-muted">
-            <div className="flex items-center justify-between">
+          <div className="space-y-2 text-xs text-os-muted">
+            {/* AfCFTA Readiness - Actionable */}
+            <button
+              onClick={() => navigate('/dashboard/compliance')}
+              className="w-full flex items-center justify-between hover:bg-white/5 p-2 rounded transition-colors group"
+            >
               <span>AfCFTA readiness</span>
-              <span className="text-[var(--os-text-primary)]">{afcftaReady ? 'READY' : 'ALIGNING'}</span>
-            </div>
-            <div className="flex items-center justify-between">
+              <span className={cn(
+                "text-[var(--os-text-primary)] group-hover:text-white",
+                !afcftaReady && "text-amber-400"
+              )}>
+                {afcftaReady ? 'READY' : 'ALIGNING →'}
+              </span>
+            </button>
+
+            {/* In Transit - Actionable */}
+            <button
+              onClick={handleShipmentsClick}
+              className="w-full flex items-center justify-between hover:bg-white/5 p-2 rounded transition-colors group"
+            >
               <span>In transit</span>
-              <span className="text-[var(--os-text-primary)]">{shipmentsInTransit}</span>
-            </div>
-            <div className="flex items-center justify-between">
+              <span className="text-[var(--os-text-primary)] group-hover:text-white">
+                {shipmentsInTransit} {shipmentsInTransit > 0 && '→'}
+              </span>
+            </button>
+
+            {/* Compliance Queue - Actionable */}
+            <button
+              onClick={handleComplianceClick}
+              className="w-full flex items-center justify-between hover:bg-white/5 p-2 rounded transition-colors group"
+            >
               <span>Compliance queue</span>
-              <span className="text-[var(--os-text-primary)]">{tradeStats.inCompliance}</span>
-            </div>
-            <div className="flex items-center justify-between">
+              <span className={cn(
+                "text-[var(--os-text-primary)] group-hover:text-white",
+                tradeStats.inCompliance > 0 && "text-amber-400"
+              )}>
+                {tradeStats.inCompliance} {tradeStats.inCompliance > 0 && '→'}
+              </span>
+            </button>
+
+            {/* Live Trades - Actionable */}
+            <button
+              onClick={() => navigate('/dashboard/trade-pipeline')}
+              className="w-full flex items-center justify-between hover:bg-white/5 p-2 rounded transition-colors group"
+            >
               <span>Live trades</span>
-              <span className="text-[var(--os-text-primary)]">{activeTrades?.length || 0}</span>
-            </div>
+              <span className="text-[var(--os-text-primary)] group-hover:text-white">
+                {activeTrades?.length || 0} →
+              </span>
+            </button>
           </div>
         </div>
       </div>

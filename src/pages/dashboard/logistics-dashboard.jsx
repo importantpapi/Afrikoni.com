@@ -24,8 +24,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import RealTimeTracking from '@/components/logistics/RealTimeTracking';
+import ShipmentRiskVisualizer from '@/components/risk/ShipmentRiskVisualizer';
 
-import { 
+import {
   Truck,
   MapPin,
   DollarSign,
@@ -49,7 +50,7 @@ function LogisticsDashboardInner() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  
+
   // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
   const { user, profile, userId, profileCompanyId, capabilities, isSystemReady, canLoadData } = useDashboardKernel();
 
@@ -86,7 +87,7 @@ function LogisticsDashboardInner() {
       </div>
     );
   }
-  
+
   // ✅ KERNEL MIGRATION: Check if user is authenticated
   if (!userId) {
     navigate('/login');
@@ -111,10 +112,10 @@ function LogisticsDashboardInner() {
 
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (!shouldRefresh) {
       console.log('[LogisticsDashboard] Data is fresh - skipping reload');
       return;
@@ -138,9 +139,9 @@ function LogisticsDashboardInner() {
         // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
         const cid = profileCompanyId;
         console.log('[LogisticsDashboard] Company ID:', cid);
-        
+
         setError(null);
-        
+
         if (!isMounted) {
           console.warn('[LogisticsDashboard] Component unmounted during load');
           clearTimeout(timeoutId);
@@ -182,7 +183,7 @@ function LogisticsDashboardInner() {
           shipments: results[1].status,
           partners: results[2].status
         });
-        
+
         // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
         lastLoadTimeRef.current = Date.now();
         markFresh();
@@ -214,15 +215,15 @@ function LogisticsDashboardInner() {
 
   const loadKPIs = async (cid) => {
     const { data } = await supabase
-        .from('shipments')
-        .select('*, orders(*)')
+      .from('shipments')
+      .select('*, orders(*)')
       .eq('logistics_partner_id', cid);
 
     if (!data) return;
 
     const delivered = data.filter(s => s.status === 'delivered');
     const active = data.filter(s =>
-        ['pending_pickup', 'picked_up', 'in_transit', 'customs', 'out_for_delivery'].includes(s.status)
+      ['pending_pickup', 'picked_up', 'in_transit', 'customs', 'out_for_delivery'].includes(s.status)
     );
 
     const revenue = data.reduce(
@@ -230,7 +231,7 @@ function LogisticsDashboardInner() {
       0
     );
 
-      setKpis({
+    setKpis({
       activeShipments: active.length,
       inTransit: data.filter(s => s.status === 'in_transit').length,
       delivered: delivered.length,
@@ -238,23 +239,23 @@ function LogisticsDashboardInner() {
       totalRevenue: revenue,
       onTimeDelivery: delivered.length
         ? Math.round(
-            (delivered.filter(s =>
-              new Date(s.updated_at) <= new Date(s.estimated_delivery)
-            ).length /
-              delivered.length) *
-              100
-          )
+          (delivered.filter(s =>
+            new Date(s.updated_at) <= new Date(s.estimated_delivery)
+          ).length /
+            delivered.length) *
+          100
+        )
         : 0,
       avgDeliveryTime: delivered.length
         ? Math.round(
-            delivered.reduce((sum, s) => {
-              return (
-                sum +
-                (new Date(s.updated_at) - new Date(s.created_at)) /
-                  (1000 * 60 * 60 * 24)
-              );
-            }, 0) / delivered.length
-          )
+          delivered.reduce((sum, s) => {
+            return (
+              sum +
+              (new Date(s.updated_at) - new Date(s.created_at)) /
+              (1000 * 60 * 60 * 24)
+            );
+          }, 0) / delivered.length
+        )
         : 0,
       activePartners: new Set(
         data.flatMap(s => [s.orders?.buyer_company_id, s.orders?.seller_company_id])
@@ -263,25 +264,25 @@ function LogisticsDashboardInner() {
   };
 
   const loadRecentShipments = async (cid) => {
-      let query = supabase
-        .from('shipments')
+    let query = supabase
+      .from('shipments')
       .select('*, orders(products(name), total_amount)')
       .eq('logistics_partner_id', cid)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-      if (shipmentStatusFilter !== 'all') {
-        query = query.eq('status', shipmentStatusFilter);
-      }
+    if (shipmentStatusFilter !== 'all') {
+      query = query.eq('status', shipmentStatusFilter);
+    }
 
     const { data } = await query;
-      setShipments(data || []);
+    setShipments(data || []);
     setRecentShipments(data || []);
   };
 
   const loadPartners = async (cid) => {
-      const { data: orders } = await supabase
-        .from('orders')
+    const { data: orders } = await supabase
+      .from('orders')
       .select('buyer_company_id, seller_company_id');
 
     if (!orders) return;
@@ -293,8 +294,8 @@ function LogisticsDashboardInner() {
     );
 
     const { data } = await supabase
-        .from('companies')
-        .select('id, company_name, country, city, verified')
+      .from('companies')
+      .select('id, company_name, country, city, verified')
       .in('id', ids);
 
     setPartners(data || []);
@@ -408,12 +409,12 @@ function LogisticsDashboardInner() {
       </div>
     );
   }
-  
+
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
@@ -425,7 +426,7 @@ function LogisticsDashboardInner() {
       />
     );
   }
-  
+
   if (!profileCompanyId) {
     return (
       <div className="flex justify-center py-20">
@@ -435,26 +436,26 @@ function LogisticsDashboardInner() {
   }
 
   return (
-      <div className="space-y-6">
+    <div className="space-y-6">
       {/* Page header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-semibold">
             Logistics Control Tower
-            </h1>
+          </h1>
           <p className="text-sm">
             Shipments, risk, and Afrikoni commission at a glance.
-            </p>
-          </div>
+          </p>
+        </div>
         <div className="flex items-center gap-2">
-            <Button
+          <Button
             variant="default"
             className="hover:bg-afrikoni-deep/90"
             onClick={() => setActiveTab('shipments')}
           >
             View Shipments
-            </Button>
-          </div>
+          </Button>
+        </div>
       </div>
 
       {/* Primary CTA Banner - "What do I do now?" for new logistics users */}
@@ -507,70 +508,70 @@ function LogisticsDashboardInner() {
             <div>
               <div className="text-xs uppercase tracking-wide">
                 Active Shipments
-                  </div>
+              </div>
               <div className="mt-1 text-2xl font-semibold">
-                  {kpis.activeShipments}
-                </div>
+                {kpis.activeShipments}
+              </div>
             </div>
             <Truck className="h-5 w-5" />
-              </CardContent>
-            </Card>
+          </CardContent>
+        </Card>
 
         <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <div className="text-xs uppercase tracking-wide">
                 At Risk
-                  </div>
+              </div>
               <div className="mt-1 text-2xl font-semibold">
                 {delayedShipments.length}
-                </div>
-                </div>
+              </div>
+            </div>
             <AlertCircle className="h-5 w-5" />
-              </CardContent>
-            </Card>
+          </CardContent>
+        </Card>
 
         <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <div className="text-xs uppercase tracking-wide">
                 Pending Pickup
-                  </div>
+              </div>
               <div className="mt-1 text-2xl font-semibold">
                 {pendingPickupShipments.length}
-                </div>
-                </div>
+              </div>
+            </div>
             <Package className="h-5 w-5" />
-              </CardContent>
-            </Card>
+          </CardContent>
+        </Card>
 
         <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <div className="text-xs uppercase tracking-wide">
                 Quotes Awaiting Action
-                  </div>
+              </div>
               <div className="mt-1 text-2xl font-semibold">
                 {quotesAwaitingCount}
-                </div>
-                </div>
+              </div>
+            </div>
             <FileText className="h-5 w-5" />
-              </CardContent>
-            </Card>
+          </CardContent>
+        </Card>
 
         <Card className="">
           <CardContent className="p-4 flex items-center justify-between">
-                <div>
+            <div>
               <div className="text-xs uppercase tracking-wide">
                 Afrikoni Commission (MTD)
-                  </div>
+              </div>
               <div className="mt-1 text-2xl font-semibold">
                 ${commissionMTD.toLocaleString()}
-                </div>
               </div>
+            </div>
             <DollarSign className="h-5 w-5" />
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Revenue snapshot */}
@@ -587,15 +588,15 @@ function LogisticsDashboardInner() {
           <div className="space-y-1">
             <div className="text-xs uppercase tracking-wide">
               Today
-                  </div>
+            </div>
             <div className="text-xl font-semibold">
               $0
-                </div>
-              </div>
+            </div>
+          </div>
           <div className="space-y-1">
             <div className="text-xs uppercase tracking-wide">
               Last 7 Days
-                  </div>
+            </div>
             <div className="text-xl font-semibold">
               $0
             </div>
@@ -606,26 +607,31 @@ function LogisticsDashboardInner() {
             </div>
             <div className="text-xl font-semibold">
               ${commissionMTD.toLocaleString()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main content tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="shipments">Shipments</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="shipments">Shipments</TabsTrigger>
           <TabsTrigger value="quotes">Quotes</TabsTrigger>
           <TabsTrigger value="tracking">Tracking</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          </TabsList>
+        </TabsList>
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Needs Action */}
-            <Card className="max-h-[420px] flex flex-col">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Risk Visualizer - New Column */}
+            <div className="lg:col-span-1 h-full min-h-[420px]">
+              <ShipmentRiskVisualizer shipments={shipments} />
+            </div>
+
+
+            <Card className="lg:col-span-1 max-h-[420px] flex flex-col">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium">
                   Needs Action
@@ -633,7 +639,7 @@ function LogisticsDashboardInner() {
                 <CardDescription className="text-xs">
                   Shipments and quotes that require attention.
                 </CardDescription>
-                </CardHeader>
+              </CardHeader>
               <CardContent className="pt-0 space-y-4 overflow-y-auto">
                 {/* Pending pickups */}
                 <div className="space-y-2">
@@ -660,18 +666,18 @@ function LogisticsDashboardInner() {
                           <div className="flex flex-col">
                             <span className="text-xs font-medium">
                               {s.orders?.products?.title || 'Shipment'}
-                              </span>
+                            </span>
                             <span className="text-[11px]">
                               {formatRoute(s)}
                             </span>
-                            </div>
+                          </div>
                           <Button
                             size="xs"
                             variant="outline"
                             onClick={() => navigate(`/dashboard/shipments/${s.id}`)}
                           >
                             View
-                            </Button>
+                          </Button>
                         </li>
                       ))}
                     </ul>
@@ -707,7 +713,7 @@ function LogisticsDashboardInner() {
                             <span className="text-[11px]">
                               {formatRoute(s)}
                             </span>
-                            </div>
+                          </div>
                           <Button
                             size="xs"
                             variant="outline"
@@ -718,8 +724,8 @@ function LogisticsDashboardInner() {
                         </li>
                       ))}
                     </ul>
-                          )}
-                        </div>
+                  )}
+                </div>
 
                 {/* Quotes placeholder */}
                 <div className="space-y-2">
@@ -731,37 +737,37 @@ function LogisticsDashboardInner() {
                     <span className="text-xs">
                       {quotesAwaitingCount}
                     </span>
-                    </div>
+                  </div>
                   <p className="text-xs">
                     No logistics quotes need action right now.
                   </p>
                 </div>
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
 
             {/* Moving Now */}
-            <Card className="max-h-[420px] flex flex-col">
+            <Card className="lg:col-span-1 max-h-[420px] flex flex-col">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <div>
+                <div>
                   <CardTitle className="text-sm font-medium">
                     Moving Now
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Shipments currently in motion.
                   </CardDescription>
-                  </div>
+                </div>
                 <Select value={shipmentStatusFilter} onValueChange={handleFilterChange}>
                   <SelectTrigger className="h-8 w-[160px]">
                     <SelectValue placeholder="Filter status" />
-                    </SelectTrigger>
-                    <SelectContent>
+                  </SelectTrigger>
+                  <SelectContent>
                     <SelectItem value="all">All statuses</SelectItem>
                     <SelectItem value="pending_pickup">Pending pickup</SelectItem>
                     <SelectItem value="in_transit">In transit</SelectItem>
                     <SelectItem value="delayed">Delayed</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <SelectItem value="delivered">Delivered</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent className="pt-0 overflow-x-auto overflow-y-auto">
                 {inMotionShipments.length === 0 ? (
@@ -827,32 +833,32 @@ function LogisticsDashboardInner() {
               </CardContent>
             </Card>
           </div>
-          </TabsContent>
+        </TabsContent>
 
         {/* SHIPMENTS */}
         <TabsContent value="shipments" className="mt-4">
           <Card className="">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <div>
+              <div>
                 <CardTitle className="text-sm font-medium">
                   Shipments
                 </CardTitle>
                 <CardDescription className="text-xs">
                   Operational view of all shipments.
                 </CardDescription>
-                  </div>
+              </div>
               <Select value={shipmentStatusFilter} onValueChange={handleFilterChange}>
                 <SelectTrigger className="h-8 w-[180px]">
                   <SelectValue placeholder="Filter status" />
-                        </SelectTrigger>
-                        <SelectContent>
+                </SelectTrigger>
+                <SelectContent>
                   <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="pending_pickup">Pending pickup</SelectItem>
                   <SelectItem value="in_transit">In transit</SelectItem>
                   <SelectItem value="delayed">Delayed</SelectItem>
                   <SelectItem value="delivered">Delivered</SelectItem>
-                        </SelectContent>
-                      </Select>
+                </SelectContent>
+              </Select>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               {shipments.length === 0 ? (
@@ -885,7 +891,7 @@ function LogisticsDashboardInner() {
                             <span className="text-[11px]">
                               {s.orders?.products?.title || 'Shipment'}
                             </span>
-                  </div>
+                          </div>
                         </td>
                         <td className="py-2 pr-3 align-middle">
                           {formatRoute(s)}
@@ -899,106 +905,107 @@ function LogisticsDashboardInner() {
                             : '—'}
                         </td>
                         <td className="py-2 pl-3 align-middle text-right">
-                  <Button
+                          <Button
                             size="xs"
                             variant="outline"
                             onClick={() => navigate(`/dashboard/shipments/${s.id}`)}
                           >
                             View details
-                  </Button>
+                          </Button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-        {/* QUOTES */}
-        <TabsContent value="quotes" className="mt-4">
-          <Card className="">
-              <CardHeader>
-              <CardTitle className="text-sm font-medium">
-                Quotes
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Logistics quotes will appear here once connected to quote data.
-              </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <EmptyState
-                title="No logistics quotes to manage"
-                description="When buyers request logistics quotes, they will be listed here for follow-up."
-              />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-        {/* TRACKING */}
-        <TabsContent value="tracking" className="mt-4">
-          <Card className="">
-              <CardHeader>
-              <CardTitle className="text-sm font-medium">
-                Tracking
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Geographic view of active shipments.
-              </CardDescription>
-              </CardHeader>
-              <CardContent>
-              <RealTimeTracking shipments={shipments} />
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
+      </TabsContent>
 
-        {/* REVENUE */}
-        <TabsContent value="revenue" className="mt-4">
-          <Card className="">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">
-                Revenue
-              </CardTitle>
-              <CardDescription className="text-xs">
-                High-level view of Afrikoni commission from logistics.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <div className="text-xs uppercase tracking-wide">
-                    Today
-                            </div>
-                  <div className="text-xl font-semibold">
-                    $0
-                                </div>
-                              </div>
-                <div className="space-y-1">
-                  <div className="text-xs uppercase tracking-wide">
-                    Last 7 Days
-                                </div>
-                  <div className="text-xl font-semibold">
-                    $0
-                              </div>
-                            </div>
-                <div className="space-y-1">
-                  <div className="text-xs uppercase tracking-wide">
-                    Month to Date
-                          </div>
-                  <div className="text-xl font-semibold">
-                    ${commissionMTD.toLocaleString()}
-                        </div>
-                        </div>
-                      </div>
-              <p className="text-xs">
-                Detailed revenue analytics will be connected to live shipment and quote data.
-              </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+      {/* QUOTES */}
+      <TabsContent value="quotes" className="mt-4">
+        <Card className="">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Quotes
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Logistics quotes will appear here once connected to quote data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EmptyState
+              title="No logistics quotes to manage"
+              description="When buyers request logistics quotes, they will be listed here for follow-up."
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* TRACKING */}
+      <TabsContent value="tracking" className="mt-4">
+        <Card className="">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Tracking
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Geographic view of active shipments.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RealTimeTracking shipments={shipments} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* REVENUE */}
+      <TabsContent value="revenue" className="mt-4">
+        <Card className="">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Revenue
+            </CardTitle>
+            <CardDescription className="text-xs">
+              High-level view of Afrikoni commission from logistics.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <div className="text-xs uppercase tracking-wide">
+                  Today
+                </div>
+                <div className="text-xl font-semibold">
+                  $0
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs uppercase tracking-wide">
+                  Last 7 Days
+                </div>
+                <div className="text-xl font-semibold">
+                  $0
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs uppercase tracking-wide">
+                  Month to Date
+                </div>
+                <div className="text-xl font-semibold">
+                  ${commissionMTD.toLocaleString()}
+                </div>
+              </div>
+            </div>
+            <p className="text-xs">
+              Detailed revenue analytics will be connected to live shipment and quote data.
+            </p>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+    </div >
   );
 }
 

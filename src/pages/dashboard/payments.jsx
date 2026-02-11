@@ -15,6 +15,7 @@ import { StatusBadge } from "@/components/system/StatusBadge";
 import { supabase } from "@/api/supabaseClient";
 import { useDashboardKernel } from "@/hooks/useDashboardKernel";
 import { calculateTradeFees, estimateFX } from "@/services/revenueEngine";
+import GlobalPaymentRisk from "@/components/risk/GlobalPaymentRisk";
 
 const Payments = () => {
   const { canLoadData, isSystemReady, profileCompanyId } = useDashboardKernel();
@@ -166,55 +167,63 @@ const Payments = () => {
         ))}
       </div>
 
-      {/* REVENUE ENGINE: Fee Breakdown Visualization */}
+      {/* REVENUE ENGINE: Fee Breakdown & Risk Visualization */}
       {feePreview && (
-        <div className="grid md:grid-cols-2 gap-6">
-          <Surface variant="panel" className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <PieChart className="w-5 h-5 text-os-muted" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-os-muted">Protocol Take-Rate (8%)</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-os-muted">Escrow Platform (5%)</span>
-                <span className="font-mono">${feePreview.breakdown.escrow.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-os-muted">Service Margin (1.8%)</span>
-                <span className="font-mono">${feePreview.breakdown.service.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-os-muted">FX Spread (1.2%)</span>
-                <span className="font-mono">${feePreview.breakdown.fxValuation.toLocaleString()}</span>
-              </div>
-              <div className="h-px bg-white/10 my-2" />
-              <div className="flex justify-between text-sm font-bold text-amber-400">
-                <span>Projected Revenue</span>
-                <span className="font-mono">${feePreview.total.toLocaleString()}</span>
-              </div>
-            </div>
-          </Surface>
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Risk Widget - Takes 1 column */}
+          <div className="lg:col-span-1">
+            <GlobalPaymentRisk transactions={transactions} />
+          </div>
 
-          <Surface variant="panel" className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <ArrowRightLeft className="w-5 h-5 text-os-muted" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-os-muted">Sovereign FX Rail</h3>
-            </div>
-            <div className="bg-white/5 p-4 rounded-lg mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-os-muted uppercase">You Pay (Local)</span>
-                <span className="text-xs text-os-muted uppercase">We Settle (USD)</span>
+          {/* Revenue Breakdown - Takes 2 columns */}
+          <div className="lg:col-span-2 grid md:grid-cols-2 gap-6">
+            <Surface variant="panel" className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <PieChart className="w-5 h-5 text-os-muted" />
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-os-muted">Protocol Take-Rate (8%)</h3>
               </div>
-              <div className="flex justify-between items-center text-xl font-mono">
-                <span className="text-emerald-400">₦1,650,500</span>
-                <ArrowUpRight className="w-4 h-4 text-os-muted" />
-                <span className="text-white">$1,000.00</span>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-os-muted">Escrow Platform (5%)</span>
+                  <span className="font-mono">${feePreview.breakdown.escrow.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-os-muted">Service Margin (1.8%)</span>
+                  <span className="font-mono">${feePreview.breakdown.service.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-os-muted">FX Spread (1.2%)</span>
+                  <span className="font-mono">${feePreview.breakdown.fxValuation.toLocaleString()}</span>
+                </div>
+                <div className="h-px bg-white/10 my-2" />
+                <div className="flex justify-between text-sm font-bold text-amber-400">
+                  <span>Projected Revenue</span>
+                  <span className="font-mono">${feePreview.total.toLocaleString()}</span>
+                </div>
               </div>
-            </div>
-            <p className="text-xs text-os-muted">
-              *Treasury Bridge active. Spread captured automatically via instant-netting.
-            </p>
-          </Surface>
+            </Surface>
+
+            <Surface variant="panel" className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ArrowRightLeft className="w-5 h-5 text-os-muted" />
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-os-muted">Sovereign FX Rail</h3>
+              </div>
+              <div className="bg-white/5 p-4 rounded-lg mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-os-muted uppercase">You Pay (Local)</span>
+                  <span className="text-xs text-os-muted uppercase">We Settle (USD)</span>
+                </div>
+                <div className="flex justify-between items-center text-xl font-mono">
+                  <span className="text-emerald-400">₦1,650,500</span>
+                  <ArrowUpRight className="w-4 h-4 text-os-muted" />
+                  <span className="text-white">$1,000.00</span>
+                </div>
+              </div>
+              <p className="text-xs text-os-muted">
+                *Treasury Bridge active. Spread captured automatically via instant-netting.
+              </p>
+            </Surface>
+          </div>
         </div>
       )}
 

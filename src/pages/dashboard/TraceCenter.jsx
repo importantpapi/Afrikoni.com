@@ -48,7 +48,7 @@ export default function TraceCenter() {
         <div className="min-h-screen bg-afrikoni-offwhite pb-20">
 
             {/* 1. HERO: The Griot's Guidance */}
-            <div className="bg-[#1a1a1a] text-white pt-8 pb-12 px-6 rounded-b-[3rem] shadow-2xl relative overflow-hidden">
+            <div className="bg-white text-afrikoni-deep pt-8 pb-12 px-6 rounded-b-[3rem] shadow-lg relative overflow-hidden border border-afrikoni-gold/10">
                 {/* Abstract Background */}
                 <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
                     <div className="absolute right-0 top-0 w-96 h-96 bg-afrikoni-gold rounded-full blur-[100px]" />
@@ -59,7 +59,7 @@ export default function TraceCenter() {
                     <div className="flex justify-between items-start mb-6">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="outline" className="border-white/20 text-white/60 font-mono tracking-widest text-[10px] uppercase">
+                                <Badge variant="outline" className="border-afrikoni-gold/30 text-gray-600 font-mono tracking-widest text-[10px] uppercase">
                                     Trace ID: {state.tradeId || 'INITIALIZING...'}
                                 </Badge>
                                 {state.status === 'active' && (
@@ -69,18 +69,18 @@ export default function TraceCenter() {
                                     </Badge>
                                 )}
                             </div>
-                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+                            <h1 className="text-3xl font-bold text-afrikoni-deep">
                                 {product.name || 'Loading Trade Context...'}
                             </h1>
                         </div>
 
                         {/* Risk Monitor */}
-                        <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3">
+                        <div className="bg-afrikoni-cream/30 backdrop-blur-md rounded-xl p-3 border border-afrikoni-gold/20 flex items-center gap-3">
                             <div className={`p-2 rounded-full ${logistics.riskScore > 50 ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
                                 <Shield className="w-5 h-5" />
                             </div>
                             <div>
-                                <p className="text-[10px] text-white/50 uppercase tracking-widest">Trust Score</p>
+                                <p className="text-[10px] text-gray-600 uppercase tracking-widest">Trust Score</p>
                                 <p className={`text-lg font-bold font-mono ${logistics.riskScore > 50 ? 'text-red-400' : 'text-emerald-400'}`}>
                                     {100 - logistics.riskScore}/100
                                 </p>
@@ -92,20 +92,20 @@ export default function TraceCenter() {
                     <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6"
+                        className="bg-afrikoni-cream/20 backdrop-blur-lg border border-afrikoni-gold/20 rounded-2xl p-6"
                     >
                         <div className="flex items-start gap-4">
                             <div className={`p-3 rounded-full ${advice.tone === 'critical' ? 'bg-red-500/20 text-red-400' : 'bg-afrikoni-gold/20 text-afrikoni-gold'}`}>
                                 {advice.tone === 'critical' ? <AlertTriangle className="w-6 h-6" /> : <Globe className="w-6 h-6" />}
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-medium text-white mb-1">Griot Insight</h3>
-                                <p className="text-white/80 leading-relaxed text-lg">
+                                <h3 className="text-lg font-medium text-afrikoni-deep mb-1">Griot Insight</h3>
+                                <p className="text-gray-700 leading-relaxed text-lg">
                                     {advice.message}
                                 </p>
                             </div>
                             {/* Context Action Button */}
-                            <Button className="bg-white text-black hover:bg-white/90 font-medium px-6">
+                            <Button className="bg-afrikoni-gold text-black hover:bg-afrikoni-gold/90 font-medium px-6">
                                 Execute Next Step
                                 <FileText className="w-4 h-4 ml-2 opacity-60" />
                             </Button>
@@ -113,14 +113,14 @@ export default function TraceCenter() {
                     </motion.div>
 
                     {/* FX Snapshot */}
-                    <div className="flex items-center gap-6 mt-6 ml-2 p-3 rounded-lg bg-black/20 w-fit backdrop-blur-sm border border-white/5">
+                    <div className="flex items-center gap-6 mt-6 ml-2 p-3 rounded-lg bg-afrikoni-cream/20 w-fit backdrop-blur-sm border border-afrikoni-gold/10">
                         <div className="flex items-center gap-2">
-                            <span className="text-white/40 text-xs">PIVOT CURRENCY</span>
-                            <span className="text-white font-mono font-bold">USD</span>
+                            <span className="text-gray-600 text-xs">PIVOT CURRENCY</span>
+                            <span className="text-afrikoni-deep font-mono font-bold">USD</span>
                         </div>
-                        <div className="w-px h-4 bg-white/10" />
+                        <div className="w-px h-4 bg-afrikoni-gold/20" />
                         <div className="flex items-center gap-2">
-                            <span className="text-white/40 text-xs">{financials.localCurrency} RATE</span>
+                            <span className="text-gray-600 text-xs">{financials.localCurrency} RATE</span>
                             <span className="text-afrikoni-gold font-mono">₦{financials.exchangeRate.toFixed(2)}</span>
                         </div>
                     </div>

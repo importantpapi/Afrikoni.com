@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Shield, CheckCircle2, Clock, AlertCircle, Upload, 
-  Building2, FileCheck, Award, TrendingUp, ChevronRight 
+import {
+  Shield, CheckCircle2, Clock, AlertCircle, Upload,
+  Building2, FileCheck, Award, TrendingUp, ChevronRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -67,7 +67,7 @@ const VERIFICATION_STEPS = [
 export default function VerificationStatus() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -108,7 +108,7 @@ export default function VerificationStatus() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
 
       // Load company data
@@ -134,7 +134,7 @@ export default function VerificationStatus() {
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
-        
+
         if (verifError) {
           // Handle PGRST116 (not found) - no verification exists yet, this is OK
           if (verifError.code !== 'PGRST116') {
@@ -204,15 +204,15 @@ export default function VerificationStatus() {
 
   const getVerificationStatus = () => {
     if (!company) return { label: 'Unknown', color: 'gray', icon: Clock };
-    
+
     if (company.verified && company.verification_status === 'verified') {
       return { label: 'Verified', color: 'green', icon: CheckCircle2 };
     }
-    
+
     if (verificationData?.status === 'in_review' || company.verification_status === 'in_review') {
       return { label: 'Under Review', color: 'blue', icon: Clock };
     }
-    
+
     if (verificationData?.status === 'rejected' || company.verification_status === 'rejected') {
       return { label: 'Needs Attention', color: 'red', icon: AlertCircle };
     }
@@ -231,8 +231,8 @@ export default function VerificationStatus() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadVerificationStatus}
       />
     );
@@ -269,7 +269,7 @@ export default function VerificationStatus() {
                     </Badge>
                   </div>
                   <p className="text-sm mb-3">
-                    {company?.verified 
+                    {company?.verified
                       ? 'Your business is verified. Buyers see you as a trusted supplier.'
                       : 'Complete the steps below to become a verified supplier and build buyer trust.'
                     }
@@ -285,7 +285,7 @@ export default function VerificationStatus() {
 
               {!company?.verified && (
                 <Button
-                  onClick={() => navigate('/verification-center')}
+                  onClick={() => navigate('/dashboard/verification-center')}
                   className="hover:bg-afrikoni-gold/90"
                 >
                   {verificationData ? 'Continue Verification' : 'Start Verification'}
@@ -339,11 +339,10 @@ export default function VerificationStatus() {
               return (
                 <div
                   key={step.id}
-                  className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-colors ${
-                    isCompleted
+                  className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-colors ${isCompleted
                       ? 'bg-green-50 border-green-200'
                       : 'bg-white border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
-                  }`}
+                    }`}
                 >
                   <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : 'bg-gray-100'}`}>
                     {isCompleted ? (
@@ -367,7 +366,7 @@ export default function VerificationStatus() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => navigate('/verification-center')}
+                        onClick={() => navigate('/dashboard/verification-center')}
                         className="text-xs"
                       >
                         <Upload className="w-3 h-3 mr-1" />
@@ -396,7 +395,7 @@ export default function VerificationStatus() {
                 <li>Once verified, your profile immediately shows the verified badge</li>
               </ol>
               <Button
-                onClick={() => navigate('/verification-center')}
+                onClick={() => navigate('/dashboard/verification-center')}
                 className="mt-4 hover:bg-afrikoni-gold/90"
               >
                 Go to Verification Center

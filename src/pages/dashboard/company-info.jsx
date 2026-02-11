@@ -18,6 +18,8 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Building2, Save, CheckCircle, AlertCircle, Upload, X, Image as ImageIcon, Users, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
+import { useTrustScore } from '@/hooks/useTrustScore';
+import TrustScoreCard from '@/components/trust/TrustScoreCard';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 
 const AFRICAN_COUNTRIES = [
@@ -33,39 +35,42 @@ const AFRICAN_COUNTRIES = [
 // Validation function for company form
 const validateCompanyForm = (formData) => {
   const errors = {};
-  
+
   if (!formData.company_name || formData.company_name.trim().length < 2) {
     errors.company_name = 'Company name must be at least 2 characters';
   }
-  
+
   if (!formData.country) {
     errors.country = 'Please select a country';
   }
-  
+
   if (!formData.phone || formData.phone.trim().length < 5) {
     errors.phone = 'Please enter a valid phone number';
   }
-  
+
   if (formData.business_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.business_email)) {
     errors.business_email = 'Please enter a valid email address';
   }
-  
+
   if (formData.website && !/^https?:\/\/.+/.test(formData.website)) {
     errors.website = 'Please enter a valid website URL (starting with http:// or https://)';
   }
-  
+
   return errors;
 };
 
 export default function CompanyInfo() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
+  // ✅ TRUST SCORE INTEGRATION
+  const { trustData, loading: trustLoading } = useTrustScore(profileCompanyId);
+
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
@@ -253,14 +258,14 @@ export default function CompanyInfo() {
           const fileName = `company-gallery/${timestamp}-${randomStr}-${cleanFileName}`;
 
           const result = await supabaseHelpers.storage.uploadFile(
-            file, 
-            'files', 
+            file,
+            'files',
             fileName
           );
 
           // Debug logging
           console.log('Upload result:', result);
-          
+
           if (!result || !result.file_url) {
             // ✅ GLOBAL HARDENING: Enhanced error logging
             logError('handleGalleryUpload-missingUrl', new Error('Upload succeeded but file_url is missing'), {
@@ -285,7 +290,7 @@ export default function CompanyInfo() {
       });
 
       const results = await Promise.allSettled(uploadPromises);
-      
+
       // Process results
       const successfulUploads = [];
       const failedUploads = [];
@@ -295,8 +300,8 @@ export default function CompanyInfo() {
           console.log(`Upload ${index + 1} successful:`, result.value.url);
           successfulUploads.push(result.value.url);
         } else {
-          const fileName = result.status === 'fulfilled' 
-            ? result.value.fileName 
+          const fileName = result.status === 'fulfilled'
+            ? result.value.fileName
             : validFiles[index]?.name || 'unknown';
           logError('handleGalleryUpload-fileFailed', result.reason || new Error('Upload failed'), {
             table: 'companies',
@@ -307,7 +312,7 @@ export default function CompanyInfo() {
           failedUploads.push(fileName);
         }
       });
-      
+
       console.log('Upload summary:', {
         successful: successfulUploads.length,
         failed: failedUploads.length,
@@ -317,10 +322,10 @@ export default function CompanyInfo() {
       // Update gallery with successful uploads
       if (successfulUploads.length > 0) {
         console.log('Adding images to gallery:', successfulUploads);
-        
+
         // Filter out any null/undefined URLs
         const validUrls = successfulUploads.filter(url => url && typeof url === 'string' && url.trim().length > 0);
-        
+
         if (validUrls.length === 0) {
           logError('handleGalleryUpload-invalidUrls', new Error('No valid URLs in successful uploads'), {
             table: 'companies',
@@ -334,7 +339,7 @@ export default function CompanyInfo() {
           setUploadingGallery(false);
           return;
         }
-        
+
         // Update state and get the updated value for auto-save
         let updatedGalleryImages;
         setGalleryImages(prev => {
@@ -342,7 +347,7 @@ export default function CompanyInfo() {
           console.log('Updated gallery images state:', updatedGalleryImages);
           return updatedGalleryImages;
         });
-        
+
         // Auto-save gallery images to database immediately (don't wait for form submission)
         if (profileCompanyId && updatedGalleryImages) {
           try {
@@ -352,26 +357,26 @@ export default function CompanyInfo() {
                 gallery_images: updatedGalleryImages
               })
               .eq('id', profileCompanyId);
-            
+
             if (saveError) {
-            logError('autoSaveGallery', saveError, {
+              logError('autoSaveGallery', saveError, {
+                table: 'companies',
+                companyId: profileCompanyId,
+                userId: userId
+              });
+              // Don't show error to user - images are in state, just not persisted yet
+            } else {
+              console.log('Gallery images saved to database');
+            }
+          } catch (saveErr) {
+            logError('autoSaveGallery', saveErr, {
               table: 'companies',
               companyId: profileCompanyId,
               userId: userId
             });
-            // Don't show error to user - images are in state, just not persisted yet
-          } else {
-            console.log('Gallery images saved to database');
-          }
-        } catch (saveErr) {
-          logError('autoSaveGallery', saveErr, {
-            table: 'companies',
-            companyId: profileCompanyId,
-            userId: userId
-          });
           }
         }
-        
+
         toast.success(`${validUrls.length} image(s) uploaded and displayed successfully`);
       } else {
         console.warn('No successful uploads, but no failures either');
@@ -419,26 +424,26 @@ export default function CompanyInfo() {
     }, 15000);
 
     const loadData = async () => {
-    if (!profileCompanyId) {
-      if (isMounted) {
-        clearTimeout(timeoutId);
-        setIsLoading(false);
+      if (!profileCompanyId) {
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+        }
+        return;
       }
-      return;
-    }
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
-      // If profile has company_id, load company data
-      // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle() for companies
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('id', profileCompanyId)
-        .single();
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
+        // If profile has company_id, load company data
+        // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle() for companies
+        const { data: companyData, error: companyError } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', profileCompanyId)
+          .single();
 
         // ✅ GLOBAL HARDENING: Enhanced error logging with PGRST116 handling
         if (companyError) {
@@ -484,7 +489,7 @@ export default function CompanyInfo() {
             }));
           }
         }
-        
+
         // ✅ SCHEMA ALIGNMENT: Load team members (table now exists with required columns)
         if (profileCompanyId) {
           const { data: teamData, error: teamError } = await supabase
@@ -492,7 +497,7 @@ export default function CompanyInfo() {
             .select('*')
             .eq('company_id', profileCompanyId)
             .order('created_at', { ascending: false });
-          
+
           // ✅ GLOBAL HARDENING: Enhanced error logging
           if (teamError) {
             // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
@@ -511,41 +516,41 @@ export default function CompanyInfo() {
             setTeamMembers(teamData || []);
           }
         }
-        
+
         // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
         lastLoadTimeRef.current = Date.now();
         markFresh();
-        
+
         // ✅ GLOBAL HARDENING: Derive role from capabilities instead of role prop
         const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
         const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
         const normalizedRole = isLogistics ? 'logistics' : (isSeller ? 'seller' : 'buyer');
         setCurrentRole(normalizedRole);
-    } catch (err) {
-      // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
-      if (err?.code === 'PGRST204' || err?.code === 'PGRST205') {
-        console.warn('[CompanyInfo] Schema mismatch (PGRST204/205) - ignoring error');
-        // Don't set error state - allow UI to continue
-        return;
+      } catch (err) {
+        // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
+        if (err?.code === 'PGRST204' || err?.code === 'PGRST205') {
+          console.warn('[CompanyInfo] Schema mismatch (PGRST204/205) - ignoring error');
+          // Don't set error state - allow UI to continue
+          return;
+        }
+
+        // ✅ GLOBAL HARDENING: Enhanced error logging
+        logError('loadData', err, {
+          table: 'companies',
+          companyId: profileCompanyId,
+          userId: userId
+        });
+        setError(err.message || 'Failed to load company information');
+        if (isMounted) {
+          toast.error('Failed to load company information');
+        }
+      } finally {
+        // ✅ VIBRANIUM STABILIZATION: Always reset loading state (non-negotiable)
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+        }
       }
-      
-      // ✅ GLOBAL HARDENING: Enhanced error logging
-      logError('loadData', err, {
-        table: 'companies',
-        companyId: profileCompanyId,
-        userId: userId
-      });
-      setError(err.message || 'Failed to load company information');
-      if (isMounted) {
-        toast.error('Failed to load company information');
-      }
-    } finally {
-      // ✅ VIBRANIUM STABILIZATION: Always reset loading state (non-negotiable)
-      if (isMounted) {
-        clearTimeout(timeoutId);
-        setIsLoading(false);
-      }
-    }
     };
 
     // ✅ KERNEL MIGRATION: Use canLoadData guard
@@ -554,10 +559,10 @@ export default function CompanyInfo() {
     }
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     // Only load data when system is ready
     if (shouldRefresh) {
       console.log('[CompanyInfo] Data is stale or first load - refreshing');
@@ -574,7 +579,7 @@ export default function CompanyInfo() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     const validationErrors = validateCompanyForm(formData);
     if (Object.keys(validationErrors).length > 0) {
@@ -582,18 +587,18 @@ export default function CompanyInfo() {
       toast.error('Please fix the errors before saving');
       return;
     }
-    
+
     setErrors({});
     setIsSaving(true);
-    
+
     // Add timeout wrapper to prevent infinite hanging
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Save operation timed out after 30 seconds')), 30000);
     });
-    
+
     try {
       console.log('🔄 Starting save operation...');
-      
+
       if (!userId) {
         toast.error('User not found. Please log in again.');
         setIsSaving(false);
@@ -602,10 +607,10 @@ export default function CompanyInfo() {
       }
 
       console.log('✅ User found:', userId);
-      
+
       // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
       const userEmail = user?.email || '';
-      
+
       let finalCompanyId = profileCompanyId;
 
       // ✅ KERNEL MIGRATION: Create or update company with timeout
@@ -615,14 +620,14 @@ export default function CompanyInfo() {
         // Convert year_established to integer or null (database expects integer, not empty string)
         let yearEstablished = null;
         if (formData.year_established) {
-          const year = typeof formData.year_established === 'string' 
-            ? parseInt(formData.year_established.trim(), 10) 
+          const year = typeof formData.year_established === 'string'
+            ? parseInt(formData.year_established.trim(), 10)
             : formData.year_established;
           if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
             yearEstablished = year;
           }
         }
-        
+
         const updatePromise = supabase
           .from('companies')
           .update({
@@ -657,18 +662,18 @@ export default function CompanyInfo() {
         console.log('🔄 Creating new company...');
         // Create new company
         // ✅ CRITICAL: All new companies start as unverified - admin must approve before they appear on verified suppliers page
-        
+
         // Convert year_established to integer or null (database expects integer, not empty string)
         let yearEstablished = null;
         if (formData.year_established) {
-          const year = typeof formData.year_established === 'string' 
-            ? parseInt(formData.year_established.trim(), 10) 
+          const year = typeof formData.year_established === 'string'
+            ? parseInt(formData.year_established.trim(), 10)
             : formData.year_established;
           if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
             yearEstablished = year;
           }
         }
-        
+
         const insertData = {
           company_name: formData.company_name,
           owner_email: '', // Will be set from profile
@@ -687,9 +692,9 @@ export default function CompanyInfo() {
           verified: false,
           verification_status: 'unverified'
         };
-        
+
         console.log('📝 Insert data:', insertData);
-        
+
         const insertPromise = supabase
           .from('companies')
           .insert(insertData)
@@ -711,7 +716,7 @@ export default function CompanyInfo() {
         }
         finalCompanyId = newCompany.id;
         console.log('✅ Company created successfully:', finalCompanyId);
-        
+
         // Note: profileCompanyId will be updated via kernel when profile is updated below
       }
 
@@ -752,7 +757,7 @@ export default function CompanyInfo() {
 
       console.log('✅ All data saved successfully');
       toast.success('Company information saved successfully!');
-      
+
       // Redirect back to where user came from, or to dashboard
       // Small delay to show success message
       console.log('🔄 Redirecting to:', returnUrl);
@@ -837,8 +842,8 @@ export default function CompanyInfo() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
@@ -855,46 +860,46 @@ export default function CompanyInfo() {
 
   return (
     <>
-    <div className="space-y-3">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.15 }}
-      >
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-lg">
-            <Building2 className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold">Company Information</h1>
-            <p className="mt-0.5 text-xs md:text-sm">Complete your company profile before adding photos</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Status Banner */}
-      {requiredFieldsFilled && (
+      <div className="space-y-3">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-4 border rounded-lg"
+          transition={{ duration: 0.15 }}
         >
-          <CheckCircle className="w-5 h-5" />
-          <span className="text-sm">Required fields completed. You can now add photos.</span>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="p-2 rounded-lg">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">Company Information</h1>
+              <p className="mt-0.5 text-xs md:text-sm">Complete your company profile before adding photos</p>
+            </div>
+          </div>
         </motion.div>
-      )}
 
-      {!formData.company_name && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-4 border rounded-lg"
-        >
-          <AlertCircle className="w-5 h-5" />
-          <span className="text-sm">Tip: Adding company information helps buyers find and trust you. All fields are optional except those marked with *.</span>
-        </motion.div>
-      )}
+        {/* Status Banner */}
+        {requiredFieldsFilled && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-4 border rounded-lg"
+          >
+            <CheckCircle className="w-5 h-5" />
+            <span className="text-sm">Required fields completed. You can now add photos.</span>
+          </motion.div>
+        )}
+
+        {!formData.company_name && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-4 border rounded-lg"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm">Tip: Adding company information helps buyers find and trust you. All fields are optional except those marked with *.</span>
+          </motion.div>
+        )}
 
         {/* Company Card Preview */}
         {profileCompanyId && (logoUrl || coverUrl || formData.company_name) && (
@@ -902,9 +907,9 @@ export default function CompanyInfo() {
             <CardContent className="p-0">
               <div className="relative">
                 {coverUrl ? (
-                  <img 
-                    src={coverUrl} 
-                    alt="Cover" 
+                  <img
+                    src={coverUrl}
+                    alt="Cover"
                     className="w-full h-32 object-cover rounded-t-lg"
                     loading="lazy"
                     decoding="async"
@@ -914,9 +919,9 @@ export default function CompanyInfo() {
                 )}
                 <div className="absolute bottom-0 left-4 transform translate-y-1/2 flex items-center gap-4">
                   {logoUrl ? (
-                    <img 
-                      src={logoUrl} 
-                      alt="Logo" 
+                    <img
+                      src={logoUrl}
+                      alt="Logo"
                       className="w-20 h-20 rounded-lg object-cover border-4 shadow-afrikoni"
                       loading="lazy"
                       decoding="async"
@@ -947,21 +952,21 @@ export default function CompanyInfo() {
 
           <TabsContent value="info" className="space-y-4">
             {/* Form content stays the same */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
-        {/* v2.5: Premium Company Info Cards */}
-        <Card className="shadow-premium rounded-afrikoni-lg">
-          <CardHeader className="border-b pb-4">
-            <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">Company Details</CardTitle>
-            <CardDescription className="mt-3">
-              Provide your company information. This will be visible to potential buyers and partners.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              {/* v2.5: Premium Company Info Cards */}
+              <Card className="shadow-premium rounded-afrikoni-lg">
+                <CardHeader className="border-b pb-4">
+                  <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">Company Details</CardTitle>
+                  <CardDescription className="mt-3">
+                    Provide your company information. This will be visible to potential buyers and partners.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Logo and Cover Upload */}
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
@@ -1046,165 +1051,165 @@ export default function CompanyInfo() {
                       </div>
                     </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Company Name */}
-                <div className="md:col-span-2">
-                  <Label htmlFor="company_name">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Company Name */}
+                      <div className="md:col-span-2">
+                        <Label htmlFor="company_name">
                           Company Name <span className="">*</span>
-                  </Label>
-                  <Input
-                    id="company_name"
-                    value={formData.company_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                    placeholder="e.g. Acme Trading Ltd"
-                    required
+                        </Label>
+                        <Input
+                          id="company_name"
+                          value={formData.company_name}
+                          onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
+                          placeholder="e.g. Acme Trading Ltd"
+                          required
                           className={`mt-1 ${errors.company_name ? 'border-red-500' : ''}`}
-                  />
+                        />
                         {errors.company_name && (
                           <p className="text-sm mt-1">{errors.company_name}</p>
                         )}
-                </div>
+                      </div>
 
-                {/* Business Type */}
-                <div>
-                  <Label htmlFor="business_type">
-                    Business Type
-                  </Label>
-                  <Select 
-                    value={formData.business_type} 
-                    onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="manufacturer">Manufacturer</SelectItem>
-                      <SelectItem value="wholesaler">Wholesaler</SelectItem>
-                      <SelectItem value="distributor">Distributor</SelectItem>
-                      <SelectItem value="trading_company">Trading Company</SelectItem>
-                      <SelectItem value="logistics_provider">Logistics Provider</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                      {/* Business Type */}
+                      <div>
+                        <Label htmlFor="business_type">
+                          Business Type
+                        </Label>
+                        <Select
+                          value={formData.business_type}
+                          onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="manufacturer">Manufacturer</SelectItem>
+                            <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                            <SelectItem value="distributor">Distributor</SelectItem>
+                            <SelectItem value="trading_company">Trading Company</SelectItem>
+                            <SelectItem value="logistics_provider">Logistics Provider</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                {/* Country */}
-                <div>
-                  <Label htmlFor="country">
+                      {/* Country */}
+                      <div>
+                        <Label htmlFor="country">
                           Country <span className="">*</span>
-                  </Label>
-                  <Select 
-                    value={formData.country} 
-                    onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
-                  >
+                        </Label>
+                        <Select
+                          value={formData.country}
+                          onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
+                        >
                           <SelectTrigger className={`mt-1 ${errors.country ? 'border-red-500' : ''}`}>
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[400px] overflow-y-auto">
-                      {AFRICAN_COUNTRIES.map(country => (
-                        <SelectItem key={country} value={country} className="cursor-pointer">{country}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[400px] overflow-y-auto">
+                            {AFRICAN_COUNTRIES.map(country => (
+                              <SelectItem key={country} value={country} className="cursor-pointer">{country}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         {errors.country && (
                           <p className="text-sm mt-1">{errors.country}</p>
                         )}
-                </div>
+                      </div>
 
-                {/* City */}
-                <div>
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                    placeholder="e.g. Lagos"
-                    className="mt-1"
-                  />
-                </div>
+                      {/* City */}
+                      <div>
+                        <Label htmlFor="city">City</Label>
+                        <Input
+                          id="city"
+                          value={formData.city}
+                          onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                          placeholder="e.g. Lagos"
+                          className="mt-1"
+                        />
+                      </div>
 
-                {/* Phone Number */}
-                <div>
-                  <Label htmlFor="phone">
+                      {/* Phone Number */}
+                      <div>
+                        <Label htmlFor="phone">
                           Phone Number <span className="">*</span>
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+234 800 000 0000"
-                    required
+                        </Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="+234 800 000 0000"
+                          required
                           className={`mt-1 ${errors.phone ? 'border-red-500' : ''}`}
-                  />
+                        />
                         {errors.phone && (
                           <p className="text-sm mt-1">{errors.phone}</p>
                         )}
-                </div>
+                      </div>
 
-                {/* Business Email */}
-                <div>
-                  <Label htmlFor="business_email">Business Email</Label>
-                  <Input
-                    id="business_email"
-                    type="email"
-                    value={formData.business_email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
-                    placeholder="contact@company.com"
+                      {/* Business Email */}
+                      <div>
+                        <Label htmlFor="business_email">Business Email</Label>
+                        <Input
+                          id="business_email"
+                          type="email"
+                          value={formData.business_email}
+                          onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
+                          placeholder="contact@company.com"
                           className={`mt-1 ${errors.business_email ? 'border-red-500' : ''}`}
-                  />
+                        />
                         {errors.business_email && (
                           <p className="text-sm mt-1">{errors.business_email}</p>
                         )}
-                </div>
+                      </div>
 
-                {/* Website */}
-                <div>
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={formData.website}
-                    onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                    placeholder="https://yourcompany.com"
+                      {/* Website */}
+                      <div>
+                        <Label htmlFor="website">Website</Label>
+                        <Input
+                          id="website"
+                          value={formData.website}
+                          onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                          placeholder="https://yourcompany.com"
                           className={`mt-1 ${errors.website ? 'border-red-500' : ''}`}
-                  />
+                        />
                         {errors.website && (
                           <p className="text-sm mt-1">{errors.website}</p>
                         )}
-                </div>
+                      </div>
 
-                {/* Year Established */}
-                <div>
-                  <Label htmlFor="year_established">Year Established</Label>
-                  <Input
-                    id="year_established"
-                    type="number"
-                    value={formData.year_established}
-                    onChange={(e) => setFormData(prev => ({ ...prev, year_established: e.target.value }))}
-                    placeholder="2020"
-                    min="1900"
-                    max={new Date().getFullYear()}
-                    className="mt-1"
-                  />
-                </div>
+                      {/* Year Established */}
+                      <div>
+                        <Label htmlFor="year_established">Year Established</Label>
+                        <Input
+                          id="year_established"
+                          type="number"
+                          value={formData.year_established}
+                          onChange={(e) => setFormData(prev => ({ ...prev, year_established: e.target.value }))}
+                          placeholder="2020"
+                          min="1900"
+                          max={new Date().getFullYear()}
+                          className="mt-1"
+                        />
+                      </div>
 
-                {/* Company Size */}
-                <div>
-                  <Label htmlFor="company_size">Company Size</Label>
-                  <Select 
-                    value={formData.company_size} 
-                    onValueChange={(v) => setFormData(prev => ({ ...prev, company_size: v }))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1-10">1-10 employees</SelectItem>
-                      <SelectItem value="11-50">11-50 employees</SelectItem>
-                      <SelectItem value="51-200">51-200 employees</SelectItem>
-                      <SelectItem value="201-500">201-500 employees</SelectItem>
-                      <SelectItem value="500+">500+ employees</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                      {/* Company Size */}
+                      <div>
+                        <Label htmlFor="company_size">Company Size</Label>
+                        <Select
+                          value={formData.company_size}
+                          onValueChange={(v) => setFormData(prev => ({ ...prev, company_size: v }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1-10">1-10 employees</SelectItem>
+                            <SelectItem value="11-50">11-50 employees</SelectItem>
+                            <SelectItem value="51-200">51-200 employees</SelectItem>
+                            <SelectItem value="201-500">201-500 employees</SelectItem>
+                            <SelectItem value="500+">500+ employees</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
                       {/* Company Description */}
                       <div className="md:col-span-2">
@@ -1229,7 +1234,7 @@ export default function CompanyInfo() {
                       <p className="text-xs mt-1 mb-4">
                         Upload up to 10 images showcasing your company, products, facilities, or team. Make your profile come alive!
                       </p>
-                      
+
                       {/* Gallery Grid */}
                       {galleryImages.length > 0 && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -1239,7 +1244,7 @@ export default function CompanyInfo() {
                               console.warn('Invalid image URL at index', index, ':', imageUrl);
                               return null;
                             }
-                            
+
                             return (
                               <div key={`gallery-${index}-${imageUrl}`} className="relative group">
                                 <img
@@ -1269,7 +1274,7 @@ export default function CompanyInfo() {
                           })}
                         </div>
                       )}
-                      
+
                       {/* Debug info in development */}
                       {import.meta.env.DEV && galleryImages.length > 0 && (
                         <div className="text-xs mt-2">
@@ -1289,18 +1294,18 @@ export default function CompanyInfo() {
                           id="gallery-upload"
                         />
                         <label htmlFor="gallery-upload">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
+                          <Button
+                            type="button"
+                            variant="outline"
                             disabled={uploadingGallery || galleryImages.length >= 10}
                             asChild
                           >
                             <span className="cursor-pointer">
                               <Upload className="w-4 h-4 mr-2 inline" />
-                              {uploadingGallery 
-                                ? 'Uploading...' 
-                                : galleryImages.length >= 10 
-                                  ? 'Maximum 10 images reached' 
+                              {uploadingGallery
+                                ? 'Uploading...'
+                                : galleryImages.length >= 10
+                                  ? 'Maximum 10 images reached'
                                   : `Add Images (${galleryImages.length}/10)`
                               }
                             </span>
@@ -1309,38 +1314,38 @@ export default function CompanyInfo() {
                       </div>
                     </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-6 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(returnUrl)}
-                  disabled={isSaving}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between pt-6 border-t">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(returnUrl)}
                         disabled={isSaving}
-                  className="hover:bg-afrikoni-goldDark"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 mr-2" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Company Information
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </motion.div>
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isSaving}
+                        className="hover:bg-afrikoni-goldDark"
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 mr-2" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Save Company Information
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="team" className="space-y-4">
@@ -1402,8 +1407,8 @@ export default function CompanyInfo() {
                       onChange={(e) => setNewTeamMember({ ...newTeamMember, email: e.target.value })}
                       className="flex-1"
                     />
-                    <Select 
-                      value={newTeamMember.role} 
+                    <Select
+                      value={newTeamMember.role}
                       onValueChange={(v) => setNewTeamMember({ ...newTeamMember, role: v })}
                     >
                       <SelectTrigger className="w-full md:w-48">
@@ -1425,11 +1430,11 @@ export default function CompanyInfo() {
                     </Button>
                   </div>
                 </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
-    </div>
+      </div>
     </>
   );
 }

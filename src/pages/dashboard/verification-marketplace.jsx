@@ -21,7 +21,7 @@ import RequireCapability from '@/guards/RequireCapability';
 function VerificationMarketplaceInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -60,7 +60,7 @@ function VerificationMarketplaceInner() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load company
       const { data: companyData, error: companyError } = await supabase
@@ -68,11 +68,11 @@ function VerificationMarketplaceInner() {
         .select('*')
         .eq('id', profileCompanyId)
         .single();
-      
+
       if (companyError) throw companyError;
-      
+
       setCompany(companyData);
-      
+
       // Check for existing purchase
       // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
       let purchase = null;
@@ -83,7 +83,7 @@ function VerificationMarketplaceInner() {
           .eq('company_id', profileCompanyId)
           .eq('status', 'completed')
           .single();
-        
+
         if (purchaseError) {
           // Handle PGRST116 (not found) - purchase doesn't exist yet, this is OK
           if (purchaseError.code !== 'PGRST116') {
@@ -98,7 +98,7 @@ function VerificationMarketplaceInner() {
           throw error;
         }
       }
-      
+
       setHasExistingPurchase(!!purchase);
     } catch (err) {
       console.error('[VerificationMarketplace] Error loading data:', err);
@@ -175,7 +175,7 @@ function VerificationMarketplaceInner() {
           .select('id')
           .eq('company_id', companyId)
           .single();
-        
+
         if (verifError) {
           // Handle PGRST116 (not found) - verification doesn't exist yet, this is OK
           if (verifError.code !== 'PGRST116') {
@@ -225,8 +225,8 @@ function VerificationMarketplaceInner() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadData}
       />
     );
@@ -374,7 +374,7 @@ function VerificationMarketplaceInner() {
                 <Button
                   variant="outline"
                   className="w-full hover:bg-afrikoni-gold/10"
-                  onClick={() => window.location.href = '/verification-center'}
+                  onClick={() => window.location.href = '/dashboard/verification-center'}
                 >
                   Apply for Free Verification
                 </Button>

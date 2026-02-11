@@ -32,17 +32,18 @@ import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 import { useRealTimeSubscription } from '@/hooks/useRealTimeData';
 import { toast } from 'sonner';
+import { FraudDetectionService } from '@/services/FraudDetectionService';
 
 export default function RiskManagementDashboard() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
-  
+
   // ✅ KERNEL COMPLIANCE: Derive role from capabilities instead of role field
-  const derivedRole = capabilities?.can_sell && capabilities?.can_buy ? 'hybrid' 
-    : capabilities?.can_sell ? 'seller' 
-    : capabilities?.can_logistics ? 'logistics' 
-    : 'buyer';
-  
+  const derivedRole = capabilities?.can_sell && capabilities?.can_buy ? 'hybrid'
+    : capabilities?.can_sell ? 'seller'
+      : capabilities?.can_logistics ? 'logistics'
+        : 'buyer';
+
   // All hooks must be at the top - before any conditional returns
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -162,7 +163,7 @@ export default function RiskManagementDashboard() {
           details: allUsersError.details,
           hint: allUsersError.hint
         });
-        
+
         // Show user-friendly error message
         if (allUsersError.message?.includes('infinite recursion')) {
           toast.error('Database policy error. Please refresh the page.', {
@@ -183,7 +184,7 @@ export default function RiskManagementDashboard() {
       }
 
       console.log(`[Risk Dashboard] ✅ Found ${allUsersData?.length || 0} total users from profiles table`);
-      
+
       // Debug: Log all user emails to verify we're getting all users
       if (allUsersData && allUsersData.length > 0) {
         console.log('📋 All user emails from database:', allUsersData.map(u => ({
@@ -259,7 +260,7 @@ export default function RiskManagementDashboard() {
               .select('can_buy, can_sell, can_logistics')
               .eq('company_id', user.company_id)
               .single();
-            
+
             // Handle PGRST116 (not found) - capabilities don't exist, use defaults
             if (capabilitiesError && capabilitiesError.code === 'PGRST116') {
               // Capabilities not found - use default buyer role
@@ -306,7 +307,7 @@ export default function RiskManagementDashboard() {
 
       setAllUsers(processedUsers);
       console.log(`[Risk Dashboard] Processed ${processedUsers.length} total users`);
-      
+
       // Log all users for complete visibility
       console.log('✅ ALL USERS LOADED:', processedUsers.map(u => ({
         email: u.email,
@@ -315,7 +316,7 @@ export default function RiskManagementDashboard() {
         activity: u.totalActivity,
         registered: u.createdAt
       })));
-      
+
       console.log(`📊 Total: ${processedUsers.length} users | Active: ${processedUsers.filter(u => u.totalActivity > 0).length} | Inactive: ${processedUsers.filter(u => u.totalActivity === 0).length}`);
 
       setIsLoadingUsers(false);
@@ -363,7 +364,7 @@ export default function RiskManagementDashboard() {
       }
 
       console.log(`[Risk Dashboard] ✅ Found ${recentUsers?.length || 0} registrations from last 30 days`);
-      
+
       // Debug: Log all user emails to verify we're getting all users
       if (recentUsers && recentUsers.length > 0) {
         console.log('📋 User emails from database (last 30 days):', recentUsers.map(u => ({
@@ -455,7 +456,7 @@ export default function RiskManagementDashboard() {
       setNewRegistrations(registrations);
 
       console.log(`[Risk Dashboard] Processed ${registrations.length} registrations with activity data`);
-      
+
       // Log all recent registrations for complete visibility
       console.log('📋 RECENT REGISTRATIONS (Last 30 days):', registrations.map(r => ({
         email: r.email,
@@ -465,7 +466,7 @@ export default function RiskManagementDashboard() {
         activity: r.totalActivity,
         registered: r.createdAt
       })));
-      
+
       console.log(`📊 Summary: ${registrations.length} recent users | ${registrations.filter(r => r.totalActivity > 0).length} active | ${registrations.filter(r => r.totalActivity === 0).length} need attention`);
 
     } catch (error) {
@@ -480,7 +481,7 @@ export default function RiskManagementDashboard() {
   // Real-time handler for new user registrations
   const handleNewRegistration = useCallback((payload) => {
     console.log('[Risk Dashboard] New user registered!', payload);
-    
+
     // Show instant notification
     toast.success('New User Registration', {
       description: `A new user just registered on the platform.`,
@@ -498,7 +499,7 @@ export default function RiskManagementDashboard() {
   // Real-time handler for risk changes
   const handleRiskDataChange = useCallback((payload) => {
     console.log('[Risk Dashboard] Risk data changed:', payload.table, payload.eventType);
-    
+
     // Show alert for critical events
     if (payload.table === 'disputes' && payload.eventType === 'INSERT') {
       toast.error('New Dispute Created', {
@@ -522,6 +523,78 @@ export default function RiskManagementDashboard() {
   useRealTimeSubscription('audit_log', handleRiskDataChange, null, [handleRiskDataChange]);
   useRealTimeSubscription('shipments', handleRiskDataChange, null, [handleRiskDataChange]);
   useRealTimeSubscription('companies', handleRiskDataChange, null, [handleRiskDataChange]);
+
+  const handleRunDiagnostics = async () => {
+    try {
+      toast.info('Initiating AI Risk Diagnostic...', { duration: 2000 });
+      setLoading(true);
+
+      // Simulate checking recent 5 users for identity inconsistencies
+      const { data: recentUsers } = await supabase
+        .from('profiles')
+        .select('id, company_id')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      let threatsDetected = 0;
+
+      if (recentUsers) {
+        for (const user of recentUsers) {
+          if (user.company_id) {
+            const check = await FraudDetectionService.checkIdentityConsistency(user.id, user.company_id);
+            if (check.flagged) {
+              await FraudDetectionService.logThreat({
+                type: 'IDENTITY_MISMATCH',
+                entityType: 'User',
+                entityId: user.id,
+                userId: user.id,
+                severity: check.riskLevel,
+                reason: check.reason,
+                score: 85,
+                details: check
+              });
+              threatsDetected++;
+            }
+          }
+        }
+      }
+
+      // Simulate random document check
+      const docCheck = await FraudDetectionService.analyzeDocument('dummy-url', 'business_license');
+      if (docCheck.flagged) {
+        await FraudDetectionService.logThreat({
+          type: 'DOCUMENT_FORGERY',
+          entityType: 'Document',
+          entityId: 'doc-simulation',
+          userId: userId, // Current admin running the check
+          severity: 'critical',
+          reason: docCheck.reasons.join(', '),
+          score: docCheck.riskScore,
+          details: docCheck
+        });
+        threatsDetected++;
+      }
+
+      if (threatsDetected > 0) {
+        toast.error(`Diagnostics Complete: ${threatsDetected} Threats Detected!`, {
+          description: 'Check the Live Risk Feed for details.'
+        });
+      } else {
+        toast.success('Diagnostics Complete: System Healthy', {
+          description: 'No new anomalies detected.'
+        });
+      }
+
+      // Refresh data to show new logs
+      loadRiskData();
+
+    } catch (err) {
+      console.error('Diagnostic error:', err);
+      toast.error('Diagnostic failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadRiskData = async () => {
     try {
@@ -596,12 +669,12 @@ export default function RiskManagementDashboard() {
         .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: false })
         .limit(20);
-      
+
       setContactSubmissions(contactSubmissionsData || []);
 
       // Build early warning alerts from real data
       const alerts = [];
-      
+
       // Add dispute alerts
       if (disputes && disputes.length > 0) {
         disputes.forEach(dispute => {
@@ -700,7 +773,7 @@ export default function RiskManagementDashboard() {
         shipmentsAtRisk: shipmentsAtRisk?.length || 0
       });
 
-      setEarlyWarningAlerts(alerts.sort((a, b) => 
+      setEarlyWarningAlerts(alerts.sort((a, b) =>
         new Date(b.timestamp) - new Date(a.timestamp)
       ));
 
@@ -716,13 +789,13 @@ export default function RiskManagementDashboard() {
 
       setAntiCorruptionData({
         whistleblowerReports: 0, // Would need separate table
-        aiFlaggedAnomalies: corruptionLogs?.filter(log => 
+        aiFlaggedAnomalies: corruptionLogs?.filter(log =>
           log.metadata?.ai_flagged === true
         ).length || 0,
-        attemptedBribeAlerts: corruptionLogs?.filter(log => 
+        attemptedBribeAlerts: corruptionLogs?.filter(log =>
           log.action.toLowerCase().includes('bribe')
         ).length || 0,
-        suspiciousDocumentEdits: corruptionLogs?.filter(log => 
+        suspiciousDocumentEdits: corruptionLogs?.filter(log =>
           log.action.toLowerCase().includes('document')
         ).length || 0,
         employeeRedFlags: 0, // Would need separate table
@@ -751,12 +824,12 @@ export default function RiskManagementDashboard() {
         id: shipment.id,
         orderId: shipment.order_id,
         status: shipment.status,
-        riskLevel: shipment.estimated_delivery && 
+        riskLevel: shipment.estimated_delivery &&
           new Date(shipment.estimated_delivery) < new Date() ? 'high' : 'medium',
         carrier: shipment.carrier,
         origin: shipment.origin_address,
         destination: shipment.destination_address,
-        delayHours: shipment.estimated_delivery ? 
+        delayHours: shipment.estimated_delivery ?
           Math.floor((new Date() - new Date(shipment.estimated_delivery)) / (1000 * 60 * 60)) : 0,
         reason: 'Delivery delayed'
       }));
@@ -793,12 +866,12 @@ export default function RiskManagementDashboard() {
         date.setDate(date.getDate() - i);
         const dayStart = new Date(date.setHours(0, 0, 0, 0));
         const dayEnd = new Date(date.setHours(23, 59, 59, 999));
-        
+
         const dayFraud = fraudMapped.filter(f => {
           const fraudDate = new Date(f.timestamp);
           return fraudDate >= dayStart && fraudDate <= dayEnd;
         }).length;
-        
+
         dailyFraudScore.push({
           date: dayStart.toISOString().split('T')[0],
           score: dayFraud * 10
@@ -821,13 +894,13 @@ export default function RiskManagementDashboard() {
         date.setDate(date.getDate() - i);
         const dayStart = new Date(date.setHours(0, 0, 0, 0));
         const dayEnd = new Date(date.setHours(23, 59, 59, 999));
-        
+
         // Calculate risk for this day
-        const dayDisputes = allDisputes?.filter(d => 
+        const dayDisputes = allDisputes?.filter(d =>
           new Date(d.created_at) >= dayStart && new Date(d.created_at) <= dayEnd
         ).length || 0;
         const dayScore = Math.min(100, dayDisputes * 10);
-        
+
         dailyScores.push({
           date: dayStart.toISOString().split('T')[0],
           score: dayScore
@@ -882,8 +955,8 @@ export default function RiskManagementDashboard() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadRiskData}
       />
     );
@@ -891,8 +964,8 @@ export default function RiskManagementDashboard() {
 
   const filteredAlerts = Array.isArray(earlyWarningAlerts)
     ? (alertFilter === 'all'
-        ? earlyWarningAlerts
-        : earlyWarningAlerts.filter(alert => alert.severity === alertFilter))
+      ? earlyWarningAlerts
+      : earlyWarningAlerts.filter(alert => alert.severity === alertFilter))
     : [];
 
   const getSeverityColor = (severity) => {
@@ -1001,8 +1074,8 @@ export default function RiskManagementDashboard() {
                       {showAllUsers ? 'All Users' : 'Recent Registrations (Last 30 Days)'}
                     </h3>
                     <p className="text-sm">
-                      {showAllUsers 
-                        ? `${allUsers.length} total users • Complete activity tracking` 
+                      {showAllUsers
+                        ? `${allUsers.length} total users • Complete activity tracking`
                         : `${newRegistrations.length} recent users • Complete activity tracking`
                       }
                     </p>
@@ -1036,6 +1109,20 @@ export default function RiskManagementDashboard() {
                     <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingUsers ? 'animate-spin' : ''}`} />
                     Reload
                   </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700 text-white border-none"
+                    onClick={handleRunDiagnostics}
+                    disabled={loading}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Run AI Diagnostics
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Export Report
+                  </Button>
                 </div>
               </div>
 
@@ -1054,7 +1141,7 @@ export default function RiskManagementDashboard() {
                 {searchEmail && (
                   <p className="text-xs mt-2">
                     Searching for: <span className="font-semibold">{searchEmail}</span>
-                    <button 
+                    <button
                       onClick={() => setSearchEmail('')}
                       className="ml-2 hover:underline"
                     >
@@ -1067,9 +1154,9 @@ export default function RiskManagementDashboard() {
               {(() => {
                 // Filter users based on search and view mode
                 let displayUsers = showAllUsers ? allUsers : newRegistrations;
-                
+
                 if (searchEmail) {
-                  displayUsers = displayUsers.filter(u => 
+                  displayUsers = displayUsers.filter(u =>
                     u.email?.toLowerCase().includes(searchEmail.toLowerCase()) ||
                     u.fullName?.toLowerCase().includes(searchEmail.toLowerCase()) ||
                     u.companyName?.toLowerCase().includes(searchEmail.toLowerCase())
@@ -1099,7 +1186,7 @@ export default function RiskManagementDashboard() {
                             {showAllUsers ? 'No users in database' : 'No new registrations in the last 30 days'}
                           </p>
                           <p className="text-sm">
-                            {showAllUsers 
+                            {showAllUsers
                               ? 'The database appears to be empty or users are not being created properly.'
                               : 'Click "Show All" to see all users regardless of registration date.'}
                           </p>
@@ -1110,164 +1197,163 @@ export default function RiskManagementDashboard() {
                 }
 
                 return (
-                <>
-                  {/* Results Count */}
-                  <div className="mb-3 p-3 rounded-lg border">
-                    <p className="text-sm font-medium">
-                      📊 Showing <span className="font-bold">{displayUsers.length}</span> {displayUsers.length === 1 ? 'user' : 'users'}
-                      {searchEmail && <span className=""> matching your search</span>}
-                    </p>
-                  </div>
+                  <>
+                    {/* Results Count */}
+                    <div className="mb-3 p-3 rounded-lg border">
+                      <p className="text-sm font-medium">
+                        📊 Showing <span className="font-bold">{displayUsers.length}</span> {displayUsers.length === 1 ? 'user' : 'users'}
+                        {searchEmail && <span className=""> matching your search</span>}
+                      </p>
+                    </div>
 
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {displayUsers.map((reg) => (
-                      <div
-                        key={reg.id}
-                        className="p-5 border rounded-lg hover:shadow-md transition-all hover:border-afrikoni-gold/40"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          {/* User Info */}
-                          <div className="flex items-start gap-4 flex-1">
-                            <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-lg font-bold">
-                                {reg.fullName.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              {/* Name & Status */}
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h4 className="font-bold">{reg.fullName}</h4>
-                                <Badge variant="outline" className="text-xs capitalize">
-                                  {reg.role}
-                                </Badge>
-                                <Badge
-                                  className={`text-xs ${
-                                    reg.verificationStatus === 'verified'
-                                      ? 'bg-green-50 text-green-700 border-green-200'
-                                      : reg.verificationStatus === 'pending'
-                                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                      : 'bg-gray-50 text-gray-700 border-gray-200'
-                                  }`}
-                                >
-                                  {reg.verificationStatus}
-                                </Badge>
-                                {reg.isAdmin && (
-                                  <Badge className="text-xs">
-                                    ADMIN
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                      {displayUsers.map((reg) => (
+                        <div
+                          key={reg.id}
+                          className="p-5 border rounded-lg hover:shadow-md transition-all hover:border-afrikoni-gold/40"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            {/* User Info */}
+                            <div className="flex items-start gap-4 flex-1">
+                              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-lg font-bold">
+                                  {reg.fullName.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                {/* Name & Status */}
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                  <h4 className="font-bold">{reg.fullName}</h4>
+                                  <Badge variant="outline" className="text-xs capitalize">
+                                    {reg.role}
                                   </Badge>
-                                )}
-                              </div>
-
-                              {/* Contact & Company */}
-                              <div className="space-y-1 mb-3">
-                                <p className="text-sm font-medium">
-                                  📧 {reg.email}
-                                </p>
-                                <p className="text-sm">
-                                  🏢 {reg.companyName}
-                                </p>
-                                <p className="text-sm">
-                                  🌍 {reg.country}
-                                </p>
-                                {reg.phone !== 'N/A' && (
-                                  <p className="text-sm">
-                                    📱 {reg.phone}
-                                  </p>
-                                )}
-                              </div>
-
-                              {/* Activity Stats - WHAT THEY DO */}
-                              <div className="rounded-lg p-3 mb-3">
-                                <p className="text-xs font-semibold mb-2 uppercase tracking-wide">
-                                  Activity Summary
-                                </p>
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div className="text-center">
-                                    <div className="text-lg font-bold">
-                                      {reg.orderCount}
-                                    </div>
-                                    <div className="text-xs">Orders</div>
-                                  </div>
-                                  <div className="text-center">
-                                    <div className="text-lg font-bold">
-                                      {reg.rfqCount}
-                                    </div>
-                                    <div className="text-xs">RFQs</div>
-                                  </div>
-                                  <div className="text-center">
-                                    <div className="text-lg font-bold">
-                                      {reg.productCount}
-                                    </div>
-                                    <div className="text-xs">Products</div>
-                                  </div>
+                                  <Badge
+                                    className={`text-xs ${reg.verificationStatus === 'verified'
+                                        ? 'bg-green-50 text-green-700 border-green-200'
+                                        : reg.verificationStatus === 'pending'
+                                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                          : 'bg-gray-50 text-gray-700 border-gray-200'
+                                      }`}
+                                  >
+                                    {reg.verificationStatus}
+                                  </Badge>
+                                  {reg.isAdmin && (
+                                    <Badge className="text-xs">
+                                      ADMIN
+                                    </Badge>
+                                  )}
                                 </div>
-                                {reg.totalActivity === 0 && (
-                                  <p className="text-xs text-center mt-2 italic">
-                                    No activity yet
-                                  </p>
-                                )}
-                                {reg.totalActivity > 0 && (
-                                  <p className="text-xs text-center font-medium mt-2">
-                                    ✓ Active user ({reg.totalActivity} total actions)
-                                  </p>
-                                )}
-                              </div>
 
-                              {/* Registration Time */}
-                              <div className="text-xs">
-                                📅 Registered: {new Date(reg.createdAt).toLocaleString('en-US', {
-                                  weekday: 'short',
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
+                                {/* Contact & Company */}
+                                <div className="space-y-1 mb-3">
+                                  <p className="text-sm font-medium">
+                                    📧 {reg.email}
+                                  </p>
+                                  <p className="text-sm">
+                                    🏢 {reg.companyName}
+                                  </p>
+                                  <p className="text-sm">
+                                    🌍 {reg.country}
+                                  </p>
+                                  {reg.phone !== 'N/A' && (
+                                    <p className="text-sm">
+                                      📱 {reg.phone}
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Activity Stats - WHAT THEY DO */}
+                                <div className="rounded-lg p-3 mb-3">
+                                  <p className="text-xs font-semibold mb-2 uppercase tracking-wide">
+                                    Activity Summary
+                                  </p>
+                                  <div className="grid grid-cols-3 gap-3">
+                                    <div className="text-center">
+                                      <div className="text-lg font-bold">
+                                        {reg.orderCount}
+                                      </div>
+                                      <div className="text-xs">Orders</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="text-lg font-bold">
+                                        {reg.rfqCount}
+                                      </div>
+                                      <div className="text-xs">RFQs</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="text-lg font-bold">
+                                        {reg.productCount}
+                                      </div>
+                                      <div className="text-xs">Products</div>
+                                    </div>
+                                  </div>
+                                  {reg.totalActivity === 0 && (
+                                    <p className="text-xs text-center mt-2 italic">
+                                      No activity yet
+                                    </p>
+                                  )}
+                                  {reg.totalActivity > 0 && (
+                                    <p className="text-xs text-center font-medium mt-2">
+                                      ✓ Active user ({reg.totalActivity} total actions)
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Registration Time */}
+                                <div className="text-xs">
+                                  📅 Registered: {new Date(reg.createdAt).toLocaleString('en-US', {
+                                    weekday: 'short',
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Actions */}
-                          <div className="flex flex-col gap-2">
-                            <Link to={`/dashboard/team-members`}>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="whitespace-nowrap hover:bg-afrikoni-gold/10"
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Profile
-                              </Button>
-                            </Link>
-                            {reg.companyId && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => navigator.clipboard.writeText(reg.id)}
-                                className="whitespace-nowrap text-xs"
-                              >
-                                Copy ID
-                              </Button>
-                            )}
+                            {/* Actions */}
+                            <div className="flex flex-col gap-2">
+                              <Link to={`/dashboard/team-members`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="whitespace-nowrap hover:bg-afrikoni-gold/10"
+                                >
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  View Profile
+                                </Button>
+                              </Link>
+                              {reg.companyId && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => navigator.clipboard.writeText(reg.id)}
+                                  className="whitespace-nowrap text-xs"
+                                >
+                                  Copy ID
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {displayUsers.length > 10 && (
-                    <div className="mt-4 text-center">
-                      <Link to="/dashboard/team-members">
-                        <Button className="hover:bg-afrikoni-gold/90 font-semibold">
-                          View All Users in Admin Panel
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
+                      ))}
                     </div>
-                  )}
-                </>
-              );
-            })()}
+
+                    {displayUsers.length > 10 && (
+                      <div className="mt-4 text-center">
+                        <Link to="/dashboard/team-members">
+                          <Button className="hover:bg-afrikoni-gold/90 font-semibold">
+                            View All Users in Admin Panel
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </CardContent>
           </Card>
         </motion.div>
@@ -1526,12 +1612,11 @@ export default function RiskManagementDashboard() {
                         <span className="text-xs font-medium">{entry.action}</span>
                         <Badge
                           variant="outline"
-                          className={`text-xs ${
-                            entry.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
-                            entry.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                            entry.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                            'bg-gray-50 text-gray-700 border-gray-200'
-                          }`}
+                          className={`text-xs ${entry.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
+                              entry.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                entry.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                  'bg-gray-50 text-gray-700 border-gray-200'
+                            }`}
                         >
                           {entry.severity}
                         </Badge>
@@ -1718,144 +1803,141 @@ export default function RiskManagementDashboard() {
                 {filteredAlerts.map((alert) => {
                   const isContactSubmission = alert.type === 'Contact Submission';
                   const submission = alert.metadata;
-                  
+
                   return (
-                  <div
-                    key={alert.id}
-                    className={`p-5 border-2 rounded-lg transition-all ${
-                      isContactSubmission
-                        ? 'border-afrikoni-gold bg-gradient-to-r from-afrikoni-cream/50 to-afrikoni-ivory/30 hover:shadow-lg hover:border-afrikoni-gold/60'
-                        : 'border-afrikoni-gold/20 hover:bg-afrikoni-sand/10'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className={`w-4 h-4 rounded-full mt-1.5 flex-shrink-0 ${getSeverityColor(alert.severity)}`} />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            {isContactSubmission && (
-                              <div className="w-10 h-10 bg-gradient-to-br rounded-full flex items-center justify-center font-bold text-lg shadow-md">
-                                📧
-                              </div>
-                            )}
-                            <h3 className={`font-bold text-afrikoni-text-dark ${isContactSubmission ? 'text-lg' : ''}`}>
-                              {alert.title}
-                            </h3>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs capitalize font-semibold ${
-                                alert.severity === 'critical' ? 'bg-red-100 text-red-800 border-red-300 shadow-sm' :
-                                alert.severity === 'high' ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-sm' :
-                                alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-300 shadow-sm' :
-                                'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
-                              }`}
-                            >
-                              {alert.severity}
-                            </Badge>
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs font-semibold ${
-                                isContactSubmission 
-                                  ? 'bg-afrikoni-gold/20 text-afrikoni-chestnut border-afrikoni-gold/40' 
-                                  : ''
-                              }`}
-                            >
-                              {alert.category}
-                            </Badge>
-                            {isContactSubmission && submission?.category && (
-                              <Badge className="border-0 text-xs font-bold px-3 py-1">
-                                {submission.category}
+                    <div
+                      key={alert.id}
+                      className={`p-5 border-2 rounded-lg transition-all ${isContactSubmission
+                          ? 'border-afrikoni-gold bg-gradient-to-r from-afrikoni-cream/50 to-afrikoni-ivory/30 hover:shadow-lg hover:border-afrikoni-gold/60'
+                          : 'border-afrikoni-gold/20 hover:bg-afrikoni-sand/10'
+                        }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className={`w-4 h-4 rounded-full mt-1.5 flex-shrink-0 ${getSeverityColor(alert.severity)}`} />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
+                              {isContactSubmission && (
+                                <div className="w-10 h-10 bg-gradient-to-br rounded-full flex items-center justify-center font-bold text-lg shadow-md">
+                                  📧
+                                </div>
+                              )}
+                              <h3 className={`font-bold text-afrikoni-text-dark ${isContactSubmission ? 'text-lg' : ''}`}>
+                                {alert.title}
+                              </h3>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs capitalize font-semibold ${alert.severity === 'critical' ? 'bg-red-100 text-red-800 border-red-300 shadow-sm' :
+                                    alert.severity === 'high' ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-sm' :
+                                      alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-300 shadow-sm' :
+                                        'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
+                                  }`}
+                              >
+                                {alert.severity}
                               </Badge>
-                            )}
-                          </div>
-                          
-                          {isContactSubmission && submission ? (
-                            <div className="space-y-3 mb-3">
-                              <div className="rounded-lg p-4 border">
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                  <div>
-                                    <div className="text-xs font-semibold uppercase tracking-wide mb-1">Contact</div>
-                                    <div className="text-sm font-bold">{submission.name}</div>
-                                    <a 
-                                      href={`mailto:${submission.email}`}
-                                      className="text-xs hover:underline font-medium"
-                                    >
-                                      {submission.email}
-                                    </a>
-                                  </div>
-                                  <div>
-                                    <div className="text-xs font-semibold uppercase tracking-wide mb-1">Submitted</div>
-                                    <div className="text-sm">
-                                      {new Date(submission.created_at).toLocaleString('en-US', {
-                                        dateStyle: 'medium',
-                                        timeStyle: 'short'
-                                      })}
-                                    </div>
-                                  </div>
-                                </div>
-                                {submission.subject && (
-                                  <div className="mb-2">
-                                    <div className="text-xs font-semibold uppercase tracking-wide mb-1">Subject</div>
-                                    <div className="text-sm font-semibold">{submission.subject}</div>
-                                  </div>
-                                )}
-                                <div>
-                                  <div className="text-xs font-semibold uppercase tracking-wide mb-2">Message</div>
-                                  <div className="text-sm p-3 rounded border-l-3 line-clamp-3">
-                                    {submission.message}
-                                  </div>
-                                </div>
-                                {submission.attachments && submission.attachments.length > 0 && (
-                                  <div className="mt-3 pt-3 border-t">
-                                    <div className="text-xs font-semibold uppercase tracking-wide mb-2">Attachments</div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {submission.attachments.map((att, idx) => (
-                                        <Badge key={idx} variant="outline" className="text-xs">
-                                          📎 {typeof att === 'string' ? att.split('/').pop() : att.name || 'Attachment'}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs font-semibold ${isContactSubmission
+                                    ? 'bg-afrikoni-gold/20 text-afrikoni-chestnut border-afrikoni-gold/40'
+                                    : ''
+                                  }`}
+                              >
+                                {alert.category}
+                              </Badge>
+                              {isContactSubmission && submission?.category && (
+                                <Badge className="border-0 text-xs font-bold px-3 py-1">
+                                  {submission.category}
+                                </Badge>
+                              )}
                             </div>
-                          ) : (
-                            <p className="text-sm mb-2">{alert.description}</p>
-                          )}
-                          
-                          <div className="flex items-center gap-4 text-xs">
-                            <span className="font-medium">{new Date(alert.timestamp).toLocaleString()}</span>
-                            {alert.actionRequired && (
-                              <span className="font-bold px-2 py-1 rounded">⚡ Action Required</span>
+
+                            {isContactSubmission && submission ? (
+                              <div className="space-y-3 mb-3">
+                                <div className="rounded-lg p-4 border">
+                                  <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                      <div className="text-xs font-semibold uppercase tracking-wide mb-1">Contact</div>
+                                      <div className="text-sm font-bold">{submission.name}</div>
+                                      <a
+                                        href={`mailto:${submission.email}`}
+                                        className="text-xs hover:underline font-medium"
+                                      >
+                                        {submission.email}
+                                      </a>
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-semibold uppercase tracking-wide mb-1">Submitted</div>
+                                      <div className="text-sm">
+                                        {new Date(submission.created_at).toLocaleString('en-US', {
+                                          dateStyle: 'medium',
+                                          timeStyle: 'short'
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {submission.subject && (
+                                    <div className="mb-2">
+                                      <div className="text-xs font-semibold uppercase tracking-wide mb-1">Subject</div>
+                                      <div className="text-sm font-semibold">{submission.subject}</div>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="text-xs font-semibold uppercase tracking-wide mb-2">Message</div>
+                                    <div className="text-sm p-3 rounded border-l-3 line-clamp-3">
+                                      {submission.message}
+                                    </div>
+                                  </div>
+                                  {submission.attachments && submission.attachments.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t">
+                                      <div className="text-xs font-semibold uppercase tracking-wide mb-2">Attachments</div>
+                                      <div className="flex flex-wrap gap-2">
+                                        {submission.attachments.map((att, idx) => (
+                                          <Badge key={idx} variant="outline" className="text-xs">
+                                            📎 {typeof att === 'string' ? att.split('/').pop() : att.name || 'Attachment'}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-sm mb-2">{alert.description}</p>
                             )}
-                            {alert.acknowledged && (
-                              <span className="">Acknowledged</span>
-                            )}
+
+                            <div className="flex items-center gap-4 text-xs">
+                              <span className="font-medium">{new Date(alert.timestamp).toLocaleString()}</span>
+                              {alert.actionRequired && (
+                                <span className="font-bold px-2 py-1 rounded">⚡ Action Required</span>
+                              )}
+                              {alert.acknowledged && (
+                                <span className="">Acknowledged</span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        {isContactSubmission ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="whitespace-nowrap hover:bg-afrikoni-gold/90 font-semibold shadow-md"
-                            onClick={() => {
-                              if (submission?.email) {
-                                window.location.href = `mailto:${submission.email}?subject=Re: ${submission.subject || 'Your Inquiry'}`;
-                              }
-                            }}
-                          >
-                            📧 Reply
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="sm" className="ml-4">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <div className="flex flex-col gap-2">
+                          {isContactSubmission ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="whitespace-nowrap hover:bg-afrikoni-gold/90 font-semibold shadow-md"
+                              onClick={() => {
+                                if (submission?.email) {
+                                  window.location.href = `mailto:${submission.email}?subject=Re: ${submission.subject || 'Your Inquiry'}`;
+                                }
+                              }}
+                            >
+                              📧 Reply
+                            </Button>
+                          ) : (
+                            <Button variant="ghost" size="sm" className="ml-4">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>

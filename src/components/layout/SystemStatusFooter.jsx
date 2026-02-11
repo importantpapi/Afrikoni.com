@@ -33,18 +33,18 @@ export default function SystemStatusFooter() {
         <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center pb-2 px-4 md:px-0">
             <Surface
                 variant="glass"
-                className="pointer-events-auto flex items-center gap-4 px-4 py-2 rounded-full border border-white/5 bg-[#050505]/80 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden max-w-[90vw] md:max-w-2xl"
+                className="pointer-events-auto flex items-center gap-4 px-4 py-2 rounded-full border border-afrikoni-gold/10 bg-white/95 backdrop-blur-xl shadow-lg overflow-hidden max-w-[90vw] md:max-w-2xl"
             >
                 {/* System Health */}
-                <div className="flex items-center gap-2 pr-4 border-r border-white/10 shrink-0">
+                <div className="flex items-center gap-2 pr-4 border-r border-afrikoni-gold/10 shrink-0">
                     <div className="relative flex items-center justify-center w-2 h-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                     </div>
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-500 hidden md:block">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 hidden md:block">
                         Afrikoni Network Active
                     </span>
-                    <span className="text-[10px] font-mono text-white/30 hidden md:block">v2.4.0</span>
+                    <span className="text-[10px] font-mono text-gray-500 hidden md:block">v2.4.0</span>
                 </div>
 
                 {/* Global Signal Stream (Ticker) */}
@@ -58,9 +58,9 @@ export default function SystemStatusFooter() {
                         {signal.type === 'market' && <Activity className="w-3 h-3 text-purple-500" />}
                         {signal.type === 'system' && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
 
-                        <span className={`text-xs font-medium truncate ${signal.level === 'medium' ? 'text-amber-400' :
-                                signal.level === 'success' ? 'text-emerald-400' :
-                                    'text-white/80'
+                        <span className={`text-xs font-medium truncate ${signal.level === 'medium' ? 'text-amber-600' :
+                            signal.level === 'success' ? 'text-emerald-600' :
+                                'text-gray-700'
                             }`}>
                             {signal.message}
                         </span>
@@ -68,12 +68,12 @@ export default function SystemStatusFooter() {
                 </div>
 
                 {/* Security / Connection */}
-                <div className="hidden md:flex items-center gap-3 pl-4 border-l border-white/10 shrink-0">
-                    <div className="flex items-center gap-1 text-[10px] text-white/40">
+                <div className="hidden md:flex items-center gap-3 pl-4 border-l border-afrikoni-gold/10 shrink-0">
+                    <div className="flex items-center gap-1 text-[10px] text-gray-500">
                         <Lock className="w-3 h-3" />
                         <span>TLS 1.3</span>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-white/40">
+                    <div className="flex items-center gap-1 text-[10px] text-gray-500">
                         <Globe className="w-3 h-3" />
                         <span>AF-SOUTH-1</span>
                     </div>

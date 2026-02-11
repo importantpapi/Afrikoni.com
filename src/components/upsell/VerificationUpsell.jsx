@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 
-export default function VerificationUpsell({ 
+export default function VerificationUpsell({
   isVerified = false,
   variant = 'card' // 'card', 'banner'
 }) {
@@ -57,11 +57,11 @@ export default function VerificationUpsell({
             $99 Fast-Track
           </Badge>
         </div>
-        
+
         <p className="text-sm text-afrikoni-text-dark/70 mb-4">
           Verified suppliers get 3x more buyer inquiries and appear first in search results.
         </p>
-        
+
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-sm text-afrikoni-text-dark/80">
             <CheckCircle className="w-4 h-4 text-afrikoni-green" />
@@ -76,14 +76,14 @@ export default function VerificationUpsell({
             <span>Priority buyer matching</span>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Link to="/dashboard/verification-marketplace" className="flex-1">
             <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
               Fast-Track ($99)
             </Button>
           </Link>
-          <Link to="/verification-center" className="flex-1">
+          <Link to="/dashboard/verification-center" className="flex-1">
             <Button variant="outline" className="w-full border-afrikoni-gold/30 text-afrikoni-gold">
               Free Option
             </Button>

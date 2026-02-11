@@ -86,6 +86,7 @@ const EscrowPage = lazy(() => import('./pages/dashboard/escrow/[orderId]'));
 // 5. GOVERNANCE & SECURITY (The Firewall)
 const CompliancePage = lazy(() => import('./pages/dashboard/compliance'));
 const RiskPage = lazy(() => import('./pages/dashboard/risk'));
+const TrustHealthPage = lazy(() => import('./pages/dashboard/trust-health'));
 const KYCPage = lazy(() => import('./pages/dashboard/kyc'));
 const VerificationStatusPage = lazy(() => import('./pages/dashboard/verification-status'));
 const VerificationMarketplacePage = lazy(() => import('./pages/dashboard/verification-marketplace'));
@@ -103,12 +104,22 @@ const HelpPage = lazy(() => import('./pages/dashboard/help'));
 // TRADE PIPELINE
 const TradePipelinePage = lazy(() => import('./pages/dashboard/trade-pipeline'));
 
+// QUICK TRADE WIZARD (The Killer Flow)
+const QuickTradeWizard = lazy(() => import('./pages/dashboard/QuickTradeWizard'));
+
+// LITE MODE DASHBOARD (SME Simplified Interface)
+const LiteModeDashboard = lazy(() => import('./pages/dashboard/LiteModeDashboard'));
+
 // 7. ANALYTICS & INTELLIGENCE
 const AnalyticsPage = lazy(() => import('./pages/dashboard/analytics'));
 const PerformancePage = lazy(() => import('./pages/dashboard/performance'));
 const KoniAIPage = lazy(() => import('./pages/dashboard/koniai'));
 const BuyerIntelligencePage = lazy(() => import('./pages/dashboard/buyer/intelligence'));
 const SellerIntelligencePage = lazy(() => import('./pages/dashboard/seller/intelligence'));
+
+// TRADE OS CONTROL PLANE (Mission Control)
+const ControlPlanePage = lazy(() => import('./pages/dashboard/control-plane'));
+
 
 // 8. SYSTEM SETTINGS & UTILITIES
 const SettingsPage = lazy(() => import('./pages/dashboard/settings'));
@@ -315,7 +326,7 @@ function AppContent() {
           <Route path="/trust" element={<Trust />} />
           <Route path="/order-protection" element={<OrderProtection />} />
           <Route path="/community" element={<Community />} />
-          <Route path="/verification-center" element={<VerificationCenter />} />
+          {/* Verification Center moved to Dashboard routes */}
           <Route path="/trending" element={<Trending />} />
           <Route path="/logistics" element={<Logistics />} />
 
@@ -450,9 +461,15 @@ function AppContent() {
                 <RiskPage />
               </ProtectedRoute>
             } />
+            <Route path="trust-health" element={
+              <ProtectedRoute requireAdmin={true}>
+                <TrustHealthPage />
+              </ProtectedRoute>
+            } />
             <Route path="kyc" element={<KYCPage />} />
             <Route path="verification-status" element={<VerificationStatusPage />} />
             <Route path="verification-marketplace" element={<VerificationMarketplacePage />} />
+            <Route path="verification-center" element={<VerificationCenter />} />
             <Route path="anticorruption" element={
               <ProtectedRoute requireAdmin={true}>
                 <AnticorruptionPage />
@@ -476,12 +493,23 @@ function AppContent() {
             <Route path="trade-pipeline" element={<TradePipelinePage />} />
             <Route path="trace-center" element={<TraceCenterPage />} /> {/* [NEW] Visual Command */}
 
+            {/* QUICK TRADE WIZARD (The Killer Flow) */}
+            <Route path="quick-trade" element={<QuickTradeWizard />} />
+            <Route path="quick-trade/new" element={<QuickTradeWizard />} />
+
+            {/* LITE MODE DASHBOARD (SME Simplified Interface) */}
+            <Route path="lite" element={<LiteModeDashboard />} />
+
             {/* 7. ANALYTICS & INTELLIGENCE */}
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="performance" element={<PerformancePage />} />
             <Route path="koniai" element={<KoniAIPage />} />
             <Route path="buyer-intelligence" element={<BuyerIntelligencePage />} />
             <Route path="seller-intelligence" element={<SellerIntelligencePage />} />
+
+            {/* TRADE OS CONTROL PLANE (Mission Control) */}
+            <Route path="control-plane" element={<ControlPlanePage />} />
+
 
             {/* 8. SYSTEM SETTINGS & UTILITIES */}
             <Route path="settings" element={

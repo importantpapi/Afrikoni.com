@@ -47,7 +47,9 @@ import CommandPalette from '@/components/dashboard/CommandPalette';
 import { useTheme } from '@/contexts/ThemeContext';
 import TradeOSSidebar from '@/components/dashboard/TradeOSSidebar';
 import TradeOSHeader from '@/components/dashboard/TradeOSHeader';
-import AITradeCopilot from '@/components/dashboard/AITradeCopilot';
+import { AICopilotSidebar } from '@/components/ai/AICopilotSidebar';
+import { TradeReadinessBar } from '@/components/trade-os/TradeReadinessBar';
+import { useTradeSystemState } from '@/hooks/useTradeSystemState';
 import SystemStatusFooter from '@/components/layout/SystemStatusFooter';
 import { WorkspaceModeProvider, useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
 
@@ -243,9 +245,14 @@ export default function DashboardLayout({
   const profileCompanyId = contextProfile?.company_id || null;
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [copilotOpen, setCopilotOpen] = useState(false); // AI Copilot State
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+
+  // Trade System State (Control Plane)
+  const { systemState } = useTradeSystemState();
 
   // ✅ THEME ENFORCEMENT: Dashboard is always DARK mode ("Trade OS")
   // Public pages are LIGHT mode
@@ -263,8 +270,8 @@ export default function DashboardLayout({
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [isFounder, setIsFounder] = useState(false);
   const [activeView, setActiveView] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
-  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const userMenuButtonRef = useRef(null);
+
   const location = useLocation();
   const navigate = useNavigate();
   // PHASE 5B: Dev switcher completely removed - capabilities are company-level
@@ -668,6 +675,8 @@ export default function DashboardLayout({
         notificationCounts={notificationCounts}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        copilotOpen={copilotOpen}
+        setCopilotOpen={setCopilotOpen}
         setCommandPaletteOpen={setCommandPaletteOpen}
         userMenuOpen={userMenuOpen}
         commandPaletteOpen={commandPaletteOpen}
@@ -692,6 +701,7 @@ export default function DashboardLayout({
         handleLogout={handleLogout}
         mergedUser={mergedUser}
         contextProfile={contextProfile}
+        systemState={systemState}
       >
         {children}
       </DashboardShell>
@@ -706,6 +716,8 @@ function DashboardShell({
   notificationCounts,
   sidebarOpen,
   setSidebarOpen,
+  copilotOpen,
+  setCopilotOpen,
   setCommandPaletteOpen,
   userMenuOpen,
   commandPaletteOpen,
@@ -721,11 +733,19 @@ function DashboardShell({
   handleLogout,
   mergedUser,
   contextProfile,
+  systemState,
 }) {
   const { mode, setMode } = useWorkspaceMode();
 
   return (
-    <div className="trade-os flex min-h-screen w-full bg-gray-50 dark:bg-[#0E0E0E] relative">
+    <div className="trade-os flex min-h-screen w-full bg-gray-50 relative">
+
+      {/* AI Copilot Sidebar */}
+      <AICopilotSidebar
+        isOpen={copilotOpen}
+        onClose={() => setCopilotOpen(false)}
+        recommendations={systemState?.intelligence?.recommendations || []}
+      />
 
       {/* Trade OS Sidebar */}
       <TradeOSSidebar
@@ -758,10 +778,14 @@ function DashboardShell({
         className="flex flex-col flex-1 w-full min-h-screen relative overflow-visible md:ml-[72px]"
         style={{ zIndex: zIndex.content }}
       >
+        {/* Trade Readiness Bar (Control Plane Status) - Always Top */}
+        <TradeReadinessBar systemState={systemState} />
+
         {/* Trade OS Header */}
         <TradeOSHeader
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          onToggleCopilot={() => setCopilotOpen(!copilotOpen)}
           notificationCount={notificationCounts.messages || 0}
           workspaceMode={mode}
           onToggleMode={() => setMode(mode === 'simple' ? 'operator' : 'simple')}
@@ -771,6 +795,7 @@ function DashboardShell({
         {/* Kernel Status Bar */}
         <div className="hidden md:flex items-center px-4 md:px-5 py-2 bg-transparent border-b border-white/5 overflow-x-auto">
         </div>
+
 
         {/* User Menu Dropdown - Trade OS styled */}
         {userMenuOpen && (
@@ -809,7 +834,7 @@ function DashboardShell({
                   { to: '/dashboard/notifications', icon: MessageSquare, label: 'Trade Signals' },
                   { to: '/dashboard/orders', icon: Package, label: 'Orders' },
                   { to: '/dashboard/rfqs', icon: FileText, label: 'RFQs' },
-                  { to: '/verification-center', icon: Shield, label: 'Verification' },
+                  { to: '/dashboard/verification-center', icon: Shield, label: 'Verification' },
                   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
                 ].map(item => (
                   <Link
@@ -864,8 +889,7 @@ function DashboardShell({
         isHybrid={isHybridCapability}
       />
 
-      {/* AI Trade Copilot - Persistent floating assistant */}
-      <AITradeCopilot />
+
 
       {/* Kernel Control Plane - Global Signal Stream */}
       <SystemStatusFooter />

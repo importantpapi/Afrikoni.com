@@ -46,7 +46,7 @@ async function getUserNotificationPreferences(userId, companyId) {
         .select('notification_preferences')
         .eq('id', userId)
         .maybeSingle();
-      
+
       if (profile?.notification_preferences) {
         const prefs = typeof profile.notification_preferences === 'string'
           ? JSON.parse(profile.notification_preferences)
@@ -62,7 +62,7 @@ async function getUserNotificationPreferences(userId, companyId) {
         };
       }
     }
-    
+
     // Default preferences (all enabled)
     return {
       email: true,
@@ -94,7 +94,7 @@ async function sendEmailNotification(email, title, message, link, type = 'defaul
   try {
     // Import email service dynamically to avoid loading if not configured
     const { sendEmail } = await import('./emailService');
-    
+
     // Map notification types to email templates
     const templateMap = {
       'order': 'orderConfirmation',
@@ -105,9 +105,9 @@ async function sendEmailNotification(email, title, message, link, type = 'defaul
       'review': 'default',
       'default': 'default'
     };
-    
+
     const template = templateMap[type] || 'default';
-    
+
     const result = await sendEmail({
       to: email,
       subject: title,
@@ -118,7 +118,7 @@ async function sendEmailNotification(email, title, message, link, type = 'defaul
         buttonLink: link ? `${window.location.origin}${link}` : null
       }
     });
-    
+
     if (!result.success && import.meta.env.DEV) {
       console.log('📧 Email Notification (not sent):', {
         to: email,
@@ -128,7 +128,7 @@ async function sendEmailNotification(email, title, message, link, type = 'defaul
         reason: result.error
       });
     }
-    
+
     return result.success;
   } catch (error) {
     // Silently fail - email is not critical for app functionality
@@ -172,10 +172,10 @@ export async function createNotification({
 
     // Get notification preferences
     const preferences = await getUserNotificationPreferences(user_id, company_id);
-    
+
     // Check if in-app notification should be sent
     const shouldSendInApp = preferences.in_app !== false;
-    
+
     // Check if email should be sent
     let shouldSendEmail = sendEmail || false;
     if (!shouldSendEmail) {
@@ -408,7 +408,7 @@ export async function notifyRFQCreated(rfqId, buyerCompanyId, categoryId = null)
 
     // Get unique company IDs
     const uniqueCompanyIds = [...new Set(productsInCategory.map(p => p.company_id).filter(Boolean))];
-    
+
     if (uniqueCompanyIds.length === 0) {
       return;
     }
@@ -514,9 +514,9 @@ export async function notifyOrderStatusChange(orderId, newStatus, buyerCompanyId
  * @param {boolean} options.isFirstMessage - Whether this is the first message in the conversation
  */
 export async function notifyNewMessage(
-  messageId, 
-  conversationId, 
-  receiverCompanyId, 
+  messageId,
+  conversationId,
+  receiverCompanyId,
   senderCompanyId,
   options = {}
 ) {
@@ -546,7 +546,7 @@ export async function notifyNewMessage(
       const messageTime = new Date(lastMessage.created_at);
       const now = new Date();
       const minutesDiff = (now - messageTime) / (1000 * 60);
-      
+
       if (minutesDiff < 5) {
         // Recent message from receiver - they're likely still engaged
         return;
@@ -562,7 +562,7 @@ export async function notifyNewMessage(
         .select('id, company_name')
         .eq('id', senderCompanyId)
         .maybeSingle();
-      
+
       if (senderCompany?.company_name) {
         senderName = senderCompany.company_name;
       }
@@ -587,7 +587,7 @@ export async function notifyNewMessage(
         .select('name')
         .eq('id', conversation.related_to)
         .maybeSingle();
-      
+
       // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       if (product?.name || product?.title) {
         notificationMessage = `${senderName} sent a message about ${product.name || product.title}`;
@@ -608,10 +608,10 @@ export async function notifyNewMessage(
     // Only create if it doesn't exist
     if (!existing) {
       const template = NOTIFICATION_TEMPLATES.message.new;
-      
+
       // Email logic: Only send email on first message in conversation
       const shouldSendEmail = isFirstMessage;
-      
+
       await createNotification({
         company_id: receiverCompanyId,
         title: template.title,
@@ -652,7 +652,7 @@ export async function notifyVerificationStatusChange(companyId, status, reviewNo
       title: template.title,
       message: message,
       type: 'verification',
-      link: '/verification-center',
+      link: '/dashboard/verification-center',
       related_id: companyId,
       sendEmail: true // Verification status changes are important, always send email
     });
@@ -682,10 +682,10 @@ export async function notifyReviewReceived(reviewId, companyId, reviewerName) {
  * Helper to create notification when payment is received or released
  */
 export async function notifyPaymentEvent(orderId, companyId, eventType, amount, currency = 'USD') {
-  const template = eventType === 'received' 
+  const template = eventType === 'received'
     ? NOTIFICATION_TEMPLATES.payment.received
     : NOTIFICATION_TEMPLATES.payment.released;
-  
+
   await createNotification({
     company_id: companyId,
     title: template.title,

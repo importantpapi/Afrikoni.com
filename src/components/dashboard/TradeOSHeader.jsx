@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Bell, Plus, Command, Sparkles,
   ShieldCheck, Truck, DollarSign, Activity, Menu, Zap,
-  Globe, LayoutDashboard, Database
+  Globe, LayoutDashboard, Database, Sun, Moon
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useKernelState } from '@/hooks/useKernelState';
@@ -12,13 +12,14 @@ import { useKernelState } from '@/hooks/useKernelState';
 export default function TradeOSHeader({
   onOpenCommandPalette,
   onToggleSidebar,
+  onToggleCopilot,
   notificationCount = 0,
   workspaceMode = 'simple',
   onToggleMode = () => { },
   userAvatar,
 }) {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   // Connect to Kernel State
   const { data: kernelData, loading: kernelLoading } = useKernelState();
@@ -29,13 +30,13 @@ export default function TradeOSHeader({
   const activeCorridors = kernelData?.activeCorridors ?? 0;
 
   return (
-    <div className="flex flex-col w-full z-40 bg-white/80 dark:bg-[#0A0A0A]/90 backdrop-blur-md border-b dark:border-[#1E1E1E] sticky top-0">
+    <div className="flex flex-col w-full z-40 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-afrikoni-gold/10 sticky top-14 shadow-sm transition-colors duration-300">
       {/* Main Header Bar */}
       <header className="h-14 flex items-center px-4 gap-4 relative">
         {/* Mobile menu toggle */}
         <button
           onClick={onToggleSidebar}
-          className="md:hidden p-2 rounded-lg dark:text-gray-400 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+          className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -43,13 +44,13 @@ export default function TradeOSHeader({
         {/* Command Bar Trigger */}
         <button
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-9 px-3 rounded-xl dark:bg-[#141414] border dark:border-[#2A2A2A] hover:border-[#D4A937]/30 transition-all text-sm dark:text-gray-500 hover:text-gray-400 flex-1 max-w-md shadow-inner shadow-black/20"
+          className="flex items-center gap-2 h-9 px-3 rounded-xl bg-afrikoni-cream/20 dark:bg-white/5 border border-afrikoni-gold/20 dark:border-white/10 hover:border-[#D4A937]/40 transition-all text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex-1 max-w-md"
         >
           <Search className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Search or run command...</span>
           <span className="sm:hidden">Search...</span>
           <div className="ml-auto flex items-center gap-1">
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium dark:text-gray-600 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A]">
+            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-white/10 rounded border border-afrikoni-gold/20 dark:border-white/10">
               <Command className="w-2.5 h-2.5 mr-0.5" />K
             </kbd>
           </div>
@@ -57,16 +58,23 @@ export default function TradeOSHeader({
 
         {/* Right side actions */}
         <div className="flex items-center gap-3 ml-auto">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
           {/* Mode Toggle */}
           <button
             onClick={onToggleMode}
-            className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full border dark:border-[#1E1E1E] text-[10px] font-bold tracking-wider uppercase hover:border-[#D4A937]/40 hover:text-[#D4A937] transition-colors bg-[#0D0D0D]"
+            className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full border border-afrikoni-gold/20 text-[10px] font-bold tracking-wider uppercase hover:border-[#D4A937]/40 hover:text-[#D4A937] transition-colors bg-afrikoni-cream/20"
           >
-            <span className={`${workspaceMode === 'simple' ? 'text-[#D4A937]' : 'dark:text-gray-600'}`}>
+            <span className={`${workspaceMode === 'simple' ? 'text-[#D4A937]' : 'text-gray-600'}`}>
               Simple
             </span>
-            <span className="h-3 w-px dark:bg-[#2A2A2A]" />
-            <span className={`${workspaceMode === 'operator' ? 'text-[#D4A937]' : 'dark:text-gray-600'}`}>
+            <span className="h-3 w-px bg-afrikoni-gold/20" />
+            <span className={`${workspaceMode === 'operator' ? 'text-[#D4A937]' : 'text-gray-600'}`}>
               Operator
             </span>
           </button>
@@ -81,79 +89,82 @@ export default function TradeOSHeader({
           </button>
 
           {/* AI Copilot */}
-          <button className="p-2 rounded-lg dark:text-gray-500 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors relative group">
+          <button
+            onClick={onToggleCopilot}
+            className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative group"
+          >
             <Sparkles className="w-4 h-4" />
             <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#D4A937] animate-pulse" />
           </button>
 
           {/* Notifications */}
-          <button className="p-2 rounded-lg dark:text-gray-500 hover:text-[#D4A937] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors relative">
+          <button className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative">
             <Bell className="w-4 h-4" />
             {notificationCount > 0 && (
-              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-2 ring-[#0A0A0A]" />
+              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-2 ring-white" />
             )}
           </button>
 
           {/* User Avatar */}
-          <div className="ml-1 pl-3 border-l border-[#222]">
+          <div className="ml-1 pl-3 border-l border-afrikoni-gold/20">
             {userAvatar}
           </div>
         </div>
       </header>
 
       {/* ═══ LIVE KERNEL RIBBON ═══ */}
-      <div className="h-9 bg-[#080808] border-t border-[#1A1A1A] flex items-center px-4 overflow-hidden relative">
+      <div className="h-9 bg-afrikoni-cream/10 border-t border-afrikoni-gold/10 flex items-center px-4 overflow-hidden relative">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
 
         {/* Kernel Status Badge */}
         <div className="flex items-center gap-2 flex-shrink-0 mr-6 z-10">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#444]">KERNEL ACTIVE</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-600">KERNEL ACTIVE</span>
         </div>
 
         {/* Scrolling Intelligence Ribbon */}
         {kernelLoading ? (
           <div className="flex items-center gap-4 animate-pulse">
-            <div className="h-3 w-20 bg-[#1A1A1A] rounded" />
-            <div className="h-3 w-20 bg-[#1A1A1A] rounded" />
-            <div className="h-3 w-20 bg-[#1A1A1A] rounded" />
+            <div className="h-3 w-20 bg-afrikoni-cream/30 rounded" />
+            <div className="h-3 w-20 bg-afrikoni-cream/30 rounded" />
+            <div className="h-3 w-20 bg-afrikoni-cream/30 rounded" />
           </div>
         ) : (
           <div className="flex-1 overflow-hidden relative z-10 mask-linear-fade">
             <div className="flex items-center gap-8 animate-marquee whitespace-nowrap">
               {/* Active Trades */}
-              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
+              <div className="flex items-center gap-2 group cursor-pointer hover:bg-afrikoni-cream/20 px-2 py-0.5 rounded transition-colors">
                 <Activity className="w-3 h-3 text-[#D4A937]" />
-                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">Active Trades</span>
-                <span className="text-[11px] font-mono text-white ml-1">{activeTrades}</span>
+                <span className="text-[10px] uppercase tracking-wide text-gray-600 group-hover:text-gray-800">Active Trades</span>
+                <span className="text-[11px] font-mono text-afrikoni-deep ml-1">{activeTrades}</span>
               </div>
 
               {/* Capital */}
               <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
                 <Database className="w-3 h-3 text-emerald-500" />
-                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">Capital Flow</span>
-                <span className="text-[11px] font-mono text-white ml-1">${(capitalInMotion / 1000).toFixed(0)}K</span>
+                <span className="text-[10px] uppercase tracking-wide text-gray-600 group-hover:text-gray-800">Capital Flow</span>
+                <span className="text-[11px] font-mono text-afrikoni-deep ml-1">${(capitalInMotion / 1000).toFixed(0)}K</span>
               </div>
 
               {/* Compliance */}
               <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
                 <ShieldCheck className="w-3 h-3 text-blue-500" />
-                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">AfCFTA</span>
-                <span className="text-[11px] font-mono text-white ml-1">{complianceReady}%</span>
+                <span className="text-[10px] uppercase tracking-wide text-gray-600 group-hover:text-gray-800">AfCFTA</span>
+                <span className="text-[11px] font-mono text-afrikoni-deep ml-1">{complianceReady}%</span>
               </div>
 
               {/* Network */}
               <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
                 <Globe className="w-3 h-3 text-purple-500" />
-                <span className="text-[10px] uppercase tracking-wide text-gray-500 group-hover:text-gray-400">Corridors</span>
-                <span className="text-[11px] font-mono text-white ml-1">{activeCorridors} Active</span>
+                <span className="text-[10px] uppercase tracking-wide text-gray-600 group-hover:text-gray-800">Corridors</span>
+                <span className="text-[11px] font-mono text-afrikoni-deep ml-1">{activeCorridors} Active</span>
               </div>
             </div>
           </div>
         )}
 
         {/* System Clock */}
-        <div className="hidden md:flex items-center gap-2 flex-shrink-0 ml-4 z-10 pl-4 border-l border-[#222]">
+        <div className="hidden md:flex items-center gap-2 flex-shrink-0 ml-4 z-10 pl-4 border-l border-afrikoni-gold/20">
           <span className="text-[10px] font-mono text-gray-600">UTC {new Date().toISOString().slice(11, 16)}</span>
         </div>
       </div>

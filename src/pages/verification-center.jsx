@@ -100,8 +100,6 @@ export default function VerificationCenter() {
   const [bankCountry, setBankCountry] = useState('');
   const [bankAddress, setBankAddress] = useState('');
 
-  const [bankCountry, setBankCountry] = useState('');
-  const [bankAddress, setBankAddress] = useState('');
 
   // FORENSIC AUDIT STATE
   const [forensicFile, setForensicFile] = useState(null);
@@ -674,7 +672,7 @@ export default function VerificationCenter() {
             title: `📋 New KYC Verification Submission: ${companyName}`,
             message: `${companyName} (${ownerEmail}) has submitted KYC verification documents for review. Business ID: ${businessIdNumber || 'N/A'}, Country: ${countryOfRegistration || company?.country || 'N/A'}`,
             type: 'verification',
-            link: `/verification-center?verification=${verification?.id || 'new'}`,
+            link: `/dashboard/verification-center?verification=${verification?.id || 'new'}`,
             sendEmail: true,
             emailSubject: `📋 New KYC Verification: ${companyName}`
           });
@@ -698,7 +696,7 @@ export default function VerificationCenter() {
                 </ul>
                 
                 <p><strong>Action Required:</strong> Review the verification documents in the admin dashboard.</p>
-                <p><a href="https://afrikoni.com/verification-center?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Verification</a></p>
+                <p><a href="https://afrikoni.com/dashboard/verification-center?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Verification</a></p>
               `
             }
           });
@@ -1046,7 +1044,7 @@ export default function VerificationCenter() {
         title: `📋 Verification Step Submitted: ${step.label} - ${companyName}`,
         message: `${companyName} has completed and submitted "${step.label}" for review. Company: ${companyName}, Email: ${ownerEmail}`,
         type: 'verification',
-        link: `/verification-center?verification=${verification?.id || 'new'}&step=${step.id}`,
+        link: `/dashboard/verification-center?verification=${verification?.id || 'new'}&step=${step.id}`,
         sendEmail: true,
         emailSubject: `📋 Verification Step: ${step.label} - ${companyName}`
       });
@@ -1087,7 +1085,7 @@ export default function VerificationCenter() {
             ` : ''}
             
             <p><strong>Action Required:</strong> Review this verification step in the admin dashboard.</p>
-            <p><a href="https://afrikoni.com/verification-center?verification=${verification?.id || 'new'}&step=${step.id}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Step</a></p>
+            <p><a href="https://afrikoni.com/dashboard/verification-center?verification=${verification?.id || 'new'}&step=${step.id}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Step</a></p>
           `
         }
       });
@@ -1168,7 +1166,7 @@ export default function VerificationCenter() {
         title: `✅ Complete Verification Ready for Review: ${companyName}`,
         message: `${companyName} has completed all required verification steps. Ready for final admin review.`,
         type: 'verification',
-        link: `/verification-center?verification=${verification?.id || 'new'}`,
+        link: `/dashboard/verification-center?verification=${verification?.id || 'new'}`,
         sendEmail: true,
         emailSubject: `✅ Complete Verification Ready: ${companyName}`
       });
@@ -1221,7 +1219,7 @@ export default function VerificationCenter() {
             ` : ''}
             
             <p><strong>Action Required:</strong> Review all verification documents and information, then approve or request changes.</p>
-            <p><a href="https://afrikoni.com/verification-center?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Complete Verification</a></p>
+            <p><a href="https://afrikoni.com/dashboard/verification-center?verification=${verification?.id || 'new'}" style="background: #D4A574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Review Complete Verification</a></p>
           `
         }
       });
@@ -1288,7 +1286,7 @@ export default function VerificationCenter() {
       <SEO
         title="Verification Center - Complete Your KYC Verification | Afrikoni"
         description="Complete your KYC verification to unlock all Afrikoni features and build trust with serious buyers and suppliers."
-        url="/verification-center"
+        url="/dashboard/verification-center"
       />
 
       <div className="min-h-screen bg-afrikoni-offwhite">
