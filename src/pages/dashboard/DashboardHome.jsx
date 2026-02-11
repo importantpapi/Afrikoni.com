@@ -147,14 +147,14 @@ export default function DashboardHome() {
   }
 
   return (
-    <div className="os-page space-y-3">
+    <div className="os-page space-y-2">
       {/* 1. Header Area: Welcome + Kernel Status */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-light text-[var(--os-text-primary)]">
+          <h1 className="text-xl font-light text-[var(--os-text-primary)]">
             Command Center <span className="text-os-muted mx-2">/</span> Overview
           </h1>
-          <p className="text-sm text-os-muted mt-1 font-mono">
+          <p className="text-xs text-os-muted mt-0.5 font-mono">
             System Operational • {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
