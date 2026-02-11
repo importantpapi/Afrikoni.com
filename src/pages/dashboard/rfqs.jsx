@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getRFQs } from '@/services/rfqService';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import {
   Loader2,
   Search,
@@ -57,40 +58,51 @@ export default function RFQs() {
   };
 
   /* 
-   * ✅ HARDENING FIX: Replaced mockRFQs with Real Data Link
-   * Now fetches from Supabase via rfqService
+   * ✅ KERNEL MIGRATION: Using useDashboardKernel as single source of truth
+   * Fetches from Supabase via rfqService with proper kernel guards
    */
-  const { user, profile } = useAuth();
+  const { user, profileCompanyId, canLoadData } = useDashboardKernel();
+  const location = useLocation();
   const [rfqs, setRfqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch Real Data
-  useEffect(() => {
-    async function loadRFQs() {
-      if (!user || !profile?.company_id) return;
-
-      setLoading(true);
-      try {
-        const { data, error } = await getRFQs({
-          user,
-          companyId: profile.company_id,
-          role: 'buyer', // Default to buyer view for now
-          status: statusFilter
-        });
-
-        if (error) throw error;
+  // Fetch Real Data with Kernel Guards
+  const loadRFQs = async () => {
+    if (!canLoadData) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await getRFQs({
+        user,
+        companyId: profileCompanyId,
+        role: 'buyer',
+        status: statusFilter
+      });
+      if (error) {
+        setError(error);
+      } else {
         setRfqs(data || []);
-      } catch (err) {
-        console.error("Failed to load RFQs", err);
-        setError("Failed to load your RFQs. Please refresh.");
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadRFQs();
-  }, [user, profile?.company_id, statusFilter]);
+  }, [canLoadData, statusFilter]);
+
+  // Handle refresh from navigation state (e.g., after creating new RFQ)
+  useEffect(() => {
+    if (canLoadData && location.state?.refresh) {
+      loadRFQs();
+      // Clear the refresh flag to prevent infinite loops
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, canLoadData]);
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase();

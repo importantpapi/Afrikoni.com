@@ -91,8 +91,21 @@ export default function AddProduct() {
   // Helper to get category ID
   const getCategoryId = async () => {
     if (!formData.category) return null;
-    const catLabel = CATEGORIES.find(c => c.value === formData.category)?.label || formData.category;
-    return await findOrCreateCategory(supabase, catLabel);
+    
+    try {
+      const catLabel = CATEGORIES.find(c => c.value === formData.category)?.label || formData.category;
+      const categoryId = await findOrCreateCategory(supabase, catLabel);
+      
+      if (!categoryId) {
+        console.warn('[AddProduct] Could not resolve category, will proceed without category_id');
+      }
+      
+      return categoryId;
+    } catch (error) {
+      console.error('[AddProduct] Category resolution failed:', error);
+      // Don't block product creation if category fails
+      return null;
+    }
   };
 
   const handleSaveDraft = async () => {
@@ -112,7 +125,8 @@ export default function AddProduct() {
         // Since we don't have IDs for categories from the UI yet, likely passing the slug/value as ID or relying on auto-assignment
         // Ideally we should look up the ID, but for now passing the value
         category_id: categoryId,
-        price: formData.price,
+        price_min: formData.price,
+        price_max: formData.price,
         min_order_quantity: formData.moq,
         moq_unit: formData.unit,
         currency: formData.currency,
@@ -205,9 +219,15 @@ export default function AddProduct() {
       const publicImageUrls = await uploadImages();
       console.log('[AddProduct] Uploaded images:', publicImageUrls);
 
-      if (publicImageUrls.length === 0 && formData.images?.length > 0) {
-        console.warn('[AddProduct] No images successfully uploaded, but images were present.');
-        // Proceeding, but maybe warn user? 
+      // Decide publish status based on image upload success
+      const canPublish = publicImageUrls.length > 0;
+      const productStatus = canPublish ? 'active' : 'draft';
+
+      if (!canPublish && formData.images?.length > 0) {
+        console.warn('[AddProduct] Images failed to upload - saving as draft instead');
+        toast.warning('Images failed to upload', {
+          description: 'Saving as draft. Please contact support about storage setup.'
+        });
       }
 
       // Map UI form data to Service expected format
@@ -215,14 +235,15 @@ export default function AddProduct() {
         title: formData.name,
         description: formData.description,
         category_id: categoryId,
-        price: formData.price,
+        price_min: formData.price,
+        price_max: formData.price,
         min_order_quantity: formData.moq,
         moq_unit: formData.unit,
         currency: formData.currency,
-        images: publicImageUrls, // Use the public URLs
+        images: publicImageUrls,
         shipping_terms: formData.deliveryRegions,
         lead_time_min_days: formData.leadTime,
-        status: 'active'
+        status: productStatus // Use computed status instead of hardcoded 'active'
       };
 
       console.log('[AddProduct] Step 3: Calling createProduct service');
@@ -237,7 +258,7 @@ export default function AddProduct() {
           user,
           formData: serviceFormData,
           companyId: profileCompanyId,
-          publish: true
+          publish: canPublish // Only publish if images uploaded successfully
         }),
         timeoutPromise
       ]);
@@ -245,8 +266,16 @@ export default function AddProduct() {
       console.log('[AddProduct] createProduct result:', result);
 
       if (result.success) {
+        // Store product ID in state for potential navigation
+        setFormData(prev => ({ ...prev, productId: result.data?.id }));
         setIsPublished(true);
-        toast.success('Product published successfully!');
+        
+        const isDraft = productStatus === 'draft';
+        toast.success(isDraft ? 'Product saved as draft' : 'Product published successfully!', {
+          description: isDraft 
+            ? 'Fix images and publish from the products page'
+            : (result.imagesSaved ? 'Product and images saved' : 'Product saved (images may take a moment)')
+        });
       } else {
         console.error('[AddProduct] User error:', result.error);
         toast.error(result.error || "Failed to publish product");
@@ -266,11 +295,11 @@ export default function AddProduct() {
   };
 
   const handleViewProducts = () => {
-    navigate('/dashboard/products');
+    navigate('/dashboard/products', { state: { refresh: true } });
   };
 
   const handleClose = () => {
-    navigate('/dashboard/products');
+    navigate('/dashboard/products', { state: { refresh: true } });
   };
 
   if (isPublished) {

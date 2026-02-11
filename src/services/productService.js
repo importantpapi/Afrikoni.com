@@ -84,10 +84,11 @@ export async function createProduct({ user, formData, companyId, publish = false
       }
     }
 
-    if (!finalCategoryId) {
+    // ✅ KERNEL: Category is recommended but not strictly required for drafts
+    if (!finalCategoryId && publish) {
       return {
         success: false,
-        error: 'Please select a category'
+        error: 'Please select a category before publishing'
       };
     }
 

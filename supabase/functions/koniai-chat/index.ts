@@ -14,6 +14,13 @@ const corsHeaders = {
 }
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+// Initialize Supabase client
+const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!)
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -56,6 +63,25 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // Verify Authentication
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Missing authorization header')
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+
+    if (authError || !user) {
+      console.error('[KoniAI Chat] Auth error:', authError)
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized access' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const userId = user.id
+    console.log(`[KoniAI Chat] Request from user: ${userId}`)
 
     // Build personalized system prompt
     const userName = context.userProfile?.full_name || 'there'

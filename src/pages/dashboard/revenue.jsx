@@ -6,11 +6,13 @@ import { REVENUE_CONFIG } from '@/services/revenueEngine';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
 export default function RevenueDashboard() {
-    const { profileCompanyId } = useDashboardKernel();
+    const { profileCompanyId, canLoadData } = useDashboardKernel();
     const [revenueData, setRevenueData] = useState([]);
     const [totalRevenue, setTotalRevenue] = useState(0);
 
     useEffect(() => {
+        if (!canLoadData) return;
+        
         // Simulate fetching revenue data from protocol ledger
         const mockData = Array.from({ length: 12 }, (_, i) => ({
             name: `Month ${i + 1}`,
@@ -22,7 +24,7 @@ export default function RevenueDashboard() {
 
         const total = mockData.reduce((acc, cur) => acc + cur.protocolFee + cur.fxSpread + cur.logisticsMargin, 0);
         setTotalRevenue(total);
-    }, []);
+    }, [canLoadData]);
 
     return (
         <div className="os-page os-stagger space-y-6">

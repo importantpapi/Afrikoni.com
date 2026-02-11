@@ -26,17 +26,17 @@ export async function calculateCompletionRate(companyId) {
     const { count: totalTrades } = await supabase
       .from('trades')
       .select('id', { count: 'exact' })
-      .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
+      .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`);
 
     // Count completed trades (status = 'settled' or 'closed')
     const { data: completedTrades } = await supabase
       .from('trades')
       .select('id')
-      .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
+      .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`)
       .in('status', ['settled', 'closed']);
 
-    const completionRate = totalTrades > 0 
-      ? (completedTrades?.length || 0) / totalTrades 
+    const completionRate = totalTrades > 0
+      ? (completedTrades?.length || 0) / totalTrades
       : 0;
 
     return Math.round(completionRate * 100);
@@ -54,8 +54,8 @@ export async function calculateDeliveryReliability(companyId) {
     // Get all completed trades for this company
     const { data: trades } = await supabase
       .from('trades')
-      .select(`id, status, seller_company_id, buyer_company_id`)
-      .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
+      .select(`id, status, seller_id, buyer_id`)
+      .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`)
       .in('status', ['settled', 'closed']);
 
     if (!trades?.length) return 100; // Perfect score if no history
@@ -81,8 +81,8 @@ export async function calculateDeliveryReliability(companyId) {
       }
     }
 
-    const reliability = totalDelivered > 0 
-      ? (onTimeCount / totalDelivered) * 100 
+    const reliability = totalDelivered > 0
+      ? (onTimeCount / totalDelivered) * 100
       : 100;
 
     return Math.round(reliability);
@@ -106,7 +106,7 @@ export async function calculateAverageRating(companyId) {
     if (!ratings?.length) return 100; // Perfect if no ratings yet
 
     const averageRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
-    
+
     // Convert 1-5 star rating to 0-100 scale
     return Math.round((averageRating / 5) * 100);
   } catch (err) {
@@ -125,7 +125,7 @@ export async function calculateDisputeScore(companyId) {
     const { count: totalDisputes } = await supabase
       .from('disputes')
       .select('id', { count: 'exact' })
-      .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
+      .or(`raised_by_company_id.eq.${companyId},against_company_id.eq.${companyId}`);
 
     // Count resolved disputes in company's favor
     const { count: wonDisputes } = await supabase
@@ -135,13 +135,13 @@ export async function calculateDisputeScore(companyId) {
 
     // Penalty per dispute (each reduces score by 5 points)
     const disputePenalty = (totalDisputes || 0) * 5;
-    
+
     // Bonus for winning disputes (each adds 2 points)
     const winBonus = (wonDisputes || 0) * 2;
 
     // Base score 100, minus penalties, plus bonuses
     let score = 100 - disputePenalty + winBonus;
-    
+
     return Math.max(MIN_TRUST_SCORE, Math.min(MAX_TRUST_SCORE, score));
   } catch (err) {
     console.error('[trustService] Calculate dispute score failed:', err);

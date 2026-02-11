@@ -98,6 +98,7 @@ export default function WorkspaceDashboard() {
         systemState={systemState}
         capabilities={capabilitiesData}
         user={user}
+        profile={profile}
         organization={profile?.company_name ? { name: profile.company_name } : null}
         workspaceMode={mode}
         onToggleMode={() => setMode(mode === 'simple' ? 'operator' : 'simple')}

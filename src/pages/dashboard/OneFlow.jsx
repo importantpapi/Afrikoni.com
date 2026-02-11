@@ -13,6 +13,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -53,12 +54,17 @@ const FLOW_PANELS = {
 export default function OneFlow() {
   const { tradeId } = useParams();
   const navigate = useNavigate();
+  const { isSystemReady, canLoadData } = useDashboardKernel();
 
   const [trade, setTrade] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { timeline: kernelTimeline } = useTradeEventLedger(tradeId);
+
+  if (!isSystemReady) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
 
   const nextActionHints = {
     [TRADE_STATE.DRAFT]: 'Publish RFQ to open supplier responses',
@@ -78,8 +84,9 @@ export default function OneFlow() {
   };
 
   useEffect(() => {
+    if (!canLoadData) return;
     loadTrade();
-  }, [tradeId]);
+  }, [canLoadData, tradeId]);
 
   useEffect(() => {
     if (!tradeId) return;

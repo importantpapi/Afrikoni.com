@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import {
@@ -38,7 +38,8 @@ const statusConfig = {
 
 export default function Products() {
   const navigate = useNavigate();
-  const { profileCompanyId } = useDashboardKernel();
+  const location = useLocation();
+  const { profileCompanyId, canLoadData } = useDashboardKernel();
 
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,12 +73,21 @@ export default function Products() {
     }
   }, [profileCompanyId]);
 
-  // ✅ Effect: Fetch on mount or company change
+  // ✅ KERNEL COMPLIANCE: Use canLoadData guard
   useEffect(() => {
-    if (profileCompanyId) {
+    if (!canLoadData) return;
+    loadProducts();
+  }, [canLoadData, loadProducts]);
+
+  // ✅ REFRESH FIX: Reload products when navigating back from /new
+  useEffect(() => {
+    if (canLoadData && location.state?.refresh) {
+      console.log('[Products] Refreshing after navigation');
       loadProducts();
+      // Clear the state to prevent unnecessary reloads
+      window.history.replaceState({}, document.title);
     }
-  }, [profileCompanyId, loadProducts]);
+  }, [location.state, canLoadData, loadProducts]);
 
   const filtered = useMemo(() => {
     return products.filter((product) => {

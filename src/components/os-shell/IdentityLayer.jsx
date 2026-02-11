@@ -24,6 +24,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 export function IdentityLayer({
     user,
+    profile,
     organization,
     workspaceMode = 'simple',
     onToggleMode,
@@ -53,8 +54,14 @@ export function IdentityLayer({
         navigate('/login');
     };
 
-    const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
     const orgName = organization?.name || 'Organization';
+
+    // Added: Smarter initial derivation
+    const getInitial = () => {
+        if (userName === 'User') return 'U';
+        return userName.charAt(0).toUpperCase();
+    };
 
     return (
         <div className="w-full h-full px-4 md:px-6 flex items-center justify-between">
@@ -79,10 +86,9 @@ export function IdentityLayer({
                     onClick={handleUserMenuClick}
                 >
                     <div className="hidden md:block flex-shrink-0">
-                        <UserAvatar
-                            user={user}
-                            size="sm"
-                        />
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-afrikoni-gold to-[#B8860B] flex items-center justify-center text-black text-xs font-black shadow-sm border border-white/10">
+                            {getInitial()}
+                        </div>
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
                         <div className="text-sm font-bold text-gray-900 dark:text-[#F5F0E8] leading-tight truncate">

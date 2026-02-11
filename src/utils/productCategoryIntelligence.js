@@ -107,20 +107,13 @@ export async function findOrCreateCategory(supabase, categoryName) {
   try {
     // First, try to find existing category
     console.log('[PCI] Querying existing category...');
-    // Timeout wrapper for the query
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Category query timed out')), 5000));
 
-    // First, try to find existing category
-    console.log('[PCI] Querying existing category...');
-
-    const query = supabase
+    const { data: existingCategory, error: findError } = await supabase
       .from('categories')
       .select('id, name')
       .ilike('name', categoryName)
       .limit(1)
       .maybeSingle();
-
-    const { data: existingCategory, error: findError } = await Promise.race([query, timeout]);
 
     console.log('[PCI] Query result:', { existingCategory, findError });
 
@@ -151,26 +144,28 @@ export async function findOrCreateCategory(supabase, categoryName) {
         return matched.id;
       }
     }
+    // If not found, create new category
+    console.log('[PCI] Category not found, attempting to create:', categoryName);
 
-    // Create new category if not found
     const { data: newCategory, error: createError } = await supabase
       .from('categories')
       .insert({
         name: categoryName,
-        description: `Category for ${categoryName} products`,
+        slug: categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         is_active: true
       })
       .select('id')
       .single();
 
     if (createError) {
-      console.error('Error creating category:', createError);
+      console.error('[PCI] Error creating category:', createError);
       return null;
     }
 
-    return newCategory?.id || null;
-  } catch (error) {
-    console.error('Error in findOrCreateCategory:', error);
+    console.log('[PCI] Successfully created category:', newCategory.id);
+    return newCategory.id;
+  } catch (err) {
+    console.error('[PCI] Unexpected error in findOrCreateCategory:', err);
     return null;
   }
 }
@@ -200,4 +195,5 @@ export async function autoAssignCategory(supabase, title, description, existingC
 
   return null;
 }
+
 

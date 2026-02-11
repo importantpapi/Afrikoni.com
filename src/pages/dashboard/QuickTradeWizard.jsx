@@ -17,7 +17,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Switch } from '@/components/shared/ui/switch';
 import { Input } from '@/components/shared/ui/input';
 import { Textarea } from '@/components/shared/ui/textarea';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import {
     ArrowLeft, ArrowRight, Check, Sparkles, Package,
@@ -37,7 +37,7 @@ const STEPS = [
 
 export default function QuickTradeWizard() {
     const navigate = useNavigate();
-    const { user, profile } = useAuth();
+    const { user, profile, profileCompanyId } = useDashboardKernel();
 
     const [currentStep, setCurrentStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,7 +82,7 @@ export default function QuickTradeWizard() {
     }, []);
 
     const saveDraft = async () => {
-        if (!user || !profile?.company_id) return;
+        if (!user || !profileCompanyId) return;
 
         setAutoSaving(true);
         try {
@@ -90,7 +90,7 @@ export default function QuickTradeWizard() {
                 .from('rfq_drafts')
                 .upsert({
                     user_id: user.id,
-                    company_id: profile.company_id,
+                    company_id: profileCompanyId,
                     draft_data: formData,
                     current_step: currentStep,
                     updated_at: new Date().toISOString(),
@@ -107,14 +107,14 @@ export default function QuickTradeWizard() {
     };
 
     const loadDraft = async () => {
-        if (!user || !profile?.company_id) return;
+        if (!user || !profileCompanyId) return;
 
         try {
             const { data, error } = await supabase
                 .from('rfq_drafts')
                 .select('draft_data, current_step')
                 .eq('user_id', user.id)
-                .eq('company_id', profile.company_id)
+                .eq('company_id', profileCompanyId)
                 .single();
 
             if (data?.draft_data) {
@@ -131,13 +131,13 @@ export default function QuickTradeWizard() {
 
     // Template Logic
     const loadTemplates = async () => {
-        if (!user || !profile?.company_id) return;
+        if (!user || !profileCompanyId) return;
 
         try {
             const { data, error } = await supabase
                 .from('trade_templates')
                 .select('*')
-                .eq('company_id', profile.company_id)
+                .eq('company_id', profileCompanyId)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -159,7 +159,7 @@ export default function QuickTradeWizard() {
                 .from('trade_templates')
                 .insert({
                     user_id: user.id,
-                    company_id: profile.company_id,
+                    company_id: profileCompanyId,
                     name: templateName,
                     template_data: formData
                 });
@@ -217,48 +217,51 @@ export default function QuickTradeWizard() {
     };
 
     const handlePublish = async () => {
-        if (!user || !profile?.company_id) return;
+        if (!user || !profileCompanyId) {
+            toast.error('Authentication required');
+            return;
+        }
 
         setIsSubmitting(true);
         try {
-            const { data: rfq, error } = await supabase
-                .from('rfqs')
-                .insert({
-                    buyer_company_id: profile.company_id,
-                    buyer_user_id: user.id,
+            // Use the proper service layer instead of direct DB insert
+            const { createRFQ } = await import('@/services/rfqService');
+            
+            const result = await createRFQ({
+                user,
+                formData: {
                     title: formData.productName,
                     description: formData.productDescription,
                     quantity: parseFloat(formData.quantity),
                     unit: formData.unit,
                     target_country: formData.targetCountry,
                     target_city: formData.targetCity,
-                    delivery_deadline: formData.deliveryDeadline,
+                    expires_at: formData.deliveryDeadline,
                     target_price: formData.targetPrice ? parseFloat(formData.targetPrice) : null,
-                    metadata: {
-                        source: 'quick_trade_v2',
-                        draft_id: user.id + '_' + Date.now()
-                    },
-                    status: 'open',
-                })
-                .select()
-                .single();
+                }
+            });
 
-            if (error) throw error;
+            if (!result.success) {
+                toast.error(result.error || 'Failed to create RFQ');
+                return;
+            }
 
             // Delete draft upon success
             await supabase
                 .from('rfq_drafts')
                 .delete()
-                .eq('user_id', user.id);
+                .eq('user_id', user.id)
+                .eq('company_id', profileCompanyId);
 
             toast.success('RFQ Published Successfully!', {
                 description: 'Suppliers in the corridor have been notified.'
             });
 
-            navigate(`/dashboard/rfqs/${rfq.id}`);
+            // Navigate to RFQs list with refresh flag
+            navigate('/dashboard/rfqs', { state: { refresh: true } });
         } catch (err) {
             console.error('[Wizard] Publish failure:', err);
-            toast.error('Failed to publish. Check connection and try again.');
+            toast.error('Failed to publish: ' + err.message);
         } finally {
             setIsSubmitting(false);
         }

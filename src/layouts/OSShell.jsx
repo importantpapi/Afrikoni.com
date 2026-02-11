@@ -36,13 +36,13 @@ import { useOSSettings } from '@/hooks/useOSSettings';
 
 // OS Shell Z-Index Hierarchy
 export const OS_Z_INDEX = {
-    modal: 1300,        
-    overlay: 1200,      
-    systemLayer: 1100,  
+    modal: 1300,
+    overlay: 1200,
+    systemLayer: 1100,
     identityLayer: 1000,
-    workspaceNav: 900,  
-    copilot: 800,       
-    content: 1          
+    workspaceNav: 900,
+    copilot: 800,
+    content: 1
 };
 
 // OS Shell Dimensions
@@ -64,6 +64,7 @@ export default function OSShell({
     systemState,
     capabilities,
     user,
+    profile,
     organization,
     workspaceMode = 'simple',
     onToggleMode,
@@ -142,24 +143,29 @@ export default function OSShell({
 
                 {/* Identity Layer - Below system layer */}
                 <div
-                    className="fixed left-0 right-0 overflow-hidden bg-white/50 dark:bg-black/50 backdrop-blur-md border-b border-afrikoni-gold/10" 
+                    className="fixed left-0 right-0 border-b border-afrikoni-gold/10"
                     style={{
                         top: `${OS_DIMENSIONS.systemLayer.height}px`,
                         height: `${OS_DIMENSIONS.identityLayer.height}px`,
                         zIndex: OS_Z_INDEX.identityLayer
                     }}
                 >
-                    <div className="w-full h-full md:pl-[var(--os-sidebar-width,72px)] transition-all duration-300">
+                    {/* Glass Background - Isolated to prevent stacking context issues for children's fixed elements */}
+                    <div className="absolute inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-md" />
+
+                    <div className="relative z-10 w-full h-full md:pl-[var(--os-sidebar-width,72px)] transition-all duration-300">
                         <IdentityLayer
-                        user={user}
-                        organization={organization}
-                        workspaceMode={workspaceMode}
-                        onToggleMode={onToggleMode}
-                        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-                        notificationCount={notificationCount}
-                        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-                        onToggleCopilot={() => setCopilotOpen(!copilotOpen)}
-                    />
+                            user={user}
+                            profile={profile}
+                            organization={organization}
+                            workspaceMode={workspaceMode}
+                            onToggleMode={onToggleMode}
+                            onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+                            notificationCount={notificationCount}
+                            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                            onToggleCopilot={() => setCopilotOpen(!copilotOpen)}
+                        />
+                    </div>
                 </div>
 
                 {/* Workspace Navigation Sidebar */}

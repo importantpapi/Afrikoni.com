@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useTradeContext } from '@/context/TradeContext';
 import { SystemPageSection } from '@/components/system/SystemPageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -15,8 +16,13 @@ import { motion, AnimatePresence } from 'framer-motion';
  * Replaces standard tables with a "Pulse Rail" and "Money Map".
  */
 export default function TraceCenter() {
+    const { isSystemReady } = useDashboardKernel();
     const { state, initiateTrade, verifyMilestone, assessRisk } = useTradeContext();
     const { product, financials, logistics, advice } = state;
+
+    if (!isSystemReady) {
+        return <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">Loading...</div>;
+    }
 
     // Simulate Trade Initiation on Mount (for Demo)
     useEffect(() => {

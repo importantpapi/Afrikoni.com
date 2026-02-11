@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import TradeDocument from '@/components/documents/TradeDocument';
 import { Surface } from "@/components/system/Surface";
 import { Button } from "@/components/shared/ui/button";
@@ -6,6 +7,11 @@ import { Download, Share2, Plus, Lock, CreditCard } from 'lucide-react';
 import { checkDocumentAccess } from '@/services/revenueEngine';
 
 export default function DocumentsPage() {
+    const { isSystemReady } = useDashboardKernel();
+
+    if (!isSystemReady) {
+        return <div className="os-page flex items-center justify-center min-h-[400px]">Loading...</div>;
+    }
     const [activeDoc, setActiveDoc] = useState('invoice');
     const [docData, setDocData] = useState({});
     const [generated, setGenerated] = useState(false);

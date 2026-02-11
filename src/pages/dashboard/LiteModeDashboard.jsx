@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
 import { ProgressiveUnlock } from '@/components/system/ProgressiveUnlock';
-import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import {
     Package, MessageSquare, TrendingUp, CreditCard, BarChart3,
     Sparkles, ArrowRight, Plus, Settings
@@ -32,7 +32,7 @@ const LITE_TABS = [
 
 export default function LiteModeDashboard() {
     const navigate = useNavigate();
-    const { user, profile } = useAuth();
+    const { user, profile } = useDashboardKernel();
     const [activeTab, setActiveTab] = useState('trades');
 
     return (

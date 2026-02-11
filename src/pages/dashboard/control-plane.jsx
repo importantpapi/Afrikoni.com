@@ -8,12 +8,18 @@
  */
 
 import React from 'react';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { ControlPlaneDashboard } from '@/components/trade-os/ControlPlaneDashboard';
 import { useTradeSystemState } from '@/hooks/useTradeSystemState';
 import { PageLoader } from '@/components/shared/ui/skeletons';
 
 export default function ControlPlanePage() {
+    const { isSystemReady } = useDashboardKernel();
     const { systemState, isLoading, error, refresh } = useTradeSystemState();
+
+    if (!isSystemReady) {
+        return <PageLoader />;
+    }
 
     if (isLoading) {
         return (

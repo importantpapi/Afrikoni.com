@@ -33,18 +33,28 @@ export default function DashboardHome() {
         return;
       }
 
+      // Check LocalStorage first for high-speed fallback
+      const localOnboarding = localStorage.getItem(`afrikoni_onboarding_${user.id}`);
+      if (localOnboarding === 'true') {
+        setPrefLoading(false);
+        return; // Already completed, no need to show tour or wait for DB for this specific flag
+      }
+
       try {
         const { data, error } = await supabase
           .from('user_preferences')
           .select('*')
           .eq('user_id', user.id)
-          .maybeSingle(); // Use maybeSingle to avoid 406 error if not found
+          .maybeSingle();
 
         if (data) {
           setPreferences(data);
-          // Show tour if not completed
+          // Show tour if not completed and not in local storage
           if (!data.onboarding_completed) {
             setShowTour(true);
+          } else {
+            // Sync local storage if DB says it's done
+            localStorage.setItem(`afrikoni_onboarding_${user.id}`, 'true');
           }
         } else if (user) {
           // If no preferences, first time user -> show tour
@@ -88,14 +98,21 @@ export default function DashboardHome() {
   const handleTourComplete = async () => {
     setShowTour(false);
     if (user) {
-      // Persist onboarding completion
-      await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          onboarding_completed: true,
-          default_mode: currentRole
-        }, { onConflict: 'user_id' });
+      // 1. Immediate Local Persistence
+      localStorage.setItem(`afrikoni_onboarding_${user.id}`, 'true');
+
+      // 2. Database Sync
+      try {
+        await supabase
+          .from('user_preferences')
+          .upsert({
+            user_id: user.id,
+            onboarding_completed: true,
+            default_mode: currentRole
+          }, { onConflict: 'user_id' });
+      } catch (err) {
+        console.error('[DashboardHome] Failed to sync onboarding preference:', err);
+      }
     }
   };
 

@@ -539,36 +539,38 @@ function App() {
   console.log('ENV:', import.meta.env.VITE_SUPABASE_URL ? 'OK' : 'MISSING');
 
   return (
-    <LanguageProvider>
-      <CurrencyProvider>
-        {/* ✅ CRITICAL: AuthProvider MUST come before UserProvider and RoleProvider */}
-        <AuthProvider>
-          <UserProvider>
-            {/* ✅ RoleProvider uses AuthProvider's data */}
-            <RoleProvider>
-              {/* ✅ KERNEL ALIGNMENT: CapabilityProvider lifted to global level */}
-              {/* This enables NotificationBell and other global components to access capabilities */}
-              {/* even on public routes (/, /products, /marketplace, etc.) */}
-              <CapabilityProvider>
-                <TradeProvider>
-                  <WorkspaceModeProvider>
-                    <ScrollToTop />
-                    <Toaster position="top-right" />
+    <ErrorBoundary fallbackMessage="System error. Please refresh the page or contact support.">
+      <LanguageProvider>
+        <CurrencyProvider>
+          {/* ✅ CRITICAL: AuthProvider MUST come before UserProvider and RoleProvider */}
+          <AuthProvider>
+            <UserProvider>
+              {/* ✅ RoleProvider uses AuthProvider's data */}
+              <RoleProvider>
+                {/* ✅ KERNEL ALIGNMENT: CapabilityProvider lifted to global level */}
+                {/* This enables NotificationBell and other global components to access capabilities */}
+                {/* even on public routes (/, /products, /marketplace, etc.) */}
+                <CapabilityProvider>
+                  <TradeProvider>
+                    <WorkspaceModeProvider>
+                      <ScrollToTop />
+                      <Toaster position="top-right" />
 
-                    {/* Debug component to detect stuck auth */}
-                    <DebugAuth />
+                      {/* Debug component to detect stuck auth */}
+                      <DebugAuth />
 
-                    {/* KoniAI+ Global Chat Assistant */}
+                      {/* KoniAI+ Global Chat Assistant */}
 
-                    <AppContent />
-                  </WorkspaceModeProvider>
-                </TradeProvider>
-              </CapabilityProvider>
-            </RoleProvider>
-          </UserProvider>
-        </AuthProvider>
-      </CurrencyProvider>
-    </LanguageProvider>
+                      <AppContent />
+                    </WorkspaceModeProvider>
+                  </TradeProvider>
+                </CapabilityProvider>
+              </RoleProvider>
+            </UserProvider>
+          </AuthProvider>
+        </CurrencyProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 

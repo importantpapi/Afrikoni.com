@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import TradeMap from '@/components/geo/TradeMap';
 import { Surface } from "@/components/system/Surface";
 import { Button } from "@/components/shared/ui/button";
@@ -15,7 +16,12 @@ const CORRIDOR_DATA = [
 ];
 
 export default function CorridorsPage() {
+    const { isSystemReady } = useDashboardKernel();
     const [selectedCorridor, setSelectedCorridor] = useState(null);
+
+    if (!isSystemReady) {
+        return <div className="os-page flex items-center justify-center min-h-[400px]">Loading...</div>;
+    }
 
     return (
         <div className="os-page os-stagger space-y-6">
