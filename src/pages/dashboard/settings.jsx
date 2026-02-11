@@ -16,7 +16,7 @@ import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie } from 'lucide-react';
+import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie, ShieldCheck, Truck, TrendingUp, Zap, Sparkles, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/shared/ui/switch';
 import { useTranslation } from 'react-i18next';
@@ -502,6 +502,12 @@ export default function DashboardSettings() {
               {translate('settings.company', 'Company')}
             </TabsTrigger>
             <TabsTrigger
+              value="role"
+              className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_10px_30px_rgba(255,255,255,0.25)] rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
+            >
+              Role & Permissions
+            </TabsTrigger>
+            <TabsTrigger
               value="notifications"
               className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-[0_10px_30px_rgba(255,255,255,0.25)] rounded-xl font-semibold transition-all duration-200 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
@@ -517,7 +523,7 @@ export default function DashboardSettings() {
 
           <TabsContent value="profile" className="space-y-6">
             {/* Profile Card */}
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-white">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
               <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
                 <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
                   <div className="p-2 rounded-lg bg-afrikoni-cream/20 backdrop-blur-sm border border-afrikoni-gold/20">
@@ -656,7 +662,7 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)] bg-white">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
               <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
                 <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
                   <div className="p-2 rounded-lg bg-afrikoni-cream/20 backdrop-blur-sm border border-afrikoni-gold/20">
@@ -846,6 +852,109 @@ export default function DashboardSettings() {
                   >
                     <Save className="w-4 h-4 mr-2" />
                     {isSaving ? translate('settings.saving', 'Saving...') : translate('settings.saveChanges', 'Save Changes')}
+                  </Button>
+                </div>
+              </div>
+            </Surface>
+          </TabsContent>
+
+          <TabsContent value="role" className="space-y-6">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-2xl border-none shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+              <div className="border-b border-white/5 bg-gradient-to-r from-white/5 to-transparent p-6">
+                <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-[var(--os-text-primary)]">
+                  <div className="p-2 rounded-lg bg-afrikoni-cream/20 backdrop-blur-sm border border-afrikoni-gold/20">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  Role & Capabilities
+                </div>
+              </div>
+              <div className="p-6 md:p-8 space-y-8">
+                {/* Current Role Card */}
+                <div className="p-6 rounded-2xl border border-afrikoni-gold/20 bg-gradient-to-br from-afrikoni-cream/10 to-transparent relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-32 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-16 -mt-16" />
+
+                  <div className="relative flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-xs font-bold uppercase tracking-widest text-afrikoni-gold">Active Persona</span>
+                        {isSystemReady ? (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20 flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            VERIFIED
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold border border-amber-500/20">
+                            PENDING
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="text-3xl font-bold text-[var(--os-text-primary)] mb-2 capitalize">{currentRole}</h2>
+                      <p className="text-sm text-os-muted max-w-md">
+                        {currentRole === 'buyer' && "You have full access to global sourcing, RFQ creation, and trade finance tools."}
+                        {currentRole === 'seller' && "You can list products, manage inventory, and respond to RFQs from global buyers."}
+                        {currentRole === 'logistics' && "You manage fleet operations, shipments, and freight bidding."}
+                      </p>
+                    </div>
+                    <div className="hidden md:flex flex-col items-end gap-2">
+                      <div className="text-right">
+                        <div className="text-[10px] uppercase text-os-muted tracking-wider mb-1">Account ID</div>
+                        <div className="font-mono text-xs bg-black/5 dark:bg-white/10 px-2 py-1 rounded text-[var(--os-text-primary)]">
+                          {profileCompanyId?.split('-')[0] || 'Unknown'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Capabilities Grid */}
+                <div>
+                  <h3 className="text-sm font-semibold text-os-muted uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Active Capabilities</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      { id: 'trade', label: 'Global Trade Access', active: true, icon: Globe, desc: 'Access to 54-country corridor network' },
+                      { id: 'finance', label: 'Trade Finance', active: capabilities?.can_finance, icon: CreditCard, desc: 'Access to LC and trade financing tools' },
+                      { id: 'logistics', label: 'Logistics Network', active: capabilities?.can_logistics, icon: Truck, desc: 'Fleet management and freight booking' },
+                      { id: 'verification', label: 'Verification Badge', active: profile?.verification_status === 'verified', icon: ShieldCheck, desc: 'Trust score visibility and verified badge' },
+                      { id: 'analytics', label: 'Market Analytics', active: true, icon: TrendingUp, desc: 'Real-time price & volume data' },
+                      { id: 'ai', label: 'AI Copilot', active: true, icon: Zap, desc: 'Smart deal matching & risk assessment' }
+                    ].map((cap) => (
+                      <div key={cap.id} className={cn(
+                        "p-4 rounded-xl border flex items-start gap-4 transition-all",
+                        cap.active
+                          ? "bg-afrikoni-cream/10 border-afrikoni-gold/20"
+                          : "bg-gray-50 dark:bg-white/5 border-transparent opacity-60 grayscale"
+                      )}>
+                        <div className={cn(
+                          "p-2 rounded-lg",
+                          cap.active ? "bg-afrikoni-gold/10 text-afrikoni-gold" : "bg-gray-200 dark:bg-white/10 text-gray-400"
+                        )}>
+                          <cap.icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-bold text-sm text-[var(--os-text-primary)]">{cap.label}</h4>
+                            {cap.active && <Check className="w-3 h-3 text-emerald-500" />}
+                          </div>
+                          <p className="text-xs text-os-muted leading-relaxed">{cap.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Upgrade Callout */}
+                <div className="p-4 rounded-xl bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-blue-500/20 text-blue-400">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-blue-400">Unlock Enterprise Features</h4>
+                      <p className="text-xs text-blue-400/80">Get advanced analytics, API access, and dedicated support.</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10">
+                    Upgrade Plan
                   </Button>
                 </div>
               </div>
