@@ -792,10 +792,6 @@ function DashboardShell({
           userAvatar={userAvatar}
         />
 
-        {/* Kernel Status Bar */}
-        <div className="hidden md:flex items-center px-4 md:px-5 py-2 bg-transparent border-b border-white/5 overflow-x-auto">
-        </div>
-
 
         {/* User Menu Dropdown - Trade OS styled */}
         {userMenuOpen && (
