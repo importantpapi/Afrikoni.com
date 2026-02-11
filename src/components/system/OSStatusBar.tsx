@@ -21,13 +21,48 @@ export function OSStatusBar() {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-white/10 bg-white/5">
-        <motion.span
-          className="inline-flex items-center justify-center h-2 w-2 rounded-full bg-emerald-400"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 2.2, repeat: Infinity }}
+      {/* KERNEL LIVE - Premium 2026 Design */}
+      <div className="relative group">
+        {/* Animated gradient border */}
+        <motion.div
+          className="absolute -inset-[1px] rounded-full bg-gradient-to-r from-emerald-500 via-[#D4A937] to-emerald-500 opacity-75 blur-sm"
+          animate={{
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+          style={{ backgroundSize: '200% 200%' }}
         />
-        <span className="text-[0.65rem] uppercase tracking-[0.28em] text-os-muted">Kernel Live</span>
+
+        {/* Main container */}
+        <div className="relative flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/20 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl shadow-lg">
+          {/* Animated pulse indicator */}
+          <div className="relative flex items-center justify-center">
+            <motion.span
+              className="absolute h-3 w-3 rounded-full bg-emerald-400/30"
+              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            <motion.span
+              className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+          </div>
+
+          {/* Text with gradient */}
+          <span className="text-[0.7rem] font-bold uppercase tracking-[0.25em] bg-gradient-to-r from-emerald-400 via-white to-[#D4A937] bg-clip-text text-transparent">
+            Kernel Live
+          </span>
+
+          {/* Subtle glow effect on hover */}
+          <motion.div
+            className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          />
+        </div>
       </div>
 
       <SignalChip
