@@ -147,7 +147,7 @@ export default function DashboardHome() {
   }
 
   return (
-    <div className="os-page space-y-6">
+    <div className="os-page space-y-3">
       {/* 1. Header Area: Welcome + Kernel Status */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
