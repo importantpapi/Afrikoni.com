@@ -1,9 +1,12 @@
 /**
  * VerificationService - Smile ID Integration for Supplier Verification
  *
- * Provides automated KYC/KYB verification for African businesses using Smile ID.
+ * ⚠️ DISABLED FOR MVP - KYC/Identity verification will be added later
+ * 
+ * This service provides automated KYC/KYB verification for African businesses using Smile ID.
+ * Currently disabled to avoid API key exposure. Will be migrated to Edge Function when needed.
  *
- * VERIFICATION FLOW:
+ * VERIFICATION FLOW (when enabled):
  * 1. Business submits verification request → initiateBusinessVerification()
  * 2. Smile ID processes documents → webhook callback
  * 3. Update company verification status → handleVerificationCallback()
@@ -12,15 +15,15 @@
  * - Business Registration: CAC (Nigeria), CIPC (South Africa), etc.
  * - Identity Verification: NIN, BVN, Passport, Driver's License
  * - Enhanced Due Diligence: UBO verification, sanctions screening
+ * 
+ * TODO: Create Edge Function for Smile ID when KYC is needed
  */
 
 import { supabase } from '@/api/supabaseClient';
 
-// Smile ID API Configuration
-const SMILE_ID_API_URL = import.meta.env.VITE_SMILE_ID_API_URL || 'https://api.smileidentity.com/v1';
-const SMILE_ID_PARTNER_ID = import.meta.env.VITE_SMILE_ID_PARTNER_ID;
-const SMILE_ID_API_KEY = import.meta.env.VITE_SMILE_ID_API_KEY;
-const SMILE_ID_CALLBACK_URL = import.meta.env.VITE_SMILE_ID_CALLBACK_URL;
+// ⚠️ VERIFICATION CURRENTLY DISABLED FOR MVP
+// When ready to enable, create a Supabase Edge Function instead of exposing API keys
+const VERIFICATION_ENABLED = false;
 
 // Verification Status Enum
 export const VerificationStatus = {
@@ -40,30 +43,18 @@ export const VerificationType = {
 
 /**
  * Generate Smile ID signature for API authentication
+ * ⚠️ DISABLED - Will be moved to Edge Function
  * @param {string} timestamp - Current timestamp
  * @returns {string} - HMAC signature
  */
 async function generateSignature(timestamp) {
-  const message = `${SMILE_ID_PARTNER_ID}:${timestamp}`;
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const key = encoder.encode(SMILE_ID_API_KEY);
-
-  // Use SubtleCrypto for HMAC-SHA256
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    key,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
-  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+  throw new Error('Smile ID verification is disabled. Use manual review for MVP.');
 }
 
 /**
  * Initiate business verification with Smile ID
+ * ⚠️ CURRENTLY DISABLED - Returns mock pending status for MVP
+ * 
  * @param {Object} params - Verification parameters
  * @param {string} params.companyId - Afrikoni company UUID
  * @param {string} params.registrationNumber - Business registration number (e.g., CAC number)
@@ -79,6 +70,32 @@ export async function verifyBusiness({
   companyName,
   documents = {}
 }) {
+  // Return mock response for MVP - verification disabled
+  if (!VERIFICATION_ENABLED) {
+    console.warn('[VerificationService] Verification disabled for MVP. KYC will be added later.');
+    
+    // Update company status to pending (manual review)
+    const { error: updateError } = await supabase
+      .from('companies')
+      .update({
+        verification_status: VerificationStatus.PENDING,
+        verification_notes: 'Manual verification required - automated KYC not yet enabled',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', companyId);
+
+    if (updateError) {
+      console.error('[VerificationService] Database update error:', updateError);
+    }
+
+    return {
+      success: true,
+      jobId: `manual_review_${companyId}`,
+      message: 'Verification request submitted for manual review',
+      status: VerificationStatus.PENDING
+    };
+  }
+
   try {
     // Validate required fields
     if (!companyId || !registrationNumber || !countryCode) {

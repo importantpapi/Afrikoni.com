@@ -493,12 +493,9 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           // Reset fetch flags
           hasFetchedRef.current = false;
           fetchedCompanyIdRef.current = null;
-        } else if (event === 'SIGNED_IN') {
-          // On signin, reset fetch flags to allow re-fetch
-          console.log('[CapabilityContext] SIGNED_IN detected - resetting fetch flags');
-          hasFetchedRef.current = false;
-          fetchedCompanyIdRef.current = null;
         } else if (event === 'TOKEN_REFRESHED') {
+          // ✅ FIXED RELOAD LOOP: Removed SIGNED_IN listener - AuthProvider handles it
+          // The main fetchCapabilities effect will trigger when needed
           // ✅ KERNEL LOCK: Maintain "Warm" state during token refresh
           // During TOKEN_REFRESHED, profile may be momentarily null, but we should NOT reset
           // if we already have valid capabilities loaded. This prevents the 5-second hang.

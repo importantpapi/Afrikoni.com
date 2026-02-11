@@ -52,6 +52,27 @@ export default function QuickTradeWizard() {
 
     // Keyboard Shortcuts
 
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Command+Enter or Ctrl+Enter to advance/submit
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault();
+                if (currentStep < 3) {
+                    handleNext();
+                } else if (!isSubmitting) {
+                    handlePublish();
+                }
+            }
+            // Escape to go back
+            if (e.key === 'Escape' && currentStep > 1) {
+                handleBack();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [currentStep, formData, isSubmitting]); // Re-bind on state change
 
     // Form data
     const [formData, setFormData] = useState({
@@ -226,7 +247,7 @@ export default function QuickTradeWizard() {
         try {
             // Use the proper service layer instead of direct DB insert
             const { createRFQ } = await import('@/services/rfqService');
-            
+
             const result = await createRFQ({
                 user,
                 formData: {
@@ -758,16 +779,21 @@ export default function QuickTradeWizard() {
                                             <button
                                                 onClick={handleNext}
                                                 disabled={!canProceed()}
-                                                className="px-8 py-3 rounded-xl bg-white text-black text-sm font-black hover:scale-[1.02] active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all flex items-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+                                                className="group px-8 py-3 rounded-xl bg-white text-black text-sm font-black hover:scale-[1.02] active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all flex items-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.1)] relative"
+                                                title="Press Cmd+Enter to advance"
                                             >
                                                 Next Configuration
                                                 <ArrowRight className="w-4 h-4" />
+                                                <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-gray-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                    ⌘ + Enter
+                                                </span>
                                             </button>
                                         ) : (
                                             <button
                                                 onClick={handlePublish}
                                                 disabled={isSubmitting}
-                                                className="px-10 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-black hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 shadow-[0_10px_40px_rgba(37,99,235,0.3)]"
+                                                className="group px-10 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-black hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 shadow-[0_10px_40px_rgba(37,99,235,0.3)] relative"
+                                                title="Press Cmd+Enter to publish"
                                             >
                                                 {isSubmitting ? (
                                                     <>
@@ -780,6 +806,9 @@ export default function QuickTradeWizard() {
                                                         Publish Verified RFQ
                                                     </>
                                                 )}
+                                                <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-gray-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                    ⌘ + Enter
+                                                </span>
                                             </button>
                                         )}
                                     </div>

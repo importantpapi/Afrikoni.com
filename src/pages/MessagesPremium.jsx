@@ -13,6 +13,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Tooltip } from '@/components/shared/ui/tooltip';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -26,6 +27,8 @@ import { scanForLeakage, SOVEREIGN_WARNING } from '@/services/forensicSentinel';
 
 export default function MessagesPremium() {
   const { t } = useLanguage();
+  const { user } = useAuth(); // Keep for auth status  
+  const { profile, profileCompanyId, isSystemReady } = useDashboardKernel(); // ✅ Use Kernel for stable profile
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -312,12 +315,18 @@ export default function MessagesPremium() {
     };
   }, [companyId, selectedConversation, navigate]);
 
+  // ✅ STABILITY: Wait for system ready before loading data
+  useEffect(() => {
+    if (!isSystemReady) return;
+    loadUserAndConversations();
+  }, [isSystemReady]);
+
   const loadUserAndConversations = async () => {
     try {
       setIsLoading(true);
 
-      // Use auth from context (no duplicate call)
-      const userCompanyId = profile?.company_id || null;
+      // ✅ FIXED: Use Kernel's stable profileCompanyId instead of profile?.company_id
+      const userCompanyId = profileCompanyId || null;
       if (!userCompanyId) {
         navigate('/onboarding/company', { replace: true });
         return;

@@ -34,6 +34,12 @@ export default defineConfig({
           }
           return `assets/[name]-${BUILD_TIMESTAMP}.[hash].[ext]`;
         },
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+          supabase: ['@supabase/supabase-js'],
+          charts: ['recharts']
+        },
       },
     },
   },

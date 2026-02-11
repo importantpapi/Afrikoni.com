@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Email Service</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Email Service Test</h1>
+    <button onclick="testEmail()">Send Test Email</button>
+    <div id="result"></div>
+    
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://wmjxiazhvjaadzdsroqa.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtanhpYXpodmphYWR6ZHNyb3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk0NDk1NDMsImV4cCI6MjA0NTAyNTU0M30.GHlBIxaMrDsGM3sXpOWukdZjpX9Hfmk0NaFa7Tc-KRg'
+        );
+        
+        async function testEmail() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Sending...';
+            
+            try {
+                const { data, error } = await supabase.functions.invoke('send-email', {
+                    body: {
+                        to: 'test@example.com',
+                        subject: 'Test from Simple HTML',
+                        html: '<p>Test email</p>',
+                        from: 'Afrikoni <hello@afrikoni.com>'
+                    }
+                });
+                
+                if (error) {
+                    resultDiv.innerHTML = '<pre style="color:red;">Error: ' + JSON.stringify(error, null, 2) + '</pre>';
+                } else {
+                    resultDiv.innerHTML = '<pre style="color:green;">Success: ' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            } catch (err) {
+                resultDiv.innerHTML = '<pre style="color:red;">Exception: ' + err.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>

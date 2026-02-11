@@ -6,13 +6,15 @@
  * Integrates with OpenWeatherMap API to provide real-time weather risk data
  * for trade corridors.
  * 
+ * ⚠️ SECURITY: All weather API calls are proxied through Supabase Edge Function
+ * ⚠️ DO NOT add VITE_OPENWEATHER_API_KEY to .env (security risk)
+ * ⚠️ API key is stored in Supabase secrets only
+ * 
  * Confidence: 80-85% (partner tier)
  */
 
 import type { CorridorDataPoint, RiskLevel, DataSource } from '@/types/corridorIntelligence';
-
-const OPENWEATHER_API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-const OPENWEATHER_BASE_URL = 'https://api.openweathermap.org/data/2.5';
+import { supabase } from '@/api/supabaseClient';
 
 /**
  * Weather conditions that indicate high risk for shipping
@@ -45,21 +47,22 @@ export async function getWeatherRisk(
     locationName: string = 'Location'
 ): Promise<CorridorDataPoint<RiskLevel>> {
     try {
-        // Check if API key is configured
-        if (!OPENWEATHER_API_KEY) {
-            console.warn('OpenWeatherMap API key not configured, using heuristic fallback');
+        // Fetch 5-day forecast via Supabase Edge Function
+        const { data: weatherData, error } = await supabase.functions.invoke('get-weather', {
+            body: { lat, lon },
+        });
+
+        if (error) {
+            console.error('Weather Edge Function error:', error);
             return getWeatherRiskFallback(locationName);
         }
 
-        // Fetch 5-day forecast using native fetch
-        const url = `${OPENWEATHER_BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(`Weather API error: ${response.status}`);
+        if (!weatherData?.success) {
+            console.warn('Weather API returned error:', weatherData?.error);
+            return getWeatherRiskFallback(locationName);
         }
 
-        const data = await response.json();
+        const data = weatherData.data;
 
 
         // Analyze forecast for severe weather in next 48 hours

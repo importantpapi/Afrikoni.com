@@ -57,19 +57,36 @@ export async function sendEmail({
  */
 async function sendViaSupabase({ to, subject, html, from }) {
   try {
+    console.log('📧 Sending email via Edge Function:', { to, subject, from });
+    
     const { data, error } = await supabase.functions.invoke('send-email', {
       body: { to, subject, html, from }
     });
 
     if (error) {
-      console.error('Edge Function error:', error);
-      return { success: false, error: error.message };
+      console.error('❌ Edge Function error:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Failed to send a request to the Edge Function' 
+      };
     }
 
+    if (!data) {
+      console.error('❌ No data returned from Edge Function');
+      return { 
+        success: false, 
+        error: 'No response from email service' 
+      };
+    }
+
+    console.log('✅ Edge Function response:', data);
     return data;
   } catch (error) {
-    console.error('Failed to call send-email function:', error);
-    return { success: false, error: 'Email service unavailable' };
+    console.error('❌ Failed to call send-email function:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Email service unavailable' 
+    };
   }
 }
 
