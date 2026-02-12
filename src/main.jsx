@@ -85,9 +85,7 @@ if (!rootElement) {
         </ErrorBoundary>
       );
     } catch (e) {
-      console.error('[React Render] Error during render:', e);
       document.body.innerHTML = '<pre>App failed to start. Check console.</pre>';
-      console.error(e);
     }
   };
 

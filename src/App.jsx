@@ -272,14 +272,12 @@ function AppContent() {
         if (event === 'SIGNED_OUT') {
           // ✅ KERNEL POLISH: Check if already resetting
           if (isResettingRef.current) {
-            console.log('[App] SIGN_OUT - resetKernel() already in progress, skipping');
             return;
           }
 
           const now = Date.now();
           // ✅ KERNEL POLISH: Debounce - only call resetKernel if last call was more than 1 second ago
           if (now - lastSignOutTime < DEBOUNCE_MS) {
-            console.log('[App] SIGN_OUT debounced - skipping duplicate resetKernel() call');
             return;
           }
 
@@ -290,7 +288,6 @@ function AppContent() {
 
           lastSignOutTime = now;
           isResettingRef.current = true; // ✅ KERNEL POLISH: Mark as resetting
-          console.log('[App] SIGN_OUT detected - calling resetKernel() to purge Brain');
 
           // ✅ KERNEL POLISH: Use timeout to ensure resetKernel is only called once
           resetTimeoutId = setTimeout(() => {
@@ -585,8 +582,10 @@ function AppContent() {
 }
 
 function App() {
-  console.log('🚀 Afrikoni app booting');
-  console.log('ENV:', import.meta.env.VITE_SUPABASE_URL ? 'OK' : 'MISSING');
+  if (import.meta.env.DEV) {
+    console.log('🚀 Afrikoni app booting');
+    console.log('ENV:', import.meta.env.VITE_SUPABASE_URL ? 'OK' : 'MISSING');
+  }
 
   return (
     <ErrorBoundary fallbackMessage="System error. Please refresh the page or contact support.">
