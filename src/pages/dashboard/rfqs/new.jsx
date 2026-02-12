@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function IntakeEngine() {
   const navigate = useNavigate();
-  const { user } = useDashboardKernel();
+  const { user, profile } = useDashboardKernel();
 
   // Modes: 'magic' (AI Parsing) vs 'form' (Manual Override)
   const [mode, setMode] = useState('magic');
@@ -100,8 +100,11 @@ export default function IntakeEngine() {
     // 2. Submit to API (using validated data where appropriate, or original payload)
     try {
       // Add a top-level timeout to prevent silent hangs
+      // Enrich user object with company_id from profile
+      const enrichedUser = { ...user, company_id: profile?.company_id };
+      
       const createPromise = createRFQ({
-        user,
+        user: enrichedUser,
         formData: payload,
       });
 
