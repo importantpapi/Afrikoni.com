@@ -6,21 +6,25 @@ import { StatusBadge } from '@/components/system/StatusBadge';
 import { Button } from '@/components/shared/ui/button';
 import { useKernelState } from '@/hooks/useKernelState';
 import { useTradeKernelState } from '@/hooks/useTradeKernelState';
+import { useTrades } from '@/hooks/queries/useTrades';
 import { useKernelEventStream } from '@/hooks/useKernelEventStream';
 import { cn } from '@/lib/utils';
 
 export default function KernelControlPlane({ companyId }) {
   const navigate = useNavigate();
   const { data: kernelData, loading: kernelLoading } = useKernelState();
+  
+  // ✅ REACT QUERY: Get trade data
+  const { data: { activeTrades = [], pipelineValue = 0 } = {}, isLoading: tradesLoading } = useTrades();
+  
+  // Keep useTradeKernelState for other metrics (trustScore, escrow, etc) until fully migrated
   const {
     trustScore,
     kycStatus,
     escrowLockedValue,
-    pipelineValue,
     shipmentsInTransit,
     afcftaReady,
     riskLevel,
-    activeTrades,
     loading: tradeLoading,
   } = useTradeKernelState();
   const { timeline, loading: eventLoading } = useKernelEventStream({ companyId, limit: 10 });

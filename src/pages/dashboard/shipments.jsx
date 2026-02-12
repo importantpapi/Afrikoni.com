@@ -14,50 +14,37 @@ import { Progress } from "@/components/shared/ui/progress";
 import { Surface } from "@/components/system/Surface";
 import { supabase } from "@/api/supabaseClient";
 import { useDashboardKernel } from "@/hooks/useDashboardKernel";
+import { useShipments } from "@/hooks/queries/useShipments";
 
 const Shipments = () => {
   const { canLoadData, isSystemReady } = useDashboardKernel();
-  const [activeShipment, setActiveShipment] = useState(null);
+  
+  // ✅ REACT QUERY: Auto-refresh shipments
+  const { data: shipmentsData = [], isLoading } = useShipments();
+  const activeShipment = shipmentsData[0] || null;
+  
   const [trackingEvents, setTrackingEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     const load = async () => {
-      if (!isSystemReady || !canLoadData) return;
+      if (!isSystemReady || !canLoadData || !activeShipment?.id) return;
       try {
-        const { data: shipments } = await supabase
-          .from("shipments")
-          .select("*, order:orders(*)")
-          .order("updated_at", { ascending: false })
-          .limit(1);
-
-        if (!active) return;
-        const shipment = shipments?.[0] || null;
-        setActiveShipment(shipment);
-
-        if (shipment?.id) {
-          const { data: events } = await supabase
-            .from("shipment_tracking_events")
-            .select("id, event_type, description, location, event_timestamp")
-            .eq("shipment_id", shipment.id)
-            .order("event_timestamp", { ascending: false });
-          if (active) setTrackingEvents(events || []);
-        }
+        const { data: events } = await supabase
+          .from("shipment_tracking_events")
+          .select("id, event_type, description, location, event_timestamp")
+          .eq("shipment_id", activeShipment.id)
+          .order("event_timestamp", { ascending: false });
+        if (active) setTrackingEvents(events || []);
       } catch {
-        if (active) {
-          setActiveShipment(null);
-          setTrackingEvents([]);
-        }
-      } finally {
-        if (active) setLoading(false);
+        if (active) setTrackingEvents([]);
       }
     };
     load();
     return () => {
       active = false;
     };
-  }, [canLoadData, isSystemReady]);
+  }, [canLoadData, isSystemReady, activeShipment?.id]);
 
   const trade = activeShipment?.trade || activeShipment?.order || {};
   const originCountry = activeShipment?.origin_country || trade?.origin_country || trade?.seller_company?.country || "Origin";
@@ -72,7 +59,7 @@ const Shipments = () => {
   const completedCount = milestones.filter((m) => m.status === "completed").length;
   const progress = milestones.length ? (completedCount / milestones.length) * 100 : 0;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="os-page os-stagger space-y-6">
         <Surface variant="glass" className="p-6 md:p-8">Loading shipments…</Surface>

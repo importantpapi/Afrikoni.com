@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useOrders } from '@/hooks/queries/useOrders';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { supabase, withRetry } from '@/api/supabaseClient';
 import { analyzeContext } from '@/services/tradeKernel';
@@ -59,10 +60,20 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // State
-    const [orders, setOrders] = useState([]);
-    const [isLoading, setIsLoading] = useState(true); // Default true to prevent flash
-    const [error, setError] = useState(null);
+    // ✅ REACT QUERY: Auto-refresh orders data
+    const { data: allOrders = [], isLoading, error: queryError } = useOrders();
+    
+    // Filter by viewMode (buy/sell)
+    const orders = useMemo(() => {
+        if (viewMode === 'buy') {
+            return allOrders.filter(o => o.buyer_company_id === profileCompanyId);
+        } else if (viewMode === 'sell') {
+            return allOrders.filter(o => o.seller_company_id === profileCompanyId);
+        }
+        return allOrders;
+    }, [allOrders, viewMode, profileCompanyId]);
+
+    const error = queryError ? 'Failed to load orders. Please try again.' : null;
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [advice, setAdvice] = useState([]);
@@ -72,91 +83,17 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
     const lastLoadTimeRef = useRef(null);
     const abortControllerRef = useRef(null);
 
-    // Kernel Gate
+    // \u2705 INTELLIGENCE: Context Analysis (still useful for advice)
     useEffect(() => {
-        if (!canLoadData || !profileCompanyId) {
-            // If kernel isn't ready, we just wait. Spinner handles visual.
-            return;
+        if (orders.length > 0) {
+            const contextAdvice = analyzeContext({
+                page: viewMode === 'sell' ? 'sales' : 'orders',
+                data: orders,
+                user: profileCompanyId
+            });
+            setAdvice(contextAdvice);
         }
-
-        // AbortController Setup
-        abortControllerRef.current = new AbortController();
-        const abortSignal = abortControllerRef.current.signal;
-
-        // Loading Function
-        const loadTrades = async () => {
-            try {
-                // ✅ SWR: Only show full loading state if we have no data
-                if (orders.length === 0) setIsLoading(true);
-                setError(null);
-
-                // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
-                const fetchTrades = async () => {
-                    let query = supabase
-                        .from('orders')
-                        .select('*, products(*)')
-                        .order('created_at', { ascending: false });
-
-                    // ONE FLOW LOGIC: Filter by View Mode
-                    if (viewMode === 'sell') {
-                        query = query.eq('seller_company_id', profileCompanyId);
-                    } else {
-                        // Default to buy
-                        query = query.eq('buyer_company_id', profileCompanyId);
-                    }
-
-                    if (abortSignal.aborted) throw new Error('Aborted');
-                    return await query;
-                };
-
-                // Execute with retry wrapper
-                const { data, error: queryError } = await withRetry(fetchTrades);
-
-                if (abortSignal.aborted) return;
-                if (queryError) throw queryError;
-
-                setOrders(data || []);
-
-                // INTELLIGENCE: Context Analysis
-                const contextAdvice = analyzeContext({
-                    page: viewMode === 'sell' ? 'sales' : 'orders',
-                    data: data,
-                    user: profileCompanyId
-                });
-                setAdvice(contextAdvice);
-
-                lastLoadTimeRef.current = Date.now();
-                markFresh();
-            } catch (err) {
-                if (!abortSignal.aborted) {
-                    console.error('[TradeMonitor] Load Error:', err);
-                    // Only show full error if we have no data
-                    if (orders.length === 0) {
-                        setError(err.message || 'Failed to load trades');
-                    } else {
-                        toast.error('Connection unstable - using cached data');
-                    }
-                }
-            } finally {
-                if (!abortSignal.aborted) setIsLoading(false);
-            }
-        };
-
-        // Stale Check
-        const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
-
-        if (shouldRefresh) {
-            loadTrades();
-        } else {
-            setIsLoading(false); // Data is fresh, just show it
-        }
-
-        return () => {
-            if (abortControllerRef.current) abortControllerRef.current.abort();
-        };
-
-    }, [canLoadData, profileCompanyId, viewMode, isStale]);
-
+    }, [orders, viewMode, profileCompanyId]);
 
     // Computed Stats
     const stats = useMemo(() => {

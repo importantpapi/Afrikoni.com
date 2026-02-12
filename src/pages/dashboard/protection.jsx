@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useOrders } from '@/hooks/queries/useOrders';
+import { useDisputes } from '@/hooks/queries/useDisputes';
+import { useWalletTransactions } from '@/hooks/queries/useWalletTransactions';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
@@ -18,18 +20,97 @@ import EmptyState from '@/components/shared/ui/EmptyState';
 import RequireCapability from '@/guards/RequireCapability';
 
 function DashboardProtectionInner() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  const [protectionData, setProtectionData] = useState(null);
-  const [protectedOrders, setProtectedOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
-  const [error, setError] = useState(null);
+  // ✅ REACT QUERY MIGRATION: Use query hooks for auto-refresh
+  const { profileCompanyId, userId, capabilities, isSystemReady } = useDashboardKernel();
+  const { data: allOrders = [], isLoading: ordersLoading, error: ordersError } = useOrders();
+  const { data: disputes = [], isLoading: disputesLoading, error: disputesError } = useDisputes();
+  const { data: walletTransactions = [], isLoading: walletLoading, error: walletError } = useWalletTransactions();
   const navigate = useNavigate();
   
-  // ✅ KERNEL MIGRATION: Derive role from capabilities
-  const isBuyer = capabilities?.can_buy === true;
-  const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
-  const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
+  // ✅ REACT QUERY MIGRATION: Compute protection data from queries
+  const { protectedOrders, protectionData } = useMemo(() => {
+    if (!allOrders.length || !walletTransactions.length) {
+      return { 
+        protectedOrders: [], 
+        protectionData: { 
+          ordersUnderProtection: 0, 
+          totalValueInProtection: 0, 
+          releasedThisMonth: 0, 
+          disputes: 0, 
+          totalDisputes: 0 
+        } 
+      };
+    }
+
+    // Find protected orders
+    const protectedOrdersList = allOrders.filter(o => {
+      // Check if order has escrow protection
+      const hasEscrowHold = walletTransactions.some(tx => 
+        tx.order_id === o.id && tx.type === 'escrow_hold' && tx.status === 'completed'
+      );
+      
+      if (!hasEscrowHold) return false;
+      
+      // Check if it's been released
+      const hasRelease = walletTransactions.some(tx => 
+        tx.order_id === o.id && tx.type === 'escrow_release' && tx.status === 'completed'
+      );
+      
+      // Protected if has hold and not released
+      return !hasRelease && o.status !== 'cancelled';
+    }).map(order => {
+      // Determine protection status
+      const escrowHold = walletTransactions.find(tx => 
+        tx.order_id === order.id && tx.type === 'escrow_hold' && tx.status === 'completed'
+      );
+      const escrowRelease = walletTransactions.find(tx => 
+        tx.order_id === order.id && tx.type === 'escrow_release' && tx.status === 'completed'
+      );
+      
+      let protectionStatus = 'protected';
+      if (escrowRelease) {
+        protectionStatus = 'released';
+      } else if (order.dispute_status === 'open' || order.dispute_status === 'under_review') {
+        protectionStatus = 'under_review';
+      } else if (order.payment_status === 'under_review') {
+        protectionStatus = 'under_review';
+      }
+
+      return {
+        ...order,
+        protectionStatus,
+        escrowAmount: escrowHold ? parseFloat(escrowHold.amount || 0) : parseFloat(order.total_amount || 0),
+        lastUpdated: escrowRelease?.updated_at || escrowHold?.updated_at || order.updated_at
+      };
+    });
+
+    // Calculate summary
+    const totalValueInProtection = protectedOrdersList
+      .filter(o => o.protectionStatus === 'protected')
+      .reduce((sum, o) => sum + o.escrowAmount, 0);
+
+    const releasedThisMonth = protectedOrdersList
+      .filter(o => {
+        if (o.protectionStatus !== 'released') return false;
+        const releaseDate = new Date(o.lastUpdated);
+        const now = new Date();
+        return releaseDate.getMonth() === now.getMonth() && releaseDate.getFullYear() === now.getFullYear();
+      }).length;
+
+    return {
+      protectedOrders: protectedOrdersList,
+      protectionData: {
+        ordersUnderProtection: protectedOrdersList.filter(o => o.protectionStatus === 'protected').length,
+        totalValueInProtection,
+        releasedThisMonth,
+        disputes: disputes.filter(d => d.status !== 'resolved').length,
+        totalDisputes: disputes.length
+      }
+    };
+  }, [allOrders, walletTransactions, disputes]);
+
+  const isLoading = ordersLoading || disputesLoading || walletLoading;
+  const error = ordersError || disputesError || walletError;
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -40,125 +121,6 @@ function DashboardProtectionInner() {
     );
   }
   
-  // ✅ KERNEL MIGRATION: Check if user is authenticated
-  if (!userId) {
-    navigate('/login');
-    return null;
-  }
-
-  useEffect(() => {
-    // ✅ KERNEL MIGRATION: Use canLoadData guard
-    if (!canLoadData || !profileCompanyId) {
-      return;
-    }
-
-    // Now safe to load data
-    loadProtection();
-  }, [canLoadData, profileCompanyId, userId, navigate]);
-
-  const loadProtection = async () => {
-    if (!canLoadData || !profileCompanyId) {
-      return;
-    }
-    
-    try {
-      setError(null);
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
-      const companyId = profileCompanyId;
-
-      // Load protection data for buyers and sellers
-      if (companyId) {
-        const [ordersRes, disputesRes, walletRes] = await Promise.all([
-          // Load orders where user is buyer or seller
-          supabase.from('orders')
-            .select('*, products(name), buyer_company:buyer_company_id(company_name), seller_company:seller_company_id(company_name)')
-            .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`),
-          supabase.from('disputes')
-            .select('*')
-            .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId},raised_by_company_id.eq.${companyId},against_company_id.eq.${companyId}`),
-          supabase.from('wallet_transactions')
-            .select('*')
-            .eq('company_id', companyId)
-            .in('type', ['escrow_hold', 'escrow_release'])
-        ]);
-
-        const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
-        const walletTransactions = Array.isArray(walletRes.data) ? walletRes.data : [];
-
-        // Find protected orders
-        const protectedOrdersList = (orders || []).filter(o => {
-          // Check if order has escrow protection
-          const hasEscrowHold = walletTransactions.some(tx => 
-            tx.order_id === o.id && tx.type === 'escrow_hold' && tx.status === 'completed'
-          );
-          
-          if (!hasEscrowHold) return false;
-          
-          // Check if it's been released
-          const hasRelease = walletTransactions.some(tx => 
-            tx.order_id === o.id && tx.type === 'escrow_release' && tx.status === 'completed'
-          );
-          
-          // Protected if has hold and not released, or if payment_status indicates protection
-          return !hasRelease && o.status !== 'cancelled';
-        }).map(order => {
-          // Determine protection status
-          const escrowHold = walletTransactions.find(tx => 
-            tx.order_id === order.id && tx.type === 'escrow_hold' && tx.status === 'completed'
-          );
-          const escrowRelease = walletTransactions.find(tx => 
-            tx.order_id === order.id && tx.type === 'escrow_release' && tx.status === 'completed'
-          );
-          
-          let protectionStatus = 'protected';
-          if (escrowRelease) {
-            protectionStatus = 'released';
-          } else if (order.dispute_status === 'open' || order.dispute_status === 'under_review') {
-            protectionStatus = 'under_review';
-          } else if (order.payment_status === 'under_review') {
-            protectionStatus = 'under_review';
-          }
-
-          return {
-            ...order,
-            protectionStatus,
-            escrowAmount: escrowHold ? parseFloat(escrowHold.amount || 0) : parseFloat(order.total_amount || 0),
-            lastUpdated: escrowRelease?.updated_at || escrowHold?.updated_at || order.updated_at
-          };
-        });
-
-        // Calculate summary
-        const totalValueInProtection = protectedOrdersList
-          .filter(o => o.protectionStatus === 'protected')
-          .reduce((sum, o) => sum + o.escrowAmount, 0);
-
-        const releasedThisMonth = protectedOrdersList
-          .filter(o => {
-            if (o.protectionStatus !== 'released') return false;
-            const releaseDate = new Date(o.lastUpdated);
-            const now = new Date();
-            return releaseDate.getMonth() === now.getMonth() && releaseDate.getFullYear() === now.getFullYear();
-          }).length;
-
-        setProtectedOrders(protectedOrdersList);
-        setProtectionData({
-          ordersUnderProtection: protectedOrdersList.filter(o => o.protectionStatus === 'protected').length,
-          totalValueInProtection,
-          releasedThisMonth,
-          disputes: disputesRes.data?.filter(d => d.status !== 'resolved').length || 0,
-          totalDisputes: disputesRes.data?.length || 0
-        });
-      }
-    } catch (error) {
-      // ✅ KERNEL MIGRATION: Enhanced error logging and state
-      console.error('Error loading protection data:', error);
-      setError(error?.message || 'Failed to load protection data');
-      toast.error('Failed to load protection data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -167,15 +129,11 @@ function DashboardProtectionInner() {
     );
   }
   
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
+  // ✅ REACT QUERY MIGRATION: Error handling with auto-retry
   if (error) {
     return (
       <ErrorState 
-        message={error} 
-        onRetry={() => {
-          setError(null);
-          loadProtection();
-        }}
+        message={error?.message || 'Failed to load protection data'} 
       />
     );
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, CheckCircle2, Clock, AlertCircle, Upload,
@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Progress } from '@/components/shared/ui/progress';
 import { Badge } from '@/components/shared/ui/badge';
-import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useCompanyInfo } from '@/hooks/queries/useCompanyInfo';
+import { useVerifications } from '@/hooks/queries/useVerifications';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
@@ -65,146 +66,60 @@ const VERIFICATION_STEPS = [
 ];
 
 export default function VerificationStatus() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-
+  // ✅ REACT QUERY MIGRATION: Use query hooks for auto-refresh
+  const { profileCompanyId, userId, isSystemReady } = useDashboardKernel();
+  const { data: company, isLoading: companyLoading, error: companyError } = useCompanyInfo();
+  const { data: allVerifications = [], isLoading: verificationsLoading, error: verificationsError } = useVerifications();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [company, setCompany] = useState(null);
-  const [verificationData, setVerificationData] = useState(null);
-  const [profileStrength, setProfileStrength] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState([]);
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SpinnerWithTimeout message="Loading verification status..." ready={isSystemReady} />
-      </div>
-    );
-  }
+  // Get latest verification
+  const verificationData = allVerifications[0] || null;
+  const isLoading = companyLoading || verificationsLoading;
+  const error = companyError || verificationsError;
 
-  // ✅ KERNEL MIGRATION: Use canLoadData guard
-  useEffect(() => {
-    if (!canLoadData) {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-      return;
+  // ✅ REACT QUERY MIGRATION: Calculate profile strength from real-time data
+  const { profileStrength, completedSteps } = useMemo(() => {
+    if (!company) {
+      return { profileStrength: 0, completedSteps: [] };
     }
 
-    loadVerificationStatus();
-  }, [canLoadData, userId, profileCompanyId]);
-
-  const loadVerificationStatus = async () => {
-    if (!profileCompanyId) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // ✅ SWR: Only show full loading state if we have no data
-      if (!company) setLoading(true);
-      setError(null);
-
-      // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
-      const fetchData = async () => {
-        // Load company data
-        const { data: companyData, error: companyError } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', profileCompanyId)
-          .single();
-
-        if (companyError) throw companyError;
-
-        // Load verification submission data
-        let verifData = null;
-        try {
-          const { data, error: verifError } = await supabase
-            .from('verifications')
-            .select('*')
-            .eq('company_id', profileCompanyId)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-
-          if (verifError) {
-            // Handle PGRST116 (not found) - no verification exists yet, this is OK
-            if (verifError.code !== 'PGRST116') {
-              throw verifError;
-            }
-          } else {
-            verifData = data;
-          }
-        } catch (error) {
-          // PGRST116 (not found) is expected - verification may not exist yet
-          if (error?.code !== 'PGRST116') {
-            throw error;
-          }
-        }
-
-        return { companyData, verifData };
-      };
-
-      const { companyData, verifData } = await withRetry(fetchData);
-
-      setCompany(companyData);
-      if (verifData) setVerificationData(verifData);
-
-      // Calculate profile strength
-      calculateProfileStrength(companyData, verifData);
-    } catch (error) {
-      console.error('Error loading verification status:', error);
-      if (!company) {
-        setError('Failed to load verification status');
-        toast.error('Failed to load verification status');
-      } else {
-        toast.warning('Connection unstable - showing cached data');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateProfileStrength = (companyData, verifData) => {
     let strength = 0;
     const completed = [];
 
     // Basic company profile (10%)
-    if (companyData.company_name && companyData.country && companyData.description) {
+    if (company.company_name && company.country && company.description) {
       strength += 10;
     }
 
     // Check verification steps
-    if (verifData) {
-      if (verifData.business_license_url || verifData.registration_document_url) {
+    if (verificationData) {
+      if (verificationData.business_license_url || verificationData.registration_document_url) {
         strength += 25;
         completed.push('business_registration');
       }
-      if (verifData.id_document_url) {
+      if (verificationData.id_document_url) {
         strength += 25;
         completed.push('identity_verification');
       }
-      if (verifData.tax_document_url) {
+      if (verificationData.tax_document_url) {
         strength += 20;
         completed.push('tax_compliance');
       }
-      if (verifData.certification_urls && (verifData.certification_urls?.length || 0) > 0) {
+      if (verificationData.certification_urls && (verificationData.certification_urls?.length || 0) > 0) {
         strength += 15;
         completed.push('product_quality');
       }
-      if (verifData.bank_statement_url) {
+      if (verificationData.bank_statement_url) {
         strength += 15;
         completed.push('bank_verification');
       }
     }
 
-    setProfileStrength(Math.min(strength, 100));
-    setCompletedSteps(completed);
-  };
+    return { 
+      profileStrength: Math.min(strength, 100),
+      completedSteps: completed
+    };
+  }, [company, verificationData]);
 
   const getVerificationStatus = () => {
     if (!company) return { label: 'Unknown', color: 'gray', icon: Clock };
@@ -216,6 +131,17 @@ export default function VerificationStatus() {
     if (verificationData?.status === 'in_review' || company.verification_status === 'in_review') {
       return { label: 'Under Review', color: 'blue', icon: Clock };
     }
+
+    return { label: 'Not Verified', color: 'yellow', icon: AlertCircle };
+  };
+
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
+  }
+
+  if (error) {
+    return <ErrorState message={error?.message || 'Failed to load verification status'} />;
+  }
 
     if (verificationData?.status === 'rejected' || company.verification_status === 'rejected') {
       return { label: 'Needs Attention', color: 'red', icon: AlertCircle };

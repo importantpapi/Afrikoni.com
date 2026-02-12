@@ -1,10 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { getRFQs } from '@/services/rfqService';
-import { logError } from '@/utils/errorLogger';
+import { useRFQs } from '@/hooks/queries/useRFQs';
 
 // UI
 import { Surface } from '@/components/system/Surface';
@@ -50,14 +47,13 @@ const statusConfig = {
  * - 'supplier': View matched RFQs
  */
 export default function RFQMonitor({ viewMode = 'buyer' }) {
-    const { user, profileCompanyId, canLoadData, isSystemReady } = useDashboardKernel();
+    // ✅ REACT QUERY MIGRATION: Use query hooks for auto-refresh
+    const { user, profileCompanyId, isSystemReady } = useDashboardKernel();
+    const { data: allRFQs = [], isLoading, error } = useRFQs();
     const navigate = useNavigate();
     const location = useLocation();
 
     // State
-    const [rfqs, setRfqs] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [statusFilter, setStatusFilter] = useState(viewMode === 'supplier' ? 'matched' : 'all');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -67,10 +63,38 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
     const [aiProcessing, setAiProcessing] = useState(false);
     const [aiResult, setAiResult] = useState(null);
 
-    // Refs & Hooks
-    const { isStale, markFresh, refresh } = useDataFreshness(30000);
-    const lastLoadTimeRef = useRef(null);
-    const abortControllerRef = useRef(null);
+    // ✅ REACT QUERY MIGRATION: Filter RFQs based on viewMode and filters
+    const rfqs = useMemo(() => {
+        let filtered = allRFQs;
+
+        // Apply view mode filter
+        if (viewMode === 'supplier') {
+            filtered = filtered.filter(rfq => {
+                if (!rfq.matched_supplier_ids || !Array.isArray(rfq.matched_supplier_ids)) return false;
+                return rfq.matched_supplier_ids.includes(profileCompanyId);
+            });
+        } else {
+            // Buyer mode - show RFQs created by this company
+            filtered = filtered.filter(rfq => rfq.buyer_company_id === profileCompanyId);
+        }
+
+        // Apply status filter
+        if (statusFilter !== 'all' && statusFilter !== 'matched') {
+            filtered = filtered.filter(rfq => rfq.status === statusFilter);
+        }
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(rfq =>
+                rfq.title?.toLowerCase().includes(query) ||
+                rfq.product_name?.toLowerCase().includes(query) ||
+                rfq.category?.toLowerCase().includes(query)
+            );
+        }
+
+        return filtered;
+    }, [allRFQs, viewMode, statusFilter, searchQuery, profileCompanyId]);
 
     // AI Mock Logic
     const handleGenerateRFQ = () => {

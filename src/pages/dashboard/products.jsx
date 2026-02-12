@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useProducts } from '@/hooks/queries/useProducts';
 import {
   Plus,
   Search,
@@ -41,42 +41,12 @@ export default function Products() {
   const location = useLocation();
   const { profileCompanyId, canLoadData } = useDashboardKernel();
 
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // ✅ REACT QUERY: Auto-refresh, cache management, race condition handling
+  const { data: products = [], isLoading, error: queryError } = useProducts();
+  const error = queryError ? 'Failed to load products. Please try again.' : null;
 
   const [search, setSearch] = useState('');
   const [view, setView] = useState('list');
-
-  // ✅ Data Loader: Fetch products from real DB
-  const loadProducts = useCallback(async () => {
-    if (!profileCompanyId) return;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('company_id', profileCompanyId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setProducts(data || []);
-    } catch (err) {
-      setError('Failed to load products. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [profileCompanyId]);
-
-  // ✅ KERNEL COMPLIANCE: Use canLoadData guard
-  useEffect(() => {
-    if (!canLoadData) return;
-    loadProducts();
-  }, [canLoadData, loadProducts]);
 
   // ✅ REFRESH FIX: Reload products when navigating back from /new
   useEffect(() => {

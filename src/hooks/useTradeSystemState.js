@@ -14,6 +14,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useCapability } from '@/context/CapabilityContext';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { generateRecommendations } from '@/services/aiRecommendationService';
 
 /**
@@ -197,6 +198,7 @@ const calculateTrustScore = (profile, tradeHistory, paymentHistory, certificatio
 export const useTradeSystemState = () => {
     const { user, profile } = useAuth();
     const { lastInvalidatedAt, invalidatedTags } = useCapability();
+    const { isSystemReady } = useDashboardKernel();
     const [systemState, setSystemState] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);

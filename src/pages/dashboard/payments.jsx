@@ -14,11 +14,16 @@ import { Surface } from "@/components/system/Surface";
 import { StatusBadge } from "@/components/system/StatusBadge";
 import { supabase } from "@/api/supabaseClient";
 import { useDashboardKernel } from "@/hooks/useDashboardKernel";
+import { usePayments } from "@/hooks/queries/usePayments";
 import { calculateTradeFees, estimateFX } from "@/services/revenueEngine";
 import GlobalPaymentRisk from "@/components/risk/GlobalPaymentRisk";
 
 const Payments = () => {
   const { canLoadData, isSystemReady, profileCompanyId } = useDashboardKernel();
+  
+  // ✅ REACT QUERY: Auto-refresh invoices/payments
+  const { data: invoicesData = [], isLoading } = usePayments();
+  
   const [payment, setPayment] = useState({
     totalAmount: 0,
     releasedAmount: 0,
@@ -26,7 +31,6 @@ const Payments = () => {
     fxRate: 1.0,
   });
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // Revenue Engine State
   const [feePreview, setFeePreview] = useState(null);

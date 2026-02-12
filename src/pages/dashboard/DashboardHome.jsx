@@ -4,7 +4,7 @@ import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
 import SeedButton from '@/components/dashboard/SeedButton';
 import OneFlow from './OneFlow';
-import { useTradeKernelState } from '@/hooks/useTradeKernelState';
+import { useTrades } from '@/hooks/queries/useTrades';
 import { ArrowRight, Box, CreditCard, Ship } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { OSStatusBar } from '@/components/system/OSStatusBar';
@@ -15,7 +15,7 @@ import { Button } from '@/components/shared/ui/button';
 
 export default function DashboardHome() {
   const { isSystemReady, profileCompanyId, userId } = useDashboardKernel();
-  const { activeTrades, loading: tradesLoading } = useTradeKernelState();
+  const { data: { activeTrades = [] } = {}, isLoading: tradesLoading } = useTrades();
   const navigate = useNavigate();
 
   // ✅ MOBILE FIX: Wait for BOTH system ready AND company ID
@@ -96,7 +96,7 @@ export default function DashboardHome() {
                 <p className="text-os-muted text-sm">No active trade flows detected in kernel.</p>
                 <Button
                   className="mt-4 bg-afrikoni-gold text-black hover:bg-afrikoni-gold/90"
-                  onClick={() => navigate('/dashboard/quick-trade')}
+                  onClick={() => navigate('/dashboard/quick-trade/new')}
                 >
                   Initiate New Trade
                 </Button>

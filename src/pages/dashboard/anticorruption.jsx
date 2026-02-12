@@ -1,10 +1,4 @@
-/**
- * Afrikoni Shield™ - Anti-Corruption Dashboard
- * Phase 4: Anti-bribery enforcement, transparency, whistleblowing, anomaly detection,
- * immutable audit logs, and compliance oversight across 54 African countries
- */
-
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -22,26 +16,18 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell,
   LineChart, Line
 } from 'recharts';
-// ✅ BACKEND CONNECTION: Removed mock data imports - now using real activity_logs table
-// NOTE: Admin check done at route level - removed isAdmin import
-import { supabase } from '@/api/supabaseClient';
 import AccessDenied from '@/components/AccessDenied';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useActivityLogs } from '@/hooks/queries/useActivityLogs';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 
 export default function AntiCorruption() {
-  // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
-  const { user, profile, userId, isSystemReady, canLoadData, isAdmin, capabilities } = useDashboardKernel();
+  // ✅ REACT QUERY MIGRATION: Use query hooks for auto-refresh
+  const { user, profile, userId, isSystemReady, isAdmin, capabilities } = useDashboardKernel();
+  const { data: auditLogs = [], isLoading, error } = useActivityLogs();
 
-  // ✅ KERNEL COMPLIANCE: Derive admin/internal status from isAdmin flag
-  // Note: riskProfiles is mock data - profile.role refers to mock risk profile, not user profile
-  const isInternalUser = isAdmin; // Internal users are admins
-
-  // All hooks must be at the top - before any conditional returns
-  const [hasAccess, setHasAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [auditLogs, setAuditLogs] = useState([]);
+  const isInternalUser = isAdmin;
   const [reportFilter, setReportFilter] = useState({ severity: 'all', status: 'all', category: 'all' });
   const [auditFilter, setAuditFilter] = useState({ user: 'all', action: 'all' });
   const [auditSearch, setAuditSearch] = useState('');
@@ -49,64 +35,8 @@ export default function AntiCorruption() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showCaseModal, setShowCaseModal] = useState(null);
-  const abortControllerRef = useRef(null);
 
-  // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate
-  useEffect(() => {
-    if (!canLoadData) {
-      return;
-    }
-
-    loadAuditLogs();
-
-    // ✅ KERNEL MANIFESTO: Finally Law - Cleanup
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [canLoadData]);
-
-  const loadAuditLogs = async () => {
-    // ✅ KERNEL MANIFESTO: Rule 4 - Zombie Protection (AbortController)
-    abortControllerRef.current = new AbortController();
-    const abortSignal = abortControllerRef.current.signal;
-    const timeoutId = setTimeout(() => {
-      if (!abortSignal.aborted) {
-        abortControllerRef.current.abort();
-        setLoading(false);
-      }
-    }, 15000);
-
-    try {
-      setLoading(true);
-
-      if (abortSignal.aborted) return;
-
-      // ✅ BACKEND CONNECTION: Query activity_logs table (admin can see all)
-      const { data, error: queryError } = await supabase
-        .from('activity_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1000); // Limit for performance
-
-      if (abortSignal.aborted) return;
-
-      if (queryError) throw queryError;
-
-      setAuditLogs(data || []);
-    } catch (err) {
-      // Error handled by kernel/fallback
-    } finally {
-      // ✅ KERNEL MANIFESTO: Finally Law
-      clearTimeout(timeoutId);
-      if (!abortSignal.aborted) {
-        setLoading(false);
-      }
-    }
-  };
-
-  // ✅ BACKEND CONNECTION: Derive KPIs from real data
+  // ✅ REACT QUERY MIGRATION: Derive KPIs from real-time data
   const antiCorruptionKPIs = useMemo(() => {
     const last30Days = new Date();
     last30Days.setDate(last30Days.getDate() - 30);

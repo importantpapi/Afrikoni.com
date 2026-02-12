@@ -1,10 +1,4 @@
-/**
- * Afrikoni Shield™ - KYC/AML Tracker
- * Phase 3: Full verification journey for suppliers and buyers
- * Identity checks, business verification, AML screening, PEP checks, sanctions lists, risk scoring
- */
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -21,100 +15,21 @@ import {
   RadialBarChart, RadialBar, PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend
 } from 'recharts';
-// ✅ BACKEND CONNECTION: Removed mock data imports - now using real kyc_verifications table
-// NOTE: Admin check done at route level - removed isAdmin import
-import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useKYCVerifications } from '@/hooks/queries/useKYCVerifications';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
 
 export default function KYCTracker() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
-
-  // All hooks must be at the top - before any conditional returns
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [kycVerifications, setKycVerifications] = useState([]);
+  // ✅ REACT QUERY MIGRATION: Use query hooks for auto-refresh
+  const { profileCompanyId, userId, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
+  const { data: kycVerifications = [], isLoading, error } = useKYCVerifications();
   const [showOcrPreview, setShowOcrPreview] = useState(false);
   const [showBusinessDoc, setShowBusinessDoc] = useState(false);
-  const abortControllerRef = useRef(null);
 
-  // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate
-  useEffect(() => {
-    if (!canLoadData || !profileCompanyId) {
-      return;
-    }
-
-    loadKycData();
-
-    // ✅ KERNEL MANIFESTO: Finally Law - Cleanup
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [canLoadData, profileCompanyId]);
-
-  const loadKycData = async () => {
-    // ✅ KERNEL MANIFESTO: Rule 4 - Zombie Protection (AbortController)
-    abortControllerRef.current = new AbortController();
-    const abortSignal = abortControllerRef.current.signal;
-    const timeoutId = setTimeout(() => {
-      if (!abortSignal.aborted) {
-        abortControllerRef.current.abort();
-        setLoading(false);
-        setError('Data loading timed out. Please try again.');
-      }
-    }, 15000);
-
-    try {
-      // ✅ SWR: Only show full loading state if we have no data
-      if (kycVerifications.length === 0) setLoading(true);
-      setError(null);
-
-      if (abortSignal.aborted) return;
-
-      // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
-      const fetchKYC = async () => {
-        const { data, error: queryError } = await supabase
-          .from('kyc_verifications')
-          .select('*')
-          .eq('company_id', profileCompanyId)
-          .order('created_at', { ascending: false });
-
-        if (queryError) throw queryError;
-        if (abortSignal.aborted) throw new Error('Aborted');
-        return data;
-      };
-
-      const data = await withRetry(fetchKYC);
-
-      if (abortSignal.aborted) return;
-
-      setKycVerifications(data || []);
-    } catch (err) {
-      if (abortSignal.aborted || err.message === 'Aborted') return;
-      console.error('Error loading KYC verifications:', err);
-
-      // Only show error state if we have no data
-      if (kycVerifications.length === 0) {
-        setError(err.message || 'Failed to load KYC verifications');
-      } else {
-        toast.warning('Connection unstable - showing cached data');
-      }
-    } finally {
-      // ✅ KERNEL MANIFESTO: Finally Law
-      clearTimeout(timeoutId);
-      if (!abortSignal.aborted) {
-        setLoading(false);
-      }
-    }
-  };
-
-  // ✅ BACKEND CONNECTION: Derive summary from real data
+  // ✅ REACT QUERY MIGRATION: Derive summary from real-time data
   const kycSummary = useMemo(() => {
     if (kycVerifications.length === 0) {
       return {
@@ -141,36 +56,18 @@ export default function KYCTracker() {
     };
   }, [kycVerifications]);
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SpinnerWithTimeout message="Loading KYC tracker..." ready={isSystemReady} />
-      </div>
-    );
   }
 
-  // ✅ KERNEL MIGRATION: Check admin access using kernel
-  if (!isAdmin) {
-    return <AccessDenied />;
+  // ✅ REACT QUERY MIGRATION: Use isLoading from query
+  if (isLoading) {
+    return <CardSkeleton count={3} />;
   }
 
-  // ✅ KERNEL MANIFESTO: Rule 5 - Three-State UI (Error BEFORE Loading)
+  // ✅ REACT QUERY MIGRATION: Error handling with auto-retry
   if (error) {
     return (
-      <ErrorState
-        message={error}
-        onRetry={() => {
-          setError(null);
-          loadKycData();
-        }}
-      />
+      <ErrorState message={error?.message || 'Failed to load KYC data'} />
     );
-  }
-
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (loading) {
-    return <CardSkeleton count={3} />;
   }
 
   const getStatusColor = (status) => {

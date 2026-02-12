@@ -1,3 +1,6 @@
+import { useCallback, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/api/supabaseClient';
 
 // ✅ TOTAL SYSTEM SYNC: Global channel registry to prevent duplicates across hook instances
 const _activeChannels = new Map();
@@ -14,6 +17,7 @@ const _channelTimeouts = new Map();
  * 3. Idempotent: Never resubscribe if already subscribed for same companyId
  * 4. Survives: route changes, tab switches, token refresh, auth re-resolution
  * 5. Cleanup: Only on hard unmount or companyId change
+ * 6. ✅ REACT QUERY INTEGRATION: Invalidates queries instead of CustomEvents
  * 
  * WHY THIS CANNOT REGRESS:
  * - No React state triggers re-renders that could cause resubscription
@@ -21,6 +25,7 @@ const _channelTimeouts = new Map();
  * - Single channel eliminates "binding mismatch" errors
  * - Idempotency guard prevents subscription storms
  * - Callback ref pattern prevents dependency array issues
+ * - React Query auto-invalidation replaces manual event listeners
  * 
  * @param {string|null} companyId - Company ID to subscribe for (null = disabled)
  * @param {string|null} userId - User ID for notifications (null = skip notifications)
@@ -28,6 +33,11 @@ const _channelTimeouts = new Map();
  * @param {boolean} enabled - Whether subscriptions should be active
  */
 export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = true) {
+  // ===========================================================================
+  // REACT QUERY CLIENT - For automatic cache invalidation
+  // ===========================================================================
+  const queryClient = useQueryClient();
+
   // ===========================================================================
   // REFS ONLY - No React state for subscription lifecycle
   // ===========================================================================
@@ -60,7 +70,15 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // ===========================================================================
 
   const invokeCallback = useCallback((table, eventType, data) => {
-    // 1. Direct callback to the component prop
+    // ✅ REACT QUERY AUTO-INVALIDATION (Enterprise Pattern)
+    // Automatically invalidate ALL queries that start with this table name
+    // This matches queries like ['products', companyId] and ['products']
+    console.log(`[Realtime] Invalidating queries for table: ${table}`);
+    queryClient.invalidateQueries({ 
+      predicate: (query) => query.queryKey[0] === table 
+    });
+
+    // 1. Direct callback to the component prop (legacy support)
     if (onUpdateRef.current && isMountedRef.current) {
       onUpdateRef.current({
         table,
@@ -69,8 +87,9 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       });
     }
 
-    // ✅ GLOBAL KILLSHOT: Dispatch CustomEvent to the whole window
-    // This allows non-direct listeners (Monitors, Kernel, Ledger) to react live
+    // 2. ✅ BACKWARDS COMPATIBILITY: Keep CustomEvent for components not yet migrated
+    // This allows gradual migration - as we add React Query hooks, components
+    // will automatically use cache invalidation instead of event listeners
     if (typeof window !== 'undefined') {
       const event = new CustomEvent('dashboard-realtime-update', {
         detail: {
@@ -83,10 +102,10 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       window.dispatchEvent(event);
 
       if (import.meta.env.DEV) {
-        console.log(`[Realtime Broadcast] 📡 Signal sent for ${table}.${eventType}`);
+        console.log(`[Realtime] 📡 ${table}.${eventType} → queryClient.invalidateQueries(['${table}'])`);
       }
     }
-  }, []); // Empty deps = stable forever
+  }, [queryClient]); // queryClient is stable
 
   // ===========================================================================
   // CLEANUP FUNCTION - Removes exactly ONE channel, resets refs

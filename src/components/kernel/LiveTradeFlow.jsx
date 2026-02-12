@@ -1,13 +1,13 @@
 import { Surface } from "@/components/system/Surface";
 import { ArrowRight, Activity, Clock, CheckCircle2, AlertCircle, Package } from "lucide-react";
 import { Progress } from "@/components/shared/ui/progress";
-import { useTradeKernelState } from "@/hooks/useTradeKernelState";
+import { useTrades } from "@/hooks/queries/useTrades";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/shared/ui/skeleton";
 import { Badge } from "@/components/shared/ui/badge";
 
 export function LiveTradeFlow() {
-  const { activeTrades, loading } = useTradeKernelState();
+  const { data: { activeTrades = [] } = {}, isLoading: loading } = useTrades();
   const navigate = useNavigate();
 
   // Sort trades by most recent activity or ID

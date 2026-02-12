@@ -1,73 +1,26 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowRight, Calendar, Clock, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Surface } from '@/components/system/Surface';
 import { Badge } from '@/components/shared/ui/badge';
-import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useRFQs } from '@/hooks/queries/useRFQs';
 import { TableSkeleton } from '@/components/shared/ui/skeletons';
 
 function RecentRFQsWidget() {
     const navigate = useNavigate();
     const { profileCompanyId } = useDashboardKernel();
-    const [rfqs, setRfqs] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function loadRecentRFQs() {
-            // ✅ GUARD: Prevent infinite loading if no company ID
-            if (!profileCompanyId) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                if (rfqs.length === 0) setLoading(true);
-
-                const fetchRFQs = async () => {
-                    const { data, error } = await supabase
-                        .from('rfqs')
-                        .select('id, title, created_at, status, target_price, unit')
-                        .eq('status', 'open')
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-
-                    if (error) throw error;
-                    return data;
-                };
-
-                // Use retry wrapper for network resilience
-                const data = await withRetry(fetchRFQs);
-                setRfqs(data || []);
-            } catch (err) {
-                // Silently handle error to prevent log bloat on mobile
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadRecentRFQs();
-
-        // ✅ REACTIVE MARKET: Listen for global signals to refresh RFQs live
-        const handleGlobalUpdate = (event) => {
-            const { table } = event.detail || {};
-            if (table === 'rfqs') {
-                console.log(`[RecentRFQsWidget] 📊 Signal received for ${table} - Refreshing market data...`);
-                loadRecentRFQs();
-            }
-        };
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('dashboard-realtime-update', handleGlobalUpdate);
-        }
-
-        return () => {
-            if (typeof window !== 'undefined') {
-                window.removeEventListener('dashboard-realtime-update', handleGlobalUpdate);
-            }
-        };
-    }, [profileCompanyId, rfqs.length]); // ✅ FIX: This will re-run when profileCompanyId becomes available
+    
+    // ✅ REACT QUERY: Auto-refresh RFQs
+    const { data: allRfqs = [], isLoading: loading } = useRFQs();
+    
+    // Filter and limit to recent open RFQs
+    const rfqs = useMemo(() => {
+        return allRfqs
+            .filter(rfq => rfq.status === 'open')
+            .slice(0, 5);
+    }, [allRfqs]);
 
     if (loading) {
         return (
