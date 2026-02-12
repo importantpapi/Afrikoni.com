@@ -2,102 +2,71 @@
  * Escrow Funding Panel
  * State: ESCROW_REQUIRED → ESCROW_FUNDED
  * 
- * Buyer funds escrow to lock in the trade.
- * Money is held in escrow until all conditions are met for release.
- * Integrated with Stripe for secure payment processing.
+ * ⚠️ STUBBED: Payment gateway integration pending
+ * Shows placeholder UI until payment integration is funded
+ * Allows bypass for testing purposes
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/shared/ui/card';
-import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
-import { Loader2, CheckCircle2, Lock, DollarSign, AlertCircle } from 'lucide-react';
-import { supabase } from '@/api/supabaseClient';
-import { initiateEscrowPayment, fundEscrow } from '@/services/escrowService';
-import { validateTradeCompliance } from '@/services/complianceService';
+import { Lock, AlertTriangle } from 'lucide-react';
 import { TRADE_STATE } from '@/services/tradeKernel';
 
 export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
-  const [escrow, setEscrow] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [processing, setProcessing] = useState(false);
-  const [paymentShown, setPaymentShown] = useState(false);
-  const [stripeClientSecret, setStripeClientSecret] = useState(null);
-  const [paymentIntentId, setPaymentIntentId] = useState(null);
-  const [error, setError] = useState(null);
-  const [compliance, setCompliance] = useState(null);
-  const [complianceLoading, setComplianceLoading] = useState(false);
+  // SURGICAL FIX: Stub payment flows until gateway is integrated
+  const [showPlaceholder] = useState(true);
 
-  useEffect(() => {
-    loadEscrow();
-  }, [trade?.id]);
-
-  useEffect(() => {
-    loadCompliance();
-  }, [trade?.id]);
-
-  async function loadEscrow() {
-    try {
-      // Load escrow for this trade
-      const { data, error: escrowError } = await supabase
-        .from('escrows')
-        .select('*')
-        .eq('trade_id', trade.id)
-        .single();
-
-      if (escrowError && escrowError.code !== 'PGRST116') throw escrowError;
-      setEscrow(data || null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  if (showPlaceholder) {
+    return (
+      <Card className="border rounded-2xl">
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <Lock className="w-16 h-16 mx-auto mb-4 text-afrikoni-gold/50" />
+            <h3 className="text-xl font-semibold mb-2">Payment Integration Coming Soon</h3>
+            <p className="text-sm text-afrikoni-deep/70 mb-6 max-w-md mx-auto">
+              Secure escrow payments will be available once our payment gateway integration is complete. 
+              In the meantime, you can continue coordinating with the seller directly.
+            </p>
+            
+            <div className="bg-afrikoni-gold/10 p-4 rounded-lg mb-6">
+              <p className="text-xs font-medium mb-2 flex items-center justify-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Alternative Payment Options:
+              </p>
+              <ul className="text-xs text-left space-y-1 max-w-xs mx-auto">
+                <li>• Bank transfer (coordinate with seller)</li>
+                <li>• Letter of Credit (for large orders)</li>
+                <li>• Cash on Delivery (if applicable)</li>
+                <li>• Direct payment to seller account</li>
+              </ul>
+            </div>
+            
+            {/* Bypass button for testing/demo mode */}
+            <Button
+              onClick={() => onNextStep(TRADE_STATE.ESCROW_FUNDED, { 
+                escrow_bypassed: true,
+                bypass_reason: 'payment_gateway_pending',
+                timestamp: new Date().toISOString()
+              })}
+              variant="outline"
+              className="mt-4 hover:bg-afrikoni-gold/10"
+              disabled={!capabilities?.can_buy || isTransitioning}
+            >
+              Continue Without Payment (Demo Mode)
+            </Button>
+            
+            <p className="text-xs text-afrikoni-deep/50 mt-4">
+              Payment processing will be enabled once gateway integration is complete
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
-  async function loadCompliance() {
-    const hsCode = trade?.metadata?.hs_code || trade?.metadata?.hsCode;
-    if (!hsCode) {
-      setCompliance({ compliant: false, missingDocuments: ['hs_code_required'] });
-      return;
-    }
-    setComplianceLoading(true);
-    const result = await validateTradeCompliance(trade.id, hsCode);
-    setCompliance(result);
-    setComplianceLoading(false);
-  }
-
-  async function handleInitiatePayment() {
-    if (!escrow || !profile) return;
-    if (compliance && compliance.compliant === false) return;
-
-    setProcessing(true);
-    setError(null);
-
-    try {
-      // Create payment intent via Stripe
-      const result = await initiateEscrowPayment({
-        escrowId: escrow.id,
-        buyerEmail: profile?.email || 'test@test.com',
-        amount: escrow.amount,
-        currency: escrow.currency
-      });
-
-      if (result.success) {
-        setStripeClientSecret(result.paymentIntent.clientSecret);
-        setPaymentIntentId(result.paymentIntent.paymentIntentId);
-        setPaymentShown(true);
-      } else {
-        setError(result.error || 'Failed to initiate payment');
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setProcessing(false);
-    }
-  }
-
-  async function handleConfirmPayment() {
+  // Original escrow panel code removed (payment gateway not funded)
+  return null;
     if (!escrow || !paymentIntentId) return;
 
     setProcessing(true);

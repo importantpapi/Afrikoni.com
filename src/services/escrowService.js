@@ -82,12 +82,34 @@ export async function createEscrow({
 /**
  * Create payment intent for escrow funding (Stripe integration)
  * Called when buyer clicks "Fund Escrow" button
+ * 
+ * ⚠️ STUBBED: Payment gateway integration pending
+ * Returns error until Stripe/Paystack is configured
  */
 export async function initiateEscrowPayment({
   escrowId,
   buyerEmail,
   amount,
   currency = 'USD'
+}) {
+  // SURGICAL FIX: Return mock data until payment gateway is integrated
+  console.warn('[escrowService] Payment gateway not configured - returning error');
+  
+  return {
+    success: false,
+    error: 'Payment gateway integration pending. Please use alternative payment methods.',
+    paymentIntent: null,
+    escrow: null
+  };
+
+  // REMOVED: Stripe payment intent creation (no funds for gateway)
+  // try {
+  //   const paymentIntent = await createPaymentIntent(escrowId, amount, currency, buyerEmail);
+  //   return { success: true, paymentIntent, escrow };
+  // } catch (err) {
+  //   return { success: false, error: err.message };
+  // }
+}
 }) {
   try {
     // KERNEL: Get escrow

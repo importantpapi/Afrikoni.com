@@ -191,6 +191,7 @@ export async function createTrade(tradeData) {
       const rfqPayload = {
         id: data.id, // SAME UUID for both tables
         buyer_company_id: tradeData.buyer_id,
+        buyer_user_id: tradeData.created_by, // 🔥 CRITICAL FIX: Required by RLS policy
         category_id: tradeData.category_id,
         title: tradeData.title,
         description: tradeData.description,
@@ -207,8 +208,11 @@ export async function createTrade(tradeData) {
         .insert(rfqPayload);
 
       if (rfqError) {
-        console.warn('[TradeKernel] Bridge sync to rfqs failed:', rfqError);
-        // We don't fail the whole operation, but log it
+        console.error('[TradeKernel] 🚨 CRITICAL: Bridge sync to rfqs failed:', rfqError);
+        console.error('[TradeKernel] Failed RFQ Payload:', JSON.stringify(rfqPayload, null, 2));
+        // We don't fail the whole operation, but this means RFQ won't appear in list
+      } else {
+        console.log('[TradeKernel] ✅ Successfully synced to rfqs table:', data.id);
       }
     }
 
