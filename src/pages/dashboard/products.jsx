@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useProducts } from '@/hooks/queries/useProducts';
@@ -41,14 +41,14 @@ export default function Products() {
   const location = useLocation();
   const { profileCompanyId, canLoadData } = useDashboardKernel();
 
-  // ✅ REACT QUERY: Auto-refresh, cache management, race condition handling
-  const { data: products = [], isLoading, error: queryError } = useProducts();
+  // \u2705 REACT QUERY: Auto-refresh, cache management, race condition handling
+  const { data: products = [], isLoading, error: queryError, refetch: loadProducts } = useProducts();
   const error = queryError ? 'Failed to load products. Please try again.' : null;
 
   const [search, setSearch] = useState('');
   const [view, setView] = useState('list');
 
-  // ✅ REFRESH FIX: Reload products when navigating back from /new
+  // \u2705 REFRESH FIX: Reload products when navigating back from /new
   useEffect(() => {
     if (canLoadData && location.state?.refresh) {
       loadProducts();
@@ -198,12 +198,12 @@ export default function Products() {
               <tbody className="divide-y divide-os-stroke">
                 {(filtered || []).map((product) => {
                   const status = statusConfig[product.status] || statusConfig.draft;
-                  // Handle potential missing fields gracefully
-                  const price = product.price_per_unit || product.pricePerUnit || 0;
-                  const unit = product.unit || 'units';
-                  const moq = product.min_order_quantity || product.minOrderQuantity || 0;
-                  const origin = product.origin_country || product.originCountry || 'Unknown';
-                  const hsCode = product.hs_code || product.hsCode || '---';
+                  const priceMax = product.price_max || 0;
+                  const priceMin = product.price_min || 0;
+                  const unit = product.unit_type || product.moq_unit || 'units';
+                  const moq = product.moq || 0;
+                  const origin = product.origin_country || product.country_of_origin || 'Unknown';
+                  const hsCode = product.hs_code || '---';
                   const views = product.views || 0;
                   const inquiries = product.inquiries || 0;
                   const category = product.category || 'Uncategorized';
@@ -239,7 +239,7 @@ export default function Products() {
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-sm font-semibold tabular-nums">
-                          ${Number(price).toLocaleString()}
+                          ${Number(priceMin).toLocaleString()}{priceMax > priceMin ? ` - $${Number(priceMax).toLocaleString()}` : ''}
                         </span>
                         <span className="text-xs text-os-muted">/{unit}</span>
                       </td>
@@ -278,11 +278,12 @@ export default function Products() {
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
           {(filtered || []).map((product) => {
             const status = statusConfig[product.status] || statusConfig.draft;
-            const price = product.price_per_unit || product.pricePerUnit || 0;
-            const unit = product.unit || 'units';
-            const moq = product.min_order_quantity || product.minOrderQuantity || 0;
-            const origin = product.origin_country || product.originCountry || 'Unknown';
-            const hsCode = product.hs_code || product.hsCode || '---';
+            const priceMax = product.price_max || 0;
+            const priceMin = product.price_min || 0;
+            const unit = product.unit_type || product.moq_unit || 'units';
+            const moq = product.moq || 0;
+            const origin = product.origin_country || product.country_of_origin || 'Unknown';
+            const hsCode = product.hs_code || '---';
             const views = product.views || 0;
             const inquiries = product.inquiries || 0;
             const category = product.category || 'Uncategorized';
@@ -309,7 +310,7 @@ export default function Products() {
                 </div>
                 <div className="mt-3 flex items-center justify-between text-sm">
                   <span className="font-semibold tabular-nums">
-                    ${Number(price).toLocaleString()}/{unit}
+                    ${Number(priceMin).toLocaleString()}{priceMax > priceMin ? ` - $${Number(priceMax).toLocaleString()}` : ''}/{unit}
                   </span>
                   <Badge variant="secondary" className="text-xs">
                     {category}
@@ -325,8 +326,8 @@ export default function Products() {
                   <span>MOQ {Number(moq).toLocaleString()} {unit}</span>
                 </div>
                 <div className="mt-4 flex items-center justify-between">
-                  <Button variant="outline" size="sm">View</Button>
-                  <Button variant="outline" size="sm">Edit</Button>
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/products/${product.id}`)}>View</Button>
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/products/edit/${product.id}`)}>Edit</Button>
                 </div>
               </Surface>
             );

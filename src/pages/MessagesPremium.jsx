@@ -799,20 +799,24 @@ export default function MessagesPremium() {
   }
 
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite">
+    <div className="min-h-screen os-panel-gradient relative overflow-hidden">
+      {/* Ambient Depth Orbs */}
+      <div className="os-ambient-orb" style={{ top: '10%', left: '15%', background: 'radial-gradient(circle, rgba(212,169,55,0.12) 0%, transparent 70%)', width: '400px', height: '400px' }} />
+      <div className="os-ambient-orb" style={{ bottom: '20%', right: '10%', background: 'radial-gradient(circle, rgba(139,69,19,0.08) 0%, transparent 70%)', width: '350px', height: '350px' }} />
+      
       {/* FORENSIC SENTINEL: Sovereign Warning Modal */}
       {leakageWarning && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-[#1a1a1a] border border-red-500/30 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl shadow-red-900/20 relative overflow-hidden">
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-xl">
+          <div className="os-panel-glass border border-red-500/30 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl shadow-red-900/20 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-orange-600" />
             <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">{leakageWarning.title}</h3>
-            <p className="text-gray-400 mb-6 leading-relaxed">
+            <h3 className="text-xl font-bold mb-2">{leakageWarning.title}</h3>
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               {leakageWarning.message}
             </p>
             <div className="flex flex-col gap-3">
               <Button
-                className="w-full bg-white text-black hover:bg-gray-200 font-bold"
+                className="w-full bg-white dark:bg-white text-black hover:bg-gray-200 font-bold"
                 onClick={() => setLeakageWarning(null)}
               >
                 I Understand - Return to Safety
@@ -835,7 +839,7 @@ export default function MessagesPremium() {
       )}
 
       {/* Header */}
-      <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20 sticky top-0 z-30">
+      <div className="os-panel-glass border-b border-[#D4A937]/20 sticky top-0 z-30 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
@@ -844,7 +848,7 @@ export default function MessagesPremium() {
                 variant="ghost"
                 size="sm"
                 onClick={handleBack}
-                className="flex items-center gap-2 text-afrikoni-deep hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                className="flex items-center gap-2 text-foreground/70 hover:text-[#D4A937] hover:bg-[#D4A937]/10"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">Back</span>
@@ -872,16 +876,16 @@ export default function MessagesPremium() {
             transition={{ duration: 0.3 }}
             className={`${selectedConversation ? 'hidden lg:block' : 'lg:col-span-4'} lg:col-span-4`}
           >
-            <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md">
+            <Card className="h-full flex flex-col border-[#D4A937]/20 shadow-lg os-panel-glass">
               {/* Search */}
-              <div className="p-3 md:p-4 border-b border-afrikoni-gold/20">
+              <div className="p-3 md:p-4 border-b border-[#D4A937]/10">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-deep/70" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder={t('messages.searchConversations')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 text-sm md:text-base min-h-[44px] sm:min-h-0"
+                    className="pl-10 text-sm md:text-base min-h-[44px] sm:min-h-0 bg-background/50 backdrop-blur-sm border-[#D4A937]/20"
                   />
                 </div>
               </div>
@@ -889,8 +893,8 @@ export default function MessagesPremium() {
               {/* Conversations */}
               <div className="flex-1">
                 {filteredConversations.length === 0 ? (
-                  <div className="p-8 text-center text-afrikoni-deep/70">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4 text-afrikoni-deep/50" />
+                  <div className="p-8 text-center text-muted-foreground">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p className="text-sm">{t('messages.noConversations')}</p>
                     <p className="text-xs mt-2">Start a conversation from a product, RFQ, or order</p>
                   </div>
@@ -899,7 +903,7 @@ export default function MessagesPremium() {
                     items={filteredConversations}
                     itemHeight={96}
                     containerHeight={400}
-                    className="h-full divide-y divide-afrikoni-gold/10"
+                    className="h-full divide-y divide-[#D4A937]/10"
                     getItemKey={(conv) => conv.id}
                     renderItem={(conv) => {
                       const isSelected = selectedConversation === conv.id;
@@ -913,13 +917,13 @@ export default function MessagesPremium() {
                         <button
                           onClick={() => setSelectedConversation(conv.id)}
                           className={`
-                            w-full p-3 sm:p-4 text-left transition-all hover:bg-afrikoni-offwhite min-h-[60px] sm:min-h-0
-                            ${isSelected ? 'bg-afrikoni-offwhite border-l-4 border-afrikoni-gold' : ''}
+                            w-full p-3 sm:p-4 text-left transition-all hover:bg-[#D4A937]/5 min-h-[60px] sm:min-h-0
+                            ${isSelected ? 'bg-[#D4A937]/10 border-l-4 border-[#D4A937]' : ''}
                           `}
                         >
                           <div className="flex items-start gap-2 sm:gap-3">
                             <div className="relative flex-shrink-0">
-                              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#D4A937]/20 rounded-full flex items-center justify-center">
                                 {conv.otherCompany?.logo_url ? (
                                   <img
                                     src={conv.otherCompany.logo_url}
@@ -927,19 +931,19 @@ export default function MessagesPremium() {
                                     className="w-full h-full rounded-full object-cover"
                                   />
                                 ) : (
-                                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-afrikoni-gold" />
+                                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-[#D4A937]" />
                                 )}
                               </div>
                               {conv.verified && (
-                                <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
-                                  <Verified className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-afrikoni-chestnut" />
+                                <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-[#D4A937] rounded-full flex items-center justify-center border-2 border-background">
+                                  <Verified className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-black" />
                                 </div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1 gap-2">
                                 <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
-                                  <span className="font-semibold text-afrikoni-chestnut text-xs sm:text-sm truncate">
+                                  <span className="font-semibold text-foreground text-xs sm:text-sm truncate">
                                     {conv.otherCompany?.company_name || 'Unknown Company'}
                                   </span>
                                   {conv.verified && (
@@ -990,11 +994,11 @@ export default function MessagesPremium() {
             transition={{ duration: 0.3 }}
             className={`${selectedConversation ? 'lg:col-span-8' : 'hidden lg:block lg:col-span-8'} lg:col-span-8 flex flex-col xl:flex-row gap-3`}
           >
-            <Card className="h-full flex flex-col border-afrikoni-gold/20 shadow-md flex-1">
+            <Card className="h-full flex flex-col border-[#D4A937]/20 shadow-lg os-panel-glass flex-1">
               {selectedConversation && selectedConv ? (
                 <>
                   {/* Chat Header */}
-                  <div className="p-3 md:p-4 border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                  <div className="p-3 md:p-4 border-b border-[#D4A937]/10 bg-background/50 backdrop-blur-sm">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                         {/* Mobile: Back to conversation list */}
@@ -1065,9 +1069,9 @@ export default function MessagesPremium() {
                   </div>
 
                   {/* Protection Banner */}
-                  <div className="px-4 py-2 bg-afrikoni-gold/10 border-b border-afrikoni-gold/20">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-afrikoni-chestnut">
-                      <Shield className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
+                  <div className="px-4 py-2 bg-[#D4A937]/10 border-b border-[#D4A937]/20 backdrop-blur-sm">
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+                      <Shield className="w-4 h-4 text-[#D4A937] flex-shrink-0" />
                       <span className="font-semibold">Protected by Afrikoni Trade Protection</span>
                       <span className="hidden sm:inline text-afrikoni-deep/70">•</span>
                       <span className="text-afrikoni-deep/70">{t('messages.safetyWarning') || 'Do not send money outside the platform'}</span>
@@ -1081,14 +1085,14 @@ export default function MessagesPremium() {
 
                   {/* Message Search */}
                   {selectedConversation && (
-                    <div className="px-4 py-2 border-b border-afrikoni-gold/20 bg-afrikoni-offwhite">
+                    <div className="px-4 py-2 border-b border-[#D4A937]/20 bg-background/50 backdrop-blur-sm">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-deep/70" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                           placeholder="Search messages in this conversation..."
                           value={messageSearchQuery}
                           onChange={(e) => setMessageSearchQuery(e.target.value)}
-                          className="pl-10 text-sm"
+                          className="pl-10 text-sm bg-background/50 backdrop-blur-sm border-[#D4A937]/20"
                         />
                         {messageSearchQuery && (
                           <Button
@@ -1513,20 +1517,20 @@ export default function MessagesPremium() {
 
             {/* AI Assistant Panel (desktop-only) */}
             {selectedConversation && selectedConv && (
-              <Card className="hidden xl:flex flex-col h-full w-80 border-afrikoni-gold/30 bg-white/95 shadow-md">
-                <div className="p-3 border-b border-afrikoni-gold/20 flex items-center justify-between">
+              <Card className="hidden xl:flex flex-col h-full w-80 border-[#D4A937]/30 os-panel-glass shadow-lg">
+                <div className="p-3 border-b border-[#D4A937]/20 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+                    <div className="w-8 h-8 rounded-full bg-[#D4A937]/20 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-[#D4A937]" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-afrikoni-chestnut">Afrikoni AI</p>
-                      <p className="text-[11px] text-afrikoni-deep/70">Helps you write clear, professional messages.</p>
+                      <p className="text-sm font-semibold">Afrikoni AI</p>
+                      <p className="text-[11px] text-muted-foreground">Helps you write clear, professional messages.</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
-                    className="text-xs text-afrikoni-deep/60 hover:text-afrikoni-gold"
+                    className="text-xs text-muted-foreground hover:text-[#D4A937]"
                   >
                     {aiSuggestionsOpen ? 'Hide' : 'Show'}
                   </button>
@@ -1578,10 +1582,10 @@ export default function MessagesPremium() {
                 )}
 
                 {/* Delivery Timeline Section */}
-                <div className="p-3 border-t border-afrikoni-gold/20">
+                <div className="p-3 border-t border-[#D4A937]/20">
                   <div className="flex items-center gap-2 mb-3">
-                    <Truck className="w-4 h-4 text-afrikoni-gold" />
-                    <p className="text-sm font-semibold text-afrikoni-chestnut">Delivery Timeline</p>
+                    <Truck className="w-4 h-4 text-[#D4A937]" />
+                    <p className="text-sm font-semibold">Delivery Timeline</p>
                   </div>
                   <div className="space-y-3">
                     {deliveryTimeline ? (

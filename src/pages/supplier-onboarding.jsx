@@ -175,7 +175,7 @@ export default function SupplierOnboarding() {
         setCompanyId(result.companyId);
 
         // Save categories on new company
-        if (result.companyId && formData.categories.length > 0) {
+        if (result.companyId && Array.isArray(formData.categories) && formData.categories.length > 0) {
           await supabase.from('companies').update({ categories: formData.categories }).eq('id', result.companyId);
         }
         return true;
@@ -186,7 +186,7 @@ export default function SupplierOnboarding() {
           country: formData.country || null,
           phone: formData.phone || null,
           email: formData.business_email || null,
-          categories: formData.categories.length > 0 ? formData.categories : undefined,
+          categories: Array.isArray(formData.categories) && formData.categories.length > 0 ? formData.categories : [],
         }).eq('id', companyId);
         if (error) throw error;
         return true;
@@ -452,11 +452,10 @@ export default function SupplierOnboarding() {
                             key={cat.id}
                             type="button"
                             onClick={() => toggleCategory(cat.id)}
-                            className={`p-3 rounded-lg border-2 text-left text-sm transition-all ${
-                              formData.categories.includes(cat.id)
-                                ? 'border-afrikoni-gold bg-afrikoni-gold/10 font-medium'
-                                : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
-                            }`}
+                            className={`p-3 rounded-lg border-2 text-left text-sm transition-all ${formData.categories.includes(cat.id)
+                              ? 'border-afrikoni-gold bg-afrikoni-gold/10 font-medium'
+                              : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+                              }`}
                           >
                             <div className="flex items-center justify-between">
                               <span className="text-afrikoni-chestnut">{cat.name}</span>

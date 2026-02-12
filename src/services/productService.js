@@ -6,7 +6,7 @@
  * all business logic to this service layer.
  */
 
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { sanitizeString } from '@/utils/security';
 import { checkProductLimit } from '@/utils/subscriptionLimits';
 import { autoAssignCategory } from '@/utils/productCategoryIntelligence';
@@ -69,18 +69,28 @@ export async function createProduct({ user, formData, companyId, publish = false
     let finalCategoryId = formData.category_id;
     if (!finalCategoryId && formData.title) {
       try {
-        const autoCategoryId = await autoAssignCategory(
+        console.log('[productService] Attempting auto-category assignment...');
+        // Add a timeout for auto-category assignment
+        const autoCategoryPromise = autoAssignCategory(
           supabase,
           formData.title,
           formData.description || formData.short_description || '',
           null
         );
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auto-category assignment timed out')), 5000)
+        );
+
+        const autoCategoryId = await Promise.race([autoCategoryPromise, timeoutPromise]);
+
         if (autoCategoryId) {
           finalCategoryId = autoCategoryId;
+          console.log('[productService] Auto-category assigned:', finalCategoryId);
         }
       } catch (error) {
-        console.warn('[productService] Auto-category assignment failed:', error);
-        // Continue without auto-assignment
+        console.warn('[productService] Auto-category assignment skipped (hang or failure):', error.message);
+        // Continue without auto-assignment to prevent freezing the whole UI
       }
     }
 
@@ -178,11 +188,15 @@ export async function createProduct({ user, formData, companyId, publish = false
     };
 
     // ✅ KERNEL: Insert product
-    const { data: newProduct, error: insertError } = await supabase
-      .from('products')
-      .insert(productData)
-      .select('id')
-      .single();
+    const insertFn = async () => {
+      return await supabase
+        .from('products')
+        .insert(productData)
+        .select('id')
+        .single();
+    };
+
+    const { data: newProduct, error: insertError } = await withRetry(insertFn);
 
     if (insertError) {
       console.error('[productService] Product insert error:', insertError);
@@ -235,6 +249,7 @@ export async function createProduct({ user, formData, companyId, publish = false
           // Don't fail the whole operation - product is saved, images can be added later
         } else {
           imagesSaved = true;
+          console.log('[productService] Product images saved successfully');
         }
       } catch (imageError) {
         console.error('[productService] Image save error:', imageError);
@@ -417,10 +432,12 @@ export async function updateProduct({ user, productId, formData, companyId, publ
     };
 
     // ✅ KERNEL: Update product
-    const { error: updateError } = await supabase
+    const updateFn = async () => await supabase
       .from('products')
       .update(updateData)
       .eq('id', productId);
+
+    const { error: updateError } = await withRetry(updateFn);
 
     if (updateError) {
       console.error('[productService] Product update error:', updateError);

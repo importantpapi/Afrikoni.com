@@ -30,7 +30,7 @@ const Payments = () => {
     heldAmount: 0,
     fxRate: 1.0,
   });
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState([]); const [loading, setLoading] = useState(true);
 
   // Revenue Engine State
   const [feePreview, setFeePreview] = useState(null);

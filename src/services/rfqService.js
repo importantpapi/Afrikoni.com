@@ -58,10 +58,13 @@ export async function createRFQ({ user, formData }) {
       return { success: false, error: 'Please enter a valid target price (must be 0 or greater).' };
     }
 
+    console.log('[rfqService] Resolving company ID for user:', user.id);
     const companyId = await getOrCreateCompany(supabase, user);
     if (!companyId) {
+      console.error('[rfqService] Company resolution failed');
       return { success: false, error: 'Company profile incomplete. Please complete your company profile to create RFQs.' };
     }
+    console.log('[rfqService] Company ID resolved:', companyId);
 
     const expires = buildDates(formData.closing_date || formData.expires_at);
 
@@ -122,10 +125,13 @@ export async function createRFQInReview({ user, formData, options = {} }) {
       return { success: false, error: 'Title is required.' };
     }
 
+    console.log('[rfqService] Resolving company ID for user (draft):', user.id);
     const companyId = await getOrCreateCompany(supabase, user);
     if (!companyId) {
+      console.error('[rfqService] Company resolution failed (draft)');
       return { success: false, error: 'Company profile incomplete. Please complete your company profile to create RFQs.' };
     }
+    console.log('[rfqService] Company ID resolved (draft):', companyId);
 
     const quantity = formData.quantity ? validateNumeric(formData.quantity, { min: 0 }) : null;
     const targetPrice = formData.target_price ? validateNumeric(formData.target_price, { min: 0 }) : null;
@@ -185,7 +191,6 @@ export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' 
       .from('rfqs')
       .select('*, quotes:quotes(count)', { count: 'exact' });
 
-    // Filter by Company Logic
     if (role === 'buyer') {
       // Buyers see their own RFQs
       query = query.eq('buyer_id', companyId);
@@ -209,7 +214,8 @@ export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' 
 
     // ✅ ENTERPRISE RELIABILITY: Use withRetry for critical read
     const fetchWithRetry = async () => await query;
-    const { data, error, count } = await withRetry(fetchWithRetry);
+    const result = await withRetry(fetchWithRetry);
+    const { data, error, count } = result;
 
     if (error) {
       console.error('[rfqService] Error fetching RFQs (Trades):', error);

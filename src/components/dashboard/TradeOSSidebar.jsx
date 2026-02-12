@@ -64,9 +64,13 @@ export default function TradeOSSidebar({
       style={{ width: 'var(--os-sidebar-width, 72px)' }}
     >
       {/* OS Logo */}
-      <Link to="/dashboard" className="mb-8 relative group">
+      <Link to="/dashboard" className="mb-6 relative group">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4A937] to-[#8B4513] flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform">
           <span className="text-black font-black text-sm">A</span>
+        </div>
+        {/* Logo Tooltip */}
+        <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/20 rounded-lg text-[11px] font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
+          Afrikoni OS
         </div>
       </Link>
 

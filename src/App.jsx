@@ -4,6 +4,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { motion } from 'framer-motion';
 import Layout from './layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
@@ -34,67 +35,93 @@ import {
   Zap,
   AlertCircle
 } from 'lucide-react';
-import OSReadinessPanel from './components/debug/OSReadinessPanel';
 
 /**
  * =============================================================================
  * BOOT SCREEN - Handshake UI
  * =============================================================================
  */
+/**
+ * =============================================================================
+ * BOOT SCREEN - Handshake UI (Horizon 2026)
+ * =============================================================================
+ */
 const BootScreen = ({ status, error }) => (
-  <div className="fixed inset-0 bg-[#1a0f0f] z-[9999] flex flex-col items-center justify-center p-6 text-center">
-    <div className="relative mb-8">
-      <div className="absolute inset-0 animate-ping bg-[#e8c68a]/20 rounded-full blur-xl" />
-      <div className="w-20 h-20 border-4 border-[#e8c68a]/20 border-t-[#e8c68a] rounded-full animate-spin" />
+  <div className="fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center p-6 text-center select-none overflow-hidden">
+    {/* Background Ambient Depth */}
+    <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vh] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
+    <div className="absolute bottom-1/4 right-1/4 w-[40vw] h-[40vh] bg-blue-500/5 rounded-full blur-[100px] animate-pulse delay-1000" />
+
+    <div className="relative mb-12">
+      <div className="absolute inset-0 animate-ping bg-primary/20 rounded-full blur-2xl" />
+      <div className="w-24 h-24 border-[3px] border-primary/10 border-t-primary rounded-full animate-spin" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <Zap className="w-8 h-8 text-[#e8c68a] fill-[#e8c68a]/20" />
+        <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-gold">
+          <Zap className="w-6 h-6 text-primary fill-primary/20" />
+        </div>
       </div>
     </div>
 
-    <div className="max-w-md w-full">
-      <h2 className="text-[#f5f5f0] font-bold text-2xl mb-2 tracking-tight uppercase">
-        Afrikoni Trade OS
-      </h2>
+    <div className="max-w-md w-full relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4"
+      >
+        <h2 className="text-foreground font-black text-3xl tracking-tighter uppercase">
+          AFRIKONI <span className="text-primary">HORIZON</span>
+        </h2>
 
-      <div className="flex items-center justify-center gap-3 bg-white/5 py-3 px-6 rounded-full border border-white/10 mb-6 backdrop-blur-sm">
-        {error ? (
-          <AlertCircle className="w-4 h-4 text-red-400" />
-        ) : (
-          <Loader2 className="w-4 h-4 text-[#e8c68a] animate-spin" />
-        )}
-        <span className="text-[#f5f5f0]/80 text-sm font-medium">
-          {error || status || "Waking up the engine..."}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { icon: ShieldCheck, label: 'Session', active: status?.includes('profile') || status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
-          { icon: UserCheck, label: 'Profile', active: status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
-          { icon: Globe, label: 'World', active: status?.includes('Ready') }
-        ].map((step, idx) => (
-          <div key={idx} className={`flex flex-col items-center gap-2 transition-opacity duration-500 ${step.active ? 'opacity-100' : 'opacity-30'}`}>
-            <div className={`p-3 rounded-xl ${step.active ? 'bg-[#e8c68a]/10 text-[#e8c68a]' : 'bg-white/5 text-white/40'}`}>
-              <step.icon className="w-5 h-5" />
+        <div className="flex items-center justify-center gap-3 bg-os-surface-1 py-3.5 px-6 rounded-2xl border border-os-stroke mb-8 backdrop-blur-xl shadow-premium">
+          {error ? (
+            <AlertCircle className="w-4 h-4 text-destructive" />
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.32s]" />
+              <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.16s]" />
+              <span className="w-1 h-1 rounded-full bg-primary animate-bounce" />
             </div>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-[#f5f5f0]/60">{step.label}</span>
-          </div>
-        ))}
-      </div>
+          )}
+          <span className="text-foreground/90 text-[13px] font-mono uppercase tracking-wider">
+            {error || status || "Synchronizing with Command Net..."}
+          </span>
+        </div>
 
-      {error && (
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 text-[#e8c68a] text-sm underline underline-offset-4 hover:text-white transition-colors"
-        >
-          Force Restart OS
-        </button>
-      )}
+        <div className="grid grid-cols-3 gap-5">
+          {[
+            { icon: ShieldCheck, label: 'Kernel', active: status?.includes('profile') || status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
+            { icon: UserCheck, label: 'Identity', active: status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
+            { icon: Globe, label: 'Network', active: status?.includes('Ready') }
+          ].map((step, idx) => (
+            <div key={idx} className="flex flex-col items-center gap-3">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all duration-700 ${step.active
+                  ? 'bg-primary/5 border-primary/30 text-primary shadow-glow'
+                  : 'bg-os-surface-1 border-os-stroke text-foreground/20'
+                }`}>
+                <step.icon className={`w-6 h-6 ${step.active ? 'animate-pulse' : ''}`} />
+              </div>
+              <span className={`text-[9px] uppercase tracking-[0.2em] font-black transition-colors ${step.active ? 'text-primary' : 'text-foreground/20'}`}>
+                {step.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {error && (
+          <Button
+            variant="ghost"
+            onClick={() => window.location.reload()}
+            className="mt-8 text-primary hover:bg-primary/10 rounded-full text-xs uppercase tracking-widest font-bold"
+          >
+            Force Restart Engine
+          </Button>
+        )}
+      </motion.div>
     </div>
 
-    <div className="absolute bottom-8 left-0 right-0">
-      <p className="text-white/20 text-[10px] uppercase tracking-[0.3em] font-medium">
-        Infrastructure-Grade Trade Kernel &copy; 2026
+    <div className="absolute bottom-10 left-0 right-0">
+      <p className="text-foreground/10 text-[9px] uppercase tracking-[0.5em] font-black">
+        Infrastructure-Grade OS &copy; 2026 HORIZON PROTOCOL
       </p>
     </div>
   </div>
@@ -171,6 +198,8 @@ const VerificationMarketplacePage = lazy(() => import('./pages/dashboard/verific
 const AnticorruptionPage = lazy(() => import('./pages/dashboard/anticorruption'));
 const AuditPage = lazy(() => import('./pages/dashboard/audit'));
 const ProtectionPage = lazy(() => import('./pages/dashboard/protection'));
+const VerificationCenter = lazy(() => import('./pages/dashboard/VerificationCenter'));
+const NetworkDashboard = lazy(() => import('./pages/dashboard/NetworkDashboard'));
 
 // 6. COMMUNITY & ENGAGEMENT
 const ReviewsPage = lazy(() => import('./pages/dashboard/reviews'));
@@ -232,7 +261,6 @@ const SupplierHub = lazy(() => import('./pages/supplier-hub'));
 const Trust = lazy(() => import('./pages/trust'));
 const OrderProtection = lazy(() => import('./pages/order-protection'));
 const Community = lazy(() => import('./pages/community'));
-const VerificationCenter = lazy(() => import('./pages/verification-center'));
 const Trending = lazy(() => import('./pages/trending'));
 const Logistics = lazy(() => import('./pages/logistics'));
 const SupplierOnboarding = lazy(() => import('./pages/supplier-onboarding'));
@@ -324,6 +352,12 @@ function AppContent() {
   const isDashboardRoute = location.pathname.startsWith('/dashboard') ||
     location.pathname.startsWith('/onboarding');
 
+  // ✅ KERNEL DECLARATION ORDER: Define isSystemReady BEFORE using it in getHandshakeStatus if needed
+  const isSystemReady = !isDashboardRoute || (
+    authResolutionComplete &&
+    (!user || (kernelReady && !kernelError && profile))
+  );
+
   const getHandshakeStatus = () => {
     if (!authReady) return "Resolving session...";
     if (!authResolutionComplete) return "Loading profile...";
@@ -332,11 +366,6 @@ function AppContent() {
   };
 
   const status = getHandshakeStatus();
-  // ✅ FIX PREMATURE RENDERING: Block if kernelError exists or kernel not ready
-  const isSystemReady = !isDashboardRoute || (
-    authResolutionComplete &&
-    (!user || (kernelReady && !kernelError && profile))
-  );
 
   // ✅ HANDSHAKE GATE RENDER
   if (!isSystemReady) {
@@ -510,6 +539,8 @@ function AppContent() {
               <Route path="verification-status" element={<VerificationStatusPage />} />
               <Route path="verification-marketplace" element={<VerificationMarketplacePage />} />
               <Route path="verification-center" element={<VerificationCenter />} />
+              <Route path="verification" element={<VerificationCenter />} />
+              <Route path="network" element={<NetworkDashboard />} />
               <Route path="anticorruption" element={
                 <ProtectedRoute requireAdmin={true}>
                   <AnticorruptionPage />
@@ -605,7 +636,6 @@ function App() {
                       <Toaster position="top-right" />
 
                       {/* Debug component to detect stuck auth */}
-                      <OSReadinessPanel />
 
 
                       {/* KoniAI+ Global Chat Assistant */}

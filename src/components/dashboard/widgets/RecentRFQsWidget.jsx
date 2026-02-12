@@ -73,7 +73,7 @@ function RecentRFQsWidget() {
                             <div
                                 key={rfq.id}
                                 className="p-4 hover:bg-os-surface-1 transition-colors cursor-pointer group flex items-center justify-between"
-                                onClick={() => navigate(`/rfq/detail?id=${rfq.id}`)}
+                                onClick={() => navigate(`/dashboard/rfqs/${rfq.id}`)}
                             >
                                 <div className="min-w-0 flex-1 pr-4">
                                     <div className="flex items-center gap-2 mb-1">

@@ -14,6 +14,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useTrade } from '@/hooks/queries/useTrade';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -30,13 +31,9 @@ import DeliveryAcceptancePanel from '@/components/trade/DeliveryAcceptancePanel'
 import MultiSigBridge from '@/components/trade/MultiSigBridge';
 import { Surface } from '@/components/system/Surface';
 import { OSStatusBar } from '@/components/system/OSStatusBar';
+import { PageLoader } from '@/components/shared/ui/skeletons';
 import { ArrowLeft, Fingerprint, ShieldAlert, Cpu } from 'lucide-react';
 
-/**
- * The ONE FLOW does not show multiple steps at once.
- * It shows ONE thing at a time based on kernel state.
- * This is intentional - it forces focus and prevents confusion.
- */
 const FLOW_PANELS = {
   [TRADE_STATE.DRAFT]: RFQCreationPanel,
   [TRADE_STATE.RFQ_CREATED]: RFQCreationPanel,
@@ -57,118 +54,56 @@ const FLOW_PANELS = {
 export default function OneFlow() {
   const { tradeId } = useParams();
   const navigate = useNavigate();
-  const { isSystemReady, canLoadData, profile, capabilities } = useDashboardKernel();
+  const { isSystemReady, profile, capabilities } = useDashboardKernel();
 
-  const [trade, setTrade] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // ✅ REACT QUERY: Standardized data flow (Resolves Hard Refresh Bug)
+  const { data: trade, isLoading: loading, error: queryError, refetch } = useTrade(tradeId);
   const [error, setError] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { timeline: kernelTimeline } = useTradeEventLedger(tradeId);
 
+  useEffect(() => {
+    if (queryError) setError(queryError.message);
+  }, [queryError]);
+
   if (!isSystemReady) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  const nextActionHints = {
-    [TRADE_STATE.DRAFT]: 'Publish RFQ to open supplier responses',
-    [TRADE_STATE.RFQ_CREATED]: 'Review quotes and select supplier',
-    [TRADE_STATE.QUOTED]: 'Select the best quote',
-    [TRADE_STATE.CONTRACTED]: 'Sign contract to unlock escrow',
-    [TRADE_STATE.ESCROW_REQUIRED]: 'Fund escrow to start production',
-    [TRADE_STATE.ESCROW_FUNDED]: 'Monitor production and pickup scheduling',
-    [TRADE_STATE.PRODUCTION]: 'Confirm pickup scheduling',
-    [TRADE_STATE.PICKUP_SCHEDULED]: 'Track shipment in transit',
-    [TRADE_STATE.IN_TRANSIT]: 'Confirm delivery upon arrival',
-    [TRADE_STATE.DELIVERED]: 'Accept delivery and release payment',
-    [TRADE_STATE.ACCEPTED]: 'Release escrow and settle trade',
-    [TRADE_STATE.SETTLED]: 'Close trade and update trust',
-    [TRADE_STATE.DISPUTED]: 'Provide evidence and resolve dispute',
-    [TRADE_STATE.CLOSED]: 'Trade complete'
-  };
-
-  useEffect(() => {
-    if (!canLoadData) return;
-    loadTrade();
-  }, [canLoadData, tradeId]);
-
-  useEffect(() => {
-    if (!tradeId || !canLoadData) return;
-
-    // ✅ KERNEL CONSOLIDATION: Listen for unified realtime events
-    const handleRealtimeUpdate = (e) => {
-      const { table, event, data } = e.detail || {};
-      if (table === 'trades' && data?.id === tradeId) {
-        setTrade(data);
-      }
-    };
-
-    window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
-    return () => window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
-  }, [tradeId, canLoadData]);
-
-  async function loadTrade() {
-    try {
-      const { data, error } = await supabase
-        .from('trades')
-        .select(`
-          *,
-          buyer:companies!buyer_id(*),
-          seller:companies!seller_id(*)
-        `)
-        .eq('id', tradeId)
-        .single();
-
-      if (error) throw error;
-      setTrade(data);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    return <PageLoader />;
   }
 
   async function handleStateTransition(nextState, metadata = {}) {
     setIsTransitioning(true);
     try {
       const result = await transitionTrade(tradeId, nextState, metadata);
-
       if (result.success) {
-        setTrade(result.trade);
-        // Show success toast
+        // React Query will refetch via real-time invalidation, 
+        // but we explicitly refetch for better UX immediacy
+        await refetch();
       } else {
         setError(result.error);
       }
+    } catch (err) {
+      setError(err.message);
     } finally {
       setIsTransitioning(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
-      </div>
-    );
-  }
+  if (loading) return <PageLoader />;
 
   if (!trade) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto p-8">
         <Button variant="ghost" onClick={() => navigate('/dashboard')}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          Back to Command Center
         </Button>
-        <Card className="mt-4">
-          <CardContent className="p-6 text-center">
-            <p className="font-semibold">Trade not found</p>
-          </CardContent>
-        </Card>
+        <Surface variant="panel" className="mt-4 p-12 text-center">
+          <p className="font-semibold text-os-muted">Trade DNA not found or access denied.</p>
+        </Surface>
       </div>
     );
   }
 
-  // Get the panel component for current state
   const PanelComponent = FLOW_PANELS[trade.status] || DefaultPanel;
 
   return (
@@ -213,7 +148,7 @@ export default function OneFlow() {
                   <p className="text-[10px] uppercase tracking-[0.25em]">One-Flow</p>
                   <p className="text-sm">Single path. No detours.</p>
                 </div>
-                <div className="text-xs">Trade ID: {trade.id}</div>
+                <div className="text-xs text-os-muted font-mono">ID: {trade.id.substring(0,8)}</div>
               </div>
 
               <AnimatePresence mode="wait">
@@ -241,8 +176,8 @@ export default function OneFlow() {
               )}
 
               {error && (
-                <Card className="mt-4">
-                  <CardContent className="p-4 text-sm">
+                <Card className="mt-4 border-red-500/50 bg-red-500/5">
+                  <CardContent className="p-4 text-sm text-red-500">
                     {error}
                   </CardContent>
                 </Card>
@@ -324,9 +259,6 @@ export default function OneFlow() {
   );
 }
 
-/**
- * Default panel (should not reach here with proper routing)
- */
 function DefaultPanel({ trade }) {
   return (
     <Card className="border rounded-2xl">
@@ -338,78 +270,70 @@ function DefaultPanel({ trade }) {
   );
 }
 
-/**
- * Settlement panel (money released, showing confirmation)
- */
 function SettlementPanel({ trade }) {
   return (
     <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border border-emerald-500/20 bg-emerald-500/5">
           <span className="text-2xl">💰</span>
         </div>
         <h2 className="text-xl font-semibold">
           Payment Released
         </h2>
-        <p className="mt-2">
+        <p className="mt-2 text-os-muted">
           Escrow funds have been released to the supplier.
         </p>
-        <div className="border rounded-xl p-4 mt-4 text-left">
+        <div className="border rounded-xl p-4 mt-4 text-left bg-black/20 border-white/5">
           <p className="text-sm font-semibold">Order Summary</p>
-          <p className="text-sm mt-2">
-            Quantity: {trade.quantity} {trade.quantity_unit}
-          </p>
-          <p className="text-sm">
-            Total: {trade.price_max || trade.price_min} {trade.currency}
-          </p>
+          <div className="grid grid-cols-2 gap-4 mt-3">
+            <div>
+              <p className="text-[10px] uppercase text-os-muted">Quantity</p>
+              <p className="text-sm">{trade.quantity} {trade.quantity_unit}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase text-os-muted">Value</p>
+              <p className="text-sm">{trade.price_max || trade.price_min} {trade.currency}</p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-/**
- * Disputed panel (trade frozen, awaiting resolution)
- */
 function DisputedPanel({ trade }) {
   return (
-    <Card className="border rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+    <Card className="border border-red-500/20 bg-red-500/5 rounded-2xl">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border border-red-500/20 bg-red-500/5">
           <span className="text-2xl">⚠️</span>
         </div>
-        <h2 className="text-2xl font-semibold">
+        <h2 className="text-2xl font-semibold text-red-500">
           Trade Disputed
         </h2>
-        <p className="mt-2">
+        <p className="mt-2 text-os-muted">
           This trade is under dispute. Escrow is frozen until resolution.
         </p>
-        <p className="text-xs mt-4">
-          Trade ID: {trade.id}
+        <p className="text-xs mt-4 font-mono opacity-50">
+          TICKET: {trade.id.substring(0,8)}
         </p>
       </CardContent>
     </Card>
   );
 }
 
-/**
- * Closed panel (trade complete)
- */
 function ClosedPanel({ trade }) {
   return (
-    <Card className="border bg-gradient-to-br to-[#0F1117] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+    <Card className="border border-white/10 bg-white/5 rounded-2xl">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
-          <span className="text-2xl">✓</span>
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border border-emerald-500/20 bg-emerald-500/10">
+          <span className="text-2xl text-emerald-500">✓</span>
         </div>
         <h2 className="text-2xl font-semibold">
           Trade Closed
         </h2>
-        <p className="mt-2">
-          This trade has been successfully completed.
-        </p>
-        <p className="text-xs mt-4">
-          Trade ID: {trade.id}
+        <p className="mt-2 text-os-muted">
+          This trade has been successfully completed and archived.
         </p>
       </CardContent>
     </Card>

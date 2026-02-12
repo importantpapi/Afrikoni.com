@@ -21,7 +21,7 @@ export const CATEGORIES = [
   { value: 'agricultural', label: 'Agricultural Products', icon: '🌾' },
   { value: 'minerals', label: 'Minerals & Mining', icon: '⛏️' },
   { value: 'textiles', label: 'Textiles & Fashion', icon: '👔' },
-  { value: 'food_beverage', label: 'Food & Beverages', icon: '🍫' },
+  { value: 'food-beverage', label: 'Food & Beverages', icon: '🍫' },
   { value: 'crafts', label: 'Crafts & Artisan', icon: '🎨' },
   { value: 'electronics', label: 'Electronics', icon: '📱' },
   { value: 'chemicals', label: 'Chemicals & Plastics', icon: '🧪' },
@@ -52,7 +52,7 @@ export const SUBCATEGORIES = {
     { value: 'cotton', label: 'Cotton Fabrics' },
     { value: 'leather', label: 'Leather Goods' },
   ],
-  food_beverage: [
+  'food-beverage': [
     { value: 'palm_oil', label: 'Palm Oil' },
     { value: 'beverages', label: 'Beverages' },
     { value: 'processed', label: 'Processed Foods' },
@@ -117,7 +117,7 @@ export const MOQ_SUGGESTIONS = {
   agricultural: ['100 kg', '500 kg', '1 ton', '5 tons', '20 tons'],
   minerals: ['10 kg', '50 kg', '100 kg', '1 ton'],
   textiles: ['50 pieces', '100 pieces', '500 pieces', '1000 pieces'],
-  food_beverage: ['100 cartons', '500 cartons', '1 container'],
+  'food-beverage': ['100 cartons', '500 cartons', '1 container'],
   crafts: ['10 pieces', '50 pieces', '100 pieces'],
   electronics: ['100 pieces', '500 pieces', '1000 pieces'],
   chemicals: ['500 kg', '1 ton', '5 tons'],

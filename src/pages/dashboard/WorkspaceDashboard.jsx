@@ -108,6 +108,9 @@ export default function WorkspaceDashboard() {
         notificationCount={notificationCount}
         isAdmin={isAdmin}
       >
+        {/* HORIZON 2026: Ambient Orb for Visual Depth */}
+        <div className="os-ambient-orb" style={{ top: '10%', right: '20%', opacity: 0.4 }} />
+        
         {/* ✅ MOBILE GUARD: Only initialize realtime when system is ready */}
         <DashboardRealtimeManager
           companyId={profileCompanyId}

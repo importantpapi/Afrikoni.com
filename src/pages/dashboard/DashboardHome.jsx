@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
-import SeedButton from '@/components/dashboard/SeedButton';
 import OneFlow from './OneFlow';
 import { useTrades } from '@/hooks/queries/useTrades';
 import { ArrowRight, Box, CreditCard, Ship } from 'lucide-react';
@@ -35,7 +34,6 @@ export default function DashboardHome() {
           <p className="text-xs text-os-muted font-mono mt-1 uppercase tracking-widest">Unified Horizon Protocol v1.1</p>
         </div>
         <div className="flex items-center gap-2">
-          <SeedButton />
           <OSStatusBar />
         </div>
       </div>

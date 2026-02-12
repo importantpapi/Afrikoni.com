@@ -108,12 +108,15 @@ export async function findOrCreateCategory(supabase, categoryName) {
     // First, try to find existing category
     console.log('[PCI] Querying existing category...');
 
-    const { data: existingCategory, error: findError } = await supabase
-      .from('categories')
-      .select('id, name')
-      .ilike('name', categoryName)
-      .limit(1)
-      .maybeSingle();
+    const { data: existingCategory, error: findError } = await Promise.race([
+      supabase
+        .from('categories')
+        .select('id, name')
+        .ilike('name', categoryName)
+        .limit(1)
+        .maybeSingle(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Category lookup timed out after 10s')), 10000))
+    ]);
 
     console.log('[PCI] Query result:', { existingCategory, findError });
 

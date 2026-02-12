@@ -5,178 +5,186 @@
 
 /* Base layer content moved out of @layer for Tailwind compatibility */
 :root {
-  /* Core Brand Colors - Gold & Earth */
+  /* Core Brand Colors - Gold & Earth (from Afrikoni Logo) */
   --afrikoni-gold: 38 65% 50%;
   --afrikoni-gold-light: 38 70% 60%;
   --afrikoni-gold-dark: 38 60% 40%;
   --afrikoni-gold-glow: 38 80% 65%;
+  
+  /* Warm Earth Tones from Logo */
   --afrikoni-brown: 25 40% 15%;
   --afrikoni-brown-light: 25 35% 25%;
   --afrikoni-earth: 20 30% 12%;
-  
-  /* LIGHT MODE (Secondary) */
-  --background: 30 10% 98%;
-  --foreground: 25 30% 10%;
-  
+  --afrikoni-warm-brown: 28 42% 28%;      /* #6B4423 */
+  --afrikoni-deep-brown: 25 43% 21%;      /* #4A2C1A */
+  --afrikoni-brand-gold: 38 75% 48%;      /* #D4A937 */
+  --afrikoni-muted-gold: 38 64% 46%;      /* #B8923A */
+
+  /* LIGHT MODE (Warm Horizon 2026 - Ivory Base) */
+  --background: 35 25% 96%;               /* Warm ivory instead of cool pearl */
+  --foreground: 25 30% 12%;               /* Warm charcoal */
+
   --card: 0 0% 100%;
-  --card-foreground: 25 30% 10%;
-  
+  --card-foreground: 220 30% 12%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 25 30% 10%;
+  --popover-foreground: 220 30% 12%;
 
-  --primary: 38 65% 50%;
-  --primary-foreground: 25 40% 10%;
+  --primary: 38 75% 48%;
+  /* Slightly more vibrant gold */
+  --primary-foreground: 220 40% 10%;
 
-  --secondary: 30 15% 94%;
-  --secondary-foreground: 25 30% 15%;
+  --secondary: 220 15% 94%;
+  --secondary-foreground: 220 30% 15%;
 
-  --muted: 30 10% 96%;
-  --muted-foreground: 25 15% 45%;
+  --muted: 220 10% 96%;
+  --muted-foreground: 220 15% 40%;
 
-  --accent: 38 50% 95%;
-  --accent-foreground: 38 65% 35%;
+  --accent: 38 60% 95%;
+  --accent-foreground: 38 75% 35%;
 
-  --destructive: 0 72% 51%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 30 15% 90%;
-  --input: 30 15% 90%;
-  --ring: 38 65% 50%;
+  --border: 220 15% 90%;
+  --input: 220 15% 90%;
+  --ring: 38 75% 48%;
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
+  /* Smoother corners */
 
-  /* Sidebar */
-  --sidebar-background: 24 38% 11%;
-  --sidebar-foreground: 38 20% 88%;
-  --sidebar-primary: 38 65% 50%;
-  --sidebar-primary-foreground: 25 40% 10%;
-  --sidebar-accent: 24 34% 16%;
-  --sidebar-accent-foreground: 38 20% 90%;
-  --sidebar-border: 24 30% 18%;
-  --sidebar-ring: 38 65% 50%;
-  
+  /* Sidebar (Horizon 2026) */
+  --sidebar-background: 220 25% 10%;
+  --sidebar-foreground: 38 20% 90%;
+  --sidebar-primary: 38 75% 48%;
+  --sidebar-primary-foreground: 220 40% 10%;
+  --sidebar-accent: 220 20% 14%;
+  --sidebar-accent-foreground: 38 20% 92%;
+  --sidebar-border: 220 20% 16%;
+  --sidebar-ring: 38 75% 48%;
+
   /* Semantic Status */
-  --success: 142 71% 45%;
+  --success: 158 85% 42%;
   --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 25 40% 10%;
-  --info: 199 89% 48%;
+  --warning: 42 100% 50%;
+  --warning-foreground: 220 40% 10%;
+  --info: 210 100% 52%;
   --info-foreground: 0 0% 100%;
-  
-  /* Trade Status Colors */
-  --status-verified: 142 71% 45%;
-  --status-pending: 38 92% 50%;
-  --status-inactive: 25 15% 55%;
-  --status-rejected: 0 72% 51%;
-  --status-in-progress: 199 89% 48%;
-  
-  /* Card Variants */
-  --card-gold: 36 55% 96%;
-  --card-green: 142 40% 96%;
-  --card-blue: 199 50% 96%;
-  --card-rose: 350 50% 97%;
-  
-  /* Premium Shadows */
-  --shadow-sm: 0 1px 2px 0 hsl(25 30% 10% / 0.03);
-  --shadow-md: 0 4px 6px -1px hsl(25 30% 10% / 0.05), 0 2px 4px -2px hsl(25 30% 10% / 0.03);
-  --shadow-lg: 0 10px 15px -3px hsl(25 30% 10% / 0.06), 0 4px 6px -4px hsl(25 30% 10% / 0.04);
-  --shadow-gold: 0 4px 14px -3px hsl(38 65% 50% / 0.25);
-  --shadow-glow: 0 0 20px hsl(38 65% 50% / 0.15);
 
-  /* Glass + glow tokens */
-  --glass-bg: hsl(var(--card) / 0.7);
-  --glass-border: hsl(var(--border));
-  --glass-glow: 0 0 24px hsl(var(--primary) / 0.18);
-  --glass-ambient: 0 20px 60px hsl(220 20% 10% / 0.25);
-  --gradient-core: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--afrikoni-gold-light)) 40%, hsl(var(--accent-foreground)) 100%);
+  /* Trade Status Colors */
+  --status-verified: 158 85% 42%;
+  --status-pending: 42 100% 50%;
+  --status-inactive: 220 10% 60%;
+  --status-rejected: 0 84% 60%;
+  --status-in-progress: 210 100% 52%;
+
+  /* Card Variants (Horizon 2026 Soft Glows) */
+  --card-gold: 38 50% 97%;
+  --card-green: 158 40% 97%;
+  --card-blue: 210 50% 97%;
+  --card-rose: 350 50% 97%;
+
+  /* Premium Shadows (High Contrast) */
+  --shadow-sm: 0 2px 4px 0 hsl(220 30% 10% / 0.05);
+  --shadow-md: 0 8px 16px -4px hsl(220 30% 10% / 0.08), 0 4px 8px -2px hsl(220 30% 10% / 0.04);
+  --shadow-lg: 0 24px 48px -8px hsl(220 30% 10% / 0.12), 0 8px 16px -4px hsl(220 30% 10% / 0.06);
+  --shadow-gold: 0 8px 24px -6px hsl(38 75% 48% / 0.2);
+  --shadow-glow: 0 0 32px hsl(38 75% 48% / 0.12);
+
+  /* Glass + glow tokens (Enhanced) */
+  --glass-bg: hsl(var(--card) / 0.75);
+  --glass-border: hsl(var(--border) / 0.5);
+  --glass-glow: 0 0 32px hsl(var(--primary) / 0.15);
+  --glass-ambient: 0 32px 64px -16px hsl(220 30% 10% / 0.2);
+  --gradient-core: linear-gradient(135deg, hsl(38 75% 48%) 0%, hsl(38 85% 60%) 50%, hsl(38 65% 35%) 100%);
 
   /* Trade OS semantic tokens */
   --os-bg: hsl(var(--background));
-  --os-surface-0: hsl(var(--card) / 0.96);
-  --os-surface-1: hsl(var(--card) / 0.9);
-  --os-surface-2: hsl(var(--card) / 0.8);
-  --os-stroke: hsl(var(--border));
+  --os-surface-0: hsl(var(--card) / 0.98);
+  --os-surface-1: hsl(var(--card) / 0.92);
+  --os-surface-2: hsl(var(--card) / 0.85);
+  --os-stroke: hsl(var(--border) / 0.8);
   --os-text-primary: hsl(var(--foreground));
   --os-text-secondary: hsl(var(--muted-foreground));
   --os-muted: hsl(var(--muted-foreground));
   --os-accent: hsl(var(--primary));
-  --os-glow: 0 0 28px hsl(var(--primary) / 0.18);
+  --os-glow: 0 0 32px hsl(var(--primary) / 0.15);
 }
 
 /* ============================================================
-   DARK MODE (Primary - Bloomberg Terminal Aesthetic)
+   DARK MODE (Warm Horizon 2026 - Charcoal Base)
    ============================================================ */
 .dark {
-  /* Deep charcoal backgrounds */
-  --background: 220 15% 6%;
-  --foreground: 38 15% 92%;
-  
-  /* Glassmorphic cards */
-  --card: 220 15% 10%;
-  --card-foreground: 38 15% 92%;
-  
-  --popover: 220 15% 10%;
-  --popover-foreground: 38 15% 92%;
+  /* Warm Deep Charcoal backgrounds (instead of cool obsidian) */
+  --background: 25 15% 8%;               /* Warm charcoal base */
+  --foreground: 35 15% 94%;              /* Warm off-white */
 
-  /* Gold primary - brighter for dark mode */
-  --primary: 38 70% 55%;
-  --primary-foreground: 220 15% 6%;
+  /* Glassmorphic cards with warmth */
+  --card: 25 18% 11%;
+  --card-foreground: 35 15% 94%;
 
-  --secondary: 220 12% 15%;
-  --secondary-foreground: 38 15% 85%;
+  --popover: 25 18% 11%;
+  --popover-foreground: 35 15% 94%;
 
-  --muted: 220 12% 12%;
-  --muted-foreground: 220 10% 55%;
+  /* High-Octane Gold (maintain vibrancy) */
+  --primary: 38 80% 58%;
+  --primary-foreground: 25 20% 8%;
 
-  --accent: 220 15% 18%;
-  --accent-foreground: 38 70% 60%;
+  --secondary: 25 15% 14%;
+  --secondary-foreground: 35 15% 88%;
 
-  --destructive: 0 65% 55%;
+  --muted: 25 15% 12%;
+  --muted-foreground: 35 10% 60%;
+
+  --accent: 28 20% 18%;                  /* Warm brown accent */
+  --accent-foreground: 38 85% 65%;
+
+  --destructive: 0 92% 65%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 220 12% 18%;
-  --input: 220 12% 15%;
-  --ring: 38 70% 55%;
-  
-  /* Dark sidebar */
-  --sidebar-background: 220 18% 5%;
-  --sidebar-foreground: 38 20% 85%;
-  --sidebar-primary: 38 70% 55%;
-  --sidebar-primary-foreground: 220 15% 6%;
-  --sidebar-accent: 220 15% 12%;
-  --sidebar-accent-foreground: 38 20% 92%;
-  --sidebar-border: 220 12% 15%;
-  --sidebar-ring: 38 70% 55%;
-  
-  /* Adjusted card variants for dark */
-  --card-gold: 38 40% 12%;
-  --card-green: 142 30% 12%;
-  --card-blue: 199 35% 12%;
-  --card-rose: 350 35% 12%;
-  
-  /* Dark mode shadows with glow */
-  --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-  --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
-  --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5), 0 4px 6px -4px hsl(0 0% 0% / 0.4);
-  --shadow-gold: 0 4px 20px -3px hsl(38 70% 55% / 0.3);
-  --shadow-glow: 0 0 30px hsl(38 70% 55% / 0.2);
+  --border: 28 15% 20%;                  /* Warm brown border */
+  --input: 25 15% 14%;
+  --ring: 38 85% 65%;
 
-  --glass-bg: hsl(var(--card) / 0.55);
-  --glass-border: hsl(var(--border));
-  --glass-glow: 0 0 24px hsl(38 70% 55% / 0.25);
-  --glass-ambient: 0 20px 60px hsl(220 20% 6% / 0.45);
-  --gradient-core: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--afrikoni-gold-light)) 35%, hsl(var(--accent-foreground)) 100%);
+  /* Dark sidebar with warmth */
+  --sidebar-background: 25 25% 6%;
+  --sidebar-foreground: 220 15% 90%;
+  --sidebar-primary: 38 80% 58%;
+  --sidebar-primary-foreground: 220 20% 4%;
+  --sidebar-accent: 220 20% 12%;
+  --sidebar-accent-foreground: 38 85% 65%;
+  --sidebar-border: 220 15% 14%;
+  --sidebar-ring: 38 80% 58%;
+
+  /* Adjusted card variants for dark (Spectral Glows) */
+  --card-gold: 38 50% 10%;
+  --card-green: 158 50% 8%;
+  --card-blue: 210 50% 10%;
+  --card-rose: 350 50% 10%;
+
+  /* Dark mode shadows (Obsidian Depth) */
+  --shadow-sm: 0 2px 4px 0 hsl(0 0% 0% / 0.4);
+  --shadow-md: 0 12px 24px -8px hsl(0 0% 0% / 0.6), 0 4px 12px -4px hsl(0 0% 0% / 0.4);
+  --shadow-lg: 0 32px 64px -16px hsl(0 0% 0% / 0.8), 0 12px 24px -6px hsl(0 0% 0% / 0.6);
+  --shadow-gold: 0 8px 32px -4px hsl(38 80% 58% / 0.4);
+  --shadow-glow: 0 0 40px hsl(38 80% 58% / 0.25);
+
+  --glass-bg: hsl(var(--card) / 0.65);
+  --glass-border: hsl(var(--border) / 0.6);
+  --glass-glow: 0 0 40px hsl(38 85% 65% / 0.3);
+  --glass-ambient: 0 32px 64px -16px hsl(0 0% 0% / 0.5);
+  --gradient-core: linear-gradient(135deg, hsl(38 80% 58%) 0%, hsl(38 95% 70%) 40%, hsl(38 70% 45%) 100%);
 
   --os-bg: hsl(var(--background));
-  --os-surface-0: hsl(var(--card) / 0.78);
-  --os-surface-1: hsl(var(--card) / 0.68);
-  --os-surface-2: hsl(var(--card) / 0.6);
-  --os-stroke: hsl(var(--border));
+  --os-surface-0: hsl(var(--card) / 0.85);
+  --os-surface-1: hsl(var(--card) / 0.75);
+  --os-surface-2: hsl(var(--card) / 0.65);
+  --os-stroke: hsl(var(--border) / 0.8);
   --os-text-primary: hsl(var(--foreground));
   --os-text-secondary: hsl(var(--muted-foreground));
   --os-muted: hsl(var(--muted-foreground));
   --os-accent: hsl(var(--primary));
-  --os-glow: 0 0 34px hsl(var(--primary) / 0.25);
+  --os-glow: 0 0 40px hsl(var(--primary) / 0.3);
 }
 
 /* ============================================================
@@ -234,36 +242,37 @@
 }
 
 @layer components {
+
   /* ============================================================
      GLASSMORPHIC CARDS
      ============================================================ */
-.glass-card {
-  @apply rounded-2xl border border-border/60;
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--glass-ambient), var(--glass-glow);
-}
+  .glass-card {
+    @apply rounded-2xl border border-border/60;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--glass-ambient), var(--glass-glow);
+  }
 
-.glass-card-elevated {
-  @apply rounded-2xl border border-border/40;
-  background: hsl(var(--card) / 0.8);
-  backdrop-filter: blur(18px);
-  box-shadow: var(--glass-ambient), 0 0 32px hsl(var(--primary) / 0.18);
-}
+  .glass-card-elevated {
+    @apply rounded-2xl border border-border/40;
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--glass-ambient), 0 0 32px hsl(var(--primary) / 0.18);
+  }
 
-/* ============================================================
+  /* ============================================================
    METRIC CARDS (Bloomberg-style)
    ============================================================ */
-.metric-card {
-  @apply relative p-5 rounded-2xl border border-border/60 transition-all duration-300;
-  background: hsl(var(--card) / 0.92);
-  box-shadow: var(--glass-ambient);
-}
+  .metric-card {
+    @apply relative p-5 rounded-2xl border border-border/60 transition-all duration-300;
+    background: hsl(var(--card) / 0.92);
+    box-shadow: var(--glass-ambient);
+  }
 
-.metric-card:hover {
-  box-shadow: var(--glass-ambient), var(--glass-glow);
-  transform: translateY(-2px);
-}
+  .metric-card:hover {
+    box-shadow: var(--glass-ambient), var(--glass-glow);
+    transform: translateY(-2px);
+  }
 
   .metric-card-gold {
     background: linear-gradient(135deg, hsl(var(--card-gold)) 0%, hsl(var(--card)) 100%);
@@ -284,7 +293,7 @@
     @apply text-xs font-medium uppercase tracking-wider text-muted-foreground;
   }
 
-/* ============================================================
+  /* ============================================================
    STATUS BADGES
    ============================================================ */
   .status-badge {
@@ -313,7 +322,7 @@
     @apply bg-info-15 text-info border border-info-20;
   }
 
-/* ============================================================
+  /* ============================================================
    PREMIUM CTAs
    ============================================================ */
   .btn-gold {
@@ -338,7 +347,7 @@
     background: hsl(var(--card) / 0.8);
   }
 
-/* ============================================================
+  /* ============================================================
    PROGRESS INDICATORS
    ============================================================ */
   .progress-gold {
@@ -352,7 +361,7 @@
     box-shadow: 0 0 8px hsl(var(--primary) / 0.4);
   }
 
-/* ============================================================
+  /* ============================================================
    TRADE PIPELINE STYLES
    ============================================================ */
   .pipeline-stage {
@@ -373,7 +382,7 @@
     background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.3) 100%);
   }
 
-/* ============================================================
+  /* ============================================================
    DENSE DATA DISPLAYS (Terminal-style)
    ============================================================ */
   .data-grid {
@@ -392,7 +401,7 @@
     @apply text-sm font-semibold text-foreground tabular-nums;
   }
 
-/* ============================================================
+  /* ============================================================
    COMMAND PALETTE STYLES
    ============================================================ */
   .command-palette {
@@ -426,18 +435,25 @@
     mask-image: radial-gradient(circle at 40% 10%, black, transparent 70%);
   }
 
-  .os-page > * {
+  .os-page>* {
     position: relative;
     z-index: 1;
   }
 
-  .os-stagger > * {
+  .os-stagger>* {
     animation: osFadeUp 0.4s ease-out;
   }
 
   @keyframes osFadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .os-label {
@@ -486,8 +502,64 @@
     @apply rounded-2xl border;
     border-color: hsl(var(--border) / 0.6);
     background: hsl(var(--card) / 0.55);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(32px) saturate(1.5);
     box-shadow: var(--glass-ambient), var(--os-glow);
+  }
+
+  /* ============================================================
+     HORIZON 2026 AMBIENT ORBS - Decorative Background Glows
+     ============================================================ */
+  .os-ambient-orb {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    border-radius: 999px;
+    pointer-events: none;
+    background: radial-gradient(circle, hsl(var(--primary) / 0.25), transparent 70%);
+    filter: blur(60px);
+    opacity: 0.6;
+    z-index: 0;
+  }
+
+  .os-ambient-orb-sapphire {
+    background: radial-gradient(circle, hsl(210 100% 60% / 0.3), transparent 70%);
+  }
+
+  .os-ambient-orb-emerald {
+    background: radial-gradient(circle, hsl(158 85% 50% / 0.25), transparent 70%);
+  }
+
+  /* ============================================================
+     BENTO GRID - Modern High-Density Layouts
+     ============================================================ */
+  .grid-bento {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  @media (min-width: 768px) {
+    .grid-bento {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-bento-wide {
+      grid-column: span 2;
+    }
+
+    .grid-bento-tall {
+      grid-row: span 2;
+    }
+
+    .grid-bento-hero {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .grid-bento {
+      grid-template-columns: repeat(4, 1fr);
+    }
   }
 
   .os-rail-glow {
@@ -514,6 +586,29 @@
 
   .os-glow-hover:hover {
     box-shadow: var(--shadow-lg), var(--os-glow);
+  }
+
+  /* ============================================================
+     ENHANCED GLOW EFFECTS - Horizon 2026
+     ============================================================ */
+  .os-glow {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.25);
+  }
+
+  .os-glow-strong {
+    box-shadow: 0 0 60px hsl(var(--primary) / 0.35), 0 0 20px hsl(var(--primary) / 0.2);
+  }
+
+  .os-glow-subtle {
+    box-shadow: 0 0 24px hsl(var(--primary) / 0.15);
+  }
+
+  .os-glow-sapphire {
+    box-shadow: 0 0 40px hsl(210 100% 60% / 0.3);
+  }
+
+  .os-glow-emerald {
+    box-shadow: 0 0 40px hsl(158 85% 50% / 0.25);
   }
 
   .os-zone {
@@ -548,7 +643,9 @@
   }
 
   @keyframes osOrbit {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .os-insight {
@@ -641,8 +738,15 @@
   }
 
   @keyframes osPulseGlow {
-    0%, 100% { box-shadow: 0 0 0 3px hsl(var(--background)), 0 0 12px hsl(var(--primary) / 0.35); }
-    50% { box-shadow: 0 0 0 3px hsl(var(--background)), 0 0 24px hsl(var(--primary) / 0.55); }
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 3px hsl(var(--background)), 0 0 12px hsl(var(--primary) / 0.35);
+    }
+
+    50% {
+      box-shadow: 0 0 0 3px hsl(var(--background)), 0 0 24px hsl(var(--primary) / 0.55);
+    }
   }
 
   /* ============================================================
@@ -688,66 +792,73 @@
 }
 
 @layer utilities {
+
   /* Animations */
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
   }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
   .animate-scale-in {
     animation: scaleIn 0.2s ease-out;
   }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
   .animate-slide-in-right {
     animation: slideInRight 0.3s ease-out;
   }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
   .animate-pulse-glow {
     animation: pulseGlow 2s ease-in-out infinite;
   }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 5px hsl(var(--primary) / 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.5);
-  }
-}
+  @keyframes pulseGlow {
 
-/* Gradient text */
+    0%,
+    100% {
+      box-shadow: 0 0 5px hsl(var(--primary) / 0.3);
+    }
+
+    50% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.5);
+    }
+  }
+
+  /* Gradient text */
   .text-gradient-gold {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--afrikoni-gold-light)) 100%);
     -webkit-background-clip: text;
@@ -755,15 +866,29 @@
     background-clip: text;
   }
 
-/* Tabular numbers for data */
+  /* Tabular numbers for data */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 
   /* OS utility shims */
-  .bg-os-surface-0 { background: var(--os-surface-0); }
-  .bg-os-surface-1 { background: var(--os-surface-1); }
-  .bg-os-surface-2 { background: var(--os-surface-2); }
-  .border-os-stroke { border-color: var(--os-stroke); }
-  .text-os-muted { color: var(--os-muted); }
+  .bg-os-surface-0 {
+    background: var(--os-surface-0);
+  }
+
+  .bg-os-surface-1 {
+    background: var(--os-surface-1);
+  }
+
+  .bg-os-surface-2 {
+    background: var(--os-surface-2);
+  }
+
+  .border-os-stroke {
+    border-color: var(--os-stroke);
+  }
+
+  .text-os-muted {
+    color: var(--os-muted);
+  }
 }

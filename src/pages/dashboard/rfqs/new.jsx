@@ -98,16 +98,34 @@ export default function IntakeEngine() {
     }
 
     // 2. Submit to API (using validated data where appropriate, or original payload)
-    const { success, error: err } = await createRFQ({
-      user,
-      formData: payload,
-    });
-    setSubmitting(false);
-    if (success) {
-      toast.success('RFQ published to Trade OS Network');
-      navigate('/dashboard/rfqs');
+    try {
+      // Add a top-level timeout to prevent silent hangs
+      const createPromise = createRFQ({
+        user,
+        formData: payload,
+      });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Submission timed out. Please check your connection.')), 15000)
+      );
+
+      const { success, error: err } = await Promise.race([createPromise, timeoutPromise]);
+
+      setSubmitting(false);
+      if (success) {
+        toast.success('RFQ published to Trade OS Network');
+        navigate('/dashboard/rfqs');
+      }
+      else {
+        console.error('[RFQ:New] Submission error:', err);
+        setError(err || 'Unable to create RFQ');
+      }
+    } catch (err) {
+      console.error('[RFQ:New] Unexpected exception:', err);
+      setSubmitting(false);
+      setError(err.message || 'An unexpected error occurred during submission');
+      toast.error(err.message || 'Submission failed');
     }
-    else setError(err || 'Unable to create RFQ');
   };
 
   return (

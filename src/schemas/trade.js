@@ -42,7 +42,10 @@ export const validate = (schema, data) => {
         const validData = schema.parse(data);
         return { success: true, data: validData };
     } catch (error) {
-        const formattedError = error.errors[0]?.message || "Validation failed";
+        console.error("[Validation Error]", error);
+        // ZodError specifically uses .issues or .errors
+        const issues = error.issues || error.errors || [];
+        const formattedError = issues[0]?.message || error.message || "Validation failed";
         return { success: false, error: formattedError };
     }
 };

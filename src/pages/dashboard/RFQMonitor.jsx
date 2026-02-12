@@ -136,7 +136,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                         <div className="os-label">{viewMode === 'buyer' ? 'Trade Intake' : 'Opportunity Feed'}</div>
                         <h1 className="os-title mt-2">{viewMode === 'buyer' ? 'RFQs & Inquiries' : 'Matched RFQs'}</h1>
                         <p className="text-sm text-os-muted">
-                            {filteredRFQs.length} {viewMode === 'buyer' ? 'active requests' : 'matches found'}
+                            {rfqs.length} {viewMode === 'buyer' ? 'active requests' : 'matches found'}
                         </p>
                     </div>
                     {viewMode === 'buyer' ? (

@@ -166,18 +166,25 @@ export default function AddProduct() {
 
     for (const file of filesToUpload) {
       if (typeof file === 'string') {
-        // Already a string (maybe existing URL), keep it
         if (!file.startsWith('blob:')) uploadedUrls.push(file);
         continue;
       }
 
       try {
+        console.log('[AddProduct] Uploading image:', file.name);
         const fileExt = file.name.split('.').pop();
         const fileName = `${profileCompanyId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
+        // Add timeout per image upload
+        const uploadPromise = supabase.storage
           .from('product-images')
           .upload(fileName, file);
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Image upload timed out')), 10000)
+        );
+
+        const { error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]);
 
         if (uploadError) {
           console.error('[AddProduct] Image upload error:', uploadError);
@@ -189,8 +196,9 @@ export default function AddProduct() {
           .getPublicUrl(fileName);
 
         uploadedUrls.push(publicUrl);
+        console.log('[AddProduct] Image uploaded successfully:', publicUrl);
       } catch (error) {
-        console.error('[AddProduct] Failed to upload image:', error);
+        console.error('[AddProduct] Failed to upload image:', error.message);
       }
     }
     return uploadedUrls;
@@ -214,11 +222,13 @@ export default function AddProduct() {
 
     setIsSaving(true);
 
-    try {
+    const publishProcess = async () => {
       // 1. Resolve Category
+      console.log('[AddProduct] Resolving category...');
       const categoryId = await getCategoryId();
 
       // 2. Upload Images
+      console.log('[AddProduct] Uploading images...');
       const publicImageUrls = await uploadImages();
 
       // Decide publish status based on image upload success
@@ -247,18 +257,23 @@ export default function AddProduct() {
         status: productStatus
       };
 
-      // Add timeout to prevent hanging indefinitely
+      console.log('[AddProduct] Calling createProduct service...');
+      return await createProduct({
+        user,
+        formData: serviceFormData,
+        companyId: profileCompanyId,
+        publish: canPublish
+      });
+    };
+
+    try {
+      // Add timeout to prevent hanging indefinitely (encapsulates category + images + service)
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out after 20 seconds')), 20000)
+        setTimeout(() => reject(new Error('Process timed out after 30 seconds. This might be due to heavy images or network delay.')), 30000)
       );
 
       const result = await Promise.race([
-        createProduct({
-          user,
-          formData: serviceFormData,
-          companyId: profileCompanyId,
-          publish: canPublish
-        }),
+        publishProcess(),
         timeoutPromise
       ]);
 
@@ -268,8 +283,8 @@ export default function AddProduct() {
 
         // ✅ React Query invalidation - trigger auto-refresh
         if (window.queryClient) {
-          window.queryClient.invalidateQueries({ 
-            predicate: (query) => query.queryKey[0] === 'products' 
+          window.queryClient.invalidateQueries({
+            predicate: (query) => query.queryKey[0] === 'products'
           });
         }
 

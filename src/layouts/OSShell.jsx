@@ -15,7 +15,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
-import { SystemLayer } from '@/components/os-shell/SystemLayer';
 import { IdentityLayer } from '@/components/os-shell/IdentityLayer';
 import { ContentSurface } from '@/components/os-shell/ContentSurface';
 import TradeOSSidebar from '@/components/dashboard/TradeOSSidebar';
@@ -24,7 +23,6 @@ import { zIndex } from '@/config/zIndex';
 import { usePWAInstaller } from '@/hooks/usePWAInstaller';
 import { Smartphone, Download, Globe, LogOut, LayoutDashboard, User as UserIcon, MessageSquare, Package, FileText, Shield, Settings } from 'lucide-react';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
-import SystemStatusFooter from '@/components/layout/SystemStatusFooter';
 import CommandPalette from '@/components/dashboard/CommandPalette';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -47,7 +45,7 @@ export const OS_Z_INDEX = {
 
 // OS Shell Dimensions
 export const OS_DIMENSIONS = {
-    systemLayer: { height: 56 },
+    systemLayer: { height: 0 },
     identityLayer: { height: 48 },
     workspaceNav: {
         desktop: 240,
@@ -138,7 +136,6 @@ export default function OSShell({
                         zIndex: OS_Z_INDEX.systemLayer
                     }}
                 >
-                    <SystemLayer systemState={systemState} />
                 </div>
 
                 {/* Identity Layer - Below system layer */}
@@ -150,8 +147,8 @@ export default function OSShell({
                         zIndex: OS_Z_INDEX.identityLayer
                     }}
                 >
-                    {/* Glass Background - Isolated to prevent stacking context issues for children's fixed elements */}
-                    <div className="absolute inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-md" />
+                    {/* Glass Background - Horizon 2026 Heavy Blur (32px) */}
+                    <div className="absolute inset-0 bg-[hsl(var(--background))]/60 backdrop-blur-[32px] backdrop-saturate-150" />
 
                     <div className="relative z-10 w-full h-full md:pl-[var(--os-sidebar-width,72px)] transition-all duration-300">
                         <IdentityLayer
@@ -224,30 +221,31 @@ export default function OSShell({
                                     initial={{ opacity: 0, y: -20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="mb-6 mx-4 md:mx-6 mt-4 p-4 rounded-xl bg-gradient-to-r from-afrikoni-gold to-afrikoni-sand text-black shadow-lg flex items-center justify-between gap-4 border border-white/20 relative overflow-hidden"
+                                    className="mb-6 mx-4 md:mx-6 mt-4 p-5 os-panel-glass flex items-center justify-between gap-4 relative overflow-hidden"
                                 >
-                                    <div className="absolute inset-0 bg-white/10 blur-xl translate-x-1/2 -translate-y-1/2 rounded-full" />
+                                    {/* Ambient orb glow */}
+                                    <div className="os-ambient-orb" style={{ top: '-40%', left: '60%' }} />
 
                                     <div className="flex items-center gap-3 z-10">
-                                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/10">
-                                            <Smartphone className="w-5 h-5" />
+                                        <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-md">
+                                            <Smartphone className="w-5 h-5 text-primary" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-sm">Install Afrikoni OS</h4>
-                                            <p className="text-[10px] opacity-80 font-medium">Get a dedicated workspace and offline trade support.</p>
+                                            <h4 className="font-bold text-sm text-foreground">Install Afrikoni OS</h4>
+                                            <p className="text-[11px] text-muted-foreground font-medium">Dedicated workspace · Offline support · Native feel</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 z-10">
                                         <button
                                             onClick={() => setShowInstallPrompt(false)}
-                                            className="px-3 py-2 text-[10px] font-bold uppercase transition-all hover:bg-black/5 rounded-lg"
+                                            className="px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
                                         >
                                             Later
                                         </button>
                                         <button
                                             onClick={() => { installApp(); setShowInstallPrompt(false); }}
-                                            className="px-4 py-2 bg-black text-white rounded-lg text-xs font-bold shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1"
+                                            className="btn-gold px-4 py-2 rounded-xl text-xs text-primary-foreground flex items-center gap-1.5"
                                         >
                                             <Download className="w-3.5 h-3.5" />
                                             Install
@@ -262,22 +260,25 @@ export default function OSShell({
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="mb-4 mx-4 md:mx-6 mt-4 p-4 rounded-xl bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] shadow-lg flex items-center justify-between gap-4 overflow-hidden"
+                                    className="mb-4 mx-4 md:mx-6 mt-4 p-5 os-panel-glass flex items-center justify-between gap-4 overflow-hidden relative"
                                 >
+                                    {/* Ambient orb glow */}
+                                    <div className="os-ambient-orb" style={{ top: '-30%', right: '70%', background: 'radial-gradient(circle, hsl(var(--info) / 0.3), transparent 70%)' }} />
+
                                     <div className="flex items-center gap-3 z-10">
-                                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                                            <BellRing className="w-5 h-5 text-blue-500 animate-pulse" />
+                                        <div className="w-11 h-11 rounded-2xl bg-info/10 border border-info/20 flex items-center justify-center backdrop-blur-md">
+                                            <BellRing className="w-5 h-5 text-info animate-pulse" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-sm text-gray-900 dark:text-white">Real-time Trade Signals</h4>
-                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Enable push notifications to never miss an order or message.</p>
+                                            <h4 className="font-bold text-sm text-foreground">Real-time Trade Signals</h4>
+                                            <p className="text-[11px] text-muted-foreground font-medium">Never miss orders · Live updates · Instant alerts</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 z-10">
                                         <button
                                             onClick={() => setShowPushPrompt(false)}
-                                            className="px-3 py-2 text-[10px] font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                                            className="px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
                                         >
                                             Skip
                                         </button>
@@ -286,9 +287,9 @@ export default function OSShell({
                                                 await subscribe();
                                                 setShowPushPrompt(false);
                                             }}
-                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md transition-all flex items-center gap-1"
+                                            className="px-4 py-2 bg-info hover:bg-info/90 text-info-foreground rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-1.5"
                                         >
-                                            <Shield className="w-3 h-3" />
+                                            <Shield className="w-3.5 h-3.5" />
                                             Enable
                                         </button>
                                     </div>
@@ -311,7 +312,6 @@ export default function OSShell({
                 />
 
                 {/* Global Signal Stream Footer */}
-                <SystemStatusFooter />
 
                 {/* Global Command Palette */}
                 <CommandPalette
