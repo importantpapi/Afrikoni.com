@@ -16,18 +16,15 @@ export default function RecentRFQsWidget() {
 
     useEffect(() => {
         async function loadRecentRFQs() {
-            // ✅ MOBILE FIX: Set loading=false if no company ID yet
+            // ✅ GUARD: Prevent infinite loading if no company ID
             if (!profileCompanyId) {
-                // If mounted without ID (should be guarded by DashboardHome), return
-                // Keep loading=true to avoid "No Data" flash
+                setLoading(false);
                 return;
             }
 
             try {
-                // SWR: Only set loading if we have no data
                 if (rfqs.length === 0) setLoading(true);
 
-                // Define fetcher
                 const fetchRFQs = async () => {
                     const { data, error } = await supabase
                         .from('rfqs')

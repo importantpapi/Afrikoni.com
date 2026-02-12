@@ -23,11 +23,13 @@ export function useAIActions() {
     useEffect(() => {
         if (user && profile?.company_id) {
             loadActions();
-        } else {
-            // ✅ MOBILE FIX: Clear loading state if no company_id yet
+        } else if (!user) {
+            // ✅ MOBILE FIX: Only clear state if NO USER. 
+            // If user exists but profile.company_id is pending, KEEP LOADING.
             setLoading(false);
             setActions([]);
         }
+        // Else: user exists, profile pending -> Do nothing (retain loading=true)
     }, [user, profile?.company_id]);
 
     const loadActions = async () => {
@@ -83,7 +85,7 @@ export function useAIActions() {
                             actionLabel: 'View Quotes',
                             metadata: {
                                 timeLeft: `${Math.round(hoursLeft)}h left`,
-                                count: `${rfq.quotes_count || 0} quotes`,
+                                count: `${rfq.quotes_count ?? 0} quotes`,
                             },
                         });
                     }

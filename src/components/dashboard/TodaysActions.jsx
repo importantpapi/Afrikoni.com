@@ -59,9 +59,9 @@ export default function TodaysActions({ compact = false }) {
         if (!actions) return { urgent: [], recommended: [], opportunity: [] };
 
         return {
-            urgent: actions.filter(a => a.priority === 'urgent'),
-            recommended: actions.filter(a => a.priority === 'recommended'),
-            opportunity: actions.filter(a => a.priority === 'opportunity'),
+            urgent: (actions || []).filter(a => a.priority === 'urgent'),
+            recommended: (actions || []).filter(a => a.priority === 'recommended'),
+            opportunity: (actions || []).filter(a => a.priority === 'opportunity'),
         };
     }, [actions]);
 

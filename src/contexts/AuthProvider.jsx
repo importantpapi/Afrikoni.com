@@ -196,6 +196,7 @@ export function AuthProvider({ children }) {
 
       // ✅ MOVED: Schema validation now runs AFTER getting session to avoid blocking critical path
       // Fire-and-forget - don't await, don't block auth flow
+      // Fire-and-forget - don't await, don't block auth flow
       validateSchemaWithTimeout();
 
       if (!session?.user) {
@@ -212,28 +213,40 @@ export function AuthProvider({ children }) {
 
       console.log('[Auth] User found:', session.user.id);
 
-      // ✅ CLEANUP: Use .single() to avoid empty array logic that keeps loading state active
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      // ✅ FIX: BLOCKING PROFILE FETCH
+      // We MUST wait for profile before setting authReady to prevent race conditions
+      // where components mount and try to access profile.company_id before it exists.
+      let resolvedProfile = null;
 
-      let resolvedProfile = profileData || null;
+      try {
+        // ✅ CLEANUP: Use .single() to avoid empty array logic
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
 
-      // Handle profile not found - create as fallback
-      if (profileError) {
-        if (profileError.code === 'PGRST116') {
-          console.log('[Auth] Profile not found during resolution - creating fallback profile');
-          resolvedProfile = await ensureProfileExists(session.user);
-        } else {
-          console.error('[Auth] Profile fetch error:', profileError);
+        resolvedProfile = profileData || null;
+
+        // Handle profile not found - create as fallback
+        if (profileError) {
+          if (profileError.code === 'PGRST116') {
+            console.log('[Auth] Profile not found during resolution - creating fallback profile');
+            resolvedProfile = await ensureProfileExists(session.user);
+          } else {
+            console.warn('[Auth] Profile fetch error:', profileError);
+          }
         }
+      } catch (profileCatchErr) {
+        console.error('[Auth] Profile fetch exception:', profileCatchErr);
       }
 
+      // ✅ ATOMIC STATE UPDATE
+      // Set all state at once to ensure consistent render
       setUser(session.user);
       setProfile(resolvedProfile);
       setRole(resolvedProfile?.role || null);
+
       setAuthReady(true);
       setLoading(false);
       setAuthResolutionComplete(true); // FIX: Signal that resolution is fully complete (with profile)

@@ -38,7 +38,7 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
   // ✅ FIX: Use useEffect for navigation to prevent render-time side effects
   React.useEffect(() => {
     // Only redirect if auth is fully ready and we can make a definitive decision
-    if (authReady && !loading && (!authReady || !capabilities?.ready ? false : true)) {
+    if (authReady && !loading && capabilities?.ready) {
 
       // 1. Redirect to login if not authenticated
       if (!user) {
