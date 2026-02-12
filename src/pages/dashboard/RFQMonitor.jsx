@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { getRFQs } from '@/services/rfqService';
@@ -99,7 +99,8 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
 
         const loadRFQs = async () => {
             try {
-                setIsLoading(true);
+                // ✅ SWR: Only show full loading state if we have no data
+                if (rfqs.length === 0) setIsLoading(true);
                 setError(null);
 
                 let data = [];
@@ -107,6 +108,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
 
                 if (viewMode === 'buyer') {
                     // BUYER MODE: Use rfqService
+                    // TODO: Audit rfqService for retry logic internally
                     const result = await getRFQs({
                         user,
                         companyId: profileCompanyId,
@@ -117,25 +119,31 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                     queryError = result.error;
                 } else {
                     // SUPPLIER MODE: Matched Logic
-                    // We duplicate the logic from supplier-rfqs.jsx effectively here, 
-                    // or ideally we'd move this to getRFQs service too.
-                    // For now, implementing direct query to ensure stability.
+                    // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
+                    const fetchSupplierRFQs = async () => {
+                        const { data: rfqsData, error: dbError } = await supabase
+                            .from('trades')
+                            .select(`*, categories:category_id(*)`)
+                            .eq('status', 'rfq_created')
+                            .eq('trade_type', 'rfq')
+                            .order('created_at', { ascending: false });
 
-                    const { data: rfqsData, error: dbError } = await supabase
-                        .from('trades')
-                        .select(`*, categories:category_id(*)`)
-                        .eq('status', 'rfq_created')
-                        .eq('trade_type', 'rfq')
-                        .order('created_at', { ascending: false });
+                        if (dbError) throw dbError;
 
-                    if (dbError) {
-                        queryError = dbError;
-                    } else {
+                        if (abortSignal.aborted) throw new Error('Aborted');
+                        return rfqsData;
+                    };
+
+                    try {
+                        const rfqsData = await withRetry(fetchSupplierRFQs);
+
                         // Client-side Match Filter
                         data = (rfqsData || []).filter(rfq => {
                             if (!rfq.matched_supplier_ids || !Array.isArray(rfq.matched_supplier_ids)) return false;
                             return rfq.matched_supplier_ids.includes(profileCompanyId);
                         });
+                    } catch (err) {
+                        queryError = err;
                     }
                 }
 

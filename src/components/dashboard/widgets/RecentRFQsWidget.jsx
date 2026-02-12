@@ -4,7 +4,7 @@ import { FileText, ArrowRight, Calendar, Clock, ArrowUpRight } from 'lucide-reac
 import { Button } from '@/components/shared/ui/button';
 import { Surface } from '@/components/system/Surface';
 import { Badge } from '@/components/shared/ui/badge';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { TableSkeleton } from '@/components/shared/ui/skeletons';
 
@@ -18,26 +18,30 @@ export default function RecentRFQsWidget() {
         async function loadRecentRFQs() {
             // ✅ MOBILE FIX: Set loading=false if no company ID yet
             if (!profileCompanyId) {
-                console.log('[RecentRFQsWidget] Waiting for profileCompanyId...');
-                setLoading(false);
+                // If mounted without ID (should be guarded by DashboardHome), return
+                // Keep loading=true to avoid "No Data" flash
                 return;
             }
 
             try {
-                setLoading(true);
-                // Fetch recent RFQs (either created by me OR public ones if I'm a supplier)
-                // For simplicity in this widget, we show RFQs relevant to the user's role
-                // But to avoid complex logic here, we'll just fetch public OPEN RFQs as "Market Opportunities"
-                // This restores the "Recent Activity" / "Market Pulse" feel
+                // SWR: Only set loading if we have no data
+                if (rfqs.length === 0) setLoading(true);
 
-                const { data, error } = await supabase
-                    .from('rfqs')
-                    .select('id, title, created_at, status, target_price, unit')
-                    .eq('status', 'open')
-                    .order('created_at', { ascending: false })
-                    .limit(5);
+                // Define fetcher
+                const fetchRFQs = async () => {
+                    const { data, error } = await supabase
+                        .from('rfqs')
+                        .select('id, title, created_at, status, target_price, unit')
+                        .eq('status', 'open')
+                        .order('created_at', { ascending: false })
+                        .limit(5);
 
-                if (error) throw error;
+                    if (error) throw error;
+                    return data;
+                };
+
+                // Use retry wrapper for network resilience
+                const data = await withRetry(fetchRFQs);
                 setRfqs(data || []);
             } catch (err) {
                 console.error('[RecentRFQsWidget] Failed to load:', err);
@@ -47,7 +51,7 @@ export default function RecentRFQsWidget() {
         }
 
         loadRecentRFQs();
-    }, [profileCompanyId]); // ✅ FIX: This will re-run when profileCompanyId becomes available
+    }, [profileCompanyId, rfqs.length]); // ✅ FIX: This will re-run when profileCompanyId becomes available
 
     if (loading) {
         return (

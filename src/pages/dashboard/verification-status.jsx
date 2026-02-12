@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Progress } from '@/components/shared/ui/progress';
 import { Badge } from '@/components/shared/ui/badge';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
@@ -106,60 +106,65 @@ export default function VerificationStatus() {
     }
 
     try {
-      setLoading(true);
+      // ✅ SWR: Only show full loading state if we have no data
+      if (!company) setLoading(true);
       setError(null);
 
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
-
-      // Load company data
-      // ✅ CRITICAL FIX: Use profileCompanyId from Kernel (not undefined companyId)
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('id', profileCompanyId)
-        .single();
-
-      if (companyError) throw companyError;
-      setCompany(companyData);
-
-      // Load verification submission data
-      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
-      // ✅ CRITICAL FIX: Use profileCompanyId from Kernel (not undefined companyId)
-      let verifData = null;
-      try {
-        const { data, error: verifError } = await supabase
-          .from('verifications')
+      // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
+      const fetchData = async () => {
+        // Load company data
+        const { data: companyData, error: companyError } = await supabase
+          .from('companies')
           .select('*')
-          .eq('company_id', profileCompanyId)
-          .order('created_at', { ascending: false })
-          .limit(1)
+          .eq('id', profileCompanyId)
           .single();
 
-        if (verifError) {
-          // Handle PGRST116 (not found) - no verification exists yet, this is OK
-          if (verifError.code !== 'PGRST116') {
-            console.error('[VerificationStatus] Error loading verification:', verifError);
-            throw verifError;
-          }
-        } else {
-          verifData = data;
-        }
-      } catch (error) {
-        // PGRST116 (not found) is expected - verification may not exist yet
-        if (error?.code !== 'PGRST116') {
-          console.error('[VerificationStatus] Error loading verification:', error);
-        }
-      }
+        if (companyError) throw companyError;
 
-      if (verifData) {
-        setVerificationData(verifData);
-      }
+        // Load verification submission data
+        let verifData = null;
+        try {
+          const { data, error: verifError } = await supabase
+            .from('verifications')
+            .select('*')
+            .eq('company_id', profileCompanyId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (verifError) {
+            // Handle PGRST116 (not found) - no verification exists yet, this is OK
+            if (verifError.code !== 'PGRST116') {
+              throw verifError;
+            }
+          } else {
+            verifData = data;
+          }
+        } catch (error) {
+          // PGRST116 (not found) is expected - verification may not exist yet
+          if (error?.code !== 'PGRST116') {
+            throw error;
+          }
+        }
+
+        return { companyData, verifData };
+      };
+
+      const { companyData, verifData } = await withRetry(fetchData);
+
+      setCompany(companyData);
+      if (verifData) setVerificationData(verifData);
 
       // Calculate profile strength
       calculateProfileStrength(companyData, verifData);
     } catch (error) {
       console.error('Error loading verification status:', error);
-      toast.error('Failed to load verification status');
+      if (!company) {
+        setError('Failed to load verification status');
+        toast.error('Failed to load verification status');
+      } else {
+        toast.warning('Connection unstable - showing cached data');
+      }
     } finally {
       setLoading(false);
     }
@@ -340,8 +345,8 @@ export default function VerificationStatus() {
                 <div
                   key={step.id}
                   className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-colors ${isCompleted
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-white border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-white border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
                     }`}
                 >
                   <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : 'bg-gray-100'}`}>

@@ -23,7 +23,7 @@ import {
 } from 'recharts';
 // ✅ BACKEND CONNECTION: Removed mock data imports - now using real kyc_verifications table
 // NOTE: Admin check done at route level - removed isAdmin import
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
@@ -33,7 +33,7 @@ import AccessDenied from '@/components/AccessDenied';
 export default function KYCTracker() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, isAdmin } = useDashboardKernel();
-  
+
   // All hooks must be at the top - before any conditional returns
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -71,27 +71,40 @@ export default function KYCTracker() {
     }, 15000);
 
     try {
-      setLoading(true);
+      // ✅ SWR: Only show full loading state if we have no data
+      if (kycVerifications.length === 0) setLoading(true);
       setError(null);
 
       if (abortSignal.aborted) return;
 
-      // ✅ BACKEND CONNECTION: Query kyc_verifications table
-      const { data, error: queryError } = await supabase
-        .from('kyc_verifications')
-        .select('*')
-        .eq('company_id', profileCompanyId)
-        .order('created_at', { ascending: false });
+      // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
+      const fetchKYC = async () => {
+        const { data, error: queryError } = await supabase
+          .from('kyc_verifications')
+          .select('*')
+          .eq('company_id', profileCompanyId)
+          .order('created_at', { ascending: false });
+
+        if (queryError) throw queryError;
+        if (abortSignal.aborted) throw new Error('Aborted');
+        return data;
+      };
+
+      const data = await withRetry(fetchKYC);
 
       if (abortSignal.aborted) return;
-
-      if (queryError) throw queryError;
 
       setKycVerifications(data || []);
     } catch (err) {
-      if (abortSignal.aborted) return;
+      if (abortSignal.aborted || err.message === 'Aborted') return;
       console.error('Error loading KYC verifications:', err);
-      setError(err.message || 'Failed to load KYC verifications');
+
+      // Only show error state if we have no data
+      if (kycVerifications.length === 0) {
+        setError(err.message || 'Failed to load KYC verifications');
+      } else {
+        toast.warning('Connection unstable - showing cached data');
+      }
     } finally {
       // ✅ KERNEL MANIFESTO: Finally Law
       clearTimeout(timeoutId);
@@ -117,7 +130,7 @@ export default function KYCTracker() {
     const pending = kycVerifications.filter(v => v.status === 'pending').length;
     const rejected = kycVerifications.filter(v => v.status === 'rejected').length;
     const overallStatus = verified > 0 ? 'verified' : pending > 0 ? 'pending' : 'rejected';
-    
+
     return {
       overallVerificationStatus: overallStatus,
       identityCheckResult: overallStatus,
@@ -145,8 +158,8 @@ export default function KYCTracker() {
   // ✅ KERNEL MANIFESTO: Rule 5 - Three-State UI (Error BEFORE Loading)
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           loadKycData();
@@ -743,9 +756,8 @@ export default function KYCTracker() {
           <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             PEP (Politically Exposed Person) Screening
           </h2>
-          <Card className={`border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium ${
-            pepScreening.result === 'detected' ? 'border-red-300 bg-red-50/30' : ''
-          }`}>
+          <Card className={`border-afrikoni-gold/20 bg-white rounded-afrikoni-lg shadow-premium ${pepScreening.result === 'detected' ? 'border-red-300 bg-red-50/30' : ''
+            }`}>
             <CardContent className="p-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -842,12 +854,11 @@ export default function KYCTracker() {
                   <div className="text-6xl font-bold mb-2">
                     {riskScoreBreakdown.finalRiskScore}
                   </div>
-                  <Badge className={`text-lg px-4 py-2 ${
-                    riskScoreBreakdown.riskLevel === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
+                  <Badge className={`text-lg px-4 py-2 ${riskScoreBreakdown.riskLevel === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
                     riskScoreBreakdown.riskLevel === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                    riskScoreBreakdown.riskLevel === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                    'bg-red-50 text-red-700 border-red-200'
-                  }`}>
+                      riskScoreBreakdown.riskLevel === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                        'bg-red-50 text-red-700 border-red-200'
+                    }`}>
                     {riskScoreBreakdown.riskLevel.toUpperCase()} RISK
                   </Badge>
                 </div>
@@ -963,9 +974,8 @@ export default function KYCTracker() {
                       <div className="absolute left-6 top-12 w-0.5 h-full" />
                     )}
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        step.status === 'completed' ? 'bg-afrikoni-green/20' : 'bg-gray-100'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${step.status === 'completed' ? 'bg-afrikoni-green/20' : 'bg-gray-100'
+                        }`}>
                         {step.status === 'completed' ? (
                           <CheckCircle2 className="w-6 h-6" />
                         ) : (

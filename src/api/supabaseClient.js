@@ -53,15 +53,15 @@ export const supabase = createClient(
  */
 export async function withRetry(queryFn, maxRetries = 3, baseDelay = 1000) {
   let lastError;
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const result = await queryFn();
-      
+
       // If we have an error property in the result, check if it's retryable
       if (result.error) {
         const error = result.error;
-        
+
         // Don't retry auth errors, validation errors, or not found
         if (
           error.code === 'PGRST116' || // Not found
@@ -75,39 +75,44 @@ export async function withRetry(queryFn, maxRetries = 3, baseDelay = 1000) {
         ) {
           return result; // Return immediately, don't retry
         }
-        
+
         // For other errors, retry
         lastError = error;
-        
+
         // If this is the last attempt, return the error
         if (attempt === maxRetries - 1) {
           return result;
         }
-        
+
         // Exponential backoff: 1s, 2s, 4s
         const delay = baseDelay * Math.pow(2, attempt);
         console.warn(`[Supabase Retry] Attempt ${attempt + 1}/${maxRetries} failed, retrying in ${delay}ms...`, error.message);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
-      
+
       // Success
       return result;
     } catch (err) {
+      // ✅ ABORT HANDLING: Do not retry if the request was aborted
+      if (err.name === 'AbortError' || err.message === 'Aborted') {
+        throw err;
+      }
+
       lastError = err;
-      
+
       // If this is the last attempt, throw
       if (attempt === maxRetries - 1) {
         throw err;
       }
-      
+
       // Exponential backoff
       const delay = baseDelay * Math.pow(2, attempt);
       console.warn(`[Supabase Retry] Attempt ${attempt + 1}/${maxRetries} failed, retrying in ${delay}ms...`, err.message);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-  
+
   // If we get here, all retries failed
   throw lastError;
 }
@@ -119,14 +124,14 @@ export const supabaseHelpers = {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
       if (!user) return null;
-      
+
       // Get profile if it exists
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
-      
+
       return {
         id: user.id,
         email: user.email,
@@ -134,7 +139,7 @@ export const supabaseHelpers = {
         role: profile?.role
       };
     },
-    
+
     signUp: async (email, password, metadata = {}) => {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -145,7 +150,7 @@ export const supabaseHelpers = {
       });
       return { data, error };
     },
-    
+
     signIn: async (email, password) => {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -154,12 +159,12 @@ export const supabaseHelpers = {
       if (error) throw error;
       return data;
     },
-    
+
     signOut: async () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     },
-    
+
     signInWithOAuth: async (provider, redirectTo) => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -171,14 +176,14 @@ export const supabaseHelpers = {
       return data;
     },
   },
-  
+
   storage: {
     upload: async (bucket, path, file, options) => {
       const { data, error } = await supabase.storage.from(bucket).upload(path, file, options);
       if (error) throw error;
       return data;
     },
-    
+
     uploadFile: async (file, bucket, path, options = {}) => {
       // Validate file
       if (!file) {
@@ -216,7 +221,7 @@ export const supabaseHelpers = {
             code: error.statusCode,
             details: error
           });
-          
+
           // Provide user-friendly error messages
           if (error.message?.includes('Bucket not found')) {
             throw new Error(`Storage bucket "${bucket}" not found. Please contact support.`);
@@ -225,18 +230,18 @@ export const supabaseHelpers = {
             const { data: upsertData, error: upsertError } = await supabase.storage
               .from(bucket)
               .update(path, file, { ...uploadOptions, upsert: true });
-            
+
             if (upsertError) {
               throw new Error(`File already exists and update failed: ${upsertError.message}`);
             }
-            
+
             // Get URL for updated file
             const { data: { publicUrl } } = supabase.storage
               .from(bucket)
               .getPublicUrl(upsertData.path);
-            
+
             const fileUrl = publicUrl || `${supabaseUrl}/storage/v1/object/public/${bucket}/${upsertData.path}`;
-            
+
             return {
               file_url: fileUrl,
               path: upsertData.path,
@@ -257,7 +262,7 @@ export const supabaseHelpers = {
 
         // Get public URL - try multiple methods
         let fileUrl = null;
-        
+
         // Method 1: Use getPublicUrl (preferred)
         const { data: urlData, error: urlError } = supabase.storage
           .from(bucket)
@@ -309,13 +314,13 @@ export const supabaseHelpers = {
         throw error;
       }
     },
-    
+
     download: async (bucket, path) => {
       const { data, error } = await supabase.storage.from(bucket).download(path);
       if (error) throw error;
       return data;
     },
-    
+
     getPublicUrl: (bucket, path) => {
       const { data } = supabase.storage.from(bucket).getPublicUrl(path);
       return data?.publicUrl;

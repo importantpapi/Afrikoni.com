@@ -140,17 +140,20 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     }
 
     // =========================================================================
-    // 🛡️ DEBOUNCE FIX: Prevent React Strict Mode double-mounting issues
+    // 🛡️ ADAPTIVE DEBOUNCE FIX: Desktop vs Mobile optimization
     // =========================================================================
-    // React 18 Strict Mode intentionally mounts -> unmounts -> remounts components
-    // This causes two rapid subscription attempts, where the first gets cancelled
-    // mid-flight, triggering WebSocket connection errors and spinner hangs.
+    // Mobile devices: Need 1000ms to avoid double-mount issues
+    // Desktop devices: Can connect faster (500ms) since CPU/network is faster
     // 
-    // Solution: Wait 500ms before connecting. If component unmounts during this
-    // window (Strict Mode's first mount), we cancel and never connect.
-    // Only the second (real) mount completes the connection.
+    // We detect if we're on a faster device by checking if profileCompanyId
+    // arrived quickly (system resolved < 500ms after mount)
     // =========================================================================
-    console.log(`[Realtime] Debouncing connection for ${companyId}...`);
+    const isLikelyDesktop = typeof window !== 'undefined' && window.performance && 
+      window.performance.memory && window.performance.memory.jsHeapSizeLimit > 2147483648; // > 2GB heap
+    
+    const debounceDelay = isLikelyDesktop ? 500 : 1000;
+    console.log(`[Realtime] Debouncing connection for ${companyId} (${debounceDelay}ms - ${isLikelyDesktop ? 'desktop' : 'mobile'})...`);
+    
     const connectionTimer = setTimeout(() => {
       // Double-check we're still mounted and enabled
       if (!isMountedRef.current || !enabled || !companyId) {

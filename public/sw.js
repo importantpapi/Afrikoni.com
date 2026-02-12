@@ -84,24 +84,12 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Strategy A: Network-First for API calls (Supabase)
+    // Strategy A: Network-Only for API calls (Supabase)
+    // ✅ CRITICAL FIX: Do NOT cache API responses in Service Worker.
+    // Let the application handle data fetching and state management.
+    // Caching API responses here causes "Hard Refresh" bugs where stale data persists.
     if (url.hostname.includes('supabase.co')) {
-        event.respondWith(
-            fetch(event.request)
-                .then((response) => {
-                    // Clone and cache the successful response
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseClone);
-                    });
-                    return response;
-                })
-                .catch(() => {
-                    // Fallback to cache if network fails (Offline mode)
-                    return caches.match(event.request);
-                })
-        );
-        return;
+        return; // Bypass SW, go straight to network
     }
 
     // Strategy B: Cache-First for static assets

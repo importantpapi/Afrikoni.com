@@ -60,6 +60,17 @@ export function AuthProvider({ children }) {
   // before profile fetch has completed
   const [authResolutionComplete, setAuthResolutionComplete] = useState(false);
 
+  // ✅ FORENSIC: Boot Trace Logging
+  const BOOT_TRACE_ID = useRef(`AUTH-${Math.random().toString(36).slice(2, 7)}`);
+  const logBoot = (msg, data = {}) => {
+    console.log(`[BootTrace][${BOOT_TRACE_ID.current}][${Date.now()}] ${msg}`, data);
+  };
+
+  useEffect(() => {
+    logBoot('MOUNTED');
+    return () => logBoot('UNMOUNTED');
+  }, []);
+
   // FIX: Track if initial auth has completed
   const hasInitializedRef = useRef(false);
   const schemaValidatedRef = useRef(false);
@@ -154,6 +165,7 @@ export function AuthProvider({ children }) {
 
     try {
       if (import.meta.env.DEV) console.log('[Auth] Resolving...');
+      logBoot('RESOLVE_START', { hasInitialized: hasInitializedRef.current });
 
       // ✅ FIX: Only set loading on INITIAL auth, not on refresh
       if (!hasInitializedRef.current) {
@@ -228,6 +240,7 @@ export function AuthProvider({ children }) {
       hasInitializedRef.current = true;
 
       console.log('[Auth] ✅ Resolved:', { role: resolvedProfile?.role || 'none' });
+      logBoot('RESOLVE_SUCCESS', { userId: session.user.id, role: resolvedProfile?.role });
     } catch (err) {
       console.error('[Auth] Error:', err);
       setUser(null);
@@ -237,6 +250,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
       setAuthResolutionComplete(true); // FIX: Signal completion even on error (allows routing)
       hasInitializedRef.current = true;
+      logBoot('RESOLVE_ERROR or NO_USER', { err });
     } finally {
       // ✅ FIX: Release lock and process any pending events
       isResolvingRef.current = false;

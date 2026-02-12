@@ -3,7 +3,7 @@
  * Centralizes business logic for RFQ creation.
  */
 
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { sanitizeString, validateNumeric } from '@/utils/security';
 import { format } from 'date-fns';
@@ -208,7 +208,9 @@ export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' 
     // Order by newest
     query = query.order('created_at', { ascending: false });
 
-    const { data, error, count } = await query;
+    // ✅ ENTERPRISE RELIABILITY: Use withRetry for critical read
+    const fetchWithRetry = async () => await query;
+    const { data, error, count } = await withRetry(fetchWithRetry);
 
     if (error) {
       console.error('[rfqService] Error fetching RFQs (Trades):', error);

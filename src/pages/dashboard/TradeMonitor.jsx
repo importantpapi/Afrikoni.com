@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { analyzeContext } from '@/services/tradeKernel';
 
 // UI Components
@@ -86,23 +86,31 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
         // Loading Function
         const loadTrades = async () => {
             try {
-                setIsLoading(true);
+                // ✅ SWR: Only show full loading state if we have no data
+                if (orders.length === 0) setIsLoading(true);
                 setError(null);
 
-                let query = supabase
-                    .from('orders')
-                    .select('*, products(*)')
-                    .order('created_at', { ascending: false });
+                // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
+                const fetchTrades = async () => {
+                    let query = supabase
+                        .from('orders')
+                        .select('*, products(*)')
+                        .order('created_at', { ascending: false });
 
-                // ONE FLOW LOGIC: Filter by View Mode
-                if (viewMode === 'sell') {
-                    query = query.eq('seller_company_id', profileCompanyId);
-                } else {
-                    // Default to buy
-                    query = query.eq('buyer_company_id', profileCompanyId);
-                }
+                    // ONE FLOW LOGIC: Filter by View Mode
+                    if (viewMode === 'sell') {
+                        query = query.eq('seller_company_id', profileCompanyId);
+                    } else {
+                        // Default to buy
+                        query = query.eq('buyer_company_id', profileCompanyId);
+                    }
 
-                const { data, error: queryError } = await query;
+                    if (abortSignal.aborted) throw new Error('Aborted');
+                    return await query;
+                };
+
+                // Execute with retry wrapper
+                const { data, error: queryError } = await withRetry(fetchTrades);
 
                 if (abortSignal.aborted) return;
                 if (queryError) throw queryError;
@@ -122,8 +130,12 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
             } catch (err) {
                 if (!abortSignal.aborted) {
                     console.error('[TradeMonitor] Load Error:', err);
-                    setError(err.message || 'Failed to load trades');
-                    toast.error('Failed to load trades');
+                    // Only show full error if we have no data
+                    if (orders.length === 0) {
+                        setError(err.message || 'Failed to load trades');
+                    } else {
+                        toast.error('Connection unstable - using cached data');
+                    }
                 }
             } finally {
                 if (!abortSignal.aborted) setIsLoading(false);

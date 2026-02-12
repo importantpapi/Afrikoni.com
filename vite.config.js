@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
 
 // ✅ TOTAL SYSTEM SYNC: Force cache break with timestamp versioning
 const BUILD_TIMESTAMP = Date.now();
@@ -53,10 +54,22 @@ export default defineConfig({
   },
   // Ensure public directory files are served correctly
   publicDir: 'public',
+  // ✅ TOTAL SYSTEM SYNC: Force re-optimization, but as a valid config option 'optimizeDeps'
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
-    // ✅ TOTAL SYSTEM SYNC: Force re-optimization
     force: true,
-  },
+  }
 });
+
+// ✅ ENTERPRISE RESILIENCE: Generate meta.json for version checking
+try {
+  const meta = { version: BUILD_TIMESTAMP };
+  const publicDir = path.resolve(__dirname, 'public');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir);
+  }
+  fs.writeFileSync(path.join(publicDir, 'meta.json'), JSON.stringify(meta));
+  console.log('[Vite] Generated public/meta.json with version:', BUILD_TIMESTAMP);
+} catch (err) {
+  console.error('[Vite] Failed to generate meta.json:', err);
+}
 

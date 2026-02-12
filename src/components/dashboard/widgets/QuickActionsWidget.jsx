@@ -17,8 +17,8 @@ export default function QuickActionsWidget() {
     const navigate = useNavigate();
     const { capabilities } = useDashboardKernel();
 
-    const canSell = capabilities?.canSell;
-    const canBuy = capabilities?.canBuy;
+    const canSell = capabilities?.can_sell;
+    const canBuy = capabilities?.can_buy;
 
     return (
         <Surface variant="glass" className="p-6">

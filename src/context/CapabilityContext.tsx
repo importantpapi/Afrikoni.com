@@ -121,7 +121,9 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
 
     try {
       if (!hasFetchedRef.current) {
-        setCapabilities(prev => ({ ...prev, loading: true, error: null, ready: false }));
+        // ✅ ENTERPRISE SWR: Keep 'ready' state if previously true
+        // Don't flip ready=false which triggers "Flash of Skeleton"
+        setCapabilities(prev => ({ ...prev, loading: true, error: null }));
       }
 
       const fetchTimer = setTimeout(() => {

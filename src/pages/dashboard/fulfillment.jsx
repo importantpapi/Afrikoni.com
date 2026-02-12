@@ -13,11 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, withRetry } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
-import { 
+import {
   getOrderFulfillment,
   updateFulfillmentStatus,
   getWarehouseLocations
@@ -32,7 +32,7 @@ import { Surface } from '@/components/system/Surface';
 function FulfillmentDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const [fulfillments, setFulfillments] = useState([]);
@@ -84,10 +84,10 @@ function FulfillmentDashboardInner() {
     }, 15000);
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
       console.log('[FulfillmentDashboard] Data is stale or first load - refreshing');
       loadData(abortSignal).catch(err => {
@@ -128,80 +128,63 @@ function FulfillmentDashboardInner() {
 
       // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
       if (abortSignal?.aborted) return;
-      
-      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
-      // Load orders with fulfillment status
-      // For logistics users, show orders they're handling logistics for
-      // For sellers, show their own orders
-      let ordersQuery = supabase
-        .from('orders')
-        .select(`
-          *,
-          fulfillment:order_fulfillment(*),
-          buyer_company:companies!orders_buyer_company_id_fkey(*)
-        `);
 
-      if (canLogistics && profileCompanyId) {
-        // Logistics: show orders where they're the logistics partner
-        // Check via shipments table
-        const { data: shipments, error: shipmentsError } = await supabase
-          .from('shipments')
-          .select('order_id')
-          .eq('logistics_partner_id', profileCompanyId);
+      // ✅ ENTERPRISE RELIABILITY: Define fetcher for withRetry
+      const fetchFulfillmentData = async () => {
+        // 1. Orders Query
+        let ordersQuery = supabase
+          .from('orders')
+          .select(`
+              *,
+              fulfillment:order_fulfillment(*),
+              buyer_company:companies!orders_buyer_company_id_fkey(*)
+            `);
 
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-        if (abortSignal?.aborted) return;
+        if (canLogistics && profileCompanyId) {
+          // Logistics: show orders where they're the logistics partner
+          const { data: shipments, error: shipmentsError } = await supabase
+            .from('shipments')
+            .select('order_id')
+            .eq('logistics_partner_id', profileCompanyId);
 
-        // ✅ GLOBAL HARDENING: Enhanced error logging
-        if (shipmentsError) {
-          logError('loadData-shipments', shipmentsError, {
-            table: 'shipments',
-            companyId: profileCompanyId,
-            userId: userId
-          });
-        }
+          if (shipmentsError) throw shipmentsError;
 
-        if (shipments && shipments.length > 0) {
-          const orderIds = shipments.map(s => s.order_id).filter(Boolean);
-          if (orderIds.length > 0) {
-            ordersQuery = ordersQuery.in('id', orderIds);
+          if (shipments && shipments.length > 0) {
+            const orderIds = shipments.map(s => s.order_id).filter(Boolean);
+            if (orderIds.length > 0) {
+              ordersQuery = ordersQuery.in('id', orderIds);
+            } else {
+              return { orders: [], warehouses: [] };
+            }
           } else {
-            // No shipments yet, return empty
-            setFulfillments([]);
-            setIsLoading(false);
-            return;
+            return { orders: [], warehouses: [] };
           }
+        } else if (profileCompanyId) {
+          // Seller/Hybrid: show their own orders
+          ordersQuery = ordersQuery.eq('seller_company_id', profileCompanyId);
         } else {
-          // No shipments for this logistics company
-          setFulfillments([]);
-          setIsLoading(false);
-          return;
+          return { orders: [], warehouses: [] };
         }
-      } else if (profileCompanyId) {
-        // Seller/Hybrid: show their own orders
-        ordersQuery = ordersQuery.eq('seller_company_id', profileCompanyId);
-      } else {
-        // No company ID and not logistics - show empty
-        setFulfillments([]);
-        setIsLoading(false);
-        return;
-      }
 
-      const { data: orders, error: ordersError } = await ordersQuery
-        .order('created_at', { ascending: false });
+        const { data: orders, error: ordersError } = await ordersQuery
+          .order('created_at', { ascending: false });
 
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-      if (abortSignal?.aborted) return;
+        if (ordersError) throw ordersError;
 
-      // ✅ GLOBAL HARDENING: Enhanced error logging
-      if (ordersError) {
-        logError('loadData-orders', ordersError, {
-          table: 'orders',
-          companyId: profileCompanyId,
-          userId: userId
-        });
-        throw ordersError; // Let catch block handle it
-      }
+        // 2. Warehouses Query (Parallel or Sequential - Sequential here for simplicity/retry scope)
+        let warehousesList = [];
+        if (profileCompanyId && !canLogistics) {
+          const wResult = await getWarehouseLocations(profileCompanyId);
+          warehousesList = Array.isArray(wResult) ? wResult : [];
+        }
+
+        if (abortSignal.aborted) throw new Error('Aborted');
+
+        return { orders: orders || [], warehouses: warehousesList };
+      };
+
+      // Execute with retry
+      const { orders, warehouses: warehousesList } = await withRetry(fetchFulfillmentData);
 
       if (orders && Array.isArray(orders)) {
         const fulfillmentsList = orders
@@ -211,54 +194,35 @@ function FulfillmentDashboardInner() {
             order: order
           }))
           .filter(f => statusFilter === 'all' || f.status === statusFilter);
-        
+
         setFulfillments(fulfillmentsList);
         console.log('[FulfillmentDashboard] Loaded fulfillments:', fulfillmentsList.length);
       } else {
         setFulfillments([]);
-        console.log('[FulfillmentDashboard] No orders found or orders is not an array');
       }
 
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before more queries
-      if (abortSignal?.aborted) return;
-
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before more queries
-      if (abortSignal?.aborted) return;
-
-      // Load warehouses (non-blocking, fail-safe) - only for sellers/hybrid with company
-      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
-      if (profileCompanyId && !canLogistics) {
-        const warehousesList = await getWarehouseLocations(profileCompanyId).catch((err) => {
-          logError('loadData-warehouses', err, {
-            companyId: profileCompanyId, // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
-            userId: userId
-          });
-          return [];
-        });
-        setWarehouses(Array.isArray(warehousesList) ? warehousesList : []);
-      } else {
-        // Logistics users don't need warehouses (they manage shipments, not fulfillment)
-        setWarehouses([]);
-      }
-
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after all queries
-      if (abortSignal?.aborted) return;
+      setWarehouses(warehousesList);
 
       // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
       console.log('[FulfillmentDashboard] Data loaded successfully');
+
     } catch (error) {
       // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
-      if (error.name === 'AbortError' || abortSignal?.aborted) return;
+      if (error.name === 'AbortError' || error.message === 'Aborted' || abortSignal?.aborted) return;
       logError('loadData', error, {
         companyId: profileCompanyId, // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
         userId: userId
       });
-      toast.error('Failed to load fulfillment data. Please try again.');
-      // In production, quietly show empty states instead of an error toast
-      setFulfillments([]);
-      setWarehouses([]);
+
+      // Only show toast if we have no data to show
+      if (fulfillments.length === 0) {
+        toast.error('Failed to load fulfillment data. Please try again.');
+        setError('Connection failed. Please retry.');
+      } else {
+        toast.warning('Connection unstable - showing cached data');
+      }
     } finally {
       console.log('[FulfillmentDashboard] Setting isLoading to false');
       setIsLoading(false);
@@ -313,8 +277,8 @@ function FulfillmentDashboardInner() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadData}
       />
     );
@@ -410,44 +374,44 @@ function FulfillmentDashboardInner() {
                   animate={{ opacity: 1, y: 0 }}
                   className="border rounded-xl p-4 hover:shadow-md transition-shadow"
                 >
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <Package className="w-5 h-5" />
-                          <p className="font-semibold">
-                            Order #{fulfillment.order?.order_number || fulfillment.order_id?.slice(0, 8)}
-                          </p>
-                          <Badge variant={getStatusBadge(fulfillment.status)}>
-                            {getStatusIcon(fulfillment.status)}
-                            <span className="ml-1 capitalize">{fulfillment.status.replace('_', ' ')}</span>
-                          </Badge>
-                        </div>
-                        <p className="text-sm">
-                          Buyer: {fulfillment.order?.buyer_company?.name || 'Buyer'}
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <Package className="w-5 h-5" />
+                        <p className="font-semibold">
+                          Order #{fulfillment.order?.order_number || fulfillment.order_id?.slice(0, 8)}
                         </p>
-                        {fulfillment.warehouse && (
-                          <p className="text-sm">
-                            Warehouse: {fulfillment.warehouse?.name || 'N/A'}
-                          </p>
-                        )}
+                        <Badge variant={getStatusBadge(fulfillment.status)}>
+                          {getStatusIcon(fulfillment.status)}
+                          <span className="ml-1 capitalize">{fulfillment.status.replace('_', ' ')}</span>
+                        </Badge>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <Link to={`/dashboard/orders/${fulfillment.order_id}`}>
-                        <Button variant="outline" size="sm">
-                          View Order
-                        </Button>
-                      </Link>
-                      {getNextStatus(fulfillment.status) && (
-                        <Button
-                          size="sm"
-                          className="hover:bg-afrikoni-gold/90"
-                          onClick={() => handleUpdateStatus(fulfillment.id, getNextStatus(fulfillment.status))}
-                        >
-                          Mark as {getNextStatus(fulfillment.status).replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </Button>
+                      <p className="text-sm">
+                        Buyer: {fulfillment.order?.buyer_company?.name || 'Buyer'}
+                      </p>
+                      {fulfillment.warehouse && (
+                        <p className="text-sm">
+                          Warehouse: {fulfillment.warehouse?.name || 'N/A'}
+                        </p>
                       )}
                     </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <Link to={`/dashboard/orders/${fulfillment.order_id}`}>
+                      <Button variant="outline" size="sm">
+                        View Order
+                      </Button>
+                    </Link>
+                    {getNextStatus(fulfillment.status) && (
+                      <Button
+                        size="sm"
+                        className="hover:bg-afrikoni-gold/90"
+                        onClick={() => handleUpdateStatus(fulfillment.id, getNextStatus(fulfillment.status))}
+                      >
+                        Mark as {getNextStatus(fulfillment.status).replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Button>
+                    )}
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -492,12 +456,12 @@ function FulfillmentDashboardInner() {
 }
 
 export default function FulfillmentDashboard() {
-    return (
-      <>
-        {/* PHASE 5B: Fulfillment requires sell or logistics capability (approved) */}
-        <RequireCapability canSell={true} canLogistics={true} requireApproved={true}>
-          <FulfillmentDashboardInner />
-        </RequireCapability>
-      </>
-    );
+  return (
+    <>
+      {/* PHASE 5B: Fulfillment requires sell or logistics capability (approved) */}
+      <RequireCapability canSell={true} canLogistics={true} requireApproved={true}>
+        <FulfillmentDashboardInner />
+      </RequireCapability>
+    </>
+  );
 }

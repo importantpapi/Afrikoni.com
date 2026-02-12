@@ -1,6 +1,8 @@
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
+import SeedButton from '@/components/dashboard/SeedButton';
 import OneFlow from './OneFlow';
 import { useTradeKernelState } from '@/hooks/useTradeKernelState';
 import { ArrowRight, Box, CreditCard, Ship } from 'lucide-react';
@@ -15,6 +17,15 @@ export default function DashboardHome() {
   const { isSystemReady, profileCompanyId, userId } = useDashboardKernel();
   const { activeTrades, loading: tradesLoading } = useTradeKernelState();
   const navigate = useNavigate();
+
+  // ✅ FORENSIC: Boot Trace Logging
+  useEffect(() => {
+    console.log(`[BootTrace][DASHBOARD][${Date.now()}] MOUNTED`, {
+      isSystemReady,
+      profileCompanyId,
+      userId
+    });
+  }, [isSystemReady, profileCompanyId, userId]);
 
   // ✅ MOBILE FIX: Wait for BOTH system ready AND company ID
   // Mobile devices are slower, so we need explicit checks
@@ -32,7 +43,10 @@ export default function DashboardHome() {
           <h1 className="text-2xl font-light tracking-tight">Trade OS <span className="text-os-muted">/ Command Center</span></h1>
           <p className="text-xs text-os-muted font-mono mt-1 uppercase tracking-widest">Unified Horizon Protocol v1.1</p>
         </div>
-        <OSStatusBar />
+        <div className="flex items-center gap-2">
+          <SeedButton />
+          <OSStatusBar />
+        </div>
       </div>
 
       {/* 2. ACTIONS & INTELLIGENCE */}
@@ -120,8 +134,8 @@ export default function DashboardHome() {
             </div>
           </Surface>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 
