@@ -119,6 +119,7 @@ export function usePushNotifications() {
         loading,
         subscribe,
         unsubscribe,
-        permission: Notification.permission
+        permission: typeof Notification !== 'undefined' ? Notification.permission : 'denied',
+        isSupported: typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
     };
 }

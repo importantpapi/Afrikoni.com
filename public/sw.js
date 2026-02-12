@@ -62,6 +62,28 @@ self.addEventListener('fetch', (event) => {
 
     const url = new URL(event.request.url);
 
+    // ✅ PWA FIX: Network-First for index.html and root path
+    // This is CRITICAL to prevent "Hard Refresh" loops on mobile devices.
+    // index.html contains the hashes of all other assets; if it's stale, the app breaks.
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    if (response.status === 200) {
+                        const responseClone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
     // ✅ PWA FIX: Network-First for JS bundles (prevent stale code)
     if (url.pathname.endsWith('.js') || url.pathname.includes('/assets/')) {
         event.respondWith(

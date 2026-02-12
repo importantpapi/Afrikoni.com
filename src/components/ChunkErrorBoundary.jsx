@@ -68,24 +68,14 @@ class ChunkErrorBoundary extends React.Component {
                 );
             }
 
-            // Fallback to parent error boundary for other errors if we want, 
-            // OR render a generic error here. 
-            // Since we are nested inside the main ErrorBoundary, we could re-throw 
-            // if it's NOT a chunk error to let the main one handle it.
-            // But for stability, let's handle it here if it happened in our children (Routes).
-            return this.props.children; // Re-render to let bubble up? 
-            // Actually, if we return children with error info, it loops.
-            // Better to show generic error or re-throw.
-            // Let's re-throw non-chunk errors to let the "Critical Error" screen handle real crashes.
-            // UNLESS the user wants us to contain it.
-            // Let's default to showing a localized error message.
-
+            // For other localized errors (non-chunk), show a "Connection Interrupted" fallback
+            // This prevents a render loop while still providing a recovery path
             return (
                 <div className="p-6 flex flex-col items-center justify-center min-h-[400px]">
                     <WifiOff className="w-12 h-12 text-os-muted mb-4" />
                     <h3 className="text-lg font-medium mb-2">Connection Interrupted</h3>
                     <p className="text-os-muted text-sm mb-6 max-w-xs text-center">
-                        The connection to the dashboard interface was lost.
+                        The connection to the dashboard interface was lost or interrupted.
                     </p>
                     <Button variant="outline" onClick={() => window.location.reload()}>
                         Retry Connection

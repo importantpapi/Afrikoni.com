@@ -21,14 +21,17 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     // ✅ MOBILE FIX: Classify error severity
-    const isRecoverable = 
-      error?.message?.includes('Cannot read') ||
-      error?.message?.includes('undefined') ||
-      error?.message?.includes('null') ||
-      error?.toString().includes('Warning');
-    
+    const errorString = error?.toString() || '';
+    const isRecoverable =
+      errorString.includes('Cannot read') ||
+      errorString.includes('undefined') ||
+      errorString.includes('null') ||
+      errorString.includes('QuotaExceededError') ||
+      errorString.includes('SecurityError') ||
+      errorString.includes('Storage');
+
     const severity = isRecoverable ? 'RECOVERABLE' : 'CRITICAL';
-    
+
     console.error(`[Trade OS] ${severity} Error caught by boundary:`, error, errorInfo);
     telemetry.logError(error, {
       componentStack: errorInfo?.componentStack,
@@ -50,26 +53,45 @@ class ErrorBoundary extends React.Component {
     this.setState({ hasError: false, error: null, errorInfo: null, retryCount: this.state.retryCount + 1 });
   };
 
-  handleReset = () => {
+  handleReset = async () => {
     telemetry.trackEvent('system_crash_hard_reset');
-    // Clear local storage if kernel state is corrupted
-    localStorage.removeItem('afrikoni_auth_token');
-    localStorage.removeItem('sb-access-token');
-    localStorage.removeItem('active_trade_session'); // Clear persisted trade state too
+
+    // 1. Clear ALL storage (Total Purge)
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('[ErrorBoundary] Storage clear failed:', e);
+    }
+
+    // 2. Unregister ALL service workers (Total Killshot)
+    if ('serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+        console.log('[ErrorBoundary] Service Workers unregistered');
+      } catch (e) {
+        console.error('[ErrorBoundary] SW unregistration failed:', e);
+      }
+    }
+
+    // 3. Forced hard reload to dashboard
     window.location.href = '/dashboard';
   };
 
   render() {
     if (this.state.hasError) {
       const isDev = import.meta.env.DEV;
-      
+
       // ✅ MOBILE FIX: Classify error as recoverable or critical
-      const isRecoverable = 
+      const isRecoverable =
         this.state.error?.message?.includes('Cannot read') ||
         this.state.error?.message?.includes('undefined') ||
         this.state.error?.message?.includes('null') ||
         this.state.error?.toString().includes('Warning');
-      
+
       const canRetry = isRecoverable && this.state.retryCount < 3;
 
       return (
@@ -87,7 +109,7 @@ class ErrorBoundary extends React.Component {
                 {isRecoverable ? 'System Synchronization Issue' : 'System Encountered a Critical Error'}
               </h1>
               <p className="text-white/60 mb-8 max-w-md">
-                {isRecoverable 
+                {isRecoverable
                   ? 'The dashboard experienced a timing issue during boot. This is typically resolved by retrying the connection.'
                   : 'The Trade OS Kernel encountered an unexpected state and halted execution to protect data integrity.'
                 }
@@ -103,7 +125,7 @@ class ErrorBoundary extends React.Component {
                     Retry Connection
                   </Button>
                 )}
-                
+
                 <Button
                   onClick={this.handleReload}
                   className={`${isRecoverable ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'} text-white min-w-[160px]`}

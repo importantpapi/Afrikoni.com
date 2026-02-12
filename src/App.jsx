@@ -255,7 +255,6 @@ function AppContent() {
   const location = useLocation();
 
   useSessionRefresh();
-  useSessionRefresh();
   useBrowserNavigation();
   useVersionCheck(); // ✅ ENTERPRISE RESILIENCE: Auto-update on version mismatch
 

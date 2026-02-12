@@ -35,10 +35,27 @@ class TelemetryService {
     }
 
     logError(error, context = {}) {
+        const enrichedContext = {
+            ...context,
+            url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+            screen: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown',
+            timestamp: new Date().toISOString(),
+            isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+            connection: typeof navigator !== 'undefined' && navigator.connection ? {
+                effectiveType: navigator.connection.effectiveType,
+                saveData: navigator.connection.saveData
+            } : 'unknown'
+        };
+
         if (isDev) {
-            console.error('[Telemetry] Error Captured:', error, context);
+            console.error('[Telemetry] Error Captured:', error, enrichedContext);
         } else {
-            // Placeholder: Sentry.captureException(error, { extra: context })
+            // Placeholder: Sentry.captureException(error, { extra: enrichedContext })
+            // Even in prod, let's keep a tiny breadcrumb in console if error tracking fails
+            if (window.__SUPABASE_DEBUG__) {
+                console.warn('[Telemetry Breadcrumb]', error.message, enrichedContext);
+            }
         }
     }
 

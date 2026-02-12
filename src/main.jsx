@@ -85,7 +85,8 @@ if (!rootElement) {
         </ErrorBoundary>
       );
     } catch (e) {
-      document.body.innerHTML = '<pre>App failed to start. Check console.</pre>';
+      console.error('[React Render] Critical failure during initial mount:', e);
+      document.body.innerHTML = '<pre>App failed to start. Check console for details.</pre>';
     }
   };
 
