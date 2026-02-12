@@ -9,13 +9,13 @@
 
 import React from 'react';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useOutletContext } from 'react-router-dom';
 import { ControlPlaneDashboard } from '@/components/trade-os/ControlPlaneDashboard';
-import { useTradeSystemState } from '@/hooks/useTradeSystemState';
 import { PageLoader } from '@/components/shared/ui/skeletons';
 
 export default function ControlPlanePage() {
     const { isSystemReady } = useDashboardKernel();
-    const { systemState, isLoading, error, refresh } = useTradeSystemState();
+    const { systemState, refreshSystemState: refresh } = useOutletContext();
 
     if (!isSystemReady) {
         return <PageLoader />;

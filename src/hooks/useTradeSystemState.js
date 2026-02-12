@@ -243,11 +243,17 @@ export const useTradeSystemState = () => {
                 supabase.from('shipments').select('*').eq('company_id', profile.company_id),
                 supabase.from('escrow_accounts').select('*').eq('company_id', profile.company_id),
                 supabase.from('trade_corridors').select('*'),
+                supabase.from('rfqs')
+                    .select('*')
+                    .or(`buyer_company_id.eq.${profile.company_id}`)
+                    .order('created_at', { ascending: false })
+                    .range(0, 49),
             ]);
 
-            // Calculate trade history metrics
+            // Calculate trade history metrics (Unified: Trades + RFQs)
             const tradeHistory = {
                 completed: trades?.filter(t => t.status === 'completed').length || 0,
+                active_rfqs: trades?.filter(t => t.trade_type === 'rfq' && t.status !== 'completed').length || 0,
                 // SCHEMA FIX: Fallback for missing 'delivered_on_time' column
                 onTimeRate: trades?.length > 0
                     ? (trades.filter(t => t.delivered_on_time === true).length / trades.length) * 100
@@ -431,48 +437,12 @@ export const useTradeSystemState = () => {
         }
     }, [user, profile]);
 
-    // ✅ REALTIME INVALIDATION LOOP
-    const handleRealtimeUpdate = useCallback((payload) => {
-        console.log(`[useTradeSystemState] ⚡ Realtime Update: ${payload.table} | Refetching...`);
-        fetchSystemState(false); // Debounced refetch
-    }, [fetchSystemState]);
-
-    // ✅ KERNEL ALIGNMENT: Use global event loop (Singleton Pattern)
-    // The DashboardRealtimeManager handles the actual subscription.
-    useEffect(() => {
-        const handleGlobalUpdate = (event) => {
-            const { table } = event.detail || {};
-            // If the update is relevant to trade system state, refetch
-            if (['trades', 'rfqs', 'shipments', 'payments', 'companies'].includes(table)) {
-                handleRealtimeUpdate({ table });
-            }
-        };
-
-        window.addEventListener('dashboard-realtime-update', handleGlobalUpdate);
-        return () => {
-            window.removeEventListener('dashboard-realtime-update', handleGlobalUpdate);
-        };
-    }, [handleRealtimeUpdate]);
-
-    // ✅ KERNEL INVALIDATION SYNC
-    useEffect(() => {
-        if (lastInvalidatedAt > 0) {
-            // If any relevant tag is invalidated, or global (*)
-            const relevantTags = ['trades', 'rfqs', 'shipments', 'payments', 'capabilities'];
-            const shouldRefetch = invalidatedTags.has('*') ||
-                relevantTags.some(tag => invalidatedTags.has(tag));
-
-            if (shouldRefetch) {
-                console.log('[useTradeSystemState] 🔄 Kernel invalidation detected | Refetching...');
-                fetchSystemState(true); // Forced refetch
-            }
-        }
-    }, [lastInvalidatedAt, invalidatedTags, fetchSystemState]);
-
     // Fetch on mount and when user/profile changes
     useEffect(() => {
-        fetchSystemState();
-    }, [fetchSystemState]);
+        if (isSystemReady) {
+            fetchSystemState();
+        }
+    }, [fetchSystemState, isSystemReady]);
 
     // Auto-refresh every 5 minutes (Fallback)
     useEffect(() => {
@@ -488,5 +458,6 @@ export const useTradeSystemState = () => {
         isLoading,
         error,
         refresh: () => fetchSystemState(true),
+        isSystemReady
     };
 };

@@ -96,9 +96,9 @@ export default function OneFlow() {
 
     // ✅ KERNEL CONSOLIDATION: Listen for unified realtime events
     const handleRealtimeUpdate = (e) => {
-      const { table, event, new: newData } = e.detail || {};
-      if (table === 'trades' && newData?.id === tradeId) {
-        setTrade(newData);
+      const { table, event, data } = e.detail || {};
+      if (table === 'trades' && data?.id === tradeId) {
+        setTrade(data);
       }
     };
 

@@ -37,10 +37,10 @@ import { useOSSettings } from '@/hooks/useOSSettings';
 // OS Shell Z-Index Hierarchy
 export const OS_Z_INDEX = {
     modal: 1300,
-    overlay: 1200,
-    systemLayer: 1100,
-    identityLayer: 1000,
-    workspaceNav: 900,
+    systemLayer: 1200,
+    identityLayer: 1150,
+    workspaceNav: 1100, // ABOVE overlay
+    overlay: 1000,      // BELOW workspaceNav
     copilot: 800,
     content: 1
 };
@@ -337,6 +337,7 @@ export default function OSShell({
                                 isOpen={true}
                                 onClose={() => setCopilotOpen(false)}
                                 recommendations={systemState?.intelligence?.recommendations || []}
+                                systemState={systemState}
                             />
                         </motion.div>
                     )}

@@ -184,6 +184,7 @@ export function IdentityLayer({
                     <>
                         <div
                             className="fixed inset-0 z-[1001]"
+                            style={{ zIndex: 1001 }}
                             onClick={() => setUserMenuOpen(false)}
                         />
                         <motion.div

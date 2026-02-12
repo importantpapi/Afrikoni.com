@@ -40,8 +40,8 @@ const PullToRefresh = ({ children, onRefresh, containerRef }) => {
                 y.set(pull);
                 setPullProgress(Math.min(pull / pullThreshold, 1));
 
-                // Prevent default only if we are actually pulling
-                if (diff > 10) {
+                // Prevent default only if we are actually pulling with intent
+                if (diff > 25) {
                     if (e.cancelable) e.preventDefault();
                 }
             }

@@ -48,6 +48,25 @@ function RecentRFQsWidget() {
         }
 
         loadRecentRFQs();
+
+        // ✅ REACTIVE MARKET: Listen for global signals to refresh RFQs live
+        const handleGlobalUpdate = (event) => {
+            const { table } = event.detail || {};
+            if (table === 'rfqs') {
+                console.log(`[RecentRFQsWidget] 📊 Signal received for ${table} - Refreshing market data...`);
+                loadRecentRFQs();
+            }
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('dashboard-realtime-update', handleGlobalUpdate);
+        }
+
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('dashboard-realtime-update', handleGlobalUpdate);
+            }
+        };
     }, [profileCompanyId, rfqs.length]); // ✅ FIX: This will re-run when profileCompanyId becomes available
 
     if (loading) {

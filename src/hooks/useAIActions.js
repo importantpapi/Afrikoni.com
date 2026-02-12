@@ -32,6 +32,31 @@ export function useAIActions() {
         // Else: user exists, profile pending -> Do nothing (retain loading=true)
     }, [user, profile?.company_id]);
 
+    // ✅ REACTIVE INSIGHTS: Listen for global signals to refresh actions live
+    useEffect(() => {
+        if (!user || !profile?.company_id) return;
+
+        const handleGlobalUpdate = (event) => {
+            const { table } = event.detail || {};
+            const relevantTables = ['trades', 'rfqs', 'products', 'shipments', 'escrows'];
+
+            if (relevantTables.includes(table)) {
+                console.log(`[useAIActions] 🧠 Signal received for ${table} - Refreshing insights...`);
+                loadActions();
+            }
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('dashboard-realtime-update', handleGlobalUpdate);
+        }
+
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('dashboard-realtime-update', handleGlobalUpdate);
+            }
+        };
+    }, [user, profile?.company_id]);
+
     const loadActions = async () => {
         // ✅ MOBILE FIX: Double-check company_id before fetching
         if (!profile?.company_id) {

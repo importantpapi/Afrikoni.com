@@ -180,11 +180,10 @@ export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' 
   try {
     if (!user || !companyId) return { data: [], count: 0 };
 
-    // Query TRADES table
+    // Query RFQS table (established schema)
     let query = supabase
-      .from('trades')
-      .select('*, quotes:quotes(count)', { count: 'exact' })
-      .eq('trade_type', 'rfq');
+      .from('rfqs')
+      .select('*, quotes:quotes(count)', { count: 'exact' });
 
     // Filter by Company Logic
     if (role === 'buyer') {

@@ -51,14 +51,14 @@ export function useNotificationCounts(userId, companyId) {
             .from('rfqs')
             .select('id', { count: 'exact', head: true })
             .eq('status', 'open');
-          
+
           // ✅ FIX: Use .or() with proper syntax - check if expires_at is null OR >= now
           rfqQuery = rfqQuery.or(`expires_at.is.null,expires_at.gte.${now}`);
-          
+
           const { count, error } = await rfqQuery;
           rfqCount = count || 0;
           rfqError = error;
-          
+
           if (rfqError) {
             console.debug('Error loading RFQ count:', rfqError);
             // Don't throw - just log and continue with 0 count
@@ -84,7 +84,7 @@ export function useNotificationCounts(userId, companyId) {
               .eq('status', 'pending');
             approvalCount = count || 0;
             approvalError = error;
-            
+
             // ✅ FIX: If table doesn't exist (404), just return 0 count
             if (approvalError && (approvalError.code === 'PGRST116' || approvalError.message?.includes('does not exist'))) {
               console.debug('KYC verifications table not found - returning 0 count');
@@ -125,10 +125,32 @@ export function useNotificationCounts(userId, companyId) {
     };
 
     loadCounts();
-    
-    // Refresh every 30 seconds
+
+    // ✅ REACTIVE BADGES: Listen for global signals to refresh counts live
+    // This eliminates the 30-second lag for notification badges.
+    const handleGlobalUpdate = (event) => {
+      const { table } = event.detail || {};
+      const relevantTables = ['messages', 'rfqs', 'notifications', 'kyc_verifications'];
+
+      if (relevantTables.includes(table)) {
+        console.log(`[useNotificationCounts] 🔔 Signal received for ${table} - Refreshing badges...`);
+        loadCounts();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dashboard-realtime-update', handleGlobalUpdate);
+    }
+
+    // Refresh every 30 seconds (Fallback heartbeat)
     const interval = setInterval(loadCounts, 30000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('dashboard-realtime-update', handleGlobalUpdate);
+      }
+    };
   }, [userId, companyId]);
 
   return counts;

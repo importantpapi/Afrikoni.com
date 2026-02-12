@@ -66,9 +66,10 @@ export function useDataFreshness(thresholdMs = 30000, eventFilter = null) {
 
   }, [lastFetched, thresholdMs, isStale]);
 
-  // ✅ EVENT-BASED INVALIDATION (PASSIVE MODE)
-  // Listens to realtime events but does NOT force screen wipes.
-  // Components will naturally re-fetch when their dependencies change.
+  // ✅ EVENT-BASED INVALIDATION (INTELLIGENT MODE)
+  // Listens to realtime events and invalidates only when user is looking.
+  const pendingUpdateRef = useRef(false);
+
   useEffect(() => {
     const handleRealtimeUpdate = (e) => {
       const { table } = e.detail || {};
@@ -78,17 +79,34 @@ export function useDataFreshness(thresholdMs = 30000, eventFilter = null) {
         return;
       }
 
-      // 🛡️ TAB SLEEP FIX: Log but don't set isStale.
-      // Setting isStale=true here causes blank screens on tab wake-up.
-      // Instead, let components handle their own re-fetch logic via useEffect deps.
-      console.log(`[useDataFreshness] Realtime event from ${table} - components will refresh via deps`);
-      
-      // ❌ REMOVED: setIsStale(true); 
-      // This was causing the "Flash of Death" when switching tabs.
+      if (document.visibilityState === 'visible') {
+        // 🎯 ACTIVATE: User is looking. Refresh now.
+        console.log(`[useDataFreshness] Live update for ${table} - Marking stale`);
+        setIsStale(true);
+        pendingUpdateRef.current = false;
+      } else {
+        // 🧊 DEFER: User is away. Mark for refresh ON RETURN.
+        console.log(`[useDataFreshness] Deferred update for ${table} (Tab Hidden)`);
+        pendingUpdateRef.current = true;
+      }
+    };
+
+    // Handle tab wake-up
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && pendingUpdateRef.current) {
+        console.log(`[useDataFreshness] Tab wake-up: Processing deferred updates`);
+        setIsStale(true);
+        pendingUpdateRef.current = false;
+      }
     };
 
     window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
-    return () => window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [eventFilter]);
 
   return {

@@ -122,10 +122,9 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                     // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
                     const fetchSupplierRFQs = async () => {
                         const { data: rfqsData, error: dbError } = await supabase
-                            .from('trades')
+                            .from('rfqs')
                             .select(`*, categories:category_id(*)`)
-                            .eq('status', 'rfq_created')
-                            .eq('trade_type', 'rfq')
+                            .eq('status', 'open')
                             .order('created_at', { ascending: false });
 
                         if (dbError) throw dbError;

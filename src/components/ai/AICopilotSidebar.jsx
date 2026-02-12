@@ -59,11 +59,10 @@ const RecommendationCard = ({ recommendation, onAction }) => {
     );
 };
 
-export const AICopilotSidebar = ({ isOpen, onClose, recommendations = [] }) => {
+export const AICopilotSidebar = ({ isOpen, onClose, recommendations = [], systemState }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const location = useLocation();
-    const { systemState } = useTradeSystemState();
 
     // Chat State
     const [messages, setMessages] = useState([]);

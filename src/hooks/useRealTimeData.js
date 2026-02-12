@@ -58,12 +58,31 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // ===========================================================================
 
   const invokeCallback = useCallback((table, eventType, data) => {
+    // 1. Direct callback to the component prop
     if (onUpdateRef.current && isMountedRef.current) {
       onUpdateRef.current({
         table,
         event: eventType,
         data,
       });
+    }
+
+    // ✅ GLOBAL KILLSHOT: Dispatch CustomEvent to the whole window
+    // This allows non-direct listeners (Monitors, Kernel, Ledger) to react live
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('dashboard-realtime-update', {
+        detail: {
+          table,
+          event: eventType,
+          data,
+          timestamp: Date.now()
+        }
+      });
+      window.dispatchEvent(event);
+
+      if (import.meta.env.DEV) {
+        console.log(`[Realtime Broadcast] 📡 Signal sent for ${table}.${eventType}`);
+      }
     }
   }, []); // Empty deps = stable forever
 
@@ -148,12 +167,12 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     // We detect if we're on a faster device by checking if profileCompanyId
     // arrived quickly (system resolved < 500ms after mount)
     // =========================================================================
-    const isLikelyDesktop = typeof window !== 'undefined' && window.performance && 
+    const isLikelyDesktop = typeof window !== 'undefined' && window.performance &&
       window.performance.memory && window.performance.memory.jsHeapSizeLimit > 2147483648; // > 2GB heap
-    
+
     const debounceDelay = isLikelyDesktop ? 500 : 1000;
     console.log(`[Realtime] Debouncing connection for ${companyId} (${debounceDelay}ms - ${isLikelyDesktop ? 'desktop' : 'mobile'})...`);
-    
+
     const connectionTimer = setTimeout(() => {
       // Double-check we're still mounted and enabled
       if (!isMountedRef.current || !enabled || !companyId) {
@@ -175,141 +194,231 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
             presence: { key: companyId },
           },
         })
-      // -----------------------------------------------------------------
-      // RFQs (buyer_company_id filter)
-      // -----------------------------------------------------------------
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'rfqs',
-          filter: `buyer_company_id=eq.${companyId}`,
-        },
-        (payload) => {
-          console.log('[Realtime] RFQ change:', payload.eventType);
-          invokeCallback('rfqs', payload.eventType, payload.new);
-        }
-      )
-      // -----------------------------------------------------------------
-      // Products (company_id filter)
-      // -----------------------------------------------------------------
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'products',
-          filter: `company_id=eq.${companyId}`,
-        },
-        (payload) => {
-          console.log('[Realtime] Product change:', payload.eventType);
-          invokeCallback('products', payload.eventType, payload.new);
-        }
-      )
-      // -----------------------------------------------------------------
-      // Orders (buyer_company_id filter)
-      // -----------------------------------------------------------------
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `buyer_company_id=eq.${companyId}`,
-        },
-        (payload) => {
-          console.log('[Realtime] Order (buyer) change:', payload.eventType);
-          invokeCallback('orders', payload.eventType, payload.new);
-        }
-      )
-      // -----------------------------------------------------------------
-      // Orders (seller_company_id filter)
-      // -----------------------------------------------------------------
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `seller_company_id=eq.${companyId}`,
-        },
-        (payload) => {
-          console.log('[Realtime] Order (seller) change:', payload.eventType);
-          invokeCallback('orders', payload.eventType, payload.new);
-        }
-      )
-      // -----------------------------------------------------------------
-      // Messages (receiver_company_id filter, INSERT only)
-      // -----------------------------------------------------------------
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_company_id=eq.${companyId}`,
-        },
-        (payload) => {
-          console.log('[Realtime] New message:', payload.eventType);
-          invokeCallback('messages', payload.eventType, payload.new);
-        }
-      );
+        // -----------------------------------------------------------------
+        // RFQs (buyer_company_id filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'rfqs',
+            filter: `buyer_company_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] RFQ change:', payload.eventType);
+            invokeCallback('rfqs', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Products (company_id filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'products',
+            filter: `company_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Product change:', payload.eventType);
+            invokeCallback('products', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Orders (buyer_company_id filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `buyer_company_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Order (buyer) change:', payload.eventType);
+            invokeCallback('orders', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Orders (seller_company_id filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `seller_company_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Order (seller) change:', payload.eventType);
+            invokeCallback('orders', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Messages (receiver_company_id filter, INSERT only)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `receiver_company_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] New message:', payload.eventType);
+            invokeCallback('messages', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Trades (buyer_id or seller_id as company filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'trades',
+            filter: `buyer_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Trade (buyer) update:', payload.eventType);
+            invokeCallback('trades', payload.eventType, payload.new);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'trades',
+            filter: `seller_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Trade (seller) update:', payload.eventType);
+            invokeCallback('trades', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Shipments (company_id filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'shipments',
+            filter: `company_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Shipment update:', payload.eventType);
+            invokeCallback('shipments', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Escrows (buyer_id or seller_id as company filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'escrows',
+            filter: `buyer_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Escrow (buyer) update:', payload.eventType);
+            invokeCallback('escrows', payload.eventType, payload.new);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'escrows',
+            filter: `seller_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Escrow (seller) update:', payload.eventType);
+            invokeCallback('escrows', payload.eventType, payload.new);
+          }
+        )
+        // -----------------------------------------------------------------
+        // Payments (company_id filter)
+        // -----------------------------------------------------------------
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'payments',
+            filter: `company_id=eq.${companyId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Payment update:', payload.eventType);
+            invokeCallback('payments', payload.eventType, payload.new);
+          }
+        );
 
-    // -----------------------------------------------------------------
-    // Notifications (user_id filter) - Only if userId provided
-    // -----------------------------------------------------------------
-    if (userId && typeof userId === 'string' && userId.trim() !== '') {
-      channel.on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          console.log('[Realtime] New notification:', payload.eventType);
-          invokeCallback('notifications', payload.eventType, payload.new);
-        }
-      );
-    }
-
-    // =========================================================================
-    // SUBSCRIBE WITH STATUS HANDLING
-    // =========================================================================
-
-    channel.subscribe((status, err) => {
-      if (!isMountedRef.current) {
-        console.log('[Realtime] Component unmounted during subscribe - ignoring');
-        return;
+      // -----------------------------------------------------------------
+      // Notifications (user_id filter) - Only if userId provided
+      // -----------------------------------------------------------------
+      if (userId && typeof userId === 'string' && userId.trim() !== '') {
+        channel.on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] New notification:', payload.eventType);
+            invokeCallback('notifications', payload.eventType, payload.new);
+          }
+        );
       }
 
-      switch (status) {
-        case 'SUBSCRIBED':
-          console.log(`[Realtime] ✅ Subscribed to ${channelName}`);
-          isSubscribedRef.current = true;
-          subscribedCompanyIdRef.current = companyId;
-          break;
+      // =========================================================================
+      // SUBSCRIBE WITH STATUS HANDLING
+      // =========================================================================
 
-        case 'CHANNEL_ERROR':
-          console.error(`[Realtime] ❌ Channel error for ${channelName}:`, err?.message || 'Unknown');
-          // Don't cleanup on error - let Supabase handle reconnection
-          break;
+      channel.subscribe((status, err) => {
+        if (!isMountedRef.current) {
+          console.log('[Realtime] Component unmounted during subscribe - ignoring');
+          return;
+        }
 
-        case 'TIMED_OUT':
-          console.warn(`[Realtime] ⏱️ Subscription timed out for ${channelName}`);
-          break;
+        switch (status) {
+          case 'SUBSCRIBED':
+            console.log(`[Realtime] ✅ Subscribed to ${channelName}`);
+            isSubscribedRef.current = true;
+            subscribedCompanyIdRef.current = companyId;
+            break;
 
-        case 'CLOSED':
-          console.log(`[Realtime] Channel ${channelName} closed`);
-          isSubscribedRef.current = false;
-          break;
+          case 'CHANNEL_ERROR':
+            console.error(`[Realtime] ❌ Channel error for ${channelName}:`, err?.message || 'Unknown');
+            // Don't cleanup on error - let Supabase handle reconnection
+            break;
 
-        default:
-          console.log(`[Realtime] Channel ${channelName} status: ${status}`);
-      }
-    });
+          case 'TIMED_OUT':
+            console.warn(`[Realtime] ⏱️ Subscription timed out for ${channelName}`);
+            break;
+
+          case 'CLOSED':
+            console.log(`[Realtime] Channel ${channelName} closed`);
+            isSubscribedRef.current = false;
+            break;
+
+          default:
+            console.log(`[Realtime] Channel ${channelName} status: ${status}`);
+        }
+      });
 
       // Store channel reference
       channelRef.current = channel;
@@ -326,12 +435,12 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         console.log('[Realtime] Tab became visible - checking connection health...');
-        
+
         // Check if channel exists and its state
         if (channelRef.current) {
           const state = channelRef.current.state;
           console.log(`[Realtime] Current channel state: ${state}`);
-          
+
           // If channel is closed or errored, cleanup and let effect re-run
           if (state === 'closed' || state === 'errored') {
             console.log('[Realtime] Channel is dead - triggering reconnection');

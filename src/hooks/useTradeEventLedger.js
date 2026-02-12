@@ -85,8 +85,32 @@ export function useTradeEventLedger(tradeId) {
     };
 
     load();
+
+    // ✅ REACTIVE LEDGER: Listen for global signals to refresh history live
+    const handleGlobalUpdate = (event) => {
+      const { table, data } = event.detail || {};
+      const relevantTables = ['trades', 'shipments', 'escrows', 'payments'];
+
+      // If the signal is relevant to this trade specifically, or just a general refresh
+      if (relevantTables.includes(table)) {
+        // Optimization: check if data.trade_id matches if available
+        const signalTradeId = data?.trade_id || data?.id;
+        if (!tradeId || !signalTradeId || signalTradeId === tradeId) {
+          console.log(`[useTradeEventLedger] 📜 Signal received for ${table} - Refreshing ledger...`);
+          load();
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dashboard-realtime-update', handleGlobalUpdate);
+    }
+
     return () => {
       active = false;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('dashboard-realtime-update', handleGlobalUpdate);
+      }
     };
   }, [tradeId]);
 

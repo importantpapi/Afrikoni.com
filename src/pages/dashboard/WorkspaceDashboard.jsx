@@ -1,8 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import OSShell from '@/layouts/OSShell';
 import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeManager';
+import { SyncMonitor } from '@/components/dashboard/SyncMonitor';
 import { useTradeSystemState } from '@/hooks/useTradeSystemState';
 import { useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
 import { useNotificationCounts } from '@/hooks/useNotificationCounts';
@@ -108,14 +109,16 @@ export default function WorkspaceDashboard() {
         isAdmin={isAdmin}
       >
         <DashboardRealtimeManager
-          companyId={profileCompanyId}
-          userId={userId}
+          companyId={profile?.company_id}
+          userId={user?.id}
           onUpdate={handleRealtimeUpdate}
-          enabled={isSystemReady && !!profileCompanyId}
+          enabled={isSystemReady}
         />
 
+        <SyncMonitor isSubscribed={true} />
+
         <ErrorBoundary fallbackMessage="Failed to load dashboard page. Please try again.">
-          <Outlet key={location.pathname} />
+          <Outlet key={location.pathname} context={{ systemState, refreshSystemState }} />
         </ErrorBoundary>
       </OSShell>
     </ErrorBoundary>

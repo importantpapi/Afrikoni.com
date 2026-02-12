@@ -165,22 +165,51 @@ export async function transitionTrade(tradeId, nextState, metadata = {}) {
  */
 export async function createTrade(tradeData) {
   try {
+    const tradePayload = {
+      ...tradeData,
+      metadata: {
+        ...tradeData.metadata,
+        created_at_platform: new Date().toISOString(),
+        kernel_version: '2026.1'
+      }
+    };
+
+    // 1. Create entry in TRADES (Canonical Kernel)
     const { data, error } = await supabase
       .from('trades')
-      .insert({
-        ...tradeData,
-        metadata: {
-          ...tradeData.metadata,
-          created_at_platform: new Date().toISOString(),
-          kernel_version: '2026.1'
-        }
-      })
+      .insert(tradePayload)
       .select()
       .single();
 
     if (error) {
-      console.error('[TradeKernel] Create failed:', error);
+      console.error('[TradeKernel] Create failed in trades:', error);
       return { success: false, error: error.message };
+    }
+
+    // 2. SOVEREIGN BRIDGE: If it's an RFQ, sync to legacy RFQS table
+    if (tradeData.trade_type === 'rfq') {
+      const rfqPayload = {
+        id: data.id, // SAME UUID for both tables
+        buyer_company_id: tradeData.buyer_id,
+        category_id: tradeData.category_id,
+        title: tradeData.title,
+        description: tradeData.description,
+        quantity: tradeData.quantity,
+        unit: tradeData.quantity_unit || 'pieces',
+        target_price: tradeData.target_price,
+        status: tradeData.status === 'rfq_open' ? 'open' : tradeData.status, // Map kernel -> legacy
+        expires_at: tradeData.expires_at,
+        metadata: tradeData.metadata
+      };
+
+      const { error: rfqError } = await supabase
+        .from('rfqs')
+        .insert(rfqPayload);
+
+      if (rfqError) {
+        console.warn('[TradeKernel] Bridge sync to rfqs failed:', rfqError);
+        // We don't fail the whole operation, but log it
+      }
     }
 
     return { success: true, data };
