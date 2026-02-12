@@ -215,7 +215,8 @@ export default function RFQMobileWizard() {
     try {
       // Get or create company
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = await getOrCreateCompany(supabase, user);
+      const enrichedUser = { ...user, company_id: profile?.company_id };
+      const companyId = await getOrCreateCompany(supabase, enrichedUser);
 
       const quantity = parseFloat(formData.quantity) || 0;
       const targetPrice = parseFloat(formData.target_price) || null;

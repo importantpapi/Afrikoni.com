@@ -43,7 +43,8 @@ function RFQManagementInner() {
 
       // Get or create company
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = profile?.company_id || await getOrCreateCompany(supabase, user);
+      const enrichedUser = { ...user, company_id: profile?.company_id };
+      const companyId = profile?.company_id || await getOrCreateCompany(supabase, enrichedUser);
 
       // Company is optional - continue even without it
       // If no company, just show empty state

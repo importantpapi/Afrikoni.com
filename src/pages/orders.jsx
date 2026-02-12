@@ -39,7 +39,8 @@ function OrdersInner() {
 
       // Get or create company
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
-      const companyId = profile?.company_id || (user ? await getOrCreateCompany(supabase, user) : null);
+      const enrichedUser = { ...user, company_id: profile?.company_id };
+      const companyId = profile?.company_id || (user ? await getOrCreateCompany(supabase, enrichedUser) : null);
 
       const [ordersRes, companiesRes] = await Promise.all([
         supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(100),

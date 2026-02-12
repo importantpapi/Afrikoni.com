@@ -74,7 +74,8 @@ function SupplierAnalyticsInner() {
       try {
         const cid = profile?.company_id || null;
         if (!cid) {
-          const company = await getOrCreateCompany(supabase, user);
+          const enrichedUser = { ...user, company_id: profile?.company_id };
+          const company = await getOrCreateCompany(supabase, enrichedUser);
           setCompanyId(company);
         } else {
           setCompanyId(cid);
