@@ -286,10 +286,10 @@ export default function RFQDetail() {
     );
   }
 
-  if (!rfq) return null;
-
   // ✅ KERNEL COMPLIANCE: Use capabilities instead of user_role
   const { capabilities } = useCapability();
+
+  if (!rfq) return null;
   const isBuyer = user?.company_id === rfq.buyer_company_id;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const lifecycleStatus = linkedTradeStatus || 'UNLINKED';

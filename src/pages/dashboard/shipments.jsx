@@ -28,7 +28,7 @@ const Shipments = () => {
       try {
         const { data: shipments } = await supabase
           .from("shipments")
-          .select("id, status, tracking_number, carrier_name, scheduled_delivery_date, actual_delivery_date, scheduled_pickup_date, actual_pickup_date, origin_country, destination_country, current_location, estimated_transit_days, metadata, trade:trades(id, product_name, status, origin_country, destination_country, target_price, price_min, price_max)")
+          .select("*, order:orders(*)")
           .order("updated_at", { ascending: false })
           .limit(1);
 
@@ -59,10 +59,10 @@ const Shipments = () => {
     };
   }, [canLoadData, isSystemReady]);
 
-  const trade = activeShipment?.trade || {};
-  const originCountry = activeShipment?.origin_country || trade?.origin_country || "Origin";
-  const destinationCountry = activeShipment?.destination_country || trade?.destination_country || "Destination";
-  const tradeValue = Number(trade?.target_price ?? trade?.price_max ?? trade?.price_min ?? 0);
+  const trade = activeShipment?.trade || activeShipment?.order || {};
+  const originCountry = activeShipment?.origin_country || trade?.origin_country || trade?.seller_company?.country || "Origin";
+  const destinationCountry = activeShipment?.destination_country || trade?.destination_country || trade?.buyer_company?.country || "Destination";
+  const tradeValue = Number(trade?.target_price ?? trade?.price_max ?? trade?.price_min ?? trade?.total_amount ?? 0);
 
   const milestones = useMemo(
     () => buildShipmentMilestones(activeShipment, trackingEvents),

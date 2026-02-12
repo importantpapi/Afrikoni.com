@@ -91,163 +91,24 @@ export default function NotificationBell() {
   }, [user, userId, profileCompanyId, isAdmin, isHybrid]); // ✅ FINAL 3% FIX: Use isAdmin and isHybrid from capabilities
 
   useEffect(() => {
-    // GUARD: Wait for auth to be ready
-    if (!authReady || authLoading || !user) {
-      return;
-    }
-
-    // ✅ VIBRANIUM STABILIZATION: Get current companyId
-    const currentCompanyId = profileCompanyId || null;
-
-    // ✅ KERNEL POLISH: Use stable reference - only update if companyId actually changed
-    // This prevents re-subscription when token refreshes but companyId stays the same
-    if (currentCompanyId !== stableCompanyIdRef.current) {
-      stableCompanyIdRef.current = currentCompanyId;
-    }
-    const stableCompanyId = stableCompanyIdRef.current;
-
-    // ✅ VIBRANIUM STABILIZATION: Only subscribe if companyId exists and is different from previous
-    // This prevents infinite unsubscribe/subscribe cycles
-    // ✅ KERNEL POLISH: Check if channel is already active for this companyId using stable reference
-    const isAlreadySubscribed = (isAdmin && activeCompanyIdRef.current === 'admin') ||
-      (stableCompanyId && stableCompanyId === activeCompanyIdRef.current && channelRef.current);
-
-    if (isAlreadySubscribed) {
-      // Already subscribed to this companyId - skip subscription but still load notifications
-      console.log('[NotificationBell] Already subscribed - skipping duplicate subscription (stable companyId:', stableCompanyId, ')');
-      loadNotifications();
-      return;
-    }
-
-    // ✅ VIBRANIUM STABILIZATION: If companyId became null, clear the ref and unsubscribe
-    // ✅ KERNEL POLISH: Use stableCompanyId to prevent clearing on token refresh
-    if (!stableCompanyId && activeCompanyIdRef.current) {
-      console.log('[NotificationBell] CompanyId became null - clearing subscription');
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+    // ✅ KERNEL ALIGNMENT: Use global event loop instead of direct subscription
+    const handleRealtimeUpdate = (e) => {
+      const { table } = e.detail || {};
+      if (table === 'notifications') {
+        console.log('[NotificationBell] Global event received, reloading...');
+        loadNotifications();
       }
-      activeCompanyIdRef.current = null;
-      stableCompanyIdRef.current = null; // ✅ KERNEL POLISH: Clear stable reference too
-      return;
-    }
+    };
 
-    // Now safe to load notifications
+    window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+
+    // Initial load
     loadNotifications();
 
-    // ✅ VIBRANIUM STABILIZATION: Unsubscribe from previous channel if exists and companyId changed
-    // ✅ KERNEL POLISH: Use stable companyId reference to prevent unnecessary unsubscribes
-    if (channelRef.current && activeCompanyIdRef.current !== stableCompanyId) {
-      console.log('[NotificationBell] Unsubscribing from previous channel (companyId changed:', activeCompanyIdRef.current, '->', stableCompanyId, ')');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-
-    // ✅ KERNEL ALIGNMENT: Setup real-time subscription with proper admin/hybrid handling
-    const setupSubscription = async () => {
-      try {
-        // ✅ FINAL 3% FIX: Admin users see all notifications, clients use company-scoped channel
-        if (isAdmin) {
-          // ✅ KERNEL POLISH: Double-check we're not already subscribed as admin
-          if (activeCompanyIdRef.current === 'admin' && channelRef.current) {
-            console.log('[NotificationBell] Already subscribed as admin - skipping');
-            return channelRef.current;
-          }
-
-          // Admin: No filter - RLS policy allows access to all notifications
-          const channel = supabase
-            .channel(`notifications-admin-${userId || 'global'}`)
-            .on('postgres_changes', {
-              event: '*',
-              schema: 'public',
-              table: 'notifications',
-              // ✅ FINAL 3% FIX: No filter for admin users - RLS handles visibility
-            }, (payload) => {
-              console.log('[NotificationBell] Real-time update (admin):', payload.eventType);
-              loadNotifications();
-            })
-            .subscribe((status) => {
-              if (status === 'SUBSCRIBED') {
-                console.log('[NotificationBell] Real-time subscribed (admin - no filter)');
-                activeCompanyIdRef.current = 'admin'; // Mark as admin subscription
-              }
-            });
-
-          channelRef.current = channel;
-          return channel;
-        }
-
-        // ✅ FINAL 3% FIX: Clients use dashboard-${companyId} pattern for 'World Isolation'
-        // Regular users (including hybrid): apply company_id filter
-        if (!stableCompanyId && !userId && !user.email) {
-          return null;
-        }
-
-        // ✅ VIBRANIUM STABILIZATION: Only subscribe if companyId exists and is different
-        if (!stableCompanyId) {
-          console.log('[NotificationBell] No companyId - skipping subscription');
-          return null;
-        }
-
-        // ✅ KERNEL POLISH: Double-check we're not already subscribed to this companyId using stable reference
-        if (activeCompanyIdRef.current === stableCompanyId && channelRef.current) {
-          console.log('[NotificationBell] Already subscribed to companyId:', stableCompanyId);
-          return channelRef.current;
-        }
-
-        // ✅ FINAL 3% FIX: Use dashboard-${companyId} pattern to match DashboardRealtimeManager
-        // ✅ KERNEL POLISH: Use stable companyId reference to prevent re-subscription on token refresh
-        const channelName = `dashboard-notifications-${stableCompanyId}`;
-        const filter = `company_id=eq.${stableCompanyId}`;
-
-        const channel = supabase
-          .channel(channelName)
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: filter
-          }, (payload) => {
-            console.log('[NotificationBell] Real-time update (client):', payload.eventType);
-            loadNotifications();
-          })
-          .subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              console.log(`[NotificationBell] Real-time subscribed (${channelName})`);
-              // ✅ VIBRANIUM STABILIZATION: Track active subscription using stable reference
-              activeCompanyIdRef.current = stableCompanyId;
-            }
-          });
-
-        channelRef.current = channel;
-        return channel;
-      } catch (error) {
-        console.debug('Error setting up subscription:', error);
-        return null;
-      }
-    };
-
-    setupSubscription();
-
-    // ✅ KERNEL ALIGNMENT: Proper cleanup function
-    // ✅ KERNEL POLISH: Ensure channel is properly unsubscribed and removed
     return () => {
-      if (channelRef.current) {
-        console.log('[NotificationBell] Cleanup: Unsubscribing from channel');
-        try {
-          // ✅ KERNEL POLISH: Explicitly unsubscribe before removing channel
-          const channel = channelRef.current;
-          channel.unsubscribe();
-          supabase.removeChannel(channel);
-        } catch (error) {
-          console.debug('[NotificationBell] Cleanup error (non-critical):', error);
-        } finally {
-          channelRef.current = null;
-          activeCompanyIdRef.current = null; // ✅ VIBRANIUM STABILIZATION: Clear tracked companyId
-        }
-      }
+      window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
     };
-  }, [userId, profileCompanyId, user?.email, authReady, authLoading, isAdminOrHybrid, loadNotifications, isAdmin]); // ✅ VIBRANIUM STABILIZATION: Include isAdmin
+  }, [loadNotifications]);
   // Note: profileCompanyId is in deps but we use stableCompanyIdRef to prevent re-subscription on token refresh
 
   const markAsRead = async (notificationId) => {

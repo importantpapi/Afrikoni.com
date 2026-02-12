@@ -42,7 +42,7 @@ export default function ShipmentDetail() {
       try {
         const { data, error } = await supabase
           .from('shipments')
-          .select('id, status, tracking_number, carrier_name, scheduled_delivery_date, actual_delivery_date, scheduled_pickup_date, actual_pickup_date, origin_country, destination_country, current_location, estimated_transit_days, metadata, trade_id, trade:trades(id, product_name, origin_country, destination_country, target_price, price_min, price_max)')
+          .select('*, order:orders(*)')
           .eq('id', id)
           .maybeSingle?.() ?? { data: null, error: null };
 
@@ -93,7 +93,7 @@ export default function ShipmentDetail() {
     );
   }
 
-  const trade = shipment.trade || {};
+  const trade = shipment.trade || shipment.order || {};
   const milestones = buildShipmentMilestones(shipment, trackingEvents);
   const completed = milestones.filter((m) => m.status === 'completed').length;
   const progress = milestones.length ? (completed / milestones.length) * 100 : 0;
@@ -145,13 +145,12 @@ export default function ShipmentDetail() {
               return (
                 <div key={m.id} className="flex gap-3 py-3 border-b last:border-0">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                      isCompleted
-                        ? 'bg-success/20 border-success text-success'
-                        : isActive
+                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${isCompleted
+                      ? 'bg-success/20 border-success text-success'
+                      : isActive
                         ? 'bg-primary/15 border-primary text-primary'
                         : 'bg-muted text-muted-foreground border-border'
-                    }`}
+                      }`}
                   >
                     {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                   </div>
@@ -161,8 +160,8 @@ export default function ShipmentDetail() {
                       {m.completedAt
                         ? formatDate(m.completedAt)
                         : m.estimatedAt
-                        ? `ETA ${formatDate(m.estimatedAt)}`
-                        : 'Pending'}
+                          ? `ETA ${formatDate(m.estimatedAt)}`
+                          : 'Pending'}
                     </p>
                     {m.aiConfidence && (
                       <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded">

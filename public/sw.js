@@ -39,6 +39,19 @@ self.addEventListener('activate', (event) => {
 
 // 3. Fetch Strategy: Hybrid Cache/Network
 self.addEventListener('fetch', (event) => {
+    // ✅ STABILITY FIX: Guard against non-GET requests
+    // Service Workers can only cache GET requests
+    // This prevents "Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported"
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
+    // ✅ STABILITY FIX: Guard against extension URLs
+    // Prevents crashes when browser extensions make requests
+    if (!event.request.url.startsWith('http')) {
+        return;
+    }
+
     const url = new URL(event.request.url);
 
     // Strategy A: Network-First for API calls (Supabase)

@@ -7,6 +7,8 @@ import { ArrowRight, Box, CreditCard, Ship } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { OSStatusBar } from '@/components/system/OSStatusBar';
 import TodaysActions from '@/components/dashboard/TodaysActions';
+import QuickActionsWidget from '@/components/dashboard/widgets/QuickActionsWidget';
+import RecentRFQsWidget from '@/components/dashboard/widgets/RecentRFQsWidget';
 import { Button } from '@/components/shared/ui/button';
 
 export default function DashboardHome() {
@@ -34,6 +36,9 @@ export default function DashboardHome() {
       {/* 2. ACTIONS & INTELLIGENCE */}
       <div className="grid lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-6">
+          {/* 1. COMMAND CENTER WIDGET */}
+          <QuickActionsWidget />
+
           <TodaysActions />
 
           {/* ACTIVE FLOWS LIST */}
@@ -43,7 +48,7 @@ export default function DashboardHome() {
                 <Box className="w-5 h-5 text-afrikoni-gold" />
                 Active Trade Flows
               </h2>
-              <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/rfqs')}>View All</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/trade-pipeline')}>View Pipeline</Button>
             </div>
 
             {tradesLoading ? (
@@ -94,6 +99,11 @@ export default function DashboardHome() {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
+          {/* MARKET PULSE / RECENT RFQS */}
+          <div className="h-[400px]">
+            <RecentRFQsWidget />
+          </div>
+
           <Surface variant="glass" className="p-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
             <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-400 mb-4">Account Integrity</h3>
             <div className="space-y-4">
@@ -105,24 +115,8 @@ export default function DashboardHome() {
                 <span className="text-os-muted">Escrow Balance</span>
                 <span className="text-white font-mono">$0.00</span>
               </div>
-              <div className="pt-4 border-t border-white/5">
-                <p className="text-[10px] leading-relaxed text-os-muted italic">
-                  "All trade flows are monitored by the Sovereign Sentinel AI for compliance and fraud prevention."
-                </p>
-              </div>
             </div>
           </Surface>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="surface" className="flex flex-col h-auto py-4 gap-2" onClick={() => navigate('/dashboard/rfqs')}>
-              <Box className="w-5 h-5" />
-              <span className="text-[10px] font-bold uppercase">RFQs</span>
-            </Button>
-            <Button variant="surface" className="flex flex-col h-auto py-4 gap-2" onClick={() => navigate('/dashboard/payments')}>
-              <CreditCard className="w-5 h-5" />
-              <span className="text-[10px] font-bold uppercase">Payments</span>
-            </Button>
-          </div>
         </div>
       </div>
     </div>

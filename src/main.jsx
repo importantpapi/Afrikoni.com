@@ -70,22 +70,19 @@ if (!rootElement) {
     try {
       const root = ReactDOM.createRoot(rootElement);
       root.render(
-        // ✅ STABILITY FIX: Re-enable StrictMode for double-mount detection
-        // Now that fail-open and handshake issues are fixed, StrictMode is safe
-        <React.StrictMode>
-          <ErrorBoundary>
-            <ThemeProvider>
-              <BrowserRouter
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true
-                }}
-              >
-                <App />
-              </BrowserRouter>
-            </ThemeProvider>
-          </ErrorBoundary>
-        </React.StrictMode>
+        // ✅ STABILITY FIX: StrictMode disabled to prevent double-mount effects
+        <ErrorBoundary>
+          <ThemeProvider>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true
+              }}
+            >
+              <App />
+            </BrowserRouter>
+          </ThemeProvider>
+        </ErrorBoundary>
       );
     } catch (e) {
       console.error('[React Render] Error during render:', e);

@@ -14,7 +14,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useCapability } from '@/context/CapabilityContext';
-import { useRealTimeDashboardData } from './useRealTimeData';
 import { generateRecommendations } from '@/services/aiRecommendationService';
 
 /**
@@ -438,13 +437,22 @@ export const useTradeSystemState = () => {
         fetchSystemState(false); // Debounced refetch
     }, [fetchSystemState]);
 
-    // Subscribe to dashboard realtime channel
-    useRealTimeDashboardData(
-        profile?.company_id,
-        user?.id,
-        handleRealtimeUpdate,
-        !!profile?.company_id
-    );
+    // ✅ KERNEL ALIGNMENT: Use global event loop (Singleton Pattern)
+    // The DashboardRealtimeManager handles the actual subscription.
+    useEffect(() => {
+        const handleGlobalUpdate = (event) => {
+            const { table } = event.detail || {};
+            // If the update is relevant to trade system state, refetch
+            if (['trades', 'rfqs', 'shipments', 'payments', 'companies'].includes(table)) {
+                handleRealtimeUpdate({ table });
+            }
+        };
+
+        window.addEventListener('dashboard-realtime-update', handleGlobalUpdate);
+        return () => {
+            window.removeEventListener('dashboard-realtime-update', handleGlobalUpdate);
+        };
+    }, [handleRealtimeUpdate]);
 
     // ✅ KERNEL INVALIDATION SYNC
     useEffect(() => {

@@ -174,8 +174,7 @@ export async function createProduct({ user, formData, companyId, publish = false
       status: publish ? 'active' : (formData.status || 'draft'),
       featured: formData.featured || false,
       published_at: publish ? new Date().toISOString() : null,
-      views: 0,
-      inquiries: 0
+      views: 0
     };
 
     // ✅ KERNEL: Insert product

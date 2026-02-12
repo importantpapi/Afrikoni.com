@@ -279,12 +279,10 @@ export default function Marketplace() {
   const loadProducts = async () => {
     setIsLoading(true);
     try {
-      // Use buildProductQuery for server-side filtering
-      // buildProductQuery already includes product_images(*), so we just need to add companies
-      // ✅ UNIFIED DASHBOARD KERNEL: Fetch only published products for live marketplace
-      // USES NEW public_products VIEW FOR SECURITY
+      // ✅ UNIFIED DASHBOARD KERNEL: Fixed 404 by using real table + joins
+      // 'public_products' view was missing. Now querying 'products' directly.
       let query = supabase
-        .from('public_products')
+        .from('products')
         .select(`
           id,
           title,
@@ -292,23 +290,28 @@ export default function Marketplace() {
           category_id,
           country_of_origin,
           min_order_quantity,
-          unit,
+          moq_unit,
           price_min,
           price_max,
           currency,
           created_at,
           slug,
-          category_name,
-          company_name,
-          company_country,
-          company_verified,
-          company_logo,
-          images
-        `, { count: 'exact' });
+          lead_time_min_days,
+          images,
+          categories!inner (
+            name
+          ),
+          companies!inner (
+            company_name:name,
+            company_country:country,
+            company_verified:verified,
+            company_logo:logo_url
+          )
+        `, { count: 'exact' })
+        .eq('status', 'active'); // Only active products
 
       // Filter Logic
       if (selectedFilters.category) {
-        // The view has category_id
         query = query.eq('category_id', selectedFilters.category);
       }
       if (selectedFilters.country) {
@@ -319,14 +322,12 @@ export default function Marketplace() {
       let sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
       let ascending = !sortBy.startsWith('-');
 
-      // Handle relevance sorting (default to created_at desc if no search query)
+      // Handle relevance sorting
       if (sortBy === 'relevance') {
         sortField = 'created_at';
         ascending = false;
       }
 
-      // ✅ KERNEL-SCHEMA ALIGNMENT: Remove 'title' from valid sort fields if DB uses 'name'
-      // But our view uses 'title'.
       const validSortFields = ['created_at', 'price_min', 'min_order_quantity', 'title'];
       if (!validSortFields.includes(sortField)) {
         sortField = 'created_at';
@@ -340,8 +341,6 @@ export default function Marketplace() {
         {
           page: pagination.page,
           pageSize: 20,
-          // Custom handling since paginateQuery might try to add count logic that conflicts with views if not careful,
-          // but Supabase JS handles view counts fine usually.
         }
       );
 
@@ -358,43 +357,39 @@ export default function Marketplace() {
         throw error;
       }
 
-
-      // Transform products from VIEW structure
+      // Transform products from JOINS structure
       const productsWithImages = Array.isArray(data) ? data.map(product => {
-        // VIEW stores images as JSON/Array, no need for product_images table join logic here
-        // if the view handled it.
-        // However, our view definition `p.images` might be null if we rely on `product_images` table.
-        // If the view returns `images` column from `products` table, that might be legacy.
-        // For this hardening, we assume the view returns a simple `images` array or we handle it in client.
-
-        // Since we are moving to strict public view, we use what the view gives us.
-        // If the view uses `p.images` (legacy array), we use that.
-
         let allImages = Array.isArray(product.images) ? product.images : [];
         let primaryImage = allImages.length > 0 ? allImages[0] : null;
 
         return {
           ...product,
-          // Map view columns to component expectations
+          // Map JOIN columns to component expectations
+          category_name: product.categories?.name,
+          company_name: product.companies?.company_name,
+          company_country: product.companies?.company_country,
+          company_verified: product.companies?.company_verified,
+          company_logo: product.companies?.company_logo,
+
           companies: {
-            company_name: product.company_name,
-            country: product.company_country,
-            verified: product.company_verified,
-            logo_url: product.company_logo
+            company_name: product.companies?.company_name,
+            country: product.companies?.company_country,
+            verified: product.companies?.company_verified,
+            logo_url: product.companies?.company_logo
           },
           categories: {
-            name: product.category_name
+            name: product.categories?.name
           },
           primaryImage: normalizeProductImageUrl(primaryImage),
           allImages: allImages.map(normalizeProductImageUrl)
         };
       }) : [];
 
-      // Apply client-side filters (search, price range, MOQ, certifications, lead time, chip filters)
+      // Apply client-side filters
       const filtered = applyClientSideFilters(productsWithImages);
       setProducts(filtered);
 
-      // Log search event (non-blocking)
+      // Log search event
       logSearchEvent({ resultCount: filtered.length });
     } catch (error) {
       console.error('Failed to load products:', error);

@@ -34,7 +34,7 @@ export function useAIActions() {
                 supabase
                     .from('rfqs')
                     .select('*')
-                    .eq('company_id', profile.company_id)
+                    .eq('buyer_company_id', profile.company_id)
                     .order('created_at', { ascending: false })
                     .limit(20),
                 supabase

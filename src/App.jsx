@@ -128,14 +128,16 @@ const PostLoginRouter = lazy(() => import('./auth/PostLoginRouter'));
 // 1. SELLER ENGINE (Supply Chain)
 const ProductsPage = lazy(() => import('./pages/dashboard/products'));
 const ProductsNewPage = lazy(() => import('./pages/dashboard/products/new'));
-const SalesPage = lazy(() => import('./pages/dashboard/sales'));
-const SupplierRFQsPage = lazy(() => import('./pages/dashboard/supplier-rfqs'));
+// const SalesPage = lazy(() => import('./pages/dashboard/sales')); // DEPRECATED
+// const SupplierRFQsPage = lazy(() => import('./pages/dashboard/supplier-rfqs')); // DEPRECATED
 const SupplierAnalyticsPage = lazy(() => import('./pages/dashboard/supplier-analytics'));
 
 // 2. BUYER ENGINE (Sourcing)
-const OrdersPage = lazy(() => import('./pages/dashboard/orders'));
+// const OrdersPage = lazy(() => import('./pages/dashboard/orders')); // DEPRECATED
+const TradeMonitor = lazy(() => import('./pages/dashboard/TradeMonitor')); // [NEW] Unified
+const RFQMonitor = lazy(() => import('./pages/dashboard/RFQMonitor')); // [NEW] Unified
 const TraceCenterPage = lazy(() => import('./pages/dashboard/TraceCenter')); // [NEW] The Unbroken Flow
-const RFQsPage = lazy(() => import('./pages/dashboard/rfqs'));
+// const RFQsPage = lazy(() => import('./pages/dashboard/rfqs')); // DEPRECATED
 const RFQsNewPage = lazy(() => import('./pages/dashboard/rfqs/new'));
 const TradeWorkspacePage = lazy(() => import('./pages/dashboard/OneFlow'));
 const SavedItemsPage = lazy(() => import('./pages/dashboard/saved'));
@@ -468,14 +470,14 @@ function AppContent() {
             <Route path="products/new" element={<ProductsNewPage />} />
             <Route path="products/quick-add" element={<ProductsNewPage />} />
             <Route path="products/quick-add/:id" element={<ProductsNewPage />} />
-            <Route path="sales" element={<SalesPage />} />
-            <Route path="supplier-rfqs" element={<SupplierRFQsPage />} />
+            <Route path="sales" element={<TradeMonitor viewMode="sell" />} />
+            <Route path="supplier-rfqs" element={<RFQMonitor viewMode="supplier" />} />
             <Route path="supplier-analytics" element={<SupplierAnalyticsPage />} />
 
             {/* 2. BUYER ENGINE (Sourcing) */}
-            <Route path="orders" element={<OrdersPage />} />
+            <Route path="orders" element={<TradeMonitor viewMode="buy" />} />
             <Route path="orders/:id" element={<TradeWorkspacePage />} />
-            <Route path="rfqs" element={<RFQsPage />} />
+            <Route path="rfqs" element={<RFQMonitor viewMode="buyer" />} />
             <Route path="rfqs/new" element={<RFQsNewPage />} />
             <Route path="rfqs/:id" element={<TradeWorkspacePage />} />
             <Route path="trade/:id" element={<TradeWorkspacePage />} />
