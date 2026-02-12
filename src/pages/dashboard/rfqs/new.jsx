@@ -103,13 +103,15 @@ export default function IntakeEngine() {
       // Enrich user object with company_id from profile
       const enrichedUser = { ...user, company_id: profile?.company_id };
       
+      console.log('[RFQ:New] Starting RFQ creation with enriched user:', { userId: enrichedUser.id, companyId: enrichedUser.company_id });
+      
       const createPromise = createRFQ({
         user: enrichedUser,
         formData: payload,
       });
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Submission timed out. Please check your connection.')), 15000)
+        setTimeout(() => reject(new Error('Submission timed out. Please check your connection.')), 30000)
       );
 
       const { success, error: err } = await Promise.race([createPromise, timeoutPromise]);

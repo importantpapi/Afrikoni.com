@@ -165,6 +165,13 @@ export async function transitionTrade(tradeId, nextState, metadata = {}) {
  */
 export async function createTrade(tradeData) {
   try {
+    console.log('[TradeKernel] Creating trade with data:', { 
+      type: tradeData.trade_type, 
+      buyer_id: tradeData.buyer_id,
+      created_by: tradeData.created_by,
+      title: tradeData.title 
+    });
+    
     const tradePayload = {
       ...tradeData,
       metadata: {
@@ -175,6 +182,7 @@ export async function createTrade(tradeData) {
     };
 
     // 1. Create entry in TRADES (Canonical Kernel)
+    console.log('[TradeKernel] Inserting into trades table...');
     const { data, error } = await supabase
       .from('trades')
       .insert(tradePayload)
@@ -185,9 +193,12 @@ export async function createTrade(tradeData) {
       console.error('[TradeKernel] Create failed in trades:', error);
       return { success: false, error: error.message };
     }
+    
+    console.log('[TradeKernel] Successfully created trade:', data.id);
 
     // 2. SOVEREIGN BRIDGE: If it's an RFQ, sync to legacy RFQS table
     if (tradeData.trade_type === 'rfq') {
+      console.log('[TradeKernel] Syncing to rfqs table...');
       const rfqPayload = {
         id: data.id, // SAME UUID for both tables
         buyer_company_id: tradeData.buyer_id,
@@ -216,6 +227,7 @@ export async function createTrade(tradeData) {
       }
     }
 
+    console.log('[TradeKernel] Trade creation completed successfully');
     return { success: true, data };
   } catch (err) {
     console.error('[TradeKernel] Create exception:', err);
