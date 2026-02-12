@@ -12,7 +12,7 @@ import { telemetry } from '@/services/telemetryService';
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null, errorInfo: null, retryCount: 0 };
   }
 
   static getDerivedStateFromError(error) {
@@ -20,10 +20,21 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('[Trade OS] Critical Error caught by boundary:', error, errorInfo);
+    // ✅ MOBILE FIX: Classify error severity
+    const isRecoverable = 
+      error?.message?.includes('Cannot read') ||
+      error?.message?.includes('undefined') ||
+      error?.message?.includes('null') ||
+      error?.toString().includes('Warning');
+    
+    const severity = isRecoverable ? 'RECOVERABLE' : 'CRITICAL';
+    
+    console.error(`[Trade OS] ${severity} Error caught by boundary:`, error, errorInfo);
     telemetry.logError(error, {
       componentStack: errorInfo?.componentStack,
-      location: window.location.href
+      location: window.location.href,
+      severity,
+      recoverable: isRecoverable
     });
     this.setState({ errorInfo });
   }
@@ -31,6 +42,12 @@ class ErrorBoundary extends React.Component {
   handleReload = () => {
     telemetry.trackEvent('system_crash_reload');
     window.location.reload();
+  };
+
+  handleRetry = () => {
+    // ✅ MOBILE FIX: Retry mechanism for recoverable errors
+    telemetry.trackEvent('system_error_retry', { retryCount: this.state.retryCount });
+    this.setState({ hasError: false, error: null, errorInfo: null, retryCount: this.state.retryCount + 1 });
   };
 
   handleReset = () => {
@@ -45,42 +62,66 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       const isDev = import.meta.env.DEV;
+      
+      // ✅ MOBILE FIX: Classify error as recoverable or critical
+      const isRecoverable = 
+        this.state.error?.message?.includes('Cannot read') ||
+        this.state.error?.message?.includes('undefined') ||
+        this.state.error?.message?.includes('null') ||
+        this.state.error?.toString().includes('Warning');
+      
+      const canRetry = isRecoverable && this.state.retryCount < 3;
 
       return (
         <div className="min-h-screen w-full flex items-center justify-center bg-[#050505] text-white p-6 relative overflow-hidden">
           {/* Background Ambient Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-900/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] ${isRecoverable ? 'bg-amber-900/10' : 'bg-red-900/10'} rounded-full blur-[120px] pointer-events-none`} />
 
-          <Surface variant="glass" className="max-w-xl w-full p-8 md:p-12 border-red-500/20 relative z-10 shadow-2xl shadow-red-900/20">
+          <Surface variant="glass" className={`max-w-xl w-full p-8 md:p-12 ${isRecoverable ? 'border-amber-500/20' : 'border-red-500/20'} relative z-10 shadow-2xl ${isRecoverable ? 'shadow-amber-900/20' : 'shadow-red-900/20'}`}>
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 animate-pulse">
-                <AlertTriangle className="w-8 h-8 text-red-500" />
+              <div className={`w-16 h-16 rounded-full ${isRecoverable ? 'bg-amber-500/10' : 'bg-red-500/10'} flex items-center justify-center mb-6 animate-pulse`}>
+                <AlertTriangle className={`w-8 h-8 ${isRecoverable ? 'text-amber-500' : 'text-red-500'}`} />
               </div>
 
               <h1 className="text-2xl font-light tracking-tight mb-2">
-                System Encountered a Critical Error
+                {isRecoverable ? 'System Synchronization Issue' : 'System Encountered a Critical Error'}
               </h1>
               <p className="text-white/60 mb-8 max-w-md">
-                The Trade OS Kernel encountered an unexpected state and halted execution to protect data integrity.
+                {isRecoverable 
+                  ? 'The dashboard experienced a timing issue during boot. This is typically resolved by retrying the connection.'
+                  : 'The Trade OS Kernel encountered an unexpected state and halted execution to protect data integrity.'
+                }
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                {canRetry && (
+                  <Button
+                    onClick={this.handleRetry}
+                    className="bg-amber-600 hover:bg-amber-700 text-white min-w-[160px]"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry Connection
+                  </Button>
+                )}
+                
                 <Button
                   onClick={this.handleReload}
-                  className="bg-red-600 hover:bg-red-700 text-white min-w-[160px]"
+                  className={`${isRecoverable ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'} text-white min-w-[160px]`}
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Restart System
+                  {canRetry ? 'Force Reload' : 'Restart System'}
                 </Button>
 
-                <Button
-                  onClick={() => window.location.href = '/dashboard'}
-                  variant="outline"
-                  className="border-white/10 hover:bg-white/5 min-w-[160px]"
-                >
-                  <Home className="w-4 h-4 mr-2" />
-                  Return to Dashboard
-                </Button>
+                {!canRetry && (
+                  <Button
+                    onClick={() => window.location.href = '/dashboard'}
+                    variant="outline"
+                    className="border-white/10 hover:bg-white/5 min-w-[160px]"
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    Return to Dashboard
+                  </Button>
+                )}
               </div>
 
               {/* Advanced Recovery (Hidden by default or smaller) */}
