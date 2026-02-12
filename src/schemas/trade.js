@@ -13,7 +13,7 @@ export const rfqSchema = z.object({
     quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
     unit: z.string().min(1, "Unit is required (e.g. tons, kg)"),
     target_price: z.coerce.number().min(0, "Target price must be positive").optional(),
-    delivery_location: z.string().min(2, "Delivery location is required"),
+    delivery_location: z.string().min(2, "Delivery location is required").optional(),
     target_country: z.string().min(2, "Target country is required").optional(),
     target_city: z.string().optional(),
     closing_date: z.string().optional().refine((date) => {

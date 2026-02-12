@@ -6,7 +6,7 @@
 import { supabase, withRetry } from '@/api/supabaseClient';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { sanitizeString, validateNumeric } from '@/utils/security';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { createTrade } from '@/services/tradeKernel';
 
 const RLS_CODES = ['42501', 'PGRST301'];
@@ -29,7 +29,9 @@ function cleanAttachments(attachments) {
 function buildDates(dateValue) {
   if (!dateValue) return null;
   try {
-    return format(dateValue, 'yyyy-MM-dd');
+    // Handle both Date objects and ISO strings
+    const date = typeof dateValue === 'string' ? parseISO(dateValue) : dateValue;
+    return format(date, 'yyyy-MM-dd');
   } catch {
     return null;
   }
