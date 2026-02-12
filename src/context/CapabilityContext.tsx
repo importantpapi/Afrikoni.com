@@ -130,7 +130,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         if (!fetchResolved.current && isMounted.current) {
           setIsSlowConnection(true);
         }
-      }, 5000);
+      }, 2500); // FIX: Reduced to 2.5s for faster user feedback
 
       const { data, error } = await supabase
         .from('company_capabilities')

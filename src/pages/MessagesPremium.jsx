@@ -151,25 +151,32 @@ export default function MessagesPremium() {
     loadUserAndConversations();
   }, []);
 
+  // ✅ MOBILE PERF: Capture session context once on mount and preserve in ref
+  // This prevents losing the context if the main effect re-runs before companyId is ready.
+  const sessionContextRef = useRef(null);
+  useEffect(() => {
+    const storedContext = sessionStorage.getItem('contactProductContext');
+    if (storedContext) {
+      try {
+        sessionContextRef.current = JSON.parse(storedContext);
+        sessionStorage.removeItem('contactProductContext');
+        console.log('[Messages] Captured product context from session');
+      } catch (e) {
+        console.warn('[Messages] Failed to parse session context', e);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const conversationParam = searchParams.get('conversation');
     const recipientParam = searchParams.get('recipient');
     const productParam = searchParams.get('product');
     const productTitleParam = searchParams.get('productTitle');
 
-    // Check for product context from sessionStorage (set by marketplace)
-    const storedContext = sessionStorage.getItem('contactProductContext');
-    let productInfo = null;
-    if (storedContext) {
-      try {
-        productInfo = JSON.parse(storedContext);
-        sessionStorage.removeItem('contactProductContext'); // Clear after use
-      } catch (e) {
-        // Invalid JSON, ignore
-      }
-    }
+    // Combine session context with URL params
+    let productInfo = sessionContextRef.current;
 
-    // Also check URL params
+    // URL params take precedence or serve as fallback
     if (productParam && productTitleParam) {
       productInfo = {
         productId: productParam,
@@ -184,6 +191,7 @@ export default function MessagesPremium() {
       const existingConv = Array.isArray(conversations) ? conversations.find(c =>
         c.otherCompany?.id === recipientParam
       ) : null;
+
       if (existingConv) {
         setSelectedConversation(existingConv.id);
         // Still generate smart message if product context exists

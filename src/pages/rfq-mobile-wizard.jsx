@@ -40,36 +40,38 @@ export default function RFQMobileWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState([]);
-  
+
   // Form data with smart defaults
-  const [formData, setFormData] = useState(() => {
-    // Try to load from localStorage first
-    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        // Invalid saved data, use defaults
-      }
-    }
-    
-    // Default values with smart defaults
-    return {
-      title: searchParams.get('product') || '',
-      description: '',
-      category_id: '',
-      quantity: searchParams.get('quantity') || '',
-      unit: 'pieces', // Smart default
-      target_price: '',
-      delivery_location: searchParams.get('country') || '',
-      delivery_deadline: null,
-      urgency: 'flexible',
-      verified_only: true,
-      afrikoni_managed: true,
-      attachments: [],
-      voice_note: null, // Placeholder for future voice input
-    };
+  // ✅ MOBILE PERF: Initialize with defaults to avoid blocking main thread with localStorage
+  const [formData, setFormData] = useState({
+    title: searchParams.get('product') || '',
+    description: '',
+    category_id: '',
+    quantity: searchParams.get('quantity') || '',
+    unit: 'pieces',
+    target_price: '',
+    delivery_location: searchParams.get('country') || '',
+    delivery_deadline: null,
+    urgency: 'flexible',
+    verified_only: true,
+    afrikoni_managed: true,
+    attachments: [],
+    voice_note: null,
   });
+
+  // ✅ MOBILE PERF: Load draft asynchronously after mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setFormData(prev => ({ ...prev, ...parsed }));
+        console.log('[RFQWizard] Restored draft from storage');
+      }
+    } catch (e) {
+      console.warn('[RFQWizard] Failed to load draft', e);
+    }
+  }, []);
 
   useEffect(() => {
     // GUARD: Wait for auth to be ready
@@ -96,9 +98,9 @@ export default function RFQMobileWizard() {
     try {
       // Use auth from context (no duplicate call)
       const catsRes = await supabase.from('categories').select('*');
-      
+
       setCategories(catsRes.data || []);
-      
+
       // Load draft from Supabase if exists
       await loadDraftFromSupabase(user.id);
     } catch (error) {
@@ -124,7 +126,7 @@ export default function RFQMobileWizard() {
         .order('updated_at', { ascending: false })
         .limit(1)
         .single();
-      
+
       if (data && data.draft_data) {
         setFormData(prev => ({ ...prev, ...data.draft_data }));
       }
@@ -135,7 +137,7 @@ export default function RFQMobileWizard() {
 
   const saveDraftToSupabase = async () => {
     if (!user?.id) return;
-    
+
     try {
       const { error } = await supabase
         .from('rfq_drafts')
@@ -146,7 +148,7 @@ export default function RFQMobileWizard() {
         }, {
           onConflict: 'user_id'
         });
-      
+
       if (error) throw error;
     } catch (e) {
       // Silently fail - draft saving is optional
@@ -187,7 +189,7 @@ export default function RFQMobileWizard() {
           return { valid: false, message: 'Please describe what you need' };
         }
         return { valid: true };
-      
+
       case 1: // Step 2: Quantity & Destination
         if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
           return { valid: false, message: 'Please enter a valid quantity' };
@@ -196,13 +198,13 @@ export default function RFQMobileWizard() {
           return { valid: false, message: 'Please select a destination country' };
         }
         return { valid: true };
-      
+
       case 2: // Step 3: Urgency & Budget (optional)
         return { valid: true }; // All fields optional
-      
+
       case 3: // Step 4: Confirm
         return { valid: true };
-      
+
       default:
         return { valid: true };
     }
@@ -214,10 +216,10 @@ export default function RFQMobileWizard() {
       // Get or create company
       const { getOrCreateCompany } = await import('@/utils/companyHelper');
       const companyId = await getOrCreateCompany(supabase, user);
-      
+
       const quantity = parseFloat(formData.quantity) || 0;
       const targetPrice = parseFloat(formData.target_price) || null;
-      
+
       const rfqData = {
         title: sanitizeString(formData.title),
         description: sanitizeString(formData.description || formData.title),
@@ -226,11 +228,11 @@ export default function RFQMobileWizard() {
         unit: sanitizeString(formData.unit || 'pieces'),
         target_price: targetPrice,
         delivery_location: sanitizeString(formData.delivery_location || ''),
-        delivery_deadline: formData.delivery_deadline 
-          ? format(formData.delivery_deadline, 'yyyy-MM-dd') 
+        delivery_deadline: formData.delivery_deadline
+          ? format(formData.delivery_deadline, 'yyyy-MM-dd')
           : null,
-        expires_at: formData.delivery_deadline 
-          ? format(formData.delivery_deadline, 'yyyy-MM-dd') 
+        expires_at: formData.delivery_deadline
+          ? format(formData.delivery_deadline, 'yyyy-MM-dd')
           : null,
         attachments: formData.attachments || [],
         status: 'in_review',
@@ -244,7 +246,7 @@ export default function RFQMobileWizard() {
         .insert(rfqData)
         .select()
         .single();
-      
+
       if (error) throw error;
 
       // Clear draft
@@ -259,25 +261,25 @@ export default function RFQMobileWizard() {
       // Move 1: Auto-create system conversation thread for RFQ
       // This creates a "Waiting for suppliers" thread in inbox
       try {
-          // Create a system conversation (buyer_company_id = companyId, seller_company_id = null for system)
-          // This will show in inbox as "RFQ: [title]" with system messages
-          const { data: systemConv, error: convError } = await supabase
-            .from('conversations')
-            .insert({
-              buyer_company_id: companyId,
-              seller_company_id: null, // System conversation
-              subject: `RFQ: ${newRFQ.title}`,
-              last_message: 'Your RFQ is live. Waiting for supplier responses...',
-              last_message_at: new Date().toISOString(),
-              related_rfq_id: newRFQ.id,
-              is_system: true
-            })
-            .select()
-            .single();
+        // Create a system conversation (buyer_company_id = companyId, seller_company_id = null for system)
+        // This will show in inbox as "RFQ: [title]" with system messages
+        const { data: systemConv, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            buyer_company_id: companyId,
+            seller_company_id: null, // System conversation
+            subject: `RFQ: ${newRFQ.title}`,
+            last_message: 'Your RFQ is live. Waiting for supplier responses...',
+            last_message_at: new Date().toISOString(),
+            related_rfq_id: newRFQ.id,
+            is_system: true
+          })
+          .select()
+          .single();
 
-          if (!convError && systemConv) {
-            // Create system message with expectations
-            const systemMessage = `✅ Your RFQ "${newRFQ.title}" has been created successfully!
+        if (!convError && systemConv) {
+          // Create system message with expectations
+          const systemMessage = `✅ Your RFQ "${newRFQ.title}" has been created successfully!
 
 📊 Status: In Review
 ⏱️ Average response time: 6-24 hours
@@ -383,11 +385,10 @@ We're matching your RFQ with verified suppliers. You'll receive notifications wh
           {STEPS.map((_, idx) => (
             <div
               key={idx}
-              className={`h-1 flex-1 rounded-full transition-colors ${
-                idx <= currentStep
+              className={`h-1 flex-1 rounded-full transition-colors ${idx <= currentStep
                   ? 'bg-afrikoni-gold'
                   : 'bg-afrikoni-gold/20'
-              }`}
+                }`}
             />
           ))}
         </div>

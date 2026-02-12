@@ -107,7 +107,7 @@ export function useDashboardKernel() {
         // If user has no profile after 5s, they likely need to create one
         setPreWarming(false);
         navigate('/onboarding/company', { replace: true });
-      }, 5000); // FIX: Increased from 2s to 5s to allow profile fetch to complete
+      }, 10000); // FIX: Increased to 10s for 2G network resilience
     } else {
       setPreWarming(false);
       if (preWarmingTimeoutRef.current) {
