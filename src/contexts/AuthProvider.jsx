@@ -60,6 +60,27 @@ export function AuthProvider({ children }) {
   // before profile fetch has completed
   const [authResolutionComplete, setAuthResolutionComplete] = useState(false);
 
+  // ✅ INSTRUMENTATION: Unique Instance ID for tracing
+  const [instanceId] = useState(() => Math.random().toString(36).substring(2, 9));
+
+  // ✅ INSTRUMENTATION: Boot Trace Logger
+  const bootTrace = useCallback((event, metadata = {}) => {
+    if (typeof window === 'undefined') return;
+    const trace = {
+      instanceId,
+      event: `[Auth] ${event}`,
+      timestamp: new Date().toISOString(),
+      ...metadata
+    };
+
+    // Dispatch specialized trace event for SyncMonitor or other auditing tools
+    window.dispatchEvent(new CustomEvent('afrikoni-boot-trace', { detail: trace }));
+
+    if (import.meta.env.DEV) {
+      console.log(`%c[Trace:${instanceId}] ${event}`, 'color: #e8c68a; font-weight: bold', metadata);
+    }
+  }, [instanceId]);
+
   // FIX: Track if initial auth has completed
   const hasInitializedRef = useRef(false);
   const schemaValidatedRef = useRef(false);
@@ -489,6 +510,8 @@ export function AuthProvider({ children }) {
       refreshProfile,
       refreshAuth: resolveAuth,
       logout,
+      instanceId,
+      bootTrace
     }}>
       {children}
     </AuthContext.Provider>

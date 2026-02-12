@@ -17,8 +17,20 @@ function QuickActionsWidget() {
     const navigate = useNavigate();
     const { capabilities } = useDashboardKernel();
 
-    const canSell = capabilities?.can_sell;
-    const canBuy = capabilities?.can_buy;
+    // ✅ MOBILE GUARD: Prevent crash if capabilities null on slow connection
+    if (!capabilities) {
+        return (
+            <Surface variant="glass" className="p-6">
+                <div className="animate-pulse space-y-4">
+                    <div className="h-6 bg-white/10 rounded w-1/3" />
+                    <div className="h-16 bg-white/10 rounded" />
+                </div>
+            </Surface>
+        );
+    }
+
+    const canSell = capabilities?.can_sell === true;
+    const canBuy = capabilities?.can_buy === true;
 
     return (
         <Surface variant="glass" className="p-6">

@@ -4,8 +4,30 @@ import { cn } from "@/lib/utils";
 import { Surface } from "@/components/system/Surface";
 
 export default function EscrowWidget({ payment }) {
-  const releasedPercent = payment.totalAmount
-    ? (payment.releasedAmount / payment.totalAmount) * 100
+  // ✅ MOBILE GUARD: Handle missing payment data gracefully
+  if (!payment) {
+    return (
+      <Surface variant="glass" className="p-5 border border-white/5">
+        <div className="animate-pulse space-y-3">
+          <div className="h-6 bg-white/10 rounded w-1/2" />
+          <div className="h-2 bg-white/10 rounded" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-16 bg-white/10 rounded" />
+            <div className="h-16 bg-white/10 rounded" />
+          </div>
+        </div>
+      </Surface>
+    );
+  }
+
+  // ✅ DEFENSIVE: Safe numeric calculations with fallbacks
+  const totalAmount = Number(payment?.totalAmount) || 0;
+  const releasedAmount = Number(payment?.releasedAmount) || 0;
+  const heldAmount = Number(payment?.heldAmount) || 0;
+  const fxRate = payment?.fxRate || 1.0;
+  
+  const releasedPercent = totalAmount > 0
+    ? (releasedAmount / totalAmount) * 100
     : 0;
 
   return (
@@ -18,7 +40,7 @@ export default function EscrowWidget({ payment }) {
           </p>
         </div>
         <span className="text-xs text-os-muted font-mono">
-          FX {payment.fxRate}
+          FX {fxRate.toFixed(2)}
         </span>
       </div>
 
@@ -26,13 +48,13 @@ export default function EscrowWidget({ payment }) {
         <div className="flex items-center justify-between text-sm">
           <span className="text-os-muted">Released</span>
           <span className="font-semibold text-[var(--os-text-primary)] tabular-nums">
-            ${payment.releasedAmount.toLocaleString()}
+            ${releasedAmount.toLocaleString()}
           </span>
         </div>
         <Progress value={releasedPercent} className="h-2 bg-white/10" indicatorClassName="bg-[#D4A937]" />
         <div className="flex items-center justify-between text-xs text-os-muted">
           <span>{releasedPercent.toFixed(0)}% released</span>
-          <span>${payment.totalAmount.toLocaleString()} total</span>
+          <span>${totalAmount.toLocaleString()} total</span>
         </div>
       </div>
 
@@ -40,14 +62,14 @@ export default function EscrowWidget({ payment }) {
         {[
           {
             label: "Held",
-            value: `$${payment.heldAmount.toLocaleString()}`,
+            value: `$${heldAmount.toLocaleString()}`,
             icon: Lock,
             tone: "text-amber-400",
             bg: "bg-amber-400/10",
           },
           {
             label: "Released",
-            value: `$${payment.releasedAmount.toLocaleString()}`,
+            value: `$${releasedAmount.toLocaleString()}`,
             icon: ArrowUpRight,
             tone: "text-emerald-400",
             bg: "bg-emerald-400/10",

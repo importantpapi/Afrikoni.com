@@ -55,13 +55,16 @@ function TodaysActions({ compact = false }) {
     const navigate = useNavigate();
     const { actions, loading, markAsCompleted } = useAIActions();
 
+    // ✅ MOBILE GUARD: Safely group actions with null protection
     const groupedActions = useMemo(() => {
-        if (!actions) return { urgent: [], recommended: [], opportunity: [] };
+        if (!actions || !Array.isArray(actions)) {
+            return { urgent: [], recommended: [], opportunity: [] };
+        }
 
         return {
-            urgent: (actions || []).filter(a => a.priority === 'urgent'),
-            recommended: (actions || []).filter(a => a.priority === 'recommended'),
-            opportunity: (actions || []).filter(a => a.priority === 'opportunity'),
+            urgent: actions.filter(a => a?.priority === 'urgent'),
+            recommended: actions.filter(a => a?.priority === 'recommended'),
+            opportunity: actions.filter(a => a?.priority === 'opportunity'),
         };
     }, [actions]);
 
@@ -95,7 +98,10 @@ function TodaysActions({ compact = false }) {
         );
     }
 
+    // ✅ DEFENSIVE: Validate action object before processing
     const handleActionClick = (action) => {
+        if (!action) return;
+        
         if (action.path) {
             navigate(action.path);
         }
@@ -162,7 +168,10 @@ function TodaysActions({ compact = false }) {
 export default memo(TodaysActions);
 
 function ActionSection({ priority, actions, onActionClick }) {
+    // ✅ MOBILE GUARD: Validate config and actions array
     const config = PRIORITY_CONFIG[priority];
+    if (!config || !Array.isArray(actions)) return null;
+    
     const Icon = config.icon;
 
     return (
@@ -196,7 +205,10 @@ function ActionSection({ priority, actions, onActionClick }) {
 }
 
 function ActionItem({ action, onClick, config }) {
-    const ActionIcon = getActionIcon(action.type);
+    // ✅ NULL GUARD: Prevent crash if action or config missing
+    if (!action || !config) return null;
+    
+    const ActionIcon = getActionIcon(action?.type);
 
     return (
         <div
@@ -217,10 +229,10 @@ function ActionItem({ action, onClick, config }) {
                             {action.title}
                         </h4>
                         <p className="text-xs text-white/60 line-clamp-2">
-                            {action.description}
+                            {action?.description || 'No description'}
                         </p>
 
-                        {action.metadata && (
+                        {action?.metadata && (
                             <div className="flex items-center gap-3 mt-2 text-xs text-white/40">
                                 {action.metadata.timeLeft && (
                                     <span className="flex items-center gap-1">

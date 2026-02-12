@@ -112,7 +112,11 @@ function RecentRFQsWidget() {
                     </div>
                 ) : (
                     <div className="divide-y divide-os-stroke">
-                        {(rfqs || []).map((rfq) => (
+                        {(rfqs || []).map((rfq) => {
+                            // ✅ NULL GUARD: Skip invalid RFQ entries
+                            if (!rfq || !rfq.id) return null;
+                            
+                            return (
                             <div
                                 key={rfq.id}
                                 className="p-4 hover:bg-os-surface-1 transition-colors cursor-pointer group flex items-center justify-between"
@@ -121,7 +125,7 @@ function RecentRFQsWidget() {
                                 <div className="min-w-0 flex-1 pr-4">
                                     <div className="flex items-center gap-2 mb-1">
                                         <h4 className="font-medium text-[var(--os-text-primary)] truncate">
-                                            {rfq.title}
+                                            {rfq?.title || 'Untitled RFQ'}
                                         </h4>
                                         <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-green-500/10 text-green-600 border-green-500/20">
                                             OPEN
@@ -130,19 +134,20 @@ function RecentRFQsWidget() {
                                     <div className="flex items-center gap-3 text-xs text-os-muted">
                                         <span className="flex items-center gap-1">
                                             <Calendar className="h-3 w-3" />
-                                            {new Date(rfq.created_at).toLocaleDateString()}
+                                            {rfq?.created_at ? new Date(rfq.created_at).toLocaleDateString() : 'N/A'}
                                         </span>
-                                        {rfq.target_price && (
+                                        {rfq?.target_price && (
                                             <span className="font-medium text-[var(--os-text-primary)]">
-                                                ${rfq.target_price.toLocaleString()}
-                                                {rfq.unit ? `/${rfq.unit}` : ''}
+                                                ${Number(rfq.target_price).toLocaleString()}
+                                                {rfq?.unit ? `/${rfq.unit}` : ''}
                                             </span>
                                         )}
                                     </div>
                                 </div>
                                 <ArrowUpRight className="h-4 w-4 text-os-muted opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

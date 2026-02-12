@@ -28,6 +28,8 @@ type CapabilityContextValue = CapabilityData & {
   invalidateAll: () => void;
   lastInvalidatedAt: number;
   invalidatedTags: Set<string>;
+  instanceId: string;
+  bootTrace: (event: string, metadata?: any) => void;
 };
 
 const CapabilityContext = createContext<CapabilityContextValue | undefined>(undefined);
@@ -72,6 +74,24 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
   const [invalidatedTags, setInvalidatedTags] = useState<Set<string>>(new Set());
   const [isSlowConnection, setIsSlowConnection] = useState(false);
 
+  // ✅ INSTRUMENTATION: Unique Instance ID
+  const [instanceId] = useState(() => Math.random().toString(36).substring(2, 9));
+
+  // ✅ INSTRUMENTATION: Boot Trace Logger
+  const bootTrace = useCallback((event: string, metadata: any = {}) => {
+    if (typeof window === 'undefined') return;
+    const trace = {
+      instanceId,
+      event: `[Capability] ${event}`,
+      timestamp: new Date().toISOString(),
+      ...metadata
+    };
+    window.dispatchEvent(new CustomEvent('afrikoni-boot-trace', { detail: trace }));
+    if (import.meta.env.DEV) {
+      console.log(`%c[Trace:${instanceId}] ${event}`, 'color: #9cdcfe; font-weight: bold', metadata);
+    }
+  }, [instanceId]);
+
   useEffect(() => {
     isMounted.current = true;
     return () => { isMounted.current = false; };
@@ -79,6 +99,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
 
   const fetchCapabilities = useCallback(async (forceRefresh = false) => {
     const targetCompanyId = profile?.company_id;
+    bootTrace('Fetch Requested', { targetCompanyId, forceRefresh, authReady });
 
     if (profile?.is_admin === true) {
       setCapabilities({
@@ -205,14 +226,13 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
         isSlowConnection: false,
       }));
     } finally {
-      isFetchingRef.current = false;
-      // Ensure we mark as ready to prevent boot hang
       if (isMounted.current) {
         hasFetchedRef.current = true;
         fetchedCompanyIdRef.current = targetCompanyId;
       }
+      bootTrace('Fetch Concluded');
     }
-  }, [profile?.company_id, profile?.is_admin, authReady, user, capabilities.ready]);
+  }, [profile?.company_id, profile?.is_admin, authReady, user, capabilities.ready, bootTrace]);
 
   useEffect(() => {
     if (!authReady) {
@@ -273,6 +293,8 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     invalidateAll,
     lastInvalidatedAt,
     invalidatedTags,
+    instanceId,
+    bootTrace
   };
 
   return (
@@ -281,6 +303,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     </CapabilityContext.Provider>
   );
 }
+
 
 export function useCapability(): CapabilityContextValue {
   const ctx = useContext(CapabilityContext);
@@ -306,6 +329,8 @@ export function useCapability(): CapabilityContextValue {
       invalidateAll: () => { },
       lastInvalidatedAt: 0,
       invalidatedTags: new Set(),
+      instanceId: 'missing-context',
+      bootTrace: () => { },
     };
   }
   return ctx;

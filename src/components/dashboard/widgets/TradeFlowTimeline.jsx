@@ -5,15 +5,19 @@ import { Activity } from 'lucide-react';
 
 export const TradeFlowTimeline = ({ trades = [] }) => {
     const navigate = useNavigate();
+    
+    // ✅ MOBILE GUARD: Ensure trades is always an array
+    const safeTrades = Array.isArray(trades) ? trades : [];
+    
     // Mock stages if no real trades yet
     const stages = [
-        { label: 'RFQ', count: (trades || []).filter(t => ['draft', 'rfq_open'].includes(t.status || '')).length },
-        { label: 'Quote', count: (trades || []).filter(t => ['quoted'].includes(t.status || '')).length },
-        { label: 'Contract', count: (trades || []).filter(t => ['contracted'].includes(t.status || '')).length },
-        { label: 'Escrow', count: (trades || []).filter(t => ['escrow_required', 'escrow_funded'].includes(t.status || '')).length },
-        { label: 'Shipment', count: (trades || []).filter(t => ['pickup_scheduled', 'in_transit'].includes(t.status || '')).length },
-        { label: 'Delivery', count: (trades || []).filter(t => ['delivered', 'accepted'].includes(t.status || '')).length },
-        { label: 'Settlement', count: (trades || []).filter(t => ['settled', 'closed'].includes(t.status || '')).length },
+        { label: 'RFQ', count: safeTrades.filter(t => t && ['draft', 'rfq_open'].includes(t?.status || '')).length },
+        { label: 'Quote', count: safeTrades.filter(t => t && ['quoted'].includes(t?.status || '')).length },
+        { label: 'Contract', count: safeTrades.filter(t => t && ['contracted'].includes(t?.status || '')).length },
+        { label: 'Escrow', count: safeTrades.filter(t => t && ['escrow_required', 'escrow_funded'].includes(t?.status || '')).length },
+        { label: 'Shipment', count: safeTrades.filter(t => t && ['pickup_scheduled', 'in_transit'].includes(t?.status || '')).length },
+        { label: 'Delivery', count: safeTrades.filter(t => t && ['delivered', 'accepted'].includes(t?.status || '')).length },
+        { label: 'Settlement', count: safeTrades.filter(t => t && ['settled', 'closed'].includes(t?.status || '')).length },
     ];
 
     return (

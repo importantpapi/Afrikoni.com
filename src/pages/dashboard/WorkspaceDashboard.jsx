@@ -108,11 +108,12 @@ export default function WorkspaceDashboard() {
         notificationCount={notificationCount}
         isAdmin={isAdmin}
       >
+        {/* ✅ MOBILE GUARD: Only initialize realtime when system is ready */}
         <DashboardRealtimeManager
-          companyId={profile?.company_id}
-          userId={user?.id}
+          companyId={profileCompanyId}
+          userId={userId}
           onUpdate={handleRealtimeUpdate}
-          enabled={isSystemReady}
+          enabled={true}
         />
 
         <SyncMonitor isSubscribed={true} />
