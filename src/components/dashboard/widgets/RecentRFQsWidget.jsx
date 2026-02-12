@@ -93,7 +93,7 @@ export default function RecentRFQsWidget() {
                     </div>
                 ) : (
                     <div className="divide-y divide-os-stroke">
-                        {rfqs.map((rfq) => (
+                        {(rfqs || []).map((rfq) => (
                             <div
                                 key={rfq.id}
                                 className="p-4 hover:bg-os-surface-1 transition-colors cursor-pointer group flex items-center justify-between"

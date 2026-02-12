@@ -6,13 +6,13 @@ import { ArrowLeft, TrendingUp, DollarSign, Package, ShoppingBag } from 'lucide-
 export default function SellerAnalytics({ data, onBack }) {
   const { products = [], orders = [] } = data;
 
-  const totalRevenue = orders
+  const totalRevenue = (orders || [])
     .filter(o => o.payment_status === 'paid')
     .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
 
-  const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0);
-  const avgProductPrice = products.length > 0
-    ? products.reduce((sum, p) => sum + parseFloat(p.price || 0), 0) / products.length
+  const totalViews = (products || []).reduce((sum, p) => sum + (p.views || 0), 0);
+  const avgProductPrice = (products || []).length > 0
+    ? (products || []).reduce((sum, p) => sum + parseFloat(p.price || 0), 0) / (products || []).length
     : 0;
 
   return (
@@ -45,7 +45,7 @@ export default function SellerAnalytics({ data, onBack }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm mb-1">Total Orders</p>
-                <p className="text-2xl font-bold">{orders.length}</p>
+                <p className="text-2xl font-bold">{(orders || []).length}</p>
               </div>
               <ShoppingBag className="w-8 h-8" />
             </div>
@@ -83,9 +83,10 @@ export default function SellerAnalytics({ data, onBack }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {['pending', 'processing', 'shipped', 'delivered', 'completed'].map(status => {
-              const count = orders.filter(o => o.status === status).length;
-              const percentage = orders.length > 0 ? (count / orders.length) * 100 : 0;
+            {(['pending', 'processing', 'shipped', 'delivered', 'completed'] || []).map(status => {
+              const currentOrders = orders || [];
+              const count = currentOrders.filter(o => o.status === status).length;
+              const percentage = currentOrders.length > 0 ? (count / currentOrders.length) * 100 : 0;
               return (
                 <div key={status}>
                   <div className="flex justify-between text-sm mb-1">

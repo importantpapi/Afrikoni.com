@@ -24,7 +24,7 @@ const statusConfig = {
 
 export function RFQInbox({ rfqs = [], className }) {
   const activeRFQs = useMemo(
-    () => rfqs.filter((rfq) => !['expired', 'cancelled', 'accepted'].includes(rfq.status)),
+    () => (rfqs || []).filter((rfq) => !['expired', 'cancelled', 'accepted'].includes(rfq.status)),
     [rfqs]
   );
 
@@ -58,14 +58,14 @@ export function RFQInbox({ rfqs = [], className }) {
       </div>
 
       <div className="divide-y divide-os-stroke">
-        {rfqs.length === 0 ? (
+        {(!rfqs || rfqs.length === 0) ? (
           <div className="p-8 text-center">
             <FileText className="h-10 w-10 text-os-muted mx-auto mb-3" />
             <p className="text-sm font-medium text-[var(--os-text-primary)]">No RFQs yet</p>
             <p className="text-xs text-os-muted mt-1">New buyer requests will appear here</p>
           </div>
         ) : (
-          rfqs.slice(0, 4).map((rfq) => {
+          (rfqs || []).slice(0, 4).map((rfq) => {
             const config = statusConfig[rfq.status] || statusConfig.draft;
             const deadline = formatDeadline(rfq.deadline);
             const isUrgent = deadline === 'Today' || deadline === 'Tomorrow';
@@ -131,10 +131,10 @@ export function RFQInbox({ rfqs = [], className }) {
         )}
       </div>
 
-      {rfqs.length > 4 && (
+      {(rfqs || []).length > 4 && (
         <div className="p-3 border-t border-os-stroke bg-os-surface-1">
           <Button variant="ghost" className="w-full text-sm text-os-muted hover:text-[var(--os-text-primary)]">
-            View {rfqs.length - 4} more requests
+            View {(rfqs || []).length - 4} more requests
           </Button>
         </div>
       )}

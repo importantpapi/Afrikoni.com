@@ -26,7 +26,7 @@ export default function DashboardHeader({ user, company, activeRole, onRoleSwitc
   const isHybrid = capabilities?.can_buy === true && capabilities?.can_sell === true;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
-  
+
   const roleOptions = [
     { value: 'buyer', label: 'Buyer' },
     { value: 'seller', label: 'Seller' },
@@ -63,7 +63,7 @@ export default function DashboardHeader({ user, company, activeRole, onRoleSwitc
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {roleOptions.map(role => (
+                {(roleOptions || []).map(role => (
                   <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
                 ))}
               </SelectContent>

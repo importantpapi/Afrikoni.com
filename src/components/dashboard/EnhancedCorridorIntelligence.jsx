@@ -195,7 +195,8 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
                 .order('created_at', { ascending: false });
 
             if (!error && trades) {
-                const relevantTrades = trades.filter(t =>
+                const currentTrades = trades || [];
+                const relevantTrades = currentTrades.filter(t =>
                     (t.origin_country === corridorData.origin && t.destination_country === corridorData.destination) ||
                     (t.origin_country === corridorData.destination && t.destination_country === corridorData.origin)
                 );
@@ -426,7 +427,7 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
             <Surface variant="glass" className="p-6 border border-white/10">
                 <h3 className="text-lg font-semibold text-white mb-4">Compliance Requirements</h3>
                 <div className="flex flex-wrap gap-2">
-                    {corridorData.compliance.map((req) => (
+                    {(corridorData.compliance || []).map((req) => (
                         <div
                             key={req}
                             className="px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-400"

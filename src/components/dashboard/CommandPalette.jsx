@@ -51,15 +51,16 @@ export default function CommandPalette({ open, onClose }) {
   const listRef = useRef(null);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return ACTIONS;
-    return ACTIONS.filter(a =>
+    const list = ACTIONS || [];
+    if (!query.trim()) return list;
+    return list.filter(a =>
       fuzzyMatch(a.label, query) || fuzzyMatch(a.keywords, query)
     );
   }, [query]);
 
   const grouped = useMemo(() => {
     const groups = {};
-    filtered.forEach(action => {
+    (filtered || []).forEach(action => {
       if (!groups[action.group]) groups[action.group] = [];
       groups[action.group].push(action);
     });
@@ -68,7 +69,7 @@ export default function CommandPalette({ open, onClose }) {
 
   const flatList = useMemo(() => {
     const result = [];
-    Object.values(grouped).forEach(items => result.push(...items));
+    Object.values(grouped || {}).forEach(items => result.push(...(items || [])));
     return result;
   }, [grouped]);
 
@@ -163,7 +164,7 @@ export default function CommandPalette({ open, onClose }) {
                   <div className="px-4 py-1.5 text-[10px] font-bold dark:text-gray-600 uppercase tracking-[0.1em]">
                     {group}
                   </div>
-                  {items.map((action) => {
+                  {(items || []).map((action) => {
                     const idx = globalIndex++;
                     const isSelected = idx === selectedIndex;
                     const Icon = action.icon;
@@ -173,15 +174,13 @@ export default function CommandPalette({ open, onClose }) {
                         data-index={idx}
                         onClick={() => executeAction(action)}
                         onMouseEnter={() => setSelectedIndex(idx)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                          isSelected
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isSelected
                             ? 'bg-[#D4A937]/10 text-gray-900 dark:text-[#F5F0E8]'
                             : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] hover:text-gray-700 dark:hover:text-gray-200'
-                        }`}
+                          }`}
                       >
-                        <Icon className={`w-4 h-4 flex-shrink-0 ${
-                          isSelected ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-600'
-                        }`} />
+                        <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-600'
+                          }`} />
                         <span className="flex-1 text-sm font-medium">{action.label}</span>
                         {isSelected && (
                           <ArrowRight className="w-4 h-4" />

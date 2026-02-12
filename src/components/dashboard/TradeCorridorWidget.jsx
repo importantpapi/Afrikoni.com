@@ -45,7 +45,7 @@ export default function TradeCorridorWidget({ className = '' }) {
         if (error || !orders || orders.length === 0) return;
 
         const companyIds = Array.from(new Set(
-          orders.flatMap(order => [order.buyer_company_id, order.seller_company_id]).filter(Boolean)
+          (orders || []).flatMap(order => [order.buyer_company_id, order.seller_company_id]).filter(Boolean)
         ));
 
         const { data: companies } = await supabase
@@ -59,14 +59,14 @@ export default function TradeCorridorWidget({ className = '' }) {
         });
 
         const corridorMap = {};
-        orders.forEach(order => {
+        (orders || []).forEach(order => {
           const from = companyMap.get(order.seller_company_id) || 'Unknown';
           const to = companyMap.get(order.buyer_company_id) || 'Unknown';
           const key = `${from}\u2192${to}`;
           if (!corridorMap[key]) {
             corridorMap[key] = { from, to, volume: 0, trades: 0 };
           }
-          corridorMap[key].volume += parseFloat(order.total_amount) || 0;
+          corridorMap[key].volume += parseFloat(order.total_amount || 0) || 0;
           corridorMap[key].trades += 1;
         });
 
@@ -103,7 +103,7 @@ export default function TradeCorridorWidget({ className = '' }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {corridors.map((corridor, i) => (
+          {(corridors || []).map((corridor, i) => (
             <motion.div
               key={`${corridor.from}-${corridor.to}`}
               initial={{ opacity: 0, x: -10 }}
@@ -128,10 +128,9 @@ export default function TradeCorridorWidget({ className = '' }) {
                 </span>
                 <div className="flex items-center gap-0.5">
                   <TrendIcon trend={corridor.trend} />
-                  <span className={`text-[10px] font-medium font-mono ${
-                    corridor.trend === 'up' ? 'text-emerald-500' :
-                    corridor.trend === 'down' ? 'text-red-500' : 'text-gray-400'
-                  }`}>
+                  <span className={`text-[10px] font-medium font-mono ${corridor.trend === 'up' ? 'text-emerald-500' :
+                      corridor.trend === 'down' ? 'text-red-500' : 'text-gray-400'
+                    }`}>
                     {corridor.change}
                   </span>
                 </div>

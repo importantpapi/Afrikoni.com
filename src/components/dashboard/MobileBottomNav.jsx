@@ -47,7 +47,7 @@ export default function MobileBottomNav({
       role="navigation"
     >
       <div className="flex items-center justify-between h-16 max-w-lg mx-auto relative">
-        {navItems.map((item, index) => {
+        {(navItems || []).map((item, index) => {
           if (item.divider) {
             return (
               <div key="quick-action" className="relative -top-6">

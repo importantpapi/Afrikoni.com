@@ -24,7 +24,7 @@ export function RecentRFQs() {
       </div>
 
       <div className="space-y-3">
-        {rfqs.map((rfq) => (
+        {(rfqs || []).map((rfq) => (
           <div
             key={rfq.id}
             className="flex items-center justify-between p-4 rounded-lg bg-os-surface-1 hover:bg-os-surface-2 transition-colors group"
@@ -48,7 +48,7 @@ export function RecentRFQs() {
           </div>
         ))}
 
-        {rfqs.length === 0 && (
+        {(rfqs || []).length === 0 && (
           <div className="text-center py-8">
             <FileText className="h-10 w-10 text-os-muted mx-auto mb-3" />
             <p className="text-sm text-os-muted">No recent RFQs</p>

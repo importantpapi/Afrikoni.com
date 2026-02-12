@@ -54,7 +54,7 @@ export default function TradeOSSidebar({
   );
 
   return (
-    <aside 
+    <aside
       className={`
         relative h-full bg-white dark:bg-black border-r border-afrikoni-gold/10
         flex flex-col items-center py-5 transition-transform duration-200 shadow-sm
@@ -72,9 +72,9 @@ export default function TradeOSSidebar({
 
       {/* Navigation Dock */}
       <nav className="flex-1 flex flex-col gap-3 w-full px-2 items-center overflow-y-auto scrollbar-hide py-2">
-        {sections.map((section, idx) => (
+        {(sections || []).map((section, idx) => (
           <React.Fragment key={section.id}>
-            {section.items.map(item => (
+            {(section.items || []).map(item => (
               <OSNavItem
                 key={item.id}
                 icon={item.icon}
@@ -85,7 +85,7 @@ export default function TradeOSSidebar({
               />
             ))}
             {/* Divider if required and not the last section */}
-            {section.divider && idx < sections.length - 1 && (
+            {section.divider && idx < (sections || []).length - 1 && (
               <div className="w-8 h-px bg-afrikoni-gold/20 dark:bg-white/10 my-1" />
             )}
           </React.Fragment>
@@ -95,7 +95,7 @@ export default function TradeOSSidebar({
       {/* System Apps */}
       <div className="flex flex-col gap-4 w-full px-2 items-center mt-auto pb-4">
         <div className="w-6 h-px bg-afrikoni-gold/20 dark:bg-white/10" />
-        {systemApps.map(item => (
+        {(systemApps || []).map(item => (
           <OSNavItem
             key={item.id}
             icon={item.icon}

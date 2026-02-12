@@ -180,7 +180,7 @@ function ActionSection({ priority, actions, onActionClick }) {
             </div>
 
             <div className="space-y-3">
-                {actions.map((action) => (
+                {(actions || []).map((action) => (
                     <ActionItem
                         key={action.id}
                         action={action}
