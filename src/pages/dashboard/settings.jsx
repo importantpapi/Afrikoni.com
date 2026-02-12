@@ -488,7 +488,11 @@ export default function DashboardSettings() {
       }
 
       toast.success('Settings saved successfully');
-      loadUserData();
+      
+      // Reload page after short delay to show toast and refresh kernel data
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } catch (error) {
       toast.error('Failed to save settings');
     } finally {
