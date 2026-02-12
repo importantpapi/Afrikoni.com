@@ -293,6 +293,9 @@ export default function DashboardSettings() {
 
       setAvatarUrl(file_url);
       toast.success('Avatar uploaded successfully');
+      
+      // Force page reload to refresh all kernel data and prevent cache issues
+      window.location.reload();
     } catch (error) {
       // ✅ GLOBAL HARDENING: Enhanced error logging
       logError('handleAvatarUpload', error, {
