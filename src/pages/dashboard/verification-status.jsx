@@ -100,7 +100,6 @@ export default function VerificationStatus() {
 
   const loadVerificationStatus = async () => {
     if (!profileCompanyId) {
-      console.log('[VerificationStatus] No company_id - cannot load verification status');
       setLoading(false);
       return;
     }
@@ -193,7 +192,7 @@ export default function VerificationStatus() {
         strength += 20;
         completed.push('tax_compliance');
       }
-      if (verifData.certification_urls && verifData.certification_urls.length > 0) {
+      if (verifData.certification_urls && (verifData.certification_urls?.length || 0) > 0) {
         strength += 15;
         completed.push('product_quality');
       }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  BarChart3, TrendingUp, Eye, MessageSquare, FileText, Users, 
+  BarChart3, TrendingUp, Eye, MessageSquare, FileText, Users,
   Package, ArrowUp, ArrowDown, Target, Award, Globe, Clock,
   Calendar, Filter, Download, RefreshCw
 } from 'lucide-react';
@@ -28,13 +28,13 @@ const COLORS = ['#D4A937', '#8140FF', '#3AB795', '#E85D5D', '#C9A961', '#5A5A5A'
 function SupplierAnalyticsInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, user, profile } = useDashboardKernel();
-  
+
   const [companyId, setCompanyId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('30d');
   const [refreshing, setRefreshing] = useState(false);
-  
+
   // Metrics
   const [metrics, setMetrics] = useState({
     totalViews: 0,
@@ -59,7 +59,6 @@ function SupplierAnalyticsInner() {
   useEffect(() => {
     // GUARD: Wait for auth to be ready
     if (!authReady || authLoading) {
-      console.log('[SupplierAnalytics] Waiting for auth to be ready...');
       return;
     }
 
@@ -82,7 +81,6 @@ function SupplierAnalyticsInner() {
         }
       } catch (error) {
         toast.error('Failed to load company data');
-        console.error('Company load error:', error);
       } finally {
         setLoading(false);
       }
@@ -127,7 +125,7 @@ function SupplierAnalyticsInner() {
 
   const loadAnalytics = async () => {
     if (!companyId) return;
-    
+
     setRefreshing(true);
     try {
       const { start, end } = getDateRange(timeRange);
@@ -160,9 +158,9 @@ function SupplierAnalyticsInner() {
           .from('conversations')
           .select('id')
           .in('related_to', productIds);
-        
+
         const conversationIds = (conversationsData || []).map(c => c.id);
-        
+
         // Load messages from those conversations
         if (conversationIds.length > 0) {
           const { data: messagesData } = await supabase
@@ -171,11 +169,11 @@ function SupplierAnalyticsInner() {
             .in('conversation_id', conversationIds)
             .gte('created_at', startISO)
             .lte('created_at', endISO);
-          
+
           conversations = messagesData || [];
         }
       }
-      
+
       const messages = conversations;
 
       // Load RFQs related to products
@@ -187,7 +185,7 @@ function SupplierAnalyticsInner() {
           .in('product_id', productIds)
           .gte('created_at', startISO)
           .lte('created_at', endISO);
-        
+
         rfqs = rfqsData || [];
       }
 
@@ -205,7 +203,7 @@ function SupplierAnalyticsInner() {
       const totalRFQs = rfqs?.length || 0;
       const conversionRate = totalViews > 0 ? ((totalContacts + totalRFQs) / totalViews) * 100 : 0;
       const avgViewsPerProduct = products && products.length > 0 ? totalViews / products.length : 0;
-      const topProductViews = products && products.length > 0 
+      const topProductViews = products && products.length > 0
         ? Math.max(...products.map(p => parseInt(p.views) || 0))
         : 0;
 
@@ -215,15 +213,15 @@ function SupplierAnalyticsInner() {
         .select('views')
         .eq('status', 'active')
         .limit(100);
-      
+
       const marketplaceAvgViews = allProducts && allProducts.length > 0
         ? allProducts.reduce((sum, p) => sum + (parseInt(p.views) || 0), 0) / allProducts.length
         : 0;
 
       // Calculate growth
       const prevTotalViews = (prevProducts || []).reduce((sum, p) => sum + (parseInt(p.views) || 0), 0);
-      const viewsGrowth = prevTotalViews > 0 
-        ? ((totalViews - prevTotalViews) / prevTotalViews) * 100 
+      const viewsGrowth = prevTotalViews > 0
+        ? ((totalViews - prevTotalViews) / prevTotalViews) * 100
         : (totalViews > 0 ? 100 : 0);
 
       // Previous period contacts (simplified - would need proper date filtering)
@@ -263,7 +261,7 @@ function SupplierAnalyticsInner() {
   const buildViewsTrendData = (products, start, end) => {
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     const interval = days <= 30 ? 'day' : 'month';
-    
+
     // Simplified: distribute views evenly (in real app, would track daily views)
     const data = [];
     let currentDate = new Date(start);
@@ -271,16 +269,16 @@ function SupplierAnalyticsInner() {
     const viewsPerDay = totalViews / days;
 
     while (currentDate <= end) {
-      const key = interval === 'day' 
-        ? format(currentDate, 'MMM dd') 
+      const key = interval === 'day'
+        ? format(currentDate, 'MMM dd')
         : format(currentDate, 'MMM yyyy');
-      
+
       data.push({
         date: key,
         views: Math.round(viewsPerDay),
         contacts: Math.round(viewsPerDay * 0.05), // 5% conversion estimate
       });
-      
+
       currentDate = new Date(currentDate.getTime() + (interval === 'day' ? 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000));
     }
 
@@ -294,7 +292,7 @@ function SupplierAnalyticsInner() {
       .from('conversations')
       .select('id, related_to')
       .in('related_to', productIds);
-    
+
     const productConversationMap = {};
     (conversationsData || []).forEach(conv => {
       if (conv.related_to && !productConversationMap[conv.related_to]) {
@@ -304,10 +302,10 @@ function SupplierAnalyticsInner() {
         productConversationMap[conv.related_to].push(conv.id);
       }
     });
-    
+
     const data = products.slice(0, 10).map(product => {
       const conversationIds = productConversationMap[product.id] || [];
-      const productMessages = messages?.filter(m => 
+      const productMessages = messages?.filter(m =>
         conversationIds.includes(m.conversation_id)
       ).length || 0;
       const productRFQs = rfqs?.filter(r => r.product_id === product.id).length || 0;
@@ -356,12 +354,12 @@ function SupplierAnalyticsInner() {
       const totalViews = products.reduce((sum, p) => sum + (parseInt(p.views) || 0), 0);
       const totalContacts = messages?.length || 0;
       const totalRFQs = rfqs?.length || 0;
-      
+
       // Get engagement trends over time (last 30 days)
       const { start, end } = getDateRange(timeRange);
       const startISO = start.toISOString();
       const endISO = end.toISOString();
-      
+
       // Fetch product views activity (if tracked in activity_tracking or product_views table)
       const { data: activityData } = await supabase
         .from('activity_tracking')
@@ -370,21 +368,21 @@ function SupplierAnalyticsInner() {
         .in('entity_id', products.map(p => p.id))
         .gte('created_at', startISO)
         .lte('created_at', endISO);
-      
+
       // Count messages and RFQs by date
       const messagesByDate = {};
       const rfqsByDate = {};
-      
+
       (messages || []).forEach(msg => {
         const date = new Date(msg.created_at).toISOString().split('T')[0];
         messagesByDate[date] = (messagesByDate[date] || 0) + 1;
       });
-      
+
       (rfqs || []).forEach(rfq => {
         const date = new Date(rfq.created_at).toISOString().split('T')[0];
         rfqsByDate[date] = (rfqsByDate[date] || 0) + 1;
       });
-      
+
       // Build engagement trend data
       const engagementTrend = [];
       const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
@@ -392,13 +390,13 @@ function SupplierAnalyticsInner() {
         const date = new Date(start);
         date.setDate(date.getDate() + i);
         const dateStr = date.toISOString().split('T')[0];
-        
+
         // Count views for this date from activity tracking
         const viewsOnDate = (activityData || []).filter(a => {
           const activityDate = new Date(a.created_at).toISOString().split('T')[0];
           return activityDate === dateStr;
         }).length;
-        
+
         engagementTrend.push({
           date: format(date, 'MMM dd'),
           views: viewsOnDate,
@@ -406,7 +404,7 @@ function SupplierAnalyticsInner() {
           rfqs: rfqsByDate[dateStr] || 0
         });
       }
-      
+
       // Set both summary and trend data
       const summaryData = [
         { name: 'Views', value: totalViews, color: '#D4A937' },
@@ -414,13 +412,12 @@ function SupplierAnalyticsInner() {
         { name: 'RFQs', value: totalRFQs, color: '#3AB795' },
       ];
       setEngagementData(summaryData);
-      
+
       // Also update views trend data with real engagement
       if (engagementTrend.length > 0) {
         setViewsTrendData(engagementTrend);
       }
     } catch (error) {
-      console.error('Error building engagement data:', error);
       // Fallback to basic metrics
       const data = [
         { name: 'Views', value: metrics.totalViews, color: '#D4A937' },
@@ -447,8 +444,8 @@ function SupplierAnalyticsInner() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           setLoading(true);
@@ -686,12 +683,12 @@ function SupplierAnalyticsInner() {
                       <AreaChart data={viewsTrendData}>
                         <defs>
                           <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#D4A937" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#D4A937" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#D4A937" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#D4A937" stopOpacity={0} />
                           </linearGradient>
                           <linearGradient id="colorContacts" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8140FF" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#8140FF" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#8140FF" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#8140FF" stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E8D8B5" />
@@ -800,9 +797,9 @@ function SupplierAnalyticsInner() {
                     <ResponsiveContainer width="100%" height={400}>
                       <BarChart data={topProductsData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E8D8B5" />
-                        <XAxis 
-                          dataKey="name" 
-                          stroke="#2E2A1F" 
+                        <XAxis
+                          dataKey="name"
+                          stroke="#2E2A1F"
                           fontSize={12}
                           angle={-45}
                           textAnchor="end"
@@ -849,9 +846,9 @@ function SupplierAnalyticsInner() {
                     <ResponsiveContainer width="100%" height={400}>
                       <BarChart data={conversionData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#E8D8B5" />
-                        <XAxis 
-                          dataKey="name" 
-                          stroke="#2E2A1F" 
+                        <XAxis
+                          dataKey="name"
+                          stroke="#2E2A1F"
                           fontSize={12}
                           angle={-45}
                           textAnchor="end"
@@ -953,10 +950,10 @@ function SupplierAnalyticsInner() {
                     <span className="font-bold">{metrics.marketplaceAvgViews.toFixed(0)}</span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full rounded-full transition-all"
-                      style={{ 
-                        width: `${Math.min(100, (metrics.avgViewsPerProduct / Math.max(metrics.marketplaceAvgViews, 1)) * 100)}%` 
+                      style={{
+                        width: `${Math.min(100, (metrics.avgViewsPerProduct / Math.max(metrics.marketplaceAvgViews, 1)) * 100)}%`
                       }}
                     />
                   </div>
@@ -977,10 +974,10 @@ function SupplierAnalyticsInner() {
                     <span className="font-bold">{metrics.marketplaceAvgViews.toFixed(0)}</span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full rounded-full transition-all"
-                      style={{ 
-                        width: `${Math.min(100, (metrics.topProductViews / Math.max(metrics.marketplaceAvgViews, 1)) * 100)}%` 
+                      style={{
+                        width: `${Math.min(100, (metrics.topProductViews / Math.max(metrics.marketplaceAvgViews, 1)) * 100)}%`
                       }}
                     />
                   </div>
@@ -995,13 +992,13 @@ function SupplierAnalyticsInner() {
 }
 
 export default function SupplierAnalytics() {
-    return (
-      <>
-        {/* PHASE 5B: Supplier analytics requires sell capability (approved) */}
-        <RequireCapability canSell={true} requireApproved={true}>
-          <SupplierAnalyticsInner />
-        </RequireCapability>
-      </>
-    );
+  return (
+    <>
+      {/* PHASE 5B: Supplier analytics requires sell capability (approved) */}
+      <RequireCapability canSell={true} requireApproved={true}>
+        <SupplierAnalyticsInner />
+      </RequireCapability>
+    </>
+  );
 }
 

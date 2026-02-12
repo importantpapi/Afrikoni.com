@@ -22,7 +22,7 @@ import { format } from 'date-fns';
 export default function InvoiceDetailPage() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
@@ -46,7 +46,6 @@ export default function InvoiceDetailPage() {
   useEffect(() => {
     if (!canLoadData) {
       if (!userId) {
-        console.log('[InvoiceDetailPage] No user → redirecting to login');
         navigate('/login');
       }
       return;
@@ -57,7 +56,6 @@ export default function InvoiceDetailPage() {
 
   const loadInvoice = async () => {
     if (!profileCompanyId) {
-      console.log('[InvoiceDetailPage] No company_id - cannot load invoice');
       return;
     }
 
@@ -69,7 +67,6 @@ export default function InvoiceDetailPage() {
       const invoiceData = await getInvoice(id);
       setInvoice(invoiceData);
     } catch (err) {
-      console.error('[InvoiceDetailPage] Error loading invoice:', err);
       setError(err.message || 'Failed to load invoice');
       toast.error('Failed to load invoice');
       navigate('/dashboard/invoices');
@@ -92,11 +89,10 @@ export default function InvoiceDetailPage() {
         invoice_number: invoice.invoice_number,
         metadata: { invoice_id: id }
       });
-      
+
       toast.success('Invoice paid successfully');
       loadInvoice();
     } catch (error) {
-      console.error('Error paying invoice:', error);
       toast.error('Failed to pay invoice');
     }
   };
@@ -109,8 +105,8 @@ export default function InvoiceDetailPage() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadInvoice}
       />
     );
@@ -241,7 +237,7 @@ export default function InvoiceDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Badge 
+                <Badge
                   variant={invoice.status === 'paid' ? 'success' : invoice.status === 'overdue' ? 'destructive' : 'default'}
                   className="text-lg px-4 py-2"
                 >

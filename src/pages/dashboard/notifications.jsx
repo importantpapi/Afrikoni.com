@@ -59,7 +59,6 @@ export default function NotificationsCenter() {
     // Listen for custom events dispatched by DashboardRealtimeManager
     const handleRealtimeUpdate = (event) => {
       if (event.detail?.table === 'notifications') {
-        console.log('[NotificationsCenter] Realtime update received from DashboardRealtimeManager');
         loadNotifications();
       }
     };
@@ -123,7 +122,7 @@ export default function NotificationsCenter() {
       if (error) {
         // Handle specific error codes gracefully
         if (error.code === '42501') {
-          console.debug('RLS policy violation - user may not have access:', error.message);
+          // RLS policy violation - silent
         } else if (error.code === 'PGRST116') {
           // No rows found - this is OK
           setNotifications([]);
@@ -153,7 +152,6 @@ export default function NotificationsCenter() {
     // Listen for custom events dispatched by DashboardRealtimeManager
     const handleRealtimeUpdate = (event) => {
       if (event.detail?.table === 'notifications') {
-        console.log('[NotificationsCenter] Realtime update received from DashboardRealtimeManager');
         loadNotifications();
       }
     };

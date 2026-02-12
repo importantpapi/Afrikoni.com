@@ -18,15 +18,6 @@ export default function DashboardHome() {
   const { activeTrades, loading: tradesLoading } = useTradeKernelState();
   const navigate = useNavigate();
 
-  // ✅ FORENSIC: Boot Trace Logging
-  useEffect(() => {
-    console.log(`[BootTrace][DASHBOARD][${Date.now()}] MOUNTED`, {
-      isSystemReady,
-      profileCompanyId,
-      userId
-    });
-  }, [isSystemReady, profileCompanyId, userId]);
-
   // ✅ MOBILE FIX: Wait for BOTH system ready AND company ID
   // Mobile devices are slower, so we need explicit checks
   if (!isSystemReady || !profileCompanyId) {
@@ -71,9 +62,9 @@ export default function DashboardHome() {
               <div className="space-y-4">
                 {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white/5 animate-pulse rounded-xl" />)}
               </div>
-            ) : activeTrades && activeTrades.length > 0 ? (
+            ) : activeTrades && (activeTrades || []).length > 0 ? (
               <div className="space-y-3">
-                {activeTrades.map(trade => (
+                {(activeTrades || []).map(trade => (
                   <div
                     key={trade.id}
                     onClick={() => navigate(`/dashboard/trade/${trade.id}`)}

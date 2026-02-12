@@ -29,8 +29,6 @@ class ChunkErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        console.error('[ChunkErrorBoundary] Caught error:', error, errorInfo);
-
         // Log to telemetry
         telemetry.logError(error, {
             componentStack: errorInfo?.componentStack,

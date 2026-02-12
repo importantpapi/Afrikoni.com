@@ -20,8 +20,8 @@ import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
 import { Badge } from '@/components/shared/ui/badge';
 import { Switch } from '@/components/shared/ui/switch';
-import { 
-  Users, UserPlus, Mail, Shield, DollarSign, Package, 
+import {
+  Users, UserPlus, Mail, Shield, DollarSign, Package,
   FileText, Truck, X, CheckCircle, Clock, AlertCircle,
   Crown, Zap
 } from 'lucide-react';
@@ -43,7 +43,7 @@ import RequireCapability from '@/guards/RequireCapability';
 function TeamMembersInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const location = useLocation();
   // Derive role from capabilities for display purposes
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
@@ -54,11 +54,11 @@ function TeamMembersInner() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('free');
   const [isInviting, setIsInviting] = useState(false);
-  
+
   // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
-  
+
   const [inviteForm, setInviteForm] = useState({
     email: '',
     name: '',
@@ -82,15 +82,12 @@ function TeamMembersInner() {
     }
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
-      console.log('[TeamMembers] Data is stale or first load - refreshing');
       loadData();
-    } else {
-      console.log('[TeamMembers] Data is fresh - skipping reload');
     }
   }, [canLoadData, profileCompanyId, location.pathname, isStale]);
 
@@ -118,7 +115,7 @@ function TeamMembersInner() {
         setIsLoading(true);
       }
       setError(null);
-      
+
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load subscription status
       try {
@@ -154,9 +151,9 @@ function TeamMembersInner() {
         });
         throw teamError;
       }
-      
+
       setTeamMembers(teamData || []);
-      
+
       // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
@@ -313,8 +310,8 @@ function TeamMembersInner() {
   // ✅ KERNEL MANIFESTO: Rule 5 - Three-State UI (Error BEFORE Loading)
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           loadData();
@@ -356,9 +353,9 @@ function TeamMembersInner() {
 
         {/* Subscription Upsell */}
         {(currentPlan === 'free' || currentPlan === 'growth') && (
-          <SubscriptionUpsell 
-            currentPlan={currentPlan} 
-            variant="banner" 
+          <SubscriptionUpsell
+            currentPlan={currentPlan}
+            variant="banner"
             placement="team"
             customMessage="Upgrade to add more team members and unlock advanced permissions"
           />
@@ -465,7 +462,7 @@ function TeamMembersInner() {
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={member.can_view_payouts || false}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_view_payouts: checked })
                                 }
                                 disabled={member.status !== 'active'}
@@ -478,7 +475,7 @@ function TeamMembersInner() {
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={member.can_view_tracking || false}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_view_tracking: checked })
                                 }
                                 disabled={member.status !== 'active'}
@@ -491,7 +488,7 @@ function TeamMembersInner() {
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={member.can_manage_products || false}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_manage_products: checked })
                                 }
                                 disabled={member.status !== 'active'}
@@ -504,7 +501,7 @@ function TeamMembersInner() {
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={member.can_manage_orders || false}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_manage_orders: checked })
                                 }
                                 disabled={member.status !== 'active'}
@@ -517,7 +514,7 @@ function TeamMembersInner() {
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={member.can_manage_rfqs || false}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_manage_rfqs: checked })
                                 }
                                 disabled={member.status !== 'active'}

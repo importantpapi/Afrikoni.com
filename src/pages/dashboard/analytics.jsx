@@ -20,7 +20,7 @@ import RequireCapability from '@/guards/RequireCapability';
 function DashboardAnalyticsInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const [analytics, setAnalytics] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [period, setPeriod] = useState('30');
@@ -29,17 +29,17 @@ function DashboardAnalyticsInner() {
   const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
-  
+
   // ✅ KERNEL MIGRATION: Derive role from capabilities
   const isBuyer = capabilities?.can_buy === true;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
-  
+
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
     return (
@@ -48,7 +48,7 @@ function DashboardAnalyticsInner() {
       </div>
     );
   }
-  
+
   // ✅ KERNEL MIGRATION: Check if user is authenticated
   if (!userId) {
     navigate('/login');
@@ -60,7 +60,6 @@ function DashboardAnalyticsInner() {
     // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData || !profileCompanyId) {
       if (!userId) {
-        console.log('[DashboardAnalytics] No user → redirecting to login');
         navigate('/login');
       }
       return;
@@ -73,7 +72,6 @@ function DashboardAnalyticsInner() {
     // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
     const timeoutId = setTimeout(() => {
       if (!abortSignal.aborted) {
-        console.warn('[DashboardAnalytics] Loading timeout (15s) - aborting queries');
         abortControllerRef.current.abort();
         setIsLoading(false);
         setError('Data loading timed out. Please try again.');
@@ -81,20 +79,15 @@ function DashboardAnalyticsInner() {
     }, 15000);
 
     // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
-      console.log('[DashboardAnalytics] Data is stale or first load - refreshing');
       // Now safe to load data
       loadUserAndAnalytics(abortSignal).catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error('[DashboardAnalytics] Load error:', err);
-        }
+        // silent
       });
     } else {
-      console.log('[DashboardAnalytics] Data is fresh - skipping reload');
     }
 
     return () => {
@@ -111,7 +104,7 @@ function DashboardAnalyticsInner() {
     if (!canLoadData || !profileCompanyId) {
       return;
     }
-    
+
     try {
       // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
       if (chartData.length === 0) {
@@ -172,14 +165,14 @@ function DashboardAnalyticsInner() {
         const openRfqs = rfqs.filter(r => r.status === 'pending_review' || r.status === 'matched' || r.status === 'clarification_requested');
         const closedDeals = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
         const negotiatingDeals = orders.filter(o => o.status === 'processing' || o.status === 'confirmed');
-        
+
         buyerData = {
           chartData: chartDataArray,
           analytics: {
-          totalOrders: orders.length,
-          totalRFQs: rfqs.length,
+            totalOrders: orders.length,
+            totalRFQs: rfqs.length,
             totalQuotes: quotes.length,
-          totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o?.total_amount) || 0), 0),
+            totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o?.total_amount) || 0), 0),
             // Trade execution metrics (primary)
             openRfqs: openRfqs.length,
             closedDeals: closedDeals.length,
@@ -188,7 +181,7 @@ function DashboardAnalyticsInner() {
           }
         };
       }
-      
+
       if (showSellerAnalytics && companyId) {
         // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
         if (abortSignal?.aborted) return;
@@ -205,18 +198,18 @@ function DashboardAnalyticsInner() {
 
         const orders = ordersRes.data || [];
         const products = productsRes.data || [];
-        
+
         // Trade execution metrics: RFQs and quotes
         const allRfqs = rfqsRes.data || [];
-        const matchedRfqs = allRfqs.filter(rfq => 
-          rfq.matched_supplier_ids && 
-          Array.isArray(rfq.matched_supplier_ids) && 
+        const matchedRfqs = allRfqs.filter(rfq =>
+          rfq.matched_supplier_ids &&
+          Array.isArray(rfq.matched_supplier_ids) &&
           rfq.matched_supplier_ids.includes(companyId)
         );
         const quotes = quotesRes.data || [];
         const acceptedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'awarded');
         const winRate = quotes.length > 0 ? Math.round((acceptedQuotes.length / quotes.length) * 100) : 0;
-        
+
         // Countries reached (from orders)
         const uniqueBuyerCountries = new Set();
         orders.forEach(o => {
@@ -299,9 +292,9 @@ function DashboardAnalyticsInner() {
         sellerData = {
           chartData: combinedChartData,
           analytics: {
-          totalSales: orders.length,
-          totalProducts: products.length,
-          totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
+            totalSales: orders.length,
+            totalProducts: products.length,
+            totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
             // Trade execution metrics (primary)
             rfqsReceived: matchedRfqs.length,
             quotesSent: quotes.length,
@@ -342,10 +335,10 @@ function DashboardAnalyticsInner() {
             .eq('logistics_partner_id', companyId)
             .gte('created_at', startDate),
           supabase
-          .from('orders')
-          .select('*')
-          .in('status', ['processing', 'shipped', 'delivered'])
-          .gte('created_at', startDate)
+            .from('orders')
+            .select('*')
+            .in('status', ['processing', 'shipped', 'delivered'])
+            .gte('created_at', startDate)
             .limit(100)
         ]);
 
@@ -369,9 +362,9 @@ function DashboardAnalyticsInner() {
         const deliveredShipments = shipments.filter(s => s.status === 'delivered' && s.delivered_at && s.created_at);
         const avgDeliveryTime = deliveredShipments.length > 0
           ? deliveredShipments.reduce((sum, s) => {
-              const days = (new Date(s.delivered_at) - new Date(s.created_at)) / (1000 * 60 * 60 * 24);
-              return sum + days;
-            }, 0) / deliveredShipments.length
+            const days = (new Date(s.delivered_at) - new Date(s.created_at)) / (1000 * 60 * 60 * 24);
+            return sum + days;
+          }, 0) / deliveredShipments.length
           : 0;
 
         setChartData(Object.entries(shipmentsByStatus).map(([status, count]) => ({ status, count })));
@@ -382,7 +375,7 @@ function DashboardAnalyticsInner() {
           avgDeliveryTime: Math.round(avgDeliveryTime),
           shipmentsByStatus: Object.entries(shipmentsByStatus)
         });
-        
+
         // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
         // Only mark fresh if we got actual analytics data (not an error)
         if (analytics !== null || chartData.length > 0) {
@@ -392,7 +385,6 @@ function DashboardAnalyticsInner() {
       }
     } catch (error) {
       // ✅ KERNEL MIGRATION: Enhanced error logging and state
-      console.error('[DashboardAnalytics] Error loading analytics:', error);
       setError(error?.message || 'Failed to load analytics');
       setAnalytics(null);
       setChartData([]);
@@ -405,8 +397,8 @@ function DashboardAnalyticsInner() {
   // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           // useEffect will retry automatically when canLoadData is true
@@ -446,11 +438,10 @@ function DashboardAnalyticsInner() {
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px] ${
-                    viewMode === mode
-                      ? 'text-afrikoni-charcoal'
-                      : 'text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
-                  }`}
+                  className={`relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px] ${viewMode === mode
+                    ? 'text-afrikoni-charcoal'
+                    : 'text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
+                    }`}
                 >
                   {mode === 'all' ? 'All' : mode === 'buyer' ? 'Buyer' : 'Seller'}
                 </button>
@@ -471,7 +462,7 @@ function DashboardAnalyticsInner() {
 
         {/* Stats */}
         {!analytics ? (
-          <EmptyState 
+          <EmptyState
             type="analytics"
             title="No analytics data yet"
             description="Complete your company profile or add products to generate insights."
@@ -479,199 +470,199 @@ function DashboardAnalyticsInner() {
             ctaLink="/dashboard/products"
           />
         ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {currentRole === 'buyer' && analytics && (
-            <>
-              {/* v2.5: Premium Analytics KPI Cards */}
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                      <ShoppingCart className="w-6 h-6" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {currentRole === 'buyer' && analytics && (
+              <>
+                {/* v2.5: Premium Analytics KPI Cards */}
+                <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                        <ShoppingCart className="w-6 h-6" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-4xl md:text-5xl font-bold mb-2">{analytics.totalOrders}</div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Total Orders</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-gradient-to-br">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">RFQs Submitted</p>
-                      <p className="text-2xl font-bold">{analytics.totalRFQs}</p>
-                      {analytics.openRfqs !== undefined && (
-                        <p className="text-xs mt-1">{analytics.openRfqs} active</p>
-                      )}
-                    </div>
-                    <FileText className="w-8 h-8" />
-                  </div>
-                </CardContent>
-              </Card>
-              {analytics.negotiatingDeals !== undefined && (
+                    <div className="text-4xl md:text-5xl font-bold mb-2">{analytics.totalOrders}</div>
+                    <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Total Orders</div>
+                  </CardContent>
+                </Card>
                 <Card className="bg-gradient-to-br">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold">Deals in Progress</p>
-                        <p className="text-2xl font-bold">{analytics.negotiatingDeals}</p>
-                        <p className="text-xs mt-1">Negotiating</p>
+                        <p className="text-sm font-semibold">RFQs Submitted</p>
+                        <p className="text-2xl font-bold">{analytics.totalRFQs}</p>
+                        {analytics.openRfqs !== undefined && (
+                          <p className="text-xs mt-1">{analytics.openRfqs} active</p>
+                        )}
                       </div>
-                      <Clock className="w-8 h-8" />
+                      <FileText className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
-              )}
-              {analytics.closedDeals !== undefined && (
+                {analytics.negotiatingDeals !== undefined && (
+                  <Card className="bg-gradient-to-br">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold">Deals in Progress</p>
+                          <p className="text-2xl font-bold">{analytics.negotiatingDeals}</p>
+                          <p className="text-xs mt-1">Negotiating</p>
+                        </div>
+                        <Clock className="w-8 h-8" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                {analytics.closedDeals !== undefined && (
+                  <Card className="bg-gradient-to-br">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold">Deals Closed</p>
+                          <p className="text-2xl font-bold">{analytics.closedDeals}</p>
+                          <p className="text-xs mt-1">Completed</p>
+                        </div>
+                        <CheckCircle className="w-8 h-8" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">Total Spent</p>
+                        <p className="text-2xl font-bold">${analytics.totalSpent.toLocaleString()}</p>
+                      </div>
+                      <DollarSign className="w-8 h-8" />
+                    </div>
+                  </CardContent>
+                </Card>
+                {analytics.totalQuotes !== undefined && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm">Quotes Received</p>
+                          <p className="text-2xl font-bold">{analytics.totalQuotes}</p>
+                        </div>
+                        <FileText className="w-8 h-8" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+
+            {((currentRole === 'seller' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'))) && analytics && analytics.totalSales !== undefined) && (
+              <>
                 <Card className="bg-gradient-to-br">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold">Deals Closed</p>
-                        <p className="text-2xl font-bold">{analytics.closedDeals}</p>
-                        <p className="text-xs mt-1">Completed</p>
+                        <p className="text-sm font-semibold">Deals Facilitated</p>
+                        <p className="text-2xl font-bold">{analytics.totalSales}</p>
+                        <p className="text-xs mt-1">Successful orders</p>
+                      </div>
+                      <ShoppingCart className="w-8 h-8" />
+                    </div>
+                  </CardContent>
+                </Card>
+                {/* Trade execution metrics - primary focus */}
+                {analytics.rfqsReceived !== undefined && (
+                  <Card className="bg-gradient-to-br">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold">RFQs Received</p>
+                          <p className="text-2xl font-bold">{analytics.rfqsReceived}</p>
+                          <p className="text-xs mt-1">Active opportunities</p>
+                        </div>
+                        <FileText className="w-8 h-8" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                {analytics.quotesSent !== undefined && (
+                  <Card className="bg-gradient-to-br">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold">Quotes Sent</p>
+                          <p className="text-2xl font-bold">{analytics.quotesSent}</p>
+                          <p className="text-xs mt-1">Responses submitted</p>
+                        </div>
+                        <FileText className="w-8 h-8" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* Secondary metrics - de-emphasized */}
+                {analytics.totalViews !== undefined && (
+                  <Card className="opacity-70">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs">Total Views</p>
+                          <p className="text-xl font-semibold">{analytics.totalViews}</p>
+                        </div>
+                        <TrendingUp className="w-6 h-6" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+
+            {currentRole === 'logistics' && analytics && (
+              <>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">Total Shipments</p>
+                        <p className="text-2xl font-bold">{analytics.totalShipments}</p>
+                      </div>
+                      <Package className="w-8 h-8" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">Success Rate</p>
+                        <p className="text-2xl font-bold">{analytics.successRate}%</p>
                       </div>
                       <CheckCircle className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
-              )}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm">Total Spent</p>
-                      <p className="text-2xl font-bold">${analytics.totalSpent.toLocaleString()}</p>
-                    </div>
-                    <DollarSign className="w-8 h-8" />
-                  </div>
-                </CardContent>
-              </Card>
-              {analytics.totalQuotes !== undefined && (
                 <Card>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm">Quotes Received</p>
-                        <p className="text-2xl font-bold">{analytics.totalQuotes}</p>
+                        <p className="text-sm">Avg Delivery Time</p>
+                        <p className="text-2xl font-bold">{analytics.avgDeliveryTime}d</p>
                       </div>
-                      <FileText className="w-8 h-8" />
+                      <Clock className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
-              )}
-            </>
-          )}
-
-          {((currentRole === 'seller' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'))) && analytics && analytics.totalSales !== undefined) && (
-            <>
-              <Card className="bg-gradient-to-br">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">Deals Facilitated</p>
-                      <p className="text-2xl font-bold">{analytics.totalSales}</p>
-                      <p className="text-xs mt-1">Successful orders</p>
-                    </div>
-                    <ShoppingCart className="w-8 h-8" />
-                  </div>
-                </CardContent>
-              </Card>
-              {/* Trade execution metrics - primary focus */}
-              {analytics.rfqsReceived !== undefined && (
-                <Card className="bg-gradient-to-br">
+                <Card>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold">RFQs Received</p>
-                        <p className="text-2xl font-bold">{analytics.rfqsReceived}</p>
-                        <p className="text-xs mt-1">Active opportunities</p>
+                        <p className="text-sm">Total Revenue</p>
+                        <p className="text-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</p>
                       </div>
-                      <FileText className="w-8 h-8" />
+                      <DollarSign className="w-8 h-8" />
                     </div>
                   </CardContent>
                 </Card>
-              )}
-              {analytics.quotesSent !== undefined && (
-                <Card className="bg-gradient-to-br">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold">Quotes Sent</p>
-                        <p className="text-2xl font-bold">{analytics.quotesSent}</p>
-                        <p className="text-xs mt-1">Responses submitted</p>
-                      </div>
-                      <FileText className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              {/* Secondary metrics - de-emphasized */}
-              {analytics.totalViews !== undefined && (
-                <Card className="opacity-70">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs">Total Views</p>
-                        <p className="text-xl font-semibold">{analytics.totalViews}</p>
-                      </div>
-                      <TrendingUp className="w-6 h-6" />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-
-          {currentRole === 'logistics' && analytics && (
-            <>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm">Total Shipments</p>
-                      <p className="text-2xl font-bold">{analytics.totalShipments}</p>
-                    </div>
-                    <Package className="w-8 h-8" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm">Success Rate</p>
-                      <p className="text-2xl font-bold">{analytics.successRate}%</p>
-                    </div>
-                    <CheckCircle className="w-8 h-8" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm">Avg Delivery Time</p>
-                      <p className="text-2xl font-bold">{analytics.avgDeliveryTime}d</p>
-                    </div>
-                    <Clock className="w-8 h-8" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm">Total Revenue</p>
-                      <p className="text-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</p>
-                    </div>
-                    <DollarSign className="w-8 h-8" />
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </div>
         )}
 
         {/* v2.5: Premium Chart Section */}
@@ -714,14 +705,14 @@ function DashboardAnalyticsInner() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                           <XAxis dataKey="date" stroke="#6b7280" />
                           <YAxis stroke="#6b7280" />
-                          <Tooltip 
+                          <Tooltip
                             contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                           />
                           <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="revenue" 
-                            stroke="#d97706" 
+                          <Line
+                            type="monotone"
+                            dataKey="revenue"
+                            stroke="#d97706"
                             strokeWidth={2}
                             name="Revenue ($)"
                           />
@@ -729,21 +720,21 @@ function DashboardAnalyticsInner() {
                       </ResponsiveContainer>
                     </div>
                     {analytics.topCategories && analytics.topCategories.length > 0 && (
-                    <div className="h-64">
+                      <div className="h-64">
                         <h3 className="text-sm font-semibold mb-4">Top Categories</h3>
-                      <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={analytics.topCategories.map(([name, count]) => ({ name, count }))}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                             <XAxis dataKey="name" stroke="#6b7280" />
-                          <YAxis stroke="#6b7280" />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                          />
-                          <Legend />
+                            <YAxis stroke="#6b7280" />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                            />
+                            <Legend />
                             <Bar dataKey="count" fill="#d97706" name="Products" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     )}
                     {analytics.buyerCountries && analytics.buyerCountries.length > 0 && (
                       <div className="h-64">
@@ -779,7 +770,7 @@ function DashboardAnalyticsInner() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis dataKey="date" stroke="#6b7280" />
                         <YAxis stroke="#6b7280" />
-                        <Tooltip 
+                        <Tooltip
                           contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                         />
                         <Legend />
@@ -796,7 +787,7 @@ function DashboardAnalyticsInner() {
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis dataKey="status" stroke="#6b7280" />
                         <YAxis stroke="#6b7280" />
-                        <Tooltip 
+                        <Tooltip
                           contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                         />
                         <Legend />

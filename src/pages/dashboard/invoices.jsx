@@ -28,23 +28,23 @@ import ErrorState from '@/components/shared/ui/ErrorState';
 export default function InvoicesDashboard() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
-  
+
   // Derive role from capabilities for display purposes
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
   const userRole = isSeller ? 'seller' : 'buyer';
-  
+
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
     return (
@@ -59,7 +59,6 @@ export default function InvoicesDashboard() {
     // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
-        console.log('[InvoicesDashboard] No user → redirecting to login');
         navigate('/login');
       }
       return;
@@ -72,27 +71,20 @@ export default function InvoicesDashboard() {
     // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
     const timeoutId = setTimeout(() => {
       if (!abortSignal.aborted) {
-        console.warn('[InvoicesDashboard] Loading timeout (15s) - aborting queries');
         abortControllerRef.current.abort();
         setIsLoading(false);
         setError('Data loading timed out. Please try again.');
       }
     }, 15000);
 
-    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
-      console.log('[InvoicesDashboard] Data is stale or first load - refreshing');
       loadData(abortSignal).catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error('[InvoicesDashboard] Load error:', err);
-        }
+        // silent
       });
     } else {
-      console.log('[InvoicesDashboard] Data is fresh - skipping reload');
     }
 
     return () => {
@@ -107,7 +99,6 @@ export default function InvoicesDashboard() {
   const loadData = async (abortSignal) => {
     // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId) {
-      console.log('[InvoicesDashboard] No company_id - cannot load invoices');
       return;
     }
 
@@ -134,7 +125,7 @@ export default function InvoicesDashboard() {
         }
 
         setInvoices(invoiceList);
-        
+
         // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
         if (invoiceList && Array.isArray(invoiceList)) {
           lastLoadTimeRef.current = Date.now();
@@ -142,7 +133,6 @@ export default function InvoicesDashboard() {
         }
       } catch (dataError) {
         if (abortSignal?.aborted) return; // Ignore abort errors
-        console.log('Invoices table not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setInvoices([]);
         setError(null); // Don't show error for missing table
@@ -151,7 +141,6 @@ export default function InvoicesDashboard() {
     } catch (err) {
       // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
       if (err.name === 'AbortError' || abortSignal?.aborted) return;
-      console.error('[InvoicesDashboard] Error loading invoices:', err);
       setError(err.message || 'Failed to load invoices'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load invoices');
       // ❌ DO NOT mark fresh on error - let it retry on next navigation
@@ -177,12 +166,11 @@ export default function InvoicesDashboard() {
         invoice_number: invoice.invoice_number,
         metadata: { invoice_id: invoiceId }
       });
-      
+
       toast.success('Invoice paid successfully');
       // Trigger reload via useEffect dependency change
       lastLoadTimeRef.current = null;
     } catch (error) {
-      console.error('Error paying invoice:', error);
       toast.error('Failed to pay invoice');
     }
   };
@@ -214,8 +202,8 @@ export default function InvoicesDashboard() {
   // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           // useEffect will retry automatically when canLoadData is true
@@ -317,7 +305,7 @@ export default function InvoicesDashboard() {
               <EmptyState
                 icon={Receipt}
                 title="No invoices yet"
-                description={userRole === 'buyer' 
+                description={userRole === 'buyer'
                   ? "Invoices from your orders will appear here"
                   : "Create invoices from your confirmed orders"}
               />
@@ -343,7 +331,7 @@ export default function InvoicesDashboard() {
                           )}
                         </div>
                         <p className="text-sm mt-1">
-                          {userRole === 'buyer' 
+                          {userRole === 'buyer'
                             ? `From: ${invoice.seller_company?.name || 'Seller'}`
                             : `To: ${invoice.buyer_company?.name || 'Buyer'}`}
                         </p>

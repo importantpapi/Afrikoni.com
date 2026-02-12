@@ -120,7 +120,6 @@ export default function DashboardSettings() {
   useEffect(() => {
     if (!canLoadData) {
       if (!userId) {
-        console.log('[DashboardSettings] No user → redirecting to login');
         navigate('/login');
       }
       return;
@@ -132,16 +131,12 @@ export default function DashboardSettings() {
       (Date.now() - lastLoadTimeRef.current > 30000);
 
     if (shouldRefresh) {
-      console.log('[DashboardSettings] Data is stale or first load - refreshing');
       loadUserData();
-    } else {
-      console.log('[DashboardSettings] Data is fresh - skipping reload');
     }
   }, [canLoadData, userId, profileCompanyId, location.pathname, isStale, navigate]);
 
   const loadUserData = async () => {
     if (!user || !profile) {
-      console.log('[DashboardSettings] User or profile not available');
       return;
     }
 
@@ -318,7 +313,6 @@ export default function DashboardSettings() {
 
       toast.success('Logged out from all devices');
     } catch (error) {
-      console.warn('[Logout] Server signout failed, clearing local session anyway:', error);
       toast.warning('Logged out locally. Server session will expire shortly.');
     } finally {
       // CRITICAL: Always clear local state and redirect, even if network fails

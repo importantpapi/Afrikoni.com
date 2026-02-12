@@ -46,7 +46,7 @@ function SupportChatInner() {
       </div>
     );
   }
-  
+
   // ✅ KERNEL MIGRATION: Check if user is authenticated
   if (!userId) {
     navigate('/login');
@@ -92,11 +92,11 @@ function SupportChatInner() {
     if (!canLoadData || !profileCompanyId) {
       return;
     }
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       const cid = profileCompanyId;
 
@@ -105,72 +105,71 @@ function SupportChatInner() {
       if (cid) {
         // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
         const userEmail = user?.email || '';
-        
+
         // Create new ticket - each user gets their own unique ticket
         const newTicketNumber = generateTicketNumber();
-          const { data: newTicket, error } = await supabase
-            .from('support_tickets')
-            .insert({
-              ticket_number: newTicketNumber,
-              company_id: cid,
-              user_email: userEmail,
-              subject: 'Support Request',
-              status: 'open',
-              priority: 'normal'
-            })
-            .select()
-            .single();
+        const { data: newTicket, error } = await supabase
+          .from('support_tickets')
+          .insert({
+            ticket_number: newTicketNumber,
+            company_id: cid,
+            user_email: userEmail,
+            subject: 'Support Request',
+            status: 'open',
+            priority: 'normal'
+          })
+          .select()
+          .single();
 
-          if (error) {
-            console.error('Error creating ticket:', error);
-            toast.error('Failed to create support ticket');
-          } else {
-            setTicketNumber(newTicketNumber);
-            setTicketStatus('open');
-            toast.success(`Your support ticket: ${newTicketNumber}`);
-            
-            // Send notification to admin when new ticket is created - Fix: Find admin users
-            try {
-              // Find admin users to notify
-              const { data: adminUsers } = await supabase
-                .from('profiles')
-                .select('id, email')
-                .eq('is_admin', true)
-                .limit(10);
+        if (error) {
+          toast.error('Failed to create support ticket');
+        } else {
+          setTicketNumber(newTicketNumber);
+          setTicketStatus('open');
+          toast.success(`Your support ticket: ${newTicketNumber}`);
 
-              if (adminUsers && adminUsers.length > 0) {
-                const { createNotification } = await import('@/services/notificationService');
-                // Create notification for each admin
-                await Promise.all(adminUsers.map(admin => 
-                  createNotification({
-                    user_id: admin.id,
-                    company_id: null,
-                    user_email: admin.email || 'hello@afrikoni.com',
-                    title: `New Support Ticket Created - ${newTicketNumber}`,
-                    message: `A new support ticket has been created. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
-                    type: 'support',
-                    link: `/dashboard/support-chat?ticket=${newTicketNumber}`,
-                    sendEmail: true
-                  }).catch(err => console.error('Failed to notify admin:', admin.email, err))
-                ));
-              } else {
-                // Fallback: Create notification with email only
-                const { createNotification } = await import('@/services/notificationService');
-                await createNotification({
-                  user_id: null,
+          // Send notification to admin when new ticket is created - Fix: Find admin users
+          try {
+            // Find admin users to notify
+            const { data: adminUsers } = await supabase
+              .from('profiles')
+              .select('id, email')
+              .eq('is_admin', true)
+              .limit(10);
+
+            if (adminUsers && adminUsers.length > 0) {
+              const { createNotification } = await import('@/services/notificationService');
+              // Create notification for each admin
+              await Promise.all(adminUsers.map(admin =>
+                createNotification({
+                  user_id: admin.id,
                   company_id: null,
-                  user_email: 'hello@afrikoni.com',
+                  user_email: admin.email || 'hello@afrikoni.com',
                   title: `New Support Ticket Created - ${newTicketNumber}`,
-                  message: `A new support ticket has been created by ${userData.email || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
+                  message: `A new support ticket has been created. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
                   type: 'support',
                   link: `/dashboard/support-chat?ticket=${newTicketNumber}`,
                   sendEmail: true
-                });
-              }
-            } catch (notifError) {
-              console.error('Failed to send admin notification for new ticket:', notifError);
+                }).catch(err => { /* silent error */ })
+              ));
+            } else {
+              // Fallback: Create notification with email only
+              const { createNotification } = await import('@/services/notificationService');
+              await createNotification({
+                user_id: null,
+                company_id: null,
+                user_email: 'hello@afrikoni.com',
+                title: `New Support Ticket Created - ${newTicketNumber}`,
+                message: `A new support ticket has been created by ${userEmail || 'User'}. Company: ${cid ? 'ID ' + cid : 'Unknown'}`,
+                type: 'support',
+                link: `/dashboard/support-chat?ticket=${newTicketNumber}`,
+                sendEmail: true
+              });
             }
+          } catch (notifError) {
+            /* silent error */
           }
+        }
       } else {
         // No company ID - still create ticket with user email
         const newTicketNumber = generateTicketNumber();
@@ -188,7 +187,6 @@ function SupportChatInner() {
           .single();
 
         if (error) {
-          console.error('Error creating ticket:', error);
           toast.error('Failed to create support ticket');
         } else {
           setTicketNumber(newTicketNumber);
@@ -197,7 +195,6 @@ function SupportChatInner() {
         }
       }
     } catch (error) {
-      console.error('Error loading user:', error);
       setError(error?.message || 'Failed to load support chat');
       toast.error('Failed to load support chat');
     } finally {
@@ -218,7 +215,7 @@ function SupportChatInner() {
       if (error) throw error;
       setMessages(data || []);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      /* silent error */
     }
   };
 
@@ -243,7 +240,7 @@ function SupportChatInner() {
             return [...prev, payload.new];
           });
           scrollToBottom();
-          
+
           // Show notification if message is from admin
           if (payload.new.sender_type === 'admin') {
             toast.info('New response from support team');
@@ -252,14 +249,13 @@ function SupportChatInner() {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Realtime subscription active for ticket:', ticketNumber);
+          /* silent success */
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Realtime subscription error');
+          /* silent error */
         }
       });
 
     return () => {
-      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   };
@@ -274,7 +270,7 @@ function SupportChatInner() {
     try {
       // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
       const userEmail = user?.email || '';
-      
+
       // Create support message
       const { error: messageError } = await supabase
         .from('support_messages')
@@ -310,7 +306,7 @@ function SupportChatInner() {
         if (adminUsers && adminUsers.length > 0) {
           const { createNotification } = await import('@/services/notificationService');
           // Create notification for each admin
-          await Promise.all(adminUsers.map(admin => 
+          await Promise.all(adminUsers.map(admin =>
             createNotification({
               user_id: admin.id,
               company_id: null,
@@ -320,7 +316,7 @@ function SupportChatInner() {
               type: 'support',
               link: `/dashboard/support-chat?ticket=${ticketNumber}`,
               sendEmail: true
-            }).catch(err => console.error('Failed to notify admin:', admin.email, err))
+            }).catch(err => { /* silent error */ })
           ));
         } else {
           // Fallback: Create notification with email only
@@ -337,18 +333,16 @@ function SupportChatInner() {
           });
         }
       } catch (notifError) {
-        console.error('Failed to send notification:', notifError);
         // Don't fail the message send if notification fails
       }
 
       setNewMessage('');
-      
+
       // Reload messages to ensure UI is updated
       await loadMessages();
-      
+
       toast.success('Message sent! Our team will respond soon.');
     } catch (error) {
-      console.error('Error sending message:', error);
       toast.error(`Failed to send message: ${error.message || 'Please try again.'}`);
     } finally {
       setIsSending(false);
@@ -369,12 +363,12 @@ function SupportChatInner() {
       </div>
     );
   }
-  
+
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           loadUserAndTicket();
@@ -430,14 +424,14 @@ function SupportChatInner() {
                 <div className="flex items-center gap-2">
                   <Badge className={
                     ticketStatus === 'open' ? 'bg-green-100 text-green-700' :
-                    ticketStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                    ticketStatus === 'resolved' ? 'bg-gray-100 text-gray-700' :
-                    'bg-amber-100 text-amber-700'
+                      ticketStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                        ticketStatus === 'resolved' ? 'bg-gray-100 text-gray-700' :
+                          'bg-amber-100 text-amber-700'
                   }>
                     {ticketStatus === 'open' ? 'Open' :
-                     ticketStatus === 'in_progress' ? 'In Progress' :
-                     ticketStatus === 'resolved' ? 'Resolved' :
-                     'Pending'}
+                      ticketStatus === 'in_progress' ? 'In Progress' :
+                        ticketStatus === 'resolved' ? 'Resolved' :
+                          'Pending'}
                   </Badge>
                   <Button
                     variant="outline"
@@ -487,11 +481,10 @@ function SupportChatInner() {
                       animate={{ opacity: 1, y: 0 }}
                       className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`max-w-[70%] rounded-lg p-3 ${
-                        message.sender_type === 'user'
+                      <div className={`max-w-[70%] rounded-lg p-3 ${message.sender_type === 'user'
                           ? 'bg-afrikoni-gold text-afrikoni-charcoal'
                           : 'bg-white border border-afrikoni-gold/20'
-                      }`}>
+                        }`}>
                         <div className="flex items-start gap-2 mb-1">
                           {message.sender_type === 'admin' && (
                             <Badge className="text-xs">Support Team</Badge>
@@ -601,12 +594,12 @@ function SupportChatInner() {
                 <label className="text-sm font-semibold mb-1 block">Status</label>
                 <Badge className={
                   ticketStatus === 'open' ? 'bg-green-100 text-green-700' :
-                  ticketStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-700'
+                    ticketStatus === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-700'
                 }>
                   {ticketStatus === 'open' ? 'Open' :
-                   ticketStatus === 'in_progress' ? 'In Progress' :
-                   'Resolved'}
+                    ticketStatus === 'in_progress' ? 'In Progress' :
+                      'Resolved'}
                 </Badge>
               </div>
               <div>

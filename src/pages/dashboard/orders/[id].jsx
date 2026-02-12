@@ -79,7 +79,6 @@ export default function OrderDetail() {
 
     // GUARD: No order ID → redirect to orders list
     if (!id) {
-      console.log('[OrderDetail] No order ID → redirecting to orders');
       navigate('/dashboard/orders');
       return;
     }
@@ -141,17 +140,11 @@ export default function OrderDetail() {
 
         if (shipmentError) {
           // Handle PGRST116 (not found) - shipment doesn't exist yet, this is OK
-          if (shipmentError.code !== 'PGRST116') {
-            console.error('[Order Detail] Error loading shipment:', shipmentError);
-          }
         } else {
           shipmentData = data;
         }
       } catch (error) {
         // PGRST116 (not found) is expected - shipment may not exist yet
-        if (error?.code !== 'PGRST116') {
-          console.error('[Order Detail] Error loading shipment:', error);
-        }
       }
 
       setShipment(shipmentData);
@@ -181,23 +174,16 @@ export default function OrderDetail() {
 
           if (reviewError) {
             // Handle PGRST116 (not found) - review doesn't exist yet, this is OK
-            if (reviewError.code !== 'PGRST116') {
-              console.error('[Order Detail] Error loading review:', reviewError);
-            }
           } else if (reviewData) {
             setHasReviewed(true);
             setExistingReview(reviewData);
           }
         } catch (error) {
           // PGRST116 (not found) is expected - review may not exist yet
-          if (error?.code !== 'PGRST116') {
-            console.error('[Order Detail] Error loading review:', error);
-          }
         }
       }
 
     } catch (error) {
-      console.error('Error loading order:', error);
       // Don't navigate away - allow user to retry or edit
       toast.error('Failed to load some order details. You can still edit the order below.');
       // Set a minimal order object so the page can still render
@@ -742,7 +728,6 @@ export default function OrderDetail() {
                   toast.success(enabled ? 'Trade Inspection added' : 'Trade Inspection removed');
                   loadOrderData();
                 } catch (error) {
-                  console.error('Error updating protection:', error);
                   toast.error('Failed to update protection option');
                 }
               }}

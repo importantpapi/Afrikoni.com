@@ -61,7 +61,6 @@ export default function WorkspaceDashboard() {
 
   // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
   const handleRealtimeUpdate = useCallback((payload) => {
-    console.log('[WorkspaceDashboard] Realtime update:', payload.table, payload.event);
     // Refresh system state on realtime updates
     refreshSystemState();
   }, [refreshSystemState]);

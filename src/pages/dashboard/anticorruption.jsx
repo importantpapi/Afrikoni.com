@@ -33,11 +33,11 @@ import ErrorState from '@/components/shared/ui/ErrorState';
 export default function AntiCorruption() {
   // ✅ KERNEL COMPLIANCE: Use useDashboardKernel as single source of truth
   const { user, profile, userId, isSystemReady, canLoadData, isAdmin, capabilities } = useDashboardKernel();
-  
+
   // ✅ KERNEL COMPLIANCE: Derive admin/internal status from isAdmin flag
   // Note: riskProfiles is mock data - profile.role refers to mock risk profile, not user profile
   const isInternalUser = isAdmin; // Internal users are admins
-  
+
   // All hooks must be at the top - before any conditional returns
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -96,8 +96,7 @@ export default function AntiCorruption() {
 
       setAuditLogs(data || []);
     } catch (err) {
-      if (abortSignal.aborted) return;
-      console.error('Error loading audit logs:', err);
+      // Error handled by kernel/fallback
     } finally {
       // ✅ KERNEL MANIFESTO: Finally Law
       clearTimeout(timeoutId);
@@ -111,8 +110,8 @@ export default function AntiCorruption() {
   const antiCorruptionKPIs = useMemo(() => {
     const last30Days = new Date();
     last30Days.setDate(last30Days.getDate() - 30);
-    const recentLogs = auditLogs.filter(log => new Date(log.created_at) >= last30Days);
-    
+    const recentLogs = (auditLogs || []).filter(log => new Date(log.created_at) >= last30Days);
+
     return {
       totalReports30Days: recentLogs.length,
       openCases: 0, // Not tracked in activity_logs
@@ -125,7 +124,7 @@ export default function AntiCorruption() {
 
   // ✅ BACKEND CONNECTION: Convert activity_logs to audit trail format
   const auditTrail = React.useMemo(() => {
-    return auditLogs.map(log => ({
+    return (auditLogs || []).map(log => ({
       id: log.id,
       timestamp: log.created_at,
       user: log.user_id || 'system',
@@ -162,12 +161,12 @@ export default function AntiCorruption() {
   if (!isSystemReady) {
     return <SpinnerWithTimeout message="Loading Anti-Corruption Dashboard..." ready={isSystemReady} />;
   }
-  
+
   // ✅ KERNEL MIGRATION: Check if user is authenticated
   if (!userId) {
     return <AccessDenied />;
   }
-  
+
   // ✅ KERNEL MIGRATION: Check admin access
   if (!isAdmin) {
     return <AccessDenied />;
@@ -175,18 +174,18 @@ export default function AntiCorruption() {
 
   // Removed duplicate useEffect - now handled in loadAuditLogs
 
-  const filteredReports = whistleblowerReports.filter(report => {
+  const filteredReports = (whistleblowerReports || []).filter(report => {
     if (reportFilter.severity !== 'all' && report.severity !== reportFilter.severity) return false;
     if (reportFilter.status !== 'all' && report.status !== reportFilter.status) return false;
     if (reportFilter.category !== 'all' && report.category !== reportFilter.category) return false;
     return true;
   });
 
-  const filteredAuditTrail = auditTrail.filter(entry => {
+  const filteredAuditTrail = (auditTrail || []).filter(entry => {
     if (auditFilter.user !== 'all' && entry.user !== auditFilter.user) return false;
     if (auditFilter.action !== 'all' && entry.action !== auditFilter.action) return false;
-    if (auditSearch && !entry.action.toLowerCase().includes(auditSearch.toLowerCase()) && 
-        !entry.user.toLowerCase().includes(auditSearch.toLowerCase())) return false;
+    if (auditSearch && !entry.action.toLowerCase().includes(auditSearch.toLowerCase()) &&
+      !entry.user.toLowerCase().includes(auditSearch.toLowerCase())) return false;
     return true;
   });
 
@@ -239,7 +238,7 @@ export default function AntiCorruption() {
   };
 
   // Regional Risk Chart Data
-  const regionalChartData = regionalRiskZones.reduce((acc, country) => {
+  const regionalChartData = (regionalRiskZones || []).reduce((acc, country) => {
     const existing = acc.find(item => item.riskLevel === country.riskLevel);
     if (existing) {
       existing.count += 1;
@@ -504,18 +503,17 @@ export default function AntiCorruption() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredReports.map((report) => (
+                    {(filteredReports || []).map((report) => (
                       <tr key={report.id} className="border-b hover:bg-afrikoni-sand/10 transition-colors">
                         <td className="py-3 px-4 font-medium">{report.id}</td>
                         <td className="py-3 px-4 text-sm">{report.reportType}</td>
                         <td className="py-3 px-4">
                           <Badge
-                            className={`${
-                              report.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
+                            className={`${report.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
                               report.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                              report.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                              'bg-blue-50 text-blue-700 border-blue-200'
-                            }`}
+                                report.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                  'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}
                           >
                             {report.severity}
                           </Badge>
@@ -568,7 +566,7 @@ export default function AntiCorruption() {
                     </tr>
                   </thead>
                   <tbody>
-                    {aiAnomalies.map((anomaly) => (
+                    {(aiAnomalies || []).map((anomaly) => (
                       <tr key={anomaly.id} className="border-b hover:bg-afrikoni-sand/10 transition-colors">
                         <td className="py-3 px-4 text-sm">{anomaly.entityType}</td>
                         <td className="py-3 px-4">
@@ -580,11 +578,10 @@ export default function AntiCorruption() {
                             <div className="text-lg font-bold">{anomaly.anomalyScore}</div>
                             <div className="w-24 h-2 rounded-full overflow-hidden">
                               <div
-                                className={`h-2 rounded-full ${
-                                  anomaly.riskLevel === 'high' ? 'bg-red-500' :
+                                className={`h-2 rounded-full ${anomaly.riskLevel === 'high' ? 'bg-red-500' :
                                   anomaly.riskLevel === 'medium' ? 'bg-yellow-500' :
-                                  'bg-green-500'
-                                }`}
+                                    'bg-green-500'
+                                  }`}
                                 style={{ width: `${anomaly.anomalyScore}%` }}
                               />
                             </div>
@@ -593,11 +590,10 @@ export default function AntiCorruption() {
                         <td className="py-3 px-4 text-sm">{anomaly.flagType}</td>
                         <td className="py-3 px-4">
                           <Badge
-                            className={`${
-                              anomaly.riskLevel === 'high' ? 'bg-red-50 text-red-700 border-red-200' :
+                            className={`${anomaly.riskLevel === 'high' ? 'bg-red-50 text-red-700 border-red-200' :
                               anomaly.riskLevel === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                              'bg-green-50 text-green-700 border-green-200'
-                            }`}
+                                'bg-green-50 text-green-700 border-green-200'
+                              }`}
                           >
                             {anomaly.riskLevel}
                           </Badge>
@@ -676,7 +672,7 @@ export default function AntiCorruption() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredAuditTrail.map((entry) => (
+                    {(filteredAuditTrail || []).map((entry) => (
                       <React.Fragment key={entry.id}>
                         <tr className="border-b hover:bg-afrikoni-sand/10 transition-colors">
                           <td className="py-3 px-4 text-sm">
@@ -755,16 +751,15 @@ export default function AntiCorruption() {
             Employee & Partner Risk Profiles
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {riskProfiles.map((profile) => (
+            {(riskProfiles || []).map((profile) => (
               <motion.div
                 key={profile.id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className={`border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg ${
-                  profile.riskScore >= 60 ? 'border-red-300' : ''
-                }`}>
+                <Card className={`border-afrikoni-gold/20 hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all bg-white rounded-afrikoni-lg ${profile.riskScore >= 60 ? 'border-red-300' : ''
+                  }`}>
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -856,9 +851,9 @@ export default function AntiCorruption() {
                       {regionalChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={
                           entry.riskLevel === 'low' ? '#3AB795' :
-                          entry.riskLevel === 'medium' ? '#D4A937' :
-                          entry.riskLevel === 'high' ? '#E84855' :
-                          '#C9A77B'
+                            entry.riskLevel === 'medium' ? '#D4A937' :
+                              entry.riskLevel === 'high' ? '#E84855' :
+                                '#C9A77B'
                         } />
                       ))}
                     </Bar>
@@ -1007,18 +1002,17 @@ export default function AntiCorruption() {
                         <td className="py-3 px-4">
                           <Badge className={getStatusColor(caseItem.status)}>
                             {caseItem.status === 'in_review' ? 'In Review' :
-                             caseItem.status === 'investigating' ? 'Investigating' :
-                             caseItem.status.charAt(0).toUpperCase() + caseItem.status.slice(1)}
+                              caseItem.status === 'investigating' ? 'Investigating' :
+                                caseItem.status.charAt(0).toUpperCase() + caseItem.status.slice(1)}
                           </Badge>
                         </td>
                         <td className="py-3 px-4">
                           <Badge
-                            className={`${
-                              caseItem.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
+                            className={`${caseItem.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
                               caseItem.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                              caseItem.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                              'bg-blue-50 text-blue-700 border-blue-200'
-                            }`}
+                                caseItem.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                  'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}
                           >
                             {caseItem.severity}
                           </Badge>

@@ -125,7 +125,6 @@ function LogisticsQuoteInner() {
         }
       }
     } catch (err) {
-      console.error('Error loading logistics data:', err);
       setError(err?.message || 'Failed to load logistics data');
       toast.error('Failed to load logistics data');
     } finally {

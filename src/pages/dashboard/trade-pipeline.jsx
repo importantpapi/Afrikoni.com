@@ -172,7 +172,7 @@ export default function TradePipeline() {
   const stageCounts = useMemo(() => {
     const counts = {};
     PIPELINE_STAGES.forEach(s => { counts[s.id] = 0; });
-    trades.forEach(t => {
+    (trades || []).forEach(t => {
       const stage = mapTradeToStage(t);
       counts[stage] = (counts[stage] || 0) + 1;
     });
@@ -182,7 +182,7 @@ export default function TradePipeline() {
   const tradesByStage = useMemo(() => {
     const grouped = {};
     PIPELINE_STAGES.forEach(s => { grouped[s.id] = []; });
-    trades.forEach(t => {
+    (trades || []).forEach(t => {
       const stage = mapTradeToStage(t);
       grouped[stage].push(t);
     });
@@ -191,7 +191,7 @@ export default function TradePipeline() {
 
   const filteredTrades = selectedStage
     ? tradesByStage[selectedStage] || []
-    : trades.slice(0, 10);
+    : (trades || []).slice(0, 10);
 
   if (!isSystemReady) {
     return (
@@ -316,7 +316,7 @@ export default function TradePipeline() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Active Trades', value: trades.filter(t => !['closed', 'settled'].includes((t.status || '').toLowerCase())).length, icon: TrendingUp, color: 'text-os-gold' },
+          { label: 'Active Trades', value: (trades || []).filter(t => !['closed', 'settled'].includes((t.status || '').toLowerCase())).length, icon: TrendingUp, color: 'text-os-gold' },
           { label: 'In Transit', value: stageCounts.in_transit || 0, icon: Ship, color: 'text-cyan-400' },
           { label: 'Escrow Live', value: stageCounts.escrow_funded || 0, icon: ShieldCheck, color: 'text-amber-300' },
           { label: 'Resolved', value: stageCounts.settled || 0, icon: CheckCircle, color: 'text-emerald-400' },
@@ -354,7 +354,7 @@ export default function TradePipeline() {
                 <div key={i} className="h-16 rounded-lg animate-pulse" />
               ))}
             </div>
-          ) : filteredTrades.length === 0 ? (
+          ) : (filteredTrades || []).length === 0 ? (
             <EmptyState
               icon={Package}
               title={selectedStage ? 'No trades at this stage' : 'No trades yet'}
@@ -362,7 +362,7 @@ export default function TradePipeline() {
             />
           ) : (
             <div className="space-y-2">
-              {filteredTrades.map(trade => (
+              {(filteredTrades || []).map(trade => (
                 <TradeCard
                   key={trade.id}
                   trade={trade}

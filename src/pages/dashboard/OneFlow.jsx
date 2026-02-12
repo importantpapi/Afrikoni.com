@@ -98,7 +98,6 @@ export default function OneFlow() {
     const handleRealtimeUpdate = (e) => {
       const { table, event, new: newData } = e.detail || {};
       if (table === 'trades' && newData?.id === tradeId) {
-        console.log(`[OneFlow] 🔄 Realtime update for trade ${tradeId}`);
         setTrade(newData);
       }
     };
@@ -124,7 +123,6 @@ export default function OneFlow() {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Failed to load trade:', err);
     } finally {
       setLoading(false);
     }

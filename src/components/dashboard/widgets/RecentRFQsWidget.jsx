@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowRight, Calendar, Clock, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
@@ -8,7 +8,7 @@ import { supabase, withRetry } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { TableSkeleton } from '@/components/shared/ui/skeletons';
 
-export default function RecentRFQsWidget() {
+function RecentRFQsWidget() {
     const navigate = useNavigate();
     const { profileCompanyId } = useDashboardKernel();
     const [rfqs, setRfqs] = useState([]);
@@ -41,7 +41,7 @@ export default function RecentRFQsWidget() {
                 const data = await withRetry(fetchRFQs);
                 setRfqs(data || []);
             } catch (err) {
-                console.error('[RecentRFQsWidget] Failed to load:', err);
+                // Silently handle error to prevent log bloat on mobile
             } finally {
                 setLoading(false);
             }
@@ -161,3 +161,6 @@ function PlusIcon(props) {
         </svg>
     );
 }
+
+export default memo(RecentRFQsWidget);
+

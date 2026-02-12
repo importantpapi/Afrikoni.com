@@ -91,18 +91,17 @@ export default function AddProduct() {
   // Helper to get category ID
   const getCategoryId = async () => {
     if (!formData.category) return null;
-    
+
     try {
       const catLabel = CATEGORIES.find(c => c.value === formData.category)?.label || formData.category;
       const categoryId = await findOrCreateCategory(supabase, catLabel);
-      
+
       if (!categoryId) {
         console.warn('[AddProduct] Could not resolve category, will proceed without category_id');
       }
-      
+
       return categoryId;
     } catch (error) {
-      console.error('[AddProduct] Category resolution failed:', error);
       // Don't block product creation if category fails
       return null;
     }
@@ -150,7 +149,6 @@ export default function AddProduct() {
         toast.error(result.error || "Failed to save draft");
       }
     } catch (err) {
-      console.error(err);
       toast.error("An unexpected error occurred");
     } finally {
       setIsSaving(false);
@@ -199,9 +197,7 @@ export default function AddProduct() {
   };
 
   const handlePublish = async () => {
-    console.log('[AddProduct] Handle publish triggered');
     if (!profileCompanyId || !user) {
-      console.error('[AddProduct] No user or company ID');
       toast.error("You must be logged in to publish.");
       return;
     }
@@ -210,21 +206,16 @@ export default function AddProduct() {
 
     try {
       // 1. Resolve Category
-      console.log('[AddProduct] Step 1: Resolving category...');
       const categoryId = await getCategoryId();
-      console.log('[AddProduct] Resolved category ID:', categoryId);
 
       // 2. Upload Images
-      console.log('[AddProduct] Step 2: Uploading images...');
       const publicImageUrls = await uploadImages();
-      console.log('[AddProduct] Uploaded images:', publicImageUrls);
 
       // Decide publish status based on image upload success
       const canPublish = publicImageUrls.length > 0;
       const productStatus = canPublish ? 'active' : 'draft';
 
       if (!canPublish && formData.images?.length > 0) {
-        console.warn('[AddProduct] Images failed to upload - saving as draft instead');
         toast.warning('Images failed to upload', {
           description: 'Saving as draft. Please contact support about storage setup.'
         });
@@ -243,10 +234,8 @@ export default function AddProduct() {
         images: publicImageUrls,
         shipping_terms: formData.deliveryRegions,
         lead_time_min_days: formData.leadTime,
-        status: productStatus // Use computed status instead of hardcoded 'active'
+        status: productStatus
       };
-
-      console.log('[AddProduct] Step 3: Calling createProduct service');
 
       // Add timeout to prevent hanging indefinitely
       const timeoutPromise = new Promise((_, reject) =>
@@ -258,30 +247,25 @@ export default function AddProduct() {
           user,
           formData: serviceFormData,
           companyId: profileCompanyId,
-          publish: canPublish // Only publish if images uploaded successfully
+          publish: canPublish
         }),
         timeoutPromise
       ]);
 
-      console.log('[AddProduct] createProduct result:', result);
-
       if (result.success) {
-        // Store product ID in state for potential navigation
         setFormData(prev => ({ ...prev, productId: result.data?.id }));
         setIsPublished(true);
-        
+
         const isDraft = productStatus === 'draft';
         toast.success(isDraft ? 'Product saved as draft' : 'Product published successfully!', {
-          description: isDraft 
+          description: isDraft
             ? 'Fix images and publish from the products page'
             : (result.imagesSaved ? 'Product and images saved' : 'Product saved (images may take a moment)')
         });
       } else {
-        console.error('[AddProduct] User error:', result.error);
         toast.error(result.error || "Failed to publish product");
       }
     } catch (err) {
-      console.error('[AddProduct] Unexpected error:', err);
       toast.error("An unexpected error occurred: " + err.message);
     } finally {
       setIsSaving(false);

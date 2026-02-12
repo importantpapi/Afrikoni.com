@@ -66,7 +66,6 @@ export default function Products() {
 
       setProducts(data || []);
     } catch (err) {
-      console.error('[Products] Error loading products:', err);
       setError('Failed to load products. Please try again.');
     } finally {
       setIsLoading(false);
@@ -82,7 +81,6 @@ export default function Products() {
   // ✅ REFRESH FIX: Reload products when navigating back from /new
   useEffect(() => {
     if (canLoadData && location.state?.refresh) {
-      console.log('[Products] Refreshing after navigation');
       loadProducts();
       // Clear the state to prevent unnecessary reloads
       window.history.replaceState({}, document.title);
@@ -90,7 +88,7 @@ export default function Products() {
   }, [location.state, canLoadData, loadProducts]);
 
   const filtered = useMemo(() => {
-    return products.filter((product) => {
+    return (products || []).filter((product) => {
       const term = search.toLowerCase();
       return (
         product.name?.toLowerCase().includes(term) ||
@@ -139,7 +137,7 @@ export default function Products() {
             <div className="os-label">Trade OS Catalog</div>
             <h1 className="os-title mt-2">Products</h1>
             <p className="text-sm text-os-muted">
-              {products.length} products in your catalog
+              {(products || []).length} products in your catalog
             </p>
           </div>
           <Button
@@ -188,7 +186,7 @@ export default function Products() {
       </Surface>
 
       {/* Empty State */}
-      {products.length === 0 ? (
+      {(products || []).length === 0 ? (
         <EmptyState
           title="No products found"
           description="Get started by adding your first product to the catalog."
@@ -196,7 +194,7 @@ export default function Products() {
           ctaAction={() => navigate('/dashboard/products/new')}
           icon={Package}
         />
-      ) : filtered.length === 0 ? (
+      ) : (filtered || []).length === 0 ? (
         <EmptyState
           title="No matching products"
           description="Try adjusting your search or filters."
@@ -228,7 +226,7 @@ export default function Products() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-os-stroke">
-                {filtered.map((product) => {
+                {(filtered || []).map((product) => {
                   const status = statusConfig[product.status] || statusConfig.draft;
                   // Handle potential missing fields gracefully
                   const price = product.price_per_unit || product.pricePerUnit || 0;
@@ -308,7 +306,7 @@ export default function Products() {
         </Surface>
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((product) => {
+          {(filtered || []).map((product) => {
             const status = statusConfig[product.status] || statusConfig.draft;
             const price = product.price_per_unit || product.pricePerUnit || 0;
             const unit = product.unit || 'units';

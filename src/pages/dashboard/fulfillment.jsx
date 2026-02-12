@@ -63,7 +63,6 @@ function FulfillmentDashboardInner() {
     // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
-        console.warn('[FulfillmentDashboard] No user found, redirecting to login');
         navigate('/login');
       }
       return;
@@ -76,7 +75,6 @@ function FulfillmentDashboardInner() {
     // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
     const timeoutId = setTimeout(() => {
       if (!abortSignal.aborted) {
-        console.warn('[FulfillmentDashboard] Loading timeout (15s) - aborting queries');
         abortControllerRef.current.abort();
         setIsLoading(false);
         setError('Data loading timed out. Please try again.');
@@ -89,14 +87,9 @@ function FulfillmentDashboardInner() {
       (Date.now() - lastLoadTimeRef.current > 30000);
 
     if (shouldRefresh) {
-      console.log('[FulfillmentDashboard] Data is stale or first load - refreshing');
       loadData(abortSignal).catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error('[FulfillmentDashboard] Load error:', err);
-        }
+        // silent
       });
-    } else {
-      console.log('[FulfillmentDashboard] Data is fresh - skipping reload');
     }
 
     return () => {
@@ -111,7 +104,6 @@ function FulfillmentDashboardInner() {
   const loadData = async (abortSignal) => {
     // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId && !canLogistics) {
-      console.warn('[FulfillmentDashboard] No company ID found for non-logistics user');
       toast.info('Complete your company profile to access fulfillment features.');
       setIsLoading(false);
       return;
@@ -120,11 +112,10 @@ function FulfillmentDashboardInner() {
     try {
       // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
       // During background refresh, keep existing data visible
-      if (fulfillments.length === 0) {
+      if ((fulfillments || []).length === 0) {
         setIsLoading(true);
       }
       setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
-      console.log('[FulfillmentDashboard] Starting loadData...');
 
       // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
       if (abortSignal?.aborted) return;
@@ -149,8 +140,8 @@ function FulfillmentDashboardInner() {
 
           if (shipmentsError) throw shipmentsError;
 
-          if (shipments && shipments.length > 0) {
-            const orderIds = shipments.map(s => s.order_id).filter(Boolean);
+          if (shipments && (shipments || []).length > 0) {
+            const orderIds = (shipments || []).map(s => s.order_id).filter(Boolean);
             if (orderIds.length > 0) {
               ordersQuery = ordersQuery.in('id', orderIds);
             } else {
@@ -187,7 +178,7 @@ function FulfillmentDashboardInner() {
       const { orders, warehouses: warehousesList } = await withRetry(fetchFulfillmentData);
 
       if (orders && Array.isArray(orders)) {
-        const fulfillmentsList = orders
+        const fulfillmentsList = (orders || [])
           .filter(order => order.fulfillment)
           .map(order => ({
             ...order.fulfillment,
@@ -196,7 +187,6 @@ function FulfillmentDashboardInner() {
           .filter(f => statusFilter === 'all' || f.status === statusFilter);
 
         setFulfillments(fulfillmentsList);
-        console.log('[FulfillmentDashboard] Loaded fulfillments:', fulfillmentsList.length);
       } else {
         setFulfillments([]);
       }
@@ -206,7 +196,6 @@ function FulfillmentDashboardInner() {
       // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
-      console.log('[FulfillmentDashboard] Data loaded successfully');
 
     } catch (error) {
       // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
@@ -217,14 +206,13 @@ function FulfillmentDashboardInner() {
       });
 
       // Only show toast if we have no data to show
-      if (fulfillments.length === 0) {
+      if ((fulfillments || []).length === 0) {
         toast.error('Failed to load fulfillment data. Please try again.');
         setError('Connection failed. Please retry.');
       } else {
         toast.warning('Connection unstable - showing cached data');
       }
     } finally {
-      console.log('[FulfillmentDashboard] Setting isLoading to false');
       setIsLoading(false);
     }
   };
@@ -235,7 +223,6 @@ function FulfillmentDashboardInner() {
       toast.success(`Fulfillment status updated to ${newStatus}`);
       loadData();
     } catch (error) {
-      console.error('Error updating fulfillment:', error);
       toast.error('Failed to update fulfillment status');
     }
   };
@@ -270,7 +257,7 @@ function FulfillmentDashboardInner() {
 
   // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
   // If we have fulfillments data, keep showing it during background refresh
-  if (isLoading && fulfillments.length === 0) {
+  if (isLoading && (fulfillments || []).length === 0) {
     return <CardSkeleton count={3} />;
   }
 
@@ -316,25 +303,25 @@ function FulfillmentDashboardInner() {
           <Surface className="p-4">
             <p className="text-sm text-[var(--os-text-secondary)] mb-1">Pending</p>
             <p className="text-2xl font-semibold">
-              {fulfillments.filter(f => f.status === 'pending').length}
+              {(fulfillments || []).filter(f => f.status === 'pending').length}
             </p>
           </Surface>
           <Surface className="p-4">
             <p className="text-sm text-[var(--os-text-secondary)] mb-1">In Progress</p>
             <p className="text-2xl font-semibold">
-              {fulfillments.filter(f => ['picking', 'packed'].includes(f.status)).length}
+              {(fulfillments || []).filter(f => ['picking', 'packed'].includes(f.status)).length}
             </p>
           </Surface>
           <Surface className="p-4">
             <p className="text-sm text-[var(--os-text-secondary)] mb-1">Ready</p>
             <p className="text-2xl font-semibold">
-              {fulfillments.filter(f => f.status === 'ready_for_dispatch').length}
+              {(fulfillments || []).filter(f => f.status === 'ready_for_dispatch').length}
             </p>
           </Surface>
           <Surface className="p-4">
             <p className="text-sm text-[var(--os-text-secondary)] mb-1">Dispatched</p>
             <p className="text-2xl font-semibold">
-              {fulfillments.filter(f => f.status === 'handed_to_carrier').length}
+              {(fulfillments || []).filter(f => f.status === 'handed_to_carrier').length}
             </p>
           </Surface>
         </div>
@@ -359,7 +346,7 @@ function FulfillmentDashboardInner() {
         {/* Fulfillments List */}
         <Surface className="p-5">
           <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Fulfillment Orders</h2>
-          {fulfillments.length === 0 ? (
+          {(fulfillments || []).length === 0 ? (
             <EmptyState
               icon={Package}
               title="No fulfillment orders"
@@ -367,7 +354,7 @@ function FulfillmentDashboardInner() {
             />
           ) : (
             <div className="space-y-3">
-              {fulfillments.map((fulfillment) => (
+              {(fulfillments || []).map((fulfillment) => (
                 <motion.div
                   key={fulfillment.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -424,7 +411,7 @@ function FulfillmentDashboardInner() {
             <Warehouse className="w-5 h-5" />
             Warehouse Locations
           </h2>
-          {warehouses.length === 0 ? (
+          {(warehouses || []).length === 0 ? (
             <EmptyState
               icon={Warehouse}
               title="No warehouses"
@@ -432,7 +419,7 @@ function FulfillmentDashboardInner() {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {warehouses.map((warehouse) => (
+              {(warehouses || []).map((warehouse) => (
                 <div key={warehouse.id} className="border rounded-xl p-4">
                   <p className="font-semibold mb-2 text-[var(--os-text-primary)]">{warehouse.name}</p>
                   {warehouse.address && (

@@ -119,7 +119,7 @@ export default function QuickTradeWizard() {
 
             if (error) throw error;
         } catch (err) {
-            console.warn('[Wizard] Failed to auto-save draft:', err);
+            // Silently fail for auto-save as it's non-critical background task
         } finally {
             setTimeout(() => setAutoSaving(false), 800);
         }
@@ -162,7 +162,7 @@ export default function QuickTradeWizard() {
             if (error) throw error;
             setTemplates(data || []);
         } catch (err) {
-            console.error('Failed to load templates:', err);
+            // Error handled by template selector UI
         }
     };
 
@@ -279,7 +279,6 @@ export default function QuickTradeWizard() {
             // Navigate to RFQs list with refresh flag
             navigate('/dashboard/rfqs', { state: { refresh: true } });
         } catch (err) {
-            console.error('[Wizard] Publish failure:', err);
             toast.error('Failed to publish: ' + err.message);
         } finally {
             setIsSubmitting(false);

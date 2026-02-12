@@ -16,7 +16,7 @@ import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
-import { 
+import {
   getSupplierPerformance,
   calculateSupplierPerformance
 } from '@/lib/supabaseQueries/products';
@@ -27,18 +27,18 @@ import RequireCapability from '@/guards/RequireCapability';
 function PerformanceDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const [performance, setPerformance] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
   const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
-  
+
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
     return (
@@ -53,7 +53,6 @@ function PerformanceDashboardInner() {
     // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
-        console.log('[PerformanceDashboard] No user → redirecting to login');
         navigate('/login');
       }
       return;
@@ -66,7 +65,6 @@ function PerformanceDashboardInner() {
     // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
     const timeoutId = setTimeout(() => {
       if (!abortSignal.aborted) {
-        console.warn('[PerformanceDashboard] Loading timeout (15s) - aborting queries');
         abortControllerRef.current.abort();
         setIsLoading(false);
         setError('Data loading timed out. Please try again.');
@@ -74,19 +72,16 @@ function PerformanceDashboardInner() {
     }, 15000);
 
     // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
-      console.log('[PerformanceDashboard] Data is stale or first load - refreshing');
       loadData(abortSignal).catch(err => {
         if (err.name !== 'AbortError') {
-          console.error('[PerformanceDashboard] Load error:', err);
+          // Error already logged by logError
         }
       });
-    } else {
-      console.log('[PerformanceDashboard] Data is fresh - skipping reload');
     }
 
     return () => {
@@ -101,7 +96,6 @@ function PerformanceDashboardInner() {
   const loadData = async (abortSignal) => {
     // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId) {
-      console.log('[PerformanceDashboard] No company_id - cannot load performance');
       return;
     }
 
@@ -114,7 +108,7 @@ function PerformanceDashboardInner() {
 
       // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
       if (abortSignal?.aborted) return;
-      
+
       // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       // Calculate and get performance
       await calculateSupplierPerformance(profileCompanyId);
@@ -124,7 +118,7 @@ function PerformanceDashboardInner() {
       if (abortSignal?.aborted) return;
 
       setPerformance(perf);
-      
+
       // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
       if (perf && typeof perf === 'object') {
         lastLoadTimeRef.current = Date.now();
@@ -147,8 +141,8 @@ function PerformanceDashboardInner() {
   // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           // useEffect will retry automatically when canLoadData is true

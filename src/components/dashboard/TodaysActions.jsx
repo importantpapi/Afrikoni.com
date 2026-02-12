@@ -12,7 +12,7 @@
  * 🟢 OPPORTUNITIES - Growth and optimization
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
@@ -51,7 +51,7 @@ const PRIORITY_CONFIG = {
     },
 };
 
-export default function TodaysActions({ compact = false }) {
+function TodaysActions({ compact = false }) {
     const navigate = useNavigate();
     const { actions, loading, markAsCompleted } = useAIActions();
 
@@ -158,6 +158,8 @@ export default function TodaysActions({ compact = false }) {
         </div>
     );
 }
+
+export default memo(TodaysActions);
 
 function ActionSection({ priority, actions, onActionClick }) {
     const config = PRIORITY_CONFIG[priority];

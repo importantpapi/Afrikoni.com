@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus,
@@ -13,7 +13,7 @@ import { Surface } from '@/components/system/Surface';
 import QuickRFQBar from '@/components/dashboard/QuickRFQBar';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
-export default function QuickActionsWidget() {
+function QuickActionsWidget() {
     const navigate = useNavigate();
     const { capabilities } = useDashboardKernel();
 
@@ -100,3 +100,5 @@ export default function QuickActionsWidget() {
         </Surface>
     );
 }
+
+export default memo(QuickActionsWidget);

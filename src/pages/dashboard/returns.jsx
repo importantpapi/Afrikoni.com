@@ -27,14 +27,14 @@ import { Surface } from '@/components/system/Surface';
 function ReturnsDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const [returns, setReturns] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // ✅ FINAL SYNC: Data freshness tracking (30 second threshold)
   const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
@@ -58,7 +58,6 @@ function ReturnsDashboardInner() {
     // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
       if (!userId) {
-        console.log('[ReturnsDashboard] No user → redirecting to login');
         navigate('/login');
       }
       return;
@@ -71,7 +70,6 @@ function ReturnsDashboardInner() {
     // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
     const timeoutId = setTimeout(() => {
       if (!abortSignal.aborted) {
-        console.warn('[ReturnsDashboard] Loading timeout (15s) - aborting queries');
         abortControllerRef.current.abort();
         setIsLoading(false);
         setError('Data loading timed out. Please try again.');
@@ -79,19 +77,14 @@ function ReturnsDashboardInner() {
     }, 15000);
 
     // ✅ FINAL SYNC: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
-      console.log('[ReturnsDashboard] Data is stale or first load - refreshing');
       loadData(abortSignal).catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error('[ReturnsDashboard] Load error:', err);
-        }
+        // silent
       });
-    } else {
-      console.log('[ReturnsDashboard] Data is fresh - skipping reload');
     }
 
     return () => {
@@ -106,7 +99,6 @@ function ReturnsDashboardInner() {
   const loadData = async (abortSignal) => {
     // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId) {
-      console.log('[ReturnsDashboard] No company_id - cannot load returns');
       return;
     }
 
@@ -128,13 +120,12 @@ function ReturnsDashboardInner() {
         if (abortSignal?.aborted) return;
 
         setReturns(returnsList);
-        
+
         // ✅ FINAL SYNC: Mark fresh ONLY on successful load
         lastLoadTimeRef.current = Date.now();
         markFresh();
       } catch (dataError) {
         if (abortSignal?.aborted) return; // Ignore abort errors
-        console.log('Returns table not yet set up:', dataError.message);
         // Set empty data - feature not yet available
         setReturns([]);
         setError(null); // Don't show error for missing table
@@ -142,7 +133,6 @@ function ReturnsDashboardInner() {
     } catch (err) {
       // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
       if (err.name === 'AbortError' || abortSignal?.aborted) return;
-      console.error('[ReturnsDashboard] Error loading returns:', err);
       setError(err.message || 'Failed to load returns'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
       toast.error('Failed to load returns');
     } finally {
@@ -160,7 +150,6 @@ function ReturnsDashboardInner() {
       // Trigger reload via useEffect dependency change
       lastLoadTimeRef.current = null;
     } catch (error) {
-      console.error('Error updating return:', error);
       toast.error('Failed to update return status');
     }
   };
@@ -187,8 +176,8 @@ function ReturnsDashboardInner() {
   // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           // useEffect will retry automatically when canLoadData is true
@@ -232,22 +221,22 @@ function ReturnsDashboardInner() {
         </Button>
       </motion.div>
 
-        {/* Stats Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Surface className="p-4">
           <p className="text-sm text-[var(--os-text-secondary)] mb-1">Total Returns</p>
-          <p className="text-2xl font-semibold text-[var(--os-text-primary)]">{returns.length}</p>
+          <p className="text-2xl font-semibold text-[var(--os-text-primary)]">{(returns || []).length}</p>
         </Surface>
         <Surface className="p-4">
           <p className="text-sm text-[var(--os-text-secondary)] mb-1">Pending</p>
           <p className="text-2xl font-semibold">
-            {returns.filter(r => r.status === 'requested' || r.status === 'approved').length}
+            {(returns || []).filter(r => r.status === 'requested' || r.status === 'approved').length}
           </p>
         </Surface>
         <Surface className="p-4">
           <p className="text-sm text-[var(--os-text-secondary)] mb-1">Refunded</p>
           <p className="text-2xl font-semibold">
-            {returns.filter(r => r.status === 'refunded').length}
+            {(returns || []).filter(r => r.status === 'refunded').length}
           </p>
         </Surface>
         <Surface className="p-4">
@@ -261,7 +250,7 @@ function ReturnsDashboardInner() {
         </Surface>
       </div>
 
-        {/* Filters */}
+      {/* Filters */}
       <Surface className="p-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
@@ -279,14 +268,14 @@ function ReturnsDashboardInner() {
         </Select>
       </Surface>
 
-        {/* Returns List */}
+      {/* Returns List */}
       <Surface className="p-5">
         <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Return Requests</h2>
-        {returns.length === 0 ? (
+        {(returns || []).length === 0 ? (
           <EmptyState
             icon={RotateCcw}
             title="No returns yet"
-            description={userRole === 'buyer' 
+            description={userRole === 'buyer'
               ? "Your return requests will appear here"
               : "Return requests from buyers will appear here"}
           />
@@ -299,65 +288,65 @@ function ReturnsDashboardInner() {
                 animate={{ opacity: 1, y: 0 }}
                 className="border rounded-xl p-4 hover:shadow-md transition-shadow"
               >
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <Package className="w-5 h-5" />
-                          <p className="font-semibold">
-                            {returnItem.products?.name || returnItem.products?.title || 'Product'}
-                          </p>
-                          <Badge variant={getStatusBadge(returnItem.status)}>
-                            {getStatusIcon(returnItem.status)}
-                            <span className="ml-1 capitalize">{returnItem.status}</span>
-                          </Badge>
-                        </div>
-                        <p className="text-sm">
-                          Order: #{returnItem.orders?.order_number || returnItem.order_id?.slice(0, 8)}
-                        </p>
-                        <p className="text-sm">
-                          Requested: {format(new Date(returnItem.requested_at), 'MMM dd, yyyy')}
-                        </p>
-                        {returnItem.reason && (
-                          <p className="text-sm mt-2">
-                            Reason: {returnItem.reason}
-                          </p>
-                        )}
-                      </div>
-                      {returnItem.refund_amount && (
-                        <div className="text-right">
-                          <p className="text-sm">Refund Amount</p>
-                          <p className="text-xl font-bold">
-                            {returnItem.currency} {parseFloat(returnItem.refund_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                        </div>
-                      )}
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Package className="w-5 h-5" />
+                      <p className="font-semibold">
+                        {returnItem.products?.name || returnItem.products?.title || 'Product'}
+                      </p>
+                      <Badge variant={getStatusBadge(returnItem.status)}>
+                        {getStatusIcon(returnItem.status)}
+                        <span className="ml-1 capitalize">{returnItem.status}</span>
+                      </Badge>
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <Link to={`/dashboard/returns/${returnItem.id}`}>
-                        <Button variant="outline" size="sm">
-                          View Details
-                        </Button>
-                      </Link>
-                      {userRole === 'seller' && returnItem.status === 'requested' && (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="hover:bg-red-50"
-                            onClick={() => handleUpdateStatus(returnItem.id, 'rejected')}
-                          >
-                            Reject
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="hover:bg-afrikoni-gold/90"
-                            onClick={() => handleUpdateStatus(returnItem.id, 'approved')}
-                          >
-                            Approve
-                          </Button>
-                        </div>
-                      )}
+                    <p className="text-sm">
+                      Order: #{returnItem.orders?.order_number || returnItem.order_id?.slice(0, 8)}
+                    </p>
+                    <p className="text-sm">
+                      Requested: {format(new Date(returnItem.requested_at), 'MMM dd, yyyy')}
+                    </p>
+                    {returnItem.reason && (
+                      <p className="text-sm mt-2">
+                        Reason: {returnItem.reason}
+                      </p>
+                    )}
+                  </div>
+                  {returnItem.refund_amount && (
+                    <div className="text-right">
+                      <p className="text-sm">Refund Amount</p>
+                      <p className="text-xl font-bold">
+                        {returnItem.currency} {parseFloat(returnItem.refund_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
                     </div>
+                  )}
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <Link to={`/dashboard/returns/${returnItem.id}`}>
+                    <Button variant="outline" size="sm">
+                      View Details
+                    </Button>
+                  </Link>
+                  {userRole === 'seller' && returnItem.status === 'requested' && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="hover:bg-red-50"
+                        onClick={() => handleUpdateStatus(returnItem.id, 'rejected')}
+                      >
+                        Reject
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="hover:bg-afrikoni-gold/90"
+                        onClick={() => handleUpdateStatus(returnItem.id, 'approved')}
+                      >
+                        Approve
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>

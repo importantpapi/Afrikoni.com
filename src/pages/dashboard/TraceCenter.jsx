@@ -18,7 +18,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function TraceCenter() {
     const { isSystemReady } = useDashboardKernel();
     const { state, initiateTrade, verifyMilestone, assessRisk } = useTradeContext();
-    const { product, financials, logistics, advice } = state;
+    const product = state?.product || {};
+    const financials = state?.financials || { fees: {}, milestones: [] };
+    const logistics = state?.logistics || { milestones: [], origin: '' };
+    const advice = state?.advice || { tone: 'standard', message: '' };
 
     if (!isSystemReady) {
         return <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">Loading...</div>;
@@ -26,17 +29,12 @@ export default function TraceCenter() {
 
     // ✅ KERNEL FIX: Removed automatic demo-trade initiation. 
     // Trace Center now strictly reflects existing trade state or requires an explicit initiation via the UI.
-    useEffect(() => {
-        if (state.status === 'active') {
-            console.log('[TraceCenter] Resuming trace for:', state.tradeId);
-        }
-    }, [state.status, state.tradeId]);
 
     // Calculate Money Map Progress
     const moneyProgress =
-        financials.escrowState === 'locked' ? 25 :
-            financials.escrowState === 'funded' ? 50 :
-                financials.escrowState === 'verified' ? 75 : 100;
+        financials?.escrowState === 'locked' ? 25 :
+            financials?.escrowState === 'funded' ? 50 :
+                financials?.escrowState === 'verified' ? 75 : 100;
 
     return (
         <div className="min-h-screen bg-afrikoni-offwhite pb-20">
@@ -114,8 +112,8 @@ export default function TraceCenter() {
                         </div>
                         <div className="w-px h-4 bg-afrikoni-gold/20" />
                         <div className="flex items-center gap-2">
-                            <span className="text-gray-600 text-xs">{financials.localCurrency} RATE</span>
-                            <span className="text-afrikoni-gold font-mono">₦{financials.exchangeRate.toFixed(2)}</span>
+                            <span className="text-gray-600 text-xs">{(financials?.localCurrency || 'LOCAL')} RATE</span>
+                            <span className="text-afrikoni-gold font-mono">₦{(financials?.exchangeRate || 0).toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -217,7 +215,7 @@ export default function TraceCenter() {
                             <div className="absolute top-6 bottom-6 left-9 w-0.5 bg-slate-100" />
 
                             <div className="space-y-8">
-                                {logistics.milestones.map((milestone, idx) => (
+                                {(logistics?.milestones || []).map((milestone, idx) => (
                                     <div key={milestone.id} className="relative flex gap-6 group">
                                         {/* Node Dot */}
                                         <div className={`
@@ -252,7 +250,7 @@ export default function TraceCenter() {
                                             )}
 
                                             {/* Action Button (Simulation) */}
-                                            {milestone.status === 'pending' && idx === logistics.milestones.findIndex(m => m.status === 'pending') && (
+                                            {milestone.status === 'pending' && idx === (logistics?.milestones || []).findIndex(m => m.status === 'pending') && (
                                                 <div className="mt-3">
                                                     <Button
                                                         size="sm"

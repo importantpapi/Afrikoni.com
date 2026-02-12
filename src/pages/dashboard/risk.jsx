@@ -120,7 +120,6 @@ export default function RiskManagementDashboard() {
     if (!hasAccess || !autoRefresh || !authReady) return;
 
     const interval = setInterval(() => {
-      console.log('[Risk Dashboard] Auto-refreshing data...');
       loadRiskData();
       loadNewRegistrations();
       setLastRefresh(new Date());
@@ -133,8 +132,6 @@ export default function RiskManagementDashboard() {
   const loadAllUsers = async () => {
     try {
       setIsLoadingUsers(true);
-      console.log('[Risk Dashboard] Loading ALL users...');
-
       // Query profiles - using public read policy (should work for all authenticated users)
       const { data: allUsersData, error: allUsersError } = await supabase
         .from('profiles')
@@ -156,14 +153,6 @@ export default function RiskManagementDashboard() {
         .limit(5000); // Increased limit to show all users
 
       if (allUsersError) {
-        console.error('❌ Error fetching all users:', allUsersError);
-        console.error('Error details:', {
-          message: allUsersError.message,
-          code: allUsersError.code,
-          details: allUsersError.details,
-          hint: allUsersError.hint
-        });
-
         // Show user-friendly error message
         if (allUsersError.message?.includes('infinite recursion')) {
           toast.error('Database policy error. Please refresh the page.', {
@@ -183,19 +172,9 @@ export default function RiskManagementDashboard() {
         return; // Don't throw - just return empty array
       }
 
-      console.log(`[Risk Dashboard] ✅ Found ${allUsersData?.length || 0} total users from profiles table`);
-
-      // Debug: Log all user emails to verify we're getting all users
       if (allUsersData && allUsersData.length > 0) {
-        console.log('📋 All user emails from database:', allUsersData.map(u => ({
-          email: u.email || 'No email',
-          id: u.id,
-          created: u.created_at,
-          role: u.role
-        })));
-        console.log(`✅ Successfully loaded ${allUsersData.length} users from Supabase`);
+        // No-op - data loaded
       } else {
-        console.warn('⚠️ No users found in profiles table - this might be an RLS issue');
         toast.warning('No users found. Check RLS policies or admin access.');
       }
 
@@ -241,11 +220,10 @@ export default function RiskManagementDashboard() {
               }
             } catch (emailRfqError) {
               // Ignore - not all RFQs have buyer_email
-              console.debug('No RFQs found by email:', emailRfqError);
             }
           }
         } catch (activityError) {
-          console.warn('Error fetching user activity:', activityError);
+          // Silent
         }
 
         // ✅ KERNEL COMPLIANCE: Derive role from user's company capabilities if available
@@ -267,7 +245,6 @@ export default function RiskManagementDashboard() {
               userRole = 'buyer';
             } else if (capabilitiesError) {
               // Other error - use default buyer role
-              console.warn('[Risk] Error fetching capabilities:', capabilitiesError);
               userRole = 'buyer';
             } else if (userCapabilities) {
               if (userCapabilities.can_sell && userCapabilities.can_buy) {
@@ -280,7 +257,6 @@ export default function RiskManagementDashboard() {
             }
           } catch (capError) {
             // Non-critical - use default 'buyer'
-            console.debug('Could not fetch capabilities for user:', user.id, capError);
           }
         }
 
@@ -306,22 +282,8 @@ export default function RiskManagementDashboard() {
       }));
 
       setAllUsers(processedUsers);
-      console.log(`[Risk Dashboard] Processed ${processedUsers.length} total users`);
-
-      // Log all users for complete visibility
-      console.log('✅ ALL USERS LOADED:', processedUsers.map(u => ({
-        email: u.email,
-        name: u.fullName,
-        role: u.role,
-        activity: u.totalActivity,
-        registered: u.createdAt
-      })));
-
-      console.log(`📊 Total: ${processedUsers.length} users | Active: ${processedUsers.filter(u => u.totalActivity > 0).length} | Inactive: ${processedUsers.filter(u => u.totalActivity === 0).length}`);
-
       setIsLoadingUsers(false);
     } catch (error) {
-      console.error('Error loading all users:', error);
       toast.error('Failed to load users', { description: error.message });
       setAllUsers([]);
       setIsLoadingUsers(false);
@@ -333,8 +295,6 @@ export default function RiskManagementDashboard() {
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      console.log('[Risk Dashboard] Loading registrations since:', thirtyDaysAgo.toISOString());
 
       // Get users from last 30 days (with LEFT join to companies)
       // Use auth.users joined with profiles for complete user data
@@ -359,23 +319,12 @@ export default function RiskManagementDashboard() {
         .limit(1000); // Increased limit to get all users
 
       if (usersError) {
-        console.error('Error fetching registrations:', usersError);
         throw usersError;
       }
 
-      console.log(`[Risk Dashboard] ✅ Found ${recentUsers?.length || 0} registrations from last 30 days`);
-
-      // Debug: Log all user emails to verify we're getting all users
       if (recentUsers && recentUsers.length > 0) {
-        console.log('📋 User emails from database (last 30 days):', recentUsers.map(u => ({
-          email: u.email || 'No email',
-          id: u.id,
-          created: u.created_at,
-          role: u.role
-        })));
-        console.log(`✅ Successfully loaded ${recentUsers.length} recent users from Supabase`);
+        // No-op
       } else {
-        console.warn('⚠️ No users found in last 30 days. This might be normal if all users are older.');
         // Don't show warning toast for this - it's expected if users are older than 30 days
       }
 
@@ -424,7 +373,7 @@ export default function RiskManagementDashboard() {
             }
           }
         } catch (activityError) {
-          console.warn('Error fetching user activity:', activityError);
+          // Silent
         }
 
         return {
@@ -455,22 +404,7 @@ export default function RiskManagementDashboard() {
 
       setNewRegistrations(registrations);
 
-      console.log(`[Risk Dashboard] Processed ${registrations.length} registrations with activity data`);
-
-      // Log all recent registrations for complete visibility
-      console.log('📋 RECENT REGISTRATIONS (Last 30 days):', registrations.map(r => ({
-        email: r.email,
-        name: r.fullName,
-        company: r.companyName,
-        role: r.role,
-        activity: r.totalActivity,
-        registered: r.createdAt
-      })));
-
-      console.log(`📊 Summary: ${registrations.length} recent users | ${registrations.filter(r => r.totalActivity > 0).length} active | ${registrations.filter(r => r.totalActivity === 0).length} need attention`);
-
     } catch (error) {
-      console.error('Error loading new registrations:', error);
       toast.error('Failed to load registrations', {
         description: error.message
       });
@@ -480,8 +414,6 @@ export default function RiskManagementDashboard() {
 
   // Real-time handler for new user registrations
   const handleNewRegistration = useCallback((payload) => {
-    console.log('[Risk Dashboard] New user registered!', payload);
-
     // Show instant notification
     toast.success('New User Registration', {
       description: `A new user just registered on the platform.`,
@@ -498,7 +430,6 @@ export default function RiskManagementDashboard() {
 
   // Real-time handler for risk changes
   const handleRiskDataChange = useCallback((payload) => {
-    console.log('[Risk Dashboard] Risk data changed:', payload.table, payload.eventType);
 
     // Show alert for critical events
     if (payload.table === 'disputes' && payload.eventType === 'INSERT') {
@@ -589,7 +520,6 @@ export default function RiskManagementDashboard() {
       loadRiskData();
 
     } catch (err) {
-      console.error('Diagnostic error:', err);
       toast.error('Diagnostic failed');
     } finally {
       setLoading(false);

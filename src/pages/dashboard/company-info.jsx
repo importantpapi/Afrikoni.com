@@ -263,8 +263,6 @@ export default function CompanyInfo() {
             fileName
           );
 
-          // Debug logging
-          console.log('Upload result:', result);
 
           if (!result || !result.file_url) {
             // ✅ GLOBAL HARDENING: Enhanced error logging
@@ -297,7 +295,6 @@ export default function CompanyInfo() {
 
       results.forEach((result, index) => {
         if (result.status === 'fulfilled' && result.value.success && result.value.url) {
-          console.log(`Upload ${index + 1} successful:`, result.value.url);
           successfulUploads.push(result.value.url);
         } else {
           const fileName = result.status === 'fulfilled'
@@ -313,15 +310,9 @@ export default function CompanyInfo() {
         }
       });
 
-      console.log('Upload summary:', {
-        successful: successfulUploads.length,
-        failed: failedUploads.length,
-        successfulUrls: successfulUploads
-      });
 
       // Update gallery with successful uploads
       if (successfulUploads.length > 0) {
-        console.log('Adding images to gallery:', successfulUploads);
 
         // Filter out any null/undefined URLs
         const validUrls = successfulUploads.filter(url => url && typeof url === 'string' && url.trim().length > 0);
@@ -344,7 +335,6 @@ export default function CompanyInfo() {
         let updatedGalleryImages;
         setGalleryImages(prev => {
           updatedGalleryImages = [...prev, ...validUrls];
-          console.log('Updated gallery images state:', updatedGalleryImages);
           return updatedGalleryImages;
         });
 
@@ -366,7 +356,6 @@ export default function CompanyInfo() {
               });
               // Don't show error to user - images are in state, just not persisted yet
             } else {
-              console.log('Gallery images saved to database');
             }
           } catch (saveErr) {
             logError('autoSaveGallery', saveErr, {
@@ -378,8 +367,6 @@ export default function CompanyInfo() {
         }
 
         toast.success(`${validUrls.length} image(s) uploaded and displayed successfully`);
-      } else {
-        console.warn('No successful uploads, but no failures either');
       }
 
       // Show errors for failed uploads
@@ -453,7 +440,6 @@ export default function CompanyInfo() {
         if (companyError) {
           // Handle PGRST116 (not found) - company doesn't exist, redirect to onboarding
           if (companyError.code === 'PGRST116') {
-            console.warn('[CompanyInfo] Company not found - redirecting to onboarding');
             navigate('/onboarding/company', { replace: true });
             return;
           }
@@ -506,7 +492,6 @@ export default function CompanyInfo() {
           if (teamError) {
             // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
             if (teamError.code === 'PGRST204' || teamError.code === 'PGRST205') {
-              console.warn('[CompanyInfo] Schema mismatch (PGRST204/205) - continuing with empty team');
               setTeamMembers([]);
             } else {
               logError('loadData-team', teamError, {
@@ -533,7 +518,6 @@ export default function CompanyInfo() {
       } catch (err) {
         // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
         if (err?.code === 'PGRST204' || err?.code === 'PGRST205') {
-          console.warn('[CompanyInfo] Schema mismatch (PGRST204/205) - ignoring error');
           // Don't set error state - allow UI to continue
           return;
         }
@@ -569,10 +553,7 @@ export default function CompanyInfo() {
 
     // Only load data when system is ready
     if (shouldRefresh) {
-      console.log('[CompanyInfo] Data is stale or first load - refreshing');
       loadData();
-    } else {
-      console.log('[CompanyInfo] Data is fresh - skipping reload');
     }
 
     return () => {
@@ -601,16 +582,11 @@ export default function CompanyInfo() {
     });
 
     try {
-      console.log('🔄 Starting save operation...');
 
       if (!userId) {
-        toast.error('User not found. Please log in again.');
-        setIsSaving(false);
         navigate('/login');
         return;
       }
-
-      console.log('✅ User found:', userId);
 
       // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
       const userEmail = user?.email || '';
@@ -619,7 +595,6 @@ export default function CompanyInfo() {
 
       // ✅ KERNEL MIGRATION: Create or update company with timeout
       if (profileCompanyId) {
-        console.log('🔄 Updating existing company:', profileCompanyId);
         // Update existing company
         // Convert year_established to integer or null (database expects integer, not empty string)
         let yearEstablished = null;
@@ -661,43 +636,23 @@ export default function CompanyInfo() {
           });
           throw new Error(`Failed to update company: ${updateErr.message || 'Unknown error'}`);
         }
-        console.log('✅ Company updated successfully');
       } else {
-        console.log('🔄 Creating new company...');
         // Create new company
-        // ✅ CRITICAL: All new companies start as unverified - admin must approve before they appear on verified suppliers page
-
-        // Convert year_established to integer or null (database expects integer, not empty string)
-        let yearEstablished = null;
-        if (formData.year_established) {
-          const year = typeof formData.year_established === 'string'
-            ? parseInt(formData.year_established.trim(), 10)
-            : formData.year_established;
-          if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
-            yearEstablished = year;
-          }
-        }
-
         const insertData = {
           company_name: formData.company_name,
-          owner_email: '', // Will be set from profile
           business_type: formData.business_type,
           country: formData.country || null,
           city: formData.city || null,
           phone: formData.phone || null,
-          email: formData.business_email || null,
+          email: formData.business_email || userEmail || null,
           website: formData.website || null,
-          year_established: yearEstablished, // INTEGER: null or valid year
+          year_established: yearEstablished,
           employee_count: formData.company_size || '1-10',
           description: formData.company_description || null,
           logo_url: logoUrl || null,
-          cover_url: coverUrl || null,
-          gallery_images: galleryImages || null,
-          verified: false,
-          verification_status: 'unverified'
+          cover_image_url: coverUrl ?? null,
+          gallery_images: galleryImages || null
         };
-
-        console.log('📝 Insert data:', insertData);
 
         const insertPromise = supabase
           .from('companies')
@@ -715,17 +670,12 @@ export default function CompanyInfo() {
           });
           throw new Error(`Failed to create company: ${companyErr.message || 'Unknown error'}`);
         }
-        if (!newCompany || !newCompany.id) {
-          throw new Error('Company was created but ID is missing');
-        }
         finalCompanyId = newCompany.id;
-        console.log('✅ Company created successfully:', finalCompanyId);
 
         // Note: profileCompanyId will be updated via kernel when profile is updated below
       }
 
       // Update profile with company information
-      console.log('🔄 Updating profile with company_id:', finalCompanyId);
       const profileUpdate = {
         company_id: finalCompanyId,
         company_name: formData.company_name,
@@ -757,9 +707,6 @@ export default function CompanyInfo() {
         });
         throw new Error(`Failed to save profile: ${profileErr.message || 'Unknown error'}`);
       }
-      console.log('✅ Profile updated successfully');
-
-      console.log('✅ All data saved successfully');
       toast.success('Company information saved successfully!');
 
       // ✅ PWA FIX: Invalidate kernel state to force refetch
@@ -772,7 +719,6 @@ export default function CompanyInfo() {
 
       // Redirect back to where user came from, or to dashboard
       // Small delay to show success message
-      console.log('🔄 Redirecting to:', returnUrl);
       setTimeout(() => {
         setIsSaving(false);
         navigate(returnUrl);
@@ -1254,7 +1200,6 @@ export default function CompanyInfo() {
                           {galleryImages.map((imageUrl, index) => {
                             // Ensure imageUrl is a valid string
                             if (!imageUrl || typeof imageUrl !== 'string') {
-                              console.warn('Invalid image URL at index', index, ':', imageUrl);
                               return null;
                             }
 
@@ -1266,12 +1211,11 @@ export default function CompanyInfo() {
                                   className="w-full h-32 object-cover rounded-lg border"
                                   loading="lazy"
                                   onError={(e) => {
-                                    console.error('Failed to load image:', imageUrl);
                                     e.target.style.display = 'none';
                                     toast.error(`Failed to load image ${index + 1}`);
                                   }}
                                   onLoad={() => {
-                                    console.log('Successfully loaded image:', imageUrl);
+                                    // Image loaded
                                   }}
                                 />
                                 <button
