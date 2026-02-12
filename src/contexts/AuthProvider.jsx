@@ -272,6 +272,18 @@ export function AuthProvider({ children }) {
       };
     }
 
+    // ✅ PWA FIX: Listen for company profile updates
+    const handleCompanyUpdate = () => {
+      console.log('[Auth] Company profile updated - refetching profile');
+      if (user?.id) {
+        silentRefresh();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('company-profile-updated', handleCompanyUpdate);
+    }
+
     // Safety timeout - force loading to false after 10 seconds
     timeoutId = setTimeout(() => {
       if (isMounted && loading && !hasInitializedRef.current) {
@@ -376,6 +388,10 @@ export function AuthProvider({ children }) {
       if (profileNullTimeoutRef.current) clearTimeout(profileNullTimeoutRef.current);
       subscription.unsubscribe();
       window.removeEventListener('online', handleOnline);
+      // ✅ PWA FIX: Cleanup company update listener
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('company-profile-updated', handleCompanyUpdate);
+      }
       if (authChannel) authChannel.close();
     };
   }, [resolveAuth, silentRefresh, user]); // Include dependencies

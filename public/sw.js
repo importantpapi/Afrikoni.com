@@ -1,4 +1,6 @@
-const CACHE_NAME = 'afrikoni-os-v1';
+// ✅ PWA FIX: Versioned cache with build timestamp to force updates
+const CACHE_VERSION = '2026-02-12-v2';
+const CACHE_NAME = `afrikoni-os-${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -11,30 +13,36 @@ const ASSETS_TO_CACHE = [
 
 // 1. Installation: Cache core UI assets
 self.addEventListener('install', (event) => {
+    console.log(`[Service Worker] Installing version ${CACHE_VERSION}`);
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log('[Service Worker] Caching core assets');
             return cache.addAll(ASSETS_TO_CACHE);
         })
     );
+    // ✅ PWA FIX: Skip waiting to activate new SW immediately
     self.skipWaiting();
 });
 
 // 2. Activation: Clean up old caches
 self.addEventListener('activate', (event) => {
+    console.log(`[Service Worker] Activating version ${CACHE_VERSION}`);
     event.waitUntil(
         caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        console.log('[Service Worker] Deleting old cache:', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+            // ✅ PWA FIX: Delete ALL old caches to prevent version conflicts
+            const deletePromises = cacheNames.map((cacheName) => {
+                if (cacheName !== CACHE_NAME) {
+                    console.log('[Service Worker] Deleting old cache:', cacheName);
+                    return caches.delete(cacheName);
+                }
+            });
+            return Promise.all(deletePromises);
+        }).then(() => {
+            // ✅ PWA FIX: Immediately claim all clients (no mixed versions)
+            console.log('[Service Worker] Claiming all clients');
+            return self.clients.claim();
         })
     );
-    return self.clients.claim();
 });
 
 // 3. Fetch Strategy: Hybrid Cache/Network
@@ -53,6 +61,28 @@ self.addEventListener('fetch', (event) => {
     }
 
     const url = new URL(event.request.url);
+
+    // ✅ PWA FIX: Network-First for JS bundles (prevent stale code)
+    if (url.pathname.endsWith('.js') || url.pathname.includes('/assets/')) {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    // Only cache successful responses
+                    if (response.status === 200) {
+                        const responseClone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    // Fallback to cache if network fails
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
 
     // Strategy A: Network-First for API calls (Supabase)
     if (url.hostname.includes('supabase.co')) {

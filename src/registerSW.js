@@ -5,6 +5,13 @@ import { toast } from 'sonner';
  * Handles offline caching and update notifications.
  */
 export function registerSW() {
+    // ✅ PWA FIX: Disable SW in dev mode to prevent caching issues
+    if (import.meta.env.DEV) {
+        console.log('[Trade OS] Dev mode detected - unregistering service workers');
+        unregister();
+        return;
+    }
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swUrl = '/sw.js';
@@ -24,13 +31,16 @@ export function registerSW() {
                         installingWorker.onstatechange = () => {
                             if (installingWorker.state === 'installed') {
                                 if (navigator.serviceWorker.controller) {
-                                    // New update available
-                                    console.log('[Trade OS] New content is available; please refresh.');
-                                    toast.info('New Trade OS version available', {
-                                        description: 'Refresh to apply critical updates.',
+                                    // ✅ PWA FIX: Force hard reload to clear all caches
+                                    console.log('[Trade OS] New version available - forcing hard reload');
+                                    toast.info('Critical Trade OS update available', {
+                                        description: 'Click to update now (prevents version conflicts)',
                                         action: {
-                                            label: 'Refresh',
-                                            onClick: () => window.location.reload()
+                                            label: 'Update Now',
+                                            onClick: () => {
+                                                // Force hard reload (bypass cache)
+                                                window.location.reload(true);
+                                            }
                                         },
                                         duration: Infinity
                                     });

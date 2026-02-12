@@ -758,6 +758,14 @@ export default function CompanyInfo() {
       console.log('✅ All data saved successfully');
       toast.success('Company information saved successfully!');
 
+      // ✅ PWA FIX: Invalidate kernel state to force refetch
+      // This ensures UI reflects new company data immediately without hard refresh
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('company-profile-updated', {
+          detail: { companyId: finalCompanyId }
+        }));
+      }
+
       // Redirect back to where user came from, or to dashboard
       // Small delay to show success message
       console.log('🔄 Redirecting to:', returnUrl);
