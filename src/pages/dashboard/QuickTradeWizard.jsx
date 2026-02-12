@@ -237,11 +237,22 @@ export default function QuickTradeWizard() {
 
     const handlePublish = async () => {
         if (!user || !profileCompanyId) {
-            toast.error('Authentication required');
+            toast.error('Authentication required', {
+                description: 'Please log in to publish RFQs'
+            });
+            return;
+        }
+
+        // Validate required fields
+        if (!formData.productName || !formData.quantity || !formData.deliveryDeadline) {
+            toast.error('Missing required fields', {
+                description: 'Please fill in Product Name, Quantity, and Delivery Deadline'
+            });
             return;
         }
 
         setIsSubmitting(true);
+        
         try {
             // Use the proper service layer instead of direct DB insert
             const { createRFQ } = await import('@/services/rfqService');
@@ -250,36 +261,60 @@ export default function QuickTradeWizard() {
                 user,
                 formData: {
                     title: formData.productName,
-                    description: formData.productDescription,
+                    description: formData.productDescription || formData.productName,
                     quantity: parseFloat(formData.quantity),
-                    unit: formData.unit,
+                    unit: formData.unit || 'pieces',
                     target_country: formData.targetCountry,
                     target_city: formData.targetCity,
                     expires_at: formData.deliveryDeadline,
                     target_price: formData.targetPrice ? parseFloat(formData.targetPrice) : null,
+                    currency: 'USD'
                 }
             });
 
             if (!result.success) {
-                toast.error(result.error || 'Failed to create RFQ');
+                console.error('[QuickTradeWizard] RFQ creation failed:', result.error);
+                toast.error('Failed to publish RFQ', {
+                    description: result.error || 'Please try again or contact support'
+                });
                 return;
             }
 
-            // Delete draft upon success
-            await supabase
-                .from('rfq_drafts')
-                .delete()
-                .eq('user_id', user.id)
-                .eq('company_id', profileCompanyId);
+            // ✅ React Query invalidation - trigger auto-refresh
+            if (window.queryClient) {
+                window.queryClient.invalidateQueries({ 
+                    predicate: (query) => query.queryKey[0] === 'rfqs' 
+                });
+            }
 
-            toast.success('RFQ Published Successfully!', {
-                description: 'Suppliers in the corridor have been notified.'
+            // Delete draft upon success
+            try {
+                await supabase
+                    .from('rfq_drafts')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('company_id', profileCompanyId);
+            } catch (draftErr) {
+                console.warn('[QuickTradeWizard] Draft cleanup failed:', draftErr);
+                // Don't block success flow
+            }
+
+            // Success! Show confirmation
+            toast.success('🎉 RFQ Published Successfully!', {
+                description: `Your request for ${formData.quantity} ${formData.unit} of ${formData.productName} is now live. Suppliers have been notified.`,
+                duration: 5000
             });
 
-            // Navigate to RFQs list with refresh flag
-            navigate('/dashboard/rfqs', { state: { refresh: true } });
+            // Navigate to RFQs list after short delay to let user see success
+            setTimeout(() => {
+                navigate('/dashboard/rfqs', { state: { refresh: true, newRFQ: result.data?.id } });
+            }, 1500);
+
         } catch (err) {
-            toast.error('Failed to publish: ' + err.message);
+            console.error('[QuickTradeWizard] Unexpected error:', err);
+            toast.error('Unexpected error occurred', {
+                description: err.message || 'Please try again'
+            });
         } finally {
             setIsSubmitting(false);
         }

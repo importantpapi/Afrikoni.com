@@ -198,7 +198,17 @@ export default function AddProduct() {
 
   const handlePublish = async () => {
     if (!profileCompanyId || !user) {
-      toast.error("You must be logged in to publish.");
+      toast.error("Authentication required", {
+        description: "Please log in to publish products"
+      });
+      return;
+    }
+
+    // Validate required fields
+    if (!formData.name || !formData.description || !formData.price) {
+      toast.error("Missing required fields", {
+        description: "Please fill in Product Name, Description, and Price"
+      });
       return;
     }
 
@@ -239,7 +249,7 @@ export default function AddProduct() {
 
       // Add timeout to prevent hanging indefinitely
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), 20000)
+        setTimeout(() => reject(new Error('Request timed out after 20 seconds')), 20000)
       );
 
       const result = await Promise.race([
@@ -256,17 +266,38 @@ export default function AddProduct() {
         setFormData(prev => ({ ...prev, productId: result.data?.id }));
         setIsPublished(true);
 
+        // ✅ React Query invalidation - trigger auto-refresh
+        if (window.queryClient) {
+          window.queryClient.invalidateQueries({ 
+            predicate: (query) => query.queryKey[0] === 'products' 
+          });
+        }
+
         const isDraft = productStatus === 'draft';
-        toast.success(isDraft ? 'Product saved as draft' : 'Product published successfully!', {
+        toast.success(isDraft ? '📦 Product saved as draft' : '🎉 Product published successfully!', {
           description: isDraft
             ? 'Fix images and publish from the products page'
-            : (result.imagesSaved ? 'Product and images saved' : 'Product saved (images may take a moment)')
+            : `${formData.name} is now live! Buyers can see your product.`,
+          duration: 5000
         });
+
+        // Navigate to products list after success
+        if (!isDraft) {
+          setTimeout(() => {
+            navigate('/dashboard/products', { state: { refresh: true, newProduct: result.data?.id } });
+          }, 2000);
+        }
       } else {
-        toast.error(result.error || "Failed to publish product");
+        console.error('[ProductNew] Product creation failed:', result.error);
+        toast.error("Failed to publish product", {
+          description: result.error || "Please try again or contact support"
+        });
       }
     } catch (err) {
-      toast.error("An unexpected error occurred: " + err.message);
+      console.error('[ProductNew] Unexpected error:', err);
+      toast.error("Unexpected error occurred", {
+        description: err.message || "Please try again"
+      });
     } finally {
       setIsSaving(false);
     }

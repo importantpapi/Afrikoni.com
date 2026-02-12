@@ -7,6 +7,12 @@ import { queryClient } from './lib/queryClient';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider } from './contexts/ThemeContext';
+
+// ✅ REACT QUERY: Make queryClient globally accessible for mutations outside components
+if (typeof window !== 'undefined') {
+  window.queryClient = queryClient;
+}
+
 // ⚠️ CRITICAL: Initialize extension protection FIRST (before anything else)
 // This prevents browser extension errors from breaking React rendering
 import { initExtensionProtection } from './utils/extensionProtection';
