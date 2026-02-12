@@ -377,10 +377,45 @@ export default function DashboardSettings() {
       }
 
       if (tab === 'company') {
-        // Note: supabaseHelpers.auth.updateMe may need profileCompanyId
-        // Keeping original for now as it may handle company updates differently
-        const { supabaseHelpers } = await import('@/api/supabaseClient');
-        await supabaseHelpers.auth.updateMe(formData);
+        // Update company info if user has a company
+        if (profileCompanyId) {
+          // Update company table
+          const { error: companyError } = await supabase
+            .from('companies')
+            .update({
+              company_name: formData.company_name,
+              business_type: formData.business_type,
+              country: formData.country || null,
+              city: formData.city || null,
+              phone: formData.phone || null,
+              email: formData.business_email || null,
+              website: formData.website || null,
+              year_established: formData.year_established ? parseInt(formData.year_established) : null,
+              employee_count: formData.company_size || null,
+              description: formData.company_description || null
+            })
+            .eq('id', profileCompanyId);
+
+          if (companyError) throw companyError;
+        }
+
+        // Update profile with company info
+        await supabase
+          .from('profiles')
+          .update({
+            name: formData.name || formData.full_name,
+            phone: formData.phone,
+            company_name: formData.company_name,
+            business_type: formData.business_type,
+            country: formData.country,
+            city: formData.city,
+            business_email: formData.business_email,
+            website: formData.website,
+            year_established: formData.year_established,
+            company_size: formData.company_size,
+            company_description: formData.company_description
+          })
+          .eq('id', userId);
       }
 
       if (tab === 'notifications') {
