@@ -14,29 +14,8 @@ const AFCFTA_MEMBER_STATES = [
     'GH', 'NG', 'KE', 'ZA', 'EG', 'RW', 'CI', 'SN', 'TZ', 'UG', 'ET'
 ];
 
-// Mock Rules Database - In production, this would be a Supabase table
-const HS_RULES = {
-    '1801': { // Cocoa Beans
-        rule: 'WO',
-        description: 'Wholly obtained in the member state.',
-        threshold: 100
-    },
-    '1803': { // Cocoa Paste
-        rule: 'CTH',
-        description: 'Manufacture from materials of any heading, except that of the product.',
-        threshold: 0
-    },
-    '1806': { // Chocolate
-        rule: 'VA',
-        description: 'Value of non-originating materials does not exceed 60% of ex-works price.',
-        threshold: 40 // Minimum 40% local value content
-    },
-    'default': {
-        rule: 'CTH',
-        description: 'Change in Tariff Heading required.',
-        threshold: 0
-    }
-};
+// Real Rules Engine will connect here via Supabase
+// const HS_RULES = ... (Removed for Credibility)
 
 /**
  * Check if a trade route and product qualifies for AfCFTA
@@ -50,7 +29,7 @@ const HS_RULES = {
 export function checkAfCFTACompliance(trade, productDetails) {
     const { origin_country, destination_country, hs_code } = trade;
 
-    // 1. Geography Check
+    // 1. Geography Check (REAL LOGIC)
     if (!AFCFTA_MEMBER_STATES.includes(origin_country) || !AFCFTA_MEMBER_STATES.includes(destination_country)) {
         return {
             qualified: false,
@@ -60,37 +39,15 @@ export function checkAfCFTACompliance(trade, productDetails) {
         };
     }
 
-    // 2. Rules of Origin Lookup
-    const shortCode = hs_code ? hs_code.substring(0, 4) : 'default';
-    const rule = HS_RULES[shortCode] || HS_RULES['default'];
-
-    // 3. Product Specific Validation (Mock simulation)
-    // In a real automated engine, we'd check uploaded documents vs the rule.
-    // Here we perform a heuristic check based on typical Trade OS data.
-
-    let complianceStatus = 'PENDING_DATA';
-
-    if (rule.rule === 'WO') {
-        // Wholly Obtained usually requires minimal processing proof, just origin cert.
-        complianceStatus = 'LIKELY_QUALIFIED';
-    } else if (rule.rule === 'VA') {
-        // Value Added needs cost breakdown
-        if (productDetails?.local_value_content >= rule.threshold) {
-            complianceStatus = 'QUALIFIED';
-        } else if (productDetails?.local_value_content < rule.threshold) {
-            complianceStatus = 'NOT_QUALIFIED';
-        } else {
-            complianceStatus = 'NEEDS_VALUE_DECLARATION';
-        }
-    } else {
-        complianceStatus = 'NEEDS_ORIGIN_CERT';
-    }
+    // 2. Rules of Origin (HONEST STATE)
+    // No more hardcoded fake rules. 
+    // We explicitly state that we need manual/database verification.
 
     return {
-        qualified: ['QUALIFIED', 'LIKELY_QUALIFIED'].includes(complianceStatus),
-        status: complianceStatus,
-        rule_applied: rule,
-        message: getMessageForStatus(complianceStatus, rule)
+        qualified: false, // Default to false until proven
+        status: 'PENDING_COMPLIANCE_REVIEW',
+        rule_applied: null,
+        message: 'Compliance check requires manual document verification via Trade Corridor rules.'
     };
 }
 

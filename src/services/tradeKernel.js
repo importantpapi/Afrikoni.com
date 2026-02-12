@@ -183,34 +183,9 @@ export async function getTradeEvents(tradeId) {
  * @returns {Array} - Array of advice objects
  */
 export function analyzeContext(context) {
-  // Mock Intelligence Rules for Prototype
-  const advice = [];
-
-  // Rule 1: RFQ / Orders context
-  if (context.page === 'orders') {
-    // Randomly surface opportunities for demo purposes
-    if (Math.random() > 0.5) {
-      advice.push({
-        type: 'opportunity',
-        id: 'opt_consolidation',
-        message: '3 shipments to Lagos match this route. Consolidate to save ~18% on logistics.',
-        action: 'consolidate_shipments',
-        actionLabel: 'View Consolidation Options'
-      });
-    }
-
-    if (Math.random() > 0.7) {
-      advice.push({
-        type: 'risk',
-        id: 'risk_fx_ngn',
-        message: 'NGN volatility detected. Recommend locking USD rate for pending settlements.',
-        action: 'lock_rate',
-        actionLabel: 'Lock FX Rate'
-      });
-    }
-  }
-
-  return advice;
+  // INTELLIGENCE V2: Honest Empty State
+  // Real intelligence will wait for the Python/RAG backend.
+  return [];
 }
 
 
@@ -219,11 +194,9 @@ export function analyzeContext(context) {
  * @returns {Array} - List of corridor health objects
  */
 export function getCorridorHealth() {
-  return [
-    { id: 'c1', origin: 'Lagos', dest: 'London', volume: 'high', risk: 'low', friction: 'low' },
-    { id: 'c2', origin: 'Nairobi', dest: 'Dubai', volume: 'high', risk: 'low', friction: 'medium' },
-    { id: 'c3', origin: 'Accra', dest: 'New York', volume: 'medium', risk: 'medium', friction: 'high' }
-  ];
+  // DATA V2: Honest Empty State
+  // Waits for live logistics API integration
+  return [];
 }
 
 /**

@@ -20,8 +20,8 @@ export const SOVEREIGN_WARNING = {
  * @param {Object} productData 
  */
 export async function generateTradeDNA(productData) {
-    // Simulate cryptographic hashing latency
-    await new Promise(resolve => setTimeout(resolve, 600));
+    // DNA V2: Instant Deterministic Generation
+    // No artificial delay
 
     const input = JSON.stringify(productData);
 
@@ -48,18 +48,15 @@ export async function generateTradeDNA(productData) {
  * Simulates Computer Vision extraction of "tectonic intelligibility"
  */
 export async function generateHeritageDNA(imageUrl) {
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // In a real app, this would call Gemini Vision API
-    // For prototype, we generate a mock hash based on the URL length
-    const mockCode = imageUrl.length.toString(16).toUpperCase().padStart(4, '0');
-    const mockUnique = Date.now().toString(36).toUpperCase().slice(-4);
+    // VISUAL DNA V2: Deterministic Hash only
+    // No fake AI confidence scores
+    const simpleHash = imageUrl.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+    const hexHash = Math.abs(simpleHash).toString(16).toUpperCase().padStart(8, '0');
 
     return {
-        hash: `VISUAL-${mockCode}-${mockUnique}`,
-        features: ['Weave Pattern Density', 'Viscosity Index', 'Spectral Color Depth'],
-        confidence: 0.99
+        hash: `VISUAL-${hexHash}`,
+        features: ['Pending Analysis'],
+        confidence: 0 // Honest confidence
     };
 }
 
@@ -69,18 +66,14 @@ export async function generateHeritageDNA(imageUrl) {
  * @param {string} baselineHash
  */
 export async function verifyHeritageDNA(arrivalPhotoUrl, baselineHash) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Mock comparison logic: If called, we assume a high match for the demo
-    // Unless the URL contains "bad"
-    const isBad = arrivalPhotoUrl.includes('bad');
-    const matchScore = isBad ? 45.5 : (Math.random() * (100 - 96) + 96); // 96-100% match for good
+    // VERIFICATION V2: Honest Pending State
+    // We do not auto-pass anything based on random numbers.
 
     return {
-        match: matchScore > 95,
-        score: matchScore.toFixed(2),
-        autoRelease: matchScore > 95,
-        reason: matchScore > 95 ? 'Cryptographic Trade DNA matches baseline > 95%' : 'Visual mismatch detected against baseline'
+        match: false,
+        score: "0.00",
+        autoRelease: false,
+        reason: 'Pending Manual Visual Verification'
     };
 }
 

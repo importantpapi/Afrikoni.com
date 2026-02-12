@@ -173,39 +173,7 @@ const RFQMobileWizard = lazy(() => import('./pages/rfq-mobile-wizard'));
 // ============================================
 // DEBUG COMPONENT - Detects stuck auth (Silent mode)
 // ============================================
-function DebugAuth() {
-  const auth = useAuth();
-
-  useEffect(() => {
-    // Only log in development - no popups
-    if (import.meta.env.DEV) {
-      console.log('🔍 [App Debug] Auth State:', {
-        loading: auth.loading,
-        authReady: auth.authReady,
-        hasUser: !!auth.user,
-        role: auth.role,
-        hasProfile: !!auth.profile
-      });
-
-      // Silent timeout - just log warning, don't show popup
-      if (auth.loading || !auth.authReady) {
-        const timer = setTimeout(() => {
-          console.warn('⚠️ [App] Auth loading longer than expected:', {
-            loading: auth.loading,
-            authReady: auth.authReady,
-            user: auth.user?.id || 'none',
-            role: auth.role || 'none'
-          });
-          // AuthProvider has its own timeout - don't show popup here
-        }, 5000);
-
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [auth.loading, auth.authReady, auth.user, auth.role]);
-
-  return null;
-}
+// DebugAuth removed for production stability
 
 // ============================================
 // MAIN APP COMPONENT
@@ -280,18 +248,7 @@ function AppContent() {
   }, [authReady]); // Only run when auth is ready
 
   // ✅ EMERGENCY FIX: Self-Healing Engine - Auto-reload on module update errors
-  useEffect(() => {
-    const handlePreloadError = () => {
-      console.log('[App] Vite preload error detected - auto-reloading to fix module cache');
-      window.location.reload();
-    };
-
-    window.addEventListener('vite:preloadError', handlePreloadError);
-
-    return () => {
-      window.removeEventListener('vite:preloadError', handlePreloadError);
-    };
-  }, []);
+  // Hard Refresh Patch Removed: Stability is now handled by robust error boundaries
 
   return (
     <Layout>
@@ -558,7 +515,7 @@ function App() {
                       <Toaster position="top-right" />
 
                       {/* Debug component to detect stuck auth */}
-                      <DebugAuth />
+
 
                       {/* KoniAI+ Global Chat Assistant */}
 
