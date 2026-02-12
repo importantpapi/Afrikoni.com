@@ -231,7 +231,6 @@ export default function DashboardSettings() {
     }
 
     // Validate file type - accept common image formats and HEIC
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     const isValidType = file.type.startsWith('image/') || fileExtension === 'heic' || fileExtension === 'heif';
     
@@ -248,31 +247,26 @@ export default function DashboardSettings() {
       // Convert HEIC to JPEG if needed
       if (fileExtension === 'heic' || fileExtension === 'heif' || file.type === 'image/heic' || file.type === 'image/heif') {
         try {
-          // Create a canvas to convert the image
-          const img = new Image();
-          const reader = new FileReader();
+          toast.info('Converting HEIC image to JPEG...');
+          const heic2any = (await import('heic2any')).default;
           
-          await new Promise((resolve, reject) => {
-            reader.onload = (e) => {
-              img.onload = resolve;
-              img.onerror = reject;
-              img.src = e.target.result;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+            quality: 0.9
           });
           
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          
-          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
-          fileToUpload = new File([blob], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { type: 'image/jpeg' });
+          // heic2any might return an array if multiple images
+          const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+          fileToUpload = new File([blob], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { 
+            type: 'image/jpeg' 
+          });
         } catch (conversionError) {
-          console.warn('HEIC conversion failed, trying direct upload:', conversionError);
-          // If conversion fails, try direct upload anyway
+          console.error('HEIC conversion failed:', conversionError);
+          toast.error('HEIC conversion failed. Please use JPEG, PNG, or WebP instead.');
+          if (avatarInputRef.current) avatarInputRef.current.value = '';
+          setUploadingAvatar(false);
+          return;
         }
       }
 
