@@ -143,30 +143,8 @@ export default function VerificationStatus() {
     return <ErrorState message={error?.message || 'Failed to load verification status'} />;
   }
 
-    if (verificationData?.status === 'rejected' || company.verification_status === 'rejected') {
-      return { label: 'Needs Attention', color: 'red', icon: AlertCircle };
-    }
-
-    return { label: 'Not Started', color: 'gray', icon: Shield };
-  };
-
   const status = getVerificationStatus();
   const StatusIcon = status.icon;
-
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (loading) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
-  if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={loadVerificationStatus}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen py-8">

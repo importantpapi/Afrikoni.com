@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -55,8 +55,6 @@ export default function KYCTracker() {
       finalRiskScore: rejected > 0 ? 75 : pending > 0 ? 50 : 25
     };
   }, [kycVerifications]);
-
-  }
 
   // ✅ REACT QUERY MIGRATION: Use isLoading from query
   if (isLoading) {
