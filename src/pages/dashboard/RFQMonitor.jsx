@@ -63,7 +63,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
     const [aiProcessing, setAiProcessing] = useState(false);
     const [aiResult, setAiResult] = useState(null);
 
-    // ✅ REACT QUERY MIGRATION: Filter RFQs based on viewMode and filters
+    // ✅ REACT QUERY MIGRATION: Filter RFQs based on viewMode, status, and search
     const rfqs = useMemo(() => {
         let filtered = allRFQs;
 
@@ -80,7 +80,11 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
 
         // Apply status filter
         if (statusFilter !== 'all' && statusFilter !== 'matched') {
-            filtered = filtered.filter(rfq => rfq.status === statusFilter);
+            if (statusFilter === 'sent') {
+                filtered = filtered.filter(rfq => rfq.status === 'rfq_open' || rfq.status === 'sent');
+            } else {
+                filtered = filtered.filter(rfq => rfq.status === statusFilter);
+            }
         }
 
         // Apply search filter
@@ -88,6 +92,8 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(rfq =>
                 rfq.title?.toLowerCase().includes(query) ||
+                rfq.id?.toLowerCase().includes(query) ||
+                rfq.description?.toLowerCase().includes(query) ||
                 rfq.product_name?.toLowerCase().includes(query) ||
                 rfq.category?.toLowerCase().includes(query)
             );
@@ -111,119 +117,9 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
         }, 1200);
     };
 
-    // LOAD LOGIC
-    useEffect(() => {
-        if (!canLoadData || !profileCompanyId) return;
-
-        // Reset filter if switching modes
-        if (viewMode === 'supplier' && statusFilter === 'all') setStatusFilter('matched');
-
-        abortControllerRef.current = new AbortController();
-        const abortSignal = abortControllerRef.current.signal;
-
-        const loadRFQs = async () => {
-            try {
-                // ✅ SWR: Only show full loading state if we have no data
-                if (rfqs.length === 0) setIsLoading(true);
-                setError(null);
-
-                let data = [];
-                let queryError = null;
-
-                if (viewMode === 'buyer') {
-                    // BUYER MODE: Use rfqService
-                    // TODO: Audit rfqService for retry logic internally
-                    const result = await getRFQs({
-                        user,
-                        companyId: profileCompanyId,
-                        role: 'buyer',
-                        status: statusFilter
-                    });
-                    data = result.data;
-                    queryError = result.error;
-                } else {
-                    // SUPPLIER MODE: Matched Logic
-                    // ✅ ENTERPRISE RELIABILITY: Use withRetry for network resilience
-                    const fetchSupplierRFQs = async () => {
-                        const { data: rfqsData, error: dbError } = await supabase
-                            .from('rfqs')
-                            .select(`*, categories:category_id(*)`)
-                            .eq('status', 'open')
-                            .order('created_at', { ascending: false });
-
-                        if (dbError) throw dbError;
-
-                        if (abortSignal.aborted) throw new Error('Aborted');
-                        return rfqsData;
-                    };
-
-                    try {
-                        const rfqsData = await withRetry(fetchSupplierRFQs);
-
-                        // Client-side Match Filter
-                        data = (rfqsData || []).filter(rfq => {
-                            if (!rfq.matched_supplier_ids || !Array.isArray(rfq.matched_supplier_ids)) return false;
-                            return rfq.matched_supplier_ids.includes(profileCompanyId);
-                        });
-                    } catch (err) {
-                        queryError = err;
-                    }
-                }
-
-                if (abortSignal.aborted) return;
-                if (queryError) throw queryError;
-
-                setRfqs(data || []);
-                lastLoadTimeRef.current = Date.now();
-                markFresh();
-            } catch (err) {
-                if (!abortSignal.aborted) {
-                    console.error('[RFQMonitor] Load Error:', err);
-                    setError(err.message || 'Failed to load RFQs');
-                    toast.error('Failed to load RFQs');
-                    logError('RFQMonitor', err, { viewMode, profileCompanyId });
-                }
-            } finally {
-                if (!abortSignal.aborted) setIsLoading(false);
-            }
-        };
-
-        const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000) || location.state?.refresh;
-
-        if (shouldRefresh) {
-            loadRFQs();
-            if (location.state?.refresh) {
-                window.history.replaceState({}, document.title);
-            }
-        } else {
-            setIsLoading(false);
-        }
-
-        return () => {
-            if (abortControllerRef.current) abortControllerRef.current.abort();
-        };
-
-    }, [canLoadData, profileCompanyId, viewMode, statusFilter, isStale, location.state]);
-
-    // FILTERING
-    const filteredRFQs = useMemo(() => {
-        return rfqs.filter(rfq => {
-            const term = searchQuery.toLowerCase();
-            const matchesSearch =
-                (rfq.title || '').toLowerCase().includes(term) ||
-                (rfq.id || '').toLowerCase().includes(term) ||
-                (rfq.description || '').toLowerCase().includes(term);
-
-            // Additional status filtering for Buyer Mode handled by API mostly, but good to filter locally too
-            if (viewMode === 'buyer' && statusFilter !== 'all') {
-                if (statusFilter === 'sent' && rfq.status !== 'rfq_open' && rfq.status !== 'sent') return false;
-                // Add other status matches if needed
-            }
-
-            return matchesSearch;
-        });
-    }, [rfqs, searchQuery, statusFilter, viewMode]);
-
+    // ✅ REACT QUERY MIGRATION: No useEffect needed - React Query handles loading
+    // All data fetching is automatic via useRFQs() hook
+    // Filtering is done in the useMemo above
 
     // RENDER
     if (!isSystemReady) return <CardSkeleton count={3} />;
@@ -349,7 +245,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
             {/* LIST */}
             {isLoading ? (
                 <CardSkeleton count={3} />
-            ) : filteredRFQs.length === 0 ? (
+            ) : rfqs.length === 0 ? (
                 <Surface className="p-12 text-center">
                     <EmptyState
                         icon={FileText}
@@ -360,7 +256,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                 </Surface>
             ) : (
                 <div className="space-y-4">
-                    {filteredRFQs.map((rfq) => {
+                    {rfqs.map((rfq) => {
                         const config = statusConfig[rfq.status] || statusConfig.draft;
                         // const deadline = ... (skipping format logic for brevity, keeping simple)
 
