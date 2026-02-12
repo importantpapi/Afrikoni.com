@@ -27,7 +27,9 @@ import ContractSigningPanel from '@/components/trade/ContractSigningPanel';
 import EscrowFundingPanel from '@/components/trade/EscrowFundingPanel';
 import ShipmentTrackingPanel from '@/components/trade/ShipmentTrackingPanel';
 import DeliveryAcceptancePanel from '@/components/trade/DeliveryAcceptancePanel';
-import { ArrowLeft } from 'lucide-react';
+import MultiSigBridge from '@/components/trade/MultiSigBridge';
+import { Surface } from '@/components/system/Surface';
+import { ArrowLeft, Fingerprint, ShieldAlert, Cpu } from 'lucide-react';
 
 /**
  * The ONE FLOW does not show multiple steps at once.
@@ -231,6 +233,13 @@ export default function OneFlow() {
                 </motion.div>
               </AnimatePresence>
 
+              {/* Multi-Sig Bridge Visualization */}
+              {(trade.status !== TRADE_STATE.DRAFT && trade.status !== TRADE_STATE.CLOSED) && (
+                <div className="mt-8">
+                  <MultiSigBridge tradeId={tradeId} status={trade.status} />
+                </div>
+              )}
+
               {error && (
                 <Card className="mt-4">
                   <CardContent className="p-4 text-sm">
@@ -260,6 +269,52 @@ export default function OneFlow() {
                 {!kernelTimeline?.length && (
                   <div className="text-xs text-muted-foreground">No kernel events yet.</div>
                 )}
+              </div>
+            </div>
+
+            {/* FORENSIC LEDGER DNA RAIL */}
+            <div className="mt-4 rounded-2xl border p-4 backdrop-blur bg-emerald-500/5 border-emerald-500/10">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] uppercase tracking-[0.25em] text-emerald-500 font-bold">Forensic Ledger</p>
+                <Fingerprint className="w-3 h-3 text-emerald-500 opacity-50" />
+              </div>
+
+              {trade.metadata?.trade_dna ? (
+                <div className="space-y-3">
+                  <div className="p-3 bg-black/40 rounded-xl border border-white/5">
+                    <p className="text-[9px] text-gray-500 uppercase font-mono">Current State Hash</p>
+                    <p className="text-[11px] font-mono text-emerald-400 mt-1 break-all">
+                      {trade.metadata.trade_dna}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-gray-500 uppercase font-mono px-1">Audit Trace</p>
+                    {kernelTimeline?.filter(e => e.raw?.metadata?.trade_dna).map((event, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-1.5 hover:bg-white/5 rounded transition-colors group">
+                        <div className="w-1 h-1 rounded-full bg-emerald-500/30"></div>
+                        <span className="text-[9px] font-mono text-gray-400 group-hover:text-emerald-300 transition-colors">
+                          {event.raw.metadata.trade_dna.substring(0, 16)}...
+                        </span>
+                        <span className="text-[8px] text-gray-600 ml-auto">
+                          {event.raw.metadata.previous_state} → {event.raw.status_to}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 text-center border border-dashed rounded-xl border-white/5">
+                  <Cpu className="w-5 h-5 text-gray-600 mx-auto mb-2 opacity-20" />
+                  <p className="text-[10px] text-gray-500">Forensic DNA trace initialization pending next transition...</p>
+                </div>
+              )}
+
+              <div className="mt-4 p-2 bg-black/20 rounded-lg flex items-start gap-2 border border-white/5">
+                <ShieldAlert className="w-3 h-3 text-amber-500 mt-0.5" />
+                <p className="text-[9px] text-gray-500 italic">
+                  Immutable hashes are generated on every transition. Any tampering voids the Sovereign Insurance.
+                </p>
               </div>
             </div>
           </div>

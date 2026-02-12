@@ -7,6 +7,7 @@ import { supabase } from '@/api/supabaseClient';
 import { getOrCreateCompany } from '@/utils/companyHelper';
 import { sanitizeString, validateNumeric } from '@/utils/security';
 import { format } from 'date-fns';
+import { createTrade } from '@/services/tradeKernel';
 
 const RLS_CODES = ['42501', 'PGRST301'];
 
@@ -35,7 +36,7 @@ function buildDates(dateValue) {
 }
 
 /**
- * Create a new RFQ with status "open"
+ * Create a new RFQ with status "rfq_open" (Kernel Architecture)
  */
 export async function createRFQ({ user, formData }) {
   try {
@@ -64,36 +65,43 @@ export async function createRFQ({ user, formData }) {
 
     const expires = buildDates(formData.closing_date || formData.expires_at);
 
-    const rfqData = {
+    // KERNEL MAPPING
+    const tradeData = {
+      trade_type: 'rfq',
+      buyer_id: companyId,
+      created_by: user.id,
       title: sanitizeString(formData.title),
       description: sanitizeString(formData.description),
-      category_id: formData.category_id || null,
+      category_id: formData.category_id || null, // Ensure uuid if presenting
       quantity,
-      unit: sanitizeString(formData.unit || 'pieces'),
+      quantity_unit: sanitizeString(formData.unit || 'pieces'),
       target_price: targetPrice,
-      delivery_location: sanitizeString(formData.delivery_location || ''),
-      target_country: sanitizeString(formData.target_country || ''),
-      target_city: sanitizeString(formData.target_city || ''),
+      currency: formData.currency || 'USD',
+      status: 'rfq_open',
       expires_at: expires,
-      attachments: cleanAttachments(formData.attachments),
-      status: 'open',
-      buyer_company_id: companyId,
-      buyer_user_id: user.id,
-      unit_type: sanitizeString(formData.unit || 'pieces'),
+      metadata: {
+        delivery_location: sanitizeString(formData.delivery_location || ''),
+        target_country: sanitizeString(formData.target_country || ''),
+        target_city: sanitizeString(formData.target_city || ''),
+        attachments: cleanAttachments(formData.attachments),
+        incoterms: sanitizeString(formData.incoterms || ''),
+        shipping_method: sanitizeString(formData.shipping_method || ''),
+        unit_type: sanitizeString(formData.unit || 'pieces'),
+      }
     };
 
-    const { data: newRFQ, error } = await supabase.from('rfqs').insert(rfqData).select().single();
-    if (error) {
-      if (isRLSError(error)) {
+    const result = await createTrade(tradeData);
+    if (!result.success) {
+      if (result.error?.includes('permission denied')) {
         return {
           success: false,
-          error: 'Permission denied. Please ensure you are logged in and allowed to create RFQs.',
+          error: 'Permission denied. Please ensure you are logged in and allowed to create Trades.',
         };
       }
-      return { success: false, error: error.message || 'Failed to create RFQ. Please try again.' };
+      return { success: false, error: result.error || 'Failed to create RFQ Trade. Please try again.' };
     }
 
-    return { success: true, data: newRFQ, isMinimalProfile: false };
+    return { success: true, data: result.data, isMinimalProfile: false };
   } catch (error) {
     console.error('[rfqService] Unexpected error creating RFQ:', error);
     return { success: false, error: error.message || 'An unexpected error occurred. Please try again.' };
@@ -101,7 +109,8 @@ export async function createRFQ({ user, formData }) {
 }
 
 /**
- * Create RFQ with status "in_review" (mobile wizard compatibility)
+ * Create RFQ with status "draft" (mobile wizard compatibility)
+ * Note: Wizard uses 'in_review' but Kernel uses 'draft' for pre-published state.
  */
 export async function createRFQInReview({ user, formData, options = {} }) {
   try {
@@ -122,68 +131,78 @@ export async function createRFQInReview({ user, formData, options = {} }) {
     const targetPrice = formData.target_price ? validateNumeric(formData.target_price, { min: 0 }) : null;
     const deadline = buildDates(formData.delivery_deadline || formData.expires_at);
 
-    const rfqData = {
+    // KERNEL MAPPING
+    const tradeData = {
+      trade_type: 'rfq',
+      buyer_id: companyId,
+      created_by: user.id,
       title: sanitizeString(formData.title),
-      description: sanitizeString(formData.description || formData.title),
+      description: sanitizeString(formData.description || formData.title), // Fallback description
       category_id: formData.category_id || null,
       quantity,
-      unit: sanitizeString(formData.unit || 'pieces'),
+      quantity_unit: sanitizeString(formData.unit || 'pieces'),
       target_price: targetPrice,
-      delivery_location: sanitizeString(formData.delivery_location || ''),
-      delivery_deadline: deadline,
+      currency: formData.currency || 'USD',
+      status: 'draft', // Kernel Draft State
       expires_at: deadline,
-      attachments: cleanAttachments(formData.attachments),
-      status: 'in_review',
-      buyer_company_id: companyId,
-      buyer_user_id: user.id,
-      verified_only: options.verified_only ?? true,
-      afrikoni_managed: options.afrikoni_managed ?? true,
+      metadata: {
+        delivery_location: sanitizeString(formData.delivery_location || ''),
+        delivery_deadline: deadline,
+        attachments: cleanAttachments(formData.attachments),
+        verified_only: options.verified_only ?? true,
+        afrikoni_managed: options.afrikoni_managed ?? true,
+      }
     };
 
-    const { data: newRFQ, error } = await supabase.from('rfqs').insert(rfqData).select().single();
-    if (error) {
-      if (isRLSError(error)) {
+    const result = await createTrade(tradeData);
+    if (!result.success) {
+      if (result.error?.includes('permission denied')) {
         return {
           success: false,
-          error: 'Permission denied. Please ensure you are logged in and allowed to create RFQs.',
+          error: 'Permission denied. Please ensure you are logged in and allowed to create Trades.',
         };
       }
-      return { success: false, error: error.message || 'Failed to create RFQ. Please try again.' };
+      return { success: false, error: result.error || 'Failed to create Draft Trade. Please try again.' };
     }
 
-    return { success: true, data: newRFQ };
+    return { success: true, data: result.data };
   } catch (error) {
-    console.error('[rfqService] Unexpected error creating RFQ (in_review):', error);
+    console.error('[rfqService] Unexpected error creating RFQ (draft):', error);
     return { success: false, error: error.message || 'An unexpected error occurred. Please try again.' };
   }
 }
 
 /**
- * Fetch RFQs for a specific user/company
+ * Fetch RFQs (as TRADES) for a specific user/company
  * Supports filtering by status and role (buyer vs supplier)
  */
 export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' }) {
   try {
     if (!user || !companyId) return { data: [], count: 0 };
 
+    // Query TRADES table
     let query = supabase
-      .from('rfqs')
-      .select('*, quotes:quotes(count)', { count: 'exact' });
+      .from('trades')
+      .select('*, quotes:quotes(count)', { count: 'exact' })
+      .eq('trade_type', 'rfq');
 
     // Filter by Company Logic
     if (role === 'buyer') {
       // Buyers see their own RFQs
-      query = query.eq('buyer_company_id', companyId);
+      query = query.eq('buyer_id', companyId);
     } else {
-      // Suppliers see RFQs they are matched to OR public ones (if we had public)
-      // For now, let's assume suppliers see 'open' RFQs or ones they've quoted
-      // This logic will be refined by RLS, but we filter here for UX
-      // TODO: Add 'rfq_supplier_matches' join when implemented
+      // Suppliers see RFQs they are matched to OR public ones
+      // For now, allow seeing active RFQs
+      if (status === 'all') {
+        query = query.neq('status', 'draft'); // Don't show drafts to suppliers
+      }
     }
 
     // Filter by Status
     if (status !== 'all') {
-      query = query.eq('status', status);
+      // Map legacy statuses if necessary, or use kernel statuses
+      const kernelStatus = status === 'open' ? 'rfq_open' : status;
+      query = query.eq('status', kernelStatus);
     }
 
     // Order by newest
@@ -192,15 +211,26 @@ export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' 
     const { data, error, count } = await query;
 
     if (error) {
-      console.error('[rfqService] Error fetching RFQs:', error);
+      console.error('[rfqService] Error fetching RFQs (Trades):', error);
       throw error;
     }
 
+    // Map Trade Kernel schema to UI schema expected by legacy components
+    // detailed_rfq = { ...trade, productName: trade.title, ... }
+    const mappedData = data.map(trade => ({
+      ...trade,
+      productName: trade.title, // UI expects productName
+      buyerCompany: 'Your Company', // TODO: Join with companies table if needed
+      deliveryCountry: trade.metadata?.target_country || trade.metadata?.delivery_location || 'Unknown',
+      unit: trade.quantity_unit,
+      targetPrice: trade.target_price,
+      quotesReceived: trade.quotes?.[0]?.count || 0,
+      deadline: trade.expires_at,
+      status: trade.status === 'rfq_open' ? 'sent' : trade.status // Map kernel 'rfq_open' to UI 'sent'
+    }));
+
     return {
-      data: data.map(rfq => ({
-        ...rfq,
-        quotesReceived: rfq.quotes?.[0]?.count || 0
-      })),
+      data: mappedData,
       count
     };
   } catch (error) {

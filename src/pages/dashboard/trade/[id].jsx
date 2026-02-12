@@ -152,15 +152,15 @@ export default function TradeWorkspace() {
     ? {
       title: `Advance to ${nextStageLabel}`,
       consequences: [
-        `Unlocks escrow release of $${unlockAmount.toLocaleString()}`,
-        'Reduces ETA risk by 2 days',
+        `Validating conditions for ${nextState || 'next stage'}`,
+        'Updating trade ledger',
       ],
     }
     : {
       title: 'Upload AfCFTA certificate',
       consequences: [
-        `Unlocks escrow release of $${unlockAmount.toLocaleString()}`,
-        'Reduces ETA risk by 2 days',
+        'Required for tariff preference',
+        'Unlocks escrow release controls',
       ],
     };
 
@@ -215,32 +215,24 @@ export default function TradeWorkspace() {
         cta: { label: 'Upload certificate', link: '/dashboard/compliance' },
       });
     }
-    if (tradeType === 'rfq') {
+    if (tradeType === 'rfq' && trade.status === 'rfq_open') {
       actions.push({
         tone: 'auto',
-        title: 'Kernel routed RFQ',
-        detail: 'Auto-matched 7 verified suppliers across active corridors.',
-        consequence: 'Quotes expected within 12h.',
-        cta: { label: 'View suppliers', link: '/dashboard/rfqs' },
+        title: 'Kernel routing RFQ',
+        detail: 'Scanning verified suppliers in active corridors.',
+        consequence: 'Updates will appear in the event stream.',
+        cta: { label: 'View RFQs', link: '/dashboard/rfqs' },
       });
     }
-    if (tradeType === 'order') {
+    if (tradeType === 'order' && trade.status === 'in_transit') {
       actions.push({
         tone: 'recommend',
-        title: 'Kernel recommends corridor change',
-        detail: 'Congestion spike detected. Switching carrier reduces ETA by 2 days.',
-        consequence: 'Delay risk if unchanged.',
-        cta: { label: 'Review logistics', link: '/dashboard/logistics-dashboard' },
+        title: 'Logistics Monitoring',
+        detail: 'Kernel is tracking carrier milestones.',
+        consequence: 'Real-time updates enabled.',
+        cta: { label: 'Track Shipment', link: '/dashboard/shipments' },
       });
     }
-    actions.push({
-      tone: 'auto',
-      title: 'Kernel scheduled inspection',
-      detail: 'SGS inspection slot auto-reserved pending document approval.',
-      consequence: 'Cancel within 6h to avoid fees.',
-      cta: { label: 'Confirm documents', link: '/dashboard/compliance' },
-      optOut: { label: 'Cancel inspection', link: '/dashboard/compliance' },
-    });
 
     // 🚨 COMPLIANCE GATE: Block everything if KYC/KYB is missing
     if (tradeKernel.kycStatus !== 'verified') {

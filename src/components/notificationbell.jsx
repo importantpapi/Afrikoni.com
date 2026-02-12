@@ -197,7 +197,7 @@ export default function NotificationBell() {
 
         // ✅ FINAL 3% FIX: Use dashboard-${companyId} pattern to match DashboardRealtimeManager
         // ✅ KERNEL POLISH: Use stable companyId reference to prevent re-subscription on token refresh
-        const channelName = `dashboard-${stableCompanyId}`;
+        const channelName = `dashboard-notifications-${stableCompanyId}`;
         const filter = `company_id=eq.${stableCompanyId}`;
 
         const channel = supabase

@@ -38,8 +38,9 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
       startOfMonth.setHours(0, 0, 0, 0);
 
       const { count: rfqsCount } = await supabase
-        .from('rfqs')
+        .from('trades')
         .select('*', { count: 'exact', head: true })
+        .eq('trade_type', 'rfq')
         .gte('created_at', startOfMonth.toISOString());
 
       // Active verified suppliers
@@ -51,9 +52,9 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
 
       // Total completed deals (all time)
       const { count: dealsCount } = await supabase
-        .from('orders')
+        .from('trades')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed');
+        .eq('status', 'settled'); // Kernel-canonical status for completion
 
       // Calculate average supplier response time (last 30 days)
       const thirtyDaysAgo = new Date();
@@ -61,7 +62,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
 
       const { data: recentQuotes } = await supabase
         .from('quotes')
-        .select('created_at, rfq_id, rfqs(created_at)')
+        .select('created_at, trade_id, trades!trade_id(created_at)')
         .gte('created_at', thirtyDaysAgo.toISOString())
         .limit(100);
 
@@ -69,8 +70,8 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
       let quotesWithTiming = 0;
 
       recentQuotes?.forEach(quote => {
-        if (quote.rfqs?.created_at) {
-          const responseTime = (new Date(quote.created_at) - new Date(quote.rfqs.created_at)) / (1000 * 60 * 60);
+        if (quote.trades?.created_at) {
+          const responseTime = (new Date(quote.created_at) - new Date(quote.trades.created_at)) / (1000 * 60 * 60);
           if (responseTime > 0 && responseTime < 168) { // Less than 1 week
             totalResponseTime += responseTime;
             quotesWithTiming++;
@@ -78,8 +79,8 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
         }
       });
 
-      const avgResponseTime = quotesWithTiming > 0 
-        ? Math.round(totalResponseTime / quotesWithTiming) 
+      const avgResponseTime = quotesWithTiming > 0
+        ? Math.round(totalResponseTime / quotesWithTiming)
         : 0;
 
       // Issues resolved (proxy: low dispute rate)
@@ -90,12 +91,13 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
         .gte('created_at', thirtyDaysAgo.toISOString());
 
       const { count: ordersCount } = await supabase
-        .from('orders')
+        .from('trades')
         .select('*', { count: 'exact', head: true })
+        .eq('trade_type', 'order')
         .gte('created_at', thirtyDaysAgo.toISOString());
 
       // Assume proactive detection prevented 60% of potential disputes
-      const issuesResolved = ordersCount > 0 
+      const issuesResolved = ordersCount > 0
         ? Math.round((1 - (disputesCount / ordersCount)) * 100)
         : 0;
 
@@ -160,7 +162,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
             color="blue"
             loading={isLoading}
           />
-          
+
           <MetricItem
             icon={Clock}
             label="Avg Supplier Response"
@@ -168,7 +170,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
             color="green"
             loading={isLoading}
           />
-          
+
           <MetricItem
             icon={Shield}
             label="Active Verified Suppliers"
@@ -176,7 +178,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
             color="amber"
             loading={isLoading}
           />
-          
+
           <MetricItem
             icon={CheckCircle}
             label="Issues Resolved Proactively"
@@ -184,7 +186,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
             color="purple"
             loading={isLoading}
           />
-          
+
           <MetricItem
             icon={Users}
             label="Deals Completed"
@@ -192,7 +194,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
             color="green"
             loading={isLoading}
           />
-          
+
           <MetricItem
             icon={TrendingUp}
             label="Platform Uptime"
@@ -248,9 +250,9 @@ export function LiveMetricsHero({ className = '' }) {
     startOfMonth.setHours(0, 0, 0, 0);
 
     const [rfqs, suppliers, deals] = await Promise.all([
-      supabase.from('rfqs').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth.toISOString()),
+      supabase.from('trades').select('*', { count: 'exact', head: true }).eq('trade_type', 'rfq').gte('created_at', startOfMonth.toISOString()),
       supabase.from('companies').select('*', { count: 'exact', head: true }).eq('verified', true).eq('company_type', 'supplier'),
-      supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'completed')
+      supabase.from('trades').select('*', { count: 'exact', head: true }).eq('status', 'settled')
     ]);
 
     setMetrics({

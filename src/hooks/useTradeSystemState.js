@@ -10,9 +10,11 @@
  * const { systemState, isLoading, refresh } = useTradeSystemState();
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useCapability } from '@/context/CapabilityContext';
+import { useRealTimeDashboardData } from './useRealTimeData';
 import { generateRecommendations } from '@/services/aiRecommendationService';
 
 /**
@@ -195,18 +197,31 @@ const calculateTrustScore = (profile, tradeHistory, paymentHistory, certificatio
  */
 export const useTradeSystemState = () => {
     const { user, profile } = useAuth();
+    const { lastInvalidatedAt, invalidatedTags } = useCapability();
     const [systemState, setSystemState] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchSystemState = useCallback(async () => {
+    // Track if a fetch is in progress to prevent storms
+    const isFetchingRef = useRef(false);
+    const lastFetchTimeRef = useRef(0);
+
+    const fetchSystemState = useCallback(async (forced = false) => {
         if (!user || !profile?.company_id) {
             setIsLoading(false);
             return;
         }
 
+        // Debounce: prevent multiple fetches within 1 second unless forced
+        const now = Date.now();
+        if (!forced && (isFetchingRef.current || now - lastFetchTimeRef.current < 1000)) {
+            return;
+        }
+
         try {
+            isFetchingRef.current = true;
             setIsLoading(true);
+            lastFetchTimeRef.current = now;
 
             // Fetch all required data in parallel
             const [
@@ -234,11 +249,13 @@ export const useTradeSystemState = () => {
             // Calculate trade history metrics
             const tradeHistory = {
                 completed: trades?.filter(t => t.status === 'completed').length || 0,
+                // SCHEMA FIX: Fallback for missing 'delivered_on_time' column
                 onTimeRate: trades?.length > 0
-                    ? (trades.filter(t => t.delivered_on_time).length / trades.length) * 100
+                    ? (trades.filter(t => t.delivered_on_time === true).length / trades.length) * 100
                     : 0,
+                // SCHEMA FIX: Fallback for missing 'has_dispute' column
                 disputeRate: trades?.length > 0
-                    ? (trades.filter(t => t.has_dispute).length / trades.length) * 100
+                    ? (trades.filter(t => t.has_dispute === true).length / trades.length) * 100
                     : 0,
             };
 
@@ -381,8 +398,8 @@ export const useTradeSystemState = () => {
                     customsStatus: 'clear',
                     activeShipments: {
                         total: shipments?.length || 0,
-                        onTime: shipments?.filter(s => !s.delayed).length || 0,
-                        delayed: shipments?.filter(s => s.delayed).length || 0,
+                        onTime: shipments?.filter(s => s.status === 'delivered').length || 0, // Fallback logic
+                        delayed: shipments?.filter(s => s.delayed === true).length || 0, // SCHEMA SAFE: column might be missing
                         atRisk: shipments?.filter(s => s.risk_level === 'high').length || 0,
                     },
                     alerts: [
@@ -420,15 +437,45 @@ export const useTradeSystemState = () => {
             setError(err.message);
         } finally {
             setIsLoading(false);
+            isFetchingRef.current = false;
         }
     }, [user, profile]);
+
+    // ✅ REALTIME INVALIDATION LOOP
+    const handleRealtimeUpdate = useCallback((payload) => {
+        console.log(`[useTradeSystemState] ⚡ Realtime Update: ${payload.table} | Refetching...`);
+        fetchSystemState(false); // Debounced refetch
+    }, [fetchSystemState]);
+
+    // Subscribe to dashboard realtime channel
+    useRealTimeDashboardData(
+        profile?.company_id,
+        user?.id,
+        handleRealtimeUpdate,
+        !!profile?.company_id
+    );
+
+    // ✅ KERNEL INVALIDATION SYNC
+    useEffect(() => {
+        if (lastInvalidatedAt > 0) {
+            // If any relevant tag is invalidated, or global (*)
+            const relevantTags = ['trades', 'rfqs', 'shipments', 'payments', 'capabilities'];
+            const shouldRefetch = invalidatedTags.has('*') ||
+                relevantTags.some(tag => invalidatedTags.has(tag));
+
+            if (shouldRefetch) {
+                console.log('[useTradeSystemState] 🔄 Kernel invalidation detected | Refetching...');
+                fetchSystemState(true); // Forced refetch
+            }
+        }
+    }, [lastInvalidatedAt, invalidatedTags, fetchSystemState]);
 
     // Fetch on mount and when user/profile changes
     useEffect(() => {
         fetchSystemState();
     }, [fetchSystemState]);
 
-    // Auto-refresh every 5 minutes
+    // Auto-refresh every 5 minutes (Fallback)
     useEffect(() => {
         const interval = setInterval(() => {
             fetchSystemState();
@@ -441,6 +488,6 @@ export const useTradeSystemState = () => {
         systemState,
         isLoading,
         error,
-        refresh: fetchSystemState,
+        refresh: () => fetchSystemState(true),
     };
 };

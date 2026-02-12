@@ -150,21 +150,20 @@ export default function BuyerDashboard() {
                                     <span className="text-sm font-bold text-blue-600">Kernel Insights</span>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                                        <div className="text-xs text-blue-700 dark:text-blue-300 font-medium">Market Opportunity</div>
-                                        <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 leading-relaxed">
-                                            Cocoa demand in FR-MRS corridor up 15%. You have 2 matching products.
-                                        </div>
-                                        <button className="mt-2 text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1">
-                                            View RFQs <ChevronRight className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                    <div className="p-3 bg-afrikoni-cream/20 border border-afrikoni-gold/20 rounded-lg">
-                                        <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Compliance Alert</div>
-                                        <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
-                                            AfCFTA certificate missing for pending draft. Upload to unlock lower tariffs.
+                                    <div className="p-3 bg-blue-500/5 border border-white/5 rounded-lg">
+                                        <div className="text-xs text-os-muted font-medium">Operational Signal</div>
+                                        <div className="text-[11px] text-os-muted mt-1 leading-relaxed">
+                                            Trade Kernel is monitoring your active corridors. New opportunities will appear here.
                                         </div>
                                     </div>
+                                    {activeTrades?.length > 0 && activeTrades.some(t => !t.afcftaReady) && (
+                                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                            <div className="text-xs text-amber-500 font-medium">Compliance Note</div>
+                                            <div className="text-[11px] text-amber-400 mt-1 leading-relaxed">
+                                                Some active trades may require AfCFTA documentation to qualify for tariff preferences.
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </Surface>
                         </TradeOSErrorBoundary>

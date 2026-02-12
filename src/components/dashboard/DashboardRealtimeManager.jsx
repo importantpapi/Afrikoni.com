@@ -25,16 +25,16 @@ import { supabase } from '@/api/supabaseClient';
  * @param {function} onUpdate - Callback for realtime updates (optional)
  * @param {boolean} enabled - Whether subscriptions should be active
  */
-export default function DashboardRealtimeManager({ 
-  companyId, 
-  userId, 
+export default function DashboardRealtimeManager({
+  companyId,
+  userId,
   onUpdate = null,
-  enabled = true 
+  enabled = true
 }) {
   // ===========================================================================
   // REFS ONLY - Zero React state for subscription lifecycle
   // ===========================================================================
-  
+
   const channelRef = useRef(null);
   const subscribedCompanyIdRef = useRef(null);
   const isSubscribedRef = useRef(false);
@@ -44,7 +44,7 @@ export default function DashboardRealtimeManager({
   // ===========================================================================
   // CALLBACK REF PATTERN - Update ref when callback changes
   // ===========================================================================
-  
+
   useEffect(() => {
     onUpdateRef.current = onUpdate;
   }, [onUpdate]);
@@ -52,12 +52,12 @@ export default function DashboardRealtimeManager({
   // ===========================================================================
   // STABLE INVOKER - Never changes identity
   // ===========================================================================
-  
+
   const invokeCallback = useCallback((table, eventType, data) => {
     if (onUpdateRef.current && isMountedRef.current) {
       onUpdateRef.current({ table, event: eventType, data });
     }
-    
+
     // ✅ FULL-STACK SYNC: Dispatch custom event for components that don't have direct callback access
     if (isMountedRef.current && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('dashboard-realtime-update', {
@@ -69,21 +69,21 @@ export default function DashboardRealtimeManager({
   // ===========================================================================
   // CLEANUP - Removes exactly ONE channel
   // ===========================================================================
-  
+
   const cleanup = useCallback(() => {
     if (channelRef.current) {
       const topic = channelRef.current.topic;
       console.log(`[RealtimeManager] Cleanup: Removing channel ${topic}`);
-      
+
       try {
         supabase.removeChannel(channelRef.current);
       } catch (err) {
         console.warn('[RealtimeManager] Cleanup error (non-fatal):', err);
       }
-      
+
       channelRef.current = null;
     }
-    
+
     isSubscribedRef.current = false;
     subscribedCompanyIdRef.current = null;
   }, []);
@@ -91,7 +91,7 @@ export default function DashboardRealtimeManager({
   // ===========================================================================
   // MAIN SUBSCRIPTION EFFECT
   // ===========================================================================
-  
+
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -131,8 +131,8 @@ export default function DashboardRealtimeManager({
     // =========================================================================
     // CREATE SINGLE CHANNEL
     // =========================================================================
-    
-    const channelName = `dashboard-${companyId}`;
+
+    const channelName = `dashboard-manager-${companyId}`;
     console.log(`[RealtimeManager] Creating channel: ${channelName}`);
 
     const channel = supabase
@@ -243,7 +243,7 @@ export default function DashboardRealtimeManager({
         }
       );
     }
-    
+
     // User-level notifications (fallback if no companyId)
     if (userId && typeof userId === 'string' && userId.trim() !== '') {
       channel.on(
@@ -264,7 +264,7 @@ export default function DashboardRealtimeManager({
     // =========================================================================
     // SUBSCRIBE
     // =========================================================================
-    
+
     channel.subscribe((status, err) => {
       if (!isMountedRef.current) return;
 
@@ -292,7 +292,7 @@ export default function DashboardRealtimeManager({
     // =========================================================================
     // CLEANUP ON UNMOUNT OR COMPANYID CHANGE
     // =========================================================================
-    
+
     return () => {
       console.log(`[RealtimeManager] Effect cleanup`);
       isMountedRef.current = false;
@@ -303,6 +303,6 @@ export default function DashboardRealtimeManager({
   // ===========================================================================
   // RENDER NULL - This is a behavior component, not a UI component
   // ===========================================================================
-  
+
   return null;
 }

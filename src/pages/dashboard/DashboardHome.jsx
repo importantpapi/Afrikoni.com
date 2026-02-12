@@ -40,6 +40,14 @@ export default function DashboardHome() {
         return; // Already completed, no need to show tour or wait for DB for this specific flag
       }
 
+      // SAFETY TIMEOUT: Force prefLoading to false after 3 seconds
+      const safetyTimeout = setTimeout(() => {
+        if (prefLoading) {
+          console.warn('[DashboardHome] Preferences fetch timeout - bypassing skeleton');
+          setPrefLoading(false);
+        }
+      }, 3000);
+
       try {
         const { data, error } = await supabase
           .from('user_preferences')
@@ -63,6 +71,7 @@ export default function DashboardHome() {
       } catch (e) {
         console.error('[DashboardRouter] Error loading preferences:', e);
       } finally {
+        clearTimeout(safetyTimeout);
         setPrefLoading(false);
       }
     }

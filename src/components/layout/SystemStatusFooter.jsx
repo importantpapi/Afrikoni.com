@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Surface } from '@/components/system/Surface';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import {
     Activity,
     Wifi,
@@ -10,24 +11,24 @@ import {
     Lock
 } from 'lucide-react';
 
-const MOCK_SIGNALS = [
-    { type: 'risk', message: 'Port congestion in Lagos (Apapa): Expect +2 days delay', level: 'medium' },
-    { type: 'compliance', message: 'New AfCFTA Rules of Origin for Cocoa active', level: 'info' },
-    { type: 'market', message: 'KES/USD volatility detected: Hedging recommended', level: 'low' },
-    { type: 'system', message: 'Kernel v2.4 stable. All systems operational.', level: 'success' },
-];
-
 export default function SystemStatusFooter() {
+    const { isSystemReady, capabilities, isPreWarming } = useDashboardKernel();
     const [currentSignalIndex, setCurrentSignalIndex] = useState(0);
+
+    const signals = useMemo(() => [
+        { type: 'risk', message: 'Port congestion in Lagos (Apapa): Expect +2 days delay', level: 'medium' },
+        { type: 'compliance', message: 'New AfCFTA Rules of Origin for Cocoa active', level: 'info' },
+        { type: 'system', message: isSystemReady ? 'Kernel v2.4 stable. All systems operational.' : isPreWarming ? 'Kernel pre-warming...' : 'Kernel synchronizing...', level: isSystemReady ? 'success' : 'medium' },
+    ], [isSystemReady, isPreWarming]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentSignalIndex((prev) => (prev + 1) % MOCK_SIGNALS.length);
+            setCurrentSignalIndex((prev) => (prev + 1) % signals.length);
         }, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [signals.length]);
 
-    const signal = MOCK_SIGNALS[currentSignalIndex];
+    const signal = signals[currentSignalIndex] || signals[0];
 
     return (
         <div className="fixed bottom-[80px] md:bottom-0 left-0 md:left-[72px] right-0 z-50 pointer-events-none flex justify-center pb-2 px-4 md:px-0 transition-all duration-300">
@@ -38,11 +39,11 @@ export default function SystemStatusFooter() {
                 {/* System Health */}
                 <div className="flex items-center gap-2 pr-4 border-r border-afrikoni-gold/10 shrink-0">
                     <div className="relative flex items-center justify-center w-2 h-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isSystemReady ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75`}></span>
+                        <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isSystemReady ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                     </div>
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 hidden md:block">
-                        Afrikoni Network Active
+                    <span className={`text-[10px] uppercase font-bold tracking-widest ${isSystemReady ? 'text-emerald-600' : 'text-amber-600'} hidden md:block`}>
+                        {isSystemReady ? 'Afrikoni Network Active' : 'Kernel Handshake'}
                     </span>
                     <span className="text-[10px] font-mono text-gray-500 hidden md:block">v2.4.0</span>
                 </div>
@@ -56,7 +57,7 @@ export default function SystemStatusFooter() {
                         {signal.type === 'risk' && <AlertTriangle className="w-3 h-3 text-amber-500" />}
                         {signal.type === 'compliance' && <ShieldCheck className="w-3 h-3 text-blue-500" />}
                         {signal.type === 'market' && <Activity className="w-3 h-3 text-purple-500" />}
-                        {signal.type === 'system' && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                        {signal.type === 'system' && <CheckCircle2 className={`w-3 h-3 ${isSystemReady ? 'text-emerald-500' : 'text-amber-500'}`} />}
 
                         <span className={`text-xs font-medium truncate ${signal.level === 'medium' ? 'text-amber-600' :
                             signal.level === 'success' ? 'text-emerald-600' :

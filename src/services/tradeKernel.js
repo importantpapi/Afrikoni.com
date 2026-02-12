@@ -160,6 +160,37 @@ export async function transitionTrade(tradeId, nextState, metadata = {}) {
 }
 
 /**
+ * CORE: Create a new Trade on the Sovereign Rail
+ * @param {Object} tradeData 
+ */
+export async function createTrade(tradeData) {
+  try {
+    const { data, error } = await supabase
+      .from('trades')
+      .insert({
+        ...tradeData,
+        metadata: {
+          ...tradeData.metadata,
+          created_at_platform: new Date().toISOString(),
+          kernel_version: '2026.1'
+        }
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[TradeKernel] Create failed:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('[TradeKernel] Create exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
  * Get the immutable event ledger for a trade
  * @param {string} tradeId 
  */
@@ -201,18 +232,47 @@ export function getCorridorHealth() {
 
 /**
  * MULTI-SIG BRIDGE: Request consensus from a party
+ * 
+ * NOTE: In this version, consensus is a signed event in the forensic ledger.
+ * This provides "Forensic Logging" of multi-party approval. 
+ * It is NOT yet asymmetric cryptographic signing.
+ * 
  * @param {string} tradeId 
- * @param {string} party 'BUYER' | 'SELLER' | 'PROTOCOL'
+ * @param {string} party 'BUYER' | 'SELLER' | 'PROTOCOL' | 'LOGISTICS' | 'AI'
  */
 export async function requestConsensus(tradeId, party) {
-  // In a real implementation, this would write to a secure ledger/table
-  // For prototype, we simulate the state check
+  // In 2026, consensus is a signed event in the ledger.
   console.log(`[TradeKernel] Consensus requested from ${party} for ${tradeId}`);
+
+  let signatureType = '';
+  switch (party) {
+    case 'BUYER': signatureType = 'BUYER_SIG_'; break;
+    case 'SELLER': signatureType = 'SELLER_SIG_'; break;
+    case 'PROTOCOL': signatureType = 'PROTOCOL_SIG_'; break;
+    case 'LOGISTICS': signatureType = 'LOGISTICS_ORACLE_SIG_'; break;
+    case 'AI': signatureType = 'AI_SENTINEL_SIG_'; break;
+    default: signatureType = 'HUMAN_SIG_';
+  }
+
+  const signature = `${signatureType}${Date.now().toString(36).toUpperCase()}_${tradeId.slice(0, 4)}`;
+
+  // Update trade metadata via transition (no-op transition to same state to record sig)
+  const { data: trade } = await supabase.from('trades').select('status, metadata').eq('id', tradeId).single();
+
+  if (trade) {
+    const existingSigs = trade.metadata?.signatures || [];
+    if (!existingSigs.includes(signature)) {
+      await transitionTrade(tradeId, trade.status, {
+        signatures: [signature],
+        consensus_event: `${party}_SIGNED`
+      });
+    }
+  }
 
   return {
     success: true,
     timestamp: new Date().toISOString(),
-    signature: `${party}_SIG_${Date.now()}`
+    signature
   };
 }
 
@@ -221,28 +281,35 @@ export async function requestConsensus(tradeId, party) {
  * @param {string} tradeId 
  */
 export async function checkConsensus(tradeId) {
-  // Simulate fetching signatures
-  // For demo, we assume Protocol always signs if risk is low
-  const protocolSigned = true;
+  const { data: trade, error } = await supabase
+    .from('trades')
+    .select('metadata')
+    .eq('id', tradeId)
+    .single();
+
+  if (error || !trade) return { consensusReached: false, signatures: [] };
+
+  const sigs = trade.metadata?.signatures || [];
+
+  const hasAI = sigs.some(s => s.startsWith('AI_SENTINEL_'));
+  const hasLogistics = sigs.some(s => s.startsWith('LOGISTICS_ORACLE_'));
+  const hasBuyer = sigs.some(s => s.startsWith('BUYER_SIG_'));
 
   return {
-    buyerSigned: true, // Mocked for demo flow
-    sellerSigned: true, // Mocked for demo flow
-    protocolSigned,
-    consensusReached: true, // All 3 keys present
-    signatures: ['BUYER_SIG', 'SELLER_SIG', 'PROTOCOL_SIG']
+    buyerSigned: hasBuyer,
+    sellerSigned: sigs.some(s => s.startsWith('SELLER_SIG_')),
+    logisticsSigned: hasLogistics,
+    aiSigned: hasAI,
+    consensusReached: hasAI && hasLogistics && hasBuyer,
+    signatures: sigs
   };
 }
 
 export default {
-  TRADE_STATE,
-  TRADE_STATE_LABELS,
-  TRADE_STATE_ORDER,
-  getKernelNextAction,
-  transitionTrade,
   getTradeEvents,
   analyzeContext,
   getCorridorHealth,
   requestConsensus,
-  checkConsensus
+  checkConsensus,
+  createTrade
 };

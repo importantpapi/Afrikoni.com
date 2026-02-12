@@ -12,18 +12,19 @@ export default function RevenueDashboard() {
 
     useEffect(() => {
         if (!canLoadData) return;
-        
-        // Simulate fetching revenue data from protocol ledger
-        const mockData = Array.from({ length: 12 }, (_, i) => ({
-            name: `Month ${i + 1}`,
-            protocolFee: Math.floor(Math.random() * 5000) + 2000,
-            fxSpread: Math.floor(Math.random() * 2000) + 500,
-            logisticsMargin: Math.floor(Math.random() * 3000) + 1000
-        }));
-        setRevenueData(mockData);
 
-        const total = mockData.reduce((acc, cur) => acc + cur.protocolFee + cur.fxSpread + cur.logisticsMargin, 0);
-        setTotalRevenue(total);
+        // KERNEL REALIGNMENT: Purged mock data. 
+        // Real revenue will be derived from trades ledger where status = 'settled'
+        const initialData = Array.from({ length: 12 }, (_, i) => ({
+            name: `Month ${i + 1}`,
+            protocolFee: 0,
+            fxSpread: 0,
+            logisticsMargin: 0
+        }));
+        setRevenueData(initialData);
+        setTotalRevenue(0);
+
+        // Fetch actual settled figures if needed...
     }, [canLoadData]);
 
     return (
@@ -94,7 +95,7 @@ export default function RevenueDashboard() {
                         <span className="text-sm text-[var(--os-text-secondary)]">Escrow Float</span>
                     </div>
                     <div className="text-2xl font-bold text-[var(--os-text-primary)]">
-                        $1.2M
+                        Analyzing...
                     </div>
                     <div className="text-xs text-[var(--os-text-secondary)] mt-1">
                         Secured by 3-Key Consensus

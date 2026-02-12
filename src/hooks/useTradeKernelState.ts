@@ -19,7 +19,8 @@ type TradeKernelState = {
 
 const defaultState: TradeKernelState = {
   loading: false,
-  trustScore: 68,
+  // ✅ KERNEL REALIGNMENT: Purged fake trust formula (55 + length * 4)
+  trustScore: 0, // Trigger recalculation in engine
   kycStatus: 'unknown',
   escrowLockedValue: 0,
   pipelineValue: 0,
@@ -125,7 +126,9 @@ export function useTradeKernelState(): TradeKernelState {
           results.activeTrades = activeTradesList;
 
           if (results.trustScore === undefined) {
-            results.trustScore = Math.min(92, 55 + activeTradesList.length * 4);
+            // REMOVED: Heuristic score (55 + length * 4). 
+            // Only use the real score from the database.
+            results.trustScore = 0;
           }
 
           if (activeTradesList.length === 0 && results.afcftaReady === undefined) {

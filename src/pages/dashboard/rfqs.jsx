@@ -70,7 +70,7 @@ export default function RFQs() {
   // Fetch Real Data with Kernel Guards
   const loadRFQs = async () => {
     if (!canLoadData) return;
-    
+
     setLoading(true);
     try {
       const { data, error } = await getRFQs({
@@ -173,8 +173,8 @@ export default function RFQs() {
                   )}
                 >
                   {tab.key === 'all'
-                    ? mockRFQs.length
-                    : mockRFQs.filter((r) => r.status === tab.key).length}
+                    ? rfqs.length
+                    : rfqs.filter((r) => r.status === tab.key || (tab.key === 'sent' && r.status === 'rfq_open')).length}
                 </span>
               </button>
             ))}
@@ -287,7 +287,12 @@ export default function RFQs() {
               const isUrgent = deadline === 'Today' || deadline === 'Tomorrow';
 
               return (
-                <Surface key={rfq.id} variant="panel" className="group p-5 hover:bg-os-surface-2 transition-all cursor-pointer">
+                <Surface
+                  key={rfq.id}
+                  variant="panel"
+                  className="group p-5 hover:bg-os-surface-2 transition-all cursor-pointer"
+                  onClick={() => navigate(`/dashboard/trade/${rfq.id}`)}
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">

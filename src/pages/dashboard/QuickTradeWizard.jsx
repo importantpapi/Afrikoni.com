@@ -50,7 +50,18 @@ export default function QuickTradeWizard() {
     const [templateName, setTemplateName] = useState('');
     const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
-    // Keyboard Shortcuts
+    // Form data - MUST be declared before useEffect that depends on it
+    const [formData, setFormData] = useState({
+        productName: '',
+        productDescription: '',
+        quantity: '',
+        unit: 'MT',
+        targetCountry: '',
+        targetCity: '',
+        deliveryDeadline: '',
+        targetPrice: '',
+        additionalNotes: '',
+    });
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -73,19 +84,6 @@ export default function QuickTradeWizard() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [currentStep, formData, isSubmitting]); // Re-bind on state change
-
-    // Form data
-    const [formData, setFormData] = useState({
-        productName: '',
-        productDescription: '',
-        quantity: '',
-        unit: 'MT',
-        targetCountry: '',
-        targetCity: '',
-        deliveryDeadline: '',
-        targetPrice: '',
-        additionalNotes: '',
-    });
 
     // Auto-save draft logic
     useEffect(() => {
@@ -369,12 +367,14 @@ export default function QuickTradeWizard() {
 
         const isCommodity = /cocoa|oil|gold|cotton|maize/i.test(formData.productName);
 
+        // REMOVED: Math.random() benchmarking. 
+        // Returning deterministic "Analyzing" state for now until real benchmark API is connected.
         return {
-            benchmarkPrice: isCommodity ? `$${(Math.random() * 500 + 2000).toFixed(0)}/MT` : 'N/A',
-            velocityScore: 85,
-            riskLevel: 'Low',
-            matchedSuppliers: 12,
-            suggestedAction: isCommodity ? 'Price is slightly above average. Faster matching expected.' : 'New market entry. Consider adding certificates.'
+            benchmarkPrice: isCommodity ? 'Analyzing Market...' : 'N/A',
+            velocityScore: isCommodity ? 0 : 0, // 0 = Calculating
+            riskLevel: 'Analyzing...',
+            matchedSuppliers: 0,
+            suggestedAction: isCommodity ? 'AI is analyzing historical corridor volatility.' : 'Preparing market entry scan.'
         };
     }, [formData.productName, formData.targetCountry]);
 

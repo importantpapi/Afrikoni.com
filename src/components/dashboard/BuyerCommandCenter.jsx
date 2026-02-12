@@ -65,7 +65,7 @@ export default function BuyerCommandCenter({ data }) {
                 {rfqs.slice(0, 5).map(rfq => (
                   <Link
                     key={rfq.id}
-                    to={`/rfq/detail?id=${rfq.id}`}
+                    to={`/dashboard/trade/${rfq.id}`}
                     className="block p-3 border rounded-lg hover:border-afrikoni-gold transition"
                   >
                     <div className="flex items-center justify-between">
@@ -73,12 +73,12 @@ export default function BuyerCommandCenter({ data }) {
                         <h4 className="font-semibold">{rfq.title}</h4>
                         <p className="text-sm">{rfq.quantity} {rfq.unit}</p>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        rfq.status === 'open' ? 'bg-green-100 text-green-700' :
-                        rfq.status === 'awarded' ? 'bg-blue-100 text-blue-700' :
-                        'bg-afrikoni-cream text-afrikoni-deep'
-                      }`}>
-                        {rfq.status}
+                      <span className={`px-2 py-1 rounded text-xs ${rfq.status === 'sent' || rfq.status === 'rfq_open' ? 'bg-blue-100 text-blue-700' :
+                          rfq.status === 'quoted' ? 'bg-amber-100 text-amber-700' :
+                            rfq.status === 'contracted' ? 'bg-emerald-100 text-emerald-700' :
+                              'bg-afrikoni-cream text-afrikoni-deep'
+                        }`}>
+                        {rfq.status?.replace('_', ' ').toUpperCase()}
                       </span>
                     </div>
                   </Link>
@@ -111,11 +111,10 @@ export default function BuyerCommandCenter({ data }) {
                         <h4 className="font-semibold">Order #{order.id.slice(0, 8)}</h4>
                         <p className="text-sm">${order.total_amount}</p>
                       </div>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      <span className={`px-2 py-1 rounded text-xs ${order.status === 'completed' ? 'bg-green-100 text-green-700' :
                         order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
-                        'bg-afrikoni-cream text-afrikoni-deep'
-                      }`}>
+                          'bg-afrikoni-cream text-afrikoni-deep'
+                        }`}>
                         {order.status}
                       </span>
                     </div>

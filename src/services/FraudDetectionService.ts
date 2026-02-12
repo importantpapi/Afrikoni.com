@@ -22,7 +22,9 @@ export const FraudDetectionService = {
 
         // SIMULATION: In real life, this calls an OCR/ML service
         // Here we simulate varying confidence levels
-        const isSuspicious = Math.random() > 0.85; // 15% chance of being flagged in demo
+        // KERNEL REALIGNMENT: Purged mock fraud flag. 
+        // Real detection requires historical data analysis.
+        const isSuspicious = false;
 
         if (isSuspicious) {
             return {

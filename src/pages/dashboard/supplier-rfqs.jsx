@@ -8,8 +8,8 @@ import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
-import { 
-  FileText, Search, MapPin, Package, 
+import {
+  FileText, Search, MapPin, Package,
   Calendar, ArrowRight, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 function SupplierRFQsInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const [rfqs, setRfqs] = useState([]);
@@ -84,10 +84,10 @@ function SupplierRFQsInner() {
     }, 15000);
 
     // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale || 
-                         !lastLoadTimeRef.current || 
-                         (Date.now() - lastLoadTimeRef.current > 30000);
-    
+    const shouldRefresh = isStale ||
+      !lastLoadTimeRef.current ||
+      (Date.now() - lastLoadTimeRef.current > 30000);
+
     if (shouldRefresh) {
       console.log('[SupplierRFQs] Data is stale or first load - refreshing');
       loadRFQs(abortSignal).catch(err => {
@@ -120,13 +120,15 @@ function SupplierRFQsInner() {
       // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       // Load RFQs that are matched AND supplier is in shortlist
       // Note: Buyer identity is NOT shown - only RFQ details
+      // ✅ KERNEL MIGRATION: Querying trades table for RFQs
       const { data: rfqsData, error: rfqsError } = await supabase
-        .from('rfqs')
+        .from('trades')
         .select(`
           *,
-          categories(*)
+          categories:category_id(*)
         `)
-        .eq('status', 'matched')
+        .eq('status', 'rfq_created')
+        .eq('trade_type', 'rfq')
         .order('created_at', { ascending: false });
 
       // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
@@ -143,7 +145,7 @@ function SupplierRFQsInner() {
         toast.error('Failed to load RFQs');
         return; // Don't mark fresh on error
       }
-      
+
       // Filter to only RFQs where this supplier is in matched_supplier_ids
       const matchedRFQs = (rfqsData || []).filter(rfq => {
         if (!rfq.matched_supplier_ids || !Array.isArray(rfq.matched_supplier_ids)) {
@@ -151,9 +153,9 @@ function SupplierRFQsInner() {
         }
         return rfq.matched_supplier_ids.includes(profileCompanyId); // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
       });
-      
+
       setRfqs(matchedRFQs);
-      
+
       // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
@@ -176,7 +178,7 @@ function SupplierRFQsInner() {
   };
 
   const filteredRFQs = rfqs.filter(rfq => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       rfq.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rfq.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rfq.delivery_location?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -264,8 +266,8 @@ function SupplierRFQsInner() {
         <div className="grid gap-4">
           {/* ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked FIRST */}
           {error ? (
-            <ErrorState 
-              message={error} 
+            <ErrorState
+              message={error}
               onRetry={() => {
                 setError(null);
                 // useEffect will retry automatically when canLoadData is true
@@ -283,8 +285,8 @@ function SupplierRFQsInner() {
             </Surface>
           ) : (
             filteredRFQs.map((rfq) => (
-              <Surface 
-                key={rfq.id} 
+              <Surface
+                key={rfq.id}
                 className="p-6 os-panel-soft"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -300,7 +302,7 @@ function SupplierRFQsInner() {
                         Match
                       </SignalChip>
                     </div>
-                    
+
                     {rfq.description && (
                       <p className="text-sm mb-4 line-clamp-2">
                         {rfq.description}
@@ -340,9 +342,9 @@ function SupplierRFQsInner() {
                       </p>
                     </div>
 
-                    <Link to={`/dashboard/rfqs/${rfq.id}`}>
+                    <Link to={`/dashboard/one-flow/${rfq.id}`}>
                       <Button className="w-full sm:w-auto hover:bg-afrikoni-goldDark">
-                        Submit Offer
+                        Provide Quote
                         <ArrowRight className="ml-2 w-4 h-4" />
                       </Button>
                     </Link>

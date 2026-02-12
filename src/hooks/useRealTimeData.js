@@ -29,19 +29,19 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // ===========================================================================
   // REFS ONLY - No React state for subscription lifecycle
   // ===========================================================================
-  
+
   /** @type {import('react').MutableRefObject<ReturnType<typeof supabase.channel>|null>} */
   const channelRef = useRef(null);
-  
+
   /** Track if we've subscribed for this companyId */
   const subscribedCompanyIdRef = useRef(null);
-  
+
   /** Track if subscription is currently active */
   const isSubscribedRef = useRef(false);
-  
+
   /** Store callback in ref to avoid dependency array issues */
   const onUpdateRef = useRef(onUpdate);
-  
+
   /** Track if component is mounted */
   const isMountedRef = useRef(true);
 
@@ -56,7 +56,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // ===========================================================================
   // STABLE CALLBACK - Invokes ref, never changes identity
   // ===========================================================================
-  
+
   const invokeCallback = useCallback((table, eventType, data) => {
     if (onUpdateRef.current && isMountedRef.current) {
       onUpdateRef.current({
@@ -70,21 +70,21 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // ===========================================================================
   // CLEANUP FUNCTION - Removes exactly ONE channel, resets refs
   // ===========================================================================
-  
+
   const cleanup = useCallback(() => {
     if (channelRef.current) {
       const channelName = channelRef.current.topic;
       console.log(`[Realtime] Cleanup: Removing channel ${channelName}`);
-      
+
       try {
         supabase.removeChannel(channelRef.current);
       } catch (err) {
         console.warn('[Realtime] Cleanup error (non-fatal):', err);
       }
-      
+
       channelRef.current = null;
     }
-    
+
     isSubscribedRef.current = false;
     subscribedCompanyIdRef.current = null;
   }, []);
@@ -92,21 +92,30 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // ===========================================================================
   // MAIN SUBSCRIPTION EFFECT - Runs once per valid companyId
   // ===========================================================================
-  
+
   useEffect(() => {
     // Track mount state
     isMountedRef.current = true;
 
-    // =========================================================================
-    // GUARD 1: Disabled or missing required params
-    // =========================================================================
+    // ✅ ENTERPRISE GUARD: UUID validation for companyId
+    // Prevents "invalid input syntax for type uuid" 400 errors in Supabase filters
+    const isValidUuid = (id) => {
+      if (!id || typeof id !== 'string') return false;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(id);
+    };
+
     if (!enabled) {
       console.log('[Realtime] Disabled - skipping subscription');
       return;
     }
 
-    if (!companyId || typeof companyId !== 'string' || companyId.trim() === '') {
-      console.log('[Realtime] No valid companyId - skipping subscription');
+    if (!companyId || !isValidUuid(companyId)) {
+      if (companyId) {
+        console.warn(`[Realtime] ⚠️ Invalid companyId format: "${companyId}" - skipping subscription`);
+      } else {
+        console.log('[Realtime] No companyId - skipping subscription');
+      }
       return;
     }
 
@@ -133,8 +142,8 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     // =========================================================================
     // CREATE SINGLE CHANNEL WITH ALL HANDLERS
     // =========================================================================
-    
-    const channelName = `dashboard-${companyId}`;
+
+    const channelName = `dashboard-hook-${companyId}`;
     console.log(`[Realtime] Creating channel: ${channelName}`);
 
     const channel = supabase
@@ -147,15 +156,15 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       // -----------------------------------------------------------------
       // RFQs (buyer_company_id filter)
       // -----------------------------------------------------------------
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'rfqs',
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rfqs',
           filter: `buyer_company_id=eq.${companyId}`,
-          },
-          (payload) => {
+        },
+        (payload) => {
           console.log('[Realtime] RFQ change:', payload.eventType);
           invokeCallback('rfqs', payload.eventType, payload.new);
         }
@@ -163,15 +172,15 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       // -----------------------------------------------------------------
       // Products (company_id filter)
       // -----------------------------------------------------------------
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'products',
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products',
           filter: `company_id=eq.${companyId}`,
-          },
-          (payload) => {
+        },
+        (payload) => {
           console.log('[Realtime] Product change:', payload.eventType);
           invokeCallback('products', payload.eventType, payload.new);
         }
@@ -179,15 +188,15 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       // -----------------------------------------------------------------
       // Orders (buyer_company_id filter)
       // -----------------------------------------------------------------
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
           filter: `buyer_company_id=eq.${companyId}`,
-          },
-          (payload) => {
+        },
+        (payload) => {
           console.log('[Realtime] Order (buyer) change:', payload.eventType);
           invokeCallback('orders', payload.eventType, payload.new);
         }
@@ -195,15 +204,15 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       // -----------------------------------------------------------------
       // Orders (seller_company_id filter)
       // -----------------------------------------------------------------
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
           filter: `seller_company_id=eq.${companyId}`,
-          },
-          (payload) => {
+        },
+        (payload) => {
           console.log('[Realtime] Order (seller) change:', payload.eventType);
           invokeCallback('orders', payload.eventType, payload.new);
         }
@@ -211,15 +220,15 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       // -----------------------------------------------------------------
       // Messages (receiver_company_id filter, INSERT only)
       // -----------------------------------------------------------------
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
           filter: `receiver_company_id=eq.${companyId}`,
-          },
-          (payload) => {
+        },
+        (payload) => {
           console.log('[Realtime] New message:', payload.eventType);
           invokeCallback('messages', payload.eventType, payload.new);
         }
@@ -230,14 +239,14 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     // -----------------------------------------------------------------
     if (userId && typeof userId === 'string' && userId.trim() !== '') {
       channel.on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
           filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
+        },
+        (payload) => {
           console.log('[Realtime] New notification:', payload.eventType);
           invokeCallback('notifications', payload.eventType, payload.new);
         }
@@ -247,7 +256,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     // =========================================================================
     // SUBSCRIBE WITH STATUS HANDLING
     // =========================================================================
-    
+
     channel.subscribe((status, err) => {
       if (!isMountedRef.current) {
         console.log('[Realtime] Component unmounted during subscribe - ignoring');
@@ -286,7 +295,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     // =========================================================================
     // CLEANUP - Only on unmount or companyId change
     // =========================================================================
-    
+
     return () => {
       console.log(`[Realtime] Effect cleanup for ${companyId}`);
       isMountedRef.current = false;
@@ -299,7 +308,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // ===========================================================================
   // RETURN - Minimal, no state
   // ===========================================================================
-  
+
   return {
     /** Whether currently subscribed */
     isSubscribed: isSubscribedRef.current,
@@ -333,7 +342,7 @@ export function useRealTimeSubscription(table, onUpdate, filter = null, _depende
   const onUpdateRef = useRef(onUpdate);
   const channelRef = useRef(null);
   const isSubscribedRef = useRef(false);
-  
+
   // Update callback ref without re-subscribing
   useEffect(() => {
     onUpdateRef.current = onUpdate;
@@ -454,14 +463,14 @@ export function useRealTimeCount(table, filter = null) {
         }
 
         const { count, error } = await query;
-        
+
         if (error) {
           console.error(`[useRealTimeCount] Error for ${table}:`, error.message);
           countRef.current = 0;
         } else {
           countRef.current = count || 0;
         }
-        
+
         hasLoadedRef.current = true;
       } catch (err) {
         console.error(`[useRealTimeCount] Exception for ${table}:`, err);
@@ -474,9 +483,9 @@ export function useRealTimeCount(table, filter = null) {
     loadCount();
   }, [table, filterColumn, filterValue]);
 
-  return { 
-    count: countRef.current, 
-    isLoading: loadingRef.current, 
-    refresh: () => {} 
+  return {
+    count: countRef.current,
+    isLoading: loadingRef.current,
+    refresh: () => { }
   };
 }

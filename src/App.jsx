@@ -2,7 +2,7 @@
 // Replace your entire src/App.jsx with this
 
 import { Suspense, lazy, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Layout from './layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -24,6 +24,78 @@ import { supabase } from './api/supabaseClient';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
 import { useBrowserNavigation } from './hooks/useBrowserNavigation';
+import {
+  Loader2,
+  ShieldCheck,
+  UserCheck,
+  Globe,
+  Zap,
+  AlertCircle
+} from 'lucide-react';
+
+/**
+ * =============================================================================
+ * BOOT SCREEN - Handshake UI
+ * =============================================================================
+ */
+const BootScreen = ({ status, error }) => (
+  <div className="fixed inset-0 bg-[#1a0f0f] z-[9999] flex flex-col items-center justify-center p-6 text-center">
+    <div className="relative mb-8">
+      <div className="absolute inset-0 animate-ping bg-[#e8c68a]/20 rounded-full blur-xl" />
+      <div className="w-20 h-20 border-4 border-[#e8c68a]/20 border-t-[#e8c68a] rounded-full animate-spin" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Zap className="w-8 h-8 text-[#e8c68a] fill-[#e8c68a]/20" />
+      </div>
+    </div>
+
+    <div className="max-w-md w-full">
+      <h2 className="text-[#f5f5f0] font-bold text-2xl mb-2 tracking-tight uppercase">
+        Afrikoni Trade OS
+      </h2>
+
+      <div className="flex items-center justify-center gap-3 bg-white/5 py-3 px-6 rounded-full border border-white/10 mb-6 backdrop-blur-sm">
+        {error ? (
+          <AlertCircle className="w-4 h-4 text-red-400" />
+        ) : (
+          <Loader2 className="w-4 h-4 text-[#e8c68a] animate-spin" />
+        )}
+        <span className="text-[#f5f5f0]/80 text-sm font-medium">
+          {error || status || "Waking up the engine..."}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {[
+          { icon: ShieldCheck, label: 'Session', active: status?.includes('profile') || status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
+          { icon: UserCheck, label: 'Profile', active: status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
+          { icon: Globe, label: 'World', active: status?.includes('Ready') }
+        ].map((step, idx) => (
+          <div key={idx} className={`flex flex-col items-center gap-2 transition-opacity duration-500 ${step.active ? 'opacity-100' : 'opacity-30'}`}>
+            <div className={`p-3 rounded-xl ${step.active ? 'bg-[#e8c68a]/10 text-[#e8c68a]' : 'bg-white/5 text-white/40'}`}>
+              <step.icon className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-[#f5f5f0]/60">{step.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {error && (
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 text-[#e8c68a] text-sm underline underline-offset-4 hover:text-white transition-colors"
+        >
+          Force Restart OS
+        </button>
+      )}
+    </div>
+
+    <div className="absolute bottom-8 left-0 right-0">
+      <p className="text-white/20 text-[10px] uppercase tracking-[0.3em] font-medium">
+        Infrastructure-Grade Trade Kernel &copy; 2026
+      </p>
+    </div>
+  </div>
+);
 
 /* ===== Public pages (eager) ===== */
 import Home from './pages/index';
@@ -65,7 +137,7 @@ const OrdersPage = lazy(() => import('./pages/dashboard/orders'));
 const TraceCenterPage = lazy(() => import('./pages/dashboard/TraceCenter')); // [NEW] The Unbroken Flow
 const RFQsPage = lazy(() => import('./pages/dashboard/rfqs'));
 const RFQsNewPage = lazy(() => import('./pages/dashboard/rfqs/new'));
-const TradeWorkspacePage = lazy(() => import('./pages/dashboard/trade/[id]'));
+const TradeWorkspacePage = lazy(() => import('./pages/dashboard/OneFlow'));
 const SavedItemsPage = lazy(() => import('./pages/dashboard/saved'));
 
 // 3. LOGISTICS ENGINE (Fulfillment)
@@ -179,8 +251,9 @@ const RFQMobileWizard = lazy(() => import('./pages/rfq-mobile-wizard'));
 // MAIN APP COMPONENT
 // ============================================
 function AppContent() {
-  const { authReady } = useAuth();
-  const { resetKernel } = useCapability(); // ✅ KERNEL-CENTRIC: Get resetKernel function from Kernel
+  const { user, profile, authReady, authResolutionComplete } = useAuth();
+  const { ready: kernelReady, kernelError, resetKernel } = useCapability();
+  const location = useLocation();
 
   useSessionRefresh();
   useBrowserNavigation();
@@ -249,6 +322,28 @@ function AppContent() {
 
   // ✅ EMERGENCY FIX: Self-Healing Engine - Auto-reload on module update errors
   // Hard Refresh Patch Removed: Stability is now handled by robust error boundaries
+
+  // ✅ HANDSHAKE GATE: Consuming all hydration states
+  const isDashboardRoute = location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/onboarding');
+
+  const getHandshakeStatus = () => {
+    if (!authReady) return "Resolving session...";
+    if (!authResolutionComplete) return "Loading profile...";
+    if (user && !kernelReady) return "Synchronizing World...";
+    return "Ready";
+  };
+
+  const status = getHandshakeStatus();
+  const isSystemReady = !isDashboardRoute || (
+    authResolutionComplete &&
+    (!user || (kernelReady && profile))
+  );
+
+  // ✅ HANDSHAKE GATE RENDER
+  if (!isSystemReady) {
+    return <BootScreen status={status} error={kernelError} />;
+  }
 
   return (
     <Layout>

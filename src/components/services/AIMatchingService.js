@@ -5,21 +5,21 @@ export const AIMatchingService = {
     try {
       // TODO: Replace with your LLM API call
       // This should analyze requirements and match with suppliers/products
-      
+
       // Placeholder: Simple keyword matching for now
       const requirementsLower = requirements.toLowerCase();
       const matches = (Array.isArray(suppliers) ? suppliers : [])
         .filter(supplier => {
           const supplierText = `${supplier.company_name} ${supplier.description} ${supplier.country}`.toLowerCase();
-          return requirementsLower.split(' ').some(word => 
+          return requirementsLower.split(' ').some(word =>
             word.length > 3 && supplierText.includes(word)
           );
         })
         .slice(0, 5)
         .map(supplier => ({
           supplier,
-          match_score: Math.floor(Math.random() * 30) + 70, // 70-100
-          reason: `Matches your requirements based on location and business type.`
+          match_score: 0, // 0 = Calculating (Kernel Priority)
+          reason: `Analyzing requirements against verified supplier corridor data.`
         }));
 
       return { matches };
