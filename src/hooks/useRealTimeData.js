@@ -140,19 +140,38 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
     }
 
     // =========================================================================
-    // CREATE SINGLE CHANNEL WITH ALL HANDLERS
+    // 🛡️ DEBOUNCE FIX: Prevent React Strict Mode double-mounting issues
     // =========================================================================
+    // React 18 Strict Mode intentionally mounts -> unmounts -> remounts components
+    // This causes two rapid subscription attempts, where the first gets cancelled
+    // mid-flight, triggering WebSocket connection errors and spinner hangs.
+    // 
+    // Solution: Wait 500ms before connecting. If component unmounts during this
+    // window (Strict Mode's first mount), we cancel and never connect.
+    // Only the second (real) mount completes the connection.
+    // =========================================================================
+    console.log(`[Realtime] Debouncing connection for ${companyId}...`);
+    const connectionTimer = setTimeout(() => {
+      // Double-check we're still mounted and enabled
+      if (!isMountedRef.current || !enabled || !companyId) {
+        console.log('[Realtime] Connection cancelled during debounce (component unmounted)');
+        return;
+      }
 
-    const channelName = `dashboard-hook-${companyId}`;
-    console.log(`[Realtime] Creating channel: ${channelName}`);
+      // =========================================================================
+      // CREATE SINGLE CHANNEL WITH ALL HANDLERS
+      // =========================================================================
 
-    const channel = supabase
-      .channel(channelName, {
-        config: {
-          broadcast: { self: false },
-          presence: { key: companyId },
-        },
-      })
+      const channelName = `dashboard-hook-${companyId}`;
+      console.log(`[Realtime] Creating channel: ${channelName}`);
+
+      const channel = supabase
+        .channel(channelName, {
+          config: {
+            broadcast: { self: false },
+            presence: { key: companyId },
+          },
+        })
       // -----------------------------------------------------------------
       // RFQs (buyer_company_id filter)
       // -----------------------------------------------------------------
@@ -289,15 +308,53 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       }
     });
 
-    // Store channel reference
-    channelRef.current = channel;
+      // Store channel reference
+      channelRef.current = channel;
+
+    }, 1000); // ✅ 1000ms debounce delay (increased for dev mode stability)
 
     // =========================================================================
-    // CLEANUP - Only on unmount or companyId change
+    // 🛡️ TAB WAKE-UP HANDLER: Reconnect if channel died during tab sleep
+    // =========================================================================
+    // When user leaves tab, browser may close WebSocket connections to save battery.
+    // When they return, we need to check if the connection is still alive and
+    // force a reconnect if needed.
+    // =========================================================================
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[Realtime] Tab became visible - checking connection health...');
+        
+        // Check if channel exists and its state
+        if (channelRef.current) {
+          const state = channelRef.current.state;
+          console.log(`[Realtime] Current channel state: ${state}`);
+          
+          // If channel is closed or errored, cleanup and let effect re-run
+          if (state === 'closed' || state === 'errored') {
+            console.log('[Realtime] Channel is dead - triggering reconnection');
+            cleanup();
+            // The cleanup will set isSubscribedRef.current = false,
+            // which will cause the effect guards to pass on next render,
+            // allowing a fresh subscription.
+          } else {
+            console.log('[Realtime] Channel is healthy - no action needed');
+          }
+        } else {
+          console.log('[Realtime] No active channel - will create on next effect run');
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // =========================================================================
+    // CLEANUP - Cancel timer + cleanup channel on unmount or companyId change
     // =========================================================================
 
     return () => {
       console.log(`[Realtime] Effect cleanup for ${companyId}`);
+      clearTimeout(connectionTimer); // ✅ Cancel pending connection
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       isMountedRef.current = false;
       cleanup();
     };

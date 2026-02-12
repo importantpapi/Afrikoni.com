@@ -113,7 +113,10 @@ function DashboardAnalyticsInner() {
     }
     
     try {
-      setIsLoading(true);
+      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
+      if (chartData.length === 0) {
+        setIsLoading(true);
+      }
       setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
 
       // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
@@ -412,8 +415,9 @@ function DashboardAnalyticsInner() {
     );
   }
 
-  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
-  if (isLoading) {
+  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
+  // If we have chartData, keep showing it during background refresh
+  if (isLoading && chartData.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2" />

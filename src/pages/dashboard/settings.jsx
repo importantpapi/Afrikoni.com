@@ -146,7 +146,11 @@ export default function DashboardSettings() {
     }
 
     try {
-      setIsLoading(true);
+      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
+      // During background refresh, keep existing data visible
+      if (!userData) {
+        setIsLoading(true);
+      }
       setError(null);
 
       // ✅ KERNEL MIGRATION: Derive role from capabilities
@@ -429,8 +433,9 @@ export default function DashboardSettings() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
+  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
+  // If userData exists, keep showing it even during background refresh
+  if (isLoading && !userData) {
     return <CardSkeleton count={3} />;
   }
 

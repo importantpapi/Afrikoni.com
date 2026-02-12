@@ -118,7 +118,11 @@ function FulfillmentDashboardInner() {
     }
 
     try {
-      setIsLoading(true);
+      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
+      // During background refresh, keep existing data visible
+      if (fulfillments.length === 0) {
+        setIsLoading(true);
+      }
       setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
       console.log('[FulfillmentDashboard] Starting loadData...');
 
@@ -300,8 +304,9 @@ function FulfillmentDashboardInner() {
     return flow[currentStatus];
   };
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
+  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
+  // If we have fulfillments data, keep showing it during background refresh
+  if (isLoading && fulfillments.length === 0) {
     return <CardSkeleton count={3} />;
   }
 

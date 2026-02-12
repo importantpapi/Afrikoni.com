@@ -106,7 +106,10 @@ function PerformanceDashboardInner() {
     }
 
     try {
-      setIsLoading(true);
+      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
+      if (!metrics) {
+        setIsLoading(true);
+      }
       setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
 
       // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
@@ -155,7 +158,9 @@ function PerformanceDashboardInner() {
   }
 
   // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
-  if (isLoading) {
+  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
+  // If we have metrics data, keep showing it during background refresh  
+  if (isLoading && !metrics) {
     return <CardSkeleton count={3} />;
   }
 

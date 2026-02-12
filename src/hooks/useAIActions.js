@@ -23,10 +23,21 @@ export function useAIActions() {
     useEffect(() => {
         if (user && profile?.company_id) {
             loadActions();
+        } else {
+            // ✅ MOBILE FIX: Clear loading state if no company_id yet
+            setLoading(false);
+            setActions([]);
         }
     }, [user, profile?.company_id]);
 
     const loadActions = async () => {
+        // ✅ MOBILE FIX: Double-check company_id before fetching
+        if (!profile?.company_id) {
+            console.warn('[useAIActions] No company_id - skipping load');
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         try {
             // Fetch user's data

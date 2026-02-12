@@ -28,8 +28,89 @@ export const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: true,
     },
+    realtime: {
+      // ✅ ENTERPRISE STABILITY: Increase timeout to 30s
+      // Default 10s is too aggressive for:
+      // - Localhost dev mode (slower connections)
+      // - Mobile networks (variable latency)
+      // - Tab sleep/wake cycles (needs time to reconnect)
+      timeout: 30000,
+      // Heartbeat to keep connection alive during idle periods
+      heartbeatIntervalMs: 15000,
+    },
   }
 );
+
+// ✅ ENTERPRISE RESILIENCE: Retry strategy for transient failures
+/**
+ * Retry wrapper for Supabase queries with exponential backoff
+ * Handles network hiccups, rate limits, and temporary service issues
+ * 
+ * @param {Function} queryFn - Async function that returns a Supabase query
+ * @param {number} maxRetries - Maximum retry attempts (default: 3)
+ * @param {number} baseDelay - Base delay in ms (default: 1000)
+ * @returns {Promise} The query result
+ */
+export async function withRetry(queryFn, maxRetries = 3, baseDelay = 1000) {
+  let lastError;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const result = await queryFn();
+      
+      // If we have an error property in the result, check if it's retryable
+      if (result.error) {
+        const error = result.error;
+        
+        // Don't retry auth errors, validation errors, or not found
+        if (
+          error.code === 'PGRST116' || // Not found
+          error.code === 'PGRST301' || // JWT expired
+          error.message?.includes('JWT') ||
+          error.message?.includes('permission') ||
+          error.message?.includes('violates') ||
+          error.status === 401 ||
+          error.status === 403 ||
+          error.status === 422
+        ) {
+          return result; // Return immediately, don't retry
+        }
+        
+        // For other errors, retry
+        lastError = error;
+        
+        // If this is the last attempt, return the error
+        if (attempt === maxRetries - 1) {
+          return result;
+        }
+        
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.warn(`[Supabase Retry] Attempt ${attempt + 1}/${maxRetries} failed, retrying in ${delay}ms...`, error.message);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      // Success
+      return result;
+    } catch (err) {
+      lastError = err;
+      
+      // If this is the last attempt, throw
+      if (attempt === maxRetries - 1) {
+        throw err;
+      }
+      
+      // Exponential backoff
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.warn(`[Supabase Retry] Attempt ${attempt + 1}/${maxRetries} failed, retrying in ${delay}ms...`, err.message);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  // If we get here, all retries failed
+  throw lastError;
+}
 
 // Helper functions
 export const supabaseHelpers = {

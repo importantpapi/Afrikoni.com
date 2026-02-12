@@ -433,7 +433,11 @@ export default function CompanyInfo() {
       }
 
       try {
-        setIsLoading(true);
+        // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
+        // During background refresh, keep existing form visible
+        if (!formData.company_name) {
+          setIsLoading(true);
+        }
         setError(null);
 
         // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
@@ -842,8 +846,9 @@ export default function CompanyInfo() {
     }
   };
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
+  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
+  // If we have formData (company_name), keep showing it during background refresh
+  if (isLoading && !formData.company_name) {
     return <CardSkeleton count={3} />;
   }
 

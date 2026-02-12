@@ -32,7 +32,7 @@ const defaultState: TradeKernelState = {
 };
 
 export function useTradeKernelState(): TradeKernelState {
-  const { profileCompanyId, canLoadData } = useDashboardKernel();
+  const { profileCompanyId, canLoadData, isSystemReady } = useDashboardKernel();
   const [state, setState] = useState<TradeKernelState>(defaultState);
 
   useEffect(() => {
@@ -40,7 +40,13 @@ export function useTradeKernelState(): TradeKernelState {
     let channel: any = null;
 
     if (!canLoadData || !profileCompanyId) {
-      setState(defaultState);
+      // ✅ MOBILE FIX: Show loading if system is still booting up
+      // Only set to defaultState if system is ready but no companyId (shouldn't happen)
+      if (isSystemReady) {
+        setState(defaultState);
+      } else {
+        setState(prev => ({ ...prev, loading: true }));
+      }
       return () => {
         isMounted = false;
         if (channel) channel.unsubscribe();
@@ -197,7 +203,7 @@ export function useTradeKernelState(): TradeKernelState {
       isMounted = false;
       window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
     };
-  }, [canLoadData, profileCompanyId]);
+  }, [canLoadData, profileCompanyId, isSystemReady]); // ✅ MOBILE FIX: Added isSystemReady
 
   return useMemo(() => state, [state]);
 }

@@ -16,7 +16,12 @@ export default function RecentRFQsWidget() {
 
     useEffect(() => {
         async function loadRecentRFQs() {
-            if (!profileCompanyId) return;
+            // ✅ MOBILE FIX: Set loading=false if no company ID yet
+            if (!profileCompanyId) {
+                console.log('[RecentRFQsWidget] Waiting for profileCompanyId...');
+                setLoading(false);
+                return;
+            }
 
             try {
                 setLoading(true);
@@ -42,7 +47,7 @@ export default function RecentRFQsWidget() {
         }
 
         loadRecentRFQs();
-    }, [profileCompanyId]);
+    }, [profileCompanyId]); // ✅ FIX: This will re-run when profileCompanyId becomes available
 
     if (loading) {
         return (

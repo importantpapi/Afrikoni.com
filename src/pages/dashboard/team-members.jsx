@@ -112,7 +112,11 @@ function TeamMembersInner() {
     }, 15000);
 
     try {
-      setIsLoading(true);
+      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
+      // During background refresh, keep existing data visible
+      if (members.length === 0 && invitations.length === 0) {
+        setIsLoading(true);
+      }
       setError(null);
       
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
@@ -319,8 +323,9 @@ function TeamMembersInner() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Use unified loading state
-  if (isLoading) {
+  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
+  // If we have members data, keep showing it during background refresh
+  if (isLoading && members.length === 0 && invitations.length === 0) {
     return <CardSkeleton count={3} />;
   }
 

@@ -12,11 +12,13 @@ import RecentRFQsWidget from '@/components/dashboard/widgets/RecentRFQsWidget';
 import { Button } from '@/components/shared/ui/button';
 
 export default function DashboardHome() {
-  const { isSystemReady } = useDashboardKernel();
+  const { isSystemReady, profileCompanyId, userId } = useDashboardKernel();
   const { activeTrades, loading: tradesLoading } = useTradeKernelState();
   const navigate = useNavigate();
 
-  if (!isSystemReady) {
+  // ✅ MOBILE FIX: Wait for BOTH system ready AND company ID
+  // Mobile devices are slower, so we need explicit checks
+  if (!isSystemReady || !profileCompanyId) {
     return <DashboardSkeleton />;
   }
 
