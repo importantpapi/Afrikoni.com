@@ -230,22 +230,63 @@ export default function DashboardSettings() {
       return;
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    // Validate file type - accept common image formats and HEIC
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const isValidType = file.type.startsWith('image/') || fileExtension === 'heic' || fileExtension === 'heif';
+    
+    if (!isValidType) {
+      toast.error('Please upload an image file (JPEG, PNG, WebP, GIF, or HEIC)');
       if (avatarInputRef.current) avatarInputRef.current.value = '';
       return;
     }
 
     setUploadingAvatar(true);
     try {
-      // Generate unique filename with proper sanitization
+      let fileToUpload = file;
+      
+      // Convert HEIC to JPEG if needed
+      if (fileExtension === 'heic' || fileExtension === 'heif' || file.type === 'image/heic' || file.type === 'image/heif') {
+        try {
+          // Create a canvas to convert the image
+          const img = new Image();
+          const reader = new FileReader();
+          
+          await new Promise((resolve, reject) => {
+            reader.onload = (e) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+          fileToUpload = new File([blob], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { type: 'image/jpeg' });
+        } catch (conversionError) {
+          console.warn('HEIC conversion failed, trying direct upload:', conversionError);
+          // If conversion fails, try direct upload anyway
+        }
+      }
+
+      // Generate unique filename - always use .jpg extension for consistency
       const timestamp = Date.now();
       const randomStr = Math.random().toString(36).substring(2, 9);
-      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `avatars/${timestamp}-${randomStr}-${cleanFileName}`;
+      const fileName = `avatars/${timestamp}-${randomStr}.jpg`;
 
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
+      const { file_url } = await supabaseHelpers.storage.uploadFile(fileToUpload, 'files', fileName, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: 'image/jpeg'
+      });
+      
       if (!file_url) throw new Error('Upload did not return a file URL');
 
       // Persist immediately so profile stays in sync even if user navigates away
