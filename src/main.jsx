@@ -70,22 +70,22 @@ if (!rootElement) {
     try {
       const root = ReactDOM.createRoot(rootElement);
       root.render(
-        // ✅ STABILIZE BOOT: Temporarily disabled StrictMode to prevent double mounting
-        // This stops the "🚀 Afrikoni app booting twice" and prevents 5s timeout
-        // <React.StrictMode>
-        <ErrorBoundary>
-          <ThemeProvider>
-            <BrowserRouter
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true
-              }}
-            >
-              <App />
-            </BrowserRouter>
-          </ThemeProvider>
-        </ErrorBoundary>
-        // </React.StrictMode>,
+        // ✅ STABILITY FIX: Re-enable StrictMode for double-mount detection
+        // Now that fail-open and handshake issues are fixed, StrictMode is safe
+        <React.StrictMode>
+          <ErrorBoundary>
+            <ThemeProvider>
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true
+                }}
+              >
+                <App />
+              </BrowserRouter>
+            </ThemeProvider>
+          </ErrorBoundary>
+        </React.StrictMode>
       );
     } catch (e) {
       console.error('[React Render] Error during render:', e);

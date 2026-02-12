@@ -329,9 +329,10 @@ function AppContent() {
   };
 
   const status = getHandshakeStatus();
+  // ✅ FIX PREMATURE RENDERING: Block if kernelError exists or kernel not ready
   const isSystemReady = !isDashboardRoute || (
     authResolutionComplete &&
-    (!user || (kernelReady && profile))
+    (!user || (kernelReady && !kernelError && profile))
   );
 
   // ✅ HANDSHAKE GATE RENDER

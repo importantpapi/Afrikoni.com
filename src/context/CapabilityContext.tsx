@@ -194,10 +194,11 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       }
     } catch (err: any) {
       console.error('[CapabilityContext] Error fetching capabilities:', err);
+      // ✅ FIX FAIL-OPEN: Set ready:false on error to prevent incomplete auth state
       setCapabilities(prev => ({
         ...prev,
         loading: false,
-        ready: true,
+        ready: false, // CRITICAL: Don't pass gate on error
         kernelError: err.message || 'Sync error',
         isSlowConnection: false,
       }));
