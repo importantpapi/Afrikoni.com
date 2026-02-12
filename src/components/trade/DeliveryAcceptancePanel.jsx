@@ -12,10 +12,10 @@ import { Button } from '@/components/shared/ui/button';
 import { Checkbox } from '@/components/shared/ui/checkbox';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Badge } from '@/components/shared/ui/badge';
-import { Loader2, CheckCircle2, Star } from 'lucide-react';
+import { Loader2, CheckCircle2, Star, AlertCircle } from 'lucide-react';
 import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
 
-export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitioning }) {
+export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitioning, capabilities }) {
   const [isAccepted, setIsAccepted] = useState(false);
   const [hasDefects, setHasDefects] = useState(false);
   const [notes, setNotes] = useState('');
@@ -166,9 +166,15 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
           </div>
 
           {/* Accept Button */}
+          {!capabilities?.can_buy && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3 mb-4">
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <p className="text-[10px] text-amber-200">Buyer capabilities required to accept delivery.</p>
+            </div>
+          )}
           <Button
             onClick={handleAcceptDelivery}
-            disabled={!isAccepted || isSubmitting || isTransitioning}
+            disabled={!isAccepted || isSubmitting || isTransitioning || !capabilities?.can_buy}
             className="w-full hover:bg-emerald-300 font-semibold"
           >
             {isSubmitting || isTransitioning ? (

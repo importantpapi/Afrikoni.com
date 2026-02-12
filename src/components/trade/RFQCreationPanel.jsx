@@ -14,7 +14,7 @@ import { Textarea } from '@/components/shared/ui/textarea';
 import { AlertCircle, Loader2, Send } from 'lucide-react';
 import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
 
-export default function RFQCreationPanel({ trade, onNextStep, isTransitioning }) {
+export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, capabilities }) {
   const [formData, setFormData] = useState({
     title: trade?.title || '',
     description: trade?.description || '',
@@ -136,9 +136,15 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning })
             </div>
 
             {/* Publish Button */}
+            {!capabilities?.can_buy && (
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3 mt-4">
+                <AlertCircle className="w-4 h-4 text-amber-500" />
+                <p className="text-[10px] text-amber-200">Buyer capabilities required to publish RFQs.</p>
+              </div>
+            )}
             <Button
               onClick={handlePublish}
-              disabled={isTransitioning}
+              disabled={isTransitioning || !capabilities?.can_buy}
               className="w-full hover:bg-afrikoni-gold/90 font-semibold mt-6"
             >
               {isTransitioning ? (

@@ -10,7 +10,6 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Loader2, Truck, Package, CheckCircle2, Clock } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { TRADE_STATE } from '@/services/tradeKernel';
-import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
 const SHIPMENT_MILESTONES = [
   { state: 'pending', label: 'Pending', icon: Package },
@@ -19,11 +18,11 @@ const SHIPMENT_MILESTONES = [
   { state: 'delivered', label: 'Delivered', icon: CheckCircle2 }
 ];
 
-export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioning }) {
+export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useDashboardKernel();
-  const isSeller = user?.company_id === trade?.seller_id;
+  const isSeller = profile?.company_id === trade?.seller_id;
+  const isLogistics = capabilities?.can_logistics;
 
   useEffect(() => {
     loadShipment();
@@ -70,19 +69,20 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
           </div>
         )}
 
-        {isSeller && (
+        {/* Seller / Logistics Actions */}
+        {(isSeller || isLogistics) && (
           <div className="space-y-3 pt-6 border-t border-white/5">
-            {trade.status === TRADE_STATE.ESCROW_FUNDED && (
+            {trade.status === TRADE_STATE.ESCROW_FUNDED && capabilities?.can_sell && (
               <Button onClick={() => onNextStep(TRADE_STATE.PRODUCTION)} disabled={isTransitioning} className="w-full bg-emerald-500">
                 Start Production
               </Button>
             )}
-            {trade.status === TRADE_STATE.PRODUCTION && (
+            {trade.status === TRADE_STATE.PRODUCTION && capabilities?.can_sell && (
               <Button onClick={() => onNextStep(TRADE_STATE.PICKUP_SCHEDULED)} disabled={isTransitioning} className="w-full bg-blue-500">
                 Schedule Pickup
               </Button>
             )}
-            {trade.status === TRADE_STATE.PICKUP_SCHEDULED && (
+            {trade.status === TRADE_STATE.PICKUP_SCHEDULED && (capabilities?.can_sell || capabilities?.can_logistics) && (
               <Button onClick={() => onNextStep(TRADE_STATE.IN_TRANSIT)} disabled={isTransitioning} className="w-full bg-afrikoni-gold">
                 Mark as Shipped
               </Button>
@@ -90,7 +90,8 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
           </div>
         )}
 
-        {!isSeller && trade.status === TRADE_STATE.IN_TRANSIT && (
+        {/* Buyer Actions */}
+        {!isSeller && trade.status === TRADE_STATE.IN_TRANSIT && capabilities?.can_buy && (
           <Button onClick={() => onNextStep(TRADE_STATE.DELIVERED)} disabled={isTransitioning} className="w-full">
             Confirm Delivery
           </Button>

@@ -43,7 +43,7 @@ export function calculateTradeFees(tradeValueUSD) {
  * @param {string} targetCurrency (NGN, GHS, KES)
  */
 export function estimateFX(amountUSD, targetCurrency) {
-    // Mock live rates with "Sovereign Spread"
+    // Baseline fallback rates for Sovereign Protocol
     const RATES = {
         'NGN': 1650.50, // Parallel/Black market reference
         'GHS': 15.80,

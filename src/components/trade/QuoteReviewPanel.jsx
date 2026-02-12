@@ -15,7 +15,7 @@ import { supabase } from '@/api/supabaseClient';
 import { TRADE_STATE } from '@/services/tradeKernel';
 import { generateContractFromQuote } from '@/services/contractService';
 
-export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning }) {
+export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, capabilities }) {
   const [quotes, setQuotes] = useState([]);
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -111,11 +111,10 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
       {quotes.map((quote, idx) => (
         <Card
           key={quote.id}
-          className={`border transition-all cursor-pointer rounded-2xl ${
-            selectedQuoteId === quote.id
-              ? 'border-afrikoni-gold/50 bg-afrikoni-gold/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]'
-              : 'border-white/10 bg-white/5 hover:border-afrikoni-gold/40'
-          }`}
+          className={`border transition-all cursor-pointer rounded-2xl ${selectedQuoteId === quote.id
+            ? 'border-afrikoni-gold/50 bg-afrikoni-gold/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]'
+            : 'border-white/10 bg-white/5 hover:border-afrikoni-gold/40'
+            }`}
           onClick={() => setExpanding(expanding === quote.id ? null : quote.id)}
         >
           <CardContent className="p-4">
@@ -129,7 +128,7 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
                   <Badge variant="outline" className="">
                     {quote.supplier?.country}
                   </Badge>
-                  <Badge 
+                  <Badge
                     variant="secondary"
                     className={
                       (quote.supplier?.trust_score || 0) >= 80
@@ -184,9 +183,15 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning })
                 </div>
 
                 {/* Select Button */}
+                {!capabilities?.can_buy && (
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3 mt-4">
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                    <p className="text-[10px] text-amber-200">Buyer capabilities required to select quotes.</p>
+                  </div>
+                )}
                 <Button
                   onClick={() => handleSelectQuote(quote.id)}
-                  disabled={isTransitioning || selectedQuoteId === quote.id}
+                  disabled={isTransitioning || selectedQuoteId === quote.id || !capabilities?.can_buy}
                   className="w-full hover:bg-afrikoni-gold/90 mt-4"
                 >
                   {selectedQuoteId === quote.id ? (

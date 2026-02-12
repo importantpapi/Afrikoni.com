@@ -36,7 +36,7 @@ const initialState = {
         totalValueUSD: 0,
         currency: 'USD',
         localCurrency: 'NGN', // Default pivot
-        exchangeRate: 1650.50,
+        exchangeRate: 0,
         escrowState: 'locked', // locked, funded, verified, released
         fees: {
             platform: 0,

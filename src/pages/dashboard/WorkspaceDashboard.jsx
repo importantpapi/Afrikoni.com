@@ -5,6 +5,7 @@ import OSShell from '@/layouts/OSShell';
 import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeManager';
 import { useTradeSystemState } from '@/hooks/useTradeSystemState';
 import { useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
+import { useNotificationCounts } from '@/hooks/useNotificationCounts';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
 
@@ -56,6 +57,7 @@ export default function WorkspaceDashboard() {
 
   const { systemState, refresh: refreshSystemState } = useTradeSystemState();
   const { mode, setMode } = useWorkspaceMode();
+  const { total: notificationCount } = useNotificationCounts();
 
   // ✅ KERNEL MIGRATION: Realtime Callback (Simplified)
   const handleRealtimeUpdate = useCallback((payload) => {
@@ -103,7 +105,7 @@ export default function WorkspaceDashboard() {
         workspaceMode={mode}
         onToggleMode={() => setMode(mode === 'simple' ? 'operator' : 'simple')}
         onOpenCommandPalette={() => { }} // Controlled within OSShell state now
-        notificationCount={0} // TODO: Connect to useNotificationCounts
+        notificationCount={notificationCount}
         isAdmin={isAdmin}
       >
         <DashboardRealtimeManager

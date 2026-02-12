@@ -394,7 +394,7 @@ export const useTradeSystemState = () => {
                     shipmentRisk,
                     corridorHealth: corridors || [],
                     avgCorridorHealth,
-                    estimatedDelay: 2, // Default to 2 days based on Lagos congestion
+                    estimatedDelay: 0,
                     customsStatus: 'clear',
                     activeShipments: {
                         total: shipments?.length || 0,
@@ -402,16 +402,7 @@ export const useTradeSystemState = () => {
                         delayed: shipments?.filter(s => s.delayed === true).length || 0, // SCHEMA SAFE: column might be missing
                         atRisk: shipments?.filter(s => s.risk_level === 'high').length || 0,
                     },
-                    alerts: [
-                        {
-                            id: 'lagos-congestion',
-                            type: 'congestion',
-                            severity: 'medium',
-                            title: 'Port Congestion: Lagos (Apapa)',
-                            message: 'Expect +2 days delivery delay due to high volume.',
-                            timestamp: new Date()
-                        }
-                    ]
+                    alerts: [] // Purged legacy Lagos congestion mock
                 },
 
                 intelligence: {

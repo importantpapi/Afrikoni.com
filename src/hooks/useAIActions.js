@@ -102,8 +102,8 @@ export function useAIActions() {
 
             // 3. RECOMMENDED: New RFQs matching products
             if (products.length > 0) {
-                // Mock: In real implementation, this would query for matching RFQs
-                const matchingRFQs = 3; // Mock count
+                // TODO: In real implementation, this would query for matching RFQs via AI / Vector search
+                const matchingRFQs = 0;
                 if (matchingRFQs > 0) {
                     generatedActions.push({
                         id: 'matching-rfqs',
@@ -120,17 +120,19 @@ export function useAIActions() {
                 }
             }
 
-            // 4. RECOMMENDED: Pricing below corridor average
+            // 4. RECOMMENDED: Pricing adjustments
+            // Gated by real data only
             products.forEach(product => {
-                // Mock: In real implementation, compare with corridor data
-                const corridorAvg = 2800;
+                // Only if we have real corridor benchmark data in the future
+                // Currently returning 0 to prevent placebo insights
+                const corridorAvg = 0;
                 const userPrice = product.price || 0;
-                if (userPrice > 0 && userPrice < corridorAvg * 0.85) {
+                if (corridorAvg > 0 && userPrice > 0 && userPrice < corridorAvg * 0.85) {
                     generatedActions.push({
                         id: `pricing-low-${product.id}`,
                         type: 'pricing',
                         priority: 'recommended',
-                        title: 'Your pricing is 15% below corridor average',
+                        title: 'Your pricing is below corridor average',
                         description: `"${product.name}" - Consider adjusting to increase margins`,
                         path: `/dashboard/products/${product.id}`,
                         actionLabel: 'Adjust Price',
@@ -156,31 +158,11 @@ export function useAIActions() {
                 }
             });
 
-            // 6. OPPORTUNITY: New corridor opened
-            // Mock: In real implementation, check for new active corridors
-            generatedActions.push({
-                id: 'new-corridor',
-                type: 'opportunity',
-                priority: 'opportunity',
-                title: 'New corridor opened: Ghana → UAE',
-                description: 'Explore opportunities in this growing trade route',
-                path: '/dashboard/corridors',
-                actionLabel: 'Explore',
-            });
+            // 6. OPPORTUNITY: Real data only
+            // Purged legacy mock corridor opened notification
 
             // 7. OPPORTUNITY: Returning buyer
-            // Mock: In real implementation, detect returning buyers
-            if (rfqs.length > 0) {
-                generatedActions.push({
-                    id: 'returning-buyer',
-                    type: 'opportunity',
-                    priority: 'opportunity',
-                    title: 'Buyer you quoted last week is back',
-                    description: 'Follow up to close the deal',
-                    path: '/dashboard/rfqs',
-                    actionLabel: 'Follow Up',
-                });
-            }
+            // Purged legacy mock returning buyer notification
 
             // Sort by priority
             const priorityOrder = { urgent: 0, recommended: 1, opportunity: 2 };

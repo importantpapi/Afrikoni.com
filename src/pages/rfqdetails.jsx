@@ -80,7 +80,7 @@ export default function RFQDetail() {
       const foundRFQ = Array.isArray(rfqsRes.data) && rfqsRes.data.length > 0 ? rfqsRes.data[0] : null;
       if (!foundRFQ) {
         toast.error('RFQ not found');
-        navigate(createPageUrl('BuyerDashboard'));
+        navigate('/dashboard');
         return;
       }
 
@@ -132,12 +132,12 @@ export default function RFQDetail() {
     // Security: Validate numeric inputs
     const pricePerUnit = parseFloat(quoteForm.price_per_unit);
     const quantity = parseFloat(rfq.quantity);
-    
+
     if (isNaN(pricePerUnit) || pricePerUnit <= 0) {
       toast.error('Invalid price');
       return;
     }
-    
+
     if (isNaN(quantity) || quantity <= 0) {
       toast.error('Invalid quantity');
       return;
@@ -175,13 +175,13 @@ export default function RFQDetail() {
       toast.error('Unauthorized: Only the RFQ buyer can award quotes');
       return;
     }
-    
+
     // Security: Validate UUIDs
     if (!quoteId || !supplierCompanyId || !rfq.id) {
       toast.error('Invalid quote or supplier ID');
       return;
     }
-    
+
     try {
       if (!linkedTradeId) {
         toast.error('Kernel trade not linked. Use Trade Workspace to advance.');

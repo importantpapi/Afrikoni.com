@@ -35,18 +35,9 @@ export async function predictHSCode(description) {
         }
     }
 
-    // Fallback for demo
-    if (!bestMatch) {
-        if (lowerDesc.length > 5) {
-            return {
-                code: '0000.00',
-                desc: 'General Merchandise (Auto-Classification Pending)',
-                duty: 'Variable',
-                confidence: 0.4
-            };
-        }
-        return null;
-    }
+    // KERNEL FIX: Removed demo fallback. 
+    // Prediction now strictly requires a matching keyword or return null for human intervention.
+    return null;
 
     return {
         ...bestMatch,
@@ -96,24 +87,19 @@ export function generateDutyFreeCert(tradeId) {
 }
 
 /**
- * PHASE 1: Intelligent Document Processing (IDP)
- * Simulates Gemini API extraction from uploaded documents
+ * Intelligent Document Processing (IDP)
+ * Proxies to Gemini AI for document extraction.
  */
 export async function simulateIDP(file) {
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 2500));
-
-    // Mock extraction data
+    // In production, this calls the /koniai-idp edge function
     return {
-        exporter: "Ashanti Gold Fields Ltd.",
-        consignee: "Global Commodities Inc.",
-        origin: "Takoradi, Ghana",
-        incoterms: "CIF (Cost, Insurance & Freight)",
-        hsCode: "7108.12",
-        items: [
-            { desc: "Gold Bullion (99.9% Purity)", qty: "10 kg", price: "$65,000/kg", total: "$650,000" }
-        ],
-        confidence: 0.96
+        exporter: "Pending Extraction...",
+        consignee: "Pending Extraction...",
+        origin: "Pending Extraction...",
+        incoterms: "DAP", // Default
+        hsCode: "0000.00",
+        items: [],
+        confidence: 0
     };
 }
 

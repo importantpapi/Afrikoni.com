@@ -145,7 +145,6 @@ const ShipmentsPage = lazy(() => import('./pages/dashboard/shipments'));
 const ShipmentDetailPage = lazy(() => import('./pages/dashboard/shipments/[id]'));
 const ShipmentNewPage = lazy(() => import('./pages/dashboard/shipments/new'));
 const FulfillmentPage = lazy(() => import('./pages/dashboard/fulfillment'));
-const LogisticsDashboardPage = lazy(() => import('./pages/dashboard/logistics-dashboard'));
 const LogisticsQuotePage = lazy(() => import('./pages/dashboard/logistics-quote'));
 const LogisticsPartnerPortalPage = lazy(() => import('./pages/logistics/LogisticsPartnerPortal'));
 
@@ -181,15 +180,10 @@ const TradePipelinePage = lazy(() => import('./pages/dashboard/trade-pipeline'))
 // QUICK TRADE WIZARD (The Killer Flow)
 const QuickTradeWizard = lazy(() => import('./pages/dashboard/QuickTradeWizard'));
 
-// LITE MODE DASHBOARD (SME Simplified Interface)
-const LiteModeDashboard = lazy(() => import('./pages/dashboard/LiteModeDashboard'));
-
 // 7. ANALYTICS & INTELLIGENCE
 const AnalyticsPage = lazy(() => import('./pages/dashboard/analytics'));
 const PerformancePage = lazy(() => import('./pages/dashboard/performance'));
 const KoniAIPage = lazy(() => import('./pages/dashboard/koniai'));
-const BuyerIntelligencePage = lazy(() => import('./pages/dashboard/buyer/intelligence'));
-const SellerIntelligencePage = lazy(() => import('./pages/dashboard/seller/intelligence'));
 
 // TRADE OS CONTROL PLANE (Mission Control)
 const ControlPlanePage = lazy(() => import('./pages/dashboard/control-plane'));
@@ -491,7 +485,6 @@ function AppContent() {
             <Route path="shipments/:id" element={<ShipmentDetailPage />} />
             <Route path="shipments/new" element={<ShipmentNewPage />} />
             <Route path="fulfillment" element={<FulfillmentPage />} />
-            <Route path="logistics-dashboard" element={<LogisticsDashboardPage />} />
             <Route path="logistics-quote" element={<LogisticsQuotePage />} />
             <Route path="logistics-portal" element={<LogisticsPartnerPortalPage />} />
 
@@ -536,18 +529,12 @@ function AppContent() {
             <Route path="trace-center" element={<TraceCenterPage />} /> {/* [NEW] Visual Command */}
 
             {/* QUICK TRADE WIZARD (The Killer Flow) */}
-            <Route path="quick-trade" element={<QuickTradeWizard />} />
             <Route path="quick-trade/new" element={<QuickTradeWizard />} />
-
-            {/* LITE MODE DASHBOARD (SME Simplified Interface) */}
-            <Route path="lite" element={<LiteModeDashboard />} />
 
             {/* 7. ANALYTICS & INTELLIGENCE */}
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="performance" element={<PerformancePage />} />
             <Route path="koniai" element={<KoniAIPage />} />
-            <Route path="buyer-intelligence" element={<BuyerIntelligencePage />} />
-            <Route path="seller-intelligence" element={<SellerIntelligencePage />} />
 
             {/* TRADE OS CONTROL PLANE (Mission Control) */}
             <Route path="control-plane" element={<ControlPlanePage />} />

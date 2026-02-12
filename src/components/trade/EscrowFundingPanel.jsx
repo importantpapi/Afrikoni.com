@@ -17,7 +17,7 @@ import { initiateEscrowPayment, fundEscrow } from '@/services/escrowService';
 import { validateTradeCompliance } from '@/services/complianceService';
 import { TRADE_STATE } from '@/services/tradeKernel';
 
-export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning }) {
+export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
   const [escrow, setEscrow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -26,24 +26,19 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning 
   const [stripeClientSecret, setStripeClientSecret] = useState(null);
   const [paymentIntentId, setPaymentIntentId] = useState(null);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
   const [compliance, setCompliance] = useState(null);
   const [complianceLoading, setComplianceLoading] = useState(false);
 
   useEffect(() => {
-    loadUserAndEscrow();
+    loadEscrow();
   }, [trade?.id]);
 
   useEffect(() => {
     loadCompliance();
   }, [trade?.id]);
 
-  async function loadUserAndEscrow() {
+  async function loadEscrow() {
     try {
-      // Get current user
-      const { data: { user: userData } } = await supabase.auth.getUser();
-      setUser(userData);
-
       // Load escrow for this trade
       const { data, error: escrowError } = await supabase
         .from('escrows')
@@ -73,7 +68,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning 
   }
 
   async function handleInitiatePayment() {
-    if (!escrow || !user) return;
+    if (!escrow || !profile) return;
     if (compliance && compliance.compliant === false) return;
 
     setProcessing(true);
@@ -83,7 +78,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning 
       // Create payment intent via Stripe
       const result = await initiateEscrowPayment({
         escrowId: escrow.id,
-        buyerEmail: user.email,
+        buyerEmail: profile?.email || 'test@test.com',
         amount: escrow.amount,
         currency: escrow.currency
       });
@@ -112,7 +107,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning 
       // In real implementation with Stripe.js loaded,
       // we would call stripe.confirmCardPayment here
       // For now, we simulate successful payment and call webhook manually
-      
+
       // In production: For demo purposes, manually trigger the success flow
       // Real flow: Stripe.js handles payment confirmation and webhook triggers
       const result = await fundEscrow({
@@ -306,13 +301,13 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning 
                     {paymentMethod === 'bank' && 'Complete bank transfer using the details provided'}
                     {paymentMethod === 'crypto' && 'Send USDC/USDT to the wallet address shown'}
                   </p>
-                  
+
                   {/* Stripe Elements will be mounted here when @stripe/react-stripe-js is available */}
                   <div id="stripe-card-element" className="min-h-12 p-3 border rounded-lg">
                     {/* Stripe.js Elements component will render here */}
                     <p className="text-xs">Card element will load when Stripe.js is available</p>
                   </div>
-                  
+
                   <p className="text-xs mt-3">
                     Your card details are encrypted and only processed by Stripe.
                   </p>
@@ -330,7 +325,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning 
                   </Button>
                   <Button
                     onClick={handleConfirmPayment}
-                    disabled={processing || isTransitioning}
+                    disabled={processing || isTransitioning || !capabilities?.can_buy}
                     className="flex-1 hover:bg-afrikoni-gold/90 font-semibold"
                   >
                     {processing || isTransitioning ? (
@@ -340,6 +335,12 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning 
                     )}
                   </Button>
                 </div>
+                {!capabilities?.can_buy && (
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3 mt-4">
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                    <p className="text-[10px] text-amber-200">Buyer capabilities required to fund escrow.</p>
+                  </div>
+                )}
               </>
             )}
           </>

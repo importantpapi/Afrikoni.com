@@ -179,24 +179,23 @@ export function useTradeKernelState(): TradeKernelState {
 
     load();
 
-    // Supabase Realtime subscription for trades table
-    channel = supabase.channel(`dashboard-trades-${profileCompanyId}`);
-    channel.on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'trades',
-      },
-      () => {
-        if (isMounted) load(); // Refetch dashboard data on any change
+    // ✅ KERNEL CONSOLIDATION: Listen for unified realtime events from DashboardRealtimeManager
+    // This removes the duplicate channel subscription and ensures single-point-of-truth updates.
+    const handleRealtimeUpdate = (e: any) => {
+      const { table, event } = e.detail || {};
+      const relevantTables = ['trades', 'escrows', 'shipments', 'companies'];
+
+      if (relevantTables.includes(table)) {
+        console.log(`[useTradeKernelState] 🔄 Update triggered by ${table}.${event}`);
+        if (isMounted) load();
       }
-    );
-    channel.subscribe();
+    };
+
+    window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
 
     return () => {
       isMounted = false;
-      if (channel) channel.unsubscribe();
+      window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
     };
   }, [canLoadData, profileCompanyId]);
 

@@ -29,6 +29,7 @@ import ShipmentTrackingPanel from '@/components/trade/ShipmentTrackingPanel';
 import DeliveryAcceptancePanel from '@/components/trade/DeliveryAcceptancePanel';
 import MultiSigBridge from '@/components/trade/MultiSigBridge';
 import { Surface } from '@/components/system/Surface';
+import { OSStatusBar } from '@/components/system/OSStatusBar';
 import { ArrowLeft, Fingerprint, ShieldAlert, Cpu } from 'lucide-react';
 
 /**
@@ -56,7 +57,7 @@ const FLOW_PANELS = {
 export default function OneFlow() {
   const { tradeId } = useParams();
   const navigate = useNavigate();
-  const { isSystemReady, canLoadData } = useDashboardKernel();
+  const { isSystemReady, canLoadData, profile, capabilities } = useDashboardKernel();
 
   const [trade, setTrade] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,25 +92,20 @@ export default function OneFlow() {
   }, [canLoadData, tradeId]);
 
   useEffect(() => {
-    if (!tradeId) return;
-    const channel = supabase.channel(`trade:${tradeId}`);
-    channel.on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'trades',
-        filter: `id=eq.${tradeId}`
-      },
-      (payload) => {
-        if (payload?.new) {
-          setTrade(payload.new);
-        }
+    if (!tradeId || !canLoadData) return;
+
+    // ✅ KERNEL CONSOLIDATION: Listen for unified realtime events
+    const handleRealtimeUpdate = (e) => {
+      const { table, event, new: newData } = e.detail || {};
+      if (table === 'trades' && newData?.id === tradeId) {
+        console.log(`[OneFlow] 🔄 Realtime update for trade ${tradeId}`);
+        setTrade(newData);
       }
-    );
-    channel.subscribe();
-    return () => channel.unsubscribe();
-  }, [tradeId]);
+    };
+
+    window.addEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+    return () => window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
+  }, [tradeId, canLoadData]);
 
   async function loadTrade() {
     try {
@@ -181,27 +177,31 @@ export default function OneFlow() {
     <div className="min-h-screen bg-gradient-to-br from-[#0B0C0F] via-[#0E1218] to-[#10141C]">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* COMMAND HEADER */}
-        <div className="mb-8 flex items-start justify-between gap-6">
-          <div>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="">
+        <div className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div className="flex-1">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="pl-0 hover:bg-transparent text-os-muted">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Command Center
             </Button>
-            <h1 className="text-3xl md:text-4xl font-bold mt-4 tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight bg-gradient-to-r from-white via-white/80 to-afrikoni-gold bg-clip-text text-transparent">
               {trade.title}
             </h1>
-            <p className="text-sm mt-2">
-              {trade.buyer?.company_name} {trade.seller ? `→ ${trade.seller.company_name}` : ''}
+            <p className="text-xs text-os-muted font-mono mt-1 uppercase tracking-widest">
+              {trade.buyer?.company_name} <span className="mx-2 opacity-30">/</span> {trade.seller ? trade.seller.company_name : 'PENDING'}
             </p>
           </div>
-          <div className="rounded-2xl border px-4 py-3 text-right">
-            <p className="text-[10px] uppercase tracking-[0.25em]">Kernel State</p>
-            <p className="text-sm font-semibold">
-              {TRADE_STATE_LABELS[trade.status] || trade.status}
-            </p>
-            <p className="text-xs mt-2">
-              {nextActionHints[trade.status]}
-            </p>
+
+          <div className="flex flex-col items-end gap-3">
+            <OSStatusBar />
+            <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur px-4 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-os-muted">Kernel State</p>
+              <div className="flex items-center justify-end gap-2 mt-0.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-afrikoni-gold animate-pulse shadow-[0_0_8px_rgba(212,169,55,0.5)]" />
+                <p className="text-sm font-semibold text-afrikoni-gold uppercase tracking-tight">
+                  {TRADE_STATE_LABELS[trade.status] || trade.status}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -229,6 +229,8 @@ export default function OneFlow() {
                     trade={trade}
                     onNextStep={handleStateTransition}
                     isTransitioning={isTransitioning}
+                    capabilities={capabilities}
+                    profile={profile}
                   />
                 </motion.div>
               </AnimatePresence>

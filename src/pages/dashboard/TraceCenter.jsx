@@ -24,25 +24,13 @@ export default function TraceCenter() {
         return <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">Loading...</div>;
     }
 
-    // Simulate Trade Initiation on Mount (for Demo)
+    // ✅ KERNEL FIX: Removed automatic demo-trade initiation. 
+    // Trace Center now strictly reflects existing trade state or requires an explicit initiation via the UI.
     useEffect(() => {
-        if (state.status === 'idle') {
-            initiateTrade(
-                {
-                    name: 'Grade A Cocoa Beans via Cotonou',
-                    category: 'cocoa'
-                },
-                {
-                    amountUSD: 45000,
-                    localCurrency: 'NGN'
-                },
-                {
-                    origin: 'Lagos, Nigeria',
-                    destination: 'Rotterdam, Netherlands'
-                }
-            );
+        if (state.status === 'active') {
+            console.log('[TraceCenter] Resuming trace for:', state.tradeId);
         }
-    }, []); // Run once
+    }, [state.status, state.tradeId]);
 
     // Calculate Money Map Progress
     const moneyProgress =

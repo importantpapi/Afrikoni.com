@@ -221,6 +221,28 @@ export default function DashboardRealtimeManager({
           console.log('[RealtimeManager] New message');
           invokeCallback('messages', payload.eventType, payload.new);
         }
+      )
+      // -----------------------------------------------------------------
+      // Trades (Unified OS Kernel)
+      // ✅ FULL-STACK SYNC: Single source for trade state changes
+      // -----------------------------------------------------------------
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'trades',
+        },
+        (payload) => {
+          // Check if trade belongs to company (RLS also handles this, but we filter for safety)
+          const trade = payload.new || payload.old;
+          const isBelonging = trade && (trade.buyer_id === companyId || trade.seller_id === companyId);
+
+          if (isBelonging) {
+            console.log('[RealtimeManager] Trade change detected:', payload.eventType);
+            invokeCallback('trades', payload.eventType, payload.new || payload.old);
+          }
+        }
       );
 
     // -----------------------------------------------------------------

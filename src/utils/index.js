@@ -12,6 +12,7 @@ export const createPageUrl = (pageName) => {
     'Orders': '/orders',
     'OrderDetail': '/order',
     'Messages': '/messages',
+    // ✅ UNIFIED WORKSPACE: Legacy role-based aliases point to the unified kernel dashboard
     'SellerDashboard': '/dashboard',
     'BuyerDashboard': '/dashboard',
     'AdminDashboard': '/dashboard/admin',
