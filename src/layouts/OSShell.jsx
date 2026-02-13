@@ -138,10 +138,11 @@ export default function OSShell({
                 >
                 </div>
 
-                {/* Identity Layer - Below system layer */}
+                {/* Identity Layer - Below system layer, respects sidebar boundaries */}
                 <div
-                    className="fixed left-0 right-0 border-b border-afrikoni-gold/10"
+                    className="fixed right-0 border-b border-afrikoni-gold/10"
                     style={{
+                        left: `${OS_DIMENSIONS.workspaceNav.collapsed}px`, // Start after sidebar
                         top: `${OS_DIMENSIONS.systemLayer.height}px`,
                         height: `${OS_DIMENSIONS.identityLayer.height}px`,
                         zIndex: OS_Z_INDEX.identityLayer
@@ -150,7 +151,7 @@ export default function OSShell({
                     {/* Glass Background - Horizon 2026 Heavy Blur (32px) */}
                     <div className="absolute inset-0 bg-[hsl(var(--background))]/60 backdrop-blur-[32px] backdrop-saturate-150" />
 
-                    <div className="relative z-10 w-full h-full md:pl-[var(--os-sidebar-width,72px)] transition-all duration-300">
+                    <div className="relative z-10 w-full h-full transition-all duration-300">
                         <IdentityLayer
                             user={user}
                             profile={profile}
