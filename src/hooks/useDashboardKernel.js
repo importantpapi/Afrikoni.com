@@ -35,6 +35,10 @@ export function useDashboardKernel() {
   const [preWarming, setPreWarming] = useState(false);
   const preWarmingTimeoutRef = useRef(null);
 
+  // ✅ KERNEL RECOVERY: Organization/Company state
+  const [organization, setOrganization] = useState(null);
+  const [orgLoading, setOrgLoading] = useState(false);
+
   const result = useMemo(() => {
     const profileCompanyId = profile?.company_id || null;
 
@@ -70,9 +74,11 @@ export function useDashboardKernel() {
       capabilities,
       isPreWarming, // ✅ FULL-STACK SYNC: Export pre-warming state
       // ✅ FULL-STACK SYNC: Standardize isHybrid
-      isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true
+      isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true,
+      organization,
+      orgLoading
     };
-  }, [user, profile, authReady, authLoading, capabilities]);
+  }, [user, profile, authReady, authLoading, capabilities, organization, orgLoading]);
 
   // ✅ NETWORK RECOVERY: Listen for online event to re-trigger handshake
   useEffect(() => {
@@ -139,6 +145,37 @@ export function useDashboardKernel() {
     }, 3000);
     return () => clearTimeout(timer);
   }, [result.isSystemReady, result.isPreWarming, authReady, authLoading, capabilities.ready, user, profile]);
+
+  // ✅ KERNEL RECOVERY: Fetch Organization data when company ID becomes available
+  useEffect(() => {
+    if (!result.profileCompanyId) return;
+
+    const fetchOrg = async () => {
+      setOrgLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', result.profileCompanyId)
+          .single();
+
+        if (!error && data) {
+          setOrganization(data);
+        }
+      } catch (err) {
+        console.error('[useDashboardKernel] Failed to fetch organization:', err);
+      } finally {
+        setOrgLoading(false);
+      }
+    };
+
+    fetchOrg();
+
+    // Listen for manual refreshes
+    const handleRefresh = () => fetchOrg();
+    window.addEventListener('refresh-data', handleRefresh);
+    return () => window.removeEventListener('refresh-data', handleRefresh);
+  }, [result.profileCompanyId]);
 
   // ✅ FINAL CLEANUP: Return result object (isPreWarming is already included)
   // Removed duplicate preWarming state return - use isPreWarming from result object

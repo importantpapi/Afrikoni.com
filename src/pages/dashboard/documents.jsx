@@ -3,8 +3,10 @@ import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import TradeDocument from '@/components/documents/TradeDocument';
 import { Surface } from "@/components/system/Surface";
 import { Button } from "@/components/shared/ui/button";
-import { Download, Share2, Plus, Lock, CreditCard } from 'lucide-react';
+import { Download, Share2, Plus, Lock, CreditCard, Sparkles, FileSearch, Zap, Fingerprint } from 'lucide-react';
 import { checkDocumentAccess } from '@/services/revenueEngine';
+import KoniAIService from '@/services/KoniAIService';
+import { toast } from 'sonner';
 
 export default function DocumentsPage() {
     const { isSystemReady } = useDashboardKernel();
@@ -16,24 +18,37 @@ export default function DocumentsPage() {
     const [docData, setDocData] = useState({});
     const [generated, setGenerated] = useState(false);
 
-    // Simulate AI Generation (Phase 1: IDP)
-    const handleAutoFill = async () => {
-        setDocData({}); // Clear current
-        // Simulate IDP extraction delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+    const [isExtracting, setIsExtracting] = useState(false);
 
-        setDocData({
-            exporter: "Cocoa Exports Ltd (Ghana)",
-            consignee: "British Chocolate Co. (UK)",
-            origin: "Accra, Ghana",
-            incoterms: "FOB (Free On Board)",
-            items: [
-                { desc: "Premium Cocoa Beans (Grade A)", qty: "50 MT", price: "$2,400", total: "$120,000" },
-                { desc: "Packaging & Handling", qty: "1", price: "$500", total: "$500" }
-            ],
-            source: "AI Extracted (Gemini IDP)"
-        });
-        setGenerated(true);
+    // AI DNA Extractor Protocol v2.0 (Gemini 3 Upgrade) 
+    const handleAutoFill = async (imageData = null) => {
+        setIsExtracting(true);
+        setDocData({});
+
+        try {
+            toast.info('Engaging Gemini 3 DNA Extractor...', { icon: <Sparkles className="w-4 h-4 text-afrikoni-gold" /> });
+
+            const extracted = await KoniAIService.extractDNA({
+                documentType: activeDoc,
+                imageData, // Supports multimodal OCR if provided
+                context: {
+                    origin: 'DocumentsDashboard',
+                    timestamp: new Date().toISOString()
+                }
+            });
+
+            setDocData({
+                ...extracted,
+                source: "Sovereign DNA Extractor (Gemini 3 Flash)"
+            });
+            setGenerated(true);
+            toast.success('Document DNA extracted & parsed');
+        } catch (error) {
+            console.error('DNA Extraction error:', error);
+            toast.error('DNA Extraction failed. Reverting to manual entry.');
+        } finally {
+            setIsExtracting(false);
+        }
     };
 
     return (

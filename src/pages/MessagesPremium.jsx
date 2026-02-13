@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, Paperclip, Search, MoreVertical, Phone, Video, MapPin,
   Shield, CheckCircle, CheckCircle2, Clock, User, Verified, Star, X, File, Image as ImageIcon,
-  FileText, Download, Eye, Loader2, Sparkles, Globe, ShoppingCart, Receipt, Truck, Languages, ArrowLeft
+  FileText, Download, Eye, Loader2, Sparkles, Globe, ShoppingCart, Receipt, Truck, Languages, ArrowLeft,
+  Terminal, ShieldCheck, Activity, Box, Package, Shell
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Input } from '@/components/shared/ui/input';
@@ -24,6 +25,9 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { generateBuyerInquiry } from '@/ai/aiFunctions';
 import OffPlatformDisclaimer from '@/components/OffPlatformDisclaimer';
 import { scanForLeakage, SOVEREIGN_WARNING } from '@/services/forensicSentinel';
+import { Surface } from '@/components/system/Surface';
+import { cn } from '@/lib/utils';
+
 
 export default function MessagesPremium() {
   const { t } = useLanguage();
@@ -67,8 +71,8 @@ export default function MessagesPremium() {
     setIsGeneratingAI(true);
     try {
       const result = await generateBuyerInquiry(product, {
-        companyName: currentUser?.company_name || '',
-        country: currentUser?.country || ''
+        companyName: profile?.company_name || '',
+        country: profile?.country || ''
       });
 
       if (result.success && result.message) {
@@ -799,832 +803,453 @@ export default function MessagesPremium() {
   }
 
   return (
-    <div className="min-h-screen os-panel-gradient relative overflow-hidden">
+    <div className="os-page os-stagger max-w-[1600px] mx-auto pb-20 px-4 py-8 h-[calc(100vh-100px)] flex flex-col space-y-8 overflow-hidden">
       {/* Ambient Depth Orbs */}
-      <div className="os-ambient-orb" style={{ top: '10%', left: '15%', background: 'radial-gradient(circle, rgba(212,169,55,0.12) 0%, transparent 70%)', width: '400px', height: '400px' }} />
-      <div className="os-ambient-orb" style={{ bottom: '20%', right: '10%', background: 'radial-gradient(circle, rgba(139,69,19,0.08) 0%, transparent 70%)', width: '350px', height: '350px' }} />
-      
+      <div className="os-ambient-orb opacity-10" style={{ top: '10%', left: '15%', width: '400px', height: '400px' }} />
+      <div className="os-ambient-orb opacity-5" style={{ bottom: '20%', right: '10%', width: '350px', height: '350px' }} />
+
       {/* FORENSIC SENTINEL: Sovereign Warning Modal */}
       {leakageWarning && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-xl">
-          <div className="os-panel-glass border border-red-500/30 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl shadow-red-900/20 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-orange-600" />
-            <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">{leakageWarning.title}</h3>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-2xl">
+          <Surface variant="glass" className="border-red-500/30 rounded-[2rem] max-w-md w-full p-10 text-center shadow-2xl shadow-red-900/40 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
+            <div className="w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-red-500/5">
+              <Shield className="w-10 h-10 text-red-500" />
+            </div>
+            <h3 className="text-2xl font-black tracking-tight mb-3 italic">{leakageWarning.title}</h3>
+            <p className="text-os-muted mb-8 leading-relaxed font-medium">
               {leakageWarning.message}
             </p>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               <Button
-                className="w-full bg-white dark:bg-white text-black hover:bg-gray-200 font-bold"
+                className="w-full bg-white text-black hover:bg-white/90 font-black py-7 rounded-2xl shadow-xl shadow-white/5 active:scale-95 transition-all"
                 onClick={() => setLeakageWarning(null)}
               >
-                I Understand - Return to Safety
+                I UNDERSTAND - ESCAPE TO SAFETY
               </Button>
               <button
-                className="text-xs text-red-500 hover:text-red-400 font-medium underline decoration-red-500/30 underline-offset-4"
+                className="text-[10px] text-red-500/60 hover:text-red-400 font-black uppercase tracking-[0.2em] underline-offset-8 underline decoration-red-500/20"
                 onClick={() => {
                   setLeakageWarning(null);
                   handleSendMessage(true);
                 }}
               >
-                Proceed (Void Warranty)
+                Proceed (Void Horizon Warranty)
               </button>
-              <p className="text-[10px] text-red-500/50 uppercase tracking-widest font-mono mt-2">
-                Protocol Violation Detected will be logged on blockchain
-              </p>
             </div>
-          </div>
+          </Surface>
         </div>
       )}
 
-      {/* Header */}
-      <div className="os-panel-glass border-b border-[#D4A937]/20 sticky top-0 z-30 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              {/* Back Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-                className="flex items-center gap-2 text-foreground/70 hover:text-[#D4A937] hover:bg-[#D4A937]/10"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back</span>
-              </Button>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">Messages</h1>
-                <p className="text-sm text-afrikoni-deep">Communicate with your business partners</p>
+      {/* Header Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 shrink-0">
+        <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="h-12 w-12 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 text-os-muted hover:text-white"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-afrikoni-gold/10 rounded-lg">
+                  <MessageSquare className="w-6 h-6 text-afrikoni-gold" />
+                </div>
+                <h1 className="text-4xl font-black tracking-tighter">Sovereign Comms</h1>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="info" className="text-xs">
-                Protected by Afrikoni Trade Protection
-              </Badge>
+              <p className="text-os-muted text-lg font-medium opacity-80 italic">Protected institutional messaging.</p>
             </div>
           </div>
         </div>
+        <div className="flex items-center gap-4">
+          <Surface variant="panel" className="px-5 py-2.5 flex items-center gap-4 border-white/5 bg-white/[0.02]">
+            <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Channel Status: Encrypted
+            </div>
+            <div className="w-px h-6 bg-white/10" />
+            <Badge variant="outline" className="border-white/10 text-[10px] uppercase font-bold text-os-muted">Trade Protection Active</Badge>
+          </Surface>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-10">
-        <div className="grid lg:grid-cols-12 gap-3 md:gap-4 lg:gap-6">
-          {/* Conversations List */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`${selectedConversation ? 'hidden lg:block' : 'lg:col-span-4'} lg:col-span-4`}
-          >
-            <Card className="h-full flex flex-col border-[#D4A937]/20 shadow-lg os-panel-glass">
-              {/* Search */}
-              <div className="p-3 md:p-4 border-b border-[#D4A937]/10">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder={t('messages.searchConversations')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 text-sm md:text-base min-h-[44px] sm:min-h-0 bg-background/50 backdrop-blur-sm border-[#D4A937]/20"
-                  />
-                </div>
+      {/* Main Architecture */}
+      <div className="flex-1 flex gap-8 min-h-0 relative">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className={cn("w-full lg:w-[400px] flex flex-col gap-6 shrink-0", selectedConversation ? 'hidden lg:flex' : 'flex')}
+        >
+          <Surface variant="glass" className="flex-1 flex flex-col p-0 overflow-hidden relative">
+            <div className="p-6 border-b border-white/5 bg-white/[0.02]">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-os-muted mb-6">Directory</h3>
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-muted group-focus-within:text-afrikoni-gold transition-colors" />
+                <Input
+                  placeholder="Filter transmissions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-12 pl-12 bg-white/5 border-white/10 rounded-2xl text-xs font-bold tracking-tight focus:ring-afrikoni-gold/20"
+                />
               </div>
-
-              {/* Conversations */}
-              <div className="flex-1">
-                {filteredConversations.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm">{t('messages.noConversations')}</p>
-                    <p className="text-xs mt-2">Start a conversation from a product, RFQ, or order</p>
-                  </div>
-                ) : (
-                  <VirtualList
-                    items={filteredConversations}
-                    itemHeight={96}
-                    containerHeight={400}
-                    className="h-full divide-y divide-[#D4A937]/10"
-                    getItemKey={(conv) => conv.id}
-                    renderItem={(conv) => {
-                      const isSelected = selectedConversation === conv.id;
-                      const unreadCount = Array.isArray(messages) ? messages.filter(
-                        m => m.conversation_id === conv.id &&
-                          !m.read &&
-                          m.receiver_company_id === companyId
-                      ).length : 0;
-
-                      return (
-                        <button
-                          onClick={() => setSelectedConversation(conv.id)}
-                          className={`
-                            w-full p-3 sm:p-4 text-left transition-all hover:bg-[#D4A937]/5 min-h-[60px] sm:min-h-0
-                            ${isSelected ? 'bg-[#D4A937]/10 border-l-4 border-[#D4A937]' : ''}
-                          `}
-                        >
-                          <div className="flex items-start gap-2 sm:gap-3">
-                            <div className="relative flex-shrink-0">
-                              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#D4A937]/20 rounded-full flex items-center justify-center">
-                                {conv.otherCompany?.logo_url ? (
-                                  <img
-                                    src={conv.otherCompany.logo_url}
-                                    alt={conv.otherCompany.company_name}
-                                    className="w-full h-full rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-[#D4A937]" />
-                                )}
-                              </div>
-                              {conv.verified && (
-                                <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-[#D4A937] rounded-full flex items-center justify-center border-2 border-background">
-                                  <Verified className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-black" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1 gap-2">
-                                <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
-                                  <span className="font-semibold text-foreground text-xs sm:text-sm truncate">
-                                    {conv.otherCompany?.company_name || 'Unknown Company'}
-                                  </span>
-                                  {conv.verified && (
-                                    <Badge variant="verified" className="text-[10px] sm:text-xs px-1 sm:px-1.5 py-0 flex-shrink-0">✓</Badge>
-                                  )}
-                                </div>
-                                {unreadCount > 0 && (
-                                  <Badge className="bg-afrikoni-gold text-afrikoni-charcoal text-[10px] sm:text-xs min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 flex items-center justify-center flex-shrink-0">
-                                    {unreadCount}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="text-xs sm:text-sm text-afrikoni-deep truncate flex-1">
-                                  {conv.lastMessage || conv.subject || 'No messages yet'}
-                                </p>
-                                <span className="text-[10px] sm:text-xs text-afrikoni-deep/70 flex-shrink-0">
-                                  {conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : ''}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-afrikoni-deep/70 capitalize">{conv.role || ''}</span>
-                                {conv.country && (
-                                  <>
-                                    <span className="text-xs text-afrikoni-deep/70">•</span>
-                                    <div className="flex items-center gap-1">
-                                      <MapPin className="w-3 h-3 text-afrikoni-deep/70" />
-                                      <span className="text-xs text-afrikoni-deep/70">{conv.country}</span>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    }}
-                  />
-                )}
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Chat Interface + AI helper */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`${selectedConversation ? 'lg:col-span-8' : 'hidden lg:block lg:col-span-8'} lg:col-span-8 flex flex-col xl:flex-row gap-3`}
-          >
-            <Card className="h-full flex flex-col border-[#D4A937]/20 shadow-lg os-panel-glass flex-1">
-              {selectedConversation && selectedConv ? (
-                <>
-                  {/* Chat Header */}
-                  <div className="p-3 md:p-4 border-b border-[#D4A937]/10 bg-background/50 backdrop-blur-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                        {/* Mobile: Back to conversation list */}
-                        <button
-                          onClick={() => setSelectedConversation(null)}
-                          className="lg:hidden mr-2 p-1 hover:bg-afrikoni-gold/10 rounded"
-                          aria-label="Back to conversations"
-                        >
-                          <ArrowLeft className="w-4 h-4" />
-                        </button>
-                        <div className="relative">
-                          <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                            {selectedConv.otherCompany?.logo_url ? (
-                              <img
-                                src={selectedConv.otherCompany.logo_url}
-                                alt={selectedConv.otherCompany.company_name}
-                                className="w-full h-full rounded-full object-cover"
-                              />
-                            ) : (
-                              <User className="w-5 h-5 text-afrikoni-gold" />
-                            )}
-                          </div>
-                          {selectedConv.verified && (
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-afrikoni-gold rounded-full flex items-center justify-center border-2 border-afrikoni-offwhite">
-                              <Verified className="w-2.5 h-2.5 text-afrikoni-chestnut" />
-                            </div>
-                          )}
+            </div>
+            <div className="flex-1 overflow-y-auto scrollbar-none divide-y divide-white/5">
+              {filteredConversations.map((conv) => {
+                const isSelected = selectedConversation === conv.id;
+                const unreadCount = Array.isArray(messages) ? messages.filter(m => m.conversation_id === conv.id && !m.read && m.receiver_company_id === companyId).length : 0;
+                return (
+                  <button key={conv.id} onClick={() => setSelectedConversation(conv.id)} className={cn("w-full p-6 text-left transition-all relative group", isSelected ? "bg-afrikoni-gold/10" : "hover:bg-white/[0.03]")}>
+                    {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-afrikoni-gold" />}
+                    <div className="flex items-start gap-4">
+                      <div className="relative shrink-0">
+                        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                          {conv.otherCompany?.logo_url ? <img src={conv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" /> : <User className="w-6 h-6 text-os-muted" />}
                         </div>
-                        <div className="min-w-0 flex-1">
+                        {conv.verified && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-afrikoni-gold rounded-lg flex items-center justify-center border-2 border-os-surface-1 shadow-lg"><ShieldCheck className="w-3 h-3 text-black" /></div>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1 gap-4">
+                          <span className="font-black text-sm truncate tracking-tight text-white group-hover:text-afrikoni-gold transition-colors">{conv.otherCompany?.company_name || 'Anonymous Peer'}</span>
+                          <span className="text-[9px] font-black text-os-muted uppercase tracking-widest shrink-0 opacity-50">{conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : ''}</span>
+                        </div>
+                        <p className="text-xs text-os-muted truncate font-medium max-w-[200px] mb-2 opacity-80 italic">{conv.lastMessage || conv.subject || 'Waiting for uplink...'}</p>
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-afrikoni-chestnut truncate text-sm md:text-base">
-                              {selectedConv.otherCompany?.company_name || 'Unknown Company'}
-                            </h3>
-                            {selectedConv.verified && (
-                              <Badge variant="verified" className="text-xs flex-shrink-0">Verified</Badge>
-                            )}
+                            <Globe className="w-3 h-3 text-os-muted opacity-40" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-os-muted opacity-60 truncate max-w-[120px]">{conv.country || 'Global Node'}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-afrikoni-deep">
-                            <span className="capitalize truncate">{selectedConv.role || ''}</span>
-                            {selectedConv.country && (
-                              <>
-                                <span className="hidden sm:inline">•</span>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  <MapPin className="w-3 h-3" />
-                                  <span className="hidden sm:inline">{selectedConv.country}</span>
-                                </div>
-                              </>
-                            )}
-                          </div>
+                          {unreadCount > 0 && <Badge className="bg-afrikoni-gold text-black text-[9px] font-black px-2 py-0.5 rounded-lg"> {unreadCount} NEW </Badge>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-                        <Tooltip content="Voice Call">
-                          <Button variant="ghost" size="sm" className="p-1.5 md:p-2 hidden sm:flex">
-                            <Phone className="w-4 h-4" />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip content="Video Call">
-                          <Button variant="ghost" size="sm" className="p-1.5 md:p-2 hidden sm:flex">
-                            <Video className="w-4 h-4" />
-                          </Button>
-                        </Tooltip>
-                        <Button variant="ghost" size="sm" className="p-1.5 md:p-2">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </Surface>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className={cn("flex-1 flex gap-8 min-w-0", selectedConversation ? 'flex' : 'hidden lg:flex')}
+        >
+          <Surface variant="glass" className="flex-1 flex flex-col p-0 overflow-hidden relative border-white/10 shadow-massive">
+            {selectedConversation && selectedConv ? (
+              <>
+                <div className="p-8 border-b border-white/5 bg-white/[0.02] backdrop-blur-2xl z-20 flex items-center justify-between relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 blur-[80px] pointer-events-none" />
+                  <div className="flex items-center gap-6 relative z-10 min-w-0">
+                    <button onClick={() => setSelectedConversation(null)} className="lg:hidden h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10"> <ArrowLeft className="w-5 h-5" /> </button>
+                    <div className="relative shrink-0">
+                      <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                        {selectedConv.otherCompany?.logo_url ? <img src={selectedConv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" /> : <User className="w-8 h-8 text-os-muted" />}
+                      </div>
+                      {selectedConv.verified && <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-afrikoni-gold rounded-xl flex items-center justify-center border-3 border-os-surface-1 shadow-lg"> <ShieldCheck className="w-3.5 h-3.5 text-black" /> </div>}
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-black text-2xl tracking-tighter truncate text-white">{selectedConv.otherCompany?.company_name || 'Institutional Peer'}</h3>
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-emerald-500/20 text-emerald-500 bg-emerald-500/10">Active Session</Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs font-bold text-os-muted opacity-60 italic uppercase tracking-widest">
+                        <span className="truncate">{selectedConv.role || 'Partner'}</span>
+                        <span className="opacity-40">•</span>
+                        <span className="flex items-center gap-2"> <Globe className="w-3 h-3" /> {selectedConv.country || 'Global'} </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Protection Banner */}
-                  <div className="px-4 py-2 bg-[#D4A937]/10 border-b border-[#D4A937]/20 backdrop-blur-sm">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-                      <Shield className="w-4 h-4 text-[#D4A937] flex-shrink-0" />
-                      <span className="font-semibold">Protected by Afrikoni Trade Protection</span>
-                      <span className="hidden sm:inline text-afrikoni-deep/70">•</span>
-                      <span className="text-afrikoni-deep/70">{t('messages.safetyWarning') || 'Do not send money outside the platform'}</span>
+                  <div className="flex items-center gap-4 relative z-10 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10"> <MoreVertical className="w-5 h-5 text-os-muted" /> </Button>
+                  </div>
+                </div>
+                <div className="bg-afrikoni-gold/5 border-b border-afrikoni-gold/10 px-8 py-3 backdrop-blur-md z-10 flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-afrikoni-gold"> <Shield className="w-3.5 h-3.5" /> Trade Integrity Active </div>
+                  <div className="w-px h-4 bg-afrikoni-gold/20" />
+                  <p className="text-[10px] font-bold text-os-muted opacity-80 italic">Protected by Horizon Sovereign Shield v2.4</p>
+                </div>
+                {selectedConversation && (
+                  <div className="px-8 py-3 border-b border-white/5 bg-white/[0.01]">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-os-muted" />
+                      <Input placeholder="Search messages in this conversation..." value={messageSearchQuery} onChange={(e) => setMessageSearchQuery(e.target.value)} className="pl-10 text-xs bg-white/5 border-white/10" />
                     </div>
                   </div>
+                )}
 
-                  {/* Off-Platform Disclaimer */}
-                  <div className="px-4 py-3 border-b border-afrikoni-gold/20">
-                    <OffPlatformDisclaimer variant="compact" />
-                  </div>
 
-                  {/* Message Search */}
-                  {selectedConversation && (
-                    <div className="px-4 py-2 border-b border-[#D4A937]/20 bg-background/50 backdrop-blur-sm">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Search messages in this conversation..."
-                          value={messageSearchQuery}
-                          onChange={(e) => setMessageSearchQuery(e.target.value)}
-                          className="pl-10 text-sm bg-background/50 backdrop-blur-sm border-[#D4A937]/20"
-                        />
-                        {messageSearchQuery && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
-                            onClick={() => setMessageSearchQuery('')}
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
+                {/* Messages */}
+                {/* Message Stream */}
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 scroll-smooth scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-afrikoni-gold/20 scrollbar-track-transparent">
+                  {hasMoreMessages && (
+                    <div className="flex justify-center">
+                      <Button variant="ghost" size="sm" onClick={loadMoreMessages} disabled={loadingMore} className="text-[10px] font-black uppercase tracking-widest text-os-muted hover:text-white bg-white/5 px-6 py-4 rounded-xl border border-white/5">
+                        {loadingMore ? <SpinnerWithTimeout className="w-3 h-3 mr-2" /> : <Activity className="w-3 h-3 mr-2" />}
+                        Fetch Historical Data
+                      </Button>
                     </div>
                   )}
 
-                  {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-afrikoni-offwhite">
-                    {/* Load More Button - Show at top */}
-                    {hasMoreMessages && (
-                      <div className="flex justify-center py-2 sticky top-0 bg-afrikoni-offwhite z-10 -mb-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={loadMoreMessages}
-                          disabled={loadingMore}
-                          className="text-afrikoni-gold border-afrikoni-gold/30 hover:bg-afrikoni-gold/10"
-                        >
-                          {loadingMore ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Loading...
-                            </>
-                          ) : (
-                            'Load Older Messages'
+                  {filteredMessages.map((msg, idx) => {
+                    const isMine = msg.sender_company_id === companyId;
+                    const showAvatar = idx === 0 || filteredMessages[idx - 1].sender_company_id !== msg.sender_company_id;
+                    const msgAttachments = msg.payload?.attachments || [];
+
+                    return (
+                      <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex gap-4 group", isMine ? "flex-row-reverse" : "flex-row")}>
+                        <div className={cn("w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden transition-all group-hover:border-afrikoni-gold/30", !showAvatar && "opacity-0")}>
+                          {isMine ? (profile?.logo_url ? <img src={profile.logo_url} className="w-full h-full object-cover" alt="" /> : <User className="w-4 h-4 text-afrikoni-gold" />) :
+                            (selectedConv.otherCompany?.logo_url ? <img src={selectedConv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" /> : <User className="w-4 h-4 text-os-muted" />)}
+                        </div>
+                        <div className={cn("flex flex-col max-w-[70%]", isMine ? "items-end" : "items-start")}>
+                          {showAvatar && (
+                            <span className="text-[9px] font-black uppercase tracking-widest text-os-muted opacity-50 mb-2 truncate">
+                              {isMine ? 'Commercial Core' : (selectedConv.otherCompany?.company_name || 'Counterparty')}
+                            </span>
                           )}
-                        </Button>
-                      </div>
-                    )}
-
-                    <AnimatePresence>
-                      {Array.isArray(filteredMessages) && filteredMessages.map((msg, idx) => {
-                        const isMine = msg.sender_company_id === companyId;
-                        const prevMsg = idx > 0 ? filteredMessages[idx - 1] : null;
-                        const showAvatar = !prevMsg || prevMsg.sender_company_id !== msg.sender_company_id;
-                        const msgAttachments = msg.payload?.attachments || [];
-
-                        return (
-                          <motion.div
-                            key={msg.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2, delay: idx * 0.05 }}
-                            className={`flex ${isMine ? 'justify-end' : 'justify-start'} gap-2`}
-                          >
-                            {!isMine && showAvatar && (
-                              <div className="w-8 h-8 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                {selectedConv.otherCompany?.logo_url ? (
-                                  <img
-                                    src={selectedConv.otherCompany.logo_url}
-                                    alt={selectedConv.otherCompany.company_name}
-                                    className="w-full h-full rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <User className="w-4 h-4 text-afrikoni-gold" />
-                                )}
+                          <div className={cn("p-5 rounded-3xl shadow-lg relative group transition-all", isMine ? "bg-white text-black rounded-tr-sm" : "bg-white/5 text-white border border-white/10 rounded-tl-sm backdrop-blur-md")}>
+                            {msg.content && <p className="text-sm font-medium leading-relaxed tracking-tight">{msg.content}</p>}
+                            {msgAttachments.length > 0 && (
+                              <div className="mt-4 grid grid-cols-1 gap-3">
+                                {msgAttachments.map((att, attIdx) => {
+                                  const isImg = att.type?.startsWith('image/');
+                                  return (
+                                    <div key={attIdx} className="rounded-2xl overflow-hidden border border-black/10 transition-all hover:scale-[1.02]">
+                                      {isImg ? <img src={att.url} className="max-w-full h-auto max-h-72 object-cover" alt="" /> :
+                                        <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-black/5 hover:bg-black/10 transition-colors">
+                                          <Box className="w-5 h-5 opacity-40" />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-black truncate">{att.name}</p>
+                                            <p className="text-[9px] uppercase tracking-widest opacity-40 font-black">Secure Asset</p>
+                                          </div>
+                                          <Download className="w-4 h-4 opacity-40" />
+                                        </a>
+                                      }
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
-                            {!isMine && !showAvatar && <div className="w-8" />}
-                            <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] ${isMine ? 'items-end' : 'items-start'}`}>
-                              {showAvatar && !isMine && (
-                                <span className="text-xs text-afrikoni-deep/70 mb-1 px-2">
-                                  {selectedConv.otherCompany?.company_name || 'Supplier'}
-                                </span>
-                              )}
-                              <div
-                                className={`
-                                  px-4 py-2.5 rounded-2xl shadow-sm
-                                  ${isMine
-                                    ? 'bg-afrikoni-gold text-afrikoni-cream rounded-br-md'
-                                    : 'bg-white text-afrikoni-chestnut border border-afrikoni-gold/20 rounded-bl-md'
-                                  }
-                                `}
-                              >
-                                {msg.content && (
-                                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                                )}
-
-                                {/* Attachments */}
-                                {msgAttachments.length > 0 && (
-                                  <div className={`mt-2 space-y-2 ${msg.content ? 'mt-3' : ''}`}>
-                                    {msgAttachments.map((attachment, attIdx) => {
-                                      const FileIcon = getFileIcon(attachment.type);
-                                      const isImage = attachment.type?.startsWith('image/');
-
-                                      return (
-                                        <div
-                                          key={attIdx}
-                                          className={`
-                                            rounded-lg overflow-hidden border
-                                            ${isMine
-                                              ? 'border-afrikoni-cream/30 bg-afrikoni-cream/10'
-                                              : 'border-afrikoni-gold/30 bg-afrikoni-offwhite'
-                                            }
-                                          `}
-                                        >
-                                          {isImage ? (
-                                            <a
-                                              href={attachment.url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="block"
-                                            >
-                                              <img
-                                                src={attachment.url}
-                                                alt={attachment.name}
-                                                className="max-w-full h-auto max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                                              />
-                                            </a>
-                                          ) : (
-                                            <a
-                                              href={attachment.url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="flex items-center gap-3 p-3 hover:bg-afrikoni-gold/5 transition-colors"
-                                            >
-                                              <div className={`p-2 rounded-lg ${isMine ? 'bg-afrikoni-cream/20' : 'bg-afrikoni-gold/20'}`}>
-                                                <FileIcon className={`w-5 h-5 ${isMine ? 'text-afrikoni-cream' : 'text-afrikoni-gold'}`} />
-                                              </div>
-                                              <div className="flex-1 min-w-0">
-                                                <p className={`text-sm font-medium truncate ${isMine ? 'text-afrikoni-cream' : 'text-afrikoni-chestnut'}`}>
-                                                  {attachment.name}
-                                                </p>
-                                                <p className={`text-xs ${isMine ? 'text-afrikoni-cream/70' : 'text-afrikoni-deep/70'}`}>
-                                                  {formatFileSize(attachment.size || 0)}
-                                                </p>
-                                              </div>
-                                              <Download className={`w-4 h-4 ${isMine ? 'text-afrikoni-cream/70' : 'text-afrikoni-gold/70'}`} />
-                                            </a>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-
-                                <div className={`flex items-center gap-1 mt-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                  <span className={`text-xs ${isMine ? 'text-afrikoni-cream/80' : 'text-afrikoni-deep/70'}`}>
-                                    {(() => {
-                                      const msgDate = new Date(msg.created_at);
-                                      const today = new Date();
-                                      const isToday = msgDate.toDateString() === today.toDateString();
-
-                                      if (isToday) {
-                                        return format(msgDate, 'h:mm a');
-                                      } else {
-                                        const isThisYear = msgDate.getFullYear() === today.getFullYear();
-                                        return isThisYear
-                                          ? format(msgDate, 'MMM d, h:mm a')
-                                          : format(msgDate, 'MMM d, yyyy h:mm a');
-                                      }
-                                    })()}
-                                  </span>
-                                  {isMine && (
-                                    <Tooltip content={msg.read ? 'Read' : 'Sent'}>
-                                      <span className="text-afrikoni-cream/80 cursor-help">
-                                        {msg.read ? (
-                                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" title="Read" />
-                                        ) : (
-                                          <CheckCircle className="w-3.5 h-3.5 text-afrikoni-deep/50" title="Sent" />
-                                        )}
-                                      </span>
-                                    </Tooltip>
-                                  )}
-                                  {!isMine && !msg.read && (
-                                    <span className="w-2 h-2 bg-afrikoni-gold rounded-full" title="Unread" />
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            {isMine && <div className="w-8" />}
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
-
-                    {/* Typing Indicator */}
-                    {isTyping && selectedConv && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="flex justify-start gap-2"
-                      >
-                        <div className="w-8 h-8 bg-afrikoni-gold/20 rounded-full flex items-center justify-center flex-shrink-0">
-                          {selectedConv.otherCompany?.logo_url ? (
-                            <img
-                              src={selectedConv.otherCompany.logo_url}
-                              alt={selectedConv.otherCompany.company_name}
-                              className="w-full h-full rounded-full object-cover"
-                            />
-                          ) : (
-                            <User className="w-4 h-4 text-afrikoni-gold" />
-                          )}
-                        </div>
-                        <div className="bg-white border border-afrikoni-gold/20 rounded-2xl rounded-bl-md px-4 py-2.5">
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 bg-afrikoni-deep/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <div className="w-2 h-2 bg-afrikoni-deep/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <div className="w-2 h-2 bg-afrikoni-deep/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </div>
+                          <div className="mt-2 flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-os-muted opacity-40 italic">
+                            <span>{format(new Date(msg.created_at), 'HH:mm')}</span>
+                            {isMine && (msg.read ? <CheckCircle2 className="w-3 h-3 text-emerald-500" /> : <Clock className="w-3 h-3" />)}
                           </div>
                         </div>
                       </motion.div>
+                    );
+                  })}
+
+
+                  {/* Typing Indicator */}
+                  <AnimatePresence>
+                    {isTyping && (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="px-8 py-2 flex items-center gap-3">
+                        <div className="flex gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-afrikoni-gold animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-afrikoni-gold animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-afrikoni-gold animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-afrikoni-gold opacity-60">Peer is transmitting...</span>
+                      </motion.div>
                     )}
+                  </AnimatePresence>
+                </div>
 
-                    <div ref={messagesEndRef} />
-                  </div>
+                {/* Tactical Message Terminal */}
+                <div className="p-8 border-t border-white/5 bg-white/[0.02] backdrop-blur-3xl relative">
+                  <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-                  {/* Attachments Preview */}
                   {attachments.length > 0 && (
-                    <div className="px-4 py-2 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
-                      <div className="flex flex-wrap gap-2">
-                        {attachments.map((attachment, idx) => {
-                          const FileIcon = getFileIcon(attachment.type);
-                          const isImage = attachment.type?.startsWith('image/');
-
-                          return (
-                            <div
-                              key={idx}
-                              className="relative group border border-afrikoni-gold/30 rounded-lg overflow-hidden bg-white"
-                            >
-                              {isImage ? (
-                                <div className="relative">
-                                  <img
-                                    src={attachment.url}
-                                    alt={attachment.name}
-                                    className="w-20 h-20 object-cover"
-                                  />
-                                  <button
-                                    onClick={() => removeAttachment(idx)}
-                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 p-2 pr-8">
-                                  <FileIcon className="w-4 h-4 text-afrikoni-gold" />
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-medium text-afrikoni-chestnut truncate max-w-[100px]">
-                                      {attachment.name}
-                                    </p>
-                                    <p className="text-xs text-afrikoni-deep/70">
-                                      {formatFileSize(attachment.size)}
-                                    </p>
-                                  </div>
-                                  <button
-                                    onClick={() => removeAttachment(idx)}
-                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                    <div className="flex flex-wrap gap-3 mb-6">
+                      {attachments.map((file, index) => (
+                        <Badge key={index} className="bg-white/5 border-white/10 text-white pl-3 pr-2 py-1.5 rounded-xl flex items-center gap-3 hover:bg-white/10 transition-colors">
+                          <Box className="w-3.5 h-3.5 text-afrikoni-gold" />
+                          <span className="max-w-[120px] truncate text-[10px] font-bold">{file.name}</span>
+                          <button onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))} className="p-1 hover:bg-red-500/20 rounded-lg transition-colors group">
+                            <X className="w-3 h-3 text-os-muted group-hover:text-red-500" />
+                          </button>
+                        </Badge>
+                      ))}
                     </div>
                   )}
 
-                  {/* Deal-Closing CTAs */}
-                  {selectedConversation && messages.length > 0 && (
-                    <div className="px-4 py-3 border-t border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-afrikoni-purple/5">
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          size="sm"
-                          className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut text-xs"
-                          onClick={() => navigate('/dashboard/orders/new')}
-                        >
-                          <Shield className="w-3 h-3 mr-1" />
-                          Proceed with Protected Order
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs"
-                          onClick={() => navigate('/dashboard/rfqs/new')}
-                        >
-                          <FileText className="w-3 h-3 mr-1" />
-                          Request RFQ Details
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 text-xs"
-                          onClick={() => navigate('/dashboard/invoices/new')}
-                        >
-                          <Receipt className="w-3 h-3 mr-1" />
-                          Send Invoice through Escrow
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Message Input */}
-                  <div className="p-2 md:p-3 lg:p-4 border-t border-afrikoni-gold/20 bg-afrikoni-offwhite">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowTranslation(!showTranslation)}
-                        className="text-xs text-afrikoni-deep/70 hover:text-afrikoni-gold"
-                      >
-                        <Languages className="w-3 h-3 mr-1" />
-                        {showTranslation ? 'Hide Translation' : 'Translate'}
-                      </Button>
-                      {showTranslation && (
-                        <Select value={translationLanguage} onValueChange={setTranslationLanguage} className="w-32">
-                          <SelectTrigger className="h-7 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="en">English</SelectItem>
-                            <SelectItem value="fr">Français</SelectItem>
-                            <SelectItem value="ar">العربية</SelectItem>
-                            <SelectItem value="pt">Português</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                    <div className="flex items-end gap-2">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        id="file-upload"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        multiple
-                        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+                  <div className="flex items-end gap-6">
+                    <div className="flex-1 relative group">
+                      <textarea
+                        placeholder="Enter transmission payload..."
+                        value={newMessage}
+                        onChange={(e) => {
+                          setNewMessage(e.target.value);
+                          handleTyping();
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        className="w-full bg-white/[0.03] border-white/10 rounded-3xl p-6 pr-16 min-h-[100px] max-h-48 text-sm font-medium tracking-tight focus:ring-2 focus:ring-afrikoni-gold/20 focus:border-afrikoni-gold/40 transition-all resize-none scrollbar-none"
                       />
-                      <Tooltip content={t('messages.attachFile')}>
-                        <label htmlFor="file-upload">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-2 md:p-2.5 flex-shrink-0 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
-                            disabled={uploadingFile}
-                            asChild
-                          >
-                            <span>
-                              {uploadingFile ? (
-                                <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
-                              ) : (
-                                <Paperclip className="w-4 h-4 md:w-5 md:h-5" />
-                              )}
-                            </span>
-                          </Button>
-                        </label>
-                      </Tooltip>
-                      {productContext && (
-                        <Tooltip content="Generate smart message with KoniAI">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => generateSmartInquiry(productContext)}
-                            disabled={isGeneratingAI}
-                            className="p-2 md:p-2.5 flex-shrink-0 touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
-                          >
-                            {isGeneratingAI ? (
-                              <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin text-afrikoni-gold" />
-                            ) : (
-                              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold" />
-                            )}
-                          </Button>
-                        </Tooltip>
-                      )}
-                      <div className="flex-1 relative min-w-0">
-                        <Input
-                          ref={inputRef}
-                          value={newMessage}
-                          onChange={handleInputChange}
-                          onKeyPress={handleKeyPress}
-                          placeholder={productContext ? `Ask about ${productContext.title}...` : t('messages.typeMessagePlaceholder')}
-                          className="pr-10 md:pr-12 text-sm md:text-base min-h-[44px] md:min-h-0"
-                        />
+                      <div className="absolute right-4 bottom-4 flex items-center gap-2">
+                        <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} multiple className="hidden" />
+                        <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-10 w-10 rounded-xl hover:bg-white/10 text-os-muted hover:text-white border border-transparent hover:border-white/5">
+                          <Paperclip className="w-5 h-5" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={handleSendMessage}
-                        disabled={(!newMessage.trim() && attachments.length === 0) || uploadingFile || isSending}
-                        className="flex-shrink-0 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 touch-manipulation"
-                      >
-                        {isSending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 md:mr-2 animate-spin" />
-                            <span className="hidden md:inline">Sending...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4 md:mr-2" />
-                            <span className="hidden md:inline">{t('messages.send')}</span>
-                          </>
-                        )}
-                      </Button>
                     </div>
-                    <p className="text-xs text-afrikoni-deep/70 mt-2 text-center hidden sm:block">
-                      Press Enter to send • Shift+Enter for new line • Max file size: 10MB
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center text-afrikoni-deep/70">
-                    <MessageSquare className="w-16 h-16 mx-auto mb-4 text-afrikoni-deep/50" />
-                    <p className="text-lg font-semibold mb-2">No conversation selected</p>
-                    <p className="text-sm">Select a conversation from the list to start messaging</p>
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            {/* AI Assistant Panel (desktop-only) */}
-            {selectedConversation && selectedConv && (
-              <Card className="hidden xl:flex flex-col h-full w-80 border-[#D4A937]/30 os-panel-glass shadow-lg">
-                <div className="p-3 border-b border-[#D4A937]/20 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#D4A937]/20 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-[#D4A937]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Afrikoni AI</p>
-                      <p className="text-[11px] text-muted-foreground">Helps you write clear, professional messages.</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
-                    className="text-xs text-muted-foreground hover:text-[#D4A937]"
-                  >
-                    {aiSuggestionsOpen ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-                {aiSuggestionsOpen && (
-                  <CardContent className="flex-1 flex flex-col p-3 space-y-2">
-                    <p className="text-[11px] text-afrikoni-deep/80">
-                      Type your own idea or let Afrikoni AI suggest a message you can edit before sending.
-                    </p>
                     <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={isGeneratingSuggestion}
-                      className="w-full flex items-center justify-center gap-1 text-xs border-afrikoni-gold/60 text-afrikoni-gold hover:bg-afrikoni-gold/10"
-                      onClick={handleGenerateAISuggestions}
+                      onClick={() => handleSendMessage()}
+                      disabled={(!newMessage.trim() && attachments.length === 0) || sending}
+                      className="h-16 w-16 rounded-3xl bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-black shadow-xl shadow-afrikoni-gold/10 hover:scale-105 active:scale-95 transition-all shrink-0 p-0"
                     >
-                      {isGeneratingSuggestion ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Thinking…
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3 h-3" />
-                          Suggest message
-                        </>
+                      {sending ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
+                    </Button>
+                  </div>
+
+                  <div className="mt-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] text-os-muted opacity-40">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-3 h-3" />
+                        E2E Encrypted Internal Uplink
+                      </div>
+                      <span className="opacity-20">|</span>
+                      <span>Payload: {newMessage.length} bits</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {productContext && (
+                        <Button variant="ghost" onClick={() => generateSmartInquiry(productContext)} disabled={isGeneratingAI} className="h-8 px-4 text-[9px] font-black uppercase tracking-widest text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-lg">
+                          <Sparkles className="w-3.5 h-3.5 mr-2" />
+                          KoniAI Suggestion
+                        </Button>
                       )}
-                    </Button>
-                    <textarea
-                      value={aiDraft}
-                      onChange={(e) => setAiDraft(e.target.value)}
-                      placeholder="Afrikoni AI suggestion will appear here. Adjust the tone, add quantities or translate before using."
-                      className="flex-1 text-xs border border-afrikoni-gold/30 rounded-lg p-2 resize-none focus:outline-none focus:ring-1 focus:ring-afrikoni-gold bg-afrikoni-offwhite/40"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      disabled={!aiDraft.trim()}
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal text-xs"
-                      onClick={() => {
-                        setNewMessage(aiDraft);
-                        inputRef.current?.focus();
-                      }}
-                    >
-                      Use this in chat
-                    </Button>
-                  </CardContent>
-                )}
-
-                {/* Delivery Timeline Section */}
-                <div className="p-3 border-t border-[#D4A937]/20">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Truck className="w-4 h-4 text-[#D4A937]" />
-                    <p className="text-sm font-semibold">Delivery Timeline</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-afrikoni-gold/[0.02] to-transparent pointer-events-none" />
+                <div className="relative z-10 space-y-8 max-w-sm">
+                  <div className="w-32 h-32 rounded-[2.5rem] bg-white/[0.02] border border-white/10 flex items-center justify-center mx-auto shadow-2xl relative group">
+                    <div className="absolute inset-0 bg-afrikoni-gold/10 blur-2xl rounded-full scale-50 group-hover:scale-100 transition-all duration-700 opacity-50" />
+                    <Shell className="w-12 h-12 text-os-muted relative z-10 animate-pulse" />
                   </div>
                   <div className="space-y-3">
-                    {deliveryTimeline ? (
-                      <div className="space-y-2">
-                        {[
-                          { step: 'Quote', status: 'completed', date: '2024-01-15' },
-                          { step: 'Paid in Escrow', status: 'completed', date: '2024-01-16' },
-                          { step: 'In Transit', status: 'active', date: '2024-01-18' },
-                          { step: 'Delivered', status: 'pending', date: '2024-01-22' },
-                          { step: 'Released', status: 'pending', date: '2024-01-23' }
-                        ].map((item, idx) => (
-                          <div key={idx} className="flex items-start gap-2">
-                            <div className={`w-2 h-2 rounded-full mt-1.5 ${item.status === 'completed' ? 'bg-green-500' :
-                              item.status === 'active' ? 'bg-afrikoni-gold' :
-                                'bg-gray-300'
-                              }`} />
-                            <div className="flex-1">
-                              <p className={`text-xs font-medium ${item.status === 'completed' ? 'text-green-700' :
-                                item.status === 'active' ? 'text-afrikoni-gold' :
-                                  'text-gray-500'
-                                }`}>
-                                {item.step}
-                              </p>
-                              <p className="text-[10px] text-afrikoni-deep/60">{item.date}</p>
-                            </div>
-                          </div>
-                        ))}
+                    <h3 className="text-2xl font-black tracking-tight text-white">Select Node</h3>
+                    <p className="text-sm font-medium text-os-muted leading-relaxed italic">Synchronize with institutional peers across the pan-African trade matrix.</p>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center gap-4 text-left">
+                      <ShieldCheck className="w-5 h-5 text-emerald-500/50" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white">Sovereign Encryption</p>
+                        <p className="text-[9px] text-os-muted font-bold">Standard protocol active</p>
                       </div>
-                    ) : (
-                      <p className="text-xs text-afrikoni-deep/70">
-                        No active orders. Timeline will appear when an order is placed.
-                      </p>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             )}
-          </motion.div>
-        </div>
+          </Surface>
+
+          {/* AI Strategic Intelligence Panel */}
+          {selectedConversation && selectedConv && (
+            <Surface variant="glass" className="hidden xl:flex flex-col w-[350px] shrink-0 p-0 border-white/5 bg-white/[0.01]">
+              <div className="p-8 border-b border-white/5 bg-white/[0.02]">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-afrikoni-gold/10 border border-afrikoni-gold/20 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-afrikoni-gold" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black tracking-tight text-white uppercase italic">Strategic Intelligence</h4>
+                    <p className="text-[9px] font-black tracking-[0.2em] text-os-muted uppercase">Operational Support Module</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-3">
+                    <p className="text-[10px] text-os-muted font-medium italic leading-relaxed">Generated high-fidelity responses optimized for professional conversion and cross-border trade protocol.</p>
+                    <Button
+                      variant="outline"
+                      onClick={handleGenerateAISuggestions}
+                      disabled={isGeneratingSuggestion}
+                      className="w-full h-10 text-[10px] font-black uppercase tracking-widest border-afrikoni-gold/30 text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-xl"
+                    >
+                      {isGeneratingSuggestion ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Terminal className="w-3.5 h-3.5 mr-2" />}
+                      Synthesize Response
+                    </Button>
+                  </div>
+
+                  {aiDraft && (
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+                      <textarea
+                        value={aiDraft}
+                        readOnly
+                        className="w-full bg-black/20 border border-afrikoni-gold/20 rounded-2xl p-5 text-xs font-medium tracking-tight text-white/90 min-h-[120px] focus:outline-none scrollbar-none"
+                      />
+                      <Button
+                        onClick={() => {
+                          setNewMessage(aiDraft);
+                          inputRef.current?.focus();
+                        }}
+                        className="w-full h-12 bg-white text-black font-black text-[10px] tracking-widest uppercase rounded-xl hover:bg-white/90 transition-all"
+                      >
+                        Execute Draft
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-none">
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <Activity className="w-4 h-4 text-afrikoni-gold" />
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-os-muted">Execution Timeline</h3>
+                  </div>
+
+                  <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5">
+                    {[
+                      { step: 'Quote Issuance', status: 'completed', date: 'JAN 15' },
+                      { step: 'Escrow Lock', status: 'completed', date: 'JAN 16' },
+                      { step: 'Asset Transit', status: 'active', date: 'JAN 18' },
+                      { step: 'Vessel Arrival', status: 'pending', date: 'EST. JAN 22' },
+                      { step: 'Capital Release', status: 'pending', date: 'PROJ. JAN 23' }
+                    ].map((item, idx) => (
+                      <div key={idx} className="relative pl-8 group">
+                        <div className={cn(
+                          "absolute left-0 top-1 w-4 h-4 rounded-full border-2 transition-all group-hover:scale-110",
+                          item.status === 'completed' ? "bg-emerald-500 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]" :
+                            item.status === 'active' ? "bg-afrikoni-gold border-afrikoni-gold/50 shadow-[0_0_15px_rgba(212,169,55,0.3)]" :
+                              "bg-transparent border-white/10"
+                        )} />
+                        <div className="space-y-1">
+                          <p className={cn(
+                            "text-[11px] font-black tracking-tight",
+                            item.status === 'pending' ? "text-os-muted" : "text-white"
+                          )}>{item.step}</p>
+                          <p className="text-[9px] font-black tracking-widest text-os-muted opacity-40 uppercase">{item.date}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Surface variant="panel" className="bg-white/[0.02] border-emerald-500/10 p-6 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Node Status: Verified</span>
+                  </div>
+                  <p className="text-[10px] text-os-muted font-medium italic leading-relaxed">Counterparty terminal identification confirmed via institutional KYC protocols. Standard trade warranties active.</p>
+                </Surface>
+              </div>
+            </Surface>
+          )}
+        </motion.div>
       </div>
     </div>
   );

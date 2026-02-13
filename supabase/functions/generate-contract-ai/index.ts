@@ -1,164 +1,142 @@
+// @ts-nocheck
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+
 /**
- * Supabase Edge Function: AI Contract Generation
- * Uses Claude AI to generate professional contracts from RFQ + Quote
- * 
- * Deploy: supabase functions deploy generate-contract-ai
+ * KoniAI Contract Generator v2.0 (Gemini 3 Upgrade) 
+ * Drafts professional purchase agreements for African B2B trade.
  */
 
-const CLAUDE_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
-async function generateContractWithClaude(prompt) {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+async function generateContractWithGemini3(prompt: string, systemInstruction: string) {
   try {
-    const response = await fetch(CLAUDE_API_URL, {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+    const body: any = {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }]
+        }
+      ],
+      system_instruction: {
+        parts: [{ text: systemInstruction }]
+      },
+      generationConfig: {
+        response_mime_type: "application/json",
+        temperature: 0.1,
+        maxOutputTokens: 3000
+      }
+    };
+
+    const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CLAUDE_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 4000,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      })
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
-      throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+      const errorBody = await response.text();
+      throw new Error(`Gemini 3 Contract Error: ${response.status} ${errorBody}`);
     }
 
     const data = await response.json();
-    return data.content[0].text;
+    const aiContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!aiContent) {
+      throw new Error('No response content from Gemini 3');
+    }
+
+    return aiContent;
   } catch (error) {
-    console.error('Claude API error:', error);
+    console.error('Gemini 3 Contract error:', error);
     throw error;
   }
 }
 
-async function main(req) {
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+async function main(req: Request) {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const {
-      trade,
-      quote,
-      buyer,
-      supplier
-    } = await req.json();
-
-    if (!trade || !quote || !buyer || !supplier) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400 }
-      );
+    if (!GEMINI_API_KEY) {
+      throw new Error('Gemini API key not configured');
     }
 
-    // Create prompt for Claude to generate contract
-    const contractPrompt = `Generate a professional purchase contract in JSON format for the following trade:
+    const { trade, quote, buyer, supplier } = await req.json();
 
-BUYER INFORMATION:
-- Company Name: ${buyer.name}
-- Country: ${buyer.country}
-- Tax ID: ${buyer.tax_id || 'Not provided'}
-
-SUPPLIER INFORMATION:
-- Company Name: ${supplier.name}
-- Country: ${supplier.country}
-- Tax ID: ${supplier.tax_id || 'Not provided'}
-
-TRADE DETAILS:
-- Product: ${trade.title}
-- Description: ${trade.description}
-- Quantity: ${trade.quantity} ${trade.quantity_unit}
-
-QUOTE DETAILS:
-- Unit Price: ${quote.currency} ${quote.unit_price}
-- Total Price: ${quote.currency} ${quote.total_price}
-- Lead Time: ${quote.lead_time_days} days
-- Incoterms: ${quote.incoterms}
-- Delivery Location: ${quote.delivery_location}
-- Payment Terms: ${quote.payment_terms}
-
-Generate the contract in the following JSON format:
-{
-  "contract_type": "purchase_agreement",
-  "buyer_name": "${buyer.name}",
-  "buyer_country": "${buyer.country}",
-  "buyer_tax_id": "${buyer.tax_id || ''}",
-  "supplier_name": "${supplier.name}",
-  "supplier_country": "${supplier.country}",
-  "supplier_tax_id": "${supplier.tax_id || ''}",
-  "contract_date": "YYYY-MM-DD",
-  "items": [
+    const systemPrompt = `You are a high-level B2B Legal Intelligence engine specialized in African trade law and AfCFTA standards.
+    Your goal is to draft a professional purchase contract based on a trade blueprint and quote.
+    
+    Output ONLY a valid JSON object with the following schema:
     {
-      "description": "product description",
-      "quantity": ${trade.quantity},
-      "unit_price": "${quote.unit_price}",
-      "total": "${quote.total_price}"
-    }
-  ],
-  "total_amount": "${quote.total_price}",
-  "currency": "${quote.currency}",
-  "payment_terms": "${quote.payment_terms}",
-  "incoterms": "${quote.incoterms}",
-  "delivery_location": "${quote.delivery_location}",
-  "lead_time_days": ${quote.lead_time_days},
-  "terms_and_conditions": [
-    "list of important terms",
-    "payment conditions",
-    "delivery conditions",
-    "dispute resolution clause",
-    "force majeure clause"
-  ],
-  "special_conditions": "any special conditions or notes"
-}
-
-Only respond with valid JSON, no other text.`;
-
-    // Get contract from Claude
-    const contractJSON = await generateContractWithClaude(contractPrompt);
-
-    // Parse and validate JSON
-    let parsedContract;
-    try {
-      parsedContract = JSON.parse(contractJSON);
-    } catch (e) {
-      console.error('Failed to parse Claude response as JSON:', contractJSON);
-      // Try to extract JSON from response if wrapped in other text
-      const jsonMatch = contractJSON.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedContract = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('Could not parse contract JSON from AI response');
+      "contract": {
+        "contract_id": "clinical id",
+        "title": "Purchase Agreement",
+        "parties": { "buyer": "...", "supplier": "..." },
+        "clauses": [
+          { "id": "SEC1", "title": "Subject Matter", "content": "..." },
+          { "id": "SEC2", "title": "Pricing & Terms", "content": "..." },
+          { "id": "SEC3", "title": "Logistics & Delivery", "content": "..." },
+          { "id": "SEC4", "title": "Dispute Resolution", "content": "..." }
+        ],
+        "compliance_notes": "Key legal compliance flags"
       }
+    }`;
+
+    const userPrompt = `TRADE BLUEPRINT: ${JSON.stringify(trade)}
+    QUOTE DATA: ${JSON.stringify(quote)}
+    BUYER PROFILE: ${JSON.stringify(buyer)}
+    SUPPLIER PROFILE: ${JSON.stringify(supplier)}`;
+
+    const contractJSON = await generateContractWithGemini3(userPrompt, systemPrompt);
+
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(contractJSON);
+    } catch (e) {
+      console.error('Failed to parse Gemini 3 output:', contractJSON);
+      throw new Error('AI generated invalid contract data');
     }
 
     return new Response(
       JSON.stringify({
-        contract: parsedContract,
-        model: 'claude-3-sonnet-20240229',
+        ...parsedResult,
+        model: 'gemini-3-flash',
+        source: 'koniai_plus_gemini_3',
         generated_at: new Date().toISOString()
       }),
       {
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        },
         status: 200
       }
     );
-  } catch (error) {
-    console.error('Contract generation error:', error);
+
+  } catch (error: any) {
+    console.error('Contract Generation Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      }
     );
   }
 }
 
-Deno.serve(main);
+serve(main);

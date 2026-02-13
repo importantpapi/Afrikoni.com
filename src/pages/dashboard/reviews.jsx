@@ -13,7 +13,7 @@ import ErrorState from '@/components/shared/ui/ErrorState';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
-import { 
+import {
   Star, TrendingUp, Award, Calendar, Package, MessageSquare,
   Shield, Heart, CheckCircle
 } from 'lucide-react';
@@ -22,8 +22,8 @@ import RequireCapability from '@/guards/RequireCapability';
 
 function ReviewsDashboardInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady, profile, organization } = useDashboardKernel();
+
   const [company, setCompany] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +56,7 @@ function ReviewsDashboardInner() {
   const loadReviewsData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Use auth from context (no duplicate call)
       const companyId = profile?.company_id || null;
       if (!companyId) {
@@ -134,8 +134,8 @@ function ReviewsDashboardInner() {
   // ✅ KERNEL MIGRATION: Use ErrorState component for errors
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={loadReviewsData}
       />
     );
@@ -246,11 +246,10 @@ function ReviewsDashboardInner() {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.round(stats.averageRating)
+                            className={`w-4 h-4 ${i < Math.round(stats.averageRating)
                                 ? 'text-afrikoni-gold fill-afrikoni-gold'
                                 : 'text-afrikoni-deep/20'
-                            }`}
+                              }`}
                           />
                         ))}
                       </div>
@@ -305,7 +304,7 @@ function ReviewsDashboardInner() {
                       <Star className="w-4 h-4 fill-afrikoni-gold" />
                     </div>
                     <div className="flex-1 h-3 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r transition-all duration-500"
                         style={{ width: `${percentage}%` }}
                       />
@@ -338,7 +337,7 @@ function ReviewsDashboardInner() {
                   No reviews yet
                 </h3>
                 <p className="max-w-md mx-auto">
-                  Your trust score will be built through completed and verified trades. 
+                  Your trust score will be built through completed and verified trades.
                   Focus on delivering quality products and excellent service to earn great reviews.
                 </p>
               </div>
@@ -357,11 +356,10 @@ function ReviewsDashboardInner() {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-5 h-5 ${
-                              i < review.rating
+                            className={`w-5 h-5 ${i < review.rating
                                 ? 'text-afrikoni-gold fill-afrikoni-gold'
                                 : 'text-afrikoni-deep/20'
-                            }`}
+                              }`}
                           />
                         ))}
                         <Badge className="bg-gradient-to-r shadow-sm">

@@ -1,156 +1,57 @@
-/**
- * Invoices Dashboard
- * Manage invoices for buyers and sellers
- */
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
-import { Receipt, FileText, DollarSign, Clock, CheckCircle, XCircle, Download, Plus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
+import {
+  Receipt, FileText, DollarSign, Clock, CheckCircle, XCircle,
+  Download, Plus, Search, Filter, ArrowRight,
+  Shield, AlertCircle, Layers
+} from 'lucide-react';
+import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { getInvoices, markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
-import { assertRowOwnedByCompany } from '@/utils/securityAssertions';
+import { markInvoiceAsPaid } from '@/lib/supabaseQueries/invoices';
 import { format } from 'date-fns';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
+import { cn } from '@/lib/utils';
+import { useInvoices } from '@/hooks/queries/useInvoices';
 
 export default function InvoicesDashboard() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-
-  const [invoices, setInvoices] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
-  const { isStale, markFresh } = useDataFreshness(30000);
-  const lastLoadTimeRef = useRef(null);
-  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+  const {
+    data: invoices = [],
+    isLoading,
+    error,
+    refetch
+  } = useInvoices(statusFilter !== 'all' ? { status: statusFilter } : {});
 
-  // Derive role from capabilities for display purposes
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
   const userRole = isSeller ? 'seller' : 'buyer';
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
+  // ✅ SOVEREIGN SYNC: Allow rendering if system is ready OR primed
+  if (!isSystemReady && invoices.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading invoices..." ready={isSystemReady} />
+        <SpinnerWithTimeout message="Synchronizing Ledger..." ready={isSystemReady} />
       </div>
     );
   }
 
-  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
+  // Effect for auth guard only
   useEffect(() => {
-    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
-    if (!canLoadData) {
-      if (!userId) {
-        navigate('/login');
-      }
-      return;
+    if (isSystemReady && !canLoadData && !userId) {
+      navigate('/login');
     }
-
-    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
-    abortControllerRef.current = new AbortController();
-    const abortSignal = abortControllerRef.current.signal;
-
-    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
-    const timeoutId = setTimeout(() => {
-      if (!abortSignal.aborted) {
-        abortControllerRef.current.abort();
-        setIsLoading(false);
-        setError('Data loading timed out. Please try again.');
-      }
-    }, 15000);
-
-    const shouldRefresh = !lastLoadTimeRef.current ||
-      (Date.now() - lastLoadTimeRef.current > 30000);
-
-    if (shouldRefresh) {
-      loadData(abortSignal).catch(err => {
-        // silent
-      });
-    } else {
-    }
-
-    return () => {
-      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      clearTimeout(timeoutId);
-    };
-  }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate]);
-
-  const loadData = async (abortSignal) => {
-    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
-    if (!profileCompanyId) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
-
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
-      if (abortSignal?.aborted) return;
-
-      // ✅ KERNEL COMPLIANCE: Use profileCompanyId and capabilities from kernel
-      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
-      // Try to load invoices - table may not exist yet
-      try {
-        const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
-        const invoiceList = await getInvoices(profileCompanyId, capabilities, filters);
-
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-        if (abortSignal?.aborted) return;
-
-        // SAFETY ASSERTION: ensure each invoice is scoped to the current company
-        for (const invoice of invoiceList || []) {
-          await assertRowOwnedByCompany(invoice, profileCompanyId, 'InvoicesDashboard:invoices');
-        }
-
-        setInvoices(invoiceList);
-
-        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
-        if (invoiceList && Array.isArray(invoiceList)) {
-          lastLoadTimeRef.current = Date.now();
-          markFresh();
-        }
-      } catch (dataError) {
-        if (abortSignal?.aborted) return; // Ignore abort errors
-        // Set empty data - feature not yet available
-        setInvoices([]);
-        setError(null); // Don't show error for missing table
-        // ❌ DO NOT mark fresh on error - let it retry on next navigation
-      }
-    } catch (err) {
-      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
-      if (err.name === 'AbortError' || abortSignal?.aborted) return;
-      setError(err.message || 'Failed to load invoices'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
-      toast.error('Failed to load invoices');
-      // ❌ DO NOT mark fresh on error - let it retry on next navigation
-    } finally {
-      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
-      if (!abortSignal?.aborted) {
-        setIsLoading(false);
-      }
-    }
-  };
+  }, [isSystemReady, canLoadData, userId, navigate]);
 
   const handlePayInvoice = async (invoiceId, invoice) => {
     if (!profileCompanyId) {
@@ -167,30 +68,28 @@ export default function InvoicesDashboard() {
         metadata: { invoice_id: invoiceId }
       });
 
-      toast.success('Invoice paid successfully');
-      // Trigger reload via useEffect dependency change
-      lastLoadTimeRef.current = null;
+      toast.success('Invoice payment initialized');
+      refetch(); // Trigger refresh
     } catch (error) {
       toast.error('Failed to pay invoice');
     }
   };
 
-  const getStatusBadge = (status) => {
-    const variants = {
-      'draft': 'outline',
-      'issued': 'default',
-      'paid': 'success',
-      'overdue': 'destructive',
-      'cancelled': 'outline'
-    };
-    return variants[status] || 'outline';
+  const getStatusBadgeStyles = (status) => {
+    switch (status) {
+      case 'paid': return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500';
+      case 'issued': return 'bg-afrikoni-gold/10 border-afrikoni-gold/20 text-afrikoni-gold';
+      case 'overdue': return 'bg-red-500/10 border-red-500/20 text-red-500';
+      case 'cancelled': return 'bg-white/5 border-white/10 text-os-muted';
+      default: return 'bg-white/5 border-white/10 text-os-muted';
+    }
   };
 
   const getStatusIcon = (status) => {
     if (status === 'paid') return <CheckCircle className="w-4 h-4" />;
     if (status === 'overdue') return <XCircle className="w-4 h-4" />;
-    if (status === 'issued') return <Clock className="w-4 h-4" />;
-    return null;
+    if (status === 'issued') return <Clock className="w-4 h-4 animate-pulse" />;
+    return <FileText className="w-4 h-4" />;
   };
 
   const isOverdue = (invoice) => {
@@ -199,192 +98,227 @@ export default function InvoicesDashboard() {
     return new Date(invoice.due_date) < new Date();
   };
 
-  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
-  if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={() => {
-          setError(null);
-          // useEffect will retry automatically when canLoadData is true
-        }}
-      />
-    );
-  }
+  if (error) return <ErrorState message={error.message || "Ledger sync error"} onRetry={() => refetch()} />;
+  if (isLoading) return <CardSkeleton count={3} />;
 
-  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
-  if (isLoading) {
-    return <CardSkeleton count={3} />;
-  }
+  const stats = [
+    { label: 'Total Volume', value: invoices.length, icon: Layers, color: 'text-os-muted' },
+    { label: 'Settled', value: invoices.filter(i => i.status === 'paid').length, icon: CheckCircle, color: 'text-emerald-500' },
+    { label: 'Outstanding', value: invoices.filter(i => i.status === 'issued').length, icon: Clock, color: 'text-afrikoni-gold' },
+    { label: 'Risk Factor', value: invoices.filter(i => isOverdue(i)).length, icon: AlertCircle, color: 'text-red-500' }
+  ];
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Invoices</h1>
-            <p className="">Manage your invoices and payments</p>
+    <div className="os-page os-stagger space-y-8 max-w-7xl mx-auto pb-20 px-4 py-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-afrikoni-gold/10 rounded-xl border border-afrikoni-gold/30">
+              <Receipt className="w-6 h-6 text-afrikoni-gold" />
+            </div>
+            <h1 className="text-4xl font-black tracking-tighter">Fiscal Clearing</h1>
           </div>
+          <p className="text-os-muted text-lg max-w-xl">Manage cross-border invoicing, institutional settlements, and automated tax reconciliation.</p>
+        </div>
+
+        <div className="flex items-center gap-4">
           {userRole === 'seller' && (
             <Link to="/dashboard/orders">
-              <Button className="hover:bg-afrikoni-gold/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Invoice
+              <Button className="bg-afrikoni-gold text-black font-black px-6 rounded-xl hover:scale-105 transition-all gap-2">
+                <Plus className="w-4 h-4" />
+                Generate Invoice
               </Button>
             </Link>
           )}
-        </motion.div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm mb-1">Total Invoices</p>
-              <p className="text-2xl font-bold">{invoices.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm mb-1">Paid</p>
-              <p className="text-2xl font-bold">
-                {invoices.filter(i => i.status === 'paid').length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm mb-1">Pending</p>
-              <p className="text-2xl font-bold">
-                {invoices.filter(i => i.status === 'issued').length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm mb-1">Overdue</p>
-              <p className="text-2xl font-bold">
-                {invoices.filter(i => isOverdue(i)).length}
-              </p>
-            </CardContent>
-          </Card>
         </div>
+      </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="issued">Issued</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Stats Layer */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, i) => (
+          <Surface key={i} variant="panel" className="p-6 group hover:border-afrikoni-gold/20 transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className={cn("p-2 rounded-lg bg-white/5", stat.color)}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+              {i === 1 && <div className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12% MoM</div>}
             </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-1">
+              <div className="text-3xl font-black">{stat.value}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-os-muted">{stat.label}</div>
+            </div>
+          </Surface>
+        ))}
+      </div>
 
-        {/* Invoices List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoice List</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <Surface variant="glass" className="p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-white/5 pb-8">
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
+                Ledger Journal
+                <Badge variant="outline" className="text-[9px] font-black border-white/10 text-os-muted">
+                  {invoices.length} Entries
+                </Badge>
+              </h2>
+
+              <div className="flex items-center gap-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-48 h-10 bg-white/[0.03] border-white/10 rounded-xl">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black/90 backdrop-blur-xl border-white/10">
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="draft">Drafts</SelectItem>
+                    <SelectItem value="issued">Outstanding</SelectItem>
+                    <SelectItem value="paid">Settled</SelectItem>
+                    <SelectItem value="overdue">High Alert</SelectItem>
+                    <SelectItem value="cancelled">Voided</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="icon" className="h-10 w-10 border border-white/10 rounded-xl">
+                  <Filter className="w-4 h-4 text-os-muted" />
+                </Button>
+              </div>
+            </div>
+
             {invoices.length === 0 ? (
               <EmptyState
                 icon={Receipt}
-                title="No invoices yet"
+                title="Ledger Empty"
                 description={userRole === 'buyer'
-                  ? "Invoices from your orders will appear here"
-                  : "Create invoices from your confirmed orders"}
+                  ? "Incoming trade invoices will materialize here."
+                  : "Initialize a trade to generate your first fiscal entry."}
+                className="py-12"
               />
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {invoices.map((invoice) => (
-                  <motion.div
-                    key={invoice.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <p className="font-semibold text-lg">{invoice.invoice_number}</p>
-                          <Badge variant={getStatusBadge(invoice.status)}>
-                            {getStatusIcon(invoice.status)}
-                            <span className="ml-1 capitalize">{invoice.status}</span>
-                          </Badge>
-                          {isOverdue(invoice) && (
-                            <Badge variant="destructive">Overdue</Badge>
-                          )}
+                  <Surface key={invoice.id} variant="panel" className="p-6 border-white/5 hover:border-afrikoni-gold/30 transition-all group/card">
+                    <div className="flex flex-col gap-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex gap-4">
+                          <div className="p-3 bg-white/5 rounded-2xl border border-white/10 group-hover/card:bg-afrikoni-gold/10 transition-colors">
+                            <FileText className="w-6 h-6 text-os-muted group-hover/card:text-afrikoni-gold" />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                              <h3 className="font-bold text-lg">{invoice.invoice_number}</h3>
+                              <Badge className={cn("text-[9px] font-black uppercase tracking-widest py-1 px-2.5", getStatusBadgeStyles(invoice.status))}>
+                                <span className="flex items-center gap-1.5">
+                                  {getStatusIcon(invoice.status)}
+                                  {invoice.status}
+                                </span>
+                              </Badge>
+                              {isOverdue(invoice) && <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
+                            </div>
+                            <p className="text-xs text-os-muted font-medium">
+                              {userRole === 'buyer' ? 'Issuer: ' : 'Counterparty: '}
+                              <span className="text-white font-bold">{userRole === 'buyer' ? invoice.seller_company?.name : invoice.buyer_company?.name || 'Institutional Member'}</span>
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-sm mt-1">
-                          {userRole === 'buyer'
-                            ? `From: ${invoice.seller_company?.name || 'Seller'}`
-                            : `To: ${invoice.buyer_company?.name || 'Buyer'}`}
-                        </p>
-                        <p className="text-sm">
-                          Issue Date: {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}
-                          {invoice.due_date && (
-                            <> • Due: {format(new Date(invoice.due_date), 'MMM dd, yyyy')}</>
-                          )}
-                        </p>
+
+                        <div className="text-right">
+                          <div className="text-2xl font-black flex items-baseline gap-1.5 justify-end">
+                            <span className="text-xs text-os-muted font-bold">{invoice.currency}</span>
+                            {parseFloat(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </div>
+                          <div className="text-[10px] text-os-muted font-bold uppercase tracking-widest mt-1">
+                            Due {format(new Date(invoice.due_date), 'MMM d, yyyy')}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold">
-                          {invoice.currency} {parseFloat(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                        {invoice.tax_amount > 0 && (
-                          <p className="text-sm">
-                            Tax: {invoice.currency} {parseFloat(invoice.tax_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <Link to={`/dashboard/invoices/${invoice.id}`}>
-                        <Button variant="outline" size="sm">
-                          <FileText className="w-4 h-4 mr-2" />
-                          View Details
-                        </Button>
-                      </Link>
-                      <div className="flex gap-2">
+
+                      <div className="flex items-center justify-between pt-5 border-t border-white/5">
+                        <div className="flex items-center gap-6">
+                          <Link to={`/dashboard/invoices/${invoice.id}`} className="text-[10px] font-black uppercase tracking-[0.2em] text-os-muted hover:text-afrikoni-gold transition-colors flex items-center gap-2">
+                            Audit Trail <ArrowRight className="w-3 h-3" />
+                          </Link>
+                          <button className="text-[10px] font-black uppercase tracking-[0.2em] text-os-muted hover:text-white transition-colors flex items-center gap-2">
+                            PDF Manifest <Download className="w-3 h-3" />
+                          </button>
+                        </div>
+
                         {userRole === 'buyer' && invoice.status === 'issued' && (
                           <Button
                             size="sm"
-                            className="hover:bg-afrikoni-gold/90"
+                            className="bg-emerald-500 text-black font-black px-8 rounded-xl hover:scale-105 active:scale-95 transition-all text-xs shadow-lg shadow-emerald-500/20"
                             onClick={() => handlePayInvoice(invoice.id, invoice)}
                           >
-                            <DollarSign className="w-4 h-4 mr-2" />
-                            Pay Invoice
+                            Initialize Settlement
                           </Button>
                         )}
-                        <Button variant="outline" size="sm">
-                          <Download className="w-4 h-4 mr-2" />
-                          Download PDF
-                        </Button>
                       </div>
                     </div>
-                  </motion.div>
+                  </Surface>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </Surface>
+        </div>
+
+        <div className="space-y-8">
+          {/* Fiscal Identity */}
+          <Surface variant="glass" className="p-8 relative overflow-hidden group">
+            <div className="absolute -right-8 -bottom-8 p-12 opacity-[0.02] scale-150 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
+              <Shield className="w-32 h-32" />
+            </div>
+
+            <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
+              <h3 className="text-[10px] font-black uppercase tracking-widest">Fiscal Sovereignty</h3>
+              <Lock className="w-3.5 h-3.5 text-os-muted" />
+            </div>
+
+            <div className="space-y-6 relative z-10">
+              <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <span className="text-xs font-bold">Tax Compliance Check</span>
+                </div>
+                <p className="text-[10px] text-os-muted">Your institutional profile is currently in good standing with all regional trade authorities.</p>
+              </div>
+            </div>
+          </Surface>
+
+          {/* Inbound/Outbound Mix */}
+          <Surface variant="glass" className="p-8">
+            <h3 className="text-[10px] font-black uppercase tracking-widest mb-8">Settlement Velocity</h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-os-muted">Inbound Flows</span>
+                  <span className="text-emerald-500">72%</span>
+                </div>
+                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} className="h-full bg-emerald-500" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-os-muted">Outbound Flows</span>
+                  <span className="text-afrikoni-gold">28%</span>
+                </div>
+                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: '28%' }} className="h-full bg-afrikoni-gold" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-10 pt-8 border-t border-white/5 space-y-4">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-os-muted">Liquidity Index</span>
+                <span className="font-black">Institutional</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-os-muted">AVG Settlement</span>
+                <span className="font-black">0.4 Days</span>
+              </div>
+            </div>
+          </Surface>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
-

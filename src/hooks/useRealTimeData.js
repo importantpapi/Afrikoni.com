@@ -69,16 +69,35 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
   // STABLE CALLBACK - Invokes ref, never changes identity
   // ===========================================================================
 
-  const invokeCallback = useCallback((table, eventType, data) => {
-    // ✅ REACT QUERY AUTO-INVALIDATION (Enterprise Pattern)
-    // Automatically invalidate ALL queries that start with this table name
-    // This matches queries like ['products', companyId] and ['products']
-    console.log(`[Realtime] Invalidating queries for table: ${table}`);
-    queryClient.invalidateQueries({ 
-      predicate: (query) => query.queryKey[0] === table 
-    });
+  // ===========================================================================
+  // STABLE CALLBACK - Invokes ref, never changes identity
+  // ===========================================================================
+  const invalidationQueueRef = useRef(new Set());
+  const invalidationTimeoutRef = useRef(null);
 
-    // 1. Direct callback to the component prop (legacy support)
+  const invokeCallback = useCallback((table, eventType, data) => {
+    // 1. ✅ DEBOUNCED INVALIDATION (Principal Engineer Pattern)
+    // Prevents "thundering herd" refetches during batch updates
+    invalidationQueueRef.current.add(table);
+
+    if (invalidationTimeoutRef.current) {
+      clearTimeout(invalidationTimeoutRef.current);
+    }
+
+    invalidationTimeoutRef.current = setTimeout(() => {
+      const tablesToInvalidate = Array.from(invalidationQueueRef.current);
+      invalidationQueueRef.current.clear();
+
+      console.log(`[Realtime] Batch invalidating queries for: ${tablesToInvalidate.join(', ')}`);
+
+      tablesToInvalidate.forEach(tbl => {
+        queryClient.invalidateQueries({
+          predicate: (query) => query.queryKey[0] === tbl
+        });
+      });
+    }, 300); // 300ms consolidation window
+
+    // 2. Direct callback to the component prop (legacy support)
     if (onUpdateRef.current && isMountedRef.current) {
       onUpdateRef.current({
         table,
@@ -87,9 +106,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       });
     }
 
-    // 2. ✅ BACKWARDS COMPATIBILITY: Keep CustomEvent for components not yet migrated
-    // This allows gradual migration - as we add React Query hooks, components
-    // will automatically use cache invalidation instead of event listeners
+    // 3. ✅ BACKWARDS COMPATIBILITY: Keep CustomEvent
     if (typeof window !== 'undefined') {
       const event = new CustomEvent('dashboard-realtime-update', {
         detail: {
@@ -100,10 +117,6 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
         }
       });
       window.dispatchEvent(event);
-
-      if (import.meta.env.DEV) {
-        console.log(`[Realtime] 📡 ${table}.${eventType} → queryClient.invalidateQueries(['${table}'])`);
-      }
     }
   }, [queryClient]); // queryClient is stable
 
@@ -160,7 +173,8 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
       if (companyId) {
         console.warn(`[Realtime] ⚠️ Invalid companyId format: "${companyId}" - skipping subscription`);
       } else {
-        console.log('[Realtime] No companyId - skipping subscription');
+        console.warn('[Realtime] ⚠️ No companyId - User profile may not be linked to a company. Please complete company setup.');
+        console.warn('[Realtime] Navigate to /dashboard/company-info to create/link a company.');
       }
       return;
     }

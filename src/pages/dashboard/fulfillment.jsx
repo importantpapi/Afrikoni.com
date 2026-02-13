@@ -1,17 +1,15 @@
-/**
- * Fulfillment Dashboard
- * Manage order fulfillment and warehouse locations
- */
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Warehouse, Package, Truck, CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Warehouse, Package, Truck, CheckCircle, Clock, AlertCircle,
+  RefreshCw, Search, ArrowRight, ArrowUpRight, Box, Boxes,
+  MapPin, Calendar, ExternalLink, ChevronRight, Activity, Zap
+} from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase, withRetry } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
@@ -28,9 +26,9 @@ import RequireCapability from '@/guards/RequireCapability';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { logError } from '@/utils/errorLogger';
 import { Surface } from '@/components/system/Surface';
+import { cn } from '@/lib/utils';
 
 function FulfillmentDashboardInner() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
 
   const navigate = useNavigate();
@@ -41,38 +39,21 @@ function FulfillmentDashboardInner() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh, refresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
-  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+  const abortControllerRef = useRef(null);
 
-  // Derive logistics capability from kernel
   const canLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading fulfillment..." ready={isSystemReady} />
-      </div>
-    );
-  }
-
-  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
-    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData) {
-      if (!userId) {
-        navigate('/login');
-      }
+      if (!userId) navigate('/login');
       return;
     }
 
-    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
     abortControllerRef.current = new AbortController();
     const abortSignal = abortControllerRef.current.signal;
 
-    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
     const timeoutId = setTimeout(() => {
       if (!abortSignal.aborted) {
         abortControllerRef.current.abort();
@@ -81,28 +62,19 @@ function FulfillmentDashboardInner() {
       }
     }, 15000);
 
-    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale ||
-      !lastLoadTimeRef.current ||
-      (Date.now() - lastLoadTimeRef.current > 30000);
+    const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
 
     if (shouldRefresh) {
-      loadData(abortSignal).catch(err => {
-        // silent
-      });
+      loadData(abortSignal).catch(() => { });
     }
 
     return () => {
-      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      if (abortControllerRef.current) abortControllerRef.current.abort();
       clearTimeout(timeoutId);
     };
   }, [canLoadData, userId, profileCompanyId, statusFilter, location.pathname, isStale, navigate, canLogistics]);
 
   const loadData = async (abortSignal) => {
-    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
     if (!profileCompanyId && !canLogistics) {
       toast.info('Complete your company profile to access fulfillment features.');
       setIsLoading(false);
@@ -110,19 +82,12 @@ function FulfillmentDashboardInner() {
     }
 
     try {
-      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
-      // During background refresh, keep existing data visible
-      if ((fulfillments || []).length === 0) {
-        setIsLoading(true);
-      }
-      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+      if ((fulfillments || []).length === 0) setIsLoading(true);
+      setError(null);
 
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
       if (abortSignal?.aborted) return;
 
-      // ✅ ENTERPRISE RELIABILITY: Define fetcher for withRetry
       const fetchFulfillmentData = async () => {
-        // 1. Orders Query
         let ordersQuery = supabase
           .from('orders')
           .select(`
@@ -132,7 +97,6 @@ function FulfillmentDashboardInner() {
             `);
 
         if (canLogistics && profileCompanyId) {
-          // Logistics: show orders where they're the logistics partner
           const { data: shipments, error: shipmentsError } = await supabase
             .from('shipments')
             .select('order_id')
@@ -140,45 +104,33 @@ function FulfillmentDashboardInner() {
 
           if (shipmentsError) throw shipmentsError;
 
-          if (shipments && (shipments || []).length > 0) {
-            const orderIds = (shipments || []).map(s => s.order_id).filter(Boolean);
-            if (orderIds.length > 0) {
-              ordersQuery = ordersQuery.in('id', orderIds);
-            } else {
-              return { orders: [], warehouses: [] };
-            }
-          } else {
-            return { orders: [], warehouses: [] };
-          }
+          if (shipments && shipments.length > 0) {
+            const orderIds = shipments.map(s => s.order_id).filter(Boolean);
+            if (orderIds.length > 0) ordersQuery = ordersQuery.in('id', orderIds);
+            else return { orders: [], warehouses: [] };
+          } else return { orders: [], warehouses: [] };
         } else if (profileCompanyId) {
-          // Seller/Hybrid: show their own orders
           ordersQuery = ordersQuery.eq('seller_company_id', profileCompanyId);
-        } else {
-          return { orders: [], warehouses: [] };
-        }
+        } else return { orders: [], warehouses: [] };
 
-        const { data: orders, error: ordersError } = await ordersQuery
-          .order('created_at', { ascending: false });
-
+        const { data: orders, error: ordersError } = await ordersQuery.order('created_at', { ascending: false });
         if (ordersError) throw ordersError;
 
-        // 2. Warehouses Query (Parallel or Sequential - Sequential here for simplicity/retry scope)
         let warehousesList = [];
         if (profileCompanyId && !canLogistics) {
           const wResult = await getWarehouseLocations(profileCompanyId);
           warehousesList = Array.isArray(wResult) ? wResult : [];
         }
 
-        if (abortSignal.aborted) throw new Error('Aborted');
+        if (abortSignal?.aborted) throw new Error('Aborted');
 
         return { orders: orders || [], warehouses: warehousesList };
       };
 
-      // Execute with retry
       const { orders, warehouses: warehousesList } = await withRetry(fetchFulfillmentData);
 
       if (orders && Array.isArray(orders)) {
-        const fulfillmentsList = (orders || [])
+        const fulfillmentsList = orders
           .filter(order => order.fulfillment)
           .map(order => ({
             ...order.fulfillment,
@@ -187,31 +139,20 @@ function FulfillmentDashboardInner() {
           .filter(f => statusFilter === 'all' || f.status === statusFilter);
 
         setFulfillments(fulfillmentsList);
-      } else {
-        setFulfillments([]);
-      }
+      } else setFulfillments([]);
 
       setWarehouses(warehousesList);
-
-      // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
       lastLoadTimeRef.current = Date.now();
       markFresh();
 
     } catch (error) {
-      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
       if (error.name === 'AbortError' || error.message === 'Aborted' || abortSignal?.aborted) return;
-      logError('loadData', error, {
-        companyId: profileCompanyId, // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId
-        userId: userId
-      });
+      logError('loadData', error, { companyId: profileCompanyId, userId });
 
-      // Only show toast if we have no data to show
       if ((fulfillments || []).length === 0) {
         toast.error('Failed to load fulfillment data. Please try again.');
         setError('Connection failed. Please retry.');
-      } else {
-        toast.warning('Connection unstable - showing cached data');
-      }
+      } else toast.warning('Connection unstable - showing cached data');
     } finally {
       setIsLoading(false);
     }
@@ -220,28 +161,29 @@ function FulfillmentDashboardInner() {
   const handleUpdateStatus = async (fulfillmentId, newStatus) => {
     try {
       await updateFulfillmentStatus(fulfillmentId, newStatus);
-      toast.success(`Fulfillment status updated to ${newStatus}`);
+      toast.success(`Fulfillment status updated to ${newStatus.replace('_', ' ')}`);
       loadData();
     } catch (error) {
       toast.error('Failed to update fulfillment status');
     }
   };
 
-  const getStatusBadge = (status) => {
-    const variants = {
-      'pending': 'outline',
-      'picking': 'default',
-      'packed': 'default',
-      'ready_for_dispatch': 'default',
-      'handed_to_carrier': 'success',
-      'cancelled': 'destructive'
-    };
-    return variants[status] || 'outline';
+  const getStatusBadgeStyles = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-white/5 border-white/10 text-os-muted';
+      case 'picking': return 'bg-afrikoni-gold/10 border-afrikoni-gold/20 text-afrikoni-gold';
+      case 'packed': return 'bg-blue-500/10 border-blue-500/20 text-blue-400';
+      case 'ready_for_dispatch': return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
+      case 'handed_to_carrier': return 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500';
+      case 'cancelled': return 'bg-red-500/10 border-red-500/20 text-red-500';
+      default: return 'bg-white/5 border-white/10 text-os-muted';
+    }
   };
 
   const getStatusIcon = (status) => {
     if (status === 'handed_to_carrier') return <CheckCircle className="w-4 h-4" />;
     if (status === 'cancelled') return <AlertCircle className="w-4 h-4" />;
+    if (status === 'picking' || status === 'packed') return <Box className="w-4 h-4 animate-pulse" />;
     return <Clock className="w-4 h-4" />;
   };
 
@@ -255,200 +197,244 @@ function FulfillmentDashboardInner() {
     return flow[currentStatus];
   };
 
-  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
-  // If we have fulfillments data, keep showing it during background refresh
-  if (isLoading && (fulfillments || []).length === 0) {
-    return <CardSkeleton count={3} />;
-  }
+  if (isLoading && (fulfillments || []).length === 0) return <CardSkeleton count={3} />;
+  if (error) return <ErrorState message={error} onRetry={loadData} />;
 
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
-  if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={loadData}
-      />
-    );
-  }
+  const stats = [
+    { label: 'Awaiting', count: (fulfillments || []).filter(f => f.status === 'pending').length, icon: Clock, color: 'text-os-muted' },
+    { label: 'Active Fulfillment', count: (fulfillments || []).filter(f => ['picking', 'packed'].includes(f.status)).length, icon: Box, color: 'text-afrikoni-gold' },
+    { label: 'Ready to Ship', count: (fulfillments || []).filter(f => f.status === 'ready_for_dispatch').length, icon: Package, color: 'text-emerald-500' },
+    { label: 'In Transit', count: (fulfillments || []).filter(f => f.status === 'handed_to_carrier').length, icon: Truck, color: 'text-emerald-400' },
+  ];
 
   return (
-    <>
-      <div className="os-page os-stagger space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Order Fulfillment</h1>
-            <p className="">Manage order picking, packing, and dispatch</p>
+    <div className="os-page os-stagger space-y-8 max-w-7xl mx-auto pb-20 px-4 py-8">
+      {/* Premium Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-afrikoni-gold/10 rounded-xl border border-afrikoni-gold/30">
+              <Warehouse className="w-6 h-6 text-afrikoni-gold" />
+            </div>
+            <h1 className="text-4xl font-black tracking-tighter">Global Fulfillment</h1>
           </div>
-          {/* ✅ FINAL SYNC: Refresh button for manual cache clearing */}
-          <Button
-            variant="outline"
-            onClick={() => {
-              refresh();
-              loadData();
-            }}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </Button>
-        </motion.div>
+          <p className="text-os-muted text-lg max-w-xl">Intelligent warehouse management and logistics orchestration for the Afrikoni ecosystem.</p>
+        </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Surface className="p-4">
-            <p className="text-sm text-[var(--os-text-secondary)] mb-1">Pending</p>
-            <p className="text-2xl font-semibold">
-              {(fulfillments || []).filter(f => f.status === 'pending').length}
-            </p>
+        <div className="flex items-center gap-4">
+          <Surface variant="panel" className="px-5 py-2.5 flex items-center gap-4 border-white/5 bg-white/[0.02]">
+            <div className="flex items-center gap-2 text-emerald-500 text-xs font-black uppercase tracking-widest">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Fleet Status: Active
+            </div>
+            <div className="w-px h-6 bg-white/10" />
+            <Button variant="ghost" size="sm" onClick={() => { refresh(); loadData(); }} className="h-8 gap-2 text-afrikoni-gold font-bold">
+              <RefreshCw className="w-3.5 h-3.5" />
+              Sync
+            </Button>
           </Surface>
-          <Surface className="p-4">
-            <p className="text-sm text-[var(--os-text-secondary)] mb-1">In Progress</p>
-            <p className="text-2xl font-semibold">
-              {(fulfillments || []).filter(f => ['picking', 'packed'].includes(f.status)).length}
-            </p>
+        </div>
+      </div>
+
+      {/* Modern Stats Matrix */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, i) => (
+          <Surface key={i} variant="panel" className="p-6 group hover:border-afrikoni-gold/20 transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className={cn("p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors", stat.color)}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-3xl font-black">{stat.count}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-os-muted">{stat.label}</div>
+            </div>
           </Surface>
-          <Surface className="p-4">
-            <p className="text-sm text-[var(--os-text-secondary)] mb-1">Ready</p>
-            <p className="text-2xl font-semibold">
-              {(fulfillments || []).filter(f => f.status === 'ready_for_dispatch').length}
-            </p>
-          </Surface>
-          <Surface className="p-4">
-            <p className="text-sm text-[var(--os-text-secondary)] mb-1">Dispatched</p>
-            <p className="text-2xl font-semibold">
-              {(fulfillments || []).filter(f => f.status === 'handed_to_carrier').length}
-            </p>
+        ))}
+      </div>
+
+      {/* Control Layer */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-56 h-12 bg-white/[0.03] border-white/10 rounded-xl focus:ring-afrikoni-gold/20">
+              <SelectValue placeholder="Stream: All" />
+            </SelectTrigger>
+            <SelectContent className="bg-black/90 backdrop-blur-xl border-white/10">
+              <SelectItem value="all">Fulfillment Stream: All</SelectItem>
+              <SelectItem value="pending">Queued Orders</SelectItem>
+              <SelectItem value="picking">Picking Stage</SelectItem>
+              <SelectItem value="packed">Packed & Ready</SelectItem>
+              <SelectItem value="ready_for_dispatch">Awaiting Carrier</SelectItem>
+              <SelectItem value="handed_to_carrier">In Transit</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="hidden md:flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-os-muted">
+          <div className="flex items-center gap-2">
+            <Activity className="w-3 h-3 text-emerald-500" />
+            Processing Latency: 4ms
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className="w-3 h-3 text-afrikoni-gold" />
+            Capacity: 94%
+          </div>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <Surface variant="glass" className="p-8">
+            <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
+              <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
+                Active Shipments
+                <Badge variant="outline" className="text-[9px] font-black border-white/10 text-os-muted">
+                  {(fulfillments || []).length}
+                </Badge>
+              </h2>
+              <Button variant="ghost" size="sm" className="text-os-muted font-bold text-xs gap-2">
+                View Manifest <ExternalLink className="w-3 h-3" />
+              </Button>
+            </div>
+
+            {(fulfillments || []).length === 0 ? (
+              <EmptyState
+                icon={Package}
+                title="Dock Empty"
+                description="Incoming orders will prioritize this fulfillment stream."
+                className="py-12"
+              />
+            ) : (
+              <div className="space-y-4">
+                {(fulfillments || []).map((f) => (
+                  <Surface key={f.id} variant="panel" className="p-5 border-white/5 hover:border-afrikoni-gold/30 transition-all group/card">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div className="flex gap-4">
+                        <div className="p-3 bg-white/5 rounded-2xl border border-white/10 group-hover/card:bg-afrikoni-gold/10 transition-colors">
+                          <Package className="w-6 h-6 text-os-muted group-hover/card:text-afrikoni-gold" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-bold text-lg">Order #{f.order?.order_number || f.order_id?.slice(0, 8)}</h3>
+                            <Badge className={cn("text-[9px] font-black uppercase tracking-widest py-1 px-2.5", getStatusBadgeStyles(f.status))}>
+                              <span className="flex items-center gap-1.5">
+                                {getStatusIcon(f.status)}
+                                {f.status.replace('_', ' ')}
+                              </span>
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-os-muted font-medium">
+                            <div className="flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {f.order?.buyer_company?.name || 'Institutional Buyer'}</div>
+                            <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3" /> {f.created_at ? format(new Date(f.created_at), 'MMM d, HH:mm') : 'Recently'}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Link to={`/dashboard/orders/${f.order_id}`}>
+                          <Button variant="ghost" size="sm" className="font-bold text-xs gap-2 border border-white/10 rounded-xl hover:bg-white/5">
+                            Audit Order <ArrowRight className="w-3 h-3" />
+                          </Button>
+                        </Link>
+
+                        {getNextStatus(f.status) && (
+                          <Button
+                            size="sm"
+                            className="bg-afrikoni-gold text-black font-black px-6 rounded-xl hover:scale-105 active:scale-95 transition-all text-xs"
+                            onClick={() => handleUpdateStatus(f.id, getNextStatus(f.status))}
+                          >
+                            Advance to {getNextStatus(f.status).replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Surface>
+                ))}
+              </div>
+            )}
           </Surface>
         </div>
 
-        {/* Filters */}
-        <Surface className="p-4">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="picking">Picking</SelectItem>
-              <SelectItem value="packed">Packed</SelectItem>
-              <SelectItem value="ready_for_dispatch">Ready for Dispatch</SelectItem>
-              <SelectItem value="handed_to_carrier">Dispatched</SelectItem>
-            </SelectContent>
-          </Select>
-        </Surface>
+        <div className="space-y-8">
+          {/* Warehouse Locations */}
+          <Surface variant="glass" className="p-8">
+            <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
+              <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <Warehouse className="w-4 h-4 text-os-muted" />
+                Infrastructure
+              </h3>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-os-muted hover:text-afrikoni-gold">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
 
-        {/* Fulfillments List */}
-        <Surface className="p-5">
-          <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Fulfillment Orders</h2>
-          {(fulfillments || []).length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title="No fulfillment orders"
-              description="Orders requiring fulfillment will appear here"
-            />
-          ) : (
-            <div className="space-y-3">
-              {(fulfillments || []).map((fulfillment) => (
-                <motion.div
-                  key={fulfillment.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="border rounded-xl p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <Package className="w-5 h-5" />
-                        <p className="font-semibold">
-                          Order #{fulfillment.order?.order_number || fulfillment.order_id?.slice(0, 8)}
+            {(warehouses || []).length === 0 ? (
+              <div className="py-8 text-center space-y-4">
+                <Boxes className="w-10 h-10 text-white/5 mx-auto" />
+                <p className="text-xs text-os-muted italic">No registered warehouses</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(warehouses || []).map((w) => (
+                  <div key={w.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-white/10 transition-colors group cursor-default">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <p className="font-bold text-sm group-hover:text-afrikoni-gold transition-colors">{w.name}</p>
+                        <p className="text-[10px] text-os-muted font-medium">{w.address || 'Address Restricted'}</p>
+                        <p className="text-[10px] text-os-muted font-bold uppercase tracking-tighter opacity-70">
+                          {w.city}{w.city && w.country ? ' • ' : ''}{w.country || 'International'}
                         </p>
-                        <Badge variant={getStatusBadge(fulfillment.status)}>
-                          {getStatusIcon(fulfillment.status)}
-                          <span className="ml-1 capitalize">{fulfillment.status.replace('_', ' ')}</span>
-                        </Badge>
                       </div>
-                      <p className="text-sm">
-                        Buyer: {fulfillment.order?.buyer_company?.name || 'Buyer'}
-                      </p>
-                      {fulfillment.warehouse && (
-                        <p className="text-sm">
-                          Warehouse: {fulfillment.warehouse?.name || 'N/A'}
-                        </p>
-                      )}
+                      <div className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-500">
+                        <CheckCircle className="w-3 h-3" />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    <Link to={`/dashboard/orders/${fulfillment.order_id}`}>
-                      <Button variant="outline" size="sm">
-                        View Order
-                      </Button>
-                    </Link>
-                    {getNextStatus(fulfillment.status) && (
-                      <Button
-                        size="sm"
-                        className="hover:bg-afrikoni-gold/90"
-                        onClick={() => handleUpdateStatus(fulfillment.id, getNextStatus(fulfillment.status))}
-                      >
-                        Mark as {getNextStatus(fulfillment.status).replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </Button>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </Surface>
+                ))}
+              </div>
+            )}
 
-        {/* Warehouses */}
-        <Surface className="p-5">
-          <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4 flex items-center gap-2">
-            <Warehouse className="w-5 h-5" />
-            Warehouse Locations
-          </h2>
-          {(warehouses || []).length === 0 ? (
-            <EmptyState
-              icon={Warehouse}
-              title="No warehouses"
-              description="Add warehouse locations to manage fulfillment"
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(warehouses || []).map((warehouse) => (
-                <div key={warehouse.id} className="border rounded-xl p-4">
-                  <p className="font-semibold mb-2 text-[var(--os-text-primary)]">{warehouse.name}</p>
-                  {warehouse.address && (
-                    <p className="text-sm text-[var(--os-text-secondary)] mb-1">
-                      {warehouse.address}
-                    </p>
-                  )}
-                  {(warehouse.city || warehouse.country) && (
-                    <p className="text-sm text-[var(--os-text-secondary)]">
-                      {warehouse.city}{warehouse.city && warehouse.country ? ', ' : ''}{warehouse.country}
-                    </p>
-                  )}
+            <Button className="w-full mt-8 bg-white/5 border border-white/10 rounded-2xl py-6 text-[10px] font-black uppercase tracking-widest hover:bg-white/10">
+              Register New Warehouse
+            </Button>
+          </Surface>
+
+          {/* Carrier Network */}
+          <Surface variant="glass" className="p-8 overflow-hidden relative group">
+            <div className="absolute -right-8 -bottom-8 p-12 opacity-[0.02] scale-150 rotate-12 transition-transform group-hover:rotate-0 duration-1000">
+              <Truck className="w-32 h-32" />
+            </div>
+
+            <h3 className="text-sm font-black uppercase tracking-widest mb-6">Logistics Network</h3>
+            <div className="space-y-5 relative z-10">
+              {[
+                { name: 'Pan-African Express', status: 'Optimal', delay: '0ms' },
+                { name: 'AfCFTA Global Log', status: 'High Load', delay: '12ms' },
+                { name: 'West Dock Int.', status: 'Optimal', delay: '2ms' }
+              ].map((n, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-os-muted">{n.name}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-os-muted opacity-50">{n.delay}</span>
+                    <span className={cn("font-black uppercase tracking-tighter", n.status === 'Optimal' ? 'text-emerald-500' : 'text-amber-500')}>
+                      {n.status}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
-          )}
-        </Surface>
+          </Surface>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
 export default function FulfillmentDashboard() {
   return (
-    <>
-      {/* PHASE 5B: Fulfillment requires sell or logistics capability (approved) */}
-      <RequireCapability canSell={true} canLogistics={true} requireApproved={true}>
-        <FulfillmentDashboardInner />
-      </RequireCapability>
-    </>
+    <RequireCapability canSell={true} canLogistics={true} requireApproved={true}>
+      <FulfillmentDashboardInner />
+    </RequireCapability>
   );
 }

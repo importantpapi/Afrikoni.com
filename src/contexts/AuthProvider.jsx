@@ -201,11 +201,45 @@ export function AuthProvider({ children }) {
         }
       };
       // Fire-and-forget - don't await, don't block auth flow
-      const { data: { session } } = await supabase.auth.getSession();
+      // 1. Speculative Cache Hint Load (Immediate, non-blocking)
+      const lastCompanyId = localStorage.getItem('afrikoni_last_company_id');
+      if (lastCompanyId) {
+        bootTrace('Cache hint found:', { company_id: lastCompanyId });
+      }
 
-      // ✅ MOVED: Schema validation now runs AFTER getting session to avoid blocking critical path
-      // Fire-and-forget - don't await, don't block auth flow
-      // Fire-and-forget - don't await, don't block auth flow
+      // 2. Parallel Auth + Speculative Profile Resolution
+      // We fire the session check and the profile check concurrently if we have a cached hint.
+      // If we don't have a hint, we wait for session first.
+      const sessionPromise = supabase.auth.getSession();
+
+      let session;
+      let profileError;
+      let profileData;
+
+      if (lastCompanyId) {
+        // [OPTIMIZATION] Speculative pre-fetch if we have a hint
+        const [sessionResult, profileResult] = await Promise.all([
+          sessionPromise,
+          supabase.from('profiles').select('*').single() // Implicit ID check via RLS
+        ]);
+        session = sessionResult.data.session;
+        profileData = profileResult.data;
+        profileError = profileResult.error;
+      } else {
+        const { data } = await sessionPromise;
+        session = data.session;
+        if (session?.user) {
+          const profileResult = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          profileData = profileResult.data;
+          profileError = profileResult.error;
+        }
+      }
+
+      // 3. Schema validation runs in parallel with UI hydration
       validateSchemaWithTimeout();
 
       if (!session?.user) {
@@ -250,18 +284,21 @@ export function AuthProvider({ children }) {
         console.error('[Auth] Profile fetch exception:', profileCatchErr);
       }
 
-      // ✅ ATOMIC STATE UPDATE
-      // Set all state at once to ensure consistent render
-      setUser(session.user);
-      setProfile(resolvedProfile);
-      setRole(resolvedProfile?.role || null);
+      // Update opaque hints for the next boot
+      if (resolvedProfile?.company_id) {
+        localStorage.setItem('afrikoni_last_company_id', resolvedProfile.company_id);
+        localStorage.setItem('afrikoni_has_session', 'true');
+        // Opaque hash of user ID for security partitioning
+        const userHash = btoa(session.user.id).substring(0, 8);
+        localStorage.setItem('afrikoni_user_hint', userHash);
+      }
 
       setAuthReady(true);
       setLoading(false);
-      setAuthResolutionComplete(true); // FIX: Signal that resolution is fully complete (with profile)
+      setAuthResolutionComplete(true);
       hasInitializedRef.current = true;
 
-      console.log('[Auth] ✅ Resolved:', { role: resolvedProfile?.role || 'none' });
+      console.log('[Auth] ✅ Handshake 2.0 Complete:', { role: resolvedProfile?.role || 'none' });
     } catch (err) {
       console.error('[Auth] Error:', err);
       setUser(null);

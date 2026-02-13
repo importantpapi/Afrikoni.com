@@ -32,13 +32,35 @@ export async function seedData(user, companyId) {
         if (!existingCounterpart) {
             await supabase.from('companies').insert({
                 id: counterpartId,
-                name: 'Afrikoni Global Supply',
+                company_name: 'Afrikoni Global Supply',
                 country: 'Ghana',
                 type: 'supplier',
                 verification_status: 'verified',
-                trust_score: 95,
+                trust_score: 98,
                 owner_id: user.id // Hack: belong to user so we can read it easily if RLS is strict, or assume public read
             }).select();
+
+            // 1.1 Insert KYC Verifications for High-Fidelity Demo
+            await supabase.from('kyc_verifications').upsert([
+                {
+                    company_id: counterpartId,
+                    type: 'identity',
+                    status: 'verified',
+                    metadata: { method: 'biometric', node: 'afk-dna-77' }
+                },
+                {
+                    company_id: counterpartId,
+                    type: 'business',
+                    status: 'verified',
+                    metadata: { registry: 'GH-INST-004' }
+                },
+                {
+                    company_id: counterpartId,
+                    type: 'aml',
+                    status: 'verified',
+                    metadata: { scan: 'clean', hits: 0 }
+                }
+            ]);
         }
 
         // 2. Create Mock Product
@@ -160,7 +182,30 @@ export async function seedData(user, companyId) {
         // I will guess 'warehouse_locations' based on fulfillment.jsx import 'getWarehouseLocations'
         // But getWarehouseLocations might query 'warehouses' table.
         // Let's check fulfillment.jsx queries via grep if needed, or just try 'warehouses' which is standard.
-        // Actually I'll skip warehouse to avoid guessing table name error, RFQ and Order are enough for "Life".
+        // 6. Ensure current user's company also has a verified baseline if not already
+        if (companyId) {
+            await supabase.from('companies')
+                .update({
+                    verification_status: 'verified',
+                    trust_score: 82
+                })
+                .eq('id', companyId);
+
+            await supabase.from('kyc_verifications').upsert([
+                {
+                    company_id: companyId,
+                    type: 'identity',
+                    status: 'verified',
+                    metadata: { method: 'simulation' }
+                },
+                {
+                    company_id: companyId,
+                    type: 'business',
+                    status: 'verified',
+                    metadata: { method: 'simulation' }
+                }
+            ]);
+        }
 
         toast.dismiss(toastId);
         toast.success('Seed data created! Dashboard should update instantly.');

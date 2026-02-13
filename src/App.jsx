@@ -19,7 +19,7 @@ import { RoleProvider } from './context/RoleContext';
 import { CapabilityProvider } from './context/CapabilityContext';
 import { TradeProvider } from './context/TradeContext';
 import { WorkspaceModeProvider } from './contexts/WorkspaceModeContext';
-import RequireCapability from './components/auth/RequireCapability';
+import RequireCapability from './guards/RequireCapability';
 import { useAuth } from './contexts/AuthProvider';
 import { useCapability } from './context/CapabilityContext';
 import { supabase } from './api/supabaseClient';
@@ -35,6 +35,7 @@ import {
   Zap,
   AlertCircle
 } from 'lucide-react';
+import { useSovereignHandshake } from './hooks/useSovereignHandshake';
 
 /**
  * =============================================================================
@@ -95,8 +96,8 @@ const BootScreen = ({ status, error }) => (
           ].map((step, idx) => (
             <div key={idx} className="flex flex-col items-center gap-3">
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all duration-700 ${step.active
-                  ? 'bg-primary/5 border-primary/30 text-primary shadow-glow'
-                  : 'bg-os-surface-1 border-os-stroke text-foreground/20'
+                ? 'bg-primary/5 border-primary/30 text-primary shadow-glow'
+                : 'bg-os-surface-1 border-os-stroke text-foreground/20'
                 }`}>
                 <step.icon className={`w-6 h-6 ${step.active ? 'animate-pulse' : ''}`} />
               </div>
@@ -282,94 +283,46 @@ function AppContent() {
   const { ready: kernelReady, kernelError, resetKernel } = useCapability();
   const location = useLocation();
 
+  // ✅ SOVEREIGN SYNC: Parallel Handshake
+  const { isPrimed, isSystemReady, handshakeStatus } = useSovereignHandshake();
+
   useSessionRefresh();
   useBrowserNavigation();
-  useVersionCheck(); // ✅ ENTERPRISE RESILIENCE: Auto-update on version mismatch
+  useVersionCheck();
 
-  // ✅ KERNEL-CENTRIC: Clean Logout - On SIGN_OUT, call resetKernel() to purge the "Brain"
-  // ✅ KERNEL POLISH: Add debounce with isResetting ref to prevent resetKernel() from being called twice
+  // ✅ KERNEL-CENTRIC: Clean Logout
   useEffect(() => {
-    const isResettingRef = { current: false }; // ✅ KERNEL POLISH: Track reset state
-    let resetTimeoutId = null;
-    let lastSignOutTime = 0;
-    const DEBOUNCE_MS = 1000; // 1 second debounce
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
         if (event === 'SIGNED_OUT') {
-          // ✅ KERNEL POLISH: Check if already resetting
-          if (isResettingRef.current) {
-            return;
-          }
-
-          const now = Date.now();
-          // ✅ KERNEL POLISH: Debounce - only call resetKernel if last call was more than 1 second ago
-          if (now - lastSignOutTime < DEBOUNCE_MS) {
-            return;
-          }
-
-          // Clear any pending timeout
-          if (resetTimeoutId) {
-            clearTimeout(resetTimeoutId);
-          }
-
-          lastSignOutTime = now;
-          isResettingRef.current = true; // ✅ KERNEL POLISH: Mark as resetting
-
-          // ✅ KERNEL POLISH: Use timeout to ensure resetKernel is only called once
-          resetTimeoutId = setTimeout(() => {
-            resetKernel(); // ✅ KERNEL-CENTRIC: Clear Kernel state before next user logs in
-            isResettingRef.current = false; // ✅ KERNEL POLISH: Clear reset flag after completion
-            resetTimeoutId = null;
-          }, 100); // Small delay to batch multiple SIGN_OUT events
+          resetKernel();
+          // Purge Query Cache for security
+          queryClient.clear();
+          localStorage.removeItem('AFRIKONI_SOVEREIGN_CACHE'); // Manual purge to be safe
         }
       }
     );
-
-    return () => {
-      if (resetTimeoutId) {
-        clearTimeout(resetTimeoutId);
-      }
-      isResettingRef.current = false; // ✅ KERNEL POLISH: Clear flag on cleanup
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [resetKernel]);
 
   useEffect(() => {
-    // Only setup preloading after auth is ready
     if (authReady) {
       setupLinkPreloading();
       if (typeof window !== 'undefined') {
         useIdlePreloading();
       }
     }
-  }, [authReady]); // Only run when auth is ready
+  }, [authReady]);
 
-  // ✅ EMERGENCY FIX: Self-Healing Engine - Auto-reload on module update errors
-  // Hard Refresh Patch Removed: Stability is now handled by robust error boundaries
-
-  // ✅ HANDSHAKE GATE: Consuming all hydration states
   const isDashboardRoute = location.pathname.startsWith('/dashboard') ||
     location.pathname.startsWith('/onboarding');
 
-  // ✅ KERNEL DECLARATION ORDER: Define isSystemReady BEFORE using it in getHandshakeStatus if needed
-  const isSystemReady = !isDashboardRoute || (
-    authResolutionComplete &&
-    (!user || (kernelReady && !kernelError && profile))
-  );
-
-  const getHandshakeStatus = () => {
-    if (!authReady) return "Resolving session...";
-    if (!authResolutionComplete) return "Loading profile...";
-    if (user && !kernelReady) return "Synchronizing World...";
-    return "Ready";
-  };
-
-  const status = getHandshakeStatus();
+  // ✅ KERNEL-SCHEMA ALIGNMENT: system is ready if public route OR (auth resolved AND (no user OR kernel is primed/ready))
+  const systemAccessReady = !isDashboardRoute || isSystemReady;
 
   // ✅ HANDSHAKE GATE RENDER
-  if (!isSystemReady) {
-    return <BootScreen status={status} error={kernelError} />;
+  if (!systemAccessReady) {
+    return <BootScreen status={handshakeStatus} error={kernelError} />;
   }
 
   return (

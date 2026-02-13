@@ -19,7 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 // Icons
 import {
     Sparkles, Search, Plus, Clock, Globe, DollarSign, MessageSquare,
-    Send, ChevronRight, Zap, FileText, MapPin, Package, Calendar, RefreshCw
+    Send, ChevronRight, Zap, FileText, MapPin, Package, Calendar, RefreshCw,
+    Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -49,7 +50,7 @@ const statusConfig = {
 export default function RFQMonitor({ viewMode = 'buyer' }) {
     // ✅ REACT QUERY MIGRATION: Use query hooks for auto-refresh
     const { user, profileCompanyId, isSystemReady } = useDashboardKernel();
-    const { data: allRFQs = [], isLoading, error } = useRFQs();
+    const { data: allRFQs = [], isLoading, error, refetch, isRefetching } = useRFQs();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -82,9 +83,9 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
         if (statusFilter !== 'all' && statusFilter !== 'matched') {
             if (statusFilter === 'sent') {
                 // Match both kernel status (rfq_open) and legacy status (open, sent)
-                filtered = filtered.filter(rfq => 
-                    rfq.status === 'rfq_open' || 
-                    rfq.status === 'sent' || 
+                filtered = filtered.filter(rfq =>
+                    rfq.status === 'rfq_open' ||
+                    rfq.status === 'sent' ||
                     rfq.status === 'open'
                 );
             } else {
@@ -122,62 +123,73 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
         }, 1200);
     };
 
-    // ✅ REACT QUERY MIGRATION: No useEffect needed - React Query handles loading
-    // All data fetching is automatic via useRFQs() hook
-    // Filtering is done in the useMemo above
-
     // RENDER
     if (!isSystemReady) return <CardSkeleton count={3} />;
 
     if (error) {
-        return <ErrorState message={error} onRetry={() => markFresh()} />;
+        return <ErrorState message={error} onRetry={() => refetch()} />;
     }
 
     return (
         <div className="os-page os-stagger space-y-6">
-            <Surface variant="glass" className="p-6 md:p-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <Surface variant="glass" className="p-6 md:p-8 relative overflow-hidden group/header">
+                {/* Ambient Glow */}
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-[80px] group-hover/header:bg-afrikoni-gold/10 transition-colors duration-700" />
+
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <div className="os-label">{viewMode === 'buyer' ? 'Trade Intake' : 'Opportunity Feed'}</div>
-                        <h1 className="os-title mt-2">{viewMode === 'buyer' ? 'RFQs & Inquiries' : 'Matched RFQs'}</h1>
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="os-label">{viewMode === 'buyer' ? 'Trade Intake' : 'Opportunity Feed'}</div>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tight">Live</span>
+                            </div>
+                        </div>
+                        <h1 className="os-title mt-1">{viewMode === 'buyer' ? 'RFQs & Inquiries' : 'Matched RFQs'}</h1>
                         <p className="text-sm text-os-muted">
                             {rfqs.length} {viewMode === 'buyer' ? 'active requests' : 'matches found'}
                         </p>
                     </div>
                     {viewMode === 'buyer' ? (
-                        <Button className="bg-[var(--os-text-primary)] text-[var(--os-bg)] hover:opacity-90 font-semibold"
+                        <Button className="bg-[var(--os-text-primary)] text-[var(--os-bg)] hover:opacity-90 font-semibold shadow-lg shadow-black/5"
                             onClick={() => { setShowQuickRFQ(!showQuickRFQ); setAiResult(null); }}>
                             <Sparkles className="h-4 w-4 mr-2" /> AI Quick RFQ
                         </Button>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" onClick={() => { refresh(); lastLoadTimeRef.current = null; }} className="gap-2">
-                                <RefreshCw className="w-4 h-4" /> Refresh
+                            <Button
+                                variant="outline"
+                                onClick={() => refetch()}
+                                className={cn("gap-2 transition-all active:scale-95", isRefetching && "opacity-70")}
+                                disabled={isRefetching}
+                            >
+                                <RefreshCw className={cn("w-4 h-4", isRefetching && "animate-spin")} />
+                                {isRefetching ? 'Checking...' : 'Refresh'}
                             </Button>
                         </div>
                     )}
                 </div>
 
                 {/* Filters */}
-                <div className="mt-6 flex flex-col sm:flex-row gap-4">
+                <div className="relative z-10 mt-6 flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-os-muted" />
                         <Input
                             placeholder="Search RFQs..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
+                            className="pl-10 bg-os-surface-1/50 border-os-stroke focus:ring-1 ring-afrikoni-gold/20"
                         />
                     </div>
                     {viewMode === 'buyer' && (
-                        <div className="flex bg-os-surface-1 rounded-lg p-1 border border-os-stroke">
+                        <div className="flex bg-os-surface-1/80 backdrop-blur-md rounded-lg p-1 border border-os-stroke w-fit">
                             {['all', 'sent', 'quoted', 'accepted'].map(key => (
                                 <button
                                     key={key}
                                     onClick={() => setStatusFilter(key)}
                                     className={cn(
                                         'px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                                        statusFilter === key ? 'bg-os-surface-0 text-[var(--os-text-primary)]' : 'text-os-muted hover:text-[var(--os-text-primary)]'
+                                        statusFilter === key ? 'bg-os-surface-0 shadow-sm text-[var(--os-text-primary)]' : 'text-os-muted hover:text-[var(--os-text-primary)]'
                                     )}
                                 >
                                     {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -188,7 +200,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                     {viewMode === 'supplier' && (
                         <div className="w-48">
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+                                <SelectTrigger className="bg-os-surface-1/50 border-os-stroke"><SelectValue placeholder="Status" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="matched">Matched</SelectItem>
                                     <SelectItem value="all">All</SelectItem>
@@ -201,11 +213,11 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
 
             {/* QUICK RFQ (Buyer Only) */}
             {viewMode === 'buyer' && showQuickRFQ && (
-                <Surface variant="panel" className="p-6 animate-in slide-in-from-top-4">
-                    {/* AI Generate Logic UI - Duplicated from rfqs.jsx */}
+                <Surface variant="panel" className="p-6 animate-in slide-in-from-top-4 border-afrikoni-gold/10 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-afrikoni-gold/5 blur-3xl -z-10" />
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-os-surface-1 flex items-center justify-center">
-                            <Sparkles className="h-5 w-5 text-os-muted" />
+                        <div className="w-10 h-10 rounded-xl bg-afrikoni-gold/10 flex items-center justify-center border border-afrikoni-gold/20">
+                            <Sparkles className="h-5 w-5 text-afrikoni-gold" />
                         </div>
                         <div>
                             <h3 className="text-base font-semibold text-[var(--os-text-primary)]">AI-Powered Quick RFQ</h3>
@@ -216,20 +228,20 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                         placeholder='e.g. "I need 20 tons of organic shea butter..."'
                         value={quickRFQText}
                         onChange={(e) => setQuickRFQText(e.target.value)}
-                        className="min-h-[90px] mb-3"
+                        className="min-h-[90px] mb-3 bg-os-surface-1/50 border-os-stroke"
                     />
 
                     {aiResult && (
-                        <div className="mb-4 p-4 rounded-lg bg-os-surface-1 border border-os-stroke animate-fade-in">
+                        <div className="mb-4 p-4 rounded-lg bg-os-surface-1/80 border border-os-stroke animate-in fade-in duration-500">
                             <div className="flex items-center gap-2 mb-3">
-                                <Zap className="h-4 w-4 text-os-muted" />
+                                <Zap className="h-4 w-4 text-afrikoni-gold fill-afrikoni-gold/20" />
                                 <span className="text-sm font-medium">AI Structured RFQ Preview</span>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                <div><p className="text-[10px] uppercase text-os-muted">Product</p>{aiResult.product}</div>
-                                <div><p className="text-[10px] uppercase text-os-muted">Qty</p>{aiResult.qty}</div>
-                                <div><p className="text-[10px] uppercase text-os-muted">HS Code</p>{aiResult.hsCode}</div>
-                                <div><p className="text-[10px] uppercase text-os-muted">Matches</p>{aiResult.suppliers} found</div>
+                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">Product</p>{aiResult.product}</div>
+                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">Qty</p>{aiResult.qty}</div>
+                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">HS Code</p>{aiResult.hsCode}</div>
+                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">Matches</p>{aiResult.suppliers} found</div>
                             </div>
                         </div>
                     )}
@@ -237,11 +249,11 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                     <div className="flex justify-end gap-2">
                         <Button variant="outline" size="sm" onClick={() => { setShowQuickRFQ(false); setAiResult(null); }}>Cancel</Button>
                         {!aiResult ? (
-                            <Button size="sm" onClick={handleGenerateRFQ} disabled={aiProcessing || !quickRFQText}>
+                            <Button size="sm" onClick={handleGenerateRFQ} disabled={aiProcessing || !quickRFQText} className="min-w-[120px]">
                                 {aiProcessing ? "Processing..." : <><Sparkles className="h-3 w-3 mr-2" /> Generate RFQ</>}
                             </Button>
                         ) : (
-                            <Button size="sm" className="gap-2"><Send className="h-3 w-3" /> Send to {aiResult.suppliers} Suppliers</Button>
+                            <Button size="sm" className="gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90"><Send className="h-3 w-3" /> Send to {aiResult.suppliers} Suppliers</Button>
                         )}
                     </div>
                 </Surface>
@@ -251,50 +263,101 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
             {isLoading ? (
                 <CardSkeleton count={3} />
             ) : rfqs.length === 0 ? (
-                <Surface className="p-12 text-center">
-                    <EmptyState
-                        icon={FileText}
-                        title={viewMode === 'buyer' ? "No RFQs found" : "No matches found"}
-                        description={viewMode === 'buyer' ? "Create a new RFQ to get started." : "Matched RFQs will appear here."}
-                    />
-                    {viewMode === 'buyer' && <Button variant="link" onClick={() => setShowQuickRFQ(true)}>Create RFQ</Button>}
+                <Surface variant="glass" className="p-12 md:p-20 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                    {viewMode === 'supplier' ? (
+                        <>
+                            {/* RADAR EFFECT */}
+                            <div className="relative mb-10">
+                                <div className="absolute inset-0 bg-afrikoni-gold/20 rounded-full animate-ping opacity-20" />
+                                <div className="absolute inset-0 bg-afrikoni-gold/10 rounded-full animate-pulse opacity-40 scale-150" />
+                                <div className="relative w-24 h-24 rounded-full bg-os-surface-1 border border-afrikoni-gold/30 flex items-center justify-center z-10">
+                                    <div className="absolute inset-0 rounded-full border border-afrikoni-gold/10 animate-[spin_4s_linear_infinite]" />
+                                    <Globe className="w-10 h-10 text-afrikoni-gold" />
+                                </div>
+                            </div>
+
+                            <div className="max-w-md mx-auto relative z-10">
+                                <h3 className="text-xl font-bold text-[var(--os-text-primary)] mb-3">Scanning for Opportunities</h3>
+                                <p className="text-os-muted mb-8">
+                                    The Trade OS kernel is currently indexing global intake signals. We'll notify you as soon as a new RFQ matches your profile.
+                                </p>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                                    <div className="p-4 rounded-xl bg-os-surface-1 border border-os-stroke">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="p-1.5 rounded-lg bg-info/10"><Settings className="w-3.5 h-3.5 text-info" /></div>
+                                            <span className="text-xs font-bold uppercase tracking-wider text-os-muted">Pro Tip</span>
+                                        </div>
+                                        <p className="text-[11px] text-os-muted leading-relaxed">
+                                            Verify your <strong>HS Codes</strong> and <strong>Categories</strong> in settings to increase matching accuracy.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-os-surface-1 border border-os-stroke">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="p-1.5 rounded-lg bg-emerald-500/10"><MapPin className="w-3.5 h-3.5 text-emerald-500" /></div>
+                                            <span className="text-xs font-bold uppercase tracking-wider text-os-muted">Reach</span>
+                                        </div>
+                                        <p className="text-[11px] text-os-muted leading-relaxed">
+                                            Expand your <strong>Serviceable Regions</strong> to capture more diverse trade inquiries.
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button variant="link" onClick={() => navigate('/dashboard/settings')} className="mt-6 text-afrikoni-gold hover:text-afrikoni-gold/80 font-semibold ">
+                                    Update Supplier Profile <ChevronRight className="w-4 h-4 ml-1" />
+                                </Button>
+                            </div>
+                        </>
+                    ) : (
+                        <EmptyState
+                            icon={FileText}
+                            title="No RFQs created"
+                            description="You haven't issued any requests for quotation yet. Use the AI tool or standard form to begin."
+                            onCtaClick={() => setShowQuickRFQ(true)}
+                            cta="Create First RFQ"
+                        />
+                    )}
                 </Surface>
             ) : (
                 <div className="space-y-4">
                     {rfqs.map((rfq) => {
                         const config = statusConfig[rfq.status] || statusConfig.draft;
-                        // const deadline = ... (skipping format logic for brevity, keeping simple)
 
                         return (
                             <Surface
                                 key={rfq.id}
                                 variant="panel"
-                                className="p-5 hover:bg-os-surface-2 transition-all cursor-pointer group"
+                                className="p-5 hover:bg-os-surface-2 transition-all cursor-pointer group relative overflow-hidden"
                                 onClick={() => navigate(viewMode === 'supplier' ? `/dashboard/one-flow/${rfq.id}` : `/dashboard/trade/${rfq.id}`)}
                             >
-                                <div className="flex items-start justify-between gap-4">
+                                {viewMode === 'supplier' && (
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-2xl -z-10" />
+                                )}
+                                <div className="flex items-start justify-between gap-4 relative z-10">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-base font-semibold text-[var(--os-text-primary)]">{rfq.title}</h3>
+                                            <h3 className="text-base font-semibold text-[var(--os-text-primary)] group-hover:text-afrikoni-gold transition-colors">{rfq.title}</h3>
                                             <StatusBadge label={config.label} tone={config.tone} />
-                                            {viewMode === 'supplier' && <SignalChip tone="emerald">Match</SignalChip>}
+                                            {viewMode === 'supplier' && (
+                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500 uppercase">
+                                                    98% Match
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="flex flex-wrap gap-4 text-sm text-os-muted mb-2">
-                                            <span className="font-mono text-xs opacity-70">#{rfq.id.slice(0, 8)}</span>
-                                            <span className="flex items-center gap-1"><Package className="h-3 w-3" /> {rfq.quantity} {rfq.unit}</span>
-                                            {rfq.target_price && <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> {rfq.target_price}</span>}
-                                            {rfq.delivery_location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {rfq.delivery_location}</span>}
+                                        <div className="flex flex-wrap gap-4 text-sm text-os-muted mb-3">
+                                            <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-os-surface-1 text-os-muted border border-os-stroke">#{rfq.id.slice(0, 8)}</span>
+                                            <span className="flex items-center gap-1.5"><Package className="h-3.5 h-3.5 opacity-70" /> {rfq.quantity} {rfq.unit}</span>
+                                            {rfq.target_price && <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 h-3.5 opacity-70" /> {rfq.target_price}</span>}
+                                            {rfq.delivery_location && <span className="flex items-center gap-1.5"><MapPin className="h-3.5 h-3.5 opacity-70" /> {rfq.delivery_location}</span>}
                                         </div>
 
-                                        {rfq.description && <p className="text-xs text-os-muted line-clamp-1">{rfq.description}</p>}
+                                        {rfq.description && <p className="text-xs text-os-muted line-clamp-1 max-w-2xl">{rfq.description}</p>}
                                     </div>
 
-                                    <div className="flex flex-col items-end gap-2">
-                                        {/* Date or Action */}
-                                        <span className="text-xs text-os-muted"><Clock className="h-3 w-3 inline mr-1" /> {format(new Date(rfq.created_at), 'MMM d')}</span>
-                                        <Button variant="outline" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {viewMode === 'supplier' ? "Provide Quote" : "View Details"} <ChevronRight className="h-3 w-3 ml-1" />
+                                    <div className="flex flex-col items-end justify-between self-stretch gap-2">
+                                        <span className="text-xs text-os-muted font-medium bg-os-surface-1 px-2 py-1 rounded-md border border-os-stroke"><Clock className="h-3 w-3 inline mr-1 opacity-70" /> {format(new Date(rfq.created_at), 'MMM d')}</span>
+                                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0 h-8 text-xs font-bold text-afrikoni-gold">
+                                            {viewMode === 'supplier' ? "Send Quote" : "Open Workspace"} <ChevronRight className="h-3.5 w-3.5 ml-1" />
                                         </Button>
                                     </div>
                                 </div>

@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import React, { useCallback, useState, useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import OSShell from '@/layouts/OSShell';
 import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeManager';
@@ -43,6 +43,7 @@ import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
  */
 export default function WorkspaceDashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // ✅ KERNEL MIGRATION: Get everything from the Single Source of Truth
   const {
@@ -65,6 +66,16 @@ export default function WorkspaceDashboard() {
     // Refresh system state on realtime updates
     refreshSystemState();
   }, [refreshSystemState]);
+
+  // ===========================================================================
+  // COMPANY SETUP GUARD - Redirect if user has no company
+  // ===========================================================================
+  useEffect(() => {
+    if (isSystemReady && !profileCompanyId && !location.pathname.includes('/company-info')) {
+      console.warn('[WorkspaceDashboard] User has no company - redirecting to company setup');
+      navigate('/dashboard/company-info', { replace: true });
+    }
+  }, [isSystemReady, profileCompanyId, location.pathname, navigate]);
 
   // ===========================================================================
   // RENDER GUARDS (Standardized via Kernel)

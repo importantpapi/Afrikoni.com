@@ -15,7 +15,12 @@ import { Textarea } from '@/components/shared/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Badge } from '@/components/shared/ui/badge';
-import { Building2, Save, CheckCircle, AlertCircle, Upload, X, Image as ImageIcon, Users, Plus, Trash2 } from 'lucide-react';
+import { Surface } from '@/components/system/Surface';
+import {
+  Building2, Save, CheckCircle, AlertCircle, Upload, X,
+  Image as ImageIcon, Users, Plus, Trash2, Sparkles,
+  Zap, Globe, Activity, ShieldCheck, Loader2
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 import { useTrustScore } from '@/hooks/useTrustScore';
@@ -111,9 +116,14 @@ export default function CompanyInfo() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Check if user is authenticated
-  if (!userId) {
-    navigate('/login');
+  // ✅ KERNEL MIGRATION: Check if user is authenticated (Safe Navigation)
+  useEffect(() => {
+    if (isSystemReady && !userId) {
+      navigate('/login');
+    }
+  }, [isSystemReady, userId, navigate]);
+
+  if (!userId || !isSystemReady) {
     return null;
   }
 
@@ -818,581 +828,252 @@ export default function CompanyInfo() {
   const requiredFieldsFilled = true; // Always allow save
 
   return (
-    <>
-      <div className="space-y-3">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 rounded-lg">
-              <Building2 className="w-6 h-6" />
+    <div className="os-page os-stagger space-y-10 max-w-[1600px] mx-auto pb-24 px-4 py-8">
+      {/* 1. Header & Identity Summary */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="space-y-4">
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-afrikoni-gold/10 rounded-3xl border border-afrikoni-gold/30 shadow-[0_0_30px_rgba(212,169,55,0.1)]">
+              <Building2 className="w-10 h-10 text-afrikoni-gold" />
             </div>
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold">Company Information</h1>
-              <p className="mt-0.5 text-xs md:text-sm">Complete your company profile before adding photos</p>
+            <div className="space-y-1">
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter flex items-center gap-4 text-white">
+                Institutional Identity
+                <Badge variant="outline" className="text-[10px] font-black tracking-[0.2em] uppercase border-white/10 text-os-muted bg-white/[0.02] px-3 py-1">
+                  Global Entity Node
+                </Badge>
+              </h1>
+              <p className="text-os-muted text-lg font-medium italic opacity-70">Managing your enterprise profile for continental trade synchronization.</p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Status Banner */}
-        {requiredFieldsFilled && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-4 border rounded-lg"
-          >
-            <CheckCircle className="w-5 h-5" />
-            <span className="text-sm">Required fields completed. You can now add photos.</span>
-          </motion.div>
-        )}
+        <div className="flex items-center gap-4">
+          <Surface variant="panel" className="px-6 py-4 flex items-center gap-6 border-white/5 bg-white/[0.02]">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="space-y-0.5">
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-os-muted">Ledger Sync</div>
+                <div className="text-xs font-bold text-emerald-500">Node Active</div>
+              </div>
+            </div>
+            <div className="w-px h-8 bg-white/10" />
+            <Button
+              variant="ghost"
+              onClick={handleSubmit}
+              disabled={isSaving}
+              className="h-10 px-5 gap-3 text-afrikoni-gold font-black uppercase tracking-widest text-[10px] bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 transition-all rounded-xl border border-afrikoni-gold/20"
+            >
+              <Save className={cn("w-3.5 h-3.5", isSaving && "animate-spin")} />
+              {isSaving ? "Saving Identity..." : "Commit Changes"}
+            </Button>
+          </Surface>
+        </div>
+      </div>
 
-        {!formData.company_name && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-4 border rounded-lg"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm">Tip: Adding company information helps buyers find and trust you. All fields are optional except those marked with *.</span>
-          </motion.div>
-        )}
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Left Column: Core Identity Management */}
+        <div className="lg:col-span-8 space-y-8">
 
-        {/* Company Card Preview */}
-        {profileCompanyId && (logoUrl || coverUrl || formData.company_name) && (
-          <Card className="">
-            <CardContent className="p-0">
-              <div className="relative">
-                {coverUrl ? (
-                  <img
-                    src={coverUrl}
-                    alt="Cover"
-                    className="w-full h-32 object-cover rounded-t-lg"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="w-full h-32 rounded-t-lg" />
-                )}
-                <div className="absolute bottom-0 left-4 transform translate-y-1/2 flex items-center gap-4">
-                  {logoUrl ? (
-                    <img
-                      src={logoUrl}
-                      alt="Logo"
-                      className="w-20 h-20 rounded-lg object-cover border-4 shadow-afrikoni"
-                      loading="lazy"
-                      decoding="async"
+          {/* A. Universal Profile Flow */}
+          <Surface variant="glass" className="p-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-12 opacity-[0.02] rotate-12">
+              <Sparkles className="w-64 h-64 text-afrikoni-gold" />
+            </div>
+
+            <div className="space-y-8 relative z-10">
+              <div className="flex items-center gap-5 border-b border-white/5 pb-6">
+                <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                  <Zap className="w-6 h-6 text-afrikoni-gold" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black tracking-tight text-white">Core Enterprise Details</h3>
+                  <p className="text-sm text-os-muted font-medium opacity-60">Essential information for cross-border reconciliation.</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-os-muted">Company Name</Label>
+                    <Input
+                      value={formData.company_name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
+                      className="h-14 bg-white/[0.03] border-white/10 rounded-2xl focus:border-afrikoni-gold/30 transition-all font-bold text-lg text-white"
                     />
-                  ) : (
-                    <div className="w-20 h-20 rounded-lg flex items-center justify-center border-4 shadow-afrikoni">
-                      <Building2 className="w-10 h-10" />
-                    </div>
-                  )}
-                  <div className="pt-8 pb-4">
-                    <h3 className="font-bold text-lg">{formData.company_name || 'Your Company'}</h3>
-                    {formData.country && (
-                      <p className="text-sm">{formData.country}</p>
-                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-os-muted">Business Structure</Label>
+                    <Select value={formData.business_type} onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}>
+                      <SelectTrigger className="h-14 bg-white/[0.03] border-white/10 rounded-2xl text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/90 backdrop-blur-xl border-white/10">
+                        <SelectItem value="manufacturer">Manufacturer</SelectItem>
+                        <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                        <SelectItem value="distributor">Distributor</SelectItem>
+                        <SelectItem value="trading_company">Trading Company</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-os-muted">Sovereign Node (Country)</Label>
+                    <Select value={formData.country} onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}>
+                      <SelectTrigger className="h-14 bg-white/[0.03] border-white/10 rounded-2xl text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-black/90 backdrop-blur-xl border-white/10 h-64 overflow-y-auto">
+                        {AFRICAN_COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-os-muted">Operational Hub (City)</Label>
+                    <Input
+                      value={formData.city}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                      className="h-14 bg-white/[0.03] border-white/10 rounded-2xl transition-all font-bold text-white"
+                    />
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </Surface>
 
-        {/* Tabs for Company Info and Team */}
-        <Tabs defaultValue="info" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="info">Company Information</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-          </TabsList>
+          {/* B. Visual Identity & Brand DNA */}
+          <div className="grid md:grid-cols-2 gap-8">
+            <Surface variant="glass" className="p-8 space-y-8">
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
+                <ImageIcon className="w-4 h-4 text-afrikoni-gold" />
+                Enterprise Mark
+              </h3>
 
-          <TabsContent value="info" className="space-y-4">
-            {/* Form content stays the same */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {/* v2.5: Premium Company Info Cards */}
-              <Card className="shadow-premium rounded-afrikoni-lg">
-                <CardHeader className="border-b pb-4">
-                  <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">Company Details</CardTitle>
-                  <CardDescription className="mt-3">
-                    Provide your company information. This will be visible to potential buyers and partners.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Logo and Cover Upload */}
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <Label>Company Logo</Label>
-                        <div className="mt-2 flex items-center gap-4">
-                          {logoUrl ? (
-                            <img src={logoUrl} alt="Logo" className="w-20 h-20 rounded-lg object-cover border" loading="lazy" decoding="async" />
-                          ) : (
-                            <div className="w-20 h-20 rounded-lg flex items-center justify-center border">
-                              <ImageIcon className="w-8 h-8" />
-                            </div>
-                          )}
-                          <div>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleLogoUpload}
-                              disabled={uploadingLogo}
-                              className="hidden"
-                              id="logo-upload"
-                            />
-                            <label htmlFor="logo-upload">
-                              <Button type="button" variant="outline" size="sm" disabled={uploadingLogo} asChild>
-                                <span>
-                                  {uploadingLogo ? 'Uploading...' : logoUrl ? 'Change Logo' : 'Upload Logo'}
-                                </span>
-                              </Button>
-                            </label>
-                            {logoUrl && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setLogoUrl('')}
-                                className="ml-2"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
+              <div className="flex flex-col items-center gap-6">
+                <div className="relative group/logo">
+                  <div className="w-40 h-40 rounded-[2.5rem] bg-black/40 border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover/logo:border-afrikoni-gold/30">
+                    {logoUrl ? (
+                      <img src={logoUrl} className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-12 h-12 text-os-muted opacity-20" />
+                    )}
+                    {uploadingLogo && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-white animate-spin" />
                       </div>
-                      <div>
-                        <Label>Cover Image</Label>
-                        <div className="mt-2 flex items-center gap-4">
-                          {coverUrl ? (
-                            <img src={coverUrl} alt="Cover" className="w-32 h-20 rounded-lg object-cover border" loading="lazy" decoding="async" />
-                          ) : (
-                            <div className="w-32 h-20 rounded-lg flex items-center justify-center border">
-                              <ImageIcon className="w-8 h-8" />
-                            </div>
-                          )}
-                          <div>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleCoverUpload}
-                              disabled={uploadingCover}
-                              className="hidden"
-                              id="cover-upload"
-                            />
-                            <label htmlFor="cover-upload">
-                              <Button type="button" variant="outline" size="sm" disabled={uploadingCover} asChild>
-                                <span>
-                                  {uploadingCover ? 'Uploading...' : coverUrl ? 'Change Cover' : 'Upload Cover'}
-                                </span>
-                              </Button>
-                            </label>
-                            {coverUrl && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setCoverUrl('')}
-                                className="ml-2"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {/* Company Name */}
-                      <div className="md:col-span-2">
-                        <Label htmlFor="company_name">
-                          Company Name <span className="">*</span>
-                        </Label>
-                        <Input
-                          id="company_name"
-                          value={formData.company_name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                          placeholder="e.g. Acme Trading Ltd"
-                          required
-                          className={`mt-1 ${errors.company_name ? 'border-red-500' : ''}`}
-                        />
-                        {errors.company_name && (
-                          <p className="text-sm mt-1">{errors.company_name}</p>
-                        )}
-                      </div>
-
-                      {/* Business Type */}
-                      <div>
-                        <Label htmlFor="business_type">
-                          Business Type
-                        </Label>
-                        <Select
-                          value={formData.business_type}
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="manufacturer">Manufacturer</SelectItem>
-                            <SelectItem value="wholesaler">Wholesaler</SelectItem>
-                            <SelectItem value="distributor">Distributor</SelectItem>
-                            <SelectItem value="trading_company">Trading Company</SelectItem>
-                            <SelectItem value="logistics_provider">Logistics Provider</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Country */}
-                      <div>
-                        <Label htmlFor="country">
-                          Country <span className="">*</span>
-                        </Label>
-                        <Select
-                          value={formData.country}
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
-                        >
-                          <SelectTrigger className={`mt-1 ${errors.country ? 'border-red-500' : ''}`}>
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[400px] overflow-y-auto">
-                            {AFRICAN_COUNTRIES.map(country => (
-                              <SelectItem key={country} value={country} className="cursor-pointer">{country}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {errors.country && (
-                          <p className="text-sm mt-1">{errors.country}</p>
-                        )}
-                      </div>
-
-                      {/* City */}
-                      <div>
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          value={formData.city}
-                          onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          placeholder="e.g. Lagos"
-                          className="mt-1"
-                        />
-                      </div>
-
-                      {/* Phone Number */}
-                      <div>
-                        <Label htmlFor="phone">
-                          Phone Number <span className="">*</span>
-                        </Label>
-                        <Input
-                          id="phone"
-                          value={formData.phone}
-                          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                          placeholder="+234 800 000 0000"
-                          required
-                          className={`mt-1 ${errors.phone ? 'border-red-500' : ''}`}
-                        />
-                        {errors.phone && (
-                          <p className="text-sm mt-1">{errors.phone}</p>
-                        )}
-                      </div>
-
-                      {/* Business Email */}
-                      <div>
-                        <Label htmlFor="business_email">Business Email</Label>
-                        <Input
-                          id="business_email"
-                          type="email"
-                          value={formData.business_email}
-                          onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
-                          placeholder="contact@company.com"
-                          className={`mt-1 ${errors.business_email ? 'border-red-500' : ''}`}
-                        />
-                        {errors.business_email && (
-                          <p className="text-sm mt-1">{errors.business_email}</p>
-                        )}
-                      </div>
-
-                      {/* Website */}
-                      <div>
-                        <Label htmlFor="website">Website</Label>
-                        <Input
-                          id="website"
-                          value={formData.website}
-                          onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                          placeholder="https://yourcompany.com"
-                          className={`mt-1 ${errors.website ? 'border-red-500' : ''}`}
-                        />
-                        {errors.website && (
-                          <p className="text-sm mt-1">{errors.website}</p>
-                        )}
-                      </div>
-
-                      {/* Year Established */}
-                      <div>
-                        <Label htmlFor="year_established">Year Established</Label>
-                        <Input
-                          id="year_established"
-                          type="number"
-                          value={formData.year_established}
-                          onChange={(e) => setFormData(prev => ({ ...prev, year_established: e.target.value }))}
-                          placeholder="2020"
-                          min="1900"
-                          max={new Date().getFullYear()}
-                          className="mt-1"
-                        />
-                      </div>
-
-                      {/* Company Size */}
-                      <div>
-                        <Label htmlFor="company_size">Company Size</Label>
-                        <Select
-                          value={formData.company_size}
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, company_size: v }))}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1-10">1-10 employees</SelectItem>
-                            <SelectItem value="11-50">11-50 employees</SelectItem>
-                            <SelectItem value="51-200">51-200 employees</SelectItem>
-                            <SelectItem value="201-500">201-500 employees</SelectItem>
-                            <SelectItem value="500+">500+ employees</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Company Description */}
-                      <div className="md:col-span-2">
-                        <Label htmlFor="company_description">Company Description</Label>
-                        <Textarea
-                          id="company_description"
-                          value={formData.company_description}
-                          onChange={(e) => setFormData(prev => ({ ...prev, company_description: e.target.value }))}
-                          placeholder="Tell us about your company, products, services, and what makes you unique..."
-                          rows={5}
-                          className="mt-1"
-                        />
-                        <p className="text-xs mt-1">
-                          This description will help buyers understand your business better.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Gallery Images Section */}
-                    <div className="md:col-span-2 border-t pt-6">
-                      <Label>Company Gallery (Create Your Visual World)</Label>
-                      <p className="text-xs mt-1 mb-4">
-                        Upload up to 10 images showcasing your company, products, facilities, or team. Make your profile come alive!
-                      </p>
-
-                      {/* Gallery Grid */}
-                      {galleryImages.length > 0 && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                          {galleryImages.map((imageUrl, index) => {
-                            // Ensure imageUrl is a valid string
-                            if (!imageUrl || typeof imageUrl !== 'string') {
-                              return null;
-                            }
-
-                            return (
-                              <div key={`gallery-${index}-${imageUrl}`} className="relative group">
-                                <img
-                                  src={imageUrl}
-                                  alt={`Gallery ${index + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg border"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    toast.error(`Failed to load image ${index + 1}`);
-                                  }}
-                                  onLoad={() => {
-                                    // Image loaded
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeGalleryImage(index)}
-                                  className="absolute top-2 right-2 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                  aria-label="Remove image"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Debug info in development */}
-                      {import.meta.env.DEV && galleryImages.length > 0 && (
-                        <div className="text-xs mt-2">
-                          Debug: {galleryImages.length} image(s) in gallery
-                        </div>
-                      )}
-
-                      {/* Upload Button */}
-                      <div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleGalleryUpload}
-                          disabled={uploadingGallery || galleryImages.length >= 10}
-                          className="hidden"
-                          id="gallery-upload"
-                        />
-                        <label htmlFor="gallery-upload">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled={uploadingGallery || galleryImages.length >= 10}
-                            asChild
-                          >
-                            <span className="cursor-pointer">
-                              <Upload className="w-4 h-4 mr-2 inline" />
-                              {uploadingGallery
-                                ? 'Uploading...'
-                                : galleryImages.length >= 10
-                                  ? 'Maximum 10 images reached'
-                                  : `Add Images (${galleryImages.length}/10)`
-                              }
-                            </span>
-                          </Button>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-between pt-6 border-t">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate(returnUrl)}
-                        disabled={isSaving}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={isSaving}
-                        className="hover:bg-afrikoni-goldDark"
-                      >
-                        {isSaving ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 mr-2" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4 mr-2" />
-                            Save Company Information
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </TabsContent>
-
-          <TabsContent value="team" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Team Members
-                </CardTitle>
-                <CardDescription>
-                  Manage your company team members
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Current User as Owner */}
-                {userId && (
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold">User ID: {userId.slice(0, 8)}...</div>
-                        <div className="text-sm">Owner</div>
-                      </div>
-                      <Badge variant="default">Owner</Badge>
-                    </div>
+                    )}
                   </div>
-                )}
-
-                {/* Team Members List */}
-                {teamMembers.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold">Team Members</h4>
-                    {teamMembers.map((member) => (
-                      <div key={member.id} className="p-4 border rounded-lg flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{member.member_email}</div>
-                          <div className="text-sm capitalize">{member.role_label}</div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveTeamMember(member.id)}
-                          className="hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add Team Member Form */}
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-4">Add Team Member</h4>
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <Input
-                      type="email"
-                      placeholder="team@company.com"
-                      value={newTeamMember.email}
-                      onChange={(e) => setNewTeamMember({ ...newTeamMember, email: e.target.value })}
-                      className="flex-1"
-                    />
-                    <Select
-                      value={newTeamMember.role}
-                      onValueChange={(v) => setNewTeamMember({ ...newTeamMember, role: v })}
-                    >
-                      <SelectTrigger className="w-full md:w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="member">Member</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={handleAddTeamMember}
-                      disabled={isAddingTeamMember || !newTeamMember.email}
-                      className="hover:bg-afrikoni-goldDark"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add
-                    </Button>
-                  </div>
+                  <input type="file" onChange={handleLogoUpload} className="hidden" id="logo-up" accept="image/*" />
+                  <label htmlFor="logo-up" className="absolute -bottom-2 -right-2 p-3 bg-afrikoni-gold text-black rounded-2xl cursor-pointer hover:scale-110 transition-transform shadow-xl">
+                    <Upload className="w-5 h-5" />
+                  </label>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                <div className="text-center">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-os-muted opacity-64 italic">Recommended: 1:1 Aspect Premium Asset</p>
+                </div>
+              </div>
+            </Surface>
+
+            <Surface variant="glass" className="p-8 space-y-8">
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
+                <Globe className="w-4 h-4 text-emerald-500" />
+                Communication Uplink
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-os-muted ml-1">Institutional Email</Label>
+                  <Input
+                    value={formData.business_email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
+                    className="bg-white/[0.02] border-white/10 rounded-xl text-white"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-os-muted ml-1">Sovereign Domain</Label>
+                  <Input
+                    value={formData.website}
+                    onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                    className="bg-white/[0.02] border-white/10 rounded-xl text-white"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-os-muted ml-1">Global Phone</Label>
+                  <Input
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="bg-white/[0.02] border-white/10 rounded-xl text-white"
+                  />
+                </div>
+              </div>
+            </Surface>
+          </div>
+        </div>
+
+        {/* Right Column: AI Audit & Team Matrix */}
+        <div className="lg:col-span-4 space-y-8">
+
+          {/* AI Auditor Feedback */}
+          <Surface variant="glass" className="p-8 border-afrikoni-gold/20 bg-afrikoni-gold/[0.02] relative overflow-hidden group">
+            <div className="absolute -right-12 -top-12 opacity-[0.03] scale-150 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
+              <ShieldCheck className="w-32 h-32 text-afrikoni-gold" />
+            </div>
+            <div className="space-y-6 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-afrikoni-gold/20 rounded-xl border border-afrikoni-gold/30">
+                  <Activity className="w-4 h-4 text-afrikoni-gold" />
+                </div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-afrikoni-gold">Identity Prophet</h3>
+              </div>
+              <p className="text-sm font-medium italic text-white/90 leading-relaxed">
+                "Adding a detailed enterprise description and verified operational hubs increases your <span className="text-afrikoni-gold font-bold">Corridor Confidence</span> by up to 22%."
+              </p>
+              <div className="pt-4 border-t border-afrikoni-gold/10">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-os-muted">
+                  <span>Audit Readiness</span>
+                  <span className="text-emerald-500">OPTIMAL</span>
+                </div>
+              </div>
+            </div>
+          </Surface>
+
+          {/* Team Capacity Node */}
+          <Surface variant="glass" className="p-8 space-y-8 h-full">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-os-muted">Institutional Team</h3>
+              <Users className="w-4 h-4 text-os-muted" />
+            </div>
+
+            <div className="space-y-4">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl group hover:bg-white/[0.04] transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-afrikoni-gold/10 flex items-center justify-center font-bold text-afrikoni-gold border border-afrikoni-gold/20 uppercase">
+                      {member.member_email?.[0] || 'U'}
+                    </div>
+                    <div>
+                      <div className="text-xs font-black text-white">{member.member_email?.split('@')[0] || 'Anonymous Node'}</div>
+                      <div className="text-[9px] font-bold text-os-muted uppercase tracking-widest">{member.role_label}</div>
+                    </div>
+                  </div>
+                  <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] font-black">ACTIVE</Badge>
+                </div>
+              ))}
+
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/dashboard/team-members')}
+                className="w-full h-14 border border-dashed border-white/10 rounded-2xl hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold hover:border-afrikoni-gold/30 transition-all font-black uppercase tracking-widest text-[10px] gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Expand Institutional Root
+              </Button>
+            </div>
+          </Surface>
+
+        </div>
       </div>
-    </>
+    </div>
   );
 }
-

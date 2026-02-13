@@ -1,5 +1,5 @@
 // ✅ PWA FIX: Versioned cache with build timestamp to force updates
-const CACHE_VERSION = '2026-02-13-v1';
+const CACHE_VERSION = '2026-02-13-v2-stabilized';
 const CACHE_NAME = `afrikoni-os-${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
     '/',

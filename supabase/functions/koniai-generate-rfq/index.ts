@@ -1,163 +1,161 @@
+// @ts-nocheck
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+
 /**
- * Supabase Edge Function: KoniAI+ RFQ Generator
- *
- * Converts natural language descriptions into structured RFQs using OpenAI.
- *
- * Endpoint: POST /functions/v1/koniai-generate-rfq
+ * Supabase Edge Function: KoniAI RFQ Generator v2.0 (Gemini 3 Upgrade) 
+ * Converts natural language to structured Trade Kernel RFQs + HS Codes
  */
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
+async function generateWithGemini3(prompt: string, systemInstruction: string) {
+  try {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-interface RFQRequest {
-  description: string
-  category?: string
-  buyerCountry?: string
-  context?: {
-    budget?: string
-    timeline?: string
-    quality?: string
-    quantity?: string
+    const body: any = {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }]
+        }
+      ],
+      system_instruction: {
+        parts: [{ text: systemInstruction }]
+      },
+      generationConfig: {
+        response_mime_type: "application/json",
+        temperature: 0.1,
+        maxOutputTokens: 2000
+      }
+    };
+
+    const response = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Gemini 3 API error: ${response.status} ${errorBody}`);
+    }
+
+    const data = await response.json();
+    const aiContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!aiContent) {
+      throw new Error('No response content from Gemini 3');
+    }
+
+    return aiContent;
+  } catch (error) {
+    console.error('Gemini 3 API error:', error);
+    throw error;
   }
 }
 
-serve(async (req) => {
-  // Handle CORS preflight
+async function main(req: Request) {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured')
+    if (!GEMINI_API_KEY) {
+      throw new Error('Gemini API key not configured');
     }
 
-    const { description, category, buyerCountry, context = {} }: RFQRequest = await req.json()
+    const { description, category, buyerCountry, context = {} } = await req.json();
 
     if (!description || description.trim().length < 10) {
       return new Response(
-        JSON.stringify({ error: 'Description must be at least 10 characters' }),
+        JSON.stringify({ error: 'Description too short' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      );
     }
 
-    // Build the system prompt for African B2B trade context
-    const systemPrompt = `You are KoniAI+, an AI trade assistant specialized in African B2B commerce for the Afrikoni marketplace. Your role is to help buyers create professional, detailed RFQs (Request for Quotes) from natural language descriptions.
-
-IMPORTANT CONTEXT:
-- Afrikoni is a B2B marketplace connecting African suppliers with global buyers
-- Common trade goods include: agricultural products (cocoa, coffee, shea butter, cassava), textiles, minerals, handicrafts
-- Shipping typically involves African logistics corridors
-- Prices should consider African market rates and export costs
-
-When generating an RFQ, extract and structure:
-1. Product details (name, specifications, quality grade)
-2. Quantity (units, weight, or volume)
-3. Delivery requirements (timeline, location, Incoterms)
-4. Budget range (if mentioned)
-5. Quality/certification requirements
-6. Any special requirements
-
-Respond ONLY with valid JSON in this exact format:
-{
-  "rfq": {
-    "title": "Brief descriptive title",
-    "product_name": "Specific product name",
-    "category": "Product category",
-    "description": "Detailed product description including specifications",
-    "quantity": "Numerical quantity with unit",
-    "unit": "Unit of measurement (kg, units, MT, etc.)",
-    "quality_requirements": "Quality specs, certifications needed",
-    "delivery_timeline": "Expected delivery timeframe",
-    "delivery_location": "Destination country/city",
-    "budget_range": { "min": 0, "max": 0, "currency": "USD" },
-    "incoterms": "Suggested Incoterms (FOB, CIF, etc.)",
-    "additional_requirements": "Any other specifications"
-  },
-  "suggestions": [
-    "Helpful suggestion about the RFQ",
-    "Market insight or recommendation"
-  ],
-  "confidence": 0.85,
-  "clarification_needed": ["List of info that would improve the RFQ"]
-}`
-
-    const userPrompt = `Convert this request into a structured RFQ:
-
-"${description}"
-
-${category ? `Category hint: ${category}` : ''}
-${buyerCountry ? `Buyer location: ${buyerCountry}` : ''}
-${context.budget ? `Budget: ${context.budget}` : ''}
-${context.timeline ? `Timeline: ${context.timeline}` : ''}
-${context.quantity ? `Quantity: ${context.quantity}` : ''}
-${context.quality ? `Quality requirements: ${context.quality}` : ''}`
-
-    // Call OpenAI API
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+    const systemPrompt = `You are the KoniAI Trade Architect. Your goal is to convert natural language trade requests into structured B2B RFQs for the African market using Gemini 3's reasoning engine.
+    
+    For the provided trade description, you must:
+    1. Identify the core product and specifications.
+    2. Determine the most likely HS Code (Harmonized System).
+    3. Suggest appropriate Incoterms (e.g., FOB, CIF).
+    4. Create a 3-step logistics sequence (Phase 1: Sourcing/Loading, Phase 2: Transit, Phase 3: Final Delivery).
+    
+    Output ONLY a valid JSON object with the following schema:
+    {
+      "rfq": {
+        "title": "short clinical title",
+        "product_name": "Specific product name",
+        "category": "Product category",
+        "description": "Detailed product description",
+        "quantity": "estimated numeric quantity",
+        "unit": "standard unit (MT, KG, etc)",
+        "hs_code": "6-digit HS code",
+        "incoterms": "suggested incoterm",
+        "delivery_location": "suggested port or city",
+        "quality_requirements": "key quality standards"
       },
-      body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 1500,
-        response_format: { type: 'json_object' }
-      })
-    })
+      "logistics_sequence": [
+        {"step": 1, "action": "action description", "timeframe": "days"},
+        {"step": 2, "action": "action description", "timeframe": "days"},
+        {"step": 3, "action": "action description", "timeframe": "days"}
+      ],
+      "suggestions": ["suggestion 1", "suggestion 2"],
+      "confidence": 0.0-1.0
+    }`;
 
-    if (!openaiResponse.ok) {
-      const error = await openaiResponse.json()
-      console.error('[KoniAI RFQ] OpenAI error:', error)
-      throw new Error('AI service temporarily unavailable')
-    }
+    const userPrompt = `USER TRADE DESCRIPTION: "${description}"
+    ${category ? `CATEGORY HINT: ${category}` : ''}
+    ${buyerCountry ? `BUYER COUNTRY: ${buyerCountry}` : ''}
+    ${Object.keys(context).length > 0 ? `ADDITIONAL CONTEXT: ${JSON.stringify(context)}` : ''}`;
 
-    const openaiResult = await openaiResponse.json()
-    const aiContent = openaiResult.choices?.[0]?.message?.content
+    const rfqJSON = await generateWithGemini3(userPrompt, systemPrompt);
 
-    if (!aiContent) {
-      throw new Error('No response from AI service')
-    }
-
-    // Parse AI response
-    let parsedRFQ
+    let parsedResult;
     try {
-      parsedRFQ = JSON.parse(aiContent)
-    } catch (parseError) {
-      console.error('[KoniAI RFQ] Failed to parse AI response:', aiContent)
-      throw new Error('Failed to process AI response')
+      parsedResult = JSON.parse(rfqJSON);
+    } catch (e) {
+      console.error('Failed to parse Gemini 3 output:', rfqJSON);
+      throw new Error('AI generated invalid trade data');
     }
-
-    // Add metadata
-    parsedRFQ.generated_at = new Date().toISOString()
-    parsedRFQ.source = 'koniai_plus'
-
-    return new Response(
-      JSON.stringify(parsedRFQ),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
-  } catch (error) {
-    console.error('[KoniAI RFQ] Error:', error)
 
     return new Response(
       JSON.stringify({
-        error: 'Failed to generate RFQ',
-        message: error.message
+        ...parsedResult,
+        model: 'gemini-3-flash',
+        source: 'koniai_plus_gemini_3',
+        generated_at: new Date().toISOString()
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        },
+        status: 200
+      }
+    );
+
+  } catch (error: any) {
+    console.error('RFQ Generation Error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      }
+    );
   }
-})
+}
+
+serve(main);

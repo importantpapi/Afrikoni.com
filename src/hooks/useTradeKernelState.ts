@@ -32,7 +32,7 @@ const defaultState: TradeKernelState = {
 };
 
 export function useTradeKernelState(): TradeKernelState {
-  const { profileCompanyId, canLoadData, isSystemReady } = useDashboardKernel();
+  const { profileCompanyId, canLoadData, isSystemReady, organization } = useDashboardKernel();
   const [state, setState] = useState<TradeKernelState>(defaultState);
 
   useEffect(() => {
@@ -59,21 +59,15 @@ export function useTradeKernelState(): TradeKernelState {
       const results: Partial<TradeKernelState> = {};
 
       try {
-        const companyRes = await supabase
-          .from('companies')
-          .select('id, company_name, afcfta_ready, trust_score, verification_status, created_at')
-          .eq('id', profileCompanyId)
-          .maybeSingle();
-
-        if (companyRes.data) {
-          if (typeof companyRes.data.trust_score === 'number') {
-            results.trustScore = Math.round(companyRes.data.trust_score);
+        if (organization) {
+          if (typeof organization.trust_score === 'number') {
+            results.trustScore = Math.round(organization.trust_score);
           }
-          if (companyRes.data.verification_status) {
-            results.kycStatus = companyRes.data.verification_status === 'verified' ? 'verified' : 'pending';
+          if (organization.verification_status) {
+            results.kycStatus = organization.verification_status === 'verified' ? 'verified' : 'pending';
           }
-          if (typeof companyRes.data.afcfta_ready === 'boolean') {
-            results.afcftaReady = companyRes.data.afcfta_ready;
+          if (typeof organization.afcfta_ready === 'boolean') {
+            results.afcftaReady = organization.afcfta_ready;
           }
         }
       } catch (error) {
@@ -203,7 +197,7 @@ export function useTradeKernelState(): TradeKernelState {
       isMounted = false;
       window.removeEventListener('dashboard-realtime-update', handleRealtimeUpdate);
     };
-  }, [canLoadData, profileCompanyId, isSystemReady]); // ✅ MOBILE FIX: Added isSystemReady
+  }, [canLoadData, profileCompanyId, isSystemReady, organization]); // ✅ KERNEL SYNC: Added organization
 
   return useMemo(() => state, [state]);
 }

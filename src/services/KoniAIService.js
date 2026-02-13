@@ -19,6 +19,30 @@ import { supabase } from '@/api/supabaseClient';
 const EDGE_FUNCTION_BASE = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
 
 /**
+ * Helper: Fetch with Exponential Backoff
+ * Handles intermittent connectivity of Sovereign Nodes
+ */
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
+        throw new Error(`Server Error: ${response.status}`);
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt === maxRetries) break;
+      const delay = Math.pow(2, attempt) * 1000 + Math.random() * 100;
+      console.warn(`[KoniAIService] Attempt ${attempt + 1} failed. Retrying in ${Math.round(delay)}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  throw lastError;
+}
+
+/**
  * Generate a structured RFQ from natural language description
  * @param {Object} params - RFQ generation parameters
  * @param {string} params.description - Natural language description of what the user needs
@@ -36,7 +60,7 @@ export async function generateRFQ({ description, category, buyerCountry, context
     // Get current session for authentication
     const { data: { session } } = await supabase.auth.getSession();
 
-    const response = await fetch(`${EDGE_FUNCTION_BASE}/koniai-generate-rfq`, {
+    const response = await fetchWithRetry(`${EDGE_FUNCTION_BASE}/koniai-generate-rfq`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -84,7 +108,7 @@ export async function analyzeQuotes({ quotes, rfq, preferences = {} }) {
 
     const { data: { session } } = await supabase.auth.getSession();
 
-    const response = await fetch(`${EDGE_FUNCTION_BASE}/koniai-analyze-quote`, {
+    const response = await fetchWithRetry(`${EDGE_FUNCTION_BASE}/koniai-analyze-quote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -154,7 +178,7 @@ export async function chat({ message, history = [], context = {} }) {
       }
     }
 
-    const response = await fetch(`${EDGE_FUNCTION_BASE}/koniai-chat`, {
+    const response = await fetchWithRetry(`${EDGE_FUNCTION_BASE}/koniai-chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -205,7 +229,7 @@ export async function getPricingSuggestion({
   try {
     const { data: { session } } = await supabase.auth.getSession();
 
-    const response = await fetch(`${EDGE_FUNCTION_BASE}/koniai-pricing`, {
+    const response = await fetchWithRetry(`${EDGE_FUNCTION_BASE}/koniai-pricing`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -245,7 +269,7 @@ export async function getNegotiationGuidance({ quote, rfq, goal }) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
 
-    const response = await fetch(`${EDGE_FUNCTION_BASE}/koniai-negotiate`, {
+    const response = await fetchWithRetry(`${EDGE_FUNCTION_BASE}/koniai-negotiate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -267,6 +291,47 @@ export async function getNegotiationGuidance({ quote, rfq, goal }) {
 
   } catch (error) {
     console.error('[KoniAIService] getNegotiationGuidance error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate a professional purchase contract from trade details
+ * @param {Object} params - Contract parameters
+ * @param {Object} params.trade - Trade details
+ * @param {Object} params.quote - Quote details
+ * @param {Object} params.buyer - Buyer profile
+ * @param {Object} params.supplier - Supplier profile
+ * @returns {Promise<{contract: Object, model: string}>}
+ */
+export async function generateContract({ trade, quote, buyer, supplier }) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    const response = await fetchWithRetry(`${EDGE_FUNCTION_BASE}/generate-contract-ai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token || ''}`
+      },
+      body: JSON.stringify({
+        trade,
+        quote,
+        buyer,
+        supplier
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to generate contract');
+    }
+
+    const result = await response.json();
+    return result;
+
+  } catch (error) {
+    console.error('[KoniAIService] generateContract error:', error);
     throw error;
   }
 }
@@ -352,12 +417,58 @@ export const SuggestedPrompts = [
   "Find verified cassava suppliers in Tanzania"
 ];
 
+/**
+ * DNA Extractor Protocol - Multi-modal document parsing
+ * @param {Object} params - Extraction parameters
+ * @param {string} params.documentType - Type of document (invoice, bill_of_lading, etc.)
+ * @param {string} params.imageData - Optional base64 image data for multimodal vision
+ * @param {Object} params.context - Additional context
+ * @returns {Promise<Object>} - Extracted structured data
+ */
+export async function extractDNA({ documentType, imageData, context = {} }) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    const response = await fetchWithRetry(`${EDGE_FUNCTION_BASE}/koniai-chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token || ''}`
+      },
+      body: JSON.stringify({
+        message: `EXTRACT_DNA: ${documentType}`,
+        image: imageData, // Optional base64
+        context: {
+          ...context,
+          documentType,
+          isDNAExtraction: true
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'DNA Extraction failed');
+    }
+
+    const result = await response.json();
+    // The chat function will return parsed JSON if we tell it to in the system prompt
+    return typeof result.response === 'string' ? JSON.parse(result.response) : result.response;
+
+  } catch (error) {
+    console.error('[KoniAIService] extractDNA error:', error);
+    throw error;
+  }
+}
+
 export default {
   generateRFQ,
   analyzeQuotes,
   chat,
+  extractDNA,
   getPricingSuggestion,
   getNegotiationGuidance,
+  generateContract,
   QuickActions,
   SuggestedPrompts
 };

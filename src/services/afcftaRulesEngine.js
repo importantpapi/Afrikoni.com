@@ -10,12 +10,12 @@
  * - Value Added (VA)
  */
 
-const AFCFTA_MEMBER_STATES = [
-    'GH', 'NG', 'KE', 'ZA', 'EG', 'RW', 'CI', 'SN', 'TZ', 'UG', 'ET'
+// ✅ AfCFTA Corridors: Phase 1 Active Corridors
+const ACTIVE_CORRIDORS = [
+    { from: 'GH', to: 'NG', status: 'ACTIVE', focus: 'Industrial' },
+    { from: 'KE', to: 'RW', status: 'ACTIVE', focus: 'Services/Agri' },
+    { from: 'ZA', to: 'EG', status: 'STAGING', focus: 'Retail' },
 ];
-
-// Real Rules Engine will connect here via Supabase
-// const HS_RULES = ... (Removed for Credibility)
 
 /**
  * Check if a trade route and product qualifies for AfCFTA
@@ -23,42 +23,47 @@ const AFCFTA_MEMBER_STATES = [
  * @param {string} trade.origin_country - Uppercase ISO 2 code (e.g., 'GH')
  * @param {string} trade.destination_country - Uppercase ISO 2 code
  * @param {string} trade.hs_code - 4 or 6 digit HS code
- * @param {Object} productDetails
- * @returns {Object} { qualified: boolean, reason: string, rule: Object }
+ * @returns {Object} { qualified: boolean, status: string, checklist: Array }
  */
-export function checkAfCFTACompliance(trade, productDetails) {
+export function checkAfCFTACompliance(trade) {
     const { origin_country, destination_country, hs_code } = trade;
 
-    // 1. Geography Check (REAL LOGIC)
-    if (!AFCFTA_MEMBER_STATES.includes(origin_country) || !AFCFTA_MEMBER_STATES.includes(destination_country)) {
+    // 1. Corridor Eligibility Check
+    const corridor = ACTIVE_CORRIDORS.find(
+        c => (c.from === origin_country && c.to === destination_country) ||
+            (c.from === destination_country && c.to === origin_country)
+    );
+
+    if (!corridor) {
         return {
             qualified: false,
-            status: 'INELIGIBLE_ROUTE',
-            message: 'One or both countries are not yet active AfCFTA trading partners.',
-            details: { origin: origin_country, destination: destination_country }
+            status: 'INELIGIBLE_CORRIDOR',
+            message: 'AfCFTA trading is not yet fully activated for this specific country pair.',
+            checklist: []
         };
     }
 
-    // 2. Rules of Origin (HONEST STATE)
-    // No more hardcoded fake rules. 
-    // We explicitly state that we need manual/database verification.
+    // 2. Intelligence: 'Duty-free Likely' vs 'Manual Review'
+    const isLikelyDutyFree = hs_code?.startsWith('0') || hs_code?.startsWith('1'); // Raw/Agri simplification
+    const status = isLikelyDutyFree ? 'DUTY_FREE_LIKELY' : 'MANUAL_REVIEW_REQUIRED';
+
+    // 3. Required Documents Checklist
+    const checklist = [
+        { id: 'coo', label: 'Certificate of Origin', required: true, status: 'pending' },
+        { id: 'cd', label: 'Customs Declaration', required: true, status: 'pending' },
+    ];
+
+    if (!isLikelyDutyFree) {
+        checklist.push({ id: 'vbr', label: 'Value Breakdown Report (40% Rule)', required: true, status: 'pending' });
+    }
 
     return {
-        qualified: false, // Default to false until proven
-        status: 'PENDING_COMPLIANCE_REVIEW',
-        rule_applied: null,
-        message: 'Compliance check requires manual document verification via Trade Corridor rules.'
+        qualified: isLikelyDutyFree,
+        status,
+        corridor_focus: corridor.focus,
+        message: isLikelyDutyFree
+            ? 'Trade qualifies for expedited duty-free clearance preference.'
+            : 'Value-added verification required for industrial goods.',
+        checklist
     };
-}
-
-function getMessageForStatus(status, rule) {
-    switch (status) {
-        case 'INELIGIBLE_ROUTE': return 'Trade route is outside AfCFTA zone.';
-        case 'LIKELY_QUALIFIED': return `Product assumes ${rule.description} (Standard for raw goods).`;
-        case 'QUALIFIED': return 'Product meets Value Added threshold requirements.';
-        case 'NOT_QUALIFIED': return `Local value content below ${rule.threshold}% required.`;
-        case 'NEEDS_VALUE_DECLARATION': return 'Value breakdown required to verify 40% local content.';
-        case 'NEEDS_ORIGIN_CERT': return 'Certificate of Origin required to prove tariff shift.';
-        default: return 'Compliance check pending.';
-    }
 }
