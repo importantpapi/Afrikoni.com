@@ -81,7 +81,12 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
         // Apply status filter
         if (statusFilter !== 'all' && statusFilter !== 'matched') {
             if (statusFilter === 'sent') {
-                filtered = filtered.filter(rfq => rfq.status === 'rfq_open' || rfq.status === 'sent');
+                // Match both kernel status (rfq_open) and legacy status (open, sent)
+                filtered = filtered.filter(rfq => 
+                    rfq.status === 'rfq_open' || 
+                    rfq.status === 'sent' || 
+                    rfq.status === 'open'
+                );
             } else {
                 filtered = filtered.filter(rfq => rfq.status === statusFilter);
             }
