@@ -7,6 +7,7 @@ import { Textarea } from '@/components/shared/ui/textarea';
 import { Label } from '@/components/shared/ui/label';
 import { createRFQ } from '@/services/rfqService';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useQueryClient } from '@tanstack/react-query';
 import { Sparkles, Upload, Calendar, ArrowRight, Wand2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { rfqSchema, validate } from '@/schemas/trade';
@@ -22,6 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function IntakeEngine() {
   const navigate = useNavigate();
   const { user, profile } = useDashboardKernel();
+  const queryClient = useQueryClient();
 
   // Modes: 'magic' (AI Parsing) vs 'form' (Manual Override)
   const [mode, setMode] = useState('magic');
@@ -119,6 +121,10 @@ export default function IntakeEngine() {
       setSubmitting(false);
       if (success) {
         toast.success('RFQ published to Trade OS Network');
+        
+        // Invalidate RFQ cache to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['rfqs'] });
+        
         navigate('/dashboard/rfqs');
       }
       else {
