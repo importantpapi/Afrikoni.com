@@ -63,14 +63,24 @@ export default function TradeOSSidebar({
       `}
       style={{ width: 'var(--os-sidebar-width, 72px)' }}
     >
-      {/* OS Logo */}
+      {/* OS Logo - Premium Afrikoni Emblem */}
       <Link to="/dashboard" className="mb-6 relative group">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4A937] to-[#8B4513] flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform">
-          <span className="text-black font-black text-sm">A</span>
+        <div className="w-12 h-12 rounded-xl bg-[#5C3D2E] flex items-center justify-center shadow-[0_4px_20px_rgba(212,169,55,0.3)] group-hover:shadow-[0_6px_30px_rgba(212,169,55,0.5)] group-hover:scale-105 transition-all duration-300 border-2 border-[#D4A937]/30">
+          {/* Afrikoni Symbol - Stylized A with African patterns */}
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Top chevrons (roof/mountain peaks) */}
+            <path d="M20 4 L32 12 L28 12 L20 7 L12 12 L8 12 Z" fill="#D4A937" />
+            {/* Intertwined loops (commerce connection) */}
+            <circle cx="15" cy="22" r="6" stroke="#D4A937" strokeWidth="2" fill="none" />
+            <circle cx="25" cy="22" r="6" stroke="#D4A937" strokeWidth="2" fill="none" />
+            {/* Base pattern (African heritage) */}
+            <path d="M10 30 L12 34 L16 34 L14 30 Z M24 30 L26 34 L30 34 L28 30 Z" fill="#D4A937" />
+          </svg>
         </div>
         {/* Logo Tooltip */}
-        <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/20 rounded-lg text-[11px] font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
-          Afrikoni OS
+        <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/30 rounded-lg text-[11px] font-semibold text-[#D4A937] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
+          AFRIKONI OS
+          <div className="text-[9px] text-gray-500 dark:text-gray-400 font-normal mt-0.5">Trade. Trust. Thrive.</div>
         </div>
       </Link>
 

@@ -44,7 +44,7 @@ export default function IntakeEngine() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // AI Heuristic Parser (Mock Brain)
+  // AI Heuristic Parser with Spell Correction
   const analyzeIntent = async () => {
     if (!magicInput.trim()) return;
     setIsAnalyzing(true);
@@ -52,35 +52,77 @@ export default function IntakeEngine() {
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    // Heuristics
-    const lower = magicInput.toLowerCase();
+    // Auto-correct common spelling mistakes
+    let correctedText = magicInput;
+    const corrections = {
+      'coccoa': 'cocoa',
+      'cacoa': 'cocoa',
+      'shea': 'shea',
+      'tones': 'tons',
+      'ton': 'tons',
+      'deliverd': 'delivered',
+      'accra': 'Accra',
+      'lagos': 'Lagos',
+      'ghana': 'Ghana',
+      'nigeria': 'Nigeria',
+      'kenya': 'Kenya',
+    };
 
-    // Extract Quantity
-    const qtyMatch = lower.match(/(\d+[\d,]*)\s*(tons|kg|pieces|units|mt|metric tons|boxes|pallets)/i);
-    const quantity = qtyMatch ? qtyMatch[1].replace(/,/g, '') : '';
-    const unit = qtyMatch ? qtyMatch[2] : 'pieces';
+    Object.entries(corrections).forEach(([wrong, right]) => {
+      const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
+      correctedText = correctedText.replace(regex, right);
+    });
 
-    // Extract Price
-    const priceMatch = lower.match(/(\$|€|£)\s*(\d+[\d,]*)/);
+    const lower = correctedText.toLowerCase();
+
+    // Extract Quantity with better patterns
+    const qtyMatch = lower.match(/(\d+[\d,]*)\s*(tons?|tonnes?|kg|kilograms?|pieces?|units?|mt|metric\s*tons?|boxes?|pallets?|containers?)/i);
+    let quantity = qtyMatch ? qtyMatch[1].replace(/,/g, '') : '';
+    let unit = qtyMatch ? qtyMatch[2].toLowerCase() : 'pieces';
+    
+    // Normalize units
+    if (unit.includes('ton')) unit = 'tons';
+    if (unit.includes('kg') || unit.includes('kilogram')) unit = 'kg';
+    if (unit.includes('piece')) unit = 'pieces';
+    if (unit.includes('box')) unit = 'boxes';
+
+    // Extract Price with multiple currency patterns
+    const priceMatch = lower.match(/(\$|€|£|usd|eur|gbp)?\s*(\d+[\d,]*)\s*(\$|usd|per\s*ton|per\s*kg)?/i);
     const price = priceMatch ? priceMatch[2].replace(/,/g, '') : '';
 
-    // Extract Location (Simple keyword matching)
-    const locations = ['accra', 'lagos', 'nairobi', 'mombasa', 'dakar', 'abidjan', 't Tema', 'lekkie'];
-    const locMatch = locations.find(l => lower.includes(l));
+    // Extract Countries and Cities
+    const countries = ['ghana', 'nigeria', 'kenya', 'senegal', 'ivory coast', 'south africa', 'egypt', 'morocco'];
+    const cities = ['accra', 'lagos', 'nairobi', 'mombasa', 'dakar', 'abidjan', 'tema', 'lekki', 'cairo', 'johannesburg'];
+    
+    const countryMatch = countries.find(c => lower.includes(c));
+    const cityMatch = cities.find(c => lower.includes(c));
+
+    // Extract delivery location
+    const deliveryMatch = lower.match(/delivered?\s*to\s*([a-z\s]+)/i) || 
+                          lower.match(/destination[:\s]*([a-z\s]+)/i) ||
+                          lower.match(/to\s+([a-z\s]+)\s+port/i);
+    const delivery = deliveryMatch ? deliveryMatch[1].trim() : '';
+
+    // Generate intelligent title
+    const productMatch = correctedText.match(/(?:need|want|looking for|require)\s+\d+[\d,]*\s*\w+\s+of\s+([\w\s]+?)(?:\s+delivered|\s+to|\s+by|\.|$)/i);
+    const product = productMatch ? productMatch[1].trim() : '';
+    const titleText = product ? `${quantity} ${unit} of ${product}` : correctedText.split('.')[0].substring(0, 60);
 
     setForm(prev => ({
       ...prev,
-      title: magicInput.split('.')[0].substring(0, 60), // First sentence as title
-      description: magicInput,
+      title: titleText,
+      description: correctedText,
       quantity: quantity || prev.quantity,
       unit: unit || prev.unit,
       target_price: price || prev.target_price,
-      delivery_location: locMatch ? locMatch.charAt(0).toUpperCase() + locMatch.slice(1) : prev.delivery_location,
+      delivery_location: delivery || (cityMatch ? cityMatch.charAt(0).toUpperCase() + cityMatch.slice(1) : prev.delivery_location),
+      target_country: countryMatch ? countryMatch.charAt(0).toUpperCase() + countryMatch.slice(1) : prev.target_country,
+      target_city: cityMatch ? cityMatch.charAt(0).toUpperCase() + cityMatch.slice(1) : prev.target_city,
     }));
 
-    setMode('form'); // Switch to form view for review
+    setMode('form');
     setIsAnalyzing(false);
-    toast.success('AI structured your request. Please review.');
+    toast.success('AI analyzed and corrected your request. Please review.');
   };
 
   const handleSubmit = async (e) => {
