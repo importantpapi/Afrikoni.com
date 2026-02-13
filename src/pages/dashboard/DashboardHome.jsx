@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
 import OneFlow from './OneFlow';
+import SimpleModeHome from '@/components/dashboard/SimpleModeHome';
 import { useTrades } from '@/hooks/queries/useTrades';
 import {
   ArrowRight, Box, CreditCard, Ship, Sparkles, Activity,
   Globe, ShieldCheck, Zap, TrendingUp, Layers, ChevronRight,
-  LayoutDashboard, Shell
+  LayoutDashboard, Shell, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { OSStatusBar } from '@/components/system/OSStatusBar';
@@ -23,9 +24,41 @@ export default function DashboardHome() {
   const { isSystemReady, profileCompanyId, userId, organization } = useDashboardKernel();
   const { data: { activeTrades = [] } = {}, isLoading: tradesLoading } = useTrades();
   const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState(() => {
+    // Load saved preference
+    return localStorage.getItem('afrikoni_view_mode') || 'pro';
+  });
+
+  // Save preference
+  const toggleViewMode = () => {
+    const newMode = viewMode === 'pro' ? 'simple' : 'pro';
+    setViewMode(newMode);
+    localStorage.setItem('afrikoni_view_mode', newMode);
+  };
 
   if (!isSystemReady || !profileCompanyId) {
     return <DashboardSkeleton />;
+  }
+
+  // Show Simple Mode for first-time users
+  if (viewMode === 'simple') {
+    return (
+      <div className="relative">
+        {/* Mode Toggle Button */}
+        <div className="fixed top-20 right-6 z-50">
+          <Button
+            onClick={toggleViewMode}
+            variant="outline"
+            size="sm"
+            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all"
+          >
+            <ToggleRight className="w-4 h-4 mr-2" />
+            Switch to Pro View
+          </Button>
+        </div>
+        <SimpleModeHome />
+      </div>
+    );
   }
 
   const verificationStatus = organization?.verification_status || 'unverified';
@@ -44,6 +77,19 @@ export default function DashboardHome() {
 
   return (
     <div className="os-page os-stagger space-y-10 max-w-7xl mx-auto pb-24 px-4 py-8">
+      {/* Mode Toggle Button - Pro View */}
+      <div className="fixed top-20 right-6 z-50">
+        <Button
+          onClick={toggleViewMode}
+          variant="outline"
+          size="sm"
+          className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all"
+        >
+          <ToggleLeft className="w-4 h-4 mr-2" />
+          Switch to Simple View
+        </Button>
+      </div>
+
       {/* 1. KERNEL HEADER - Redesigned for 2026 Premium */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-8">
         <div className="space-y-3">

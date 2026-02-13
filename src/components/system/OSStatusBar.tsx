@@ -19,9 +19,19 @@ export function OSStatusBar() {
   const escrowDisplay = `$${(escrowLockedValue / 1000).toFixed(1)}K`;
   const pipelineDisplay = `$${(pipelineValue / 1000).toFixed(1)}K`;
 
+  // Human-readable translations
+  const humanMessages = {
+    kernelLive: "System Online – Your trades are being monitored",
+    trust: trustScore >= 80 ? "High Trust – Premium rates available" : "Building Trust – Complete verification",
+    kyc: kycStatus === 'verified' ? "Identity Verified – Full access enabled" : "Verification Needed – Some features limited",
+    escrow: `$${escrowDisplay} Protected – Your payments are secured`,
+    afcfta: afcftaReady ? "Cross-border Ready – No extra taxes expected" : "Border Compliance – Some restrictions apply",
+    risk: riskLevel === 'low' ? "Low Risk – Escrow protects you" : "Review Required – Check trade details"
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* KERNEL LIVE - Premium 2026 Design */}
+      {/* KERNEL LIVE - Premium 2026 Design with Human Tooltip */}
       <div className="relative group">
         {/* Animated gradient border */}
         <motion.div
@@ -62,6 +72,11 @@ export function OSStatusBar() {
           <motion.div
             className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           />
+        </div>
+        
+        {/* Human-readable tooltip */}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+          {humanMessages.kernelLive}
         </div>
       </div>
 
