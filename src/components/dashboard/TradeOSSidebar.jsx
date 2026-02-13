@@ -57,17 +57,17 @@ export default function TradeOSSidebar({
     <aside
       className={`
         relative h-full bg-white dark:bg-black border-r border-afrikoni-gold/10
-        flex flex-col items-center py-5 transition-transform duration-200 shadow-sm
+        flex flex-col items-center pt-6 pb-5 transition-transform duration-200 shadow-sm
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
       `}
       style={{ width: 'var(--os-sidebar-width, 72px)' }}
     >
       {/* OS Logo - Premium Afrikoni Emblem */}
-      <Link to="/dashboard" className="mb-6 relative group">
-        <div className="w-12 h-12 rounded-xl bg-[#5C3D2E] flex items-center justify-center shadow-[0_4px_20px_rgba(212,169,55,0.3)] group-hover:shadow-[0_6px_30px_rgba(212,169,55,0.5)] group-hover:scale-105 transition-all duration-300 border-2 border-[#D4A937]/30">
+      <Link to="/dashboard" className="mb-6 relative group z-50">
+        <div className="w-12 h-12 rounded-xl bg-[#5C3D2E] flex items-center justify-center shadow-[0_4px_20px_rgba(212,169,55,0.3)] group-hover:shadow-[0_6px_30px_rgba(212,169,55,0.5)] group-hover:scale-105 transition-all duration-300 border-2 border-[#D4A937]/30 relative z-50">
           {/* Afrikoni Symbol - Stylized A with African patterns */}
-          <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10">
             {/* Top chevrons (roof/mountain peaks) */}
             <path d="M20 4 L32 12 L28 12 L20 7 L12 12 L8 12 Z" fill="#D4A937" />
             {/* Intertwined loops (commerce connection) */}
@@ -78,7 +78,7 @@ export default function TradeOSSidebar({
           </svg>
         </div>
         {/* Logo Tooltip */}
-        <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/30 rounded-lg text-[11px] font-semibold text-[#D4A937] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
+        <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/30 rounded-lg text-[11px] font-semibold text-[#D4A937] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[60] shadow-xl">
           AFRIKONI OS
           <div className="text-[9px] text-gray-500 dark:text-gray-400 font-normal mt-0.5">Trade. Trust. Thrive.</div>
         </div>
