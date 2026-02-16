@@ -18,6 +18,61 @@ const ACTIVE_CORRIDORS = [
 ];
 
 /**
+ * Get specific AfCFTA legal clauses for a trade corridor and product.
+ */
+export function getLegalClauses(corridor, hsCode) {
+    const defaultClause = "This trade is governed by the AfCFTA Agreement. The parties agree to adhere to the General Rules of Origin as specified in Annex 2.";
+
+    // HS-code specific clauses (Simulated for 2026)
+    const hsClauses = {
+        '0901': 'Product qualifies as "Wholly Obtained" under agricultural rules. 0% tariff applied.', // Coffee
+        '6101': 'Product meets "Change in Tariff Sub-Heading" rule for textile manufacture.', // Apparel
+        '7201': 'Value-Added content verified above 35% threshold for manufactured steel.'
+    };
+
+    // Corridor-specific legal text
+    const corridorData = {
+        'NG-GH': 'This contract incorporates the Nigeria-Ghana Bilateral Trade Protocol as harmonized with AfCFTA Art. 4.',
+        'GH-NG': 'This contract incorporates the Nigeria-Ghana Bilateral Trade Protocol as harmonized with AfCFTA Art. 4.', // Bidirectional
+        'KE-RW': 'Settlement governed by the East African Community (EAC) Common Market Protocol.',
+        'RW-KE': 'Settlement governed by the East African Community (EAC) Common Market Protocol.', // Bidirectional
+        'ZA-EG': 'SADC Protocol on Trade specifically applied for duty-free transit.',
+        'EG-ZA': 'SADC Protocol on Trade specifically applied for duty-free transit.' // Bidirectional
+    };
+
+    return {
+        base: defaultClause,
+        hsSpecific: hsClauses[hsCode?.substring(0, 4)] || null,
+        corridorSpecific: corridorData[corridor] || null
+    };
+}
+
+/**
+ * Check compliance and return full legal context.
+ */
+export function checkCompliance(params) {
+    const { origin, destination, hsCode, valueAdded } = params;
+    const corridorKey = `${origin}-${destination}`;
+
+    const isCompliant = valueAdded >= 35; // Standard AfCFTA threshold
+    const clauses = getLegalClauses(corridorKey, hsCode);
+
+    return {
+        compliant: isCompliant,
+        tariffRate: isCompliant ? 0 : 12.5,
+        requiredDocs: [
+            'AfCFTA Certificate of Origin',
+            'Sovereign DNA Ledger Proof',
+            'Customs Declaration Form A1'
+        ],
+        legalClauses: clauses,
+        summary: isCompliant
+            ? `Verified AfCFTA compliant. Eligible for 0% tariff in ${corridorKey} corridor.`
+            : `Fails 35% Value-Add threshold. Standard 12.5% tariff applicable.`
+    };
+}
+
+/**
  * Check if a trade route and product qualifies for AfCFTA
  * @param {Object} trade 
  * @param {string} trade.origin_country - Uppercase ISO 2 code (e.g., 'GH')

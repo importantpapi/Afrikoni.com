@@ -8,7 +8,7 @@ import { Input } from '@/components/shared/ui/input';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { Search, Filter, Building2, MapPin, Star, Shield, Package, Users, MessageCircle, Globe, Bookmark } from 'lucide-react';
+import { Search, Filter, Building, MapPin, Star, Shield, Package, Users, MessageCircle, Globe, Bookmark } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useSupplierRanking } from '@/hooks/useSupplierRanking';
 import RecommendedBadge from '@/components/suppliers/RecommendedBadge';
@@ -379,7 +379,7 @@ export default function Suppliers() {
         ) : rankedSuppliers.length === 0 ? (
           <Card className="border-afrikoni-gold/20">
             <CardContent className="p-12 text-center">
-              <Building2 className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
+              <Building className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No suppliers found</h3>
               <p className="text-afrikoni-deep">Try adjusting your filters or search query</p>
             </CardContent>
@@ -421,7 +421,7 @@ export default function Suppliers() {
                         <img src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Building2 className="w-20 h-20 text-afrikoni-deep/70" />
+                          <Building className="w-20 h-20 text-afrikoni-deep/70" />
                         </div>
                       )}
                     </div>

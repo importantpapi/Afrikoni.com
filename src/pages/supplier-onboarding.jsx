@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SovereignIdentity } from '@/components/shared/ui/SovereignIdentity';
 import {
-  Building2,
+  Building,
   Globe,
   MapPin,
   ChevronRight,
@@ -151,7 +151,7 @@ export default function SupplierOnboarding() {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
-                          <Building2 className="w-3 h-3" /> Corporate Entity
+                          <Building className="w-3 h-3" /> Corporate Entity
                         </label>
                         <Input
                           placeholder="Legal Business Name"

@@ -11,13 +11,13 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/shared/ui/badge';
-import { Building2, CheckCircle } from 'lucide-react';
+import { Building, CheckCircle } from 'lucide-react';
 
 export default function ConversationList({ conversations, onSelectConversation, currentUserId }) {
   if (conversations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
-        <Building2 className="w-16 h-16 mb-4" />
+        <Building className="w-16 h-16 mb-4" />
         <h3 className="text-lg font-semibold mb-2">
           No conversations yet
         </h3>
@@ -46,7 +46,7 @@ export default function ConversationList({ conversations, onSelectConversation, 
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
-                <Building2 className="w-6 h-6" />
+                <Building className="w-6 h-6" />
               )}
             </div>
             {conv.otherCompany?.verification_status === 'verified' && (

@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   FileCheck, ArrowLeft, Upload, Download, Shield, CheckCircle, XCircle,
-  Clock, AlertTriangle, FileText, Building2, Globe, Calendar, Filter,
+  Clock, AlertTriangle, FileText, Building, Globe, Calendar, Filter,
   Search, Eye, RefreshCw, ExternalLink, ChevronDown, ChevronUp,
   Fingerprint, Activity, Zap, Database, ShieldAlert, Boxes
 } from 'lucide-react';

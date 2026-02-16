@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, MapPin, Building2, MessageSquare, ChevronRight, Clock } from 'lucide-react';
+import { Shield, MapPin, Building, MessageSquare, ChevronRight, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { supabase } from '@/api/supabaseClient';
@@ -234,7 +234,7 @@ export default function MobileSupplierCards() {
                             placeholder="/company-placeholder.svg"
                           />
                         ) : (
-                          <Building2 className="w-6 h-6 text-afrikoni-gold/50" />
+                          <Building className="w-6 h-6 text-afrikoni-gold/50" />
                         )}
                         {/* Verification Badge with Online Indicator */}
                         <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-afrikoni-gold/20 flex items-center gap-0.5">

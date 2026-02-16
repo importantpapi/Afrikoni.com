@@ -17,7 +17,7 @@ import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import { Settings, User, Building2, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie, ShieldCheck, Truck, TrendingUp, Zap, Sparkles, Check, Monitor, Activity, ShoppingCart, Package } from 'lucide-react';
+import { Settings, User, Building, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie, ShieldCheck, Truck, TrendingUp, Zap, Sparkles, Check, Monitor, Activity, ShoppingCart, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/shared/ui/switch';
 import { useTranslation } from 'react-i18next';
@@ -590,7 +590,7 @@ export default function DashboardSettings() {
           <TabsList className="border-none bg-black/40 backdrop-blur-2xl rounded-[2rem] p-2 shadow-[0_24px_100px_rgba(0,0,0,0.6)] grid grid-cols-3 md:grid-cols-6 gap-2 sticky top-4 z-50 mb-12">
             {[
               { id: 'profile', label: 'Identity', icon: User },
-              { id: 'company', label: 'Enterprise', icon: Building2 },
+              { id: 'company', label: 'Enterprise', icon: Building },
               { id: 'role', label: 'Policy', icon: ShieldCheck },
               { id: 'notifications', label: 'Push', icon: Bell },
               { id: 'security', label: 'Vault', icon: Lock },
@@ -785,7 +785,7 @@ export default function DashboardSettings() {
               <div className="border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent p-8">
                 <div className="flex items-center gap-4 text-xl font-black text-white uppercase tracking-tighter">
                   <div className="p-3 rounded-2xl bg-afrikoni-gold/10 border border-afrikoni-gold/30">
-                    <Building2 className="w-6 h-6 text-afrikoni-gold" />
+                    <Building className="w-6 h-6 text-afrikoni-gold" />
                   </div>
                   Enterprise Infrastructure
                 </div>

@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { 
-  Building2, Users, Shield, TrendingUp, CheckCircle, ArrowRight, 
+  Building, Users, Shield, TrendingUp, CheckCircle, ArrowRight, 
   Zap, Globe, Lock, BarChart3, HeadphonesIcon, FileText, 
   Settings, Award, Target, Sparkles
 } from 'lucide-react';
@@ -20,7 +20,7 @@ export default function Enterprise() {
 
   const features = [
     {
-      icon: Building2,
+      icon: Building,
       title: 'Dedicated Account Manager',
       description: 'Personal support from a dedicated account manager who understands your business needs and helps you maximize your trading potential.',
       color: 'from-blue-500/20 to-blue-600/20'

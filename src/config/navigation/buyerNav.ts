@@ -5,7 +5,7 @@ import {
   MessageSquare,
   Wallet,
   Package,
-  Building2,
+  Building,
   Receipt,
   RotateCcw,
   BarChart3,
@@ -33,14 +33,14 @@ export const buyerNav = [
   
   // 🧩 SECONDARY - Manage section (collapsible)
   { 
-    icon: Building2, 
+    icon: Building, 
     label: 'Manage', 
     path: null, 
     priority: 'secondary',
     isSection: true,
     children: [
       { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
-      { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+      { icon: Building, label: 'Company Info', path: '/dashboard/company-info' },
       { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team' },
       { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
       { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },

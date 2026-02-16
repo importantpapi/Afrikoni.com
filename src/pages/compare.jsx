@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   GitCompare, X, Trash2, Package, MapPin, Star, DollarSign, 
-  Clock, Building2, ShoppingCart, MessageCircle, FileText,
+  Clock, Building, ShoppingCart, MessageCircle, FileText,
   CheckCircle, AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -395,7 +395,7 @@ export default function CompareProducts() {
                       <tr className="border-b border-afrikoni-gold/10 bg-afrikoni-offwhite/50">
                         <td className="p-4 font-medium text-afrikoni-deep sticky left-0 bg-afrikoni-offwhite/50 z-10">
                           <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-afrikoni-gold" />
+                            <Building className="w-4 h-4 text-afrikoni-gold" />
                             Supplier
                           </div>
                         </td>

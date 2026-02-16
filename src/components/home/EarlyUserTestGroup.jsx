@@ -5,7 +5,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { Users, Mail, Building2 } from 'lucide-react';
+import { Users, Mail, Building } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function EarlyUserTestGroup() {
@@ -121,7 +121,7 @@ export default function EarlyUserTestGroup() {
 
                 <div>
                   <Label htmlFor="businessType" className="flex items-center gap-2 mb-2">
-                    <Building2 className="w-4 h-4 text-blue-600" />
+                    <Building className="w-4 h-4 text-blue-600" />
                     Business Type
                   </Label>
                   <Select value={formData.businessType} onValueChange={(v) => handleChange('businessType', v)}>

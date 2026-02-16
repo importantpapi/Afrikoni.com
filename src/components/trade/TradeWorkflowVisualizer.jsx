@@ -29,7 +29,7 @@ import {
   ClipboardCheck,
   Truck,
   Navigation,
-  Building2,
+  Building,
   MapPin,
   Star,
   ChevronDown,
@@ -110,7 +110,7 @@ const WORKFLOW_STEPS = [
     id: 'customs',
     label: 'Customs Clearance',
     shortLabel: 'Customs',
-    icon: Building2,
+    icon: Building,
     description: 'Processing through customs (cross-border orders)',
     estimatedTime: '2-5 days',
     optional: true

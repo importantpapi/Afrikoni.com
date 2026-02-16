@@ -6,6 +6,7 @@
 
 import { supabase } from '@/api/supabaseClient';
 import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
+import { checkCompliance } from './afcftaRulesEngine';
 
 /**
  * Generate contract from RFQ and Quote using AI
@@ -42,6 +43,14 @@ export async function generateContractFromQuote(tradeId, quoteId) {
       .eq('id', quote.supplier_id)
       .single();
 
+    // Get AfCFTA Compliance & Legal Clauses
+    const compliance = checkCompliance({
+      origin: supplierCompany?.country,
+      destination: buyerCompany?.country,
+      hsCode: trade.metadata?.hs_code,
+      valueAdded: trade.metadata?.value_added || 40 // Default for demo if not set
+    });
+
     // Call AI contract generation service
     const { data, error } = await supabase.functions.invoke('generate-contract-ai', {
       body: {
@@ -51,7 +60,9 @@ export async function generateContractFromQuote(tradeId, quoteId) {
           description: trade.description,
           quantity: trade.quantity,
           quantity_unit: trade.quantity_unit,
-          created_at: trade.created_at
+          created_at: trade.created_at,
+          compliance: compliance.summary,
+          legal_clauses: compliance.legalClauses
         },
         quote: {
           unit_price: quote.price_per_unit,

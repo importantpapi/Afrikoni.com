@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   CheckCircle2, ShieldCheck, Globe2, Users, Shield, Award, TrendingUp,
   DollarSign, Truck, FileText, Star, Zap, Lock, BarChart3, MessageSquare,
-  ArrowRight, Sparkles, Building2, MapPin, Clock, CheckCircle
+  ArrowRight, Sparkles, Building, MapPin, Clock, CheckCircle
 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/shared/ui/button';
@@ -122,7 +122,7 @@ export default function BecomeSupplier() {
       number: '02',
       title: 'Complete Company Profile',
       description: 'Add your company details, business registration, and basic information.',
-      icon: Building2,
+      icon: Building,
       duration: '5 min'
     },
     {

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Shield, ArrowLeft, CheckCircle, XCircle, Clock, AlertTriangle,
-  User, Building2, FileText, Upload, Eye, RefreshCw, Search,
+  User, Building, FileText, Upload, Eye, RefreshCw, Search,
   TrendingUp, TrendingDown, UserCheck, BarChart3, CheckCircle2,
   Upload as UploadIcon, FileCheck, Lock, Globe, AlertCircle,
   Activity, ShieldAlert, Zap, Info, Sparkles, Fingerprint,
@@ -177,7 +177,7 @@ export default function IntegrityPortal() {
           { label: 'Integrity Level', value: kycSummary.overallStatus, icon: ShieldCheck },
           { label: 'Risk Profile', value: kycSummary.riskLevel, icon: ShieldAlert },
           { label: 'Identity Commit', value: kycSummary.idStatus, icon: Fingerprint },
-          { label: 'Enterprise DNA', value: kycSummary.entStatus, icon: Building2 },
+          { label: 'Enterprise DNA', value: kycSummary.entStatus, icon: Building },
         ].map((item, i) => (
           <Surface key={i} variant="panel" className="p-6 group hover:border-afrikoni-gold/30 transition-all relative overflow-hidden bg-white/[0.01]">
             <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover:opacity-[0.15] transition-opacity">
@@ -317,7 +317,7 @@ export default function IntegrityPortal() {
           <Surface variant="glass" className="p-10 relative overflow-hidden">
             <div className="flex items-center gap-5 border-b border-white/5 pb-6 mb-8">
               <div className="p-3.5 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-                <Building2 className="w-7 h-7 text-emerald-500" />
+                <Building className="w-7 h-7 text-emerald-500" />
               </div>
               <div className="space-y-0.5">
                 <h3 className="text-2xl font-black tracking-tight">Institutional Integrity</h3>

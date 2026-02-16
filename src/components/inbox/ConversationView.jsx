@@ -12,7 +12,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { format } from 'date-fns';
-import { ArrowLeft, Send, Paperclip, CheckCircle, Building2, MapPin, Clock, Star } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, CheckCircle, Building, MapPin, Clock, Star } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Badge } from '@/components/shared/ui/badge';

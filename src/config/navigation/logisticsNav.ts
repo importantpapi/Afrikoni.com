@@ -3,7 +3,7 @@ import {
   Truck,
   Warehouse,
   MessageSquare,
-  Building2,
+  Building,
   BarChart3,
   Wallet,
   Settings,
@@ -25,13 +25,13 @@ export const logisticsNav = [
   
   // 🧩 SECONDARY - Management (collapsible)
   { 
-    icon: Building2, 
+    icon: Building, 
     label: 'Manage', 
     path: null, 
     priority: 'secondary',
     isSection: true,
     children: [
-      { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+      { icon: Building, label: 'Company Info', path: '/dashboard/company-info' },
       { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
       { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
     ]

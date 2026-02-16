@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, CheckCircle2, FileCheck, Building2, Award } from 'lucide-react';
+import { Shield, CheckCircle2, FileCheck, Building, Award } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -14,7 +14,7 @@ import {
 
 const VERIFICATION_CRITERIA = [
   {
-    icon: Building2,
+    icon: Building,
     label: 'Business Registration',
     description: 'Government-issued business license verified'
   },

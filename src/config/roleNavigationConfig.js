@@ -1,7 +1,7 @@
 import {
     LayoutDashboard, GitBranch, MessageSquare, FileText, ShoppingCart,
     Package, Truck, Wallet, Shield, Settings, HelpCircle, BarChart3,
-    Building2, Globe, Landmark, Bell, LogOut, Lock
+    Building, Globe, Landmark, Bell, LogOut, Lock
 } from 'lucide-react';
 
 export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple', notificationCounts = {} }) => {
@@ -133,7 +133,7 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                     id: 'verification',
                     label: 'Forensic Lab',
                     path: '/dashboard/verification-center',
-                    icon: Building2,
+                    icon: Building,
                     badge: 'BETA',
                     activeMatch: (path) => path.startsWith('/dashboard/verification-center')
                 }

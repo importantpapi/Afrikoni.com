@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
 import { 
-  Building2, MapPin, Star, Shield, Phone, Mail, Globe, 
+  Building, MapPin, Star, Shield, Phone, Mail, Globe, 
   CheckCircle, Package, Calendar, Users, Award, 
   MessageSquare, ExternalLink, ArrowLeft, Image as ImageIcon,
   Camera, X, Edit, Factory, Briefcase, TrendingUp, Heart
@@ -311,7 +311,7 @@ export default function BusinessProfile() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-afrikoni-gold/30 to-afrikoni-purple/30">
-                          <Building2 className="w-20 h-20 md:w-24 md:h-24 text-afrikoni-gold drop-shadow-lg" />
+                          <Building className="w-20 h-20 md:w-24 md:h-24 text-afrikoni-gold drop-shadow-lg" />
                         </div>
                       )}
                     </div>
@@ -484,7 +484,7 @@ export default function BusinessProfile() {
                 value="about"
                 className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-afrikoni-gold data-[state=active]:to-afrikoni-gold/90 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold rounded-lg px-6 py-3 transition-all duration-200"
               >
-                <Building2 className="w-4 h-4 mr-2" />
+                <Building className="w-4 h-4 mr-2" />
                 About
               </TabsTrigger>
               <TabsTrigger 

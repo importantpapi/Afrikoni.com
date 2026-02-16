@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
-import { Search, MessageCircle, ShoppingCart, Building2, Users, TrendingUp, CheckCircle, Upload, Award } from 'lucide-react';
+import { Search, MessageCircle, ShoppingCart, Building, Users, TrendingUp, CheckCircle, Upload, Award } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 export default function HowItWorks() {
@@ -37,7 +37,7 @@ export default function HowItWorks() {
   const sellerSteps = [
     {
       number: '01',
-      icon: Building2,
+      icon: Building,
       title: 'List Your Products',
       description: 'Create detailed product listings with specifications, pricing, and images',
       features: ['Upload product catalogs', 'Set pricing tiers', 'Add certifications', 'Manage inventory'],

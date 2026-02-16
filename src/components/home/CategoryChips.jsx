@@ -16,7 +16,7 @@ import {
   Factory,
   Boxes,
   Truck,
-  Building2
+  Building
 } from 'lucide-react';
 
 // B2B Categories with icons
@@ -29,7 +29,7 @@ const B2B_CATEGORIES = [
   { id: 'manufacturing', name: 'Manufacturing', icon: Factory, color: 'text-gray-600' },
   { id: 'packaging', name: 'Packaging', icon: Boxes, color: 'text-purple-600' },
   { id: 'logistics', name: 'Logistics', icon: Truck, color: 'text-indigo-600' },
-  { id: 'raw-materials', name: 'Raw Materials', icon: Building2, color: 'text-amber-600' },
+  { id: 'raw-materials', name: 'Raw Materials', icon: Building, color: 'text-amber-600' },
 ];
 
 export default function CategoryChips() {

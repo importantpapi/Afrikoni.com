@@ -8,7 +8,7 @@ import {
   Truck,
   Receipt,
   RotateCcw,
-  Building2,
+  Building,
   Users as UsersIcon,
   BarChart3,
   TrendingUp,
@@ -45,7 +45,7 @@ export const sellerNav = [
       { icon: Truck, label: 'Fulfillment', path: '/dashboard/fulfillment' },
       { icon: Receipt, label: 'Invoices', path: '/dashboard/invoices' },
       { icon: RotateCcw, label: 'Returns', path: '/dashboard/returns' },
-      { icon: Building2, label: 'Company Info', path: '/dashboard/company-info' },
+      { icon: Building, label: 'Company Info', path: '/dashboard/company-info' },
       { icon: UsersIcon, label: 'Team Members', path: '/dashboard/team' },
       { icon: Package, label: 'Saved Products', path: '/dashboard/saved' },
     ]

@@ -20,7 +20,7 @@ import {
   Factory,
   Boxes,
   Truck,
-  Building2,
+  Building,
   Search,
   Mic,
   Compass,
@@ -539,7 +539,7 @@ export default function MobileBentoGrid() {
                                     quality={85}
                                   />
                                 ) : (
-                                  <Building2 className="w-6 h-6 text-afrikoni-gold/50" />
+                                  <Building className="w-6 h-6 text-afrikoni-gold/50" />
                                 )}
                                 {/* Online Indicator */}
                                 <motion.div

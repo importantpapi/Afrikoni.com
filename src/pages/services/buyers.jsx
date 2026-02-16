@@ -11,7 +11,7 @@ import {
   ShoppingBag, Shield, Search, CheckCircle, 
   FileText, Globe, ArrowRight, Lock, TrendingUp, Users,
   Award, BarChart3, MessageSquare, Sparkles, Clock, Package,
-  MapPin, Star, Zap, Building2
+  MapPin, Star, Zap, Building
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';

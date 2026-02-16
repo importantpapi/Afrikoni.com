@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, CheckCircle2, Clock, AlertCircle, Upload,
-  Building2, FileCheck, Award, TrendingUp, ChevronRight
+  Building, FileCheck, Award, TrendingUp, ChevronRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -27,7 +27,7 @@ const VERIFICATION_STEPS = [
     id: 'business_registration',
     title: 'Business Registration',
     description: 'Upload government-issued business license or certificate of incorporation',
-    icon: Building2,
+    icon: Building,
     required: true,
     weight: 25
   },

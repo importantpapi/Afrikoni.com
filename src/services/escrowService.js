@@ -23,6 +23,7 @@ import { supabase } from '@/api/supabaseClient';
 import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
 import { createPaymentIntent, initiateRefund as refundViaPaymentService } from './paymentService';
 import { validateTradeCompliance } from './complianceService';
+import { recommendRail } from './corridorOptimizer';
 
 /**
  * Create escrow for a trade
@@ -42,35 +43,35 @@ export async function createEscrow({
       return { success: false, error: 'Escrow amount must be greater than 0' };
     }
 
-      // Create escrow record
-      const { data: escrow, error } = await supabase
-        .from('escrows')
-        .insert({
-          trade_id: tradeId,
-          buyer_id: buyerId,
-          seller_id: sellerId,
-          amount,
-          currency,
-          payment_method: paymentMethod,
-          status: 'pending', // Waiting for buyer payment
-          balance: amount,
-          created_at: new Date(),
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 day expiry
-        })
-        .select()
-        .single();
+    // Create escrow record
+    const { data: escrow, error } = await supabase
+      .from('escrows')
+      .insert({
+        trade_id: tradeId,
+        buyer_id: buyerId,
+        seller_id: sellerId,
+        amount,
+        currency,
+        payment_method: paymentMethod,
+        status: 'pending', // Waiting for buyer payment
+        balance: amount,
+        created_at: new Date(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 day expiry
+      })
+      .select()
+      .single();
 
     if (error) {
       return { success: false, error: error.message };
     }
 
-      // Log event (non-state transition)
-      const { logTradeEvent } = await import('./tradeKernel');
-      await logTradeEvent(tradeId, 'escrow_created', {
-        escrow_id: escrow.id,
-        amount,
-        currency
-      }, 'buyer');
+    // Log event (non-state transition)
+    const { logTradeEvent } = await import('./tradeKernel');
+    await logTradeEvent(tradeId, 'escrow_created', {
+      escrow_id: escrow.id,
+      amount,
+      currency
+    }, 'buyer');
 
     return { success: true, escrow };
   } catch (err) {
@@ -80,11 +81,15 @@ export async function createEscrow({
 }
 
 /**
- * Create payment intent for escrow funding (Stripe integration)
- * Called when buyer clicks "Fund Escrow" button
- * 
- * ⚠️ STUBBED: Payment gateway integration pending
- * Returns error until Stripe/Paystack is configured
+ * Suggest the best payment rail for a trade
+ */
+export function getRecommendedRail(buyerCountry, sellerCountry, amount) {
+  return recommendRail(buyerCountry, sellerCountry, amount);
+}
+
+/**
+ * Initiate escrow payment (Gateway Integration Layer)
+ * This logic now uses the Corridor Optimizer to recommend the best rail.
  */
 export async function initiateEscrowPayment({
   escrowId,
@@ -92,54 +97,39 @@ export async function initiateEscrowPayment({
   amount,
   currency = 'USD'
 }) {
-  // SURGICAL FIX: Return mock data until payment gateway is integrated
-  console.warn('[escrowService] Payment gateway not configured - returning error');
-  
-  return {
-    success: false,
-    error: 'Payment gateway integration pending. Please use alternative payment methods.',
-    paymentIntent: null,
-    escrow: null
-  };
-
-  // REMOVED: Stripe payment intent creation (no funds for gateway)
-  // try {
-  //   const paymentIntent = await createPaymentIntent(escrowId, amount, currency, buyerEmail);
-  //   return { success: true, paymentIntent, escrow };
-  // } catch (err) {
-  //   return { success: false, error: err.message };
-  // }
-}
-}) {
   try {
-    // KERNEL: Get escrow
-    const { data: escrow, error: getError } = await supabase
+    // 1. Get escrow and trade details to determine corridor
+    const { data: escrow, error: escrowError } = await supabase
       .from('escrows')
-      .select('*')
+      .select('*, trade:trades(buyer_id, seller_id, buyer:companies!buyer_id(country), seller:companies!seller_id(country))')
       .eq('id', escrowId)
       .single();
 
-    if (getError || !escrow) {
-      return { success: false, error: 'Escrow not found' };
-    }
+    if (escrowError || !escrow) throw new Error('Escrow or corridor data not found');
 
-    // KERNEL: Validate status
-    if (escrow.status !== 'pending') {
-      return { success: false, error: `Cannot fund escrow in ${escrow.status} status` };
-    }
+    // 2. Get AI recommendation for the best payment rail
+    const recommendation = recommendRail(
+      escrow.trade?.buyer?.country,
+      escrow.trade?.seller?.country,
+      amount
+    );
 
-    // Call payment service to create Stripe PaymentIntent
+    console.log(`[MoneyBridge] Recommended rail for ${escrow.trade?.buyer?.country} -> ${escrow.trade?.seller?.country}:`, recommendation.name);
+
+    // 3. Initiate payment intent via payment service
     const paymentIntent = await createPaymentIntent(
       escrowId,
       amount,
       currency,
-      buyerEmail
+      buyerEmail,
+      recommendation.id // Use recommended rail ID
     );
 
     return {
       success: true,
       paymentIntent,
-      escrow
+      escrow,
+      recommendation
     };
   } catch (err) {
     console.error('[escrowService] Initiate escrow payment failed:', err);

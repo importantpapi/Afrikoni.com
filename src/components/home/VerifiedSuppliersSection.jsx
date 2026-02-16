@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, MapPin, Building2, MessageSquare } from 'lucide-react';
+import { Shield, MapPin, Building, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { supabase } from '@/api/supabaseClient';
@@ -144,7 +144,7 @@ export default function VerifiedSuppliersSection() {
                           placeholder="/company-placeholder.svg"
                         />
                       ) : (
-                        <Building2 className="w-8 h-8 md:w-10 md:h-10 text-afrikoni-gold/50" />
+                        <Building className="w-8 h-8 md:w-10 md:h-10 text-afrikoni-gold/50" />
                       )}
                       {/* Verification Badge */}
                       <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">

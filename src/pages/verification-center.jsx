@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  CheckCircle, XCircle, Mail, Phone, Building2, CreditCard, Shield, Lock, FileText, Clock, Upload, X, Globe, Hash, AlertCircle
+  CheckCircle, XCircle, Mail, Phone, Building, CreditCard, Shield, Lock, FileText, Clock, Upload, X, Globe, Hash, AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -43,7 +43,7 @@ const verificationSteps = [
   {
     id: 'business_registration',
     label: 'Business Registration',
-    icon: Building2,
+    icon: Building,
     description: 'Upload business registration documents',
     docType: 'business_registration',
     required: true
@@ -1261,7 +1261,7 @@ export default function VerificationCenter() {
       description: 'We check that each company and contact person is real to reduce fraud and fake profiles.'
     },
     {
-      icon: Building2,
+      icon: Building,
       title: 'Unlock Bigger Opportunities',
       description: 'Verified suppliers get higher visibility, larger order limits and access to premium buyers across Africa and the world.'
     },
@@ -1432,7 +1432,7 @@ export default function VerificationCenter() {
           <Card className="border-afrikoni-gold/30 bg-afrikoni-cream mb-12">
             <CardHeader>
               <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-afrikoni-gold" />
+                <Building className="w-6 h-6 text-afrikoni-gold" />
                 Business Details
               </CardTitle>
             </CardHeader>

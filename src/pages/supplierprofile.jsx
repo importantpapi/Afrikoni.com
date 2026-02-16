@@ -8,7 +8,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
-import { Building2, MapPin, Star, Shield, Phone, Mail, Globe, CheckCircle, Package, Calendar, Users, Award, Clock, AlertTriangle } from 'lucide-react';
+import { Building, MapPin, Star, Shield, Phone, Mail, Globe, CheckCircle, Package, Calendar, Users, Award, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import NewMessageDialog from '../components/messaging/NewMessageDialog';
 import SEO from '@/components/SEO';
@@ -143,7 +143,7 @@ export default function SupplierProfile() {
                 {supplier.logo_url ? (
                   <OptimizedImage src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover rounded-xl" />
                 ) : (
-                  <Building2 className="w-20 h-20 text-afrikoni-gold" />
+                  <Building className="w-20 h-20 text-afrikoni-gold" />
                 )}
               </div>
               

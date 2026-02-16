@@ -5,7 +5,7 @@ import {
   Lock, ArrowLeft, AlertTriangle, Shield, FileText, Users, Globe,
   TrendingUp, CheckCircle, XCircle, Clock, Filter, Search, Eye,
   ChevronDown, ChevronUp, Upload, BarChart3, MapPin, UserCheck,
-  ExternalLink, AlertCircle, Flag, Building2
+  ExternalLink, AlertCircle, Flag, Building
 } from 'lucide-react';
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
@@ -698,7 +698,7 @@ export default function AntiCorruption() {
                         {(profile.role === 'Internal' || profile.type === 'Internal') ? (
                           <UserCheck className="w-6 h-6" />
                         ) : (
-                          <Building2 className="w-6 h-6" />
+                          <Building className="w-6 h-6" />
                         )}
                       </div>
                       <Badge className={getRiskColor(profile.riskScore)}>

@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/shared/ui/badge';
 import { Surface } from '@/components/system/Surface';
 import {
-  Building2, Save, CheckCircle, AlertCircle, Upload, X,
+  Building, Save, CheckCircle, AlertCircle, Upload, X,
   Image as ImageIcon, Users, Plus, Trash2, Sparkles,
   Zap, Globe, Activity, ShieldCheck, Loader2
 } from 'lucide-react';
@@ -834,7 +834,7 @@ export default function CompanyInfo() {
         <div className="space-y-4">
           <div className="flex items-center gap-5">
             <div className="p-4 bg-afrikoni-gold/10 rounded-3xl border border-afrikoni-gold/30 shadow-[0_0_30px_rgba(212,169,55,0.1)]">
-              <Building2 className="w-10 h-10 text-afrikoni-gold" />
+              <Building className="w-10 h-10 text-afrikoni-gold" />
             </div>
             <div className="space-y-1">
               <h1 className="text-4xl md:text-5xl font-black tracking-tighter flex items-center gap-4 text-white">
@@ -957,7 +957,7 @@ export default function CompanyInfo() {
                     {logoUrl ? (
                       <img src={logoUrl} className="w-full h-full object-cover" />
                     ) : (
-                      <Building2 className="w-12 h-12 text-os-muted opacity-20" />
+                      <Building className="w-12 h-12 text-os-muted opacity-20" />
                     )}
                     {uploadingLogo && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">

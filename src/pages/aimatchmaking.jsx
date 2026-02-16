@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Label } from '@/components/shared/ui/label';
-import { Sparkles, Building2, MapPin, Star, Shield } from 'lucide-react';
+import { Sparkles, Building, MapPin, Star, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { AIMatchingService } from '@/components/services/AIMatchingService';
 import { Link } from 'react-router-dom';
@@ -116,7 +116,7 @@ export default function AIMatchmaking() {
                         {match.supplier?.logo_url ? (
                           <img src={match.supplier.logo_url} alt={match.supplier.company_name} className="w-full h-full object-cover rounded-xl" loading="lazy" decoding="async" />
                         ) : (
-                          <Building2 className="w-8 h-8 text-afrikoni-deep/70" />
+                          <Building className="w-8 h-8 text-afrikoni-deep/70" />
                         )}
                       </div>
                       <div className="flex-1">

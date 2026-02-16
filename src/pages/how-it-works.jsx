@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { 
-  Search, MessageCircle, ShoppingCart, Building2, Users, TrendingUp, CheckCircle,
+  Search, MessageCircle, ShoppingCart, Building, Users, TrendingUp, CheckCircle,
   Shield, Lock, Globe, Award, FileText, ArrowRight, Sparkles, Clock, Package,
   BarChart3, Star, Zap, MapPin, Truck, DollarSign
 } from 'lucide-react';
@@ -213,7 +213,7 @@ export default function HowItWorks() {
   const sellerSteps = [
     {
       number: '01',
-      icon: Building2,
+      icon: Building,
       title: 'Apply & Get Verified',
       description: 'Submit your business details, certifications, and documentation. Our team manually reviews every application to maintain marketplace quality. Only verified suppliers are accepted.',
       features: [
@@ -789,7 +789,7 @@ export default function HowItWorks() {
                 </Link>
                 <Link to="/become-supplier">
                   <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/30 text-afrikoni-cream/80 hover:bg-afrikoni-cream/5 px-8 py-6 text-lg opacity-75">
-                    <Building2 className="w-5 h-5 mr-2" />
+                    <Building className="w-5 h-5 mr-2" />
                     Become a Supplier
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>

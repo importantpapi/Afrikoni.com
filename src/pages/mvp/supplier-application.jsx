@@ -14,7 +14,7 @@ import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { CheckCircle, ArrowRight, Building2, Mail, Phone, Globe, MapPin, Upload, Loader2 } from 'lucide-react';
+import { CheckCircle, ArrowRight, Building, Mail, Phone, Globe, MapPin, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 

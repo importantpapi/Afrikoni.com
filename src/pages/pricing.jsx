@@ -4,7 +4,7 @@ import SEO from '@/components/SEO';
 import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
-import { Check, X, Calculator, TrendingUp, Shield, Zap, Users, Building2, Star, Award, FileText, Sparkles, DollarSign, Package } from 'lucide-react';
+import { Check, X, Calculator, TrendingUp, Shield, Zap, Users, Building, Star, Award, FileText, Sparkles, DollarSign, Package } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Pricing() {
@@ -333,7 +333,7 @@ export default function Pricing() {
           <section ref={sellerTiersRef} className="mb-16">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2 flex items-center justify-center gap-2">
-                <Building2 className="w-8 h-8" />
+                <Building className="w-8 h-8" />
                 For Sellers
               </h2>
               <p className="text-afrikoni-deep/80">

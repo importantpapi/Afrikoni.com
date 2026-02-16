@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, LayoutDashboard, Package, ShoppingCart, FileText, MessageSquare,
   Truck, Wallet, Shield, Settings, HelpCircle, BarChart3, Plus, Star,
-  AlertCircle, Building2, Users, Bell, ArrowRight, Command, Sparkles,
+  AlertCircle, Building, Users, Bell, ArrowRight, Command, Sparkles,
   Receipt, FileSearch, Target, Globe
 } from 'lucide-react';
 
@@ -32,7 +32,7 @@ const ACTIONS = [
   { id: 'nav-kyc', label: 'KYC Verification', keywords: 'kyc verification identity documents', icon: Shield, path: '/dashboard/kyc', group: 'Trust & Compliance' },
   { id: 'nav-compliance', label: 'Compliance', keywords: 'compliance regulations rules', icon: Shield, path: '/dashboard/compliance', group: 'Trust & Compliance' },
   { id: 'nav-settings', label: 'Settings', keywords: 'settings preferences account profile', icon: Settings, path: '/dashboard/settings', group: 'Settings' },
-  { id: 'nav-company', label: 'Company Info', keywords: 'company business profile organization', icon: Building2, path: '/dashboard/company-info', group: 'Settings' },
+  { id: 'nav-company', label: 'Company Info', keywords: 'company business profile organization', icon: Building, path: '/dashboard/company-info', group: 'Settings' },
   { id: 'nav-team', label: 'Team Members', keywords: 'team members staff users invite', icon: Users, path: '/dashboard/team-members', group: 'Settings' },
   { id: 'nav-help', label: 'Help & Support', keywords: 'help support faq guide', icon: HelpCircle, path: '/dashboard/help', group: 'Settings' },
 ];
@@ -175,8 +175,8 @@ export default function CommandPalette({ open, onClose }) {
                         onClick={() => executeAction(action)}
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isSelected
-                            ? 'bg-[#D4A937]/10 text-gray-900 dark:text-[#F5F0E8]'
-                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] hover:text-gray-700 dark:hover:text-gray-200'
+                          ? 'bg-[#D4A937]/10 text-gray-900 dark:text-[#F5F0E8]'
+                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] hover:text-gray-700 dark:hover:text-gray-200'
                           }`}
                       >
                         <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-600'

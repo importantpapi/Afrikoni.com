@@ -31,9 +31,10 @@ import ShipmentTrackingPanel from '@/components/trade/ShipmentTrackingPanel';
 import DeliveryAcceptancePanel from '@/components/trade/DeliveryAcceptancePanel';
 import MultiSigBridge from '@/components/trade/MultiSigBridge';
 import { Surface } from '@/components/system/Surface';
-import { OSStatusBar } from '@/components/system/OSStatusBar';
-import { PageLoader } from '@/components/shared/ui/skeletons';
-import { ArrowLeft, Fingerprint, ShieldAlert, Cpu } from 'lucide-react';
+import { ForensicExportButton } from '@/components/shared/ui/ForensicExportButton';
+import { generateForensicPDF } from '@/utils/pdfGenerator';
+import { ArrowLeft, Fingerprint, ShieldAlert, Cpu, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 
 const FLOW_PANELS = {
   [TRADE_STATE.DRAFT]: RFQCreationPanel,
@@ -71,18 +72,24 @@ export default function OneFlow() {
     return <PageLoader />;
   }
 
-  const handleExportAudit = () => {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportAudit = async () => {
     if (!trade || !kernelTimeline) return;
-    const profile = generateForensicProfile(trade, kernelTimeline.map(t => t.raw));
+    setIsExporting(true);
 
-    // In production, this would trigger a PDF generation or print window
-    const win = window.open('', '_blank');
-    win.document.write(profile.reportHtml);
-    win.document.close();
+    try {
+      const profile = generateForensicProfile(trade, kernelTimeline.map(t => t.raw));
+      await generateForensicPDF(profile.reportHtml, `Forensic_Audit_${trade.id.substring(0, 8)}.pdf`);
 
-    toast.success('Forensic Audit Exported', {
-      description: 'Your bankable trade profile has been generated.'
-    });
+      toast.success('Institutional Audit Exported', {
+        description: 'Your bankable trade profile has been generated.'
+      });
+    } catch (err) {
+      toast.error('Export Failed', { description: 'Could not generate institutional PDF.' });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   async function handleStateTransition(nextState, metadata = {}) {
@@ -93,6 +100,13 @@ export default function OneFlow() {
         // React Query will refetch via real-time invalidation, 
         // but we explicitly refetch for better UX immediacy
         await refetch();
+
+        if (result.trustMutation > 0) {
+          toast.success('Trust DNA Mutated', {
+            description: `Sovereign Reliability increased by ${result.trustMutation}%. Your credit score is growing!`,
+            icon: <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+          });
+        }
       } else {
         setError(result.error);
       }
@@ -140,6 +154,8 @@ export default function OneFlow() {
           </div>
 
           <div className="flex flex-col items-end gap-3">
+            {/* Trust DNA Pulse Index */}
+            <TrustDNAIndex mutation={trade.metadata?.trust_mutation || 0} baseScore={profile?.trust_score || 72} />
             <OSStatusBar />
             <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur px-4 py-2 text-right">
               <p className="text-[10px] uppercase tracking-[0.25em] text-os-muted">Kernel State</p>
@@ -177,6 +193,7 @@ export default function OneFlow() {
                     trade={trade}
                     onNextStep={handleStateTransition}
                     onExportAudit={handleExportAudit}
+                    isGeneratingExport={isExporting}
                     isTransitioning={isTransitioning}
                     capabilities={capabilities}
                     profile={profile}
@@ -350,14 +367,11 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
             </Button>
           )}
 
-          <Button
+          <ForensicExportButton
             onClick={() => onExportAudit()}
-            variant="outline"
-            className="w-full h-12 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 font-black uppercase tracking-widest rounded-xl transition-all"
-          >
-            <Fingerprint className="w-4 h-4 mr-2" />
-            Print Bankable Audit Report
-          </Button>
+            isGenerating={isGeneratingExport}
+            className="w-full"
+          />
           <p className="text-[10px] text-os-muted italic">
             Certified by Afrikoni Sovereign Ledger. Use this report for trade finance applications.
           </p>
@@ -385,6 +399,47 @@ function DisputedPanel({ trade }) {
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+function TrustDNAIndex({ mutation, baseScore }) {
+  const isPositive = mutation > 0;
+
+  return (
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className="group relative overflow-hidden flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-afrikoni-gold/10 to-transparent border border-afrikoni-gold/20 backdrop-blur-md"
+    >
+      {/* Pulsing Aura for active mutation */}
+      {mutation !== 0 && (
+        <motion.div
+          animate={{
+            opacity: [0.1, 0.3, 0.1],
+            scale: [1, 1.05, 1]
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute inset-0 bg-afrikoni-gold/20"
+        />
+      )}
+
+      <div className="relative">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-afrikoni-gold font-bold">Trust DNA Index</p>
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-black text-white">{baseScore}%</span>
+          {mutation !== 0 && (
+            <motion.span
+              initial={{ y: 5, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isPositive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-500'}`}
+            >
+              {isPositive ? '+' : ''}{mutation}%
+            </motion.span>
+          )}
+        </div>
+      </div>
+      <Cpu className={`w-5 h-5 ${mutation !== 0 ? 'text-afrikoni-gold animate-spin-slow' : 'text-os-muted'}`} />
+    </motion.div>
   );
 }
 

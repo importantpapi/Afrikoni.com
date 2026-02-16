@@ -23,7 +23,7 @@ import {
   FileText,
   X,
   CheckCircle,
-  Building2,
+  Building,
   Package,
   TrendingUp,
   Clock,

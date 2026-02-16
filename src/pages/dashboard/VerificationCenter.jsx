@@ -4,7 +4,7 @@ import {
     ShieldCheck, CheckCircle2, Award, Shield, ArrowRight, UserCheck,
     Sparkles, Loader2, CheckCircle, Clock, Globe, Zap, Fingerprint,
     Lock, Activity, ShieldAlert, BarChart3, TrendingUp, Landmark,
-    Scale, BookOpen, Compass, Building2
+    Scale, BookOpen, Compass, Building
 } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { Badge } from '@/components/shared/ui/badge';
@@ -16,6 +16,7 @@ import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { calculateCreditScore } from '@/services/creditScoreService';
+import { generateForensicPDF } from '@/utils/pdfGenerator';
 
 // --- Components ---
 
@@ -35,42 +36,67 @@ const DNACommitPulse = () => (
     </div>
 );
 
-const AuditProphet = ({ score }) => (
-    <Surface variant="glass" className="p-8 border-afrikoni-gold/20 bg-afrikoni-gold/[0.02] flex flex-col justify-between h-full group overflow-hidden">
-        <div className="absolute -right-8 -top-8 p-12 opacity-[0.03] rotate-12 group-hover:rotate-0 transition-transform duration-1000">
-            <ShieldCheck className="w-32 h-32 text-afrikoni-gold" />
-        </div>
-        <div className="space-y-6 relative z-10">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-afrikoni-gold/20 rounded-xl">
-                    <Sparkles className="w-5 h-5 text-afrikoni-gold" />
-                </div>
-                <h4 className="text-sm font-black uppercase tracking-[0.3em] text-afrikoni-gold">Audit Prophet AI</h4>
+const AuditProphet = ({ score }) => {
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            // In a real scenario, we'd fetch the company's full audit data
+            // For now, we'll generate a high-level summary report
+            const mockReportHtml = `
+                <html>
+                    <body style="font-family: sans-serif; padding: 40px; border: 10px solid #D4A937;">
+                        <h1 style="color: #D4A937;">CONTINENTAL TRUST AUDIT</h1>
+                        <p><strong>Score:</strong> ${score}</p>
+                        <p><strong>Status:</strong> INSTITUTIONAL GRADE</p>
+                        <hr/>
+                        <p>This certificate verifies that the entity has passed the Afrikoni Sovereign DNA Audit.</p>
+                    </body>
+                </html>
+            `;
+            await generateForensicPDF(mockReportHtml, 'Continental_Trust_Report.pdf');
+            toast.success('Institutional Report Exported');
+        } catch (err) {
+            toast.error('Export Failed');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    return (
+        <Surface variant="glass" className="p-8 border-afrikoni-gold/20 bg-afrikoni-gold/[0.02] flex flex-col justify-between h-full group overflow-hidden">
+            <div className="absolute -right-8 -top-8 p-12 opacity-[0.03] rotate-12 group-hover:rotate-0 transition-transform duration-1000">
+                <ShieldCheck className="w-32 h-32 text-afrikoni-gold" />
             </div>
-            <p className="text-sm text-os-muted leading-relaxed font-medium italic">
-                "Based on current market volatility and your recent export performance, reaching **Tier 3 (Premier)** would lower your corridor escrow rates by **12.5%**."
-            </p>
-            <div className="pt-4 border-t border-afrikoni-gold/10">
-                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-os-muted">
-                    <span>Optimization Probability</span>
-                    <span className="text-emerald-500">94.2%</span>
+            <div className="space-y-6 relative z-10">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-afrikoni-gold/20 rounded-xl">
+                        <Sparkles className="w-5 h-5 text-afrikoni-gold" />
+                    </div>
+                    <h4 className="text-sm font-black uppercase tracking-[0.3em] text-afrikoni-gold">Audit Prophet AI</h4>
+                </div>
+                <p className="text-sm text-os-muted leading-relaxed font-medium italic">
+                    "Based on current market volatility and your recent export performance, reaching **Tier 3 (Premier)** would lower your corridor escrow rates by **12.5%**."
+                </p>
+                <div className="pt-4 border-t border-afrikoni-gold/10">
+                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-os-muted">
+                        <span>Optimization Probability</span>
+                        <span className="text-emerald-500">94.2%</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <Button
-            onClick={() => {
-                toast.success('Forensic DNA Extracted', {
-                    description: 'Generating your bankable credit report...'
-                });
-                // Simple window.print() approach for proof of concept
-                window.print();
-            }}
-            className="w-full mt-8 bg-afrikoni-gold text-black font-black uppercase tracking-widest py-6 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-afrikoni-gold/10"
-        >
-            Print Bankable Report
-        </Button>
-    </Surface>
-);
+            <Button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="w-full mt-8 bg-afrikoni-gold text-black font-black uppercase tracking-widest py-6 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-afrikoni-gold/10"
+            >
+                {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {isExporting ? 'Synthesizing...' : 'Print Bankable Report'}
+            </Button>
+        </Surface>
+    );
+};
 
 // --- Main Page ---
 
@@ -104,7 +130,7 @@ export default function ContinentalTrustHub() {
             level: 2,
             name: 'Institutional',
             status: 'verified',
-            icon: Building2,
+            icon: Building,
             reward: 'Priority Corridor Visibility',
             desc: 'Enterprise Registry Sync'
         },

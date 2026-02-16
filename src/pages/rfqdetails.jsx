@@ -11,7 +11,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
-import { FileText, Building2, DollarSign, Calendar, MapPin, CheckCircle } from 'lucide-react';
+import { FileText, Building, DollarSign, Calendar, MapPin, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { isValidUUID } from '@/utils/security';
@@ -342,7 +342,7 @@ export default function RFQDetail() {
             {buyer && (
               <div className="pt-4 border-t border-afrikoni-gold/20">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-afrikoni-deep/70" />
+                  <Building className="w-4 h-4 text-afrikoni-deep/70" />
                   <span className="text-sm text-afrikoni-deep">Buyer: </span>
                   <span className="font-semibold text-afrikoni-chestnut">{buyer.company_name}</span>
                 </div>

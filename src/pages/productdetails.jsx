@@ -17,7 +17,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
-import { Package, MapPin, Star, Shield, Building2, MessageCircle, FileText, CheckCircle, Clock, Zap, FlaskConical } from 'lucide-react';
+import { Package, MapPin, Star, Shield, Building, MessageCircle, FileText, CheckCircle, Clock, Zap, FlaskConical } from 'lucide-react';
 import QuickQuoteModal from '@/components/products/QuickQuoteModal';
 import { SampleOrderButton } from '@/components/products/SampleOrderButton';
 import TrustBadge from '@/components/shared/ui/TrustBadge';
@@ -1078,7 +1078,7 @@ export default function ProductDetail() {
                   <CardHeader className="border-b border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-transparent">
                     <CardTitle className="text-xl font-bold flex items-center gap-2 text-afrikoni-chestnut">
                       <div className="w-10 h-10 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-afrikoni-gold" />
+                        <Building className="w-5 h-5 text-afrikoni-gold" />
                       </div>
                       Supplier Information
                     </CardTitle>
@@ -1154,7 +1154,7 @@ export default function ProductDetail() {
                           className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold shadow-md hover:shadow-lg transition-all"
                           size="lg"
                         >
-                          <Building2 className="w-4 h-4 mr-2" />
+                          <Building className="w-4 h-4 mr-2" />
                           View Complete Business Profile
                         </Button>
                       </Link>

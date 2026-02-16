@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import { CheckCircle, MapPin, Clock, Building2 } from 'lucide-react';
+import { CheckCircle, MapPin, Clock, Building } from 'lucide-react';
 import { Badge } from '@/components/shared/ui/badge';
 
 export default function SupplierHeaderCard({ company }) {
@@ -25,7 +25,7 @@ export default function SupplierHeaderCard({ company }) {
               className="w-full h-full rounded-full object-cover"
             />
           ) : (
-            <Building2 className="w-5 h-5" />
+            <Building className="w-5 h-5" />
           )}
         </div>
         {company?.verification_status === 'verified' && (

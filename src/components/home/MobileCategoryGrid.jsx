@@ -16,7 +16,7 @@ import {
   Factory,
   Boxes,
   Truck,
-  Building2,
+  Building,
   TrendingUp
 } from 'lucide-react';
 

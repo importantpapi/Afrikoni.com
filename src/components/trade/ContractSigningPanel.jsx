@@ -8,9 +8,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/shared/ui/card';
-import { Button } from '@/components/shared/ui/button';
-import { Checkbox } from '@/components/shared/ui/checkbox';
-import { Loader2, FileText, CheckCircle2 } from 'lucide-react';
+import { Loader2, FileText, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { SignaturePad } from '@/components/shared/ui/SignaturePad';
 import { TRADE_STATE } from '@/services/tradeKernel';
 import { getTradeContract, signContract } from '@/services/contractService';
 
@@ -114,31 +113,31 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
               </div>
             </div>
 
-            {/* Agreement Checkbox */}
-            <div className="border rounded-xl p-4 mb-6">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <Checkbox
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-1"
-                />
-                <span className="text-sm">
-                  I have reviewed the contract and agree to its terms. By signing, I confirm
-                  I am authorized to enter into this agreement on behalf of my company.
-                </span>
-              </label>
+            {/* Agreement / Signature Pad */}
+            <div className="space-y-4 mb-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-afrikoni-gold opacity-80">
+                Sovereign Digital Signature
+              </p>
+              <SignaturePad
+                onSign={(data) => setAgreed(!!data)}
+                className="bg-black/20"
+              />
+              <p className="text-[9px] text-os-muted italic leading-relaxed">
+                By signing above, you cryptographically commit to the terms of this Trade DNA.
+                This signature is immutable and tied to the Afrikoni Sovereign Ledger.
+              </p>
             </div>
 
             {/* Sign Button */}
             <Button
               onClick={handleSign}
               disabled={!agreed || isTransitioning}
-              className="w-full hover:bg-afrikoni-gold/90 font-semibold"
+              className="w-full h-14 bg-afrikoni-gold text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-[1.02] transition-all shadow-xl shadow-afrikoni-gold/10"
             >
               {isTransitioning ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Signing...</>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Committing to Ledger...</>
               ) : (
-                '✓ Sign Contract'
+                '✓ Register Signed Contract'
               )}
             </Button>
           </>
