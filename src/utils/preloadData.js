@@ -60,7 +60,7 @@ export async function preloadDashboardData(role = 'buyer') {
           if (import.meta.env.DEV) console.debug('[Preload] Orders query failed:', err);
           return { data: null, error: err };
         }),
-      
+
       // KPIs - RFQs
       supabase
         .from('rfqs')
@@ -71,7 +71,7 @@ export async function preloadDashboardData(role = 'buyer') {
           if (import.meta.env.DEV) console.debug('[Preload] RFQs query failed:', err);
           return { data: null, error: err };
         }),
-      
+
       // KPIs - Products (only if user has sell capability)
       // ✅ FIX: Skip products preload if user doesn't have sell capability to avoid 400 errors
       supabase
@@ -83,7 +83,7 @@ export async function preloadDashboardData(role = 'buyer') {
           if (import.meta.env.DEV) console.debug('[Preload] Products query failed:', err);
           return { data: null, error: err };
         }),
-      
+
       // Recent data - Orders
       supabase
         .from('orders')
@@ -95,7 +95,7 @@ export async function preloadDashboardData(role = 'buyer') {
           if (import.meta.env.DEV) console.debug('[Preload] Recent orders query failed:', err);
           return { data: null, error: err };
         }),
-      
+
       // Recent data - RFQs
       supabase
         .from('rfqs')
@@ -107,7 +107,7 @@ export async function preloadDashboardData(role = 'buyer') {
           if (import.meta.env.DEV) console.debug('[Preload] Recent RFQs query failed:', err);
           return { data: null, error: err };
         }),
-      
+
       // Recent data - Messages
       supabase
         .from('messages')
@@ -157,7 +157,7 @@ export async function preloadMarketplaceData() {
           if (import.meta.env.DEV) console.debug('[Preload] Categories query failed:', err);
           return { data: null, error: err };
         }),
-      
+
       // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // ✅ FIX: Simplified select - only columns that definitely exist
       // Removed joins that might fail due to RLS or missing relationships
@@ -186,7 +186,7 @@ export async function preloadMarketplaceData() {
  */
 export function preloadImage(src) {
   if (!src) return;
-  
+
   const link = document.createElement('link');
   link.rel = 'preload';
   link.as = 'image';
@@ -223,17 +223,17 @@ export function setupLinkPreloading() {
  */
 export function useIdlePreloading() {
   if (typeof window === 'undefined') return;
-  
+
   const currentPath = window.location.pathname;
-  
+
   // ✅ FIX: Skip preloading on auth pages
   if (currentPath === '/signup' || currentPath === '/login' || currentPath.startsWith('/auth/')) {
     return; // Skip preloading on auth pages
   }
-  
+
   // ✅ FIX: Skip marketplace preload on dashboard pages (dashboard has its own preload)
   const isDashboardPage = currentPath.startsWith('/dashboard');
-  
+
   if (!('requestIdleCallback' in window)) {
     // Fallback for browsers without requestIdleCallback
     setTimeout(() => {
@@ -250,7 +250,7 @@ export function useIdlePreloading() {
     if (!isDashboardPage) {
       preloadMarketplaceData();
     }
-    
+
     // Preload dashboard if user is logged in (works on any page)
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {

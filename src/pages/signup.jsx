@@ -1,971 +1,321 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { GuestOnlyRoute } from '@/components/ProtectedRoute';
 import { Button } from '@/components/shared/ui/button';
-import { Input } from '@/components/shared/ui/input';
-import { Label } from '@/components/shared/ui/label';
-import { Card, CardContent } from '@/components/shared/ui/card';
-import { Badge } from '@/components/shared/ui/badge';
-import { Progress } from '@/components/shared/ui/progress';
-import { User, Mail, Lock, Shield, CheckCircle, Loader2, Eye, EyeOff, ShoppingCart, Package, RefreshCw, Truck } from 'lucide-react';
+import { Mail, Lock, Loader2, User, ShoppingCart, Package, RefreshCw, Truck, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
+import { cn } from '@/lib/utils';
 import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
 import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
+import { Surface } from '@/components/system/Surface';
 
-
-function SignupInner() {
+export default function Signup() {
   const { t } = useLanguage();
-  const { authReady, hasUser, profile } = useAuth();
+  const { authReady, hasUser } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-  // ✅ ALIBABA FLOW: Role selection (intent-first)
-  const [selectedRole, setSelectedRole] = useState(null); // 'buyer' | 'seller' | 'hybrid' | 'services'
+
+  // ✅ HORIZON FLOW: Orchestrated Role Selection
+  const [selectedRole, setSelectedRole] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    general: ''
-  });
-  // ✅ FIX: Track if signup was attempted - timeout should only start AFTER signup
+  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '', confirmPassword: '', general: '' });
   const [signupAttempted, setSignupAttempted] = useState(false);
-  // ✅ EMAIL VERIFICATION: Track if waiting for email confirmation
   const [awaitingEmailVerification, setAwaitingEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
 
-  // ✅ FIX: Consolidated navigation logic - only redirect AFTER signup attempted
+  // 🚨 REDIRECT LAW: Logged-in users are sent to Post-Login Router
   useEffect(() => {
-    if (!authReady) return;
-
-    // ✅ EMAIL VERIFICATION: Don't redirect if waiting for email confirmation
-    if (awaitingEmailVerification) {
-      console.log('[Signup] Waiting for email verification - not redirecting');
-      return;
-    }
-
-    // If user becomes available after signup, redirect immediately
+    if (!authReady || awaitingEmailVerification) return;
     if (hasUser) {
-      console.log('[Signup] User available from AuthProvider, redirecting to post-login');
       navigate('/auth/post-login', { replace: true });
-      return;
     }
-
-    // ✅ FIX: Only start timeout AFTER signup was attempted (not on page load!)
-    // This prevents redirecting users who are still filling out the form
-    if (!signupAttempted) return;
-
-    // Timeout only starts after successful signup attempt
-    // But NOT if we're waiting for email verification
-    const timeoutId = setTimeout(() => {
-      if (!hasUser && authReady && signupAttempted && !awaitingEmailVerification) {
-        console.warn('[Signup] AuthProvider update timeout (10s) - forcing redirect to post-login');
-        navigate('/auth/post-login', { replace: true });
-      }
-    }, 10000); // 10-second timeout fallback
-
-    return () => clearTimeout(timeoutId);
-  }, [authReady, hasUser, signupAttempted, awaitingEmailVerification, navigate]);
-
-  // Email validation helper
-  const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email.trim());
-  };
-
-  // Password validation helper (8 characters minimum)
-  const isPasswordStrong = (password) => {
-    if (!password) {
-      return { valid: false, message: 'Password is required.' };
-    }
-    if (password.length < 8) {
-      return { 
-        valid: false, 
-        message: 'Password must be at least 8 characters.',
-        requirements: { minLength: false, length: password.length }
-      };
-    }
-    return { valid: true };
-  };
-
-  // Clear field error when user starts typing
-  const clearFieldError = (fieldName) => {
-    setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
-  };
+  }, [authReady, hasUser, awaitingEmailVerification, navigate]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    
-    // Clear previous errors
     setFieldErrors({ email: '', password: '', confirmPassword: '', general: '' });
-    
-    let hasErrors = false;
-    const newErrors = { email: '', password: '', confirmPassword: '', general: '' };
 
-    // ✅ ALIBABA FLOW: Role selection is required
     if (!selectedRole) {
-      newErrors.general = 'Please select a role - what do you want to do on Afrikoni?';
-      hasErrors = true;
-    }
-
-    // Required fields validation - show explicit inline errors
-    if (!formData.fullName.trim()) {
-      newErrors.general = 'Please fill in all required fields';
-      hasErrors = true;
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required.';
-      hasErrors = true;
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required.';
-      hasErrors = true;
-    }
-    if (formData.password && !formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password.';
-      hasErrors = true;
-    }
-
-    // Email format validation - show explicit inline error
-    if (formData.email && !isValidEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address.';
-      hasErrors = true;
-    }
-
-    // Password strength validation (8 characters minimum) - show explicit inline error
-    if (formData.password) {
-      const passwordValidation = isPasswordStrong(formData.password);
-      if (!passwordValidation.valid) {
-        newErrors.password = passwordValidation.message;
-        hasErrors = true;
-      }
-    }
-
-    // Password confirmation validation - show explicit inline error
-    if (formData.password && formData.confirmPassword) {
-    if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match.';
-        hasErrors = true;
-      }
-    }
-
-    // If validation errors exist, show them and return (don't set loading)
-    if (hasErrors) {
-      console.log('VALIDATION ERRORS:', newErrors);
-      setFieldErrors(newErrors);
+      setFieldErrors(prev => ({ ...prev, general: 'Please select your role in the trade corridor.' }));
       return;
     }
 
-    // Validation passed - set loading state immediately before Supabase call
-    console.log('VALIDATION PASSED - Starting signup');
+    if (formData.password !== formData.confirmPassword) {
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match.' }));
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // ✅ USE DIRECT SUPABASE CALL - Same fix as login
-      // supabaseHelpers.auth.signUp may be outdated or misconfigured
-      let data, error;
-      
-      // Check if Supabase client is properly initialized
-      if (!formData.email || !formData.password) {
-        setFieldErrors({
-          email: formData.email ? '' : 'Email is required.',
-          password: formData.password ? '' : 'Password is required.',
-          confirmPassword: '',
-          general: ''
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        // ✅ EMAIL VERIFICATION FIX: Build callback URL with intended_role for email verification
-        const emailRedirectUrl = `${window.location.origin}/auth/callback?intended_role=${encodeURIComponent(selectedRole || 'buyer')}`;
+      const emailRedirectUrl = `${window.location.origin}/auth/callback?intended_role=${encodeURIComponent(selectedRole)}`;
 
-        const result = await supabase.auth.signUp({
-        email: formData.email.trim(), // Trim email to prevent whitespace issues
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email.trim(),
         password: formData.password,
         options: {
           data: {
             full_name: formData.fullName,
-            // ✅ ALIBABA FLOW: Store intended role in user metadata
-            intended_role: selectedRole, // 'buyer' | 'seller' | 'hybrid' | 'services'
+            intended_role: selectedRole,
           },
-          // ✅ EMAIL VERIFICATION FIX: Redirect to auth-callback after email verification
           emailRedirectTo: emailRedirectUrl,
         },
       });
-        data = result.data;
-        error = result.error;
-      } catch (networkError) {
-        // ✅ KERNEL COMPLIANCE: Use standardized network error detection
-        if (isNetworkError(networkError)) {
-          const userMessage = handleNetworkError(networkError);
-          setFieldErrors({ 
-            email: '',
-            password: '',
-            confirmPassword: '',
-            general: userMessage
-          });
-          setIsLoading(false);
-          return;
-        }
-        
-        // For other network errors, throw to be handled by outer catch
-        throw networkError;
-      }
 
-      // 🔒 CRITICAL: Check if user was created EVEN if error exists
-      // Database triggers might fail but user account is still created
-      // If user exists, we succeeded - trigger errors are non-critical
-      if (error && !data?.user) {
-        // Only throw if user was NOT created (actual auth failure)
-        console.error('[Signup] Auth failed - user not created:', error);
-        throw error;
-      }
-      
-      // If we get here, user was created (either no error, or error but user exists)
-      // Any database/trigger errors are non-critical - PostLoginRouter will handle profile
-      if (error && data?.user) {
-        console.warn('[Signup] User created but trigger error occurred (non-critical, will be handled by PostLoginRouter):', error.message);
-        // Continue with success flow - user exists, that's what matters
-      }
+      if (error && !data?.user) throw error;
 
-      // ✅ SUCCESS - Account created in auth.users
-      // Profile creation is handled by PostLoginRouter - we don't do it here
-      console.log('✅ Signup Success:', {
-        userCreated: !!data.user,
-        sessionExists: !!data.session,
-        emailConfirmed: data.user?.email_confirmed_at ? true : false,
-        email: formData.email.trim(),
-        timestamp: new Date().toISOString()
-      });
-
-      // ✅ FIX: Mark signup as attempted - now the timeout can start
       setSignupAttempted(true);
 
-      // ✅ EMAIL VERIFICATION: Check if email confirmation is required
-      // If user was created but no session, email confirmation is pending
-      const emailConfirmationRequired = data.user && !data.session;
-
-      if (emailConfirmationRequired) {
-        console.log('[Signup] Email confirmation required - showing verification screen');
+      if (data.user && !data.session) {
         setAwaitingEmailVerification(true);
         setVerificationEmail(formData.email.trim());
-        toast.success('Account created! Please check your email to verify your account.');
-        setIsLoading(false);
-        return; // Don't continue - show verification UI
-      }
-
-      // Show success message immediately
-      toast.success(t('signup.success') || 'Account created successfully!');
-
-      // 🔒 CRITICAL FIX: Wait for session to be available before redirecting
-      // New users may not have session immediately available in browser storage
-      // This prevents "nothing happens" / blank page for new users
-      // ✅ KERNEL COMPLIANCE: AuthProvider will update via onAuthStateChange
-      // The useEffect above will handle redirect when hasUser becomes true
-      if (data.session) {
-        console.log('[Signup] Session available in response, AuthProvider will update');
-        // Don't navigate here - let useEffect handle it when AuthProvider updates
+        toast.success('Sequence Initiated. Verify your email to complete.');
       } else {
-        console.log('[Signup] Session not in response, waiting for AuthProvider to update...');
-        // Show message to user - useEffect will redirect when AuthProvider updates
-        setFieldErrors({
-          email: '',
-          password: '',
-          confirmPassword: '',
-          general: 'Account created! Redirecting...'
-        });
-      }
-      
-      // Run background tasks (non-blocking, never throw)
-      if (data.user) {
-        // Notify admins (fire and forget - never throws)
-        Promise.resolve().then(async () => {
-        try {
-          const { notifyAdminOfNewRegistration } = await import('@/services/riskMonitoring');
-          await notifyAdminOfNewRegistration(
-            data.user.id,
-            formData.email.trim(),
-            formData.fullName,
-              null
-          );
-        } catch (notifyError) {
-            // Silent fail - non-critical
-            console.warn('[Signup] Admin notification failed (non-critical):', notifyError);
-          }
-        }).catch(() => {
-          // Swallow all errors
-        });
+        toast.success('Registration Sovereign. Welcome.');
       }
     } catch (error) {
-      // 🔒 CRITICAL: NEVER show database/profile errors to users
-      // Check if user account was actually created (auth succeeded)
-      // If auth succeeded, redirect to PostLoginRouter - it will handle everything
-      
-      // Sanitize error message - check multiple sources and remove URLs/technical details
-      let errorMessage = '';
-      if (error) {
-        // Check multiple possible error message locations
-        const possibleMessages = [
-          error?.message,
-          error?.error?.message,
-          error?.toString(),
-          JSON.stringify(error)
-        ].filter(Boolean);
-        
-        errorMessage = possibleMessages[0] || '';
-        
-        // STRICT URL SANITIZATION - Remove ANY URL patterns BEFORE processing
-        errorMessage = errorMessage.replace(/https?:\/\/[\w.-]+\.supabase\.co[^\s]*/gi, '[network error]');
-        errorMessage = errorMessage.replace(/qkeeufeiaphqylsnfhza[^\s]*/gi, '[network error]');
-        errorMessage = errorMessage.replace(/[\w-]+\.supabase\.co/gi, '[network error]');
-      }
-      
-      const errorCode = error?.code || '';
-      
-      // Check if this looks like a database error (but we still check if user was created)
-      const mightBeDatabaseError = 
-        errorMessage.toLowerCase().includes('database error') ||
-        errorMessage.toLowerCase().includes('database error saving new user') ||
-        errorMessage.toLowerCase().includes('saving new user') ||
-        errorMessage.toLowerCase().includes('database') ||
-        errorMessage.toLowerCase().includes('profile') ||
-        errorMessage.toLowerCase().includes('constraint') ||
-        errorMessage.toLowerCase().includes('permission') ||
-        errorMessage.toLowerCase().includes('rls') ||
-        errorMessage.toLowerCase().includes('trigger') ||
-        errorCode === 'PGRST301' ||
-        errorCode === '23505' ||
-        errorCode === '42501' ||
-        errorCode === 'PGRST116' ||
-        errorCode === '42P01';
-      
-      // ✅ KERNEL COMPLIANCE: Don't call getUser() - rely on AuthProvider state
-      // If we get here and mightBeDatabaseError is true, auth likely succeeded
-      // AuthProvider's onAuthStateChange will update state when user is available
-      if (mightBeDatabaseError) {
-        // ✅ USER ACCOUNT EXISTS OR DATABASE ERROR - This is SUCCESS
-        // Database errors are non-critical - profile creation handled by PostLoginRouter
-        console.log('[Signup] User account created successfully, waiting for session before redirect');
-        console.warn('[Signup] Error occurred but user exists (non-critical, suppressed):', errorMessage);
-
-        // ✅ FIX: Mark signup as attempted - now the timeout can start
-        setSignupAttempted(true);
-
-        // 🔒 NEVER show database errors - always show success if user exists
-        toast.success(t('signup.success') || 'Account created successfully!');
-
-        // ✅ KERNEL COMPLIANCE: AuthProvider will update via onAuthStateChange
-        // The useEffect above will handle redirect when hasUser becomes true
-        console.log('[Signup] Waiting for AuthProvider to update...');
-        setFieldErrors({
-          email: '',
-          password: '',
-          confirmPassword: '',
-          general: 'Account created! Redirecting...'
-        });
-        return;
-      }
-
-      // Only show errors if auth actually failed (user doesn't exist)
-      // 🔒 CRITICAL: NEVER show database/trigger errors - they're non-critical
-      const isDatabaseOrTriggerError = 
-        errorMessage.toLowerCase().includes('database error') ||
-        errorMessage.toLowerCase().includes('database error saving new user') ||
-        errorMessage.toLowerCase().includes('saving new user') ||
-        errorMessage.toLowerCase().includes('trigger') ||
-        errorMessage.toLowerCase().includes('profile') ||
-        mightBeDatabaseError;
-      
-      if (isDatabaseOrTriggerError) {
-        // Database/trigger errors are ALWAYS suppressed - user account creation is what matters
-        console.warn('[Signup] Database/trigger error suppressed (non-critical):', errorMessage);
-        // Don't show error - just log it
-        return;
-      }
-
-      // Handle specific auth errors with user-friendly INLINE messages
-      
-      // Duplicate email / User already exists
-      if (errorMessage.toLowerCase().includes('user already registered') || 
-          errorMessage.toLowerCase().includes('already registered') ||
-          errorMessage.toLowerCase().includes('email address is already registered') ||
-          errorMessage.toLowerCase().includes('email already exists') ||
-          errorMessage.toLowerCase().includes('user already exists') ||
-          errorCode === 'signup_disabled' ||
-          errorCode === 'email_address_not_authorized') {
-        setFieldErrors({ 
-          email: 'An account with this email already exists. Please log in.',
-          password: '',
-          confirmPassword: '',
-          general: ''
-        });
-        return;
-      }
-
-      // Invalid email format (server-side validation)
-      if (errorMessage.toLowerCase().includes('invalid email') ||
-          errorMessage.toLowerCase().includes('email format') ||
-          errorCode === 'validation_failed') {
-        setFieldErrors({ 
-          email: 'Please enter a valid email address.',
-          password: '',
-          confirmPassword: '',
-          general: ''
-        });
-        return;
-      }
-
-      // Password validation errors (8 characters minimum)
-      if (errorMessage.toLowerCase().includes('password') ||
-          errorMessage.toLowerCase().includes('weak password') ||
-          errorMessage.toLowerCase().includes('password requirements')) {
-        setFieldErrors({ 
-          email: '',
-          password: 'Password must be at least 8 characters.',
-          confirmPassword: '',
-          general: ''
-        });
-        return;
-      }
-
-      // Rate limiting
-      if (errorMessage.toLowerCase().includes('rate limit') ||
-          errorMessage.toLowerCase().includes('too many requests') ||
-          errorCode === 'rate_limit_exceeded') {
-        setFieldErrors({ 
-          email: '',
-          password: '',
-          confirmPassword: '',
-          general: 'Too many signup attempts. Please wait a few minutes and try again.'
-        });
-        return;
-      }
-
-      // ✅ KERNEL COMPLIANCE: Use standardized network error detection
       if (isNetworkError(error)) {
-        const userMessage = handleNetworkError(error);
-        setFieldErrors({ 
-          email: '',
-          password: '',
-          confirmPassword: '',
-          general: userMessage
-        });
-        return;
+        setFieldErrors(prev => ({ ...prev, general: handleNetworkError(error) }));
+      } else {
+        setFieldErrors(prev => ({ ...prev, general: error.message || 'Identity Generation Failed' }));
       }
-      
-      // Generic error for actual auth failures (only if not database-related)
-      // Never show raw error messages, URLs, or technical details to users
-      // STRICT SANITIZATION - check original error too
-      const originalErrorCheck = error?.toString() || error?.message || JSON.stringify(error) || '';
-      const containsUrl = 
-        errorMessage.includes('supabase.co') || 
-        errorMessage.includes('http://') || 
-        errorMessage.includes('https://') ||
-        originalErrorCheck.includes('supabase.co') ||
-        originalErrorCheck.includes('qkeeufeiaphqylsnfhza') ||
-        /https?:\/\/[\w.-]+/.test(errorMessage) || // Any URL pattern
-        /https?:\/\/[\w.-]+/.test(originalErrorCheck) || // Any URL pattern in original
-        errorMessage.toLowerCase().includes('load failed') ||
-        originalErrorCheck.toLowerCase().includes('load failed');
-      
-      // ALWAYS use safe message if ANY URL pattern detected
-      const userFriendlyMessage = containsUrl 
-        ? "We're having trouble connecting to our servers. Please try again in a moment."
-        : 'Signup failed. Please try again.';
-      
-      setFieldErrors({ 
-        email: '',
-        password: '',
-        confirmPassword: '',
-        general: userFriendlyMessage
-      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Determine the redirect path after OAuth signup
   const getOAuthRedirectPath = () => {
-    // If user came from a specific page, redirect there
-    if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
-      return redirectUrl;
-    }
-    // For new signups, go to dashboard (will show role selection)
-    return '/dashboard';
+    return redirectUrl && redirectUrl !== createPageUrl('Home') ? redirectUrl : '/dashboard';
   };
 
-  // ✅ EMAIL VERIFICATION: Resend verification email
-  const handleResendVerification = async () => {
-    if (!verificationEmail) return;
-
-    setIsLoading(true);
-    try {
-      // ✅ EMAIL VERIFICATION FIX: Include redirect URL with role
-      const emailRedirectUrl = `${window.location.origin}/auth/callback?intended_role=${encodeURIComponent(selectedRole || 'buyer')}`;
-
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: verificationEmail,
-        options: {
-          emailRedirectTo: emailRedirectUrl,
-        },
-      });
-
-      if (error) throw error;
-      toast.success('Verification email resent! Please check your inbox.');
-    } catch (err) {
-      toast.error('Failed to resend email. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ✅ EMAIL VERIFICATION: Show verification pending screen
   if (awaitingEmailVerification) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-          <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-2xl rounded-xl">
-            <CardContent className="p-8 md:p-10">
-              <div className="text-center">
-                <div className="flex justify-center mb-6">
-                  <Logo type="full" size="lg" link={true} showTagline={true} />
-                </div>
-
-                {/* Email Icon */}
-                <div className="w-20 h-20 mx-auto mb-6 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                  <Mail className="w-10 h-10 text-afrikoni-gold" />
-                </div>
-
-                <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
-                  Check Your Email
-                </h1>
-
-                <p className="text-afrikoni-deep mb-4">
-                  We've sent a verification link to:
-                </p>
-
-                <p className="text-lg font-semibold text-afrikoni-chestnut mb-6 break-all">
-                  {verificationEmail}
-                </p>
-
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-amber-800">
-                    Click the link in your email to verify your account and complete signup.
-                    The link will expire in 24 hours.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleResendVerification}
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      'Resend Verification Email'
-                    )}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setAwaitingEmailVerification(false);
-                      setVerificationEmail('');
-                      setSignupAttempted(false);
-                    }}
-                    className="w-full text-afrikoni-deep"
-                  >
-                    Use a Different Email
-                  </Button>
-                </div>
-
-                <p className="mt-6 text-sm text-afrikoni-deep/70">
-                  Didn't receive the email? Check your spam folder or{' '}
-                  <button
-                    onClick={handleResendVerification}
-                    className="text-afrikoni-gold hover:underline"
-                  >
-                    click here to resend
-                  </button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center py-12 px-4 relative overflow-hidden text-center">
+        <div className="absolute inset-0 bg-os-accent/5 blur-[120px]" />
+        <Surface variant="glass" className="p-12 max-w-md w-full border-os-accent/10">
+          <div className="w-20 h-20 mx-auto mb-8 bg-os-accent/10 rounded-3xl flex items-center justify-center border border-os-accent/20">
+            <Mail className="w-10 h-10 text-os-accent" />
+          </div>
+          <h1 className="text-2xl font-black uppercase tracking-[0.3em] text-os-text-primary mb-4">Check Corridor</h1>
+          <p className="text-sm text-os-text-secondary/80 mb-8 leading-relaxed">
+            We've sent a secure handshake link to <span className="text-os-accent font-bold">{verificationEmail}</span>. Verify to activate your node.
+          </p>
+          <Button
+            variant="ghost"
+            onClick={() => setAwaitingEmailVerification(false)}
+            className="text-xs font-black uppercase tracking-widest text-os-text-secondary hover:text-os-accent"
+          >
+            Use different coordinate
+          </Button>
+        </Surface>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center py-12 px-4 relative overflow-hidden">
+      {/* 🎬 CINEMATIC DEPTH */}
+      <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-os-accent/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#D4A937]/5 rounded-full blur-[100px] animate-pulse delay-700" />
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.8 }}
+        className="w-full max-w-2xl z-10"
       >
-        <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-2xl rounded-xl">
-          <CardContent className="p-8 md:p-10">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-6">
-                <Logo type="full" size="lg" link={true} showTagline={true} />
-              </div>
-              <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">{t('signup.joinAfrikoni')}</h1>
-              <p className="text-afrikoni-deep">{t('signup.subtitle')}</p>
+        <Surface variant="glass" className="p-10 border-white/[0.05] shadow-2xl backdrop-blur-3xl relative overflow-visible">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-os-accent to-transparent" />
+
+          <div className="text-center mb-10">
+            <div className="flex justify-center mb-6">
+              <Logo type="symbol" size="lg" />
             </div>
+            <h1 className="text-3xl font-black uppercase tracking-[0.4em] text-os-text-primary mb-3 leading-none">
+              Apply for <span className="text-os-accent">Access</span>
+            </h1>
+            <p className="text-[10px] font-bold text-os-text-secondary/60 uppercase tracking-[0.2em]">
+              Join the Sovereign African Trade Network
+            </p>
+          </div>
 
-
-            {/* Trust Badges */}
-            <div className="flex items-center justify-center gap-4 mb-6 text-xs text-afrikoni-deep/70">
-                <div className="flex items-center gap-1">
-                  <Shield className="w-4 h-4 text-green-600" />
-                  <span>{t('login.sslSecured')}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-blue-600" />
-                  <span>{t('login.trusted')}</span>
-                </div>
-            </div>
-
-            {/* ✅ ALIBABA FLOW: Role Selection (Intent-First) */}
-            <div className="mb-6">
-              <Label className="mb-3 block font-semibold text-center">I want to:</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {/* Buyer */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('buyer')}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
-                    selectedRole === 'buyer'
-                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
-                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
-                  }`}
-                >
-                  <ShoppingCart className={`w-6 h-6 ${selectedRole === 'buyer' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
-                  <span className={`font-medium text-sm ${selectedRole === 'buyer' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
-                    Buy Products
-                  </span>
-                  <span className="text-xs text-gray-500">Source from Africa</span>
-                </button>
-
-                {/* Seller */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('seller')}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
-                    selectedRole === 'seller'
-                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
-                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
-                  }`}
-                >
-                  <Package className={`w-6 h-6 ${selectedRole === 'seller' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
-                  <span className={`font-medium text-sm ${selectedRole === 'seller' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
-                    Sell Products
-                  </span>
-                  <span className="text-xs text-gray-500">Export to the world</span>
-                </button>
-
-                {/* Hybrid (Both) */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('hybrid')}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
-                    selectedRole === 'hybrid'
-                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
-                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
-                  }`}
-                >
-                  <RefreshCw className={`w-6 h-6 ${selectedRole === 'hybrid' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
-                  <span className={`font-medium text-sm ${selectedRole === 'hybrid' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
-                    Buy & Sell
-                  </span>
-                  <span className="text-xs text-gray-500">Trade both ways</span>
-                </button>
-
-                {/* Services (Logistics, Finance, etc.) */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('services')}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
-                    selectedRole === 'services'
-                      ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-md'
-                      : 'border-gray-200 hover:border-afrikoni-gold/50 hover:bg-gray-50'
-                  }`}
-                >
-                  <Truck className={`w-6 h-6 ${selectedRole === 'services' ? 'text-afrikoni-gold' : 'text-gray-500'}`} />
-                  <span className={`font-medium text-sm ${selectedRole === 'services' ? 'text-afrikoni-chestnut' : 'text-gray-700'}`}>
-                    Provide Services
-                  </span>
-                  <span className="text-xs text-gray-500">Logistics, Finance...</span>
-                </button>
-              </div>
-              {!selectedRole && fieldErrors.general && fieldErrors.general.includes('role') && (
-                <p className="mt-2 text-sm text-red-600 text-center">Please select what you want to do</p>
-              )}
-            </div>
-
-          <form onSubmit={handleSignup} className="space-y-5">
-            <div>
-              <Label htmlFor="fullName" className="mb-2 block font-semibold">{t('signup.fullName')}</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                <Input
-                  id="fullName"
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                  placeholder={t('signup.fullNamePlaceholder')}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="email" className="mb-2 block font-semibold">{t('signup.email')}</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, email: e.target.value }));
-                    clearFieldError('email');
-                  }}
-                  placeholder={t('signup.emailPlaceholder')}
-                  className="pl-10"
-                  error={!!fieldErrors.email}
-                  required
-                />
-              </div>
-              {fieldErrors.email && (
-                <p className="mt-1.5 text-sm text-red-600" role="alert">
-                  {fieldErrors.email}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="password" className="mb-2 block font-semibold">{t('signup.password')}</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={(e) => {
-                    const newPassword = e.target.value;
-                    setFormData(prev => ({ ...prev, password: newPassword }));
-                    // Clear password error if password now meets requirements
-                    if (newPassword.length >= 8) {
-                      clearFieldError('password');
-                    }
-                  }}
-                  placeholder={t('signup.passwordPlaceholder')}
-                  className="pl-10 pr-10"
-                  error={!!fieldErrors.password && formData.password.length < 8}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-afrikoni-deep/70 hover:text-afrikoni-gold transition-colors focus:outline-none"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              
-              {/* Real-time password requirements preview */}
-              {formData.password && formData.password.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'
-                    }`}>
-                      {formData.password.length >= 8 && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
+          <form onSubmit={handleSignup} className="space-y-10">
+            {/* ROLE SELECTION RIG */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block text-center mb-6">
+                Select your functional domain
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { id: 'buyer', icon: ShoppingCart, label: 'Buyer', sub: 'Import/Source' },
+                  { id: 'seller', icon: Package, label: 'Seller', sub: 'Export/Supply' },
+                  { id: 'hybrid', icon: RefreshCw, label: 'Hybrid', sub: 'Full Trade' },
+                  { id: 'services', icon: Truck, label: 'Logistics', sub: 'Infrastructure' },
+                ].map((role) => (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => setSelectedRole(role.id)}
+                    className={cn(
+                      "p-5 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-3 group relative overflow-hidden",
+                      selectedRole === role.id
+                        ? "bg-os-accent/10 border-os-accent shadow-glow"
+                        : "bg-white/[0.02] border-white/[0.05] hover:border-os-accent/30 hover:bg-white/[0.05]"
+                    )}
+                  >
+                    {selectedRole === role.id && (
+                      <div className="absolute inset-0 bg-os-accent/5 animate-pulse" />
+                    )}
+                    <role.icon className={cn(
+                      "w-6 h-6 transition-colors",
+                      selectedRole === role.id ? "text-os-accent" : "text-os-text-secondary/40 group-hover:text-os-text-secondary"
+                    )} />
+                    <div className="text-center relative z-10">
+                      <p className={cn(
+                        "text-[10px] font-black uppercase tracking-widest",
+                        selectedRole === role.id ? "text-os-text-primary" : "text-os-text-secondary/60"
+                      )}>{role.label}</p>
+                      <p className="text-[8px] font-bold text-os-text-secondary/30 mt-1 uppercase tracking-tighter">{role.sub}</p>
                     </div>
-                    <span className={formData.password.length >= 8 ? 'text-green-600' : 'text-afrikoni-deep/70'}>
-                      At least 8 characters {formData.password.length >= 8 ? '' : `(${formData.password.length}/8)`}
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              {/* Only show error message if password is invalid AND error exists */}
-              {fieldErrors.password && formData.password.length < 8 && (
-                <p className="mt-1.5 text-sm text-red-600" role="alert">
-                  {fieldErrors.password}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="confirmPassword" className="mb-2 block font-semibold">{t('signup.confirmPassword')}</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={formData.confirmPassword}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, confirmPassword: e.target.value }));
-                    clearFieldError('confirmPassword');
-                  }}
-                  placeholder={t('signup.confirmPasswordPlaceholder')}
-                  className="pl-10 pr-10"
-                  error={!!fieldErrors.confirmPassword}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-afrikoni-deep/70 hover:text-afrikoni-gold transition-colors focus:outline-none"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+                  </button>
+                ))}
               </div>
-              {fieldErrors.confirmPassword && (
-                <p className="mt-1.5 text-sm text-red-600" role="alert">
-                  {fieldErrors.confirmPassword}
-                </p>
-              )}
             </div>
 
-            {/* General error message */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block ml-1">Identity Name</label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
+                  <input
+                    type="text"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-4 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40"
+                    placeholder="Full Legal Name"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block ml-1">Command Email</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-4 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40"
+                    placeholder="name@company.com"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block ml-1">Access Pass</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-12 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40"
+                    placeholder="Min. 8 characters"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-os-text-secondary/40 hover:text-os-text-primary transition-colors">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block ml-1">Confirm Protocol</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-12 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40"
+                    placeholder="Confirm password"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-os-text-secondary/40 hover:text-os-text-primary transition-colors">
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {fieldErrors.general && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200">
-                <p className="text-sm text-red-600" role="alert">
-                  {fieldErrors.general}
-                </p>
+              <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest text-center">
+                {fieldErrors.general}
               </div>
             )}
 
             <Button
               type="submit"
-              variant="primary"
               disabled={isLoading}
-              className="w-full h-12 min-h-[44px] text-sm sm:text-base touch-manipulation"
+              className="w-full h-16 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-glow transition-all active:scale-[0.98]"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t('signup.creatingAccount')}
+                  <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                  Initiating...
                 </>
               ) : (
-                t('signup.createAccount')
+                'Create Sovereign Identity'
               )}
             </Button>
           </form>
 
-          {/* OAuth Buttons */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-afrikoni-gold/20"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-afrikoni-offwhite px-2 text-afrikoni-deep/70">{t('signup.continueWith')}</span>
-              </div>
+          <div className="relative my-10">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/[0.05]" />
             </div>
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              {/* ✅ ALIBABA FLOW: Pass selectedRole to OAuth for role-aware signup */}
-              <GoogleSignIn
-                redirectTo={getOAuthRedirectPath()}
-                intendedRole={selectedRole}
-                onSuccess={() => {
-                  toast.success(t('signup.success') || 'Account created successfully!');
-                  setIsLoading(false);
-                }}
-                onError={(error) => {
-                  console.error('[Signup] Google OAuth error:', error);
-                  setIsLoading(false);
-                }}
-              />
-              <FacebookSignIn
-                redirectTo={getOAuthRedirectPath()}
-                intendedRole={selectedRole}
-                onSuccess={() => {
-                  toast.success(t('signup.success') || 'Account created successfully!');
-                  setIsLoading(false);
-                }}
-                onError={(error) => {
-                  console.error('[Signup] Facebook OAuth error:', error);
-                  setIsLoading(false);
-                }}
-              />
+            <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em] font-black text-os-text-secondary/40 bg-transparent px-4">
+              <span className="bg-[#0A0A0B] px-4">Rapid Enrollment</span>
             </div>
           </div>
 
-          <div className="mt-6 text-center text-sm">
-            <p className="text-afrikoni-deep">
-              {t('signup.alreadyHaveAccount')}{' '}
-              <a
-                href={
-                  redirectUrl
-                    ? `${createPageUrl('Login')}?redirect=${encodeURIComponent(redirectUrl)}`
-                    : createPageUrl('Login')
-                }
-                className="text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold"
-              >
-                {t('signup.signIn')}
-              </a>
-            </p>
+          <div className="grid grid-cols-2 gap-4 mb-10">
+            <GoogleSignIn redirectTo={getOAuthRedirectPath()} intendedRole={selectedRole} className="h-12 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all" />
+            <FacebookSignIn redirectTo={getOAuthRedirectPath()} intendedRole={selectedRole} className="h-12 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all" />
           </div>
-        </CardContent>
-      </Card>
+
+          <p className="text-center text-[10px] uppercase tracking-[0.2em] font-black text-os-text-secondary/60">
+            Node already active?{' '}
+            <Link to="/login" className="text-os-accent hover:underline ml-1">
+              Initialize Handshake
+            </Link>
+          </p>
+        </Surface>
+
+        <p className="mt-10 text-center text-os-text-secondary/20 text-[8px] font-black uppercase tracking-[0.5em] animate-pulse">
+          &copy; 2026 HORIZON PROTOCOL &bull; Distributed Economic Matrix
+        </p>
       </motion.div>
     </div>
-  );
-}
-
-// ✅ KERNEL COMPLIANCE: Wrap with GuestOnlyRoute to redirect logged-in users
-export default function Signup() {
-  return (
-    <GuestOnlyRoute>
-      <SignupInner />
-    </GuestOnlyRoute>
   );
 }

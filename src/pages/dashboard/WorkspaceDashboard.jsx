@@ -72,10 +72,18 @@ export default function WorkspaceDashboard() {
   // ===========================================================================
   useEffect(() => {
     if (isSystemReady && !profileCompanyId && !location.pathname.includes('/company-info')) {
-      console.warn('[WorkspaceDashboard] User has no company - redirecting to company setup');
+      console.warn('[WorkspaceDashboard] User has no company - redirecting to company setup', {
+        userId,
+        hasProfile: !!profile,
+        profileOnboarding: profile?.onboarding_completed,
+        companyIdFromProfile: profile?.company_id,
+        pathname: location.pathname
+      });
       navigate('/dashboard/company-info', { replace: true });
+    } else if (isSystemReady && profileCompanyId) {
+      console.log('[WorkspaceDashboard] ✅ Kernel Synced:', { companyId: profileCompanyId });
     }
-  }, [isSystemReady, profileCompanyId, location.pathname, navigate]);
+  }, [isSystemReady, profileCompanyId, location.pathname, navigate, userId, profile]);
 
   // ===========================================================================
   // RENDER GUARDS (Standardized via Kernel)
@@ -121,7 +129,7 @@ export default function WorkspaceDashboard() {
       >
         {/* HORIZON 2026: Ambient Orb for Visual Depth */}
         <div className="os-ambient-orb" style={{ top: '10%', right: '20%', opacity: 0.4 }} />
-        
+
         {/* ✅ MOBILE GUARD: Only initialize realtime when system is ready */}
         <DashboardRealtimeManager
           companyId={profileCompanyId}

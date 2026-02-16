@@ -43,6 +43,7 @@ class ErrorBoundary extends React.Component {
   }
 
   handleReload = () => {
+    // ✅ VIBRANIUM STABILIZATION: Safe reload, does NOT clear storage
     telemetry.trackEvent('system_crash_reload');
     window.location.reload();
   };
@@ -54,30 +55,29 @@ class ErrorBoundary extends React.Component {
   };
 
   handleReset = async () => {
+    // ☢️ NUCLEAR OPTION: Only used when everything else fails
     telemetry.trackEvent('system_crash_hard_reset');
 
-    // 1. Clear ALL storage (Total Purge)
     try {
-      localStorage.clear();
-      sessionStorage.clear();
+      // Nuclear Option: Clear specific critical keys to force clean state
+      localStorage.removeItem('afrikoni_last_company_id');
+      localStorage.removeItem('afrikoni_has_session');
     } catch (e) {
       console.warn('[ErrorBoundary] Storage clear failed:', e);
     }
 
-    // 2. Unregister ALL service workers (Total Killshot)
+    // Unregister service workers for total reset
     if ('serviceWorker' in navigator) {
       try {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const registration of registrations) {
           await registration.unregister();
         }
-        console.log('[ErrorBoundary] Service Workers unregistered');
       } catch (e) {
         console.error('[ErrorBoundary] SW unregistration failed:', e);
       }
     }
 
-    // 3. Forced hard reload to dashboard
     window.location.href = '/dashboard';
   };
 

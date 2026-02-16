@@ -4,7 +4,7 @@ import {
     ShieldCheck, CheckCircle2, Award, Shield, ArrowRight, UserCheck,
     Sparkles, Loader2, CheckCircle, Clock, Globe, Zap, Fingerprint,
     Lock, Activity, ShieldAlert, BarChart3, TrendingUp, Landmark,
-    Scale, BookOpen, Compass
+    Scale, BookOpen, Compass, Building2
 } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { Badge } from '@/components/shared/ui/badge';
@@ -14,7 +14,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { supabase } from '@/api/supabaseClient';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { calculateCreditScore } from '@/services/creditScoreService';
 
 // --- Components ---
 
@@ -57,10 +58,16 @@ const AuditProphet = ({ score }) => (
             </div>
         </div>
         <Button
-            onClick={() => window.location.href = '/dashboard/kyc'}
+            onClick={() => {
+                toast.success('Forensic DNA Extracted', {
+                    description: 'Generating your bankable credit report...'
+                });
+                // Simple window.print() approach for proof of concept
+                window.print();
+            }}
             className="w-full mt-8 bg-afrikoni-gold text-black font-black uppercase tracking-widest py-6 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-afrikoni-gold/10"
         >
-            Optimize Integrity Vault
+            Print Bankable Report
         </Button>
     </Surface>
 );
@@ -71,6 +78,13 @@ export default function ContinentalTrustHub() {
     const { profile, organization, profileCompanyId } = useDashboardKernel();
     const queryClient = useQueryClient();
     const [isApplying, setIsApplying] = useState(false);
+
+    // ✅ LIVE CREDIT SCORE
+    const { data: creditData, isLoading: loadingCredit } = useQuery({
+        queryKey: ['credit-score', profileCompanyId],
+        queryFn: () => calculateCreditScore(profileCompanyId),
+        enabled: !!profileCompanyId
+    });
 
     const verificationStatus = organization?.verification_status || 'unverified';
     const isVerified = verificationStatus === 'verified';
@@ -194,12 +208,16 @@ export default function ContinentalTrustHub() {
                                     <div className="space-y-2">
                                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-afrikoni-gold">Trust DNA Index</span>
                                         <div className="flex items-baseline gap-1.5">
-                                            <div className="text-7xl font-black tracking-tighter">{isVerified ? '98' : trustScore}</div>
-                                            <div className="text-xl font-bold text-afrikoni-gold/40">%</div>
+                                            <div className="text-7xl font-black tracking-tighter">
+                                                {loadingCredit ? '...' : (creditData?.score || trustScore)}
+                                            </div>
+                                            <div className="text-xl font-bold text-afrikoni-gold/40">{creditData ? 'PTS' : '%'}</div>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
-                                        <Badge className="bg-emerald-500 text-black text-[10px] font-black px-3 py-1 rounded-lg">INSTITUTIONAL</Badge>
+                                        <Badge className="bg-emerald-500 text-black text-[10px] font-black px-3 py-1 rounded-lg">
+                                            {creditData?.grade || 'INSTITUTIONAL'}
+                                        </Badge>
                                         <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
                                             <TrendingUp className="w-4 h-4" />
                                             Active Growth

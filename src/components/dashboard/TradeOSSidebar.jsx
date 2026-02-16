@@ -1,7 +1,19 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Logo } from '@/components/shared/ui/Logo';
 import { getRoleNavigation } from '@/config/roleNavigationConfig';
+import { cn as utilsCn } from '@/lib/utils';
+
+// Bulletproof helper to prevent ReferenceError: cn is not defined
+const cn = (...args) => {
+  try {
+    return utilsCn(...args);
+  } catch (e) {
+    return args.filter(Boolean).join(' ');
+  }
+};
 
 export default function TradeOSSidebar({
   capabilities,
@@ -20,106 +32,120 @@ export default function TradeOSSidebar({
 
   const { sections, systemApps } = getRoleNavigation({ capabilities, workspaceMode, notificationCounts });
 
-  // OS-style Nav Item
-  const OSNavItem = ({ icon: Icon, label, path, badge, active, onClick }) => (
-    <Link
-      to={path}
-      onClick={onClick}
-      className={`
-        relative group flex flex-col items-center justify-center w-10 h-10 rounded-xl transition-all duration-200
-        ${active
-          ? 'bg-[#D4A937] text-black shadow-[0_0_15px_rgba(212,169,55,0.4)] scale-105'
-          : 'text-gray-600 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:text-gray-400 dark:hover:text-[#D4A937] dark:hover:bg-white/10'
-        }
-      `}
-    >
-      <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-
-      {/* Tooltip Label (Hover) */}
-      <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-afrikoni-gold/20 rounded-lg text-[11px] font-medium text-afrikoni-deep dark:text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 flex items-center gap-2 shadow-xl">
-        {label}
-        {badge && (
-          <span className={`flex items-center justify-center min-w-[16px] h-4 text-[9px] font-bold rounded-full px-1 ${badge === 'NEW' || badge === 'LIVE' || badge === 'BETA' ? 'bg-[#D4A937] text-black' : 'bg-red-500 text-white'
-            }`}>
-            {badge}
-          </span>
-        )}
-      </div>
-
-      {/* Active Dot */}
-      {active && (
-        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#D4A937] rounded-r-full" />
-      )}
-    </Link>
-  );
 
   return (
     <aside
       className={`
-        relative h-full bg-white dark:bg-black border-r border-afrikoni-gold/10
-        flex flex-col items-center pt-6 pb-5 transition-transform duration-200 shadow-sm
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0
+        relative h-full bg-os-surface-solid border-r border-os-stroke
+        flex flex-col items-center pt-6 pb-5 transition-all duration-300 shadow-sm
+        ${sidebarOpen ? 'w-[240px] px-4 items-start' : 'w-[88px] px-2 items-center'}
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        md:translate-x-0 overflow-hidden
       `}
-      style={{ width: 'var(--os-sidebar-width, 72px)' }}
     >
-      {/* OS Logo - Premium Afrikoni Emblem */}
-      <Link to="/dashboard" className="mb-6 relative group z-50">
-        <div className="w-12 h-12 rounded-xl bg-[#5C3D2E] flex items-center justify-center shadow-[0_4px_20px_rgba(212,169,55,0.3)] group-hover:shadow-[0_6px_30px_rgba(212,169,55,0.5)] group-hover:scale-105 transition-all duration-300 border-2 border-[#D4A937]/30 relative z-50">
-          {/* Afrikoni Symbol - Stylized A with African patterns */}
-          <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10">
-            {/* Top chevrons (roof/mountain peaks) */}
-            <path d="M20 4 L32 12 L28 12 L20 7 L12 12 L8 12 Z" fill="#D4A937" />
-            {/* Intertwined loops (commerce connection) */}
-            <circle cx="15" cy="22" r="6" stroke="#D4A937" strokeWidth="2" fill="none" />
-            <circle cx="25" cy="22" r="6" stroke="#D4A937" strokeWidth="2" fill="none" />
-            {/* Base pattern (African heritage) */}
-            <path d="M10 30 L12 34 L16 34 L14 30 Z M24 30 L26 34 L30 34 L28 30 Z" fill="#D4A937" />
-          </svg>
+      {/* OS Logo - Official Afrikoni Mark */}
+      <Link to="/dashboard" className={cn("mb-8 relative group z-50 flex items-center gap-3", sidebarOpen ? "w-full px-2" : "")}>
+        <div className="shrink-0 group-hover:scale-105 transition-all duration-300 relative">
+          <Logo type="icon" size={sidebarOpen ? "md" : "sm"} className="shadow-premium" />
         </div>
-        {/* Logo Tooltip */}
-        <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/30 rounded-lg text-[11px] font-semibold text-[#D4A937] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[60] shadow-xl">
-          AFRIKONI OS
-          <div className="text-[9px] text-gray-500 dark:text-gray-400 font-normal mt-0.5">Trade. Trust. Thrive.</div>
-        </div>
+
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col"
+          >
+            <span className="text-xs font-bold tracking-widest text-[#D4A937]">AFRIKONI OS</span>
+            <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">Trade Intelligence</span>
+          </motion.div>
+        )}
+
+        {!sidebarOpen && (
+          <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/30 rounded-lg text-[11px] font-semibold text-[#D4A937] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[60] shadow-xl">
+            AFRIKONI OS
+            <div className="text-[9px] text-gray-500 dark:text-gray-400 font-normal mt-0.5">Trade. Trust. Thrive.</div>
+          </div>
+        )}
       </Link>
 
       {/* Navigation Dock */}
-      <nav className="flex-1 flex flex-col gap-3 w-full px-2 items-center overflow-y-auto scrollbar-hide py-2">
+      <nav className="flex-1 flex flex-col gap-1 w-full items-center overflow-y-auto scrollbar-hide py-2">
         {(sections || []).map((section, idx) => (
-          <React.Fragment key={section.id}>
-            {(section.items || []).map(item => (
-              <OSNavItem
-                key={item.id}
-                icon={item.icon}
-                label={item.label}
-                path={item.path}
-                badge={item.badge}
-                active={isActive(item.path, item.activeMatch)}
-              />
-            ))}
-            {/* Divider if required and not the last section */}
-            {section.divider && idx < (sections || []).length - 1 && (
-              <div className="w-8 h-px bg-afrikoni-gold/20 dark:bg-white/10 my-1" />
+          <div key={section.id} className="w-full flex flex-col gap-1 mb-4">
+            {sidebarOpen && section.label && (
+              <div className="px-4 mb-1">
+                <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em]">{section.label}</span>
+              </div>
             )}
-          </React.Fragment>
+
+            <div className={`flex flex-col gap-1.5 ${sidebarOpen ? 'w-full' : 'items-center w-full'}`}>
+              {(section.items || []).map(item => (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className={cn(
+                    "relative group flex items-center transition-all duration-300 h-10 rounded-xl",
+                    sidebarOpen ? "w-full px-4 gap-3 mx-auto" : "w-10 justify-center",
+                    isActive(item.path, item.activeMatch)
+                      ? "bg-os-accent text-black shadow-[0_8px_20px_rgba(212,169,55,0.25)]"
+                      : "text-muted-foreground hover:text-os-accent hover:bg-os-accent/10"
+                  )}
+                >
+                  <item.icon className={cn("w-5 h-5 shrink-0", isActive(item.path, item.activeMatch) ? "stroke-[2.5px]" : "stroke-2")} />
+
+                  {sidebarOpen && (
+                    <span className="text-sm font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
+                      {item.label}
+                    </span>
+                  )}
+
+                  {/* Tooltip (Collapsed ONLY) */}
+                  {!sidebarOpen && (
+                    <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-os-accent/20 rounded-lg text-[11px] font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 flex items-center gap-2 shadow-xl">
+                      {item.label}
+                      {item.badge && (
+                        <span className="flex items-center justify-center min-w-[16px] h-4 text-[9px] font-bold rounded-full px-1 bg-os-accent text-black">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Active Indicator */}
+                  {isActive(item.path, item.activeMatch) && (
+                    <div className={cn(
+                      "absolute bg-os-accent rounded-full",
+                      sidebarOpen ? "right-2 w-1 h-1" : "-left-1 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full"
+                    )} />
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 
       {/* System Apps */}
-      <div className="flex flex-col gap-4 w-full px-2 items-center mt-auto pb-4">
-        <div className="w-6 h-px bg-afrikoni-gold/20 dark:bg-white/10" />
+      <div className={`flex flex-col gap-3 w-full mt-auto pb-4 ${sidebarOpen ? 'px-4' : 'px-2 items-center'}`}>
+        <div className="w-full h-px bg-os-stroke mb-2" />
         {(systemApps || []).map(item => (
-          <OSNavItem
+          <Link
             key={item.id}
-            icon={item.icon}
-            label={item.label}
-            path={item.path}
-            active={isActive(item.path, item.activeMatch)}
-          />
+            to={item.path}
+            className={cn(
+              "relative group flex items-center transition-all duration-300 h-10 rounded-xl",
+              sidebarOpen ? "w-full px-4 gap-3" : "w-10 justify-center",
+              isActive(item.path, item.activeMatch)
+                ? "bg-os-accent text-black shadow-lg"
+                : "text-muted-foreground hover:text-os-accent hover:bg-os-accent/10"
+            )}
+          >
+            <item.icon className="w-5 h-5 shrink-0" />
+            {sidebarOpen && <span className="text-sm font-semibold">{item.label}</span>}
+          </Link>
         ))}
 
-        <button onClick={onClose} className="md:hidden mt-2 p-2 text-gray-600 hover:text-[#D4A937] dark:text-gray-400">
+        <button onClick={onClose} className="md:hidden mt-2 p-3 rounded-xl bg-muted/50 text-muted-foreground hover:text-os-accent transition-colors">
           <X className="w-5 h-5" />
         </button>
       </div>

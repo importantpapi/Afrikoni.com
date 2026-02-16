@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useOSSettings } from '@/hooks/useOSSettings';
 
 const statusLabels = {
     inquiry: { label: "Inquiry", tone: "neutral" },
@@ -39,12 +40,15 @@ const statusLabels = {
 
 export default function TradeMonitor({ viewMode = 'buy' }) {
     const { profileCompanyId, isSystemReady } = useDashboardKernel();
+    const { interfaceMode } = useOSSettings();
     const navigate = useNavigate();
 
-    // \u2705 REACT QUERY: Unified data flow
+    const isSimple = interfaceMode === 'simple';
+
+    // ✅ REACT QUERY: Unified data flow
     const { data: tradesData = {}, isLoading, error: queryError } = useTrades();
     const allTrades = tradesData.trades || [];
-    
+
     // Filter by viewMode (buy/sell)
     const trades = useMemo(() => {
         if (viewMode === 'buy') {
@@ -89,14 +93,16 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
             const inTransit = trades.filter(t => ["shipped", "in_transit"].includes(t.status)).length;
             const pipelineValue = tradesData.pipelineValue || 0;
 
-            return [
+            const dashboardStats = [
                 { label: "Pipeline", value: `$${(pipelineValue / 1000).toFixed(1)}k`, icon: DollarSign, color: "text-os-gold" },
                 { label: "Active", value: trades.filter(t => !['closed', 'settled'].includes(t.status)).length, icon: Package, color: "text-blue-400" },
                 { label: "In Transit", value: inTransit, icon: Truck, color: "text-emerald-400" },
                 { label: "Resolved", value: trades.filter(t => ['closed', 'settled'].includes(t.status)).length, icon: CheckCircle2, color: "text-os-muted" },
             ];
+
+            return isSimple ? dashboardStats.slice(1, 3) : dashboardStats;
         }
-    }, [trades, viewMode, tradesData.pipelineValue]);
+    }, [trades, viewMode, tradesData.pipelineValue, isSimple]);
 
     const filteredTrades = useMemo(() => {
         return trades.filter(order => {
@@ -116,58 +122,60 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
     }
 
     return (
-        <div className="os-page os-stagger space-y-6">
-            <Surface variant="glass" className="p-6 md:p-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <div>
-                        <div className="os-label">{viewMode === 'sell' ? 'Sales Pipeline' : 'Procurement'}</div>
-                        <h1 className="os-title mt-2">{viewMode === 'sell' ? 'Sales Ledger' : 'Active Orders'}</h1>
-                        <p className="text-sm text-os-muted">
-                            {trades.length} {viewMode === 'sell' ? 'sales' : 'orders'} registered in kernel.
-                        </p>
-                    </div>
-                    {viewMode === 'buy' && (
-                        <Button className="shadow-gold gap-2" onClick={() => navigate('/dashboard/rfqs/new')}>
-                            <ShoppingCart className="h-4 w-4" /> New Order
-                        </Button>
-                    )}
+        <div className="os-page os-stagger space-y-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4">
+                <div className="space-y-2">
+                    <h1 className="os-title-large">
+                        {viewMode === 'sell' ? 'Sales Ledger' : 'Active Orders'}
+                    </h1>
+                    <p className="text-os-text-secondary text-lg">
+                        You have {trades.length} active trade flows synchronized.
+                    </p>
                 </div>
+                {viewMode === 'buy' && (
+                    <Button
+                        className="bg-os-text-primary text-os-bg rounded-full px-8 py-6 h-auto font-semibold shadow-premium hover:opacity-90 transition-all"
+                        onClick={() => navigate('/dashboard/rfqs/new')}
+                    >
+                        New Order
+                    </Button>
+                )}
+            </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                    {stats.map((stat) => (
-                        <div key={stat.label} className="flex items-center gap-3 p-3 rounded-xl bg-os-surface-1 border border-os-stroke">
-                            <stat.icon className={cn("h-5 w-5", stat.color)} />
-                            <div>
-                                <p className="text-lg font-bold text-[var(--os-text-primary)] tabular-nums">{stat.value}</p>
-                                <p className="text-[10px] text-os-muted uppercase tracking-tighter">{stat.label}</p>
-                            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {stats.map((stat) => (
+                    <div key={stat.label} className="glass-surface p-6 flex flex-col gap-2">
+                        <stat.icon className={cn("h-5 w-5 opacity-60", stat.color)} />
+                        <div>
+                            <div className="text-xs font-semibold text-os-text-secondary uppercase tracking-widest">{stat.label}</div>
+                            <div className="text-2xl font-bold tracking-tight">{stat.value}</div>
                         </div>
+                    </div>
+                ))}
+            </div>
+
+            {advice.length > 0 && (
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {advice.map((item, idx) => (
+                        <SystemAdvice key={item.id || idx} advice={item} type={item.type} />
                     ))}
                 </div>
+            )}
 
-                {advice.length > 0 && (
-                    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {advice.map((item, idx) => (
-                            <SystemAdvice key={item.id || idx} advice={item} type={item.type} />
-                        ))}
-                    </div>
-                )}
-
-                <div className="flex items-center gap-3">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-os-muted" />
-                        <Input
-                            placeholder="Search ledger..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
-                    </div>
-                    <Button variant="outline" size="sm" className="gap-2">
-                        <Filter className="h-4 w-4" /> Filter
-                    </Button>
+            <div className="flex flex-col md:flex-row items-center gap-4">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-os-text-secondary group-focus-within:text-os-accent transition-colors" />
+                    <Input
+                        placeholder="Find an order or product..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-11 h-12 bg-white/5 border-os-stroke rounded-2xl focus:bg-white/10 transition-all text-base"
+                    />
                 </div>
-            </Surface>
+                <Button variant="ghost" className="h-12 px-6 rounded-2xl border border-os-stroke text-os-text-secondary hover:text-os-text-primary gap-2">
+                    <Filter className="h-4 w-4" /> Filter
+                </Button>
+            </div>
 
             <div className="space-y-4">
                 {filteredTrades.length === 0 ? (
@@ -203,8 +211,8 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2 text-sm text-os-muted">
-                                            <span className="font-mono text-[10px] opacity-70">ID: {order.id.substring(0,8)}</span>
-                                            <span className="hidden sm:inline">· {format(new Date(order.created_at), 'MMM d, yyyy')}</span>
+                                            {!isSimple && <span className="font-mono text-[10px] opacity-70">ID: {order.id.substring(0, 8)}</span>}
+                                            <span className={cn(isSimple ? "" : "hidden sm:inline")}>{isSimple ? "" : "· "}{format(new Date(order.created_at), 'MMM d, yyyy')}</span>
                                         </div>
                                     </div>
                                     <div className="text-right">

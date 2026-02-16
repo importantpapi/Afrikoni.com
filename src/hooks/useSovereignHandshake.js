@@ -67,6 +67,6 @@ export function useSovereignHandshake() {
     return {
         isPrimed,
         handshakeStatus,
-        isSystemReady: authReady && (kernelReady || isPrimed)
+        isSystemReady: kernelReady || isPrimed
     };
 }

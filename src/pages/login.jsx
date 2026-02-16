@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase } from '@/api/supabaseClient';
-import { useAuth } from '@/contexts/AuthProvider';
-import { Button } from '@/components/shared/ui/button';
-import { Input } from '@/components/shared/ui/input';
-import { Label } from '@/components/shared/ui/label';
-import { Card, CardContent } from '@/components/shared/ui/card';
-import { Badge } from '@/components/shared/ui/badge';
 import { Mail, Lock, Loader2, Shield, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
@@ -15,10 +8,12 @@ import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import FacebookSignIn from '@/components/auth/FacebookSignIn';
-import { logLoginEvent } from '@/utils/auditLogger';
-import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
 import { login as authServiceLogin } from '@/services/AuthService';
+import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
+import { useAuth } from '@/contexts/AuthProvider';
 import { useCapability } from '@/context/CapabilityContext';
+import { Button } from '@/components/shared/ui/button';
+import { Surface } from '@/components/system/Surface';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -27,265 +22,200 @@ export default function Login() {
 
   // 🔐 AUTH STATE
   const { authReady, hasUser, profile, user } = useAuth();
-  
-  // ✅ EMERGENCY FIX: Destructure ready FIRST to prevent "ready is not defined" errors
-  const { ready, capabilities, refreshCapabilities, kernelError } = useCapability();
-  
-  // ✅ KERNEL-CENTRIC: Safety check for undefined ready
-  if (typeof ready === 'undefined') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold mx-auto mb-4" />
-          <p className="text-afrikoni-deep">Initializing workspace...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // ✅ KERNEL-CENTRIC: Auto-retry if Kernel hits timeout
-  useEffect(() => {
-    if (kernelError && !ready) {
-      console.log('[Login] Kernel error detected - auto-retrying once');
-      const retryTimer = setTimeout(() => {
-        refreshCapabilities(true);
-      }, 1000); // Wait 1s before retry
-      return () => clearTimeout(retryTimer);
-    }
-  }, [kernelError, ready, refreshCapabilities]);
 
-  // 🔐 FORM STATE
+  // ✅ CAPABILITY HANDSHAKE
+  const { ready, refreshCapabilities, kernelError } = useCapability();
+
+  // ✅ FORM STATE
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
-  const intent = searchParams.get('intent');
 
-  // ✅ FULL-STACK SYNC: Identity-First logic - Admin domain detection
-  const isAdminEmail = email && (
-    email.toLowerCase().includes('@afrikoni.com') ||
-    email.toLowerCase().includes('@admin.') ||
-    localStorage.getItem('admin-flag') === 'true' ||
-    sessionStorage.getItem('admin-flag') === 'true'
-  );
-
-  // 🚨 HARD GUARD: LOGGED-IN USERS MUST NEVER SEE /login
-  // ✅ KERNEL-CENTRIC: The Redirect Law - navigate based on profile state
+  // 🚨 REDIRECT LAW: Logged-in users are sent to Mission Control
   useEffect(() => {
-    // Only fire if all prerequisites are met
     if (authReady !== true || ready !== true || !hasUser) return;
 
-    const hasProfile = !!profile;
-    
-    // ✅ KERNEL-CENTRIC: The Redirect Law
-    if (!hasProfile) {
-      // No profile -> onboarding
-      console.log('[Login] ✅ Redirect Law: No profile - navigating to onboarding');
+    if (!profile) {
       navigate('/onboarding/company', { replace: true });
     } else {
-      // Has profile -> dashboard
-      console.log('[Login] ✅ Redirect Law: Has profile - navigating to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [authReady, ready, hasUser, profile, navigate]);
-  
-  // ✅ KERNEL-CENTRIC: Self-Heal - If ready is true but capabilities are null after 5 seconds, refresh
-  // ✅ VIBRANIUM STABILIZATION: Only fire if Kernel is NOT warm and prerequisites are met
-  useEffect(() => {
-    // Guard: Only fire if ready is false AND authReady is true AND user exists AND capabilities are null
-    // ✅ KERNEL POLISH: DO NOT call if capabilities.ready is already true (Kernel is WARM)
-    // ✅ KERNEL POLISH: DO NOT call if authReady is false (refresh in progress)
-    // ✅ KERNEL POLISH: DO NOT call if ready is true (Kernel is ready)
-    if (ready === true || !authReady || !user || capabilities?.ready === true) {
-      return; // Kernel is warm or prerequisites not met - skip self-heal
-    }
-    
-    // ✅ KERNEL POLISH: Additional guard - only proceed if capabilities are actually null/empty
-    if (capabilities && (capabilities.can_buy || capabilities.can_sell || capabilities.can_logistics)) {
-      return; // Capabilities exist - Kernel is warm, skip self-heal
-    }
-    
-    const selfHealTimer = setTimeout(() => {
-      // Double-check: Only fire if capabilities are still null/empty after 5 seconds
-      // AND ready is still false AND authReady is still true AND user still exists
-      // ✅ KERNEL POLISH: DO NOT call if capabilities.ready is true (Kernel became WARM during wait)
-      // ✅ KERNEL POLISH: DO NOT call if ready is true (Kernel became ready during wait)
-      // ✅ KERNEL POLISH: DO NOT call if authReady is false (refresh in progress)
-      if (ready === false && authReady === true && user !== null && 
-          capabilities?.ready !== true && // ✅ KERNEL POLISH: Guard against WARM Kernel
-          (!capabilities || (!capabilities.can_buy && !capabilities.can_sell && !capabilities.can_logistics))) {
-        console.log('[Login] Self-Heal: Capabilities null after 5s - calling refreshCapabilities()');
-        refreshCapabilities();
-      } else {
-        console.log('[Login] Self-Heal: Skipped - Kernel is warm or refresh in progress');
-      }
-    }, 5000);
-    
-    return () => clearTimeout(selfHealTimer);
-  }, [ready, authReady, user, capabilities, refreshCapabilities]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     if (!email || !password) {
       toast.error(t('login.fillFields'));
       return;
     }
 
     setIsLoading(true);
-
     try {
-      // ✅ FULL-STACK SYNC: Use AuthService for atomic login with profile verification
-      const { user: authUser, profile: authProfile } = await authServiceLogin(email.trim(), password);
-
-      // ✅ LOGIN SYNCHRONIZATION: Immediately navigate to /auth/post-login the moment data.user is returned
-      // Bypass any secondary local checks that are currently hanging
-      toast.success(t('login.success') || 'Welcome back!');
-      
-      // ✅ SURGICAL FIX: Navigate immediately after successful login, bypassing Kernel wait
-      // PostLoginRouter will handle the final redirect based on capabilities.ready
-      console.log('[Login] ✅ Login successful - navigating to /auth/post-login');
+      await authServiceLogin(email.trim(), password);
+      toast.success(t('login.success') || 'Sovereign Handshake Complete');
       navigate('/auth/post-login', { replace: true });
-      
-      // ✅ ENTERPRISE FIX: Fire-and-forget audit log - NEVER block navigation
-      // Audit logs are "Side Effects" not "Gatekeepers" (Airbnb pattern)
-      logLoginEvent({
-        user: { email: email.trim() },
-        profile: authProfile || null,
-        success: true
-      }).catch(() => {}); // Silent catch, no await
-      
-      return; // Exit early - navigation handled above
-
     } catch (err) {
-      // ✅ FULL-STACK SYNC: Enhanced error handling
-      
-      // ✅ ENTERPRISE FIX: Fire-and-forget failed login audit
-      logLoginEvent({
-        user: { email },
-        profile: null,
-        success: false
-      }).catch(() => {}); // Silent catch, no await
-
-      // ✅ KERNEL COMPLIANCE: Use standardized network error detection
       if (isNetworkError(err)) {
-        const userMessage = handleNetworkError(err);
-        toast.error(userMessage);
+        toast.error(handleNetworkError(err));
       } else {
-        toast.error(err.message || 'Login failed');
+        toast.error(err.message || 'Identity Resolution Failed');
       }
     } finally {
-      // ✅ VIBRANIUM STABILIZATION: Always reset loading state, even if Kernel is slow
-      // This ensures the button doesn't stay stuck on "Signing In..."
       setIsLoading(false);
     }
   };
 
   const getOAuthRedirectPath = () => {
-    if (redirectUrl && redirectUrl !== createPageUrl('Home')) {
-      return redirectUrl;
-    }
-    return '/dashboard';
+    return redirectUrl && redirectUrl !== createPageUrl('Home') ? redirectUrl : '/dashboard';
   };
 
+  if (typeof ready === 'undefined') {
+    return (
+      <div className="min-h-screen bg-os-surface-solid flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 border-4 border-os-accent/10 border-t-os-accent rounded-full animate-spin mb-6" />
+        <p className="text-os-text-secondary uppercase tracking-[0.3em] font-black text-[10px]">Initializing Identity Kernel...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center py-12 px-4 relative overflow-hidden">
+      {/* 🎬 CINEMATIC DEPTH: Ambient Background Blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-os-accent/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#D4A937]/5 rounded-full blur-[100px] animate-pulse delay-700" />
+
+      {/* Grid Grain Overlay */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full max-w-md z-10"
       >
-        <Card className={`border-afrikoni-gold/20 shadow-2xl bg-afrikoni-offwhite rounded-xl ${isAdminEmail ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/30' : ''}`}>
-          <CardContent className="p-8 md:p-10">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-6">
-                <Logo type="full" size="lg" link={true} showTagline={true} />
+        <Surface variant="glass" className="p-10 border-white/[0.05] shadow-2xl backdrop-blur-3xl relative overflow-visible">
+          {/* Top Gold Accent Bar */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-os-accent to-transparent" />
+
+          <div className="text-center mb-10">
+            <div className="flex justify-center mb-8">
+              <div className="p-3 bg-os-accent/10 rounded-2xl border border-os-accent/20">
+                <Logo type="symbol" size="lg" />
               </div>
-              <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">
-                {t('login.welcomeBack')}
-              </h1>
-              <p className="text-afrikoni-deep">
-                {t('login.subtitle')}
-              </p>
+            </div>
+            <h1 className="text-2xl font-black uppercase tracking-[0.3em] text-os-text-primary mb-3">
+              Identity <span className="text-os-accent">Gateway</span>
+            </h1>
+            <p className="text-xs font-bold text-os-text-secondary/60 uppercase tracking-widest">
+              Access the OS Trade Kernel
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block ml-1">
+                Command Email
+              </label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-4 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40 transition-all"
+                  placeholder="name@company.com"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <Label htmlFor="email" className="mb-2 block font-semibold text-afrikoni-chestnut">
-                  {t('login.email')}
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="password" className="mb-2 block font-semibold text-afrikoni-chestnut">
-                  {t('login.password')}
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    disabled={isLoading}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                  >
-                    {showPassword ? <EyeOff /> : <Eye />}
-                  </button>
-                </div>
-              </div>
-
-              <Button type="submit" disabled={isLoading} className="w-full h-12">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t('login.signingIn')}
-                  </>
-                ) : (
-                  t('login.signIn')
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <GoogleSignIn redirectTo={getOAuthRedirectPath()} />
-              <FacebookSignIn redirectTo={getOAuthRedirectPath()} />
-            </div>
-
-            <div className="mt-6 text-center text-sm">
-              <p>
-                {t('login.dontHaveAccount')}{' '}
-                <Link
-                  to={`${createPageUrl('Signup')}`}
-                  className="text-afrikoni-gold font-semibold"
-                >
-                  {t('login.createAccount')}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em]">
+                  Security Protocol
+                </label>
+                <Link to="/forgot-password" title="Forgot Password" className="text-[9px] font-black text-os-accent uppercase tracking-widest hover:opacity-80 transition-opacity">
+                  Recovery
                 </Link>
-              </p>
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-12 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40 transition-all"
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-os-text-secondary/40 hover:text-os-text-primary transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-14 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-glow transition-all active:scale-[0.98]"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                  Resolving...
+                </>
+              ) : (
+                'Initialize Handshake'
+              )}
+            </Button>
+          </form>
+
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/[0.05]" />
+            </div>
+            <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em] font-black text-os-text-secondary/40 bg-transparent px-4">
+              <span className="bg-[#0A0A0B] px-4">Satellite Auth</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-10">
+            <GoogleSignIn redirectTo={getOAuthRedirectPath()} className="h-12 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all" />
+            <FacebookSignIn redirectTo={getOAuthRedirectPath()} className="h-12 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all" />
+          </div>
+
+          <p className="text-center text-[10px] uppercase tracking-[0.2em] font-black text-os-text-secondary/60">
+            New Entity?{' '}
+            <Link to="/signup" className="text-os-accent hover:opacity-80 transition-opacity ml-1">
+              Apply for Access
+            </Link>
+          </p>
+        </Surface>
+
+        <div className="mt-8 text-center flex flex-col items-center gap-4">
+          <div className="flex items-center gap-6 opacity-30">
+            <div className="flex items-center gap-2">
+              <Shield className="w-3 h-3 text-os-accent" />
+              <span className="text-[8px] font-black uppercase tracking-[0.3em] text-os-text-secondary">AES-256 Encrypted</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-3 h-3 text-os-accent" />
+              <span className="text-[8px] font-black uppercase tracking-[0.3em] text-os-text-secondary">Verified Node</span>
+            </div>
+          </div>
+          <p className="text-os-text-secondary/20 text-[8px] font-black uppercase tracking-[0.5em]">
+            &copy; 2026 HORIZON PROTOCOL &bull; Trade is Active
+          </p>
+        </div>
       </motion.div>
     </div>
   );

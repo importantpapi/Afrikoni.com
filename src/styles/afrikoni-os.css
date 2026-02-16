@@ -10,19 +10,25 @@
   --afrikoni-gold-light: 38 70% 60%;
   --afrikoni-gold-dark: 38 60% 40%;
   --afrikoni-gold-glow: 38 80% 65%;
-  
+
   /* Warm Earth Tones from Logo */
   --afrikoni-brown: 25 40% 15%;
   --afrikoni-brown-light: 25 35% 25%;
   --afrikoni-earth: 20 30% 12%;
-  --afrikoni-warm-brown: 28 42% 28%;      /* #6B4423 */
-  --afrikoni-deep-brown: 25 43% 21%;      /* #4A2C1A */
-  --afrikoni-brand-gold: 38 75% 48%;      /* #D4A937 */
-  --afrikoni-muted-gold: 38 64% 46%;      /* #B8923A */
+  --afrikoni-warm-brown: 28 42% 28%;
+  /* #6B4423 */
+  --afrikoni-deep-brown: 25 43% 21%;
+  /* #4A2C1A */
+  --afrikoni-brand-gold: 38 75% 48%;
+  /* #D4A937 */
+  --afrikoni-muted-gold: 38 64% 46%;
+  /* #B8923A */
 
   /* LIGHT MODE (Warm Horizon 2026 - Ivory Base) */
-  --background: 35 25% 96%;               /* Warm ivory instead of cool pearl */
-  --foreground: 25 30% 12%;               /* Warm charcoal */
+  --background: 35 25% 96%;
+  /* Warm ivory instead of cool pearl */
+  --foreground: 25 30% 12%;
+  /* Warm charcoal */
 
   --card: 0 0% 100%;
   --card-foreground: 220 30% 12%;
@@ -116,8 +122,10 @@
    ============================================================ */
 .dark {
   /* Warm Deep Charcoal backgrounds (instead of cool obsidian) */
-  --background: 25 15% 8%;               /* Warm charcoal base */
-  --foreground: 35 15% 94%;              /* Warm off-white */
+  --background: 25 15% 8%;
+  /* Warm charcoal base */
+  --foreground: 35 15% 94%;
+  /* Warm off-white */
 
   /* Glassmorphic cards with warmth */
   --card: 25 18% 11%;
@@ -136,13 +144,15 @@
   --muted: 25 15% 12%;
   --muted-foreground: 35 10% 60%;
 
-  --accent: 28 20% 18%;                  /* Warm brown accent */
+  --accent: 28 20% 18%;
+  /* Warm brown accent */
   --accent-foreground: 38 85% 65%;
 
   --destructive: 0 92% 65%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 28 15% 20%;                  /* Warm brown border */
+  --border: 28 15% 20%;
+  /* Warm brown border */
   --input: 25 15% 14%;
   --ring: 38 85% 65%;
 

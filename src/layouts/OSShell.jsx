@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { IdentityLayer } from '@/components/os-shell/IdentityLayer';
 import { ContentSurface } from '@/components/os-shell/ContentSurface';
+import { SystemHealthDrawer } from '@/components/os-shell/SystemHealthDrawer';
 import TradeOSSidebar from '@/components/dashboard/TradeOSSidebar';
 import { AICopilotSidebar } from '@/components/ai/AICopilotSidebar';
 import { zIndex } from '@/config/zIndex';
@@ -26,11 +27,20 @@ import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import CommandPalette from '@/components/dashboard/CommandPalette';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useTheme } from '@/contexts/ThemeContext';
-import { cn } from '@/lib/utils';
+import { useOSSettings } from '@/hooks/useOSSettings';
 import PullToRefresh from '@/components/dashboard/PullToRefresh';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { BellRing } from 'lucide-react';
-import { useOSSettings } from '@/hooks/useOSSettings';
+import { cn as utilsCn } from '@/lib/utils';
+
+// Bulletproof helper to prevent ReferenceError: cn is not defined
+const cn = (...args) => {
+    try {
+        return utilsCn(...args);
+    } catch (e) {
+        return args.filter(Boolean).join(' ');
+    }
+};
 
 // OS Shell Z-Index Hierarchy
 export const OS_Z_INDEX = {
@@ -49,7 +59,7 @@ export const OS_DIMENSIONS = {
     identityLayer: { height: 48 },
     workspaceNav: {
         desktop: 240,
-        collapsed: 72
+        collapsed: 88 // Refactored to 88px as per P0 requirement
     },
     copilot: { width: 320 },
     get reservedTop() {
@@ -73,11 +83,20 @@ export default function OSShell({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [copilotOpen, setCopilotOpen] = useState(false);
+    const [systemHealthOpen, setSystemHealthOpen] = useState(false);
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
     const { isInstallable, isInstalled, installApp } = usePWAInstaller();
     const { isSubscribed, subscribe, permission, loading: pushLoading } = usePushNotifications();
-    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [showPushPrompt, setShowPushPrompt] = useState(false);
+    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+    const [isLiteMode, setIsLiteMode] = useState(false);
+
+    // Sync PWA installability with prompt
+    useEffect(() => {
+        if (isInstallable && !isInstalled) {
+            setShowInstallPrompt(true);
+        }
+    }, [isInstallable, isInstalled]);
     const { theme, toggleTheme } = useTheme();
     const { signOut } = useAuth();
     const { reducedMotion } = useOSSettings();
@@ -127,55 +146,19 @@ export default function OSShell({
 
     return (
         <MotionConfig reducedMotion={reducedMotion ? "always" : "never"}>
-            <div className="relative w-full h-screen overflow-hidden">
-                {/* System Layer - Always visible at top */}
-                <div
-                    className="fixed top-0 left-0 right-0 overflow-hidden"
-                    style={{
-                        height: `${OS_DIMENSIONS.systemLayer.height}px`,
-                        zIndex: OS_Z_INDEX.systemLayer
-                    }}
-                >
-                </div>
+            {/* 🏛️ GRID ROOT: The foundational shell architecture */}
+            <div className={cn(
+                "grid grid-cols-1 md:grid-cols-[88px_1fr] grid-rows-[56px_1fr] w-full h-screen overflow-hidden bg-os-bg transition-all duration-300",
+                sidebarOpen && "md:grid-cols-[240px_1fr]",
+                isLiteMode && "lite-mode-active"
+            )}>
 
-                {/* Identity Layer - Below system layer, respects sidebar boundaries */}
+                {/* 1. Workspace Navigation (Sidebar) - Spans both rows */}
                 <div
-                    className="fixed right-0 border-b border-afrikoni-gold/10"
-                    style={{
-                        left: `${OS_DIMENSIONS.workspaceNav.collapsed}px`, // Start after sidebar
-                        top: `${OS_DIMENSIONS.systemLayer.height}px`,
-                        height: `${OS_DIMENSIONS.identityLayer.height}px`,
-                        zIndex: OS_Z_INDEX.identityLayer
-                    }}
-                >
-                    {/* Glass Background - Horizon 2026 Heavy Blur (32px) */}
-                    <div className="absolute inset-0 bg-[hsl(var(--background))]/60 backdrop-blur-[32px] backdrop-saturate-150" />
-
-                    <div className="relative z-10 w-full h-full transition-all duration-300">
-                        <IdentityLayer
-                            user={user}
-                            profile={profile}
-                            organization={organization}
-                            workspaceMode={workspaceMode}
-                            onToggleMode={onToggleMode}
-                            onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-                            notificationCount={notificationCount}
-                            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-                            onToggleCopilot={() => setCopilotOpen(!copilotOpen)}
-                        />
-                    </div>
-                </div>
-
-                {/* Workspace Navigation Sidebar */}
-                <div
-                    className="fixed left-0 bottom-0"
-                    style={{
-                        // Architectural Fix: Sidebar starts below System Layer (at 56px), not below Identity Layer
-                        // This places the Sidebar parallel to the Identity Layer
-                        top: `${OS_DIMENSIONS.systemLayer.height}px`,
-                        width: `${OS_DIMENSIONS.workspaceNav.collapsed}px`,
-                        zIndex: OS_Z_INDEX.workspaceNav
-                    }}
+                    className={cn(
+                        "hidden md:block row-span-2 h-full border-r border-os-stroke bg-os-surface-solid relative transition-all duration-300 overflow-hidden"
+                    )}
+                    style={{ zIndex: OS_Z_INDEX.workspaceNav }}
                 >
                     <TradeOSSidebar
                         capabilities={capabilities}
@@ -187,124 +170,129 @@ export default function OSShell({
                     />
                 </div>
 
-                {/* Mobile Sidebar Overlay */}
+                {/* 2. Identity Layer (Header) - Col 2, Row 1 */}
+                <header
+                    className="col-span-1 md:col-start-2 row-start-1 h-14 border-b border-os-stroke glass-surface z-50 px-4 flex items-center"
+                >
+                    <IdentityLayer
+                        user={user}
+                        profile={profile}
+                        organization={organization}
+                        workspaceMode={workspaceMode}
+                        onToggleMode={onToggleMode}
+                        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+                        notificationCount={notificationCount}
+                        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                        onToggleCopilot={() => setCopilotOpen(!copilotOpen)}
+                        onToggleHealth={() => setSystemHealthOpen(!systemHealthOpen)}
+                        isLiteMode={isLiteMode}
+                        onToggleLiteMode={() => setIsLiteMode(!isLiteMode)}
+                    />
+                </header>
+
+                {/* 3. Content Surface - Col 2, Row 2 */}
+                <main className="col-span-1 md:col-start-2 row-start-2 overflow-hidden relative">
+                    <ContentSurface
+                        copilotOpen={copilotOpen}
+                        reservedTop={0}
+                        sidebarWidth={0}
+                    >
+                        <PullToRefresh
+                            onRefresh={async () => {
+                                console.log('[Kernel] OSShell manual refresh triggered');
+                                await new Promise(resolve => setTimeout(resolve, 800));
+                            }}
+                        >
+                            <AnimatePresence mode="popLayout">
+                                {showInstallPrompt && (
+                                    <motion.div
+                                        key="pwa-install"
+                                        initial={{ opacity: 0, y: -20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="mb-6 mx-4 md:mx-6 mt-4 p-5 os-panel-glass flex items-center justify-between gap-4 relative overflow-hidden"
+                                    >
+                                        <div className="os-ambient-orb" style={{ top: '-40%', left: '60%' }} />
+                                        <div className="flex items-center gap-3 z-10">
+                                            <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-md">
+                                                <Smartphone className="w-5 h-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-sm text-foreground">Install Afrikoni OS</h4>
+                                                <p className="text-[11px] text-muted-foreground font-medium">Dedicated workspace · Offline support</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 z-10">
+                                            <button onClick={() => setShowInstallPrompt(false)} className="px-3 py-2 text-[11px] font-semibold text-muted-foreground">Later</button>
+                                            <button onClick={() => { installApp(); setShowInstallPrompt(false); }} className="btn-gold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5"><Download className="w-3.5 h-3.5" />Install</button>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {showPushPrompt && (
+                                    <motion.div
+                                        key="push-prompt"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="mb-4 mx-4 md:mx-6 mt-4 p-5 os-panel-glass flex items-center justify-between gap-4 overflow-hidden relative"
+                                    >
+                                        <div className="os-ambient-orb" style={{ top: '-30%', right: '70%', background: 'radial-gradient(circle, hsl(var(--info) / 0.3), transparent 70%)' }} />
+                                        <div className="flex items-center gap-3 z-10">
+                                            <div className="w-11 h-11 rounded-2xl bg-info/10 border border-info/20 flex items-center justify-center backdrop-blur-md">
+                                                <BellRing className="w-5 h-5 text-info animate-pulse" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-sm text-foreground">Real-time Trade Signals</h4>
+                                                <p className="text-[11px] text-muted-foreground font-medium">Instant trade alerts</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 z-10">
+                                            <button onClick={() => setShowPushPrompt(false)} className="px-3 py-2 text-[11px] font-semibold text-muted-foreground">Skip</button>
+                                            <button onClick={async () => { await subscribe(); setShowPushPrompt(false); }} className="px-4 py-2 bg-info text-info-foreground rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" />Enable</button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <div className="p-4 md:p-6 pb-24 md:pb-6">
+                                {children}
+                            </div>
+                        </PullToRefresh>
+                    </ContentSurface>
+                </main>
+
+                {/* Mobile & Global Overlays */}
                 <AnimatePresence>
                     {sidebarOpen && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm md:hidden"
-                            style={{ zIndex: OS_Z_INDEX.overlay }}
-                            onClick={() => setSidebarOpen(false)}
-                        />
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000] md:hidden"
+                                onClick={() => setSidebarOpen(false)}
+                            />
+                            <motion.div
+                                initial={{ x: "-100%" }}
+                                animate={{ x: 0 }}
+                                exit={{ x: "-100%" }}
+                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                className="fixed top-0 left-0 bottom-0 w-[280px] bg-os-surface-solid z-[1001] md:hidden"
+                            >
+                                <TradeOSSidebar
+                                    capabilities={capabilities}
+                                    isAdmin={isAdmin}
+                                    notificationCounts={notificationCounts}
+                                    onClose={() => setSidebarOpen(false)}
+                                    sidebarOpen={true}
+                                    workspaceMode={workspaceMode}
+                                />
+                            </motion.div>
+                        </>
                     )}
                 </AnimatePresence>
 
-                {/* Content Surface - Main application area */}
-                <ContentSurface
-                    copilotOpen={copilotOpen}
-                    reservedTop={OS_DIMENSIONS.reservedTop}
-                >
-                    {/* Pull to Refresh Wrapper */}
-                    <PullToRefresh
-                        onRefresh={async () => {
-                            console.log('[Kernel] OSShell manual refresh triggered');
-                            // In the future, this should trigger a system-wide refresh
-                            await new Promise(resolve => setTimeout(resolve, 800));
-                        }}
-                    >
-                        {/* Global System Notifications (PWA Install, Push Alerts) */}
-                        <AnimatePresence mode="popLayout">
-                            {showInstallPrompt && (
-                                <motion.div
-                                    key="pwa-install"
-                                    initial={{ opacity: 0, y: -20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="mb-6 mx-4 md:mx-6 mt-4 p-5 os-panel-glass flex items-center justify-between gap-4 relative overflow-hidden"
-                                >
-                                    {/* Ambient orb glow */}
-                                    <div className="os-ambient-orb" style={{ top: '-40%', left: '60%' }} />
-
-                                    <div className="flex items-center gap-3 z-10">
-                                        <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-md">
-                                            <Smartphone className="w-5 h-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-sm text-foreground">Install Afrikoni OS</h4>
-                                            <p className="text-[11px] text-muted-foreground font-medium">Dedicated workspace · Offline support · Native feel</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 z-10">
-                                        <button
-                                            onClick={() => setShowInstallPrompt(false)}
-                                            className="px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-                                        >
-                                            Later
-                                        </button>
-                                        <button
-                                            onClick={() => { installApp(); setShowInstallPrompt(false); }}
-                                            className="btn-gold px-4 py-2 rounded-xl text-xs text-primary-foreground flex items-center gap-1.5"
-                                        >
-                                            <Download className="w-3.5 h-3.5" />
-                                            Install
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {showPushPrompt && (
-                                <motion.div
-                                    key="push-prompt"
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="mb-4 mx-4 md:mx-6 mt-4 p-5 os-panel-glass flex items-center justify-between gap-4 overflow-hidden relative"
-                                >
-                                    {/* Ambient orb glow */}
-                                    <div className="os-ambient-orb" style={{ top: '-30%', right: '70%', background: 'radial-gradient(circle, hsl(var(--info) / 0.3), transparent 70%)' }} />
-
-                                    <div className="flex items-center gap-3 z-10">
-                                        <div className="w-11 h-11 rounded-2xl bg-info/10 border border-info/20 flex items-center justify-center backdrop-blur-md">
-                                            <BellRing className="w-5 h-5 text-info animate-pulse" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-sm text-foreground">Real-time Trade Signals</h4>
-                                            <p className="text-[11px] text-muted-foreground font-medium">Never miss orders · Live updates · Instant alerts</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 z-10">
-                                        <button
-                                            onClick={() => setShowPushPrompt(false)}
-                                            className="px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-                                        >
-                                            Skip
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                await subscribe();
-                                                setShowPushPrompt(false);
-                                            }}
-                                            className="px-4 py-2 bg-info hover:bg-info/90 text-info-foreground rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-1.5"
-                                        >
-                                            <Shield className="w-3.5 h-3.5" />
-                                            Enable
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <div className="p-4 md:p-6 pb-24 md:pb-6">
-                            {children}
-                        </div>
-                    </PullToRefresh>
-                </ContentSurface>
-
-                {/* Mobile Bottom Navigation */}
                 <MobileBottomNav
                     isBuyer={isBuyer}
                     isSeller={isSeller}
@@ -312,15 +300,16 @@ export default function OSShell({
                     isHybrid={isHybridCapability}
                 />
 
-                {/* Global Signal Stream Footer */}
-
-                {/* Global Command Palette */}
                 <CommandPalette
                     open={commandPaletteOpen}
                     onClose={() => setCommandPaletteOpen(false)}
                 />
 
-                {/* AI Copilot Sidebar - Optional right sidebar */}
+                <SystemHealthDrawer
+                    isOpen={systemHealthOpen}
+                    onClose={() => setSystemHealthOpen(false)}
+                />
+
                 <AnimatePresence>
                     {copilotOpen && (
                         <motion.div
@@ -328,11 +317,7 @@ export default function OSShell({
                             animate={{ x: 0, opacity: 1 }}
                             exit={{ x: "100%", opacity: 0 }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="fixed right-0 bottom-0 w-full md:w-[320px] shadow-2xl"
-                            style={{
-                                top: `${OS_DIMENSIONS.reservedTop}px`,
-                                zIndex: OS_Z_INDEX.copilot
-                            }}
+                            className="fixed right-0 top-0 bottom-0 w-full md:w-[320px] shadow-2xl z-[1000] border-l border-os-stroke"
                         >
                             <AICopilotSidebar
                                 isOpen={true}

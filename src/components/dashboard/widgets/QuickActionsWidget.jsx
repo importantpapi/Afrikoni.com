@@ -17,13 +17,12 @@ function QuickActionsWidget() {
     const navigate = useNavigate();
     const { capabilities } = useDashboardKernel();
 
-    // ✅ MOBILE GUARD: Prevent crash if capabilities null on slow connection
     if (!capabilities) {
         return (
-            <Surface variant="glass" className="p-6">
-                <div className="animate-pulse space-y-4">
-                    <div className="h-6 bg-white/10 rounded w-1/3" />
-                    <div className="h-16 bg-white/10 rounded" />
+            <Surface variant="glass" className="p-8">
+                <div className="animate-pulse space-y-6">
+                    <div className="h-6 bg-os-stroke rounded w-1/3" />
+                    <div className="h-20 bg-os-stroke rounded-2xl" />
                 </div>
             </Surface>
         );
@@ -33,80 +32,83 @@ function QuickActionsWidget() {
     const canBuy = capabilities?.can_buy === true;
 
     return (
-        <Surface variant="glass" className="p-6">
-            <div className="space-y-6">
-                <div>
-                    <h3 className="text-lg font-semibold text-[var(--os-text-primary)] mb-1">
-                        Command Center
-                    </h3>
-                    <p className="text-sm text-os-muted mb-4">
-                        Quickly access common actions and trading tools.
-                    </p>
-
-                    {/* AI Quick RFQ */}
-                    {canBuy && (
-                        <div className="mb-6">
-                            <label className="text-xs font-medium text-os-muted mb-2 block uppercase tracking-wider">
-                                AI Quick Request
-                            </label>
-                            <QuickRFQBar />
-                        </div>
-                    )}
-                </div>
-
-                <div>
-                    <label className="text-xs font-medium text-os-muted mb-3 block uppercase tracking-wider">
-                        Shortcuts
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {canBuy && (
-                            <Button
-                                variant="outline"
-                                className="h-auto py-3 flex flex-col gap-2 hover:bg-os-surface-2 border-dashed border-os-stroke"
-                                onClick={() => navigate('/dashboard/rfqs/new')}
-                            >
-                                <div className="p-2 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
-                                    <FileText className="w-5 h-5" />
-                                </div>
-                                <span className="text-sm font-medium">New RFQ</span>
-                            </Button>
-                        )}
-
-                        {canSell && (
-                            <Button
-                                variant="outline"
-                                className="h-auto py-3 flex flex-col gap-2 hover:bg-os-surface-2 border-dashed border-os-stroke"
-                                onClick={() => navigate('/dashboard/products/new')}
-                            >
-                                <div className="p-2 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-                                    <Package className="w-5 h-5" />
-                                </div>
-                                <span className="text-sm font-medium">Add Product</span>
-                            </Button>
-                        )}
-
-                        <Button
-                            variant="outline"
-                            className="h-auto py-3 flex flex-col gap-2 hover:bg-os-surface-2 border-dashed border-os-stroke"
-                            onClick={() => navigate('/dashboard/verification')}
-                        >
-                            <div className="p-2 rounded-full bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">
-                                <ShieldCheck className="w-5 h-5" />
-                            </div>
-                            <span className="text-sm font-medium">Verify</span>
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            className="h-auto py-3 flex flex-col gap-2 hover:bg-os-surface-2 border-dashed border-os-stroke"
-                            onClick={() => navigate('/dashboard/network')}
-                        >
-                            <div className="p-2 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400">
-                                <Users className="w-5 h-5" />
-                            </div>
-                            <span className="text-sm font-medium">Network</span>
-                        </Button>
+        <Surface variant="glass" className="p-8 space-y-8">
+            <div>
+                <div className="flex items-center gap-3 mb-1">
+                    <div className="p-2 bg-os-accent/10 rounded-lg">
+                        <Zap className="h-5 w-5 text-os-accent" />
                     </div>
+                    <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-os-text-primary">
+                        OS Core
+                    </h3>
+                </div>
+                <p className="text-[10px] font-bold text-os-text-secondary/60 uppercase tracking-widest mt-1">
+                    Sub-millisecond access to trade tools
+                </p>
+            </div>
+
+            {/* AI Quick RFQ */}
+            {canBuy && (
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block mb-2">
+                        Neural Input
+                    </label>
+                    <QuickRFQBar />
+                </div>
+            )}
+
+            <div className="space-y-4">
+                <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block mb-4">
+                    Orchestration
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                    {canBuy && (
+                        <Button
+                            variant="outline"
+                            className="h-auto py-5 flex flex-col gap-3 hover:bg-os-accent/5 border-os-stroke hover:border-os-accent/30 rounded-2xl transition-all duration-300 group"
+                            onClick={() => navigate('/dashboard/rfqs/new')}
+                        >
+                            <div className="p-3 rounded-2xl bg-os-accent/10 text-os-accent transition-transform group-hover:scale-110">
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <span className="text-xs font-bold uppercase tracking-widest text-os-text-primary">Intent</span>
+                        </Button>
+                    )}
+
+                    {canSell && (
+                        <Button
+                            variant="outline"
+                            className="h-auto py-5 flex flex-col gap-3 hover:bg-os-accent/5 border-os-stroke hover:border-os-accent/30 rounded-2xl transition-all duration-300 group"
+                            onClick={() => navigate('/dashboard/products/new')}
+                        >
+                            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 transition-transform group-hover:scale-110">
+                                <Package className="w-5 h-5" />
+                            </div>
+                            <span className="text-xs font-bold uppercase tracking-widest text-os-text-primary">Match</span>
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="outline"
+                        className="h-auto py-5 flex flex-col gap-3 hover:bg-os-accent/5 border-os-stroke hover:border-os-accent/30 rounded-2xl transition-all duration-300 group"
+                        onClick={() => navigate('/dashboard/verification')}
+                    >
+                        <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-500 transition-transform group-hover:scale-110">
+                            <ShieldCheck className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-widest text-os-text-primary">Trust</span>
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        className="h-auto py-5 flex flex-col gap-3 hover:bg-os-accent/5 border-os-stroke hover:border-os-accent/30 rounded-2xl transition-all duration-300 group"
+                        onClick={() => navigate('/dashboard/network')}
+                    >
+                        <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-500 transition-transform group-hover:scale-110">
+                            <Users className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-widest text-os-text-primary">Network</span>
+                    </Button>
                 </div>
             </div>
         </Surface>

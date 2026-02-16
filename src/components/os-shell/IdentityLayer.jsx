@@ -12,7 +12,7 @@ import React, { useState } from 'react';
 import {
     Bell, Command, Menu, Moon, Sun, User, ChevronDown,
     LayoutDashboard, User as UserIcon, MessageSquare, Package,
-    FileText, Shield, Settings, LogOut, Sparkles
+    FileText, Shield, Settings, LogOut, Sparkles, ZapOff
 } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -21,6 +21,16 @@ import { useNavigate, Link } from 'react-router-dom';
 import UserAvatar from '@/components/headers/UserAvatar';
 import { useAuth } from '@/contexts/AuthProvider';
 import { AnimatePresence, motion } from 'framer-motion';
+import { cn as utilsCn } from '@/lib/utils';
+
+// Bulletproof helper to prevent ReferenceError: cn is not defined
+const cn = (...args) => {
+    try {
+        return utilsCn(...args);
+    } catch (e) {
+        return args.filter(Boolean).join(' ');
+    }
+};
 
 export function IdentityLayer({
     user,
@@ -31,7 +41,10 @@ export function IdentityLayer({
     onOpenCommandPalette,
     notificationCount = 0,
     onToggleSidebar,
-    onToggleCopilot
+    onToggleCopilot,
+    onToggleHealth,
+    isLiteMode = false,
+    onToggleLiteMode
 }) {
     const { theme, toggleTheme } = useTheme();
     const { signOut } = useAuth();
@@ -64,73 +77,67 @@ export function IdentityLayer({
     };
 
     return (
-        <div className="w-full h-full px-4 md:px-6 flex items-center justify-between">
-            {/* Left: Mobile Menu + User Identity */}
-            <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
-                {/* Mobile Menu Toggle */}
+        <div className="w-full h-full flex items-center justify-between">
+            {/* Left: User Identity - Horizon 2026 Minimal */}
+            <div className="flex items-center gap-4">
                 <Button
                     variant="ghost"
-                    size="sm"
-                    className="md:hidden flex-shrink-0"
+                    size="icon"
+                    className="md:hidden"
                     onClick={onToggleSidebar}
                 >
                     <Menu className="w-5 h-5" />
                 </Button>
 
-                {/* User Avatar and Name */}
-                <motion.div
+                <div
                     ref={userMenuButtonRef}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 p-1 px-1.5 rounded-lg transition-all overflow-hidden"
                     onClick={handleUserMenuClick}
+                    className="flex items-center gap-3 cursor-pointer p-1.5 px-2 hover:bg-os-stroke rounded-xl transition-colors"
                 >
-                    <div className="hidden md:block flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-afrikoni-gold to-[#B8860B] flex items-center justify-center text-black text-xs font-black shadow-sm border border-white/10">
-                            {getInitial()}
-                        </div>
+                    <div className="w-8 h-8 rounded-full bg-os-accent/10 border border-os-accent/20 flex items-center justify-center text-os-accent text-xs font-semibold">
+                        {getInitial()}
                     </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                        <div className="text-sm font-bold text-gray-900 dark:text-[#F5F0E8] leading-tight truncate">
-                            {userName}
-                        </div>
-                        <div className="text-[10px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider truncate">
-                            {orgName}
-                        </div>
+                    <div className="flex flex-col">
+                        <span className="text-sm font-semibold tracking-tight">{userName}</span>
+                        <span className="text-[11px] text-os-text-secondary font-medium">{orgName}</span>
                     </div>
-                    <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-gray-400 flex-shrink-0" />
-                </motion.div>
+                </div>
             </div>
 
-            {/* Right: Controls */}
-            <div className="flex items-center gap-3 md:gap-4">
-                {/* Workspace Mode Toggle */}
-                {onToggleMode && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onToggleMode}
-                        className="hidden md:flex items-center gap-2"
-                    >
-                        <span className="text-xs font-medium">
-                            {workspaceMode === 'simple' ? 'Simple' : 'Operator'}
-                        </span>
-                        <ChevronDown className="w-3 h-3" />
-                    </Button>
-                )}
+            {/* Right: Orchestration Controls */}
+            <div className="flex items-center gap-2">
+                {/* System Health Trigger - Layer 2 */}
+                <div
+                    onClick={onToggleHealth}
+                    className="health-capsule mr-4 cursor-pointer hover:bg-os-success/5 transition-colors"
+                >
+                    <div className="health-dot" />
+                    <span className="text-os-text-primary text-[11px] font-semibold">Trade is Active</span>
+                </div>
 
-                {/* Theme Toggle */}
+                {/* Search / Command */}
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={toggleTheme}
-                    className="relative w-8 h-8 rounded-full"
+                    onClick={onOpenCommandPalette}
+                    className="w-10 h-10 rounded-full"
                 >
-                    {theme === 'dark' ? (
-                        <Sun className="w-4 h-4" />
-                    ) : (
-                        <Moon className="w-4 h-4" />
-                    )}
+                    <Command className="w-4 h-4 text-os-text-secondary" />
+                </Button>
+
+                <div className="w-[1px] h-4 bg-os-stroke mx-1" />
+
+                {/* Mode Selector */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onToggleMode}
+                    className="hidden md:flex items-center gap-2 px-3 text-os-text-secondary hover:text-os-text-primary"
+                >
+                    <span className="text-xs font-medium">
+                        {workspaceMode === 'simple' ? 'Simple' : 'Operator'}
+                    </span>
+                    <ChevronDown className="w-3 h-3" />
                 </Button>
 
                 {/* Notifications */}
@@ -138,44 +145,38 @@ export function IdentityLayer({
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate('/dashboard/notifications')}
-                    className="relative w-8 h-8 rounded-full"
+                    className="relative w-10 h-10 rounded-full"
                 >
-                    <Bell className="w-4 h-4" />
+                    <Bell className="w-4 h-4 text-os-text-secondary" />
                     {notificationCount > 0 && (
-                        <Badge
-                            variant="destructive"
-                            className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center pointer-events-none"
-                        >
-                            {notificationCount > 9 ? '9+' : notificationCount}
-                        </Badge>
+                        <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-os-error rounded-full border-2 border-os-surface-solid" />
                     )}
                 </Button>
 
-                {/* Command Palette */}
-                {onOpenCommandPalette && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onOpenCommandPalette}
-                        className="hidden md:flex items-center gap-2 h-8 px-2"
-                    >
-                        <Command className="w-4 h-4" />
-                        <span className="text-[10px] font-mono opacity-50">⌘K</span>
-                    </Button>
-                )}
+                {/* AI Copilot */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onToggleCopilot}
+                    className="flex h-9 px-4 rounded-full bg-os-accent/10 text-os-accent hover:bg-os-accent/20 transition-all font-semibold text-xs gap-2 ml-2"
+                >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span className="hidden lg:inline">Assistant</span>
+                </Button>
 
-                {/* AI Copilot Toggle */}
-                {onToggleCopilot && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onToggleCopilot}
-                        className="flex h-8 px-2 lg:px-3 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all font-bold text-xs"
-                    >
-                        <span className="lg:hidden"><Sparkles className="w-4 h-4" /></span>
-                        <span className="hidden lg:inline">AI</span>
-                    </Button>
-                )}
+                {/* Lite Mode Toggle - Phase 2 Market Expansion */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onToggleLiteMode}
+                    className={cn(
+                        "w-10 h-10 rounded-full transition-all",
+                        isLiteMode ? "bg-afrikoni-gold text-black" : "text-os-text-secondary hover:text-os-text-primary"
+                    )}
+                    title={isLiteMode ? "Disable Lite Mode" : "Enable Lite Mode (Low Data)"}
+                >
+                    <ZapOff className="w-4 h-4" />
+                </Button>
             </div>
 
             {/* User Menu Dropdown */}

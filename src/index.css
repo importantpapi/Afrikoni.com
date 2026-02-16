@@ -3,184 +3,214 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================
-   DASHBOARD LAYOUT CSS VARIABLES
-   Centralized configuration for easy customization
-   ============================================ */
+/* =============================================================================
+   AFRIKONI TRADE OS 2026 - THE APPLE-GRADE VISUAL SYSTEM
+   "Calm, Minimal, Human-First, Premium"
+   ============================================================================= */
+
 :root {
-  /* TRADE OS 2026 - KERNEL GEOMETRY (THE SLOTS) */
-  --os-system-height: 56px;
-  --os-identity-height: 48px;
-  --os-sidebar-width: 72px;
-  --os-copilot-width: 320px;
-  --os-reserved-top: calc(var(--os-system-height) + var(--os-identity-height));
+  /* APPLE-GRADE PALETTE: LIGHT MODE (HORIZON IVORY) */
+  --os-bg: #FBFBF9;
+  /* Warm off-white / Ivory */
+  --os-surface: rgba(255, 255, 255, 0.75);
+  /* Frosted Glass */
+  --os-surface-solid: #FFFFFF;
+  --os-stroke: rgba(0, 0, 0, 0.05);
+  /* Hairline dividers */
+  --os-text-primary: #1D1D1F;
+  /* Apple-style near-black */
+  --os-text-secondary: #86868B;
+  /* Muted gray */
+  --os-accent: #D4A937;
+  /* Afrikoni Gold (Sparingly) */
+  --os-success: #2CD178;
+  --os-error: #FF3B30;
 
-  /* OS Shell Z-Index Hierarchy */
+  /* GEOMETRY & SPACING */
+  --os-radius-sm: 12px;
+  --os-radius-md: 20px;
+  --os-radius-lg: 32px;
+  --os-system-height: 64px;
+  --os-sidebar-width: 80px;
+  --os-card-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
+  --os-card-shadow-hover: 0 12px 40px -4px rgba(0, 0, 0, 0.08);
+
+  /* Z-INDEX SCALE */
   --z-os-content: 1;
-  --z-os-copilot: 800;
+  --z-os-header: 1000;
   --z-os-sidebar: 900;
-  --z-os-identity: 1000;
-  --z-os-system: 1100;
-  --z-os-overlay: 1200;
-  --z-os-modal: 1300;
-
-  /* Legacy Ref: Sidebar Dimensions */
-  --sidebar-width: 240px;
-  --sidebar-collapsed-width: 80px;
-  --sidebar-mobile-width: 16rem;
-
-  /* Responsive sidebar width - use CSS classes */
-  --sidebar-current-width: var(--sidebar-mobile-width);
-
-  @media (min-width: 768px) {
-    --sidebar-current-width: var(--sidebar-width);
-  }
-
-  /* Header Dimensions */
-  --header-height: 64px;
-  --header-height-mobile: 56px;
-
-  /* Footer Dimensions */
-  --footer-height: 48px;
-  --mobile-bottom-nav-height: 72px;
-
-  /* Content Spacing */
-  --content-padding-x-mobile: 0.75rem;
-  /* 12px */
-  --content-padding-x-tablet: 1rem;
-  /* 16px */
-  --content-padding-x-desktop: 1.5rem;
-  /* 24px */
-  --content-padding-y-mobile: 1rem;
-  /* 16px */
-  --content-padding-y-desktop: 1.5rem;
-  /* 24px */
-
-  /* Content Min Heights */
-  --content-min-height-mobile: calc(100vh - var(--header-height-mobile) - var(--mobile-bottom-nav-height));
-  --content-min-height-desktop: calc(100vh - var(--header-height));
-
-  /* Z-Index Scale - Centralized for consistency */
-  --z-background: 0;
-  --z-content: 10;
-  --z-footer: 30;
-  --z-overlay: 40;
-  --z-sidebar: 50;
-  --z-header: 100;
-  --z-modal-backdrop: 9998;
-  --z-modal: 9999;
-  --z-dropdown: 9999;
-
-  /* Layout Breakpoints (matching Tailwind) */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
+  --z-os-overlay: 1100;
+  --z-os-modal: 1200;
 }
 
-/* ============================================
-   DARK MODE - Trade OS Premium Theme
-   Gold accent on charcoal/black backgrounds
-   ============================================ */
+/* DARK MODE: DEEP HORIZON */
 .dark {
-  --sidebar-bg: #0A0A0A;
-  --header-bg: #0F0F0F;
-  --content-bg: #121212;
-  --card-bg: #1A1A1A;
-  --card-border: #2A2A2A;
-  --text-primary: #F5F0E8;
-  --text-secondary: #A09888;
-  --gold-accent: #D4A937;
-  --gold-glow: rgba(212, 169, 55, 0.15);
+  --os-bg: #0A0A0A;
+  /* Deep near-black */
+  --os-surface: rgba(26, 26, 26, 0.65);
+  /* Charcoal Frost */
+  --os-surface-solid: #1A1A1A;
+  --os-stroke: rgba(255, 255, 255, 0.08);
+  --os-text-primary: #F5F5F7;
+  /* Off-white */
+  --os-text-secondary: #A1A1A6;
+  --os-accent: #D4A937;
+  --os-success: #32D74B;
+  --os-error: #FF453A;
   color-scheme: dark;
 }
 
-.dark body {
-  background-color: #121212;
-  color: #F5F0E8;
+/* ============================================
+   2026 EDITION PALETTES
+   ============================================ */
+
+/* 1. GOLD (Classic Afrikoni) */
+:root.palette-gold {
+  --os-accent: #D4A937;
+  --os-accent-glow: rgba(212, 169, 55, 0.3);
 }
 
-/* Dark mode card surfaces */
-.dark .bg-white,
-.dark .bg-afrikoni-ivory,
-.dark .bg-afrikoni-offwhite {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
+/* 2. COBALT (Enterprise Infrastructure) */
+:root.palette-cobalt {
+  --os-accent: #007AFF;
+  /* Apple Blue */
+  --os-accent-glow: rgba(0, 122, 255, 0.3);
 }
 
-/* Dark mode text adjustments */
-.dark .text-gray-900,
-.dark .text-gray-800,
-.dark .text-gray-700,
-.dark .text-afrikoni-charcoal,
-.dark .text-afrikoni-chestnut,
-.dark .text-afrikoni-text-dark {
-  color: var(--text-primary) !important;
+/* 3. EMERALD (Sustainable Growth) */
+:root.palette-emerald {
+  --os-accent: #34C759;
+  /* Apple Green */
+  --os-accent-glow: rgba(52, 199, 89, 0.3);
 }
 
-.dark .text-gray-600,
-.dark .text-gray-500,
-.dark .text-afrikoni-deep,
-.dark .text-afrikoni-text-deep {
-  color: var(--text-secondary) !important;
+/* 4. CRIMSON (Market Power) */
+:root.palette-crimson {
+  --os-accent: #FF3B30;
+  /* Apple Red */
+  --os-accent-glow: rgba(255, 59, 48, 0.3);
 }
 
-/* Dark mode borders */
-.dark .border-gray-200,
-.dark .border-gray-100,
-.dark .border-afrikoni-cream {
-  border-color: var(--card-border) !important;
-}
-
-/* Dark mode gold accents glow */
-.dark .bg-afrikoni-gold {
-  box-shadow: 0 0 20px var(--gold-glow);
-}
-
-/* Dark mode sidebar */
-.dark .bg-afrikoni-charcoal {
-  background-color: var(--sidebar-bg) !important;
-}
-
-/* Dark mode inputs */
-.dark input,
-.dark textarea,
-.dark select {
-  background-color: #1E1E1E;
-  border-color: var(--card-border);
-  color: var(--text-primary);
-}
-
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #666;
+/* Apply accent to glow effects */
+.shadow-glow {
+  box-shadow: 0 0 20px var(--os-accent-glow);
 }
 
 /* ============================================
-   GLASSMORPHISM EFFECTS - Bloomberg Terminal Aesthetic
+   BASE RESET & TYPOGRAPHY
    ============================================ */
-
-/* Glass card surfaces */
-.dark .glass-card,
-.dark .shadow-premium {
-  background: rgba(26, 26, 26, 0.85) !important;
-  backdrop-filter: blur(12px) saturate(1.5);
-  -webkit-backdrop-filter: blur(12px) saturate(1.5);
-  border-color: rgba(212, 169, 55, 0.12) !important;
+html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--os-bg);
+  color: var(--os-text-primary);
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
 }
 
-/* Glass sidebar */
-.dark .bg-afrikoni-charcoal {
-  background: rgba(10, 10, 10, 0.92) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+body {
+  background-color: var(--os-bg);
+  margin: 0;
+  min-height: 100vh;
+  transition: background-color 0.4s ease;
 }
 
-/* Glass header */
-.dark .bg-afrikoni-ivory {
-  background-color: rgba(18, 18, 18, 0.9) !important;
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.015em;
+  font-weight: 600;
+  color: var(--os-text-primary);
+}
+
+.os-title-large {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* ============================================
+   SURFACE SYSTEM (GLASSMORPHISM)
+   ============================================ */
+.glass-surface {
+  background: var(--os-surface);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--os-stroke);
+  border-radius: var(--os-radius-md);
+  box-shadow: var(--os-card-shadow);
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.glass-surface:hover {
+  box-shadow: var(--os-card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* Hairline dividers */
+.os-divider {
+  height: 1px;
+  background: var(--os-stroke);
+  border: none;
+}
+
+/* ============================================
+   ANIMATIONS & MICRO-INTERACTIONS
+   ============================================ */
+.apple-transition {
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-depress:active {
+  transform: scale(0.97);
+}
+
+/* ============================================
+   SYSTEM HEALTH CAPSULE
+   ============================================ */
+.health-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--os-surface);
+  border: 1px solid var(--os-stroke);
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+.health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--os-success);
+  box-shadow: 0 0 8px var(--os-success);
+}
+
+/* ============================================
+   LAYOUT UTILITIES
+   ============================================ */
+.os-shell-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--os-bg);
+}
+
+.os-content-area {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .os-content-area {
+    padding: 1rem;
+  }
 }
 
 /* Dark mode gold glow on interactive elements */
@@ -336,7 +366,6 @@ body {
   a:not(.touch-ignore),
   [role="button"]:not(.touch-ignore) {
     -webkit-tap-highlight-color: rgba(212, 169, 55, 0.2);
-    tap-highlight-color: rgba(212, 169, 55, 0.2);
   }
 
   /* Ensure minimum touch target size (44x44px recommended by Apple/Google) - Mobile only */
@@ -348,9 +377,7 @@ body {
   }
 
   /* Disable hover effects on touch devices */
-  *:hover {
-    /* Let individual components handle hover states */
-  }
+  /* Disable hover effects on touch devices if needed */
 
   /* Reduce animations on mobile for better performance - but not all */
   /* Only reduce complex animations, keep simple transitions */
@@ -1235,4 +1262,25 @@ html {
   content-visibility: auto;
   contain-intrinsic-size: 1px 100px;
   /* Estimate height to prevent scroll jump */
+}
+
+/* LITE MODE OVERRIDES (2026 MARKET EXPANSION) */
+.lite-mode-active * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.lite-mode-active .glass-surface,
+.lite-mode-active .os-panel-glass,
+.lite-mode-active [class*="glass"],
+.lite-mode-active [class*="blur"] {
+  background: #000 !important;
+  backdrop-filter: none !important;
+  border-color: #333 !important;
+}
+
+.lite-mode-active .os-ambient-orb {
+  display: none !important;
 }

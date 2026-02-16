@@ -211,12 +211,12 @@ export default function IntakeEngine() {
           >
             <Surface variant="panel" className="p-10 flex flex-col items-center justify-center min-h-[400px] border border-[#D4A937]/30 bg-[#D4A937]/5 relative">
               <div className="w-full max-w-2xl space-y-4">
-                <Label className="text-lg text-[#D4A937] font-semibold">What do you want to source?</Label>
+                <Label className="text-lg text-[#D4A937] font-medium">What do you want to source?</Label>
                 <Textarea
                   value={magicInput}
                   onChange={(e) => setMagicInput(e.target.value)}
                   placeholder="e.g. I need 200 tons of Shea Butter delivered to Tema Port by next month. Target price is $1200 per ton."
-                  className="min-h-[160px] text-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:border-[#D4A937] focus:ring-2 focus:ring-[#D4A937]/30 p-6 resize-none leading-relaxed placeholder:text-gray-400"
+                  className="min-h-[160px] text-xl bg-black/50 border-white/10 focus:border-[#D4A937] p-6 resize-none leading-relaxed"
                   autoFocus
                 />
                 <div className="flex justify-end">
@@ -293,19 +293,12 @@ export default function IntakeEngine() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-gray-700 dark:text-gray-300 text-sm font-medium">Detailed Specifications *</Label>
-                    {form.description && (
-                      <span className="text-[10px] text-[#D4A937] font-medium flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> AI extracted
-                      </span>
-                    )}
-                  </div>
+                  <Label className="mb-2 block">Detailed Specifications</Label>
                   <Textarea
-                    className="mt-1 min-h-[120px] bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:border-[#D4A937] focus:ring-2 focus:ring-[#D4A937]/20 placeholder:text-gray-400"
+                    className="mt-1 min-h-[120px] bg-black/20"
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Describe your requirements: quality standards, certifications, delivery timeline, packaging specifications..."
+                    placeholder="Specs, certifications, timelines…"
                     required
                   />
                 </div>
@@ -333,15 +326,15 @@ export default function IntakeEngine() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <Label className="mb-2 block text-gray-700 dark:text-gray-300 text-sm font-medium">Closing Date</Label>
+                    <Label className="mb-2 block">Closing Date</Label>
                     <div className="flex items-center gap-2">
                       <Input
                         type="date"
                         value={closingDate}
                         onChange={(e) => setClosingDate(e.target.value)}
-                        className="flex-1 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:border-[#D4A937] focus:ring-2 focus:ring-[#D4A937]/20"
+                        className="flex-1 bg-black/20"
                       />
-                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <Calendar className="w-4 h-4 text-os-muted" />
                     </div>
                   </div>
                   <div>
@@ -373,27 +366,16 @@ export default function IntakeEngine() {
 }
 
 function Field({ label, value, onChange, placeholder, type = 'text', required }) {
-  const isAIFilled = value && value.length > 0;
-  
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-gray-700 dark:text-gray-300 text-sm font-medium">
-          {label}{required ? ' *' : ''}
-        </Label>
-        {isAIFilled && (
-          <span className="text-[10px] text-[#D4A937] font-medium flex items-center gap-1">
-            <Sparkles className="w-3 h-3" /> AI suggested
-          </span>
-        )}
-      </div>
+      <Label className="text-os-muted uppercase text-xs tracking-wider">{label}{required ? ' *' : ''}</Label>
       <Input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
-        className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:border-[#D4A937] focus:ring-2 focus:ring-[#D4A937]/20 placeholder:text-gray-400"
+        className="bg-black/20 border-white/10 focus:border-[#D4A937]/50"
       />
     </div>
   );

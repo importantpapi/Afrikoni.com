@@ -21,7 +21,7 @@ export default function TrendingProductsSection() {
   const loadTrendingProducts = async () => {
     try {
       setLoading(true);
-      
+
       // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Simplified query - PostgREST friendly (no complex joins)
       const { data: productsData, error: productsError } = await supabase
@@ -44,7 +44,7 @@ export default function TrendingProductsSection() {
               .from('companies')
               .select('id, company_name, verification_status, country')
               .in('id', companyIds);
-            
+
             if (companies) {
               companies.forEach(c => companiesMap.set(c.id, c));
             }

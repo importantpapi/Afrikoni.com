@@ -107,13 +107,13 @@ export default function ExploreAfricanSupply() {
 
     try {
       setLoadingProducts(prev => ({ ...prev, [categoryKey]: true }));
-      
+
       const limit = 12;
       const offset = pageNum * limit;
 
       // Build two queries: one for category match, one for keyword match
       // Then combine and deduplicate results
-      
+
       // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Query 1: Products with matching category name in database
       const { data: categoryProducts } = await supabase
@@ -126,7 +126,7 @@ export default function ExploreAfricanSupply() {
 
       // ✅ KERNEL-SCHEMA ALIGNMENT: Query 2: Products with keywords in name (using OR for multiple keywords)
       const keywordFilters = category.keywords.map(keyword => `name.ilike.%${keyword}%`);
-      
+
       let keywordQuery = supabase
         .from('products')
         .select('id, name, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories(name)')
@@ -148,7 +148,7 @@ export default function ExploreAfricanSupply() {
           productMap.set(p.id, p);
         }
       });
-      
+
       // Get unique products and apply pagination
       const uniqueProducts = Array.from(productMap.values());
       const products = uniqueProducts.slice(offset, offset + limit);
@@ -256,7 +256,7 @@ export default function ExploreAfricanSupply() {
               </Button>
             </Link>
           </div>
-          
+
           {/* Country Slider */}
           <div className="relative">
             <div
@@ -291,7 +291,7 @@ export default function ExploreAfricanSupply() {
                 </motion.div>
               ))}
             </div>
-            
+
             {/* Scroll Buttons - Perfectly centered relative to card height */}
             <button
               onClick={() => scrollCountries('left')}
@@ -308,7 +308,7 @@ export default function ExploreAfricanSupply() {
               <ChevronRight className="w-5 h-5 text-afrikoni-gold" strokeWidth={2.5} />
             </button>
           </div>
-          
+
           <style>{`
             .scrollbar-hide::-webkit-scrollbar {
               display: none;
@@ -345,7 +345,7 @@ export default function ExploreAfricanSupply() {
                   <div key={category.key} className="md:space-y-4">
                     {/* Collapsed empty category - Mobile only */}
                     <div className="md:hidden">
-                      <Link 
+                      <Link
                         to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
                         className="flex items-center gap-2.5 group touch-manipulation active:scale-95 py-2"
                       >
@@ -361,7 +361,7 @@ export default function ExploreAfricanSupply() {
                     {/* Desktop: Full empty category display */}
                     <div className="hidden md:block space-y-4">
                       <div className="flex items-center justify-between">
-                        <Link 
+                        <Link
                           to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
                           className="flex items-center gap-3 group touch-manipulation active:scale-95"
                         >
@@ -397,7 +397,7 @@ export default function ExploreAfricanSupply() {
                 <div key={category.key} className="space-y-4">
                   {/* Category Header - Mobile optimized */}
                   <div className="flex items-center justify-between">
-                    <Link 
+                    <Link
                       to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
                       className="flex items-center gap-2.5 md:gap-3 group touch-manipulation active:scale-95"
                     >
@@ -466,21 +466,21 @@ export default function ExploreAfricanSupply() {
                                       <div className="text-xs md:text-base text-afrikoni-gold font-bold">
                                         {product.price_max && product.price_max !== product.price_min ? (
                                           <>
-                                            <Price 
-                                              amount={product.price_min} 
+                                            <Price
+                                              amount={product.price_min}
                                               fromCurrency={product.currency || 'USD'}
                                               className="inline"
                                             />
                                             {' - '}
-                                            <Price 
-                                              amount={product.price_max} 
+                                            <Price
+                                              amount={product.price_max}
                                               fromCurrency={product.currency || 'USD'}
                                               className="inline"
                                             />
                                           </>
                                         ) : (
-                                          <Price 
-                                            amount={product.price_min} 
+                                          <Price
+                                            amount={product.price_min}
                                             fromCurrency={product.currency || 'USD'}
                                           />
                                         )}
@@ -520,9 +520,9 @@ export default function ExploreAfricanSupply() {
                                     {/* Quick View Button - Mobile optimized */}
                                     <div className="pt-2">
                                       {/* Mobile: Neutral brown border, Desktop: Gold border */}
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline" 
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
                                         className="w-full border-afrikoni-chestnut/30 md:border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 md:hover:bg-afrikoni-gold/10 text-xs min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100"
                                         onClick={(e) => {
                                           e.preventDefault();
@@ -540,10 +540,10 @@ export default function ExploreAfricanSupply() {
                           );
                         })}
                       </div>
-                      
+
                       {/* Infinite Scroll Trigger */}
                       {hasMore[category.key] && (
-                        <div 
+                        <div
                           ref={(el) => { observerRefs.current[category.key] = el; }}
                           className="h-20 flex items-center justify-center"
                         >
@@ -583,8 +583,8 @@ export default function ExploreAfricanSupply() {
           {popularCategories.length > 3 && (
             <div className="md:hidden mt-8 text-center">
               <Link to="/marketplace">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="border-2 border-afrikoni-chestnut/30 text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 min-h-[44px] px-6 py-2.5 text-sm font-semibold touch-manipulation active:scale-95"
                 >
                   View All Categories

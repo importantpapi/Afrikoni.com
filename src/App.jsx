@@ -9,6 +9,8 @@ import Layout from './layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import { PageLoader } from '@/components/shared/ui/skeletons';
+import { Button } from '@/components/shared/ui/button';
+import { Logo } from '@/components/shared/ui/Logo';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ChunkErrorBoundary from '@/components/ChunkErrorBoundary';
 import { LanguageProvider } from './i18n/LanguageContext';
@@ -57,8 +59,8 @@ const BootScreen = ({ status, error }) => (
       <div className="absolute inset-0 animate-ping bg-primary/20 rounded-full blur-2xl" />
       <div className="w-24 h-24 border-[3px] border-primary/10 border-t-primary rounded-full animate-spin" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-gold">
-          <Zap className="w-6 h-6 text-primary fill-primary/20" />
+        <div className="p-3 bg-os-accent/5 border border-os-accent/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-glow">
+          <Logo type="icon" size="sm" className="text-os-accent" />
         </div>
       </div>
     </div>
@@ -235,6 +237,7 @@ const CorridorsPage = lazy(() => import('./pages/dashboard/corridors'));
 const DocumentsPage = lazy(() => import('./pages/dashboard/documents'));
 const RevenuePage = lazy(() => import('./pages/dashboard/revenue'));
 const MessagesPage = lazy(() => import('./pages/MessagesPremium'));
+const AgentOnboarding = lazy(() => import('./pages/dashboard/AgentOnboarding'));
 
 // 9. DEV TOOLS (Development only)
 const TestEmailsPage = lazy(() => import('./pages/dashboard/test-emails'));
@@ -544,6 +547,7 @@ function AppContent() {
               <Route path="documents" element={<DocumentsPage />} />
               <Route path="revenue" element={<RevenuePage />} />
               <Route path="messages" element={<MessagesPage />} />
+              <Route path="agent-onboarding" element={<AgentOnboarding />} />
 
               {/* 9. DEV TOOLS (Development only - hidden in production) */}
               {import.meta.env.DEV && (

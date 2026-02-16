@@ -70,6 +70,20 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     isSlowConnection: false,
   });
 
+  // ✅ SOVEREIGN SYNC: Safety Handshake Timeout
+  // If the kernel fails to hydrate within 5s, we force 'ready: true' to allow boot
+  useEffect(() => {
+    if (!capabilities.ready) {
+      const timer = setTimeout(() => {
+        if (!capabilities.ready && isMounted.current) {
+          console.warn('[Capability] ⚠️ Hydration taking too long. Forcing READY state for boot resilience.');
+          setCapabilities(prev => ({ ...prev, ready: true, kernelError: 'Hydration Timeout (Recovered)' }));
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [capabilities.ready]);
+
   const [lastInvalidatedAt, setLastInvalidatedAt] = useState<number>(0);
   const [invalidatedTags, setInvalidatedTags] = useState<Set<string>>(new Set());
   const [isSlowConnection, setIsSlowConnection] = useState(false);

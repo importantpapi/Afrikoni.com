@@ -31,8 +31,8 @@ export default function RFQCard() {
                     Post an RFQ — suppliers send you quotes
                   </p>
                   <Link to="/rfq/create" className="block">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold text-sm py-2"
                     >
                       Post RFQ
@@ -67,8 +67,8 @@ export default function RFQCard() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Button 
-                        size="lg" 
+                      <Button
+                        size="lg"
                         className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-bold px-8 py-6 text-lg md:text-xl shadow-afrikoni-xl hover:shadow-afrikoni-2xl transition-all"
                       >
                         {t('rfq.postTradeRequest')}

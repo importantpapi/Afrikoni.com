@@ -11,10 +11,10 @@ import { TableSkeleton } from '@/components/shared/ui/skeletons';
 function RecentRFQsWidget() {
     const navigate = useNavigate();
     const { profileCompanyId } = useDashboardKernel();
-    
+
     // ✅ REACT QUERY: Auto-refresh RFQs
     const { data: allRfqs = [], isLoading: loading } = useRFQs();
-    
+
     // Filter and limit to recent open RFQs
     const rfqs = useMemo(() => {
         return allRfqs
@@ -24,13 +24,13 @@ function RecentRFQsWidget() {
 
     if (loading) {
         return (
-            <Surface variant="panel" className="p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="h-6 w-32 bg-os-surface-2 rounded animate-pulse" />
+            <Surface variant="glass" className="p-8 h-full">
+                <div className="flex items-center justify-between mb-8">
+                    <div className="h-6 w-40 bg-os-stroke rounded animate-pulse" />
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-16 bg-os-surface-1 rounded-lg animate-pulse" />
+                        <div key={i} className="h-20 bg-os-stroke rounded-2xl animate-pulse" />
                     ))}
                 </div>
             </Surface>
@@ -38,81 +38,87 @@ function RecentRFQsWidget() {
     }
 
     return (
-        <Surface variant="panel" className="p-0 overflow-hidden h-full flex flex-col">
-            <div className="p-5 border-b border-os-stroke flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-os-muted" />
-                    <h3 className="text-lg font-semibold text-[var(--os-text-primary)]">
-                        Market Opportunities
-                    </h3>
+        <Surface variant="glass" className="p-0 overflow-hidden h-full flex flex-col border-none">
+            <div className="p-6 border-b border-os-stroke flex items-center justify-between bg-os-surface-solid/30">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-os-accent/10 rounded-lg">
+                        <FileText className="h-5 w-5 text-os-accent" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-os-text-primary">
+                            Corridor Intent
+                        </h3>
+                        <p className="text-[10px] font-bold text-os-text-secondary/60 uppercase tracking-widest mt-0.5">Global Market Match</p>
+                    </div>
                 </div>
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="gap-1 text-os-muted hover:text-[var(--os-text-primary)]"
+                    className="text-os-accent hover:bg-os-accent/5 font-bold"
                     onClick={() => navigate('/dashboard/rfqs')}
                 >
-                    View All
-                    <ArrowRight className="h-4 w-4" />
+                    View Flow
+                    <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
                 {rfqs.length === 0 ? (
-                    <div className="p-8 text-center text-os-muted">
-                        <FileText className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                        <p>No active RFQs found</p>
+                    <div className="py-12 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-os-bg border border-os-stroke flex items-center justify-center mx-auto mb-4 opacity-50">
+                            <FileText className="h-8 w-8 text-os-text-secondary" />
+                        </div>
+                        <p className="text-sm text-os-text-secondary font-medium">No active intent detected</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-os-stroke">
-                        {(rfqs || []).map((rfq) => {
-                            // ✅ NULL GUARD: Skip invalid RFQ entries
-                            if (!rfq || !rfq.id) return null;
-                            
-                            return (
+                    rfqs.map((rfq) => {
+                        if (!rfq || !rfq.id) return null;
+
+                        return (
                             <div
                                 key={rfq.id}
-                                className="p-4 hover:bg-os-surface-1 transition-colors cursor-pointer group flex items-center justify-between"
+                                className="group p-4 bg-os-surface-solid/50 hover:bg-os-surface-solid border border-os-stroke hover:border-os-accent/30 rounded-2xl transition-all duration-300 cursor-pointer shadow-subtle hover:shadow-premium flex items-center justify-between"
                                 onClick={() => navigate(`/dashboard/rfqs/${rfq.id}`)}
                             >
                                 <div className="min-w-0 flex-1 pr-4">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h4 className="font-medium text-[var(--os-text-primary)] truncate">
-                                            {rfq?.title || 'Untitled RFQ'}
+                                        <h4 className="text-sm font-bold text-os-text-primary truncate transition-colors group-hover:text-os-accent">
+                                            {rfq?.title || 'Untitled Request'}
                                         </h4>
-                                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-green-500/10 text-green-600 border-green-500/20">
-                                            OPEN
+                                        <Badge variant="outline" className="text-[9px] font-black h-4 px-1.5 bg-os-accent/10 text-os-accent border-os-accent/20">
+                                            LIVE
                                         </Badge>
                                     </div>
-                                    <div className="flex items-center gap-3 text-xs text-os-muted">
+                                    <div className="flex items-center gap-3 text-[10px] font-bold text-os-text-secondary/60 uppercase tracking-widest">
                                         <span className="flex items-center gap-1">
                                             <Calendar className="h-3 w-3" />
-                                            {rfq?.created_at ? new Date(rfq.created_at).toLocaleDateString() : 'N/A'}
+                                            {rfq?.created_at ? new Date(rfq.created_at).toLocaleDateString() : 'Now'}
                                         </span>
                                         {rfq?.target_price && (
-                                            <span className="font-medium text-[var(--os-text-primary)]">
+                                            <span className="text-os-text-primary">
                                                 ${Number(rfq.target_price).toLocaleString()}
                                                 {rfq?.unit ? `/${rfq.unit}` : ''}
                                             </span>
                                         )}
                                     </div>
                                 </div>
-                                <ArrowUpRight className="h-4 w-4 text-os-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="p-1.5 rounded-full bg-os-accent/5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0">
+                                    <ArrowUpRight className="h-4 w-4 text-os-accent" />
+                                </div>
                             </div>
-                            );
-                        })}
-                    </div>
+                        );
+                    })
                 )}
             </div>
 
-            <div className="p-3 bg-os-surface-1 border-t border-os-stroke">
+            <div className="p-4 bg-os-surface-solid/50 border-t border-os-stroke">
                 <Button
                     variant="outline"
-                    className="w-full justify-between text-os-muted hover:text-[var(--os-text-primary)]"
+                    className="w-full justify-between border-os-stroke bg-transparent hover:bg-os-accent hover:text-white hover:border-os-accent transition-all duration-300 rounded-xl h-12 px-6 group/btn"
                     onClick={() => navigate('/dashboard/rfqs/new')}
                 >
-                    <span>Post a Request</span>
-                    <PlusIcon className="h-4 w-4" />
+                    <span className="text-xs font-bold uppercase tracking-widest">Define New Intent</span>
+                    <PlusIcon className="h-4 w-4 transition-transform group-hover/btn:rotate-90" />
                 </Button>
             </div>
         </Surface>

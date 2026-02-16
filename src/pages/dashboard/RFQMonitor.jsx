@@ -131,65 +131,64 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
     }
 
     return (
-        <div className="os-page os-stagger space-y-6">
-            <Surface variant="glass" className="p-6 md:p-8 relative overflow-hidden group/header">
+        <div className="os-page os-stagger space-y-8">
+            <div className="glass-surface p-8 relative overflow-hidden group/header">
                 {/* Ambient Glow */}
-                <div className="absolute -top-24 -right-24 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-[80px] group-hover/header:bg-afrikoni-gold/10 transition-colors duration-700" />
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-os-accent/5 rounded-full blur-[80px] group-hover/header:bg-os-accent/10 transition-colors duration-700" />
 
-                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <div className="os-label">{viewMode === 'buyer' ? 'Trade Intake' : 'Opportunity Feed'}</div>
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tight">Live</span>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="os-title-large">
+                                {viewMode === 'buyer' ? 'Trade Intake' : 'Opportunity Feed'}
+                            </h1>
+                            <div className="health-capsule">
+                                <div className="health-dot" />
+                                <span>Live</span>
                             </div>
                         </div>
-                        <h1 className="os-title mt-1">{viewMode === 'buyer' ? 'RFQs & Inquiries' : 'Matched RFQs'}</h1>
-                        <p className="text-sm text-os-muted">
-                            {rfqs.length} {viewMode === 'buyer' ? 'active requests' : 'matches found'}
+                        <p className="text-os-text-secondary text-lg">
+                            {viewMode === 'buyer' ? 'Your active trade flow requests' : 'Intelligent trade matches found'}
                         </p>
                     </div>
                     {viewMode === 'buyer' ? (
-                        <Button className="bg-[var(--os-text-primary)] text-[var(--os-bg)] hover:opacity-90 font-semibold shadow-lg shadow-black/5"
+                        <Button className="bg-os-text-primary text-os-bg rounded-full px-8 py-6 h-auto font-semibold shadow-premium hover:opacity-90 transition-all"
                             onClick={() => { setShowQuickRFQ(!showQuickRFQ); setAiResult(null); }}>
-                            <Sparkles className="h-4 w-4 mr-2" /> AI Quick RFQ
+                            <Sparkles className="h-4 w-4 mr-2" /> Quick RFQ
                         </Button>
                     ) : (
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => refetch()}
-                                className={cn("gap-2 transition-all active:scale-95", isRefetching && "opacity-70")}
-                                disabled={isRefetching}
-                            >
-                                <RefreshCw className={cn("w-4 h-4", isRefetching && "animate-spin")} />
-                                {isRefetching ? 'Checking...' : 'Refresh'}
-                            </Button>
-                        </div>
+                        <Button
+                            variant="ghost"
+                            onClick={() => refetch()}
+                            className={cn("h-12 px-6 rounded-2xl border border-os-stroke text-os-text-secondary hover:text-os-text-primary gap-2 transition-all", isRefetching && "opacity-70")}
+                            disabled={isRefetching}
+                        >
+                            <RefreshCw className={cn("w-4 h-4", isRefetching && "animate-spin")} />
+                            {isRefetching ? 'Checking...' : 'Refresh'}
+                        </Button>
                     )}
                 </div>
 
                 {/* Filters */}
-                <div className="relative z-10 mt-6 flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-os-muted" />
+                <div className="relative z-10 mt-8 flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-os-text-secondary group-focus-within:text-os-accent transition-colors" />
                         <Input
-                            placeholder="Search RFQs..."
+                            placeholder="Find a request or product..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 bg-os-surface-1/50 border-os-stroke focus:ring-1 ring-afrikoni-gold/20"
+                            className="pl-11 h-12 bg-white/5 border-os-stroke rounded-2xl focus:bg-white/10 transition-all text-base"
                         />
                     </div>
                     {viewMode === 'buyer' && (
-                        <div className="flex bg-os-surface-1/80 backdrop-blur-md rounded-lg p-1 border border-os-stroke w-fit">
+                        <div className="flex bg-os-stroke/10 backdrop-blur-md rounded-2xl p-1 border border-os-stroke">
                             {['all', 'sent', 'quoted', 'accepted'].map(key => (
                                 <button
                                     key={key}
                                     onClick={() => setStatusFilter(key)}
                                     className={cn(
-                                        'px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                                        statusFilter === key ? 'bg-os-surface-0 shadow-sm text-[var(--os-text-primary)]' : 'text-os-muted hover:text-[var(--os-text-primary)]'
+                                        'px-6 py-2 rounded-xl text-sm font-semibold transition-all',
+                                        statusFilter === key ? 'bg-os-surface shadow-premium text-os-text-primary' : 'text-os-text-secondary hover:text-os-text-primary'
                                     )}
                                 >
                                     {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -197,19 +196,8 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                             ))}
                         </div>
                     )}
-                    {viewMode === 'supplier' && (
-                        <div className="w-48">
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="bg-os-surface-1/50 border-os-stroke"><SelectValue placeholder="Status" /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="matched">Matched</SelectItem>
-                                    <SelectItem value="all">All</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
                 </div>
-            </Surface>
+            </div>
 
             {/* QUICK RFQ (Buyer Only) */}
             {viewMode === 'buyer' && showQuickRFQ && (

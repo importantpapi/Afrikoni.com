@@ -1,64 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
 import OneFlow from './OneFlow';
-import SimpleModeHome from '@/components/dashboard/SimpleModeHome';
 import { useTrades } from '@/hooks/queries/useTrades';
 import {
   ArrowRight, Box, CreditCard, Ship, Sparkles, Activity,
   Globe, ShieldCheck, Zap, TrendingUp, Layers, ChevronRight,
-  LayoutDashboard, Shell, ToggleLeft, ToggleRight
+  LayoutDashboard, Shell
 } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { OSStatusBar } from '@/components/system/OSStatusBar';
 import TodaysActions from '@/components/dashboard/TodaysActions';
 import QuickActionsWidget from '@/components/dashboard/widgets/QuickActionsWidget';
 import RecentRFQsWidget from '@/components/dashboard/widgets/RecentRFQsWidget';
-import { Button } from '@/components/shared/ui/button';
-import { Badge } from '@/components/shared/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { NBA, Button } from '@/components/shared/ui';
+import { useWorkspaceMode } from '@/contexts/WorkspaceModeContext';
 
 export default function DashboardHome() {
-  const { isSystemReady, profileCompanyId, userId, organization } = useDashboardKernel();
+  const {
+    isSystemReady,
+    profileCompanyId,
+    organization
+  } = useDashboardKernel();
   const { data: { activeTrades = [] } = {}, isLoading: tradesLoading } = useTrades();
+  const { mode, isSimple } = useWorkspaceMode();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState(() => {
-    // Load saved preference
-    return localStorage.getItem('afrikoni_view_mode') || 'pro';
-  });
-
-  // Save preference
-  const toggleViewMode = () => {
-    const newMode = viewMode === 'pro' ? 'simple' : 'pro';
-    setViewMode(newMode);
-    localStorage.setItem('afrikoni_view_mode', newMode);
-  };
 
   if (!isSystemReady || !profileCompanyId) {
     return <DashboardSkeleton />;
-  }
-
-  // Show Simple Mode for first-time users
-  if (viewMode === 'simple') {
-    return (
-      <div className="relative">
-        {/* Mode Toggle Button */}
-        <div className="fixed top-20 right-6 z-50">
-          <Button
-            onClick={toggleViewMode}
-            variant="outline"
-            size="sm"
-            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all"
-          >
-            <ToggleRight className="w-4 h-4 mr-2" />
-            Switch to Pro View
-          </Button>
-        </div>
-        <SimpleModeHome />
-      </div>
-    );
   }
 
   const verificationStatus = organization?.verification_status || 'unverified';
@@ -75,144 +47,147 @@ export default function DashboardHome() {
 
   const currentTier = getInstitutionalTier(trustScore);
 
+  // 🎯 NBA ENGINE: Determines the "Golden Path" for the user
+  const getNextBestAction = () => {
+    if (verificationStatus === 'unverified') {
+      return {
+        title: "Verify your Institutional Identity",
+        description: "Complete Layer 1 verification to unlock continental trade corridors and premium escrow rates.",
+        actionLabel: "Start Verification",
+        onAction: () => navigate('/dashboard/verification'),
+        icon: ShieldCheck,
+        status: "Verification Required"
+      };
+    }
+
+    const activeDeliveries = activeTrades.filter(t => !['settled', 'closed'].includes(t.status));
+    if (activeDeliveries.length > 0) {
+      const nextTrade = activeDeliveries[0];
+      return {
+        title: `Coordinate delivery for ${nextTrade.productName}`,
+        description: "One delivery is awaiting logistics synchronization. Confirm the latest tracking update.",
+        actionLabel: "Open Workspace",
+        onAction: () => navigate(`/dashboard/trade/${nextTrade.id}`),
+        icon: Ship,
+        status: "Action Required"
+      };
+    }
+
+    return {
+      title: "Initiate your next trade flow",
+      description: "Define your requirements and let the kernel match you with verified continental suppliers.",
+      actionLabel: "New Order",
+      onAction: () => navigate('/dashboard/rfqs/new'),
+      icon: Sparkles,
+      status: "Ready for Mission"
+    };
+  };
+
+  const nba = getNextBestAction();
+
   return (
     <div className="os-page os-stagger space-y-10 max-w-7xl mx-auto pb-24 px-4 py-8">
-      {/* Mode Toggle Button - Pro View */}
-      <div className="fixed top-20 right-6 z-50">
-        <Button
-          onClick={toggleViewMode}
-          variant="outline"
-          size="sm"
-          className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all"
-        >
-          <ToggleLeft className="w-4 h-4 mr-2" />
-          Switch to Simple View
-        </Button>
+      {/* 1. CALM HERO - Mission Control 2026 */}
+      <div className="pt-8 pb-4">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <h1 className="os-title-large">
+              Mission Control
+            </h1>
+            <div className="health-capsule mt-2">
+              <div className="health-dot" />
+              <span>Trade is Active</span>
+            </div>
+          </div>
+          <p className="text-os-text-secondary text-lg max-w-2xl">
+            Welcome back. Your trade orchestration is currently synchronized across all continental corridors.
+          </p>
+        </div>
       </div>
 
-      {/* 1. KERNEL HEADER - Redesigned for 2026 Premium */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-8">
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-afrikoni-gold/10 rounded-lg border border-afrikoni-gold/20">
-              <Shell className="w-5 h-5 text-afrikoni-gold" />
-            </div>
-            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-              Trade OS <span className="text-os-muted">/ Command Center</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-os-muted">
-              Unified Horizon Protocol v10.0
-            </div>
-            <div className="hidden md:flex items-center gap-2 text-emerald-500/60 text-[10px] font-bold uppercase tracking-widest">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Kernel Synchronized
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <OSStatusBar />
-        </div>
-      </div>
+      {/* 🎯 NEXT BEST ACTION (NBA) - The Golden Path Hero */}
+      <NBA
+        title={nba.title}
+        description={nba.description}
+        actionLabel={nba.actionLabel}
+        onAction={nba.onAction}
+        icon={nba.icon}
+        status={nba.status}
+      />
 
       {/* 2. CORE ARCHITECTURE */}
       <div className="grid lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-10">
 
-          {/* A. INTELLIGENT ACTIONS */}
+          {/* A. TODAY'S AGENDA */}
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
-                <Zap className="w-4 h-4 text-afrikoni-gold" />
-                Intelligent Orchestration
-              </h2>
-            </div>
-            <QuickActionsWidget />
-          </div>
-
-          {/* B. TODAY'S AGENDA */}
-          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Today's Focus</h2>
             <TodaysActions />
           </div>
 
-          {/* C. ACTIVE FLOWS - Modernized with Surface and Better Visuals */}
+          {/* B. ACTIVE FLOWS */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
-                <Activity className="w-4 h-4 text-emerald-500" />
-                Live Logistics Pipeline
-              </h2>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/trade-pipeline')} className="text-os-muted hover:text-afrikoni-gold font-bold text-[10px] uppercase tracking-widest gap-2">
-                Full Spectrum <ArrowRight className="w-3 h-3" />
+              <h2 className="text-xl font-semibold">Deliveries in Progress</h2>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/trade-pipeline')} className="text-os-accent font-medium hover:bg-transparent">
+                View all <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
 
-            <Surface variant="glass" className="p-1 overflow-hidden">
+            <div className="glass-surface p-2 overflow-hidden">
               {tradesLoading ? (
                 <div className="p-8 space-y-4">
-                  {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white/5 animate-pulse rounded-2xl" />)}
+                  {[1, 2, 3].map(i => <div key={i} className="h-20 bg-os-stroke animate-pulse rounded-2xl" />)}
                 </div>
               ) : activeTrades && activeTrades.length > 0 ? (
-                <div className="divide-y divide-white/5">
+                <div className="divide-y divide-os-stroke">
                   {activeTrades.map((trade, i) => (
                     <motion.div
                       key={trade.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
                       onClick={() => navigate(`/dashboard/trade/${trade.id}`)}
-                      className="group flex items-center justify-between p-6 hover:bg-white/[0.03] transition-all cursor-pointer relative overflow-hidden"
+                      className="group flex items-center justify-between p-6 hover:bg-os-surface transition-colors cursor-pointer"
                     >
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-afrikoni-gold opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                      <div className="flex items-center gap-6 relative z-10">
-                        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-afrikoni-gold/10 group-hover:border-afrikoni-gold/20 transition-all">
-                          <Ship className="w-7 h-7 text-os-muted group-hover:text-afrikoni-gold transition-colors" />
+                      <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 rounded-2xl bg-os-bg border border-os-stroke flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <Ship className="w-7 h-7 text-os-text-secondary" />
                         </div>
                         <div className="space-y-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-black text-lg group-hover:text-afrikoni-gold transition-colors">{trade.productName}</h3>
-                            <Badge className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                              {trade.status.replace(/_/g, ' ')}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs text-os-muted font-bold uppercase tracking-widest">
-                            <Globe className="w-3 h-3" />
-                            {trade.corridor.originCountry} <ArrowRight className="w-2.5 h-2.5 mx-1" /> {trade.corridor.destinationCountry}
+                          <h3 className="text-lg font-semibold">{trade.productName}</h3>
+                          <div className="flex items-center gap-2 text-sm text-os-text-secondary">
+                            <span>Ready for shipment</span>
+                            <span className="w-1 h-1 rounded-full bg-os-stroke" />
+                            <span>{trade.corridor.originCountry} to {trade.corridor.destinationCountry}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-8 text-right pr-4">
-                        <div className="hidden md:block">
-                          <div className="text-[10px] text-os-muted font-black uppercase tracking-widest opacity-40">Progress</div>
-                          <div className="flex items-center gap-1.5 justify-end mt-1">
-                            <span className="text-sm font-black font-mono">75%</span>
-                            <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden">
-                              <div className="h-full bg-emerald-500 w-3/4" />
-                            </div>
-                          </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-right hidden sm:block">
+                          <div className="text-sm font-semibold">{trade.status.replace(/_/g, ' ')}</div>
+                          <div className="text-xs text-os-text-secondary">75% Complete</div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-os-muted group-hover:text-afrikoni-gold group-hover:translate-x-1 transition-all" />
+                        <ChevronRight className="w-5 h-5 text-os-text-secondary group-hover:translate-x-1 transition-transform" />
                       </div>
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-24 bg-white/[0.01]">
-                  <Box className="w-16 h-16 text-white/5 mx-auto mb-6" />
-                  <h3 className="text-xl font-black mb-2 italic">Horizon Clear</h3>
-                  <p className="text-os-muted text-sm max-w-xs mx-auto mb-8">No active trade flows detected in the current orchestration window.</p>
+                <div className="text-center py-20">
+                  <Box className="w-12 h-12 text-os-stroke mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-1">Horizon Clear</h3>
+                  <p className="text-os-text-secondary text-sm mb-6">No active trade flows detected right now.</p>
                   <Button
-                    className="bg-afrikoni-gold text-black font-black px-10 py-6 rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-afrikoni-gold/10"
+                    className="bg-os-text-primary text-os-bg hover:opacity-90 rounded-full px-8"
                     onClick={() => navigate('/dashboard/quick-trade/new')}
                   >
-                    Initiate Prime Trade
+                    Start New Trade
                   </Button>
                 </div>
               )}
-            </Surface>
+            </div>
           </div>
         </div>
 
@@ -274,23 +249,29 @@ export default function DashboardHome() {
             </Surface>
           </div>
 
-          {/* F. NETWORK STATUS */}
-          <Surface variant="panel" className="p-6 border-emerald-500/10 bg-emerald-500/[0.02]">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500/70 text-center mx-auto">Continental Rail: Optimized</span>
-            </div>
-            <div className="flex gap-1 items-center justify-center">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                <div key={i} className="w-1.5 h-4 bg-emerald-500/20 rounded-full relative overflow-hidden">
-                  <motion.div
-                    animate={{ height: ['20%', '100%', '20%'] }}
-                    transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-                    className="absolute bottom-0 left-0 right-0 bg-emerald-500"
-                  />
+          {/* F. NETWORK STATUS - Layer 2 (Simplified/Conditional) */}
+          {!isSimple && (
+            <div className="space-y-6">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
+                <Activity className="w-4 h-4 text-emerald-500" />
+                Railway Optimization
+              </h2>
+              <Surface variant="panel" className="p-6 border-emerald-500/10 bg-emerald-500/[0.02] flex items-center justify-between">
+                <div className="flex gap-1.5 h-6">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => (
+                    <div key={i} className="w-1 bg-emerald-500/20 rounded-full relative overflow-hidden">
+                      <motion.div
+                        animate={{ height: ['20%', '100%', '20%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.15 }}
+                        className="absolute bottom-0 left-0 right-0 bg-emerald-500"
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
+                <span className="text-[11px] font-bold text-emerald-500/70 tracking-tight">Active Rail Sync</span>
+              </Surface>
             </div>
-          </Surface>
+          )}
         </div>
       </div >
     </div >

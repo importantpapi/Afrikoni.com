@@ -43,13 +43,13 @@ export default function ProductCard({ product, priority = false }) {
   const flag = getCountryFlag(countryName);
   const verificationStatus = product.companies?.verification_status || 'unverified';
   const isVerified = verificationStatus === 'verified' || verificationStatus === 'VERIFIED';
-  
+
   // Format MOQ
   const moqDisplay = product.min_order_quantity
     ? `MOQ: ${product.min_order_quantity} ${product.moq_unit || product.unit || 'units'}`
     : product.moq
-    ? `MOQ: ${product.moq} ${product.unit || 'units'}`
-    : 'MOQ: Contact supplier';
+      ? `MOQ: ${product.moq} ${product.unit || 'units'}`
+      : 'MOQ: Contact supplier';
 
   return (
     <Link
@@ -75,7 +75,7 @@ export default function ProductCard({ product, priority = false }) {
               <Package className="w-12 h-12 text-afrikoni-gold/50" />
             </div>
           )}
-          
+
           {/* Verification Badge Overlay - Top-right */}
           {isVerified ? (
             <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-full shadow-sm">

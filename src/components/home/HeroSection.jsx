@@ -38,12 +38,12 @@ function SocialProofSection() {
           .select('country_of_origin')
           .eq('status', 'active')
           .limit(100); // Limit to avoid large queries
-        
+
         // Silently handle errors - show zeros if query fails
         if (productsError) {
           console.debug('[HeroSection] Products query failed (non-critical):', productsError);
         }
-        
+
         const uniqueCountries = new Set(
           productsData?.map(p => p.country_of_origin).filter(Boolean) || []
         );
@@ -122,24 +122,24 @@ export default function HeroSection({ categories = [] }) {
 
   // Limit categories to top 12 most popular + search functionality
   const popularCategoryNames = [
-    'Agriculture', 'Food & Beverages', 'Textiles & Apparel', 
+    'Agriculture', 'Food & Beverages', 'Textiles & Apparel',
     'Beauty & Personal Care', 'Consumer Electronics', 'Industrial Machinery',
     'Home & Living', 'Automotive', 'Energy & Power', 'Healthcare',
     'Packaging', 'Chemicals'
   ];
-  
+
   const displayedCategories = useMemo(() => {
     if (categorySearchQuery.trim()) {
       // Filter by search query
-      return categories.filter(cat => 
+      return categories.filter(cat =>
         cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())
       ).slice(0, 15);
     }
     // Show popular categories first, then others
-    const popular = categories.filter(cat => 
+    const popular = categories.filter(cat =>
       popularCategoryNames.includes(cat.name)
     ).slice(0, 12);
-    const others = categories.filter(cat => 
+    const others = categories.filter(cat =>
       !popularCategoryNames.includes(cat.name)
     ).slice(0, 3);
     return [...popular, ...others];
@@ -212,7 +212,7 @@ export default function HeroSection({ categories = [] }) {
       </div>
 
       {/* Subtle Pattern Overlay */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(212, 168, 87, 0.1) 10px, rgba(212, 168, 87, 0.1) 20px)'
@@ -292,7 +292,7 @@ export default function HeroSection({ categories = [] }) {
                   Trade. Trust. Thrive.
                 </p>
               </div>
-              
+
               {/* Desktop: Brand Header (restored) */}
               <div className="hidden md:block">
                 <h1 className="text-[60px] font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-4 md:mb-8">
@@ -304,8 +304,8 @@ export default function HeroSection({ categories = [] }) {
               </div>
             </motion.div>
 
-          {/* Afrikoni Shield trust strip - Hidden per request */}
-          {/* <motion.div
+            {/* Afrikoni Shield trust strip - Hidden per request */}
+            {/* <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.22 }}

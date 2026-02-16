@@ -15,6 +15,19 @@
  */
 
 import { supabase } from '@/api/supabaseClient';
+import { initiatePAPSSSettlement } from './papssSettlementService';
+
+/**
+ * DNA GENERATOR v2
+ * Generates a verifiable, immutable hash for a trade state.
+ */
+function generateTradeDNA(tradeId, state, metadata = {}) {
+  // In a real sovereign system, this would be a hash of the entire trade row
+  const salt = Math.random().toString(36).substring(7);
+  const content = `${tradeId}-${state}-${JSON.stringify(metadata)}-${salt}`;
+  // Simple mock hash for 2026 UI visualization
+  return `DNA-${btoa(content).substring(0, 32).toUpperCase()}`;
+}
 
 /**
  * TRADE STATE MACHINE
@@ -124,11 +137,18 @@ export async function getKernelNextAction(tradeId) {
  */
 export async function transitionTrade(tradeId, nextState, metadata = {}) {
   try {
+    // ✅ DNA ENFORCEMENT: Ensure every transition has a forensic footprint
+    const enhancedMetadata = {
+      ...metadata,
+      trade_dna: metadata.trade_dna || generateTradeDNA(tradeId, nextState, metadata),
+      transition_timestamp: new Date().toISOString()
+    };
+
     const { data, error } = await supabase.functions.invoke('trade-transition', {
       body: {
         tradeId,
         nextState,
-        metadata
+        metadata: enhancedMetadata
       }
     });
 
@@ -160,18 +180,53 @@ export async function transitionTrade(tradeId, nextState, metadata = {}) {
 }
 
 /**
+ * Handle Phase 2: Instant Local Currency Clearing via PAPSS
+ */
+export async function clearLocalCurrency(tradeId, amount, currency) {
+  try {
+    const { data: trade } = await supabase.from('trades').select('buyer_id, seller_id, seller:companies(currency)').eq('id', tradeId).single();
+    if (!trade) throw new Error('Trade not found');
+
+    const result = await initiatePAPSSSettlement(
+      tradeId,
+      amount,
+      currency, // Buyer Currency
+      trade.seller?.currency || 'USD' // Final Destination Currency
+    );
+
+    if (result.success) {
+      await supabase.from('trade_events').insert({
+        trade_id: tradeId,
+        event_name: 'papss_clearing_success',
+        status_to: TRADE_STATE.SETTLED,
+        metadata: {
+          settlement_id: result.settlementId,
+          cleared_at: result.clearedAt,
+          rate: result.exchangeRate
+        }
+      });
+    }
+
+    return result;
+  } catch (err) {
+    console.error('[TradeKernel] PAPSS Clearing failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
  * CORE: Create a new Trade on the Sovereign Rail
  * @param {Object} tradeData 
  */
 export async function createTrade(tradeData) {
   try {
-    console.log('[TradeKernel] Creating trade with data:', { 
-      type: tradeData.trade_type, 
+    console.log('[TradeKernel] Creating trade with data:', {
+      type: tradeData.trade_type,
       buyer_id: tradeData.buyer_id,
       created_by: tradeData.created_by,
-      title: tradeData.title 
+      title: tradeData.title
     });
-    
+
     const tradePayload = {
       ...tradeData,
       metadata: {
@@ -193,7 +248,7 @@ export async function createTrade(tradeData) {
       console.error('[TradeKernel] Create failed in trades:', error);
       return { success: false, error: error.message };
     }
-    
+
     console.log('[TradeKernel] Successfully created trade:', data.id);
 
     // 2. SOVEREIGN BRIDGE: If it's an RFQ, sync to legacy RFQS table

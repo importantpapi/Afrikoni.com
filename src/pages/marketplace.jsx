@@ -63,6 +63,7 @@ import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductIm
 import { trackProductView } from '@/lib/supabaseQueries/products';
 import { Logo } from '@/components/shared/ui/Logo';
 import ProductCard from '@/components/products/ProductCard';
+import { Surface } from '@/components/system/Surface';
 
 export default function Marketplace() {
   const { t } = useTranslation();
@@ -552,846 +553,751 @@ export default function Marketplace() {
         }
       />
       <StructuredData type="WebSite" />
-      <div className="min-h-screen bg-gradient-to-b from-afrikoni-offwhite via-white to-afrikoni-cream/30">
-        {/* Enhanced Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-afrikoni-gold/30 sticky top-0 z-30 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-4">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="flex-1 relative">
-                <Search className="w-5 h-5 text-afrikoni-gold absolute left-4 top-1/2 -translate-y-1/2 z-10" />
-                <Input
-                  placeholder={t('marketplace.searchPlaceholder') || 'Search products, suppliers, categories...'}
-                  className="pl-12 pr-4 h-12 md:h-11 min-h-[44px] text-base md:text-sm border-2 border-afrikoni-gold/30 focus:border-afrikoni-gold rounded-xl shadow-sm hover:shadow-md transition-all touch-manipulation"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => {
-                    setSearchFocused(true);
-                    setShowSuggestions(true);
-                  }}
-                  onBlur={() => {
-                    // Delay to allow click on suggestions
-                    setTimeout(() => {
-                      setSearchFocused(false);
-                      setShowSuggestions(false);
-                    }, 200);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && searchQuery.trim()) {
-                      addSearchToHistory(searchQuery);
-                      setShowSuggestions(false);
-                    }
-                  }}
-                />
-                {showSuggestions && searchFocused && (
-                  <SearchSuggestions
-                    query={searchQuery}
-                    onSelectSuggestion={(query, type, id) => {
-                      setSearchQuery(query);
-                      addSearchToHistory(query);
-                      setShowSuggestions(false);
-                      setSearchFocused(false);
-                      // If type is category or company, apply filter
-                      if (type === 'category') {
-                        setSelectedFilters({ ...selectedFilters, category: query });
-                      } else if (type === 'company') {
-                        // Could navigate to company profile or filter by company
+
+      <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-afrikoni-gold/30 selection:text-white relative overflow-hidden">
+        {/* 2026 Global Ambient Flow - Fused Experience */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          <div className="absolute top-[20%] -left-[10%] w-[60%] h-[60%] bg-afrikoni-gold/5 blur-[120px] rounded-full opacity-50" />
+          <div className="absolute bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-afrikoni-chestnut/10 blur-[100px] rounded-full opacity-30" />
+          <div className="absolute top-[60%] left-[40%] w-[40%] h-[40%] bg-afrikoni-gold/5 blur-[150px] rounded-full opacity-20" />
+        </div>
+
+        <div className="relative z-10">
+          {/* Enhanced Sticky Hub */}
+          <div className="sticky top-0 z-40 bg-black/20 backdrop-blur-2xl border-b border-white/5">
+            <div className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="flex-1 w-full relative group">
+                  <Search className="w-5 h-5 text-afrikoni-gold absolute left-5 top-1/2 -translate-y-1/2 z-10 opacity-60 group-focus-within:opacity-100 transition-opacity" />
+                  <Input
+                    placeholder={t('marketplace.searchPlaceholder') || 'Search products, suppliers, categories...'}
+                    className="pl-14 pr-6 h-16 w-full bg-white/5 border-white/10 focus:border-afrikoni-gold/50 rounded-2xl text-lg font-medium placeholder:text-white/20 transition-all focus:ring-afrikoni-gold/20"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => {
+                      setSearchFocused(true);
+                      setShowSuggestions(true);
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setSearchFocused(false);
+                        setShowSuggestions(false);
+                      }, 200);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && searchQuery.trim()) {
+                        addSearchToHistory(searchQuery);
+                        setShowSuggestions(false);
                       }
                     }}
-                    showHistory={!searchQuery}
-                    showTrending={!searchQuery}
                   />
-                )}
-              </div>
-              {/* Enhanced Quick Filter Chips */}
-              <div className="hidden lg:flex items-center gap-2 flex-wrap">
-                <FilterChip
-                  label={t('marketplace.verifiedOnly') || 'Verified Only'}
-                  active={selectedFilters.verified}
-                  onRemove={() => setSelectedFilters({ ...selectedFilters, verified: !selectedFilters.verified })}
-                />
-                <FilterChip
-                  label={t('marketplace.fastResponse') || 'Fast Response'}
-                  active={selectedFilters.fastResponse}
-                  onRemove={() => setSelectedFilters({ ...selectedFilters, fastResponse: !selectedFilters.fastResponse })}
-                />
-                <FilterChip
-                  label={t('marketplace.readyToShip') || 'Ready to Ship'}
-                  active={selectedFilters.readyToShip}
-                  onRemove={() => setSelectedFilters({ ...selectedFilters, readyToShip: !selectedFilters.readyToShip })}
-                />
-                {priceMin || priceMax ? null : (
-                  <FilterChip
-                    label={t('marketplace.under100')}
-                    active={false}
-                    onRemove={() => {
-                      setPriceMin('');
-                      setPriceMax('100');
-                    }}
-                  />
-                )}
-                {moqMin ? null : (
-                  <FilterChip
-                    label={t('marketplace.lowMOQ')}
-                    active={false}
-                    onRemove={() => setMoqMin('1')}
-                  />
-                )}
-              </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setFiltersOpen(true)}
-                className="md:hidden min-h-[44px] px-4 touch-manipulation active:scale-95"
-              >
-                <SlidersHorizontal className="w-4 h-4 mr-2" />
-                {t('marketplace.filters')}
-              </Button>
-            </div>
-
-            {/* Enhanced Country marketplace selector */}
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-afrikoni-gold" />
-                  <span className="text-sm md:text-base font-medium text-afrikoni-chestnut">
-                    {selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries')
-                      ? `Products from ${selectedFilters.country}`
-                      : 'All African Markets'}
-                  </span>
+                  {showSuggestions && searchFocused && (
+                    <Surface variant="glass" className="absolute top-[calc(100%+12px)] left-0 right-0 z-50 p-2 border-white/10 shadow-2xl overflow-hidden">
+                      <SearchSuggestions
+                        query={searchQuery}
+                        onSelectSuggestion={(query, type, id) => {
+                          setSearchQuery(query);
+                          addSearchToHistory(query);
+                          setShowSuggestions(false);
+                          setSearchFocused(false);
+                          if (type === 'category') {
+                            setSelectedFilters({ ...selectedFilters, category: query });
+                          }
+                        }}
+                        showHistory={!searchQuery}
+                        showTrending={!searchQuery}
+                      />
+                    </Surface>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-afrikoni-deep/70 hidden md:inline text-sm">Filter by Country:</span>
-                  <Select
-                    value={selectedFilters.country || t('marketplace.allCountries')}
-                    onValueChange={(value) => {
-                      const countryValue = value === t('marketplace.allCountries') ? '' : value;
-                      setSelectedFilters({ ...selectedFilters, country: countryValue });
-                    }}
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <Button
+                    variant="secondary"
+                    className="h-16 px-8 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded-2xl transition-all flex items-center gap-3 flex-1 md:flex-auto"
+                    onClick={() => setFiltersOpen(true)}
                   >
-                    <SelectTrigger className="w-44 md:w-52 h-11 md:h-10 min-h-[44px] md:min-h-0 border-2 border-afrikoni-gold/40 bg-white hover:border-afrikoni-gold/60 text-afrikoni-deep text-sm font-medium rounded-xl shadow-sm touch-manipulation">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.isArray(countries) && countries.map((country) => (
-                        <SelectItem key={country} value={country}>
-                          {country === t('marketplace.allCountries') ? t('countries.title') : country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {/* Market Scope Selector - Global vs Countries */}
-              <div className="flex flex-col gap-4">
-                {/* Global Market Scope - Primary */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-meta font-medium text-afrikoni-chestnut/90">{t('marketplace.popularMarkets') || 'Popular Markets'}:</span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
-                    aria-label={`Market scope: ${t('marketplace.allAfricanMarkets') || 'All African Markets'}`}
-                    className={`group inline-flex items-center gap-2.5 px-6 py-3 rounded-lg border-2 text-meta font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 ${!selectedFilters.country
-                      ? 'bg-afrikoni-gold text-white border-afrikoni-gold shadow-md hover:bg-afrikoni-goldDark hover:shadow-lg'
-                      : 'bg-white border-afrikoni-gold/30 text-afrikoni-deep hover:bg-afrikoni-gold/5 hover:border-afrikoni-gold/50'
-                      }`}
-                  >
-                    <Globe className="w-4 h-4 flex-shrink-0" />
-                    <span>{t('marketplace.allAfricanMarkets') || 'All African Markets'}</span>
-                  </button>
-                </div>
-
-                {/* Country Filters - Secondary */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-meta font-medium text-afrikoni-chestnut/70">Countries:</span>
-                  {POPULAR_COUNTRIES.map((country) => (
-                    <button
-                      key={country}
-                      type="button"
-                      onClick={() => setSelectedFilters({ ...selectedFilters, country })}
-                      aria-label={`Filter by country: ${country}`}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-meta font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 ${selectedFilters.country === country
-                        ? 'bg-afrikoni-gold text-white border-afrikoni-gold shadow-md hover:bg-afrikoni-goldDark hover:shadow-lg'
-                        : 'bg-white border-afrikoni-gold/20 text-afrikoni-deep hover:bg-afrikoni-gold/5 hover:border-afrikoni-gold/40'
-                        }`}
-                    >
-                      <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>{country}</span>
-                    </button>
-                  ))}
+                    <SlidersHorizontal className="w-5 h-5 text-afrikoni-gold" />
+                    <span className="font-bold uppercase tracking-widest text-xs">{t('marketplace.filters')}</span>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8">
-          <div className="flex gap-6 lg:gap-8">
-            {/* Enhanced Sidebar Filters (Desktop) */}
-            <aside className="hidden lg:block w-72 flex-shrink-0">
-              <div className="sticky top-24 space-y-4">
-                <Card className="border-2 border-afrikoni-gold/20 shadow-lg">
-                  <CardContent className="p-5 space-y-6">
-                    <div>
-                      <h3 className="font-bold text-base text-afrikoni-chestnut mb-3 flex items-center gap-2">
-                        <Package className="w-4 h-4 text-afrikoni-gold" />
-                        {t('marketplace.category') || 'Category'}
-                      </h3>
-                      <div className="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar">
-                        <button
-                          onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })}
-                          className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${!selectedFilters.category
-                            ? 'bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-gold/10 text-afrikoni-gold font-bold border-2 border-afrikoni-gold/40 shadow-sm'
-                            : 'text-afrikoni-deep hover:bg-afrikoni-gold/5 hover:border hover:border-afrikoni-gold/20 rounded-xl'
-                            }`}
-                        >
-                          {t('marketplace.allCategories')}
-                        </button>
-                        {Array.isArray(categories) && categories.map((cat) => (
-                          <button
-                            key={cat.id || cat}
-                            onClick={() => setSelectedFilters({ ...selectedFilters, category: cat.id || cat })}
-                            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${selectedFilters.category === (cat.id || cat)
-                              ? 'bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-gold/10 text-afrikoni-gold font-bold border-2 border-afrikoni-gold/40 shadow-sm'
-                              : 'text-afrikoni-deep hover:bg-afrikoni-gold/5 hover:border hover:border-afrikoni-gold/20'
-                              }`}
-                          >
-                            {cat.name || cat}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+          <div className="max-w-[1440px] mx-auto px-6 py-12">
+            {/* Market Intelligence Feed - Quick Filters */}
+            <div className="flex flex-wrap items-center gap-4 mb-12">
+              <FilterChip
+                label={t('marketplace.verifiedOnly') || 'Verified Only'}
+                active={selectedFilters.verified}
+                onRemove={() => setSelectedFilters({ ...selectedFilters, verified: !selectedFilters.verified })}
+              />
+              <FilterChip
+                label={t('marketplace.fastResponse') || 'Fast Response'}
+                active={selectedFilters.fastResponse}
+                onRemove={() => setSelectedFilters({ ...selectedFilters, fastResponse: !selectedFilters.fastResponse })}
+              />
+              <FilterChip
+                label={t('marketplace.readyToShip') || 'Ready to Ship'}
+                active={selectedFilters.readyToShip}
+                onRemove={() => setSelectedFilters({ ...selectedFilters, readyToShip: !selectedFilters.readyToShip })}
+              />
 
-                    <div>
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.country')}</h3>
-                      <div className="space-y-2">
-                        {/* Popular Countries - Always visible */}
+              <div className="h-4 w-px bg-white/10 mx-2 hidden md:block" />
+
+              <div className="flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-afrikoni-gold" />
+                <Select
+                  value={selectedFilters.country || t('marketplace.allCountries')}
+                  onValueChange={(value) => {
+                    const countryValue = value === t('marketplace.allCountries') ? '' : value;
+                    setSelectedFilters({ ...selectedFilters, country: countryValue });
+                  }}
+                >
+                  <SelectTrigger className="w-48 h-10 bg-white/5 border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1A1A1A] border-white/10 text-white">
+                    {Array.isArray(countries) && countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country === t('marketplace.allCountries') ? t('countries.title') : country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-12">
+
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8">
+                <div className="flex gap-6 lg:gap-8">
+                  <aside className="hidden lg:block w-80 flex-shrink-0">
+                    <div className="sticky top-32 space-y-6">
+                      <Surface variant="glass" className="border-white/5 p-6 space-y-8">
                         <div>
-                          <p className="text-xs text-afrikoni-deep/70 mb-2 font-medium">Popular Countries</p>
-                          {POPULAR_COUNTRIES.map((country) => (
+                          <h3 className="font-bold text-base text-white/90 mb-3 flex items-center gap-2">
+                            <Package className="w-4 h-4 text-afrikoni-gold" />
+                            {t('marketplace.category') || 'Category'}
+                          </h3>
+                          <div className="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar">
                             <button
-                              key={country}
-                              onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
-                              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedFilters.country === country
-                                ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
-                                : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                              onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })}
+                              className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-tight transition-all ${!selectedFilters.category
+                                ? 'bg-afrikoni-gold/20 text-afrikoni-gold border border-afrikoni-gold/30'
+                                : 'text-white/40 border border-transparent hover:border-white/10 hover:bg-white/5'
                                 }`}
                             >
-                              {country}
+                              {t('marketplace.allCategories')}
                             </button>
-                          ))}
+                            {Array.isArray(categories) && categories.map((cat) => (
+                              <button
+                                key={cat.id || cat}
+                                onClick={() => setSelectedFilters({ ...selectedFilters, category: cat.id || cat })}
+                                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-tight transition-all ${selectedFilters.category === (cat.id || cat)
+                                  ? 'bg-afrikoni-gold/20 text-afrikoni-gold border border-afrikoni-gold/30'
+                                  : 'text-white/40 border border-transparent hover:border-white/10 hover:bg-white/5'
+                                  }`}
+                              >
+                                {cat.name || cat}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        {/* All Countries - Collapsible */}
-                        <details className="group">
-                          <summary className="cursor-pointer text-sm font-medium text-afrikoni-gold hover:text-afrikoni-goldLight mb-2 list-none">
-                            <span className="flex items-center gap-1">
-                              {t('marketplace.viewAllCountries')}
-                              <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
-                            </span>
-                          </summary>
-                          <div className="space-y-2 mt-2 max-h-64 overflow-y-auto">
-                            <button
-                              onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
-                              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!selectedFilters.country
-                                ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
-                                : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
-                                }`}
-                            >
-                              {t('marketplace.allCountries')}
-                            </button>
-                            {Array.isArray(countries) && countries
-                              .filter(c => c !== t('marketplace.allCountries') && !POPULAR_COUNTRIES.includes(c))
-                              .map((country) => (
+
+                        <div>
+                          <h3 className="font-bold text-base text-white/90 mb-3 flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-afrikoni-gold" />
+                            {t('marketplace.country') || 'Country'}
+                          </h3>
+                          <div className="space-y-2">
+                            {/* Popular Countries - Always visible */}
+                            <div>
+                              <p className="text-xs text-white/40 mb-2 font-medium">Popular Countries</p>
+                              {POPULAR_COUNTRIES.map((country) => (
                                 <button
                                   key={country}
                                   onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
-                                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedFilters.country === country
-                                    ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
-                                    : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
+                                  className={`w-full text-left px-4 py-2 rounded-xl text-xs transition-all ${selectedFilters.country === country
+                                    ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-black'
+                                    : 'text-white/40 hover:bg-white/5 hover:text-white/90'
                                     }`}
                                 >
                                   {country}
                                 </button>
                               ))}
+                            </div>
+                            {/* All Countries - Collapsible */}
+                            <details className="group">
+                              <summary className="cursor-pointer text-sm font-medium text-afrikoni-gold hover:text-afrikoni-goldLight mb-2 list-none">
+                                <span className="flex items-center gap-1">
+                                  {t('marketplace.viewAllCountries')}
+                                  <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
+                                </span>
+                              </summary>
+                              <div className="space-y-2 mt-2 max-h-64 overflow-y-auto custom-scrollbar">
+                                <button
+                                  onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
+                                  className={`w-full text-left px-4 py-2 rounded-xl text-xs transition-all ${!selectedFilters.country
+                                    ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-black'
+                                    : 'text-white/40 hover:bg-white/5 hover:text-white/90'
+                                    }`}
+                                >
+                                  {t('marketplace.allCountries')}
+                                </button>
+                                {Array.isArray(countries) && countries
+                                  .filter(c => c !== t('marketplace.allCountries') && !POPULAR_COUNTRIES.includes(c))
+                                  .map((country) => (
+                                    <button
+                                      key={country}
+                                      onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
+                                      className={`w-full text-left px-4 py-2 rounded-xl text-xs transition-all ${selectedFilters.country === country
+                                        ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-black'
+                                        : 'text-white/40 hover:bg-white/5 hover:text-white/90'
+                                        }`}
+                                    >
+                                      {country}
+                                    </button>
+                                  ))}
+                              </div>
+                            </details>
                           </div>
-                        </details>
-                      </div>
-                    </div>
+                        </div>
 
-                    <div>
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.verification')}</h3>
-                      <div className="space-y-2">
-                        {Array.isArray(verificationOptions) && verificationOptions.map((opt) => (
-                          <button
-                            key={opt}
-                            onClick={() => setSelectedFilters({ ...selectedFilters, verification: opt })}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${selectedFilters.verification === opt
-                              ? 'bg-afrikoni-gold-50 text-afrikoni-gold font-semibold'
-                              : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
-                              }`}
-                          >
-                            {opt !== 'All' && <Shield className="w-4 h-4" />}
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                        <div>
+                          <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">
+                            Authentication Matrix
+                          </h3>
+                          <div className="space-y-2">
+                            {Array.isArray(verificationOptions) && verificationOptions.map((opt) => (
+                              <button
+                                key={opt}
+                                onClick={() => setSelectedFilters({ ...selectedFilters, verification: opt })}
+                                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-3 transition-all ${selectedFilters.verification === opt
+                                  ? 'bg-afrikoni-gold/20 text-afrikoni-gold border border-afrikoni-gold/30'
+                                  : 'text-white/40 border border-transparent hover:border-white/10 hover:bg-white/5'
+                                  }`}
+                              >
+                                {opt !== 'All' && <Shield className="w-4 h-4" />}
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
-                    <div>
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.priceRange')}</h3>
-                      <div className="space-y-2">
-                        <Input
-                          placeholder={t('marketplace.minPrice')}
-                          type="number"
-                          className="text-sm min-h-[44px] md:min-h-0 touch-manipulation"
-                          value={priceMin}
-                          onChange={(e) => setPriceMin(e.target.value)}
-                        />
-                        <Input
-                          placeholder={t('marketplace.maxPrice')}
-                          type="number"
-                          className="text-sm min-h-[44px] md:min-h-0 touch-manipulation"
-                          value={priceMax}
-                          onChange={(e) => setPriceMax(e.target.value)}
-                        />
-                      </div>
-                    </div>
+                        <div>
+                          <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">
+                            Fiscal Boundaries
+                          </h3>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Input
+                                placeholder={t('marketplace.minPrice')}
+                                type="number"
+                                className="text-sm min-h-[44px] md:min-h-0 touch-manipulation bg-white/5 border-white/10 focus:border-afrikoni-gold/50 rounded-xl text-white placeholder:text-white/20"
+                                value={priceMin}
+                                onChange={(e) => setPriceMin(e.target.value)}
+                              />
+                              <Input
+                                placeholder={t('marketplace.maxPrice')}
+                                type="number"
+                                className="text-sm min-h-[44px] md:min-h-0 touch-manipulation bg-white/5 border-white/10 focus:border-afrikoni-gold/50 rounded-xl text-white placeholder:text-white/20"
+                                value={priceMax}
+                                onChange={(e) => setPriceMax(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
 
-                    <div>
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.minimumOrder')}</h3>
-                      <div className="space-y-2">
-                        <Input
-                          placeholder={t('marketplace.minQuantity')}
-                          type="number"
-                          className="text-sm min-h-[44px] md:min-h-0 touch-manipulation"
-                          value={moqMin}
-                          onChange={(e) => setMoqMin(e.target.value)}
-                        />
-                      </div>
-                    </div>
+                        <div>
+                          <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">
+                            Minimum Order
+                          </h3>
+                          <div className="space-y-2">
+                            <Input
+                              placeholder={t('marketplace.minQuantity')}
+                              type="number"
+                              className="text-sm min-h-[44px] md:min-h-0 touch-manipulation bg-white/5 border-white/10 focus:border-afrikoni-gold/50 rounded-xl text-white placeholder:text-white/20"
+                              value={moqMin}
+                              onChange={(e) => setMoqMin(e.target.value)}
+                            />
+                          </div>
+                        </div>
 
-                    <div>
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.certifications')}</h3>
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm text-afrikoni-deep">
-                          <input
-                            type="checkbox"
-                            className="rounded"
-                            checked={selectedFilters.certifications.includes('ISO')}
-                            onChange={(e) => {
-                              const certs = e.target.checked
-                                ? [...selectedFilters.certifications, 'ISO']
-                                : selectedFilters.certifications.filter(c => c !== 'ISO');
-                              setSelectedFilters({ ...selectedFilters, certifications: certs });
-                            }}
-                          />
-                          <span>{t('marketplace.isoCertified')}</span>
-                        </label>
-                        <label className="flex items-center gap-2 text-sm text-afrikoni-deep">
-                          <input
-                            type="checkbox"
-                            className="rounded"
-                            checked={selectedFilters.certifications.includes('Trade Shield')}
-                            onChange={(e) => {
-                              const certs = e.target.checked
-                                ? [...selectedFilters.certifications, 'Trade Shield']
-                                : selectedFilters.certifications.filter(c => c !== 'Trade Shield');
-                              setSelectedFilters({ ...selectedFilters, certifications: certs });
-                            }}
-                          />
-                          <span>{t('marketplace.tradeShieldEligible')}</span>
-                        </label>
-                      </div>
-                    </div>
+                        <div>
+                          <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">
+                            Certifications
+                          </h3>
+                          <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-sm text-white/70">
+                              <input
+                                type="checkbox"
+                                className="rounded bg-white/10 border-white/20 text-afrikoni-gold focus:ring-afrikoni-gold"
+                                checked={selectedFilters.certifications.includes('ISO')}
+                                onChange={(e) => {
+                                  const certs = e.target.checked
+                                    ? [...selectedFilters.certifications, 'ISO']
+                                    : selectedFilters.certifications.filter(c => c !== 'ISO');
+                                  setSelectedFilters({ ...selectedFilters, certifications: certs });
+                                }}
+                              />
+                              <span>{t('marketplace.isoCertified')}</span>
+                            </label>
+                            <label className="flex items-center gap-2 text-sm text-white/70">
+                              <input
+                                type="checkbox"
+                                className="rounded bg-white/10 border-white/20 text-afrikoni-gold focus:ring-afrikoni-gold"
+                                checked={selectedFilters.certifications.includes('Trade Shield')}
+                                onChange={(e) => {
+                                  const certs = e.target.checked
+                                    ? [...selectedFilters.certifications, 'Trade Shield']
+                                    : selectedFilters.certifications.filter(c => c !== 'Trade Shield');
+                                  setSelectedFilters({ ...selectedFilters, certifications: certs });
+                                }}
+                              />
+                              <span>{t('marketplace.tradeShieldEligible')}</span>
+                            </label>
+                          </div>
+                        </div>
 
-                    <div>
-                      <h3 className="font-semibold text-afrikoni-chestnut mb-3">{t('marketplace.leadTime')}</h3>
-                      <div className="space-y-2">
-                        <button
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedFilters.deliveryTime === 'ready'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
-                            : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
-                            }`}
-                          onClick={() => setSelectedFilters({
-                            ...selectedFilters,
-                            deliveryTime: selectedFilters.deliveryTime === 'ready' ? '' : 'ready'
-                          })}
-                        >
-                          {t('marketplace.ready')}
-                        </button>
-                        <button
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedFilters.deliveryTime === '7days'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
-                            : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
-                            }`}
-                          onClick={() => setSelectedFilters({
-                            ...selectedFilters,
-                            deliveryTime: selectedFilters.deliveryTime === '7days' ? '' : '7days'
-                          })}
-                        >
-                          {t('marketplace.within7Days')}
-                        </button>
-                        <button
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedFilters.deliveryTime === '30days'
-                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
-                            : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
-                            }`}
-                          onClick={() => setSelectedFilters({
-                            ...selectedFilters,
-                            deliveryTime: selectedFilters.deliveryTime === '30days' ? '' : '30days'
-                          })}
-                        >
-                          {t('marketplace.within30Days')}
-                        </button>
-                      </div>
-                    </div>
-
-                    <Button
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream"
-                      size="sm"
-                      onClick={applyFilters}
-                    >
-                      {t('marketplace.applyFilters')}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedFilters({
-                          category: '',
-                          country: '',
-                          verification: '',
-                          priceRange: '',
-                          moq: '',
-                          certifications: [],
-                          deliveryTime: '',
-                          verified: false,
-                          fastResponse: false,
-                          readyToShip: false
-                        });
-                        setPriceMin('');
-                        setPriceMax('');
-                        setMoqMin('');
-                        setSearchQuery('');
-                      }}
-                    >
-                      {t('marketplace.clearAll')}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Search History */}
-                <SearchHistory
-                  onSelectSearch={(query) => {
-                    setSearchQuery(query);
-                    addSearchToHistory(query);
-                  }}
-                  onClearHistory={() => { }}
-                />
-
-                {/* Saved Searches */}
-                {savedSearches.length > 0 && (
-                  <Card className="mt-4">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-afrikoni-chestnut flex items-center gap-2">
-                          <Bookmark className="w-4 h-4" />
-                          {t('marketplace.savedSearches')}
-                        </h3>
-                      </div>
-                      <div className="space-y-2">
-                        {(Array.isArray(savedSearches) ? savedSearches : []).map((saved) => (
-                          <div
-                            key={saved.id}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-afrikoni-offwhite group"
-                          >
+                        <div>
+                          <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">
+                            Lead Time
+                          </h3>
+                          <div className="space-y-2">
                             <button
-                              onClick={() => loadSavedSearch(saved)}
-                              className="flex-1 text-left text-sm text-afrikoni-deep hover:text-afrikoni-gold"
+                              className={`w-full text-left px-4 py-2 rounded-xl text-xs transition-all ${selectedFilters.deliveryTime === 'ready'
+                                ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-black'
+                                : 'text-white/40 hover:bg-white/5 hover:text-white/90'
+                                }`}
+                              onClick={() => setSelectedFilters({
+                                ...selectedFilters,
+                                deliveryTime: selectedFilters.deliveryTime === 'ready' ? '' : 'ready'
+                              })}
                             >
-                              {saved.name}
+                              {t('marketplace.ready')}
                             </button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => deleteSavedSearch(saved.id)}
+                            <button
+                              className={`w-full text-left px-4 py-2 rounded-xl text-xs transition-all ${selectedFilters.deliveryTime === '7days'
+                                ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-black'
+                                : 'text-white/40 hover:bg-white/5 hover:text-white/90'
+                                }`}
+                              onClick={() => setSelectedFilters({
+                                ...selectedFilters,
+                                deliveryTime: selectedFilters.deliveryTime === '7days' ? '' : '7days'
+                              })}
                             >
-                              <X className="w-3 h-3" />
-                            </Button>
+                              {t('marketplace.within7Days')}
+                            </button>
+                            <button
+                              className={`w-full text-left px-4 py-2 rounded-xl text-xs transition-all ${selectedFilters.deliveryTime === '30days'
+                                ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-black'
+                                : 'text-white/40 hover:bg-white/5 hover:text-white/90'
+                                }`}
+                              onClick={() => setSelectedFilters({
+                                ...selectedFilters,
+                                deliveryTime: selectedFilters.deliveryTime === '30days' ? '' : '30days'
+                              })}
+                            >
+                              {t('marketplace.within30Days')}
+                            </button>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                        </div>
 
-                {/* Save Current Search Button */}
-                {(searchQuery || selectedFilters.category || selectedFilters.country || priceMin || priceMax || moqMin) && (
-                  <Card className="mt-4">
-                    <CardContent className="p-4">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        size="sm"
-                        onClick={saveCurrentSearch}
-                      >
-                        <BookmarkCheck className="w-4 h-4 mr-2" />
-                        {t('marketplace.saveThisSearch')}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </aside>
+                        <Button
+                          className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+                          size="lg"
+                          onClick={applyFilters}
+                        >
+                          {t('marketplace.applyFilters')}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="w-full text-white/70 hover:bg-white/5"
+                          size="lg"
+                          onClick={() => {
+                            setSelectedFilters({
+                              category: '',
+                              country: '',
+                              verification: '',
+                              priceRange: '',
+                              moq: '',
+                              certifications: [],
+                              deliveryTime: '',
+                              verified: false,
+                              fastResponse: false,
+                              readyToShip: false
+                            });
+                            setPriceMin('');
+                            setPriceMax('');
+                            setMoqMin('');
+                            setSearchQuery('');
+                          }}
+                        >
+                          {t('marketplace.clearAll')}
+                        </Button>
+                      </Surface>
 
-            {/* Enhanced Products Grid */}
-            <main className="flex-1 min-w-0">
-              <div className="mb-6 md:mb-8">
-                {/* Active Filters Display */}
-                {(selectedFilters.category || selectedFilters.country || selectedFilters.verification ||
-                  priceMin || priceMax || moqMin || selectedFilters.certifications.length > 0 ||
-                  selectedFilters.deliveryTime || selectedFilters.verified || selectedFilters.fastResponse ||
-                  selectedFilters.readyToShip || debouncedSearchQuery) && (
-                    <div className="flex items-center gap-2 flex-wrap mt-3">
-                      <span className="text-xs text-afrikoni-deep/70">{t('marketplace.activeFilters')}</span>
-                      {debouncedSearchQuery && (
-                        <Badge variant="outline" className="text-xs">
-                          {t('common.search')}: "{debouncedSearchQuery}"
-                          <X
-                            className="w-3 h-3 ml-1 cursor-pointer"
-                            onClick={() => setSearchQuery('')}
-                          />
-                        </Badge>
+                      {/* Search History */}
+                      <SearchHistory
+                        onSelectSearch={(query) => {
+                          setSearchQuery(query);
+                          addSearchToHistory(query);
+                        }}
+                        onClearHistory={() => { }}
+                      />
+
+                      {/* Saved Searches */}
+                      {savedSearches.length > 0 && (
+                        <Surface variant="glass" className="mt-4 border-white/5 p-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-white/90 flex items-center gap-2">
+                              <Bookmark className="w-4 h-4 text-afrikoni-gold" />
+                              {t('marketplace.savedSearches')}
+                            </h3>
+                          </div>
+                          <div className="space-y-2">
+                            {(Array.isArray(savedSearches) ? savedSearches : []).map((saved) => (
+                              <div
+                                key={saved.id}
+                                className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 group"
+                              >
+                                <button
+                                  onClick={() => loadSavedSearch(saved)}
+                                  className="flex-1 text-left text-sm text-white/70 hover:text-afrikoni-gold"
+                                >
+                                  {saved.name}
+                                </button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-white/50 hover:bg-white/10"
+                                  onClick={() => deleteSavedSearch(saved.id)}
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </Surface>
                       )}
-                      {selectedFilters.category && selectedFilters.category !== t('categories.all') && (
-                        <Badge variant="outline" className="text-xs">
-                          {(() => {
-                            // Find category name by ID if it's a UUID, otherwise use the value directly
-                            const category = (Array.isArray(categories) ? categories : []).find(cat => cat && (cat.id === selectedFilters.category || cat.name === selectedFilters.category));
-                            return category?.name || selectedFilters.category;
-                          })()}
-                          <X
-                            className="w-3 h-3 ml-1 cursor-pointer"
-                            onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })}
-                          />
-                        </Badge>
-                      )}
-                      {selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries') && (
-                        <Badge variant="outline" className="text-xs">
-                          {selectedFilters.country}
-                          <X
-                            className="w-3 h-3 ml-1 cursor-pointer"
-                            onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
-                          />
-                        </Badge>
-                      )}
-                      {selectedFilters.verified && (
-                        <Badge variant="outline" className="text-xs">
-                          {t('products.verified')}
-                          <X
-                            className="w-3 h-3 ml-1 cursor-pointer"
-                            onClick={() => setSelectedFilters({ ...selectedFilters, verified: false })}
-                          />
-                        </Badge>
-                      )}
-                      {(priceMin || priceMax) && (
-                        <Badge variant="outline" className="text-xs">
-                          ${priceMin || '0'} - ${priceMax || '∞'}
-                          <X
-                            className="w-3 h-3 ml-1 cursor-pointer"
-                            onClick={() => {
-                              setPriceMin('');
-                              setPriceMax('');
-                            }}
-                          />
-                        </Badge>
-                      )}
-                      {moqMin && (
-                        <Badge variant="outline" className="text-xs">
-                          {t('products.moq')}: {moqMin}+
-                          <X
-                            className="w-3 h-3 ml-1 cursor-pointer"
-                            onClick={() => setMoqMin('')}
-                          />
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-              </div>
-              {/* Top toolbar: AI best match, sort, and view toggle */}
-              <div className="flex items-center justify-between gap-3 mb-6 flex-wrap bg-white/50 rounded-xl p-4 border border-afrikoni-gold/20">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm md:text-base font-semibold text-afrikoni-chestnut">
-                    {t('marketplace.bestMatchForYou') || 'Best match for you'}
-                  </span>
-                  <span className="text-xs md:text-sm text-afrikoni-deep/70">
-                    Let AI highlight the single best product for your company.
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <AICopilotButton
-                    label={t('marketplace.bestMatchForYou') || 'Best match for you'}
-                    size="sm"
-                    variant="secondary"
-                    className="bg-white border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold"
-                    loading={aiBestMatchLoading}
-                    onClick={async () => {
-                      setAiBestMatch(null);
-                      if (!Array.isArray(filteredProducts) || filteredProducts.length === 0) return;
-                      setAiBestMatchLoading(true);
-                      try {
-                        // Use auth from context
-                        if (!profile) {
-                          setAiBestMatch(null);
-                          return;
-                        }
-                        const { success, productIds } = await suggestProductsForBuyer(
-                          {
-                            id: profile.id,
-                            company_name: profile.company_name,
-                            country: profile.country,
-                            categories: profile.categories
-                          },
-                          filteredProducts
-                        );
-                        if (success && Array.isArray(productIds) && productIds.length > 0) {
-                          const bestId = productIds.find(id =>
-                            filteredProducts.some(p => p.id === id)
-                          );
-                          const match = filteredProducts.find(p => p.id === bestId) || null;
-                          setAiBestMatch(match);
-                        }
-                      } catch {
-                        setAiBestMatch(null);
-                      } finally {
-                        setAiBestMatchLoading(false);
-                      }
-                    }}
-                  />
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-40 md:w-52 h-11 md:h-10 min-h-[44px] md:min-h-0 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 rounded-xl shadow-sm font-medium bg-white touch-manipulation">
-                      <SelectValue placeholder={t('marketplace.sortBy') || 'Sort by: Newest First'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="-created_at">🆕 {t('marketplace.newestListings') || 'Newest First'}</SelectItem>
-                      <SelectItem value="price_min">💰 {t('marketplace.lowestPrice') || 'Price: Low to High'}</SelectItem>
-                      <SelectItem value="-price_min">💎 {t('marketplace.highestPrice') || 'Price: High to Low'}</SelectItem>
-                      <SelectItem value="min_order_quantity">📦 {t('marketplace.lowestMOQ') || 'MOQ: Low to High'}</SelectItem>
-                      <SelectItem value="-min_order_quantity">📦 {t('marketplace.highestMOQ') || 'MOQ: High to Low'}</SelectItem>
-                      <SelectItem value="relevance">⭐ {t('marketplace.bestMatch') || 'Best Match'}</SelectItem>
-                      <SelectItem value="-views">👁️ {t('marketplace.mostViewed') || 'Most Viewed'}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="hidden md:flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-medium"
-                    >
-                      {t('marketplace.grid') || 'Grid'}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-medium"
-                    >
-                      {t('marketplace.list') || 'List'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
 
-              {aiBestMatch && (
-                <div className="mb-4">
-                  <AISuggestionCard
-                    title={aiBestMatch.title || aiBestMatch.name}
-                    description={aiBestMatch.short_description || aiBestMatch.description}
-                    badges={[
-                      aiBestMatch?.companies?.country
-                        ? { label: aiBestMatch.companies.country }
-                        : null
-                    ].filter(Boolean)}
-                    onClick={() => {
-                      addToViewHistory(aiBestMatch.id, 'product', {
-                        title: aiBestMatch.title || aiBestMatch.name,
-                        category_id: aiBestMatch.category_id,
-                        country: aiBestMatch.country_of_origin
-                      });
-                    }}
-                  />
-                </div>
-              )}
-
-              {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                  {[...Array(8)].map((_, i) => (
-                    <Card key={i} className="animate-pulse border-2 border-afrikoni-gold/10 overflow-hidden">
-                      <div className="h-56 bg-gradient-to-br from-afrikoni-cream to-afrikoni-gold/10" />
-                      <CardContent className="p-5 space-y-3">
-                        <div className="h-5 bg-afrikoni-cream rounded-lg w-3/4" />
-                        <div className="h-4 bg-afrikoni-cream rounded-lg w-1/2" />
-                        <div className="h-4 bg-afrikoni-cream rounded-lg w-2/3" />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-white to-afrikoni-cream/30 shadow-xl overflow-hidden">
-                  <CardContent className="p-12 md:p-16 text-center">
-                    <div className="w-20 h-20 bg-afrikoni-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                      <Package className="w-10 h-10 text-afrikoni-gold" />
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
-                      {t('marketplace.noExactMatches')}
-                    </h3>
-                    <p className="text-base md:text-lg text-afrikoni-deep/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-                      {t('marketplace.afrikoniWorksThroughRFQs')}
-                    </p>
-
-                    {/* Enhanced Primary CTA */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                      <Button
-                        size="lg"
-                        className="bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/90 hover:from-afrikoni-gold/90 hover:to-afrikoni-gold text-white font-bold shadow-lg hover:shadow-xl transition-all px-8 py-6 h-auto rounded-xl"
-                        asChild
-                      >
-                        <Link to="/rfq/create">
-                          <FileText className="w-5 h-5 mr-2" />
-                          {t('marketplace.postRequestRFQ')}
-                        </Link>
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold px-8 py-6 h-auto rounded-xl shadow-sm hover:shadow-md"
-                        asChild
-                      >
-                        <Link to="/contact">
-                          <MessageSquare className="w-5 h-5 mr-2" />
-                          {t('marketplace.talkToTradeAdvisor')}
-                        </Link>
-                      </Button>
-                    </div>
-
-                    {/* Enhanced Visual Reassurance */}
-                    <div className="flex items-center justify-center gap-4 md:gap-6 flex-wrap">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
-                        <Shield className="w-4 h-4 text-afrikoni-gold" />
-                        <span className="text-sm font-medium text-afrikoni-chestnut">{t('marketplace.verifiedSuppliersOnly')}</span>
-                      </div>
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
-                        <MessageSquare className="w-4 h-4 text-afrikoni-purple" />
-                        <span className="text-sm font-medium text-afrikoni-chestnut">{t('marketplace.humanLedSourcing')}</span>
-                      </div>
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white/80 rounded-xl border border-afrikoni-gold/20 shadow-sm">
-                        <Award className="w-4 h-4 text-afrikoni-gold" />
-                        <span className="text-sm font-medium text-afrikoni-chestnut">{t('marketplace.escrowProtected')}</span>
-                      </div>
-                    </div>
-
-                    {/* Optional Smart Hint */}
-                    <p className="text-xs text-afrikoni-deep/60 italic max-w-xl mx-auto">
-                      {t('marketplace.mostSuccessfulTradesHint')}
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
-                  {Array.isArray(filteredProducts) && filteredProducts.map((product, idx) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      priority={idx < 2} // Load first 2 images immediately on mobile, more on desktop (handled by OptimizedImage)
-                    />
-                  ))}
-                  {/* Fill empty space when there are few products */}
-                  {filteredProducts.length > 0 && filteredProducts.length < 4 && (
-                    <div className="hidden lg:block">
-                      <Card className="border-afrikoni-gold/10 bg-gradient-to-br from-afrikoni-offwhite to-white h-full">
-                        <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full min-h-[400px]">
-                          <Package className="w-12 h-12 text-afrikoni-gold/40 mb-4" />
-                          <h3 className="font-semibold text-afrikoni-chestnut mb-2">{t('marketplace.moreVerifiedSuppliers')}</h3>
-                          <p className="text-sm text-afrikoni-deep/70 mb-4">
-                            {t('marketplace.moreSuppliersOnboardedDaily')}
-                          </p>
+                      {/* Save Current Search Button */}
+                      {(searchQuery || selectedFilters.category || selectedFilters.country || priceMin || priceMax || moqMin) && (
+                        <Surface variant="glass" className="mt-4 border-white/5 p-6">
                           <Button
                             variant="outline"
+                            className="w-full border-afrikoni-gold/30 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                            size="lg"
+                            onClick={saveCurrentSearch}
+                          >
+                            <BookmarkCheck className="w-4 h-4 mr-2" />
+                            {t('marketplace.saveThisSearch')}
+                          </Button>
+                        </Surface>
+                      )}
+                    </div>
+                  </aside>
+
+                  {/* Enhanced Products Grid */}
+                  <main className="flex-1 min-w-0">
+                    <div className="mb-6 md:mb-8">
+                      {/* Active Filters Display */}
+                      {(selectedFilters.category || selectedFilters.country || selectedFilters.verification ||
+                        priceMin || priceMax || moqMin || selectedFilters.certifications.length > 0 ||
+                        selectedFilters.deliveryTime || selectedFilters.verified || selectedFilters.fastResponse ||
+                        selectedFilters.readyToShip || debouncedSearchQuery) && (
+                          <div className="flex items-center gap-2 flex-wrap mt-3">
+                            <span className="text-xs text-white/70">{t('marketplace.activeFilters')}</span>
+                            {debouncedSearchQuery && (
+                              <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/80">
+                                {t('common.search')}: "{debouncedSearchQuery}"
+                                <X
+                                  className="w-3 h-3 ml-1 cursor-pointer"
+                                  onClick={() => setSearchQuery('')}
+                                />
+                              </Badge>
+                            )}
+                            {selectedFilters.category && selectedFilters.category !== t('categories.all') && (
+                              <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/80">
+                                {(() => {
+                                  // Find category name by ID if it's a UUID, otherwise use the value directly
+                                  const category = (Array.isArray(categories) ? categories : []).find(cat => cat && (cat.id === selectedFilters.category || cat.name === selectedFilters.category));
+                                  return category?.name || selectedFilters.category;
+                                })()}
+                                <X
+                                  className="w-3 h-3 ml-1 cursor-pointer"
+                                  onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })}
+                                />
+                              </Badge>
+                            )}
+                            {selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries') && (
+                              <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/80">
+                                {selectedFilters.country}
+                                <X
+                                  className="w-3 h-3 ml-1 cursor-pointer"
+                                  onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })}
+                                />
+                              </Badge>
+                            )}
+                            {selectedFilters.verified && (
+                              <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/80">
+                                {t('products.verified')}
+                                <X
+                                  className="w-3 h-3 ml-1 cursor-pointer"
+                                  onClick={() => setSelectedFilters({ ...selectedFilters, verified: false })}
+                                />
+                              </Badge>
+                            )}
+                            {(priceMin || priceMax) && (
+                              <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/80">
+                                ${priceMin || '0'} - ${priceMax || '∞'}
+                                <X
+                                  className="w-3 h-3 ml-1 cursor-pointer"
+                                  onClick={() => {
+                                    setPriceMin('');
+                                    setPriceMax('');
+                                  }}
+                                />
+                              </Badge>
+                            )}
+                            {moqMin && (
+                              <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/80">
+                                {t('products.moq')}: {moqMin}+
+                                <X
+                                  className="w-3 h-3 ml-1 cursor-pointer"
+                                  onClick={() => setMoqMin('')}
+                                />
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                    </div>
+                    {/* Top toolbar: AI best match, sort, and view toggle */}
+                    <div className="flex items-center justify-between gap-3 mb-6 flex-wrap bg-white/50 rounded-xl p-4 border border-afrikoni-gold/20">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm md:text-base font-semibold text-afrikoni-chestnut">
+                          {t('marketplace.bestMatchForYou') || 'Best match for you'}
+                        </span>
+                        <span className="text-xs md:text-sm text-afrikoni-deep/70">
+                          Let AI highlight the single best product for your company.
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <AICopilotButton
+                          label={t('marketplace.bestMatchForYou') || 'Best match for you'}
+                          size="sm"
+                          variant="secondary"
+                          className="bg-white border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold"
+                          loading={aiBestMatchLoading}
+                          onClick={async () => {
+                            setAiBestMatch(null);
+                            if (!Array.isArray(filteredProducts) || filteredProducts.length === 0) return;
+                            setAiBestMatchLoading(true);
+                            try {
+                              // Use auth from context
+                              if (!profile) {
+                                setAiBestMatch(null);
+                                return;
+                              }
+                              const { success, productIds } = await suggestProductsForBuyer(
+                                {
+                                  id: profile.id,
+                                  company_name: profile.company_name,
+                                  country: profile.country,
+                                  categories: profile.categories
+                                },
+                                filteredProducts
+                              );
+                              if (success && Array.isArray(productIds) && productIds.length > 0) {
+                                const bestId = productIds.find(id =>
+                                  filteredProducts.some(p => p.id === id)
+                                );
+                                const match = filteredProducts.find(p => p.id === bestId) || null;
+                                setAiBestMatch(match);
+                              }
+                            } catch {
+                              setAiBestMatch(null);
+                            } finally {
+                              setAiBestMatchLoading(false);
+                            }
+                          }}
+                        />
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                          <SelectTrigger className="w-40 md:w-52 h-11 md:h-10 min-h-[44px] md:min-h-0 border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold/50 rounded-xl shadow-sm font-medium bg-white touch-manipulation">
+                            <SelectValue placeholder={t('marketplace.sortBy') || 'Sort by: Newest First'} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="-created_at">🆕 {t('marketplace.newestListings') || 'Newest First'}</SelectItem>
+                            <SelectItem value="price_min">💰 {t('marketplace.lowestPrice') || 'Price: Low to High'}</SelectItem>
+                            <SelectItem value="-price_min">💎 {t('marketplace.highestPrice') || 'Price: High to Low'}</SelectItem>
+                            <SelectItem value="min_order_quantity">📦 {t('marketplace.lowestMOQ') || 'MOQ: Low to High'}</SelectItem>
+                            <SelectItem value="-min_order_quantity">📦 {t('marketplace.highestMOQ') || 'MOQ: High to Low'}</SelectItem>
+                            <SelectItem value="relevance">⭐ {t('marketplace.bestMatch') || 'Best Match'}</SelectItem>
+                            <SelectItem value="-views">👁️ {t('marketplace.mostViewed') || 'Most Viewed'}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="hidden md:flex items-center gap-2">
+                          <Button
+                            variant="ghost"
                             size="sm"
-                            className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10"
+                            className="text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-medium"
+                          >
+                            {t('marketplace.grid') || 'Grid'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-medium"
+                          >
+                            {t('marketplace.list') || 'List'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {aiBestMatch && (
+                      <div className="mb-12">
+                        <AISuggestionCard
+                          suggestion={{
+                            type: 'product',
+                            name: aiBestMatch.name || aiBestMatch.title,
+                            product: aiBestMatch
+                          }}
+                          onAction={() => {
+                            addToViewHistory(aiBestMatch.id, 'product', {
+                              title: aiBestMatch.title || aiBestMatch.name,
+                              category_id: aiBestMatch.category_id,
+                              country: aiBestMatch.country_of_origin
+                            });
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {isLoading ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {[...Array(8)].map((_, i) => (
+                          <Surface key={i} variant="glass" className="animate-pulse border-white/5 h-[380px] flex flex-col">
+                            <div className="h-48 bg-white/5 rounded-t-xl" />
+                            <div className="p-5 space-y-3 flex-1">
+                              <div className="h-4 bg-white/5 rounded w-3/4" />
+                              <div className="h-4 bg-white/5 rounded w-1/2" />
+                            </div>
+                          </Surface>
+                        ))}
+                      </div>
+                    ) : filteredProducts.length === 0 ? (
+                      <Surface variant="glass" className="p-20 text-center border-white/5">
+                        <Package className="w-16 h-16 text-afrikoni-gold/40 mx-auto mb-6" />
+                        <h3 className="text-2xl font-black text-white/90 mb-4">{t('marketplace.noProductsFound')}</h3>
+                        <p className="text-white/40 text-lg mb-8 max-w-md mx-auto">
+                          {t('marketplace.changeFiltersOrSearch')}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                          <Button
+                            className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white h-12 px-8 rounded-xl"
                             asChild
                           >
                             <Link to="/rfq/create">{t('marketplace.postAnRFQ')}</Link>
                           </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
-                  {/* Show skeleton loaders for remaining grid slots when < 8 products */}
-                  {filteredProducts.length > 0 && filteredProducts.length < 8 && (
-                    <>
-                      {[...Array(Math.min(8 - filteredProducts.length, 4))].map((_, i) => (
-                        <Card key={`skeleton-${i}`} className="animate-pulse opacity-30">
-                          <div className="h-48 bg-afrikoni-cream rounded-t-xl" />
-                          <CardContent className="p-4 space-y-2">
-                            <div className="h-4 bg-afrikoni-cream rounded w-3/4" />
-                            <div className="h-4 bg-afrikoni-cream rounded w-1/2" />
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </>
-                  )}
-                </div>
-              )}
+                        </div>
+                      </Surface>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {Array.isArray(filteredProducts) && filteredProducts.map((product, idx) => (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            priority={idx < 2}
+                          />
+                        ))}
+                        {/* Fill empty space when there are few products */}
+                        {filteredProducts.length > 0 && filteredProducts.length < 4 && (
+                          <Surface variant="glass" className="hidden lg:flex flex-col items-center justify-center p-8 text-center border-white/5 bg-white/5">
+                            <Package className="w-10 h-10 text-afrikoni-gold/30 mb-4" />
+                            <h3 className="font-bold text-white/90 mb-2">{t('marketplace.moreVerifiedSuppliers')}</h3>
+                            <p className="text-xs text-white/40 mb-6">
+                              {t('marketplace.moreSuppliersOnboardedDaily')}
+                            </p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-afrikoni-gold/30 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                              asChild
+                            >
+                              <Link to="/rfq/create">{t('marketplace.postAnRFQ')}</Link>
+                            </Button>
+                          </Surface>
+                        )}
 
-              {/* Pagination */}
-              <PaginationFooter
-                currentPage={pagination.page}
-                totalPages={pagination.totalPages}
-                totalCount={pagination.totalCount}
-                pageSize={pagination.pageSize}
-                onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
-              />
-            </main>
+                        {/* Skeleton Loaders for remaining grid slots when < 8 products */}
+                        {filteredProducts.length > 0 && filteredProducts.length < 8 && (
+                          <>
+                            {[...Array(Math.min(8 - filteredProducts.length, 4))].map((_, i) => (
+                              <Surface key={`skeleton-${i}`} variant="glass" className="animate-pulse border-white/5 h-[380px] flex flex-col">
+                                <div className="h-48 bg-white/5 rounded-t-xl" />
+                                <div className="p-4 space-y-3 flex-1">
+                                  <div className="h-4 bg-white/5 rounded w-3/4" />
+                                  <div className="h-4 bg-white/5 rounded w-1/2" />
+                                </div>
+                              </Surface>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Pagination */}
+                    <PaginationFooter
+                      currentPage={pagination.page}
+                      totalPages={pagination.totalPages}
+                      totalCount={pagination.totalCount}
+                      pageSize={pagination.pageSize}
+                      onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
+                    />
+                  </main>
+                </div>
+              </div>
+
+              {/* Mobile Filters Drawer */}
+              <Drawer
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+                position="bottom"
+                title={t('marketplace.filters')}
+              >
+                <div className="space-y-6">
+                  {/* Same filter content as sidebar */}
+                  <div>
+                    <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Market Clusters</h3>
+                    <div className="space-y-2">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.id || cat}
+                          onClick={() => setSelectedFilters({ ...selectedFilters, category: cat.id || cat })}
+                          className={`w-full text-left px-4 py-3 rounded-xl text-xs font-black uppercase tracking-tight transition-all ${selectedFilters.category === (cat.id || cat)
+                            ? 'bg-afrikoni-gold/20 text-afrikoni-gold border border-afrikoni-gold/30'
+                            : 'text-white/40 border border-transparent hover:border-white/10 hover:bg-white/5'
+                            }`}
+                        >
+                          {cat.name || cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Button variant="primary" className="w-full min-h-[44px] text-sm sm:text-base touch-manipulation">
+                    Apply Filters
+                  </Button>
+                </div>
+              </Drawer>
+            </div>
           </div>
         </div>
-
-        {/* Mobile Filters Drawer */}
-        <Drawer
-          open={filtersOpen}
-          onOpenChange={setFiltersOpen}
-          position="bottom"
-          title={t('marketplace.filters')}
-        >
-          <div className="space-y-6">
-            {/* Same filter content as sidebar */}
-            <div>
-              <h3 className="font-semibold text-afrikoni-chestnut mb-3">Category</h3>
-              <div className="space-y-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedFilters({ ...selectedFilters, category: cat })}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedFilters.category === cat
-                      ? 'bg-afrikoni-gold/20 text-afrikoni-gold font-semibold'
-                      : 'text-afrikoni-deep hover:bg-afrikoni-offwhite'
-                      }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <Button variant="primary" className="w-full min-h-[44px] text-sm sm:text-base touch-manipulation">
-              Apply Filters
-            </Button>
-          </div>
-        </Drawer>
       </div>
     </>
   );
 }
-

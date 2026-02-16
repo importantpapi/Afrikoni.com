@@ -45,11 +45,11 @@ export default function RFQProcessPanel() {
           <span className="text-sm md:text-base font-semibold text-afrikoni-chestnut">
             {t('rfq.whatHappensAfter')}
           </span>
-          <ChevronDown 
+          <ChevronDown
             className={`w-4 h-4 text-afrikoni-gold transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           />
         </button>
-        
+
         <AnimatePresence>
           {isOpen && (
             <motion.div

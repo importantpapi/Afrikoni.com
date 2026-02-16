@@ -1,97 +1,83 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const ThemeContext = createContext({ theme: 'light', toggleTheme: () => { }, setTheme: () => { } });
+const ThemeContext = createContext({
+  theme: 'light',
+  palette: 'gold',
+  toggleTheme: () => { },
+  setTheme: () => { },
+  setPalette: () => { }
+});
 
-/**
- * ThemeProvider - Route-aware theme management
- *
- * DARK MODE SCOPE:
- * - Dashboard routes (/dashboard/*): Always dark mode (Trade OS aesthetic)
- * - Public routes (/, /marketplace, /login, etc.): Always light mode (premium feel)
- *
- * Users can toggle theme, but it only affects dashboard.
- * Public pages are always light for premium branding.
- */
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
-      // ✅ IMMEDIATE ROUTE CHECK to prevent "Dark Flash" on public pages
-      if (!window.location.pathname.startsWith('/dashboard')) {
+      if (!window.location.pathname.startsWith('/dashboard') &&
+        !window.location.pathname.startsWith('/onboarding')) {
         return 'light';
       }
-
       const stored = localStorage.getItem('afrikoni-theme');
       if (stored === 'dark' || stored === 'light') return stored;
-      // Default to dark for dashboard users
       return 'dark';
     } catch {
       return 'dark';
     }
   });
 
-  // Track pathname changes for route-based theming
+  const [palette, setPaletteState] = useState(() => {
+    try {
+      const stored = localStorage.getItem('afrikoni-palette');
+      const validPalettes = ['gold', 'cobalt', 'emerald', 'crimson'];
+      if (validPalettes.includes(stored)) return stored;
+      return 'gold';
+    } catch {
+      return 'gold';
+    }
+  });
+
   const [pathname, setPathname] = useState(window.location.pathname);
 
-  // Listen for route changes (works with React Router)
   useEffect(() => {
     const handleLocationChange = () => {
       setPathname(window.location.pathname);
     };
-
-    // Listen to popstate (browser back/forward)
     window.addEventListener('popstate', handleLocationChange);
-
-    // Also check pathname periodically for SPA navigation
     const interval = setInterval(handleLocationChange, 100);
-
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
       clearInterval(interval);
     };
   }, []);
 
-  // Apply theme class based on state
   useEffect(() => {
     const root = document.documentElement;
-    const isDashboard = pathname.startsWith('/dashboard');
+    const isAppSpace = pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding');
 
-    // ✅ STRICT THEME ENFORCEMENT:
-    // Dashboard: Respects user preference (Dark/Light)
-    // Public Pages: ALWAYS Light Mode (Premium Brand Standard)
-    if (isDashboard) {
-      if (theme === 'dark') {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
+    // Theme Class
+    if (isAppSpace) {
+      if (theme === 'dark') root.classList.add('dark');
+      else root.classList.remove('dark');
     } else {
-      // Force Light Mode on public pages regardless of preference
       root.classList.remove('dark');
     }
 
-    // Persist theme preference
+    // Palette Class
+    root.classList.forEach(className => {
+      if (className.startsWith('palette-')) root.classList.remove(className);
+    });
+    root.classList.add(`palette-${palette}`);
+
     try {
       localStorage.setItem('afrikoni-theme', theme);
-    } catch {
-      // Storage unavailable
-    }
-  }, [theme, pathname]);
-
-  // Route-based default themes (optional: reset to specific defaults on nav)
-  useEffect(() => {
-    // If we want to enforce defaults per section but allow overrides:
-    if (pathname.startsWith('/dashboard') && !localStorage.getItem('afrikoni-theme')) {
-      setThemeState('dark');
-    } else if (!pathname.startsWith('/dashboard') && !localStorage.getItem('afrikoni-theme')) {
-      setThemeState('light');
-    }
-  }, [pathname]);
+      localStorage.setItem('afrikoni-palette', palette);
+    } catch { }
+  }, [theme, palette, pathname]);
 
   const toggleTheme = () => setThemeState(prev => prev === 'dark' ? 'light' : 'dark');
   const setTheme = (t) => setThemeState(t);
+  const setPalette = (p) => setPaletteState(p);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, palette, toggleTheme, setTheme, setPalette }}>
       {children}
     </ThemeContext.Provider>
   );

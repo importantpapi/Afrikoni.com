@@ -11,7 +11,8 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
 
     const sections = [
         {
-            id: 'core',
+            id: 'intent',
+            label: 'Intent',
             items: [
                 {
                     id: 'dashboard',
@@ -20,140 +21,121 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                     icon: LayoutDashboard,
                     activeMatch: (path) => path === '/dashboard'
                 },
-                workspaceMode === 'operator' && {
-                    id: 'revenue',
-                    label: 'Sovereign Treasury',
-                    path: '/dashboard/revenue',
-                    icon: Landmark,
-                    activeMatch: (path) => path.startsWith('/dashboard/revenue')
-                },
-                {
-                    id: 'messages',
-                    label: 'Messages',
-                    path: '/dashboard/messages',
-                    icon: MessageSquare,
-                    activeMatch: (path) => path.startsWith('/dashboard/messages')
-                },
-                {
-                    id: 'notifications',
-                    label: 'Signals',
-                    path: '/dashboard/notifications',
-                    icon: Bell,
-                    badge: notificationCounts.messages || 0,
-                    activeMatch: (path) => path.startsWith('/dashboard/notifications')
-                }
-            ].filter(Boolean)
-        },
-        {
-            id: 'intake',
-            divider: true,
-            items: [
                 isBuyer && {
                     id: 'marketplace',
-                    label: 'Marketplace',
+                    label: 'Discovery',
                     path: '/marketplace',
-                    icon: Package,
+                    icon: Globe,
                     activeMatch: (path) => path.startsWith('/marketplace')
                 },
                 (isBuyer || isSeller) && {
                     id: 'rfqs',
-                    label: isSeller ? "Quotes" : "RFQs (Intake)",
+                    label: isSeller ? "Quote Intake" : "Sourcing (RFQ)",
                     path: isSeller ? "/dashboard/supplier-rfqs" : "/dashboard/rfqs",
                     icon: FileText,
                     badge: notificationCounts.rfqs || 0,
                     activeMatch: (path) => path.startsWith('/dashboard/rfqs') || path.startsWith('/dashboard/supplier-rfqs')
-                },
-                isSeller && {
-                    id: 'inventory',
-                    label: 'Inventory',
-                    path: '/dashboard/products',
-                    icon: Package,
-                    activeMatch: (path) => path.startsWith('/dashboard/products')
                 }
             ].filter(Boolean)
         },
         {
-            id: 'execution',
+            id: 'match',
             divider: true,
+            label: 'Match',
+            items: [
+                {
+                    id: 'trade-pipeline',
+                    label: 'Match Pipeline',
+                    path: '/dashboard/trade-pipeline',
+                    icon: GitBranch,
+                    activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline')
+                },
+                {
+                    id: 'messages',
+                    label: 'Negotiation',
+                    path: '/dashboard/messages',
+                    icon: MessageSquare,
+                    activeMatch: (path) => path.startsWith('/dashboard/messages')
+                }
+            ].filter(Boolean)
+        },
+        {
+            id: 'contract',
+            divider: true,
+            label: 'Contract',
             items: [
                 {
                     id: 'orders',
-                    label: 'Active Trades',
+                    label: 'Smart Agreements',
                     path: '/dashboard/orders',
                     icon: ShoppingCart,
                     activeMatch: (path) => path.startsWith('/dashboard/orders') || path.startsWith('/dashboard/trade/')
-                },
-                {
-                    id: 'corridors',
-                    label: 'Corridors',
-                    path: '/dashboard/corridors',
-                    icon: Globe,
-                    activeMatch: (path) => path.startsWith('/dashboard/corridors')
                 }
             ].filter(Boolean)
         },
         {
-            id: 'power_ups',
-            divider: workspaceMode === 'operator',
-            hidden: workspaceMode !== 'operator',
+            id: 'move',
+            divider: true,
+            label: 'Move',
             items: [
                 {
-                    id: 'trust',
-                    label: 'Trust Center',
+                    id: 'trace',
+                    label: 'Forensic Trace',
+                    path: '/dashboard/trace-center',
+                    icon: Lock,
+                    badge: 'LIVE',
+                    activeMatch: (path) => path.startsWith('/dashboard/trace-center')
+                },
+                (isLogistics || isBuyer || isSeller) && {
+                    id: 'logistics',
+                    label: 'Logistics Rail',
+                    path: '/dashboard/shipments',
+                    icon: Truck,
+                    activeMatch: (path) => path.startsWith('/dashboard/shipments')
+                }
+            ].filter(Boolean)
+        },
+        {
+            id: 'pay',
+            divider: true,
+            label: 'Pay',
+            items: [
+                {
+                    id: 'finance',
+                    label: 'Sovereign Pay',
+                    path: '/dashboard/payments',
+                    icon: Wallet,
+                    activeMatch: (path) => path.startsWith('/dashboard/payments')
+                },
+                workspaceMode === 'operator' && {
+                    id: 'revenue',
+                    label: 'Treasury',
+                    path: '/dashboard/revenue',
+                    icon: Landmark,
+                    activeMatch: (path) => path.startsWith('/dashboard/revenue')
+                }
+            ].filter(Boolean)
+        },
+        {
+            id: 'trust',
+            divider: true,
+            label: 'Trust',
+            items: [
+                {
+                    id: 'trust-center',
+                    label: 'Trust DNA',
                     path: '/dashboard/trust-center',
                     icon: Shield,
                     badge: 'NEW',
                     activeMatch: (path) => path.startsWith('/dashboard/trust-center')
                 },
                 {
-                    id: 'trace',
-                    label: 'Trace Center',
-                    path: '/dashboard/trace-center',
-                    icon: Lock,
-                    badge: 'LIVE',
-                    activeMatch: (path) => path.startsWith('/dashboard/trace-center')
-                },
-                {
                     id: 'verification',
-                    label: 'Verification Lab',
+                    label: 'Forensic Lab',
                     path: '/dashboard/verification-center',
                     icon: Building2,
                     badge: 'BETA',
                     activeMatch: (path) => path.startsWith('/dashboard/verification-center')
-                },
-                isSeller && {
-                    id: 'analytics',
-                    label: 'Sales Analytics',
-                    path: '/dashboard/sales',
-                    icon: BarChart3,
-                    activeMatch: (path) => path.startsWith('/dashboard/sales')
-                }
-            ].filter(Boolean)
-        },
-        {
-            id: 'fulfillment',
-            divider: true,
-            items: [
-                (isLogistics || isBuyer || isSeller) && {
-                    id: 'logistics',
-                    label: 'Logistics',
-                    path: '/dashboard/shipments',
-                    icon: Truck,
-                    activeMatch: (path) => path.startsWith('/dashboard/shipments')
-                },
-                {
-                    id: 'finance',
-                    label: 'Finance',
-                    path: '/dashboard/payments',
-                    icon: Wallet,
-                    activeMatch: (path) => path.startsWith('/dashboard/payments')
-                },
-                workspaceMode === 'operator' && {
-                    id: 'documents',
-                    label: 'Documents',
-                    path: '/dashboard/documents',
-                    icon: FileText,
-                    activeMatch: (path) => path.startsWith('/dashboard/documents')
                 }
             ].filter(Boolean)
         }

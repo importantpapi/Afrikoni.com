@@ -20,8 +20,9 @@ import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import TradeTimeline from '@/components/trade/TradeTimeline';
 import { supabase } from '@/api/supabaseClient';
-import { transitionTrade, TRADE_STATE, TRADE_STATE_LABELS } from '@/services/tradeKernel';
+import { transitionTrade, clearLocalCurrency, TRADE_STATE, TRADE_STATE_LABELS } from '@/services/tradeKernel';
 import { useTradeEventLedger } from '@/hooks/useTradeEventLedger';
+import { generateForensicProfile } from '@/utils/auditReportGenerator';
 import RFQCreationPanel from '@/components/trade/RFQCreationPanel';
 import QuoteReviewPanel from '@/components/trade/QuoteReviewPanel';
 import ContractSigningPanel from '@/components/trade/ContractSigningPanel';
@@ -69,6 +70,20 @@ export default function OneFlow() {
   if (!isSystemReady) {
     return <PageLoader />;
   }
+
+  const handleExportAudit = () => {
+    if (!trade || !kernelTimeline) return;
+    const profile = generateForensicProfile(trade, kernelTimeline.map(t => t.raw));
+
+    // In production, this would trigger a PDF generation or print window
+    const win = window.open('', '_blank');
+    win.document.write(profile.reportHtml);
+    win.document.close();
+
+    toast.success('Forensic Audit Exported', {
+      description: 'Your bankable trade profile has been generated.'
+    });
+  };
 
   async function handleStateTransition(nextState, metadata = {}) {
     setIsTransitioning(true);
@@ -148,7 +163,7 @@ export default function OneFlow() {
                   <p className="text-[10px] uppercase tracking-[0.25em]">One-Flow</p>
                   <p className="text-sm">Single path. No detours.</p>
                 </div>
-                <div className="text-xs text-os-muted font-mono">ID: {trade.id.substring(0,8)}</div>
+                <div className="text-xs text-os-muted font-mono">ID: {trade.id.substring(0, 8)}</div>
               </div>
 
               <AnimatePresence mode="wait">
@@ -161,6 +176,7 @@ export default function OneFlow() {
                   <PanelComponent
                     trade={trade}
                     onNextStep={handleStateTransition}
+                    onExportAudit={handleExportAudit}
                     isTransitioning={isTransitioning}
                     capabilities={capabilities}
                     profile={profile}
@@ -270,18 +286,44 @@ function DefaultPanel({ trade }) {
   );
 }
 
-function SettlementPanel({ trade }) {
+function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
+  const [isClearing, setIsClearing] = useState(false);
+  const isPAPSSAvailable = trade.currency !== 'USD' && trade.currency !== 'EUR';
+  const isCleared = trade.metadata?.papss_clearing_success || false;
+
+  const handlePAPSSClearing = async () => {
+    setIsClearing(true);
+    try {
+      const result = await clearLocalCurrency(trade.id, trade.total_value, trade.currency);
+      if (result.success) {
+        toast.success('PAPSS Clearing Successful', {
+          description: `Settled ${trade.total_value} ${trade.currency} via instant rail.`
+        });
+      } else {
+        toast.error('PAPSS Clearing Failed', {
+          description: result.error
+        });
+      }
+    } catch (err) {
+      toast.error('Clearing Error', { description: err.message });
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   return (
     <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border border-emerald-500/20 bg-emerald-500/5">
-          <span className="text-2xl">💰</span>
+          <span className="text-2xl">{isCleared ? '✅' : '💰'}</span>
         </div>
         <h2 className="text-xl font-semibold">
-          Payment Released
+          {isCleared ? 'PAPSS Settlement Cleared' : 'Payment Released'}
         </h2>
         <p className="mt-2 text-os-muted">
-          Escrow funds have been released to the supplier.
+          {isCleared
+            ? 'Funds have been settled in local currency via the Pan-African rail.'
+            : 'Escrow funds have been released. Settlement in progress.'}
         </p>
         <div className="border rounded-xl p-4 mt-4 text-left bg-black/20 border-white/5">
           <p className="text-sm font-semibold">Order Summary</p>
@@ -292,9 +334,33 @@ function SettlementPanel({ trade }) {
             </div>
             <div>
               <p className="text-[10px] uppercase text-os-muted">Value</p>
-              <p className="text-sm">{trade.price_max || trade.price_min} {trade.currency}</p>
+              <p className="text-sm">{trade.total_value} {trade.currency}</p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3">
+          {isPAPSSAvailable && !isCleared && (
+            <Button
+              onClick={handlePAPSSClearing}
+              disabled={isClearing || isTransitioning}
+              className="w-full h-12 bg-afrikoni-gold text-black font-black uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02]"
+            >
+              {isClearing ? 'Clearing via PAPSS...' : 'Initiate PAPSS Clearing'}
+            </Button>
+          )}
+
+          <Button
+            onClick={() => onExportAudit()}
+            variant="outline"
+            className="w-full h-12 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 font-black uppercase tracking-widest rounded-xl transition-all"
+          >
+            <Fingerprint className="w-4 h-4 mr-2" />
+            Print Bankable Audit Report
+          </Button>
+          <p className="text-[10px] text-os-muted italic">
+            Certified by Afrikoni Sovereign Ledger. Use this report for trade finance applications.
+          </p>
         </div>
       </CardContent>
     </Card>
@@ -315,7 +381,7 @@ function DisputedPanel({ trade }) {
           This trade is under dispute. Escrow is frozen until resolution.
         </p>
         <p className="text-xs mt-4 font-mono opacity-50">
-          TICKET: {trade.id.substring(0,8)}
+          TICKET: {trade.id.substring(0, 8)}
         </p>
       </CardContent>
     </Card>

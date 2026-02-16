@@ -46,3 +46,4 @@ export * from './TrustBadge';
 export * from './Typography';
 export * from './VirtualList';
 export * from './WhatsAppButton';
+export * from './NBA';

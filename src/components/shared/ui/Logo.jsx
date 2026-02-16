@@ -13,13 +13,13 @@ import { cn } from '@/lib/utils';
  * @param {string} direction - 'vertical' | 'horizontal' - Layout direction (default: 'vertical')
  * @param {string} className - Additional CSS classes
  */
-export function Logo({ 
-  type = 'full', 
-  size = 'md', 
+export function Logo({
+  type = 'full',
+  size = 'md',
   link = true,
   showTagline = false,
   direction = 'vertical',
-  className = '' 
+  className = ''
 }) {
   const sizeClasses = {
     sm: {
@@ -50,81 +50,70 @@ export function Logo({
 
   const sizes = sizeClasses[size] || sizeClasses.md;
 
-  // Logo SVG - Stylized emblem with chevrons, intertwined W's, and geometric patterns
+  // Logo SVG - Official Afrikoni Geometric Mark (2026 Edition)
   const LogoIcon = () => (
     <svg
-      viewBox="0 0 100 120"
+      viewBox="0 0 100 100"
       className={sizes.icon}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Outer Chevron (Roof/Arrow) - Higher contrast */}
+      {/* 1. TOP ROOF (Nested Chevrons) */}
       <path
-        d="M50 10 L20 40 L80 40 Z"
-        fill="none"
+        d="M15 40 L50 15 L85 40 M28 40 L50 25 L72 40"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* 2. CIRCULAR BASE */}
+      <path
+        d="M20 50 A30 30 0 1 0 80 50"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+
+      {/* 3. CENTER MOTIF (Interlocking Arches) */}
+      <path
+        d="M38 65 C38 50, 48 50, 50 60 C52 50, 62 50, 62 65"
         stroke="currentColor"
         strokeWidth="5"
         strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-afrikoni-gold"
-        opacity="1"
       />
-      {/* Inner Chevron */}
       <path
-        d="M50 20 L30 40 L70 40 Z"
-        fill="none"
+        d="M42 70 C42 60, 48 60, 50 68 C52 60, 58 60, 58 70"
         stroke="currentColor"
         strokeWidth="4"
         strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-afrikoni-gold"
-        opacity="0.9"
       />
-      {/* Circular/Oval Structure */}
-      <ellipse
-        cx="50"
-        cy="70"
-        rx="30"
-        ry="25"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="4"
-        className="text-afrikoni-gold"
-        opacity="1"
-      />
-      {/* Intertwined W's Pattern (simplified knot pattern) - Higher contrast */}
+
+      {/* 4. BOTTOM DIAMOND */}
       <path
-        d="M35 60 Q40 70, 50 65 Q60 70, 65 60 Q60 75, 50 70 Q40 75, 35 60"
-        fill="none"
+        d="M50 82 L53 85 L50 88 L47 85 Z"
+        fill="currentColor"
+      />
+
+      {/* 5. TRIBAL PERIMETER (Zigzags) */}
+      <path
+        d="M25 65 L28 62 L31 65 L34 62 L37 65 M63 65 L66 62 L69 65 L72 62 L75 65"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="2"
         strokeLinecap="round"
-        className="text-afrikoni-gold"
-        opacity="0.95"
       />
       <path
-        d="M35 80 Q40 70, 50 75 Q60 70, 65 80 Q60 65, 50 70 Q40 65, 35 80"
-        fill="none"
+        d="M28 75 L32 72 L36 75 L40 72 L44 75 M56 75 L60 72 L64 75 L68 72 L72 75"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="2"
         strokeLinecap="round"
-        className="text-afrikoni-gold"
-        opacity="0.95"
       />
-      {/* Geometric Pattern Band (triangles and lines) */}
-      <g className="text-afrikoni-gold">
-        {/* Triangles */}
-        <path d="M40 90 L42 95 L38 95 Z" fill="currentColor" />
-        <path d="M45 90 L47 95 L43 95 Z" fill="currentColor" />
-        <path d="M50 90 L52 95 L48 95 Z" fill="currentColor" />
-        <path d="M55 90 L57 95 L53 95 Z" fill="currentColor" />
-        <path d="M60 90 L62 95 L58 95 Z" fill="currentColor" />
-        {/* Vertical Lines */}
-        <line x1="42" y1="90" x2="42" y2="95" stroke="currentColor" strokeWidth="1.5" />
-        <line x1="47" y1="90" x2="47" y2="95" stroke="currentColor" strokeWidth="1.5" />
-        <line x1="52" y1="90" x2="52" y2="95" stroke="currentColor" strokeWidth="1.5" />
-        <line x1="57" y1="90" x2="57" y2="95" stroke="currentColor" strokeWidth="1.5" />
-      </g>
+      <path
+        d="M35 85 L40 82 L45 85 M55 85 L60 82 L65 85"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 
@@ -152,7 +141,7 @@ export function Logo({
           </div>
         </div>
       )}
-      
+
       {/* Logo Text - Only show if type is 'full' or 'text' */}
       {(type === 'full' || type === 'text') && (
         <div className={cn(
